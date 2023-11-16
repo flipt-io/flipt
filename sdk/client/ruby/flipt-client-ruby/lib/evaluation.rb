@@ -33,6 +33,7 @@ module Flipt
     attach_function :boolean, [:pointer, :string], :string
 
     def initialize(namespace = "default")
+      @namespace = namespace
       namespace_list = [namespace]
       ns = FFI::MemoryPointer.new(:pointer, namespace_list.size)
       namespace_list.each_with_index do |namespace, i|
@@ -47,11 +48,15 @@ module Flipt
     end
 
     def variant(evaluation_request)
+      # TODO: create a struct for evaluation_request and marshal it to json
       self.class.variant(@engine, evaluation_request)
+      # TODO: create a struct for evaluation_response and unmarshal it from json
     end
 
     def boolean(evaluation_request)
+      # TODO: create a struct for evaluation_request and marshal it to json
       self.class.boolean(@engine, evaluation_request)
+      # TODO: create a struct for evaluation_response and unmarshal it from json
     end
   end
 end
