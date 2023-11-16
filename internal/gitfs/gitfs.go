@@ -117,19 +117,19 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 				return nil, fs.ErrNotExist
 			}
 
-			return nil, err
+			return nil, fmt.Errorf("finding entry %q: %w", name, err)
 		}
 	}
 
 	info, err := fileInfoFromEntry(entry)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("deriving info %q: %w", name, err)
 	}
 
 	if entry.Mode == filemode.Dir {
 		tree, err := object.GetTree(f.storage, entry.Hash)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("getting tree %q: %w", name, err)
 		}
 
 		var entries []fs.DirEntry
@@ -145,10 +145,10 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 				mode:  mode,
 			}
 
-			if entry.Mode != filemode.Dir {
+			if entry.Mode != filemode.Dir && entry.Mode != filemode.Submodule {
 				dEntry.fi, err = f.tree.TreeEntryFile(&entry)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("opening entry file %q: %w", name, err)
 				}
 			}
 
@@ -160,7 +160,7 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 
 	fi, err := f.tree.TreeEntryFile(entry)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("opening entry file %q: %w", name, err)
 	}
 
 	rd, err := fi.Reader()
