@@ -43,10 +43,3 @@ build/hack/out/
 examples/cockroachdb/data
 playwright-report/
 screenshots/
-
-# Rust
-**/target
-/Cargo.lock
-
-# Python
-**/__pycache__
