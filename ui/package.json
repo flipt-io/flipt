@@ -27,7 +27,7 @@
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "formik": "^2.4.5",
-    "highlight.js": "^11.8.0",
+    "highlight.js": "^11.9.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "monaco-editor": "^0.43.0",
