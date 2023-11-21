@@ -31,7 +31,7 @@ close({
 	key:          string & =~"^.+$"
 	name?:        string & =~"^.+$"
 	description?: string
-	attachment:   {...} | *null
+	attachment:   {...} | [...] | *null
 }
 
 #RuleSegment: {
