@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io"
 	"io/fs"
+	"path"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ var expected = map[string]string{
 }
 
 func Test_FS(t *testing.T) {
-	repo := testdataRepo(t)
+	repo := testdataRepo(t, "simple")
 
 	filesystem, err := NewFromRepo(zaptest.NewLogger(t), repo)
 	require.NoError(t, err)
@@ -152,6 +153,24 @@ func Test_FS(t *testing.T) {
 	})
 }
 
+func Test_FS_Submodule(t *testing.T) {
+	store := memory.NewStorage()
+	work := memfs.New()
+	repo, err := git.Clone(store, work, &git.CloneOptions{
+		URL: "https://github.com/flipt-io/flipt-gitops-test.git",
+	})
+	require.NoError(t, err)
+
+	// build gitfs instance on parent repo
+	filesystem, err := NewFromRepo(zaptest.NewLogger(t), repo)
+	require.NoError(t, err)
+
+	require.NoError(t, fs.WalkDir(filesystem, ".", func(path string, d fs.DirEntry, err error) error {
+		t.Log("open", path)
+		return err
+	}))
+}
+
 type closer struct {
 	io.ReadSeeker
 }
@@ -177,7 +196,7 @@ func requireCast[T any](t *testing.T, v any) (c T) {
 //go:embed all:testdata/*
 var testdata embed.FS
 
-func testdataRepo(t *testing.T) *git.Repository {
+func testdataRepo(t *testing.T, sub string) *git.Repository {
 	t.Helper()
 
 	workdir := memfs.New()
@@ -185,7 +204,7 @@ func testdataRepo(t *testing.T) *git.Repository {
 	repo, err := git.Init(memory.NewStorage(), workdir)
 	require.NoError(t, err)
 
-	dir, err := fs.Sub(testdata, "testdata")
+	dir, err := fs.Sub(testdata, path.Join("testdata", sub))
 	require.NoError(t, err)
 
 	// copy testdata into target tmp dir

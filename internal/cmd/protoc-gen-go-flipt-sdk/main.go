@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -13,6 +14,8 @@ import (
 const (
 	importPath  = "go.flipt.io/flipt/sdk/go"
 	emptyImport = "google.golang.org/protobuf/types/known/emptypb"
+
+	ignoreDecl = "flipt:sdk:ignore"
 )
 
 func main() {
@@ -33,6 +36,8 @@ func main() {
 			if !f.Generate {
 				continue
 			}
+
+			f.Services = slices.DeleteFunc(f.Services, shouldIgnoreService)
 
 			generateSubSDK(gen, f)
 		}
@@ -261,3 +266,11 @@ func New(t Transport, opts ...Option) SDK {
 
     return sdk
 }`
+
+func shouldIgnoreService(srv *protogen.Service) bool {
+	if srv.Comments.Leading != "" {
+		leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
+		return strings.TrimSpace(leading) == ignoreDecl
+	}
+	return false
+}
