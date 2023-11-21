@@ -15,29 +15,30 @@ import { format, parseISO } from 'date-fns';
 import React, { HTMLProps, useState } from 'react';
 import Searchbox from '~/components/Searchbox';
 import { IAuthToken } from '~/types/auth/Token';
+import Button from '~/components/forms/buttons/Button';
 
 type TokenRowActionsProps = {
   row: Row<IAuthToken>;
-  setDeletingToken: (token: IAuthToken) => void;
+  setDeletingTokens: (tokens: IAuthToken[]) => void;
   setShowDeleteTokenModal: (show: boolean) => void;
 };
 
 function TokenRowActions(props: TokenRowActionsProps) {
-  const { row, setDeletingToken, setShowDeleteTokenModal } = props;
+  const { row, setDeletingTokens, setShowDeleteTokenModal } = props;
 
-  let classes ="text-violet-600 hover:text-violet-900"
+  let className ="text-violet-600 hover:text-violet-900"
   if (row.getIsSelected()) {
-    classes = "text-gray-400 hover:cursor-not-allowed"
+    className = "text-gray-400 hover:cursor-not-allowed"
   }
 
   return (
     <a
       href="#"
-      className={classes}
+      className={className}
       onClick={(e) => {
         e.preventDefault();
         if (!row.getIsSelected()){
-          setDeletingToken(row.original);
+          setDeletingTokens([row.original]);
           setShowDeleteTokenModal(true);
         }
       }}
@@ -50,19 +51,25 @@ function TokenRowActions(props: TokenRowActionsProps) {
 
 type TokenTableProps = {
   tokens: IAuthToken[];
-  setDeletingToken: (token: IAuthToken) => void;
+  setDeletingTokens: (tokens: IAuthToken[]) => void;
   setShowDeleteTokenModal: (show: boolean) => void;
 };
 
 
 export default function TokenTable(props: TokenTableProps) {
-  const { tokens, setDeletingToken, setShowDeleteTokenModal } = props;
+  const { tokens, setDeletingTokens, setShowDeleteTokenModal } = props;
   const searchThreshold = 10;
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [filter, setFilter] = useState<string>('');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const columnHelper = createColumnHelper<IAuthToken>();
+
+  const deleteMultipleTokens = (table :Table) => {
+    setDeletingTokens(table.getSelectedRowModel().rows.map((r) => r.original));
+    setShowDeleteTokenModal(true);
+  }
+
 
   const columns = [
      {
@@ -84,11 +91,16 @@ export default function TokenTable(props: TokenTableProps) {
       />,
       meta: {
         className:
-          'whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6'
+          'whitespace-nowrap py-4 pl-3 pr-4 text-left'
       }
     },
     columnHelper.accessor('name', {
-      header: 'Name',
+      header:  ({ table }: Table) => {
+        if (table.getSelectedRowModel().rows.length > 0){
+          return <Button onClick={(e)=> {e.stopPropagation(); deleteMultipleTokens(table)}} title='Delete'>Delete</Button>
+        }
+        return 'Name'
+      },
       cell: (info) => info.getValue(),
       meta: {
         className:
@@ -142,7 +154,7 @@ export default function TokenTable(props: TokenTableProps) {
         <TokenRowActions
           // eslint-disable-next-line react/prop-types
           row={row}
-          setDeletingToken={setDeletingToken}
+          setDeletingTokens={setDeletingTokens}
           setShowDeleteTokenModal={setShowDeleteTokenModal}
         />
       ),
@@ -152,8 +164,6 @@ export default function TokenTable(props: TokenTableProps) {
       }
     })
   ];
-
-
 
   const table = useReactTable({
     data: tokens,
@@ -173,12 +183,6 @@ export default function TokenTable(props: TokenTableProps) {
 
   return (
     <>
-          <button
-          onClick={() => console.info('selection', table.getSelectedRowModel().flatRows)}
-        >
-          Log `rowSelection` state
-        </button>
-
       {tokens.length >= searchThreshold && (
         <Searchbox className="mb-6" value={filter ?? ''} onChange={setFilter} />
       )}
@@ -284,7 +288,7 @@ function IndeterminateCheckbox({
     <input
       type="checkbox"
       ref={ref}
-      className={className + ' cursor-pointer'}
+      className={className + ' cursor-pointer w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500'}
       {...rest}
     />
   )

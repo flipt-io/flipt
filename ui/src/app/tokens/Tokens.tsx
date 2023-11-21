@@ -9,7 +9,7 @@ import ShowTokenPanel from '~/components/tokens/ShowTokenPanel';
 import TokenForm from '~/components/tokens/TokenForm';
 import TokenTable from '~/components/tokens/TokenTable';
 import Well from '~/components/Well';
-import { deleteToken, listAuthMethods, listTokens } from '~/data/api';
+import { deleteTokens, listAuthMethods, listTokens } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
 import {
@@ -37,7 +37,7 @@ export default function Tokens() {
 
   const [showDeleteTokenModal, setShowDeleteTokenModal] =
     useState<boolean>(false);
-  const [deletingToken, setDeletingToken] = useState<IAuthToken | null>(null);
+  const [deletingTokens, setDeletingTokens] = useState<IAuthToken[]| null>(null);
 
   const tokenFormRef = useRef(null);
 
@@ -135,16 +135,16 @@ export default function Tokens() {
         <DeletePanel
           panelMessage={
             <>
-              Are you sure you want to delete the token{' '}
+              Are you sure you want to delete the token(s)
               <span className="text-violet-500 font-medium">
-                {deletingToken?.name}
+                {deletingTokens?.map((t) => ' ' + t.name)}
               </span>
               ? This action cannot be undone.
             </>
           }
-          panelType="Token"
+          panelType="Tokens"
           setOpen={setShowDeleteTokenModal}
-          handleDelete={() => deleteToken(deletingToken?.id ?? '')} // TODO: Determine impact of blank ID param
+          handleDelete={() => deleteTokens(deletingTokens?.map((t)=> t.id) || [])}
           onSuccess={() => {
             incrementTokensVersion();
           }}
@@ -186,7 +186,7 @@ export default function Tokens() {
             {tokens && tokens.length > 0 ? (
               <TokenTable
                 tokens={tokens}
-                setDeletingToken={setDeletingToken}
+                setDeletingTokens={setDeletingTokens}
                 setShowDeleteTokenModal={setShowDeleteTokenModal}
               />
             ) : (

@@ -102,8 +102,8 @@ export async function createToken(values: IAuthTokenBase) {
   return post('/method/token', values, authURL);
 }
 
-export async function deleteToken(id: string) {
-  return del(`/tokens/${id}`, authURL);
+export async function deleteTokens(ids: string[]) {
+  return Promise.all(ids.map((id) => del(`/tokens/${id}`, authURL)));
 }
 
 export async function listTokens(method = 'METHOD_TOKEN') {
