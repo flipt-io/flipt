@@ -6,11 +6,13 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   Row,
+  Table,
   SortingState,
+  RowSelectionState,
   useReactTable
 } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
-import { useState } from 'react';
+import React, { HTMLProps, useState } from 'react';
 import Searchbox from '~/components/Searchbox';
 import { IAuthToken } from '~/types/auth/Token';
 
@@ -22,14 +24,22 @@ type TokenRowActionsProps = {
 
 function TokenRowActions(props: TokenRowActionsProps) {
   const { row, setDeletingToken, setShowDeleteTokenModal } = props;
+
+  let classes ="text-violet-600 hover:text-violet-900"
+  if (row.getIsSelected()) {
+    classes = "text-gray-400 hover:cursor-not-allowed"
+  }
+
   return (
     <a
       href="#"
-      className="text-violet-600 hover:text-violet-900"
+      className={classes}
       onClick={(e) => {
         e.preventDefault();
-        setDeletingToken(row.original);
-        setShowDeleteTokenModal(true);
+        if (!row.getIsSelected()){
+          setDeletingToken(row.original);
+          setShowDeleteTokenModal(true);
+        }
       }}
     >
       Delete
@@ -44,18 +54,39 @@ type TokenTableProps = {
   setShowDeleteTokenModal: (show: boolean) => void;
 };
 
+
 export default function TokenTable(props: TokenTableProps) {
   const { tokens, setDeletingToken, setShowDeleteTokenModal } = props;
-
   const searchThreshold = 10;
-
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [filter, setFilter] = useState<string>('');
-
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const columnHelper = createColumnHelper<IAuthToken>();
 
   const columns = [
+     {
+      id: 'select',
+      header: ({ table }: Table) => <IndeterminateCheckbox
+      {...{
+        checked: table.getIsAllRowsSelected(),
+        indeterminate: table.getIsSomeRowsSelected(),
+        onChange: table.getToggleAllRowsSelectedHandler(),
+      }}
+       />,
+      cell: ({row}: Row) => <IndeterminateCheckbox
+      {...{
+        checked: row.getIsSelected(),
+        disabled: !row.getCanSelect(),
+        indeterminate: row.getIsSomeSelected(),
+        onChange: row.getToggleSelectedHandler(),
+      }}
+      />,
+      meta: {
+        className:
+          'whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6'
+      }
+    },
     columnHelper.accessor('name', {
       header: 'Name',
       cell: (info) => info.getValue(),
@@ -107,10 +138,10 @@ export default function TokenTable(props: TokenTableProps) {
     ),
     columnHelper.display({
       id: 'actions',
-      cell: (props) => (
+      cell: ({row}: Row) => (
         <TokenRowActions
           // eslint-disable-next-line react/prop-types
-          row={props.row}
+          row={row}
           setDeletingToken={setDeletingToken}
           setShowDeleteTokenModal={setShowDeleteTokenModal}
         />
@@ -122,22 +153,32 @@ export default function TokenTable(props: TokenTableProps) {
     })
   ];
 
+
+
   const table = useReactTable({
     data: tokens,
     columns,
     state: {
       globalFilter: filter,
-      sorting
+      sorting,
+      rowSelection
     },
     globalFilterFn: 'includesString',
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
+    getFilteredRowModel: getFilteredRowModel(),
+    onRowSelectionChange: setRowSelection,
   });
 
   return (
     <>
+          <button
+          onClick={() => console.info('selection', table.getSelectedRowModel().flatRows)}
+        >
+          Log `rowSelection` state
+        </button>
+
       {tokens.length >= searchThreshold && (
         <Searchbox className="mb-6" value={filter ?? ''} onChange={setFilter} />
       )}
@@ -224,4 +265,27 @@ export default function TokenTable(props: TokenTableProps) {
       </div>
     </>
   );
+}
+
+function IndeterminateCheckbox({
+  indeterminate,
+  className = '',
+  ...rest
+}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
+  const ref = React.useRef<HTMLInputElement>(null!)
+
+  React.useEffect(() => {
+    if (typeof indeterminate === 'boolean') {
+      ref.current.indeterminate = !rest.checked && indeterminate
+    }
+  }, [ref, indeterminate])
+
+  return (
+    <input
+      type="checkbox"
+      ref={ref}
+      className={className + ' cursor-pointer'}
+      {...rest}
+    />
+  )
 }
