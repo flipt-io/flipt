@@ -19,7 +19,6 @@ import {
 } from '~/types/auth/Token';
 
 export default function Tokens() {
-  // const checkbox = useRef();
   const [tokenAuthEnabled, setTokenAuthEnabled] = useState<boolean>(false);
 
   const [tokens, setTokens] = useState<IAuthToken[]>([]);
@@ -37,7 +36,9 @@ export default function Tokens() {
 
   const [showDeleteTokenModal, setShowDeleteTokenModal] =
     useState<boolean>(false);
-  const [deletingTokens, setDeletingTokens] = useState<IAuthToken[]| null>(null);
+  const [deletingTokens, setDeletingTokens] = useState<IAuthToken[] | null>(
+    null
+  );
 
   const tokenFormRef = useRef(null);
 
@@ -88,28 +89,6 @@ export default function Tokens() {
     checkTokenAuthEnabled();
   }, [checkTokenAuthEnabled]);
 
-  // const [checked, setChecked] = useState(false);
-  // const [indeterminate, setIndeterminate] = useState(false);
-  // const [selectedTokens, setSelectedTokens] = useState<IAuthenticationToken[]>(
-  //   []
-  // );
-
-  // useLayoutEffect(() => {
-  //   const isIndeterminate =
-  //     selectedTokens.length > 0 && selectedTokens.length < tokens.length;
-  //   setChecked(selectedTokens.length === tokens.length);
-  //   setIndeterminate(isIndeterminate);
-  //   if (checkbox && checkbox.current) {
-  //     checkbox.current.indeterminate = isIndeterminate;
-  //   }
-  // }, [selectedTokens]);
-
-  // const toggleAll = () => {
-  //   setSelectedTokens(checked || indeterminate ? [] : tokens);
-  //   setChecked(!checked && !indeterminate);
-  //   setIndeterminate(false);
-  // };
-
   return (
     <>
       {/* token create form */}
@@ -134,17 +113,26 @@ export default function Tokens() {
       <Modal open={showDeleteTokenModal} setOpen={setShowDeleteTokenModal}>
         <DeletePanel
           panelMessage={
-            <>
-              Are you sure you want to delete the token(s)
-              <span className="text-violet-500 font-medium">
-                {deletingTokens?.map((t) => ' ' + t.name)}
-              </span>
-              ? This action cannot be undone.
-            </>
+            deletingTokens && deletingTokens.length === 1 ? (
+              <>
+                Are you sure you want to delete the token{' '}
+                <span className="text-violet-500 font-medium">
+                  {deletingTokens[0].name}
+                </span>
+                ? This action cannot be undone.
+              </>
+            ) : (
+              <>
+                Are you sure you want to delete the selected tokens? This action
+                cannot be undone.
+              </>
+            )
           }
           panelType="Tokens"
           setOpen={setShowDeleteTokenModal}
-          handleDelete={() => deleteTokens(deletingTokens?.map((t)=> t.id) || [])}
+          handleDelete={() =>
+            deleteTokens(deletingTokens?.map((t) => t.id) || [])
+          }
           onSuccess={() => {
             incrementTokensVersion();
           }}

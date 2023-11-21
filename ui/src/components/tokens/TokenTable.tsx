@@ -6,16 +6,16 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   Row,
-  Table,
-  SortingState,
   RowSelectionState,
+  SortingState,
+  Table,
   useReactTable
 } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
-import React, { HTMLProps, useState } from 'react';
+import React, { HTMLProps, useEffect, useState } from 'react';
+import Button from '~/components/forms/buttons/Button';
 import Searchbox from '~/components/Searchbox';
 import { IAuthToken } from '~/types/auth/Token';
-import Button from '~/components/forms/buttons/Button';
 
 type TokenRowActionsProps = {
   row: Row<IAuthToken>;
@@ -26,9 +26,9 @@ type TokenRowActionsProps = {
 function TokenRowActions(props: TokenRowActionsProps) {
   const { row, setDeletingTokens, setShowDeleteTokenModal } = props;
 
-  let className ="text-violet-600 hover:text-violet-900"
+  let className = 'text-violet-600 hover:text-violet-900';
   if (row.getIsSelected()) {
-    className = "text-gray-400 hover:cursor-not-allowed"
+    className = 'text-gray-400 hover:cursor-not-allowed';
   }
 
   return (
@@ -37,7 +37,7 @@ function TokenRowActions(props: TokenRowActionsProps) {
       className={className}
       onClick={(e) => {
         e.preventDefault();
-        if (!row.getIsSelected()){
+        if (!row.getIsSelected()) {
           setDeletingTokens([row.original]);
           setShowDeleteTokenModal(true);
         }
@@ -49,12 +49,37 @@ function TokenRowActions(props: TokenRowActionsProps) {
   );
 }
 
+function IndeterminateCheckbox({
+  indeterminate,
+  className = '',
+  ...rest
+}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
+  const ref = React.useRef<HTMLInputElement>(null!);
+
+  useEffect(() => {
+    if (typeof indeterminate === 'boolean') {
+      ref.current.indeterminate = !rest.checked && indeterminate;
+    }
+  }, [ref, indeterminate, rest.checked]);
+
+  return (
+    <input
+      type="checkbox"
+      ref={ref}
+      className={
+        className +
+        ' text-purple-600 bg-gray-100 border-gray-300 h-4 w-4 cursor-pointer rounded focus:ring-purple-500'
+      }
+      {...rest}
+    />
+  );
+}
+
 type TokenTableProps = {
   tokens: IAuthToken[];
   setDeletingTokens: (tokens: IAuthToken[]) => void;
   setShowDeleteTokenModal: (show: boolean) => void;
 };
-
 
 export default function TokenTable(props: TokenTableProps) {
   const { tokens, setDeletingTokens, setShowDeleteTokenModal } = props;
@@ -62,44 +87,56 @@ export default function TokenTable(props: TokenTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [filter, setFilter] = useState<string>('');
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const columnHelper = createColumnHelper<IAuthToken>();
 
-  const deleteMultipleTokens = (table :Table) => {
+  const deleteMultipleTokens = (table: Table<IAuthToken>) => {
     setDeletingTokens(table.getSelectedRowModel().rows.map((r) => r.original));
     setShowDeleteTokenModal(true);
-  }
-
+  };
 
   const columns = [
-     {
+    columnHelper.display({
       id: 'select',
-      header: ({ table }: Table) => <IndeterminateCheckbox
-      {...{
-        checked: table.getIsAllRowsSelected(),
-        indeterminate: table.getIsSomeRowsSelected(),
-        onChange: table.getToggleAllRowsSelectedHandler(),
-      }}
-       />,
-      cell: ({row}: Row) => <IndeterminateCheckbox
-      {...{
-        checked: row.getIsSelected(),
-        disabled: !row.getCanSelect(),
-        indeterminate: row.getIsSomeSelected(),
-        onChange: row.getToggleSelectedHandler(),
-      }}
-      />,
+      header: ({ table }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: table.getIsAllRowsSelected(),
+            indeterminate: table.getIsSomeRowsSelected(),
+            onChange: table.getToggleAllRowsSelectedHandler()
+          }}
+        />
+      ),
+      cell: ({ row }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: row.getIsSelected(),
+            disabled: !row.getCanSelect(),
+            indeterminate: row.getIsSomeSelected(),
+            onChange: row.getToggleSelectedHandler()
+          }}
+        />
+      ),
       meta: {
-        className:
-          'whitespace-nowrap py-4 pl-3 pr-4 text-left'
+        className: 'whitespace-nowrap py-4 pl-3 pr-4 text-left'
       }
-    },
+    }),
     columnHelper.accessor('name', {
-      header:  ({ table }: Table) => {
-        if (table.getSelectedRowModel().rows.length > 0){
-          return <Button onClick={(e)=> {e.stopPropagation(); deleteMultipleTokens(table)}} title='Delete'>Delete</Button>
+      header: ({ table }) => {
+        if (table.getSelectedRowModel().rows.length > 0) {
+          return (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteMultipleTokens(table);
+              }}
+              title="Delete Selected Token(s)"
+            >
+              Delete
+            </Button>
+          );
         }
-        return 'Name'
+        return 'Name';
       },
       cell: (info) => info.getValue(),
       meta: {
@@ -150,7 +187,7 @@ export default function TokenTable(props: TokenTableProps) {
     ),
     columnHelper.display({
       id: 'actions',
-      cell: ({row}: Row) => (
+      cell: ({ row }) => (
         <TokenRowActions
           // eslint-disable-next-line react/prop-types
           row={row}
@@ -178,7 +215,7 @@ export default function TokenTable(props: TokenTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: setRowSelection
   });
 
   return (
@@ -269,27 +306,4 @@ export default function TokenTable(props: TokenTableProps) {
       </div>
     </>
   );
-}
-
-function IndeterminateCheckbox({
-  indeterminate,
-  className = '',
-  ...rest
-}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
-  const ref = React.useRef<HTMLInputElement>(null!)
-
-  React.useEffect(() => {
-    if (typeof indeterminate === 'boolean') {
-      ref.current.indeterminate = !rest.checked && indeterminate
-    }
-  }, [ref, indeterminate])
-
-  return (
-    <input
-      type="checkbox"
-      ref={ref}
-      className={className + ' cursor-pointer w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500'}
-      {...rest}
-    />
-  )
 }
