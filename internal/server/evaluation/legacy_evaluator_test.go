@@ -1259,7 +1259,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 				Segments: map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
 								ID:       "2",
@@ -1272,7 +1272,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 					},
 					"foo": {
 						SegmentKey: "foo",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
 								ID:       "2",
@@ -1868,7 +1868,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 				Segments: map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
 								ID:       "2",
