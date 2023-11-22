@@ -27,6 +27,7 @@ import (
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/evaluation"
+	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
@@ -314,10 +315,11 @@ func NewGRPCServer(
 	}
 
 	var (
-		fliptsrv  = fliptserver.New(logger, store)
-		metasrv   = metadata.New(cfg, info)
-		evalsrv   = evaluation.New(logger, store)
-		healthsrv = health.NewServer()
+		fliptsrv    = fliptserver.New(logger, store)
+		metasrv     = metadata.New(cfg, info)
+		evalsrv     = evaluation.New(logger, store)
+		evalDataSrv = evaluationdata.New(logger, store)
+		healthsrv   = health.NewServer()
 	)
 
 	var (
@@ -372,6 +374,7 @@ func NewGRPCServer(
 	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
+	register.Add(evalDataSrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
