@@ -183,6 +183,10 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                         className="text-violet-600 border-gray-300 h-4 w-4 rounded focus:ring-violet-600"
                         onChange={(e) => {
                           setNamespaceScoped(e.target.checked);
+                          formik.setFieldValue(
+                            'namespaceKey',
+                            e.target.checked ? selectedNamespace.key : ''
+                          );
                         }}
                       />
                     </div>
