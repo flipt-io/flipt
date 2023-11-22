@@ -95,6 +95,14 @@ export default function TokenTable(props: TokenTableProps) {
     setShowDeleteTokenModal(true);
   };
 
+  const handleTokenDeletedEvent = () => setRowSelection({});
+
+  useEffect(() => {
+    window.addEventListener('token-deleted', handleTokenDeletedEvent);
+    return () =>
+      window.removeEventListener('token-deleted', handleTokenDeletedEvent);
+  }, []);
+
   const columns = [
     columnHelper.display({
       id: 'select',

@@ -131,7 +131,9 @@ export default function Tokens() {
           panelType="Tokens"
           setOpen={setShowDeleteTokenModal}
           handleDelete={() =>
-            deleteTokens(deletingTokens?.map((t) => t.id) || [])
+            deleteTokens(deletingTokens?.map((t) => t.id) || []).then(() => {
+              dispatchEvent(new CustomEvent('token-deleted'));
+            })
           }
           onSuccess={() => {
             incrementTokensVersion();
