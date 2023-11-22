@@ -10,6 +10,15 @@ flags:
   - key: flipt
     name: flipt
     description: I'm a description.
+  - key: withAttachmentObject
+    name: With Attachment Object
+    attachment:
+      an: Object
+  - key: withAttachmentArray
+    name: With Attachment Array
+    attachment:
+      - an
+      - array
   rules:
   - segment: internal-users
     distributions:
