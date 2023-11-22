@@ -132,7 +132,7 @@ export default function Tokens() {
           setOpen={setShowDeleteTokenModal}
           handleDelete={() =>
             deleteTokens(deletingTokens?.map((t) => t.id) || []).then(() => {
-              dispatchEvent(new CustomEvent('token-deleted'));
+              incrementTokensVersion();
             })
           }
           onSuccess={() => {
@@ -178,6 +178,7 @@ export default function Tokens() {
                 tokens={tokens}
                 setDeletingTokens={setDeletingTokens}
                 setShowDeleteTokenModal={setShowDeleteTokenModal}
+                tokensVersion={tokensVersion}
               />
             ) : (
               <EmptyState

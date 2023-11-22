@@ -79,10 +79,12 @@ type TokenTableProps = {
   tokens: IAuthToken[];
   setDeletingTokens: (tokens: IAuthToken[]) => void;
   setShowDeleteTokenModal: (show: boolean) => void;
+  tokensVersion: number;
 };
 
 export default function TokenTable(props: TokenTableProps) {
-  const { tokens, setDeletingTokens, setShowDeleteTokenModal } = props;
+  const { tokens, setDeletingTokens, setShowDeleteTokenModal, tokensVersion } =
+    props;
   const searchThreshold = 10;
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -95,13 +97,9 @@ export default function TokenTable(props: TokenTableProps) {
     setShowDeleteTokenModal(true);
   };
 
-  const handleTokenDeletedEvent = () => setRowSelection({});
-
   useEffect(() => {
-    window.addEventListener('token-deleted', handleTokenDeletedEvent);
-    return () =>
-      window.removeEventListener('token-deleted', handleTokenDeletedEvent);
-  }, []);
+    setRowSelection({});
+  }, [tokensVersion]);
 
   const columns = [
     columnHelper.display({
