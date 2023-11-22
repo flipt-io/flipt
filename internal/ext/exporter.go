@@ -74,7 +74,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 		intermediateNamespaces := make([]string, 0)
 
-		for batch := int32(0); remaining; batch++ {
+		for remaining {
 			resp, err := e.store.ListNamespaces(ctx, &flipt.ListNamespaceRequest{
 				PageToken: nextPage,
 				Limit:     batchSize,
@@ -244,7 +244,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 		nextPage = ""
 
 		// export segments/constraints in batches
-		for batch := int32(0); remaining; batch++ {
+		for remaining {
 			resp, err := e.store.ListSegments(
 				ctx,
 				&flipt.ListSegmentRequest{
