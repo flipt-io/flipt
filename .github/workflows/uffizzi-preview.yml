@@ -8,7 +8,7 @@ jobs:
   build:
     name: Build and Push `flipt`
     runs-on: ubuntu-latest
-    if: ${{ github.triggering_actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.action != 'closed') }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.action != 'closed') && github.event.pull_request.head.repo.full_name == github.repository }}
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
     steps:
@@ -44,7 +44,7 @@ jobs:
   render-compose-file:
     name: Render Docker Compose File
     runs-on: ubuntu-latest
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     needs:
       - build
     outputs:
@@ -75,7 +75,7 @@ jobs:
   deploy-uffizzi-preview:
     name: Preview on Uffizzi
     needs: render-compose-file
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v3
     with:
       compose-file-cache-key: ${{ needs.render-compose-file.outputs.compose-file-cache-key }}
@@ -89,7 +89,7 @@ jobs:
   delete-uffizzi-preview:
     name: Delete Existing Preview
     uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v3
-    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'closed' }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository }}
     with:
       compose-file-cache-key: ""
       compose-file-cache-path: docker-compose.rendered.yml
