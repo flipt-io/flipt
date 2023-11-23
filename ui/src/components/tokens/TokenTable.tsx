@@ -226,7 +226,7 @@ export default function TokenTable(props: TokenTableProps) {
 
   return (
     <>
-      {tokens.length >= searchThreshold && (
+      {(tokens.length >= searchThreshold || filter != '') && (
         <Searchbox className="mb-6" value={filter ?? ''} onChange={setFilter} />
       )}
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
