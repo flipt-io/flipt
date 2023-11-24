@@ -13,6 +13,7 @@ import {
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
 import {
+  useDeleteConstraintMutation,
   useDeleteSegmentMutation,
   useGetSegmentQuery
 } from '~/app/segments/segmentsApi';
@@ -28,7 +29,7 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import SegmentForm from '~/components/segments/SegmentForm';
 import Slideover from '~/components/Slideover';
-import { copySegment, deleteConstraint } from '~/data/api';
+import { copySegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -104,6 +105,7 @@ export default function Segment() {
     segmentKey: segmentKey || ''
   });
   const [deleteSegment] = useDeleteSegmentMutation();
+  const [deleteSegmentConstraint] = useDeleteConstraintMutation();
 
   const constraintFormRef = useRef(null);
 
@@ -154,11 +156,11 @@ export default function Segment() {
           setOpen={setShowDeleteConstraintModal}
           handleDelete={
             () =>
-              deleteConstraint(
-                namespace.key,
-                segment.key,
-                deletingConstraint?.id ?? ''
-              ) // TODO: Determine impact of blank ID param
+              deleteSegmentConstraint({
+                namespaceKey: namespace.key,
+                segmentKey: segment.key,
+                constraintId: deletingConstraint?.id ?? ''
+              }) // TODO: Determine impact of blank ID param
           }
           onSuccess={() => {}}
         />

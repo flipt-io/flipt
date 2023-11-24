@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 
 export const segmentsApi = createApi({
@@ -40,7 +41,7 @@ export const segmentsApi = createApi({
       query({ namespaceKey, values }) {
         return {
           url: `/namespaces/${namespaceKey}/segments`,
-          method: 'post',
+          method: 'POST',
           body: values
         };
       },
@@ -81,6 +82,58 @@ export const segmentsApi = createApi({
         { type: 'Segment', id: namespaceKey },
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
+    }),
+    // create the segment constraint in the namespace
+    createConstraint: builder.mutation<
+      void,
+      { namespaceKey: string; segmentKey: string; values: IConstraintBase }
+    >({
+      query({ namespaceKey, segmentKey, values }) {
+        return {
+          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
+          method: 'POST',
+          body: values
+        };
+      },
+      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
+        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      ]
+    }),
+    // update the segment constraint in the namespace
+    updateConstraint: builder.mutation<
+      void,
+      {
+        namespaceKey: string;
+        segmentKey: string;
+        constraintId: string;
+        values: IConstraintBase;
+      }
+    >({
+      query({ namespaceKey, segmentKey, constraintId, values }) {
+        return {
+          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
+          method: 'PUT',
+          body: values
+        };
+      },
+      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
+        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      ]
+    }),
+    // delete the segment constraint in the namespace
+    deleteConstraint: builder.mutation<
+      void,
+      { namespaceKey: string; segmentKey: string; constraintId: string }
+    >({
+      query({ namespaceKey, segmentKey, constraintId }) {
+        return {
+          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
+          method: 'DELETE'
+        };
+      },
+      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
+        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      ]
     })
   })
 });
@@ -90,5 +143,8 @@ export const {
   useGetSegmentQuery,
   useCreateSegmentMutation,
   useDeleteSegmentMutation,
-  useUpdateSegmentMutation
+  useUpdateSegmentMutation,
+  useCreateConstraintMutation,
+  useUpdateConstraintMutation,
+  useDeleteConstraintMutation
 } = segmentsApi;

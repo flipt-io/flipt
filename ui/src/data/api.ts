@@ -388,28 +388,6 @@ export async function createConstraint(
   );
 }
 
-export async function updateConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  constraintId: string,
-  values: IConstraintBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
-    values
-  );
-}
-
-export async function deleteConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  constraintId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`
-  );
-}
-
 //
 // evaluate
 export async function evaluate(

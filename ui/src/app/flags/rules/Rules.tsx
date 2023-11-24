@@ -131,7 +131,7 @@ export default function Rules() {
     });
 
     setRules(rules);
-  }, [namespace.key, flag]);
+  }, [namespace.key, flag, segments]);
 
   const incrementRulesVersion = () => {
     setRulesVersion(rulesVersion + 1);

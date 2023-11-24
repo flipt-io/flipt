@@ -9,12 +9,15 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
+import {
+  useCreateConstraintMutation,
+  useUpdateConstraintMutation
+} from '~/app/segments/segmentsApi';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
@@ -266,11 +269,23 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     description: constraint?.description || ''
   };
 
+  const [createConstraint] = useCreateConstraintMutation();
+  const [updateConstraint] = useUpdateConstraintMutation();
+
   const handleSubmit = (values: IConstraintBase) => {
     if (isNew) {
-      return createConstraint(namespace.key, segmentKey, values);
+      return createConstraint({
+        namespaceKey: namespace.key,
+        segmentKey,
+        values
+      });
     }
-    return updateConstraint(namespace.key, segmentKey, constraint?.id, values);
+    return updateConstraint({
+      namespaceKey: namespace.key,
+      segmentKey,
+      constraintId: constraint?.id,
+      values
+    });
   };
 
   const getValuePlaceholder = (type: ConstraintType, operator: string) => {
