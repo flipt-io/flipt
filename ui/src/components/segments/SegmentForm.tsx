@@ -6,10 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import {
+  useCreateSegmentMutation,
+  useUpdateSegmentMutation
+} from '~/app/segments/segmentsApi';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
-import { createSegment, updateSegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
@@ -47,11 +50,18 @@ export default function SegmentForm(props: SegmentFormProps) {
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
+  const [createSegment] = useCreateSegmentMutation();
+  const [updateSegment] = useUpdateSegmentMutation();
+
   const handleSubmit = (values: ISegmentBase) => {
     if (isNew) {
-      return createSegment(namespace.key, values);
+      return createSegment({ namespaceKey: namespace.key, values });
     }
-    return updateSegment(namespace.key, segment?.key, values);
+    return updateSegment({
+      namespaceKey: namespace.key,
+      segmentKey: segment?.key,
+      values
+    });
   };
 
   const initialValues: ISegmentBase = {

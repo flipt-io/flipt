@@ -5,7 +5,6 @@ import { IDistributionBase } from '~/types/Distribution';
 import { FlagType, IFlagBase } from '~/types/Flag';
 import { IRolloutBase } from '~/types/Rollout';
 import { IRuleBase } from '~/types/Rule';
-import { ISegmentBase } from '~/types/Segment';
 import { IVariantBase } from '~/types/Variant';
 
 const apiURL = '/api/v1';
@@ -358,29 +357,6 @@ export async function deleteVariant(
 // segments
 export async function listSegments(namespaceKey: string) {
   return get(`/namespaces/${namespaceKey}/segments`);
-}
-
-export async function getSegment(namespaceKey: string, key: string) {
-  return get(`/namespaces/${namespaceKey}/segments/${key}`);
-}
-
-export async function createSegment(
-  namespaceKey: string,
-  values: ISegmentBase
-) {
-  return post(`/namespaces/${namespaceKey}/segments`, values);
-}
-
-export async function updateSegment(
-  namespaceKey: string,
-  key: string,
-  values: ISegmentBase
-) {
-  return put(`/namespaces/${namespaceKey}/segments/${key}`, values);
-}
-
-export async function deleteSegment(namespaceKey: string, key: string) {
-  return del(`/namespaces/${namespaceKey}/segments/${key}`);
 }
 
 export async function copySegment(

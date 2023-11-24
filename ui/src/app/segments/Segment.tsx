@@ -4,7 +4,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -12,6 +12,10 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
+import {
+  useDeleteSegmentMutation,
+  useGetSegmentQuery
+} from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
@@ -24,12 +28,7 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import SegmentForm from '~/components/segments/SegmentForm';
 import Slideover from '~/components/Slideover';
-import {
-  copySegment,
-  deleteConstraint,
-  deleteSegment,
-  getSegment
-} from '~/data/api';
+import { copySegment, deleteConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -39,7 +38,6 @@ import {
   constraintTypeToLabel,
   IConstraint
 } from '~/types/Constraint';
-import { ISegment } from '~/types/Segment';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {
@@ -75,9 +73,6 @@ export default function Segment() {
   let { segmentKey } = useParams();
   const { inTimezone } = useTimezone();
 
-  const [segment, setSegment] = useState<ISegment | null>(null);
-  const [segmentVersion, setSegmentVersion] = useState(0);
-
   const [showConstraintForm, setShowConstraintForm] = useState<boolean>(false);
   const [editingConstraint, setEditingConstraint] =
     useState<IConstraint | null>(null);
@@ -99,26 +94,26 @@ export default function Segment() {
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
-  const incrementSegmentVersion = () => {
-    setSegmentVersion(segmentVersion + 1);
-  };
-
-  useEffect(() => {
-    if (!segmentKey) return;
-
-    getSegment(namespace.key, segmentKey)
-      .then((segment: ISegment) => {
-        setSegment(segment);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [segmentVersion, namespace.key, segmentKey, clearError, setError]);
+  const {
+    data: segment,
+    error,
+    isLoading,
+    isError
+  } = useGetSegmentQuery({
+    namespaceKey: namespace.key,
+    segmentKey: segmentKey || ''
+  });
+  const [deleteSegment] = useDeleteSegmentMutation();
 
   const constraintFormRef = useRef(null);
 
-  if (!segment) return <Loading />;
+  if (isError) {
+    setError(error);
+  }
+
+  if (isLoading || !segment) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -134,7 +129,7 @@ export default function Segment() {
           constraint={editingConstraint || undefined}
           setOpen={setShowConstraintForm}
           onSuccess={() => {
-            incrementSegmentVersion();
+            clearError();
             setShowConstraintForm(false);
           }}
         />
@@ -165,9 +160,7 @@ export default function Segment() {
                 deletingConstraint?.id ?? ''
               ) // TODO: Determine impact of blank ID param
           }
-          onSuccess={() => {
-            incrementSegmentVersion();
-          }}
+          onSuccess={() => {}}
         />
       </Modal>
 
@@ -183,7 +176,12 @@ export default function Segment() {
           }
           panelType="Segment"
           setOpen={setShowDeleteSegmentModal}
-          handleDelete={() => deleteSegment(namespace.key, segment.key)}
+          handleDelete={() => {
+            return deleteSegment({
+              namespaceKey: namespace.key,
+              segmentKey: segment.key
+            });
+          }}
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/segments`);
           }}
@@ -279,10 +277,7 @@ export default function Segment() {
               </MoreInfo>
             </div>
             <div className="mt-5 md:col-span-2 md:mt-0">
-              <SegmentForm
-                segment={segment}
-                segmentChanged={incrementSegmentVersion}
-              />
+              <SegmentForm segment={segment} />
             </div>
           </div>
         </div>
