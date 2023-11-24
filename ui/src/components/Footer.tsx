@@ -1,7 +1,6 @@
 import {
   faDiscord,
   faGithub,
-  faMastodon,
   faXTwitter
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -36,11 +35,6 @@ export default function Footer() {
       name: 'Twitter',
       href: 'https://www.twitter.com/flipt_io',
       icon: faXTwitter
-    },
-    {
-      name: 'Mastadon',
-      href: 'https://www.hachyderm.io/@flipt',
-      icon: faMastodon
     },
     {
       name: 'GitHub',
