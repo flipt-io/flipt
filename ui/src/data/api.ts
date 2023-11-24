@@ -355,10 +355,6 @@ export async function deleteVariant(
 
 //
 // segments
-export async function listSegments(namespaceKey: string) {
-  return get(`/namespaces/${namespaceKey}/segments`);
-}
-
 export async function copySegment(
   from: { namespaceKey: string; key: string },
   to: { namespaceKey: string; key?: string }
