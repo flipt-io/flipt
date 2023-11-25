@@ -139,18 +139,17 @@ const setFlag = (
   state.flags[namespaceKey][flag.key] = flag;
 };
 
-export const selectFlag = createSelector(
-  [
-    (state: RootState, namespaceKey: string, key: string) => {
-      const flags = state.flags.flags[namespaceKey];
-      if (flags) {
-        return flags[key] || ({} as IFlag);
-      }
+const selectNamespaceFlags = (state: RootState) =>
+  state.flags.flags[state.namespaces.currentNamespace];
 
+export const selectFlag = createSelector(
+  [selectNamespaceFlags, (state: RootState, key: string) => key],
+  (flags, key) => {
+    if (flags === undefined) {
       return {} as IFlag;
     }
-  ],
-  (flag) => flag
+    return flags[key];
+  }
 );
 
 interface FlagIdentifier {
