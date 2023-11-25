@@ -60,7 +60,11 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
 
 function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
   if (isErrorWithMessage(maybeError)) return maybeError;
-
+  // handle Redux FetchBaseQueryError
+  if (typeof maybeError == 'object' && maybeError?.hasOwnProperty('data')) {
+    // @ts-ignore
+    return maybeError.data;
+  }
   try {
     return new Error(JSON.stringify(maybeError));
   } catch {
