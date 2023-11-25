@@ -58,10 +58,19 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   );
 }
 
+function isFetchBaseQueryError(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'data' in error &&
+    typeof (error.data as Record<string, unknown>).message === 'string'
+  );
+}
+
 function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
   if (isErrorWithMessage(maybeError)) return maybeError;
   // handle Redux FetchBaseQueryError
-  if (typeof maybeError == 'object' && maybeError?.hasOwnProperty('data')) {
+  if (isFetchBaseQueryError(maybeError)) {
     // @ts-ignore
     return maybeError.data;
   }
