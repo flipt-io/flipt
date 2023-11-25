@@ -157,6 +157,17 @@ func NewGRPCServer(
 		opts := []containers.Option[git.Source]{
 			git.WithRef(cfg.Storage.Git.Ref),
 			git.WithPollInterval(cfg.Storage.Git.PollInterval),
+			git.WithInsecureTLS(cfg.Storage.Git.InsecureSkipTLS),
+		}
+
+		if cfg.Storage.Git.CaCertBytes != "" {
+			opts = append(opts, git.WithCABundle([]byte(cfg.Storage.Git.CaCertBytes)))
+		} else if cfg.Storage.Git.CaCertPath != "" {
+			if bytes, err := git.CaBundleFromFile(cfg.Storage.Git.CaCertPath); err == nil {
+				opts = append(opts, git.WithCABundle(bytes))
+			} else {
+				return nil, err
+			}
 		}
 
 		auth := cfg.Storage.Git.Authentication

@@ -142,9 +142,12 @@ import "strings"
  		read_only?: bool | *false
 		local?: path: string | *"."
 		git?: {
-			repository:      string
-			ref?:            string | *"main"
-			poll_interval?:  =~#duration | *"30s"
+			repository:         string
+			ref?:               string | *"main"
+			poll_interval?:     =~#duration | *"30s"
+			ca_cert_path:       string
+			ca_cert_bytes:      string
+			insecure_skip_tls?: bool | false
 			authentication?: ({
 				basic: {
 					username: string
