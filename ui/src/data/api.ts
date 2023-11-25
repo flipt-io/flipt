@@ -6,7 +6,7 @@ import { IRolloutBase } from '~/types/Rollout';
 import { IRuleBase } from '~/types/Rule';
 import { IVariantBase } from '~/types/Variant';
 
-const apiURL = '/api/v1';
+export const apiURL = '/api/v1';
 const authURL = '/auth/v1';
 const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
@@ -24,34 +24,46 @@ export class APIError extends Error {
 
 //
 // base methods
-function setCsrf(req: any) {
+function headerCsrf(): Record<string, string> {
   const csrfToken = window.localStorage.getItem(csrfTokenHeaderKey);
   if (csrfToken !== null) {
-    req.headers[csrfTokenHeaderKey] = csrfToken;
+    return { 'x-csrf-token': csrfToken };
   }
-
-  return req;
+  return {};
 }
-
-export async function request(method: string, uri: string, body?: any) {
-  const req = setCsrf({
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const res = await fetch(uri, req);
-  if (!res.ok) {
-    if (res.status === 401) {
+// TODO: find a better name for this
+export function checkResponse(response: Response) {
+  if (!response.ok) {
+    if (response.status === 401) {
       window.localStorage.removeItem(csrfTokenHeaderKey);
       window.localStorage.removeItem(sessionKey);
       window.location.reload();
     }
+  }
+}
 
+export function defaultHeaders(): Record<string, string> {
+  const headers = {
+    ...headerCsrf(),
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Cache-Control': 'no-store'
+  };
+
+  return headers;
+}
+
+export async function request(method: string, uri: string, body?: any) {
+  const req = {
+    method,
+    headers: defaultHeaders(),
+    body: JSON.stringify(body)
+  };
+
+  const res = await fetch(uri, req);
+
+  if (!res.ok) {
+    checkResponse(res);
     const contentType = res.headers.get('content-type');
 
     if (!contentType || !contentType.includes('application/json')) {
@@ -62,7 +74,6 @@ export async function request(method: string, uri: string, body?: any) {
     let err = await res.json();
     throw new APIError(err.message, res.status);
   }
-
   return res.json();
 }
 
@@ -214,15 +225,16 @@ export async function orderRollouts(
   flagKey: string,
   rolloutIds: string[]
 ) {
-  const req = setCsrf({
+  const req = {
     method: 'PUT',
     headers: {
+      ...headerCsrf(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       rolloutIds: rolloutIds
     })
-  });
+  };
 
   const res = await fetch(
     `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/order`,
@@ -274,15 +286,16 @@ export async function orderRules(
   flagKey: string,
   ruleIds: string[]
 ) {
-  const req = setCsrf({
+  const req = {
     method: 'PUT',
     headers: {
+      ...headerCsrf(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       ruleIds
     })
-  });
+  };
 
   const res = await fetch(
     `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rules/order`,

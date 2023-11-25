@@ -1,16 +1,35 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { apiURL, checkResponse, defaultHeaders } from '~/data/api';
 import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 
+type CustomFetchFn = (
+  url: RequestInfo,
+  options: RequestInit | undefined
+) => Promise<Response>;
+
+const customFetchFn: CustomFetchFn = async (url, options) => {
+  const headers = defaultHeaders();
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+  checkResponse(response);
+  return response;
+};
+
 export const segmentsApi = createApi({
   reducerPath: 'segments',
-  // TODO: there are no headers for production
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/v1/' }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: apiURL,
+    fetchFn: customFetchFn
+  }),
   tagTypes: ['Segment'],
   endpoints: (builder) => ({
     // get list of segments in this namespace
     listSegments: builder.query<ISegmentList, string>({
-      query: (namespaceKey) => `namespaces/${namespaceKey}/segments`,
+      query: (namespaceKey) => `/namespaces/${namespaceKey}/segments`,
       providesTags: (result, _error, namespaceKey) =>
         result
           ? [
@@ -28,7 +47,7 @@ export const segmentsApi = createApi({
       { namespaceKey: string; segmentKey: string }
     >({
       query: ({ namespaceKey, segmentKey }) =>
-        `namespaces/${namespaceKey}/segments/${segmentKey}`,
+        `/namespaces/${namespaceKey}/segments/${segmentKey}`,
       providesTags: (_result, _error, { namespaceKey, segmentKey }) => [
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
@@ -57,7 +76,7 @@ export const segmentsApi = createApi({
     >({
       query({ namespaceKey, segmentKey }) {
         return {
-          url: `namespaces/${namespaceKey}/segments/${segmentKey}`,
+          url: `/namespaces/${namespaceKey}/segments/${segmentKey}`,
           method: 'DELETE'
         };
       },
@@ -72,7 +91,7 @@ export const segmentsApi = createApi({
     >({
       query({ namespaceKey, segmentKey, values }) {
         return {
-          url: `namespaces/${namespaceKey}/segments/${segmentKey}`,
+          url: `/namespaces/${namespaceKey}/segments/${segmentKey}`,
           method: 'PUT',
           body: values
         };
@@ -139,7 +158,7 @@ export const segmentsApi = createApi({
     >({
       query({ namespaceKey, segmentKey, values }) {
         return {
-          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
+          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
           method: 'POST',
           body: values
         };
@@ -160,7 +179,7 @@ export const segmentsApi = createApi({
     >({
       query({ namespaceKey, segmentKey, constraintId, values }) {
         return {
-          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
+          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
           method: 'PUT',
           body: values
         };
@@ -176,7 +195,7 @@ export const segmentsApi = createApi({
     >({
       query({ namespaceKey, segmentKey, constraintId }) {
         return {
-          url: `namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
+          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
           method: 'DELETE'
         };
       },

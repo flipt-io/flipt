@@ -61,7 +61,7 @@ export default function Rules() {
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
-  const segments = useListSegmentsQuery(namespace.key)?.data?.segments || [];
+  const segments = useListSegmentsQuery(namespace.key)?.data?.segments;
 
   const loadData = useCallback(async () => {
     // TODO: move to redux
@@ -93,20 +93,23 @@ export default function Rules() {
       // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
       for (let i = 0; i < size; i++) {
         const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
+        if (segments) {
+          const segment = segments.find(
+            (segment: ISegment) => ruleSegment === segment.key
+          );
+          if (segment) {
+            ruleSegments.push(segment);
+          }
+        }
+      }
+      if (segments) {
         const segment = segments.find(
-          (segment: ISegment) => ruleSegment === segment.key
+          (segment: ISegment) => segment.key === rule.segmentKey
         );
+
         if (segment) {
           ruleSegments.push(segment);
         }
-      }
-
-      const segment = segments.find(
-        (segment: ISegment) => segment.key === rule.segmentKey
-      );
-
-      if (segment) {
-        ruleSegments.push(segment);
       }
 
       // If there are no ruleSegments return an empty array.
