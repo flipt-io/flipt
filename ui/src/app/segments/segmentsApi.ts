@@ -61,9 +61,8 @@ export const segmentsApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey },
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      invalidatesTags: (_result, _error, { namespaceKey }) => [
+        { type: 'Segment', id: namespaceKey }
       ]
     }),
     // update the segment in the namespace
@@ -83,6 +82,56 @@ export const segmentsApi = createApi({
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
     }),
+    // copy the segment from one namespace to another one
+    copySegment: builder.mutation<
+      void,
+      {
+        from: { namespaceKey: string; segmentKey: string };
+        to: { namespaceKey: string; segmentKey: string };
+      }
+    >({
+      queryFn: async ({ from, to }, _api, _extraOptions, baseQuery) => {
+        let resp = await baseQuery({
+          url: `/namespaces/${from.namespaceKey}/segments/${from.segmentKey}`,
+          method: 'get'
+        });
+        if (resp.error) {
+          return { error: resp.error };
+        }
+        let data = resp.data as ISegment;
+
+        if (to.segmentKey) {
+          data.key = to.segmentKey;
+        }
+        // first create the segment
+        resp = await baseQuery({
+          url: `/namespaces/${to.namespaceKey}/segments`,
+          method: 'POST',
+          body: data
+        });
+        if (resp.error) {
+          return { error: resp.error };
+        }
+        // then copy the constraints
+        const constraints = data.constraints || [];
+        for (let constraint of constraints) {
+          resp = await baseQuery({
+            url: `/namespaces/${to.namespaceKey}/segments/${to.segmentKey}/constraints`,
+            method: 'POST',
+            body: constraint
+          });
+          if (resp.error) {
+            return { error: resp.error };
+          }
+        }
+
+        return { data: undefined };
+      },
+      invalidatesTags: (_result, _error, { to }) => [
+        { type: 'Segment', id: to.namespaceKey }
+      ]
+    }),
+
     // create the segment constraint in the namespace
     createConstraint: builder.mutation<
       void,
@@ -144,6 +193,7 @@ export const {
   useCreateSegmentMutation,
   useDeleteSegmentMutation,
   useUpdateSegmentMutation,
+  useCopySegmentMutation,
   useCreateConstraintMutation,
   useUpdateConstraintMutation,
   useDeleteConstraintMutation

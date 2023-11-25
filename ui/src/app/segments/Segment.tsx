@@ -13,6 +13,7 @@ import {
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
 import {
+  useCopySegmentMutation,
   useDeleteConstraintMutation,
   useDeleteSegmentMutation,
   useGetSegmentQuery
@@ -29,7 +30,6 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import SegmentForm from '~/components/segments/SegmentForm';
 import Slideover from '~/components/Slideover';
-import { copySegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -106,7 +106,7 @@ export default function Segment() {
   });
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
-
+  const [copySegment] = useCopySegmentMutation();
   const constraintFormRef = useRef(null);
 
   if (isError) {
@@ -154,13 +154,13 @@ export default function Segment() {
           }
           panelType="Constraint"
           setOpen={setShowDeleteConstraintModal}
-          handleDelete={
-            () =>
-              deleteSegmentConstraint({
-                namespaceKey: namespace.key,
-                segmentKey: segment.key,
-                constraintId: deletingConstraint?.id ?? ''
-              }) // TODO: Determine impact of blank ID param
+          handleDelete={() =>
+            deleteSegmentConstraint({
+              namespaceKey: namespace.key,
+              segmentKey: segment.key,
+              constraintId: deletingConstraint?.id ?? ''
+              // TODO: Determine impact of blank ID param
+            }).unwrap()
           }
           onSuccess={() => {}}
         />
@@ -178,12 +178,12 @@ export default function Segment() {
           }
           panelType="Segment"
           setOpen={setShowDeleteSegmentModal}
-          handleDelete={() => {
-            return deleteSegment({
+          handleDelete={() =>
+            deleteSegment({
               namespaceKey: namespace.key,
               segmentKey: segment.key
-            });
-          }}
+            }).unwrap()
+          }
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/segments`);
           }}
@@ -203,10 +203,10 @@ export default function Segment() {
           panelType="Segment"
           setOpen={setShowCopySegmentModal}
           handleCopy={(namespaceKey: string) =>
-            copySegment(
-              { namespaceKey: namespace.key, key: segment.key },
-              { namespaceKey: namespaceKey, key: segment.key }
-            )
+            copySegment({
+              from: { namespaceKey: namespace.key, segmentKey: segment.key },
+              to: { namespaceKey: namespaceKey, segmentKey: segment.key }
+            }).unwrap()
           }
           onSuccess={() => {
             clearError();

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from '~/types/auth/Token';
-import { IConstraintBase } from '~/types/Constraint';
 import { IDistributionBase } from '~/types/Distribution';
 import { FlagType, IFlagBase } from '~/types/Flag';
 import { IRolloutBase } from '~/types/Rollout';
@@ -350,41 +349,6 @@ export async function deleteVariant(
 ) {
   return del(
     `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`
-  );
-}
-
-//
-// segments
-export async function copySegment(
-  from: { namespaceKey: string; key: string },
-  to: { namespaceKey: string; key?: string }
-) {
-  let segment = await get(
-    `/namespaces/${from.namespaceKey}/segments/${from.key}`
-  );
-  if (to.key) {
-    segment.key = to.key;
-  }
-
-  // first create the segment
-  await post(`/namespaces/${to.namespaceKey}/segments`, segment);
-
-  // then copy the constraints
-  for (let constraint of segment.constraints) {
-    await createConstraint(to.namespaceKey, segment.key, constraint);
-  }
-}
-
-//
-// constraints
-export async function createConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  values: IConstraintBase
-) {
-  return post(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
-    values
   );
 }
 

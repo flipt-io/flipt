@@ -278,14 +278,14 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
         namespaceKey: namespace.key,
         segmentKey,
         values
-      });
+      }).unwrap();
     }
     return updateConstraint({
       namespaceKey: namespace.key,
       segmentKey,
       constraintId: constraint?.id,
       values
-    });
+    }).unwrap();
   };
 
   const getValuePlaceholder = (type: ConstraintType, operator: string) => {
