@@ -1,30 +1,11 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { apiURL, checkResponse, defaultHeaders } from '~/data/api';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
-
-type CustomFetchFn = (
-  url: RequestInfo,
-  options: RequestInit | undefined
-) => Promise<Response>;
-
-const customFetchFn: CustomFetchFn = async (url, options) => {
-  const headers = defaultHeaders();
-
-  const response = await fetch(url, {
-    ...options,
-    headers
-  });
-  checkResponse(response);
-  return response;
-};
+import { baseQuery } from '~/utils/redux-rtk';
 
 export const segmentsApi = createApi({
   reducerPath: 'segments',
-  baseQuery: fetchBaseQuery({
-    baseUrl: apiURL,
-    fetchFn: customFetchFn
-  }),
+  baseQuery,
   tagTypes: ['Segment'],
   endpoints: (builder) => ({
     // get list of segments in this namespace

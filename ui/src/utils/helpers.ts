@@ -63,6 +63,7 @@ function isFetchBaseQueryError(error: unknown): error is ErrorWithMessage {
     typeof error === 'object' &&
     error !== null &&
     'data' in error &&
+    error.data !== null &&
     typeof (error.data as Record<string, unknown>).message === 'string'
   );
 }
