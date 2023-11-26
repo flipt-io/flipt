@@ -75,25 +75,19 @@ export const namespacesSlice = createSlice({
 export const { currentNamespaceChanged } = namespacesSlice.actions;
 
 export const selectNamespaces = createSelector(
-  [
-    (state: RootState) =>
-      Object.entries(state.namespaces.namespaces).map(
-        ([_, value]) => value
-      ) as INamespace[]
-  ],
-  (namespaces) => namespaces
+  [(state: RootState) => state.namespaces.namespaces],
+  (namespaces) => {
+    return Object.entries(namespaces).map(
+      ([_, value]) => value
+    ) as INamespace[];
+  }
 );
 
 export const selectCurrentNamespace = createSelector(
-  [
-    (state: RootState) => {
-      if (state.namespaces.namespaces[state.namespaces.currentNamespace]) {
-        return state.namespaces.namespaces[state.namespaces.currentNamespace];
-      }
-      return { key: 'default', name: 'Default', description: '' } as INamespace;
-    }
-  ],
-  (currentNamespace) => currentNamespace
+  [(state: RootState) => state.namespaces],
+  (namespaces) =>
+    namespaces.namespaces[namespaces.currentNamespace] ||
+    ({ key: 'default', name: 'Default', description: '' } as INamespace)
 );
 
 export const fetchNamespacesAsync = createAsyncThunk(

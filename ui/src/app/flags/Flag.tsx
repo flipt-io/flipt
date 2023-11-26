@@ -49,7 +49,7 @@ export default function Flag() {
   const readOnly = useSelector(selectReadonly);
 
   const flag = useSelector((state: RootState) =>
-    selectFlag(state, namespace.key, flagKey || '')
+    selectFlag(state, flagKey || '')
   );
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
@@ -71,7 +71,7 @@ export default function Flag() {
       .catch((err) => {
         setError(err);
       });
-  }, [flagKey, namespace.key, clearError, setError]);
+  }, [flagKey, namespace.key, clearError, setError, dispatch]);
 
   if (!flag || flag.key != flagKey) return <Loading />;
 
