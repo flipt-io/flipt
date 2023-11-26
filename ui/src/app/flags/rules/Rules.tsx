@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { FlagProps } from '~/app/flags/FlagProps';
@@ -60,8 +60,11 @@ export default function Rules() {
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
-
-  const segments = useListSegmentsQuery(namespace.key)?.data?.segments || [];
+  const listSegments = useListSegmentsQuery(namespace.key);
+  const segments = useMemo(
+    () => listSegments.data?.segments || [],
+    [listSegments]
+  );
 
   const loadData = useCallback(async () => {
     // TODO: move to redux
