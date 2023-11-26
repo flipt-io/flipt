@@ -145,9 +145,9 @@ import "strings"
 			repository:         string
 			ref?:               string | *"main"
 			poll_interval?:     =~#duration | *"30s"
-			ca_cert_path:       string
-			ca_cert_bytes:      string
-			insecure_skip_tls?: bool | false
+			ca_cert_path?:       string
+			ca_cert_bytes?:      string
+			insecure_skip_tls?: bool | *false
 			authentication?: ({
 				basic: {
 					username: string

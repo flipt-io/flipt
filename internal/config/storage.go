@@ -91,6 +91,9 @@ func (c *StorageConfig) validate() error {
 		if err := c.Git.Authentication.validate(); err != nil {
 			return err
 		}
+		if err := c.Git.validate(); err != nil {
+			return err
+		}
 
 	case LocalStorageType:
 		if c.Local.Path == "" {
@@ -136,6 +139,13 @@ type Git struct {
 	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
 	PollInterval    time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 	Authentication  Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
+}
+
+func (g *Git) validate() error {
+	if g.CaCertPath != "" && g.CaCertBytes != "" {
+		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
+	}
+	return nil
 }
 
 // Object contains configuration of readonly object storage.

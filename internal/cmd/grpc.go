@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -163,7 +164,7 @@ func NewGRPCServer(
 		if cfg.Storage.Git.CaCertBytes != "" {
 			opts = append(opts, git.WithCABundle([]byte(cfg.Storage.Git.CaCertBytes)))
 		} else if cfg.Storage.Git.CaCertPath != "" {
-			if bytes, err := git.CaBundleFromFile(cfg.Storage.Git.CaCertPath); err == nil {
+			if bytes, err := os.ReadFile(cfg.Storage.Git.CaCertPath); err == nil {
 				opts = append(opts, git.WithCABundle(bytes))
 			} else {
 				return nil, err

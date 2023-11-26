@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"os"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -83,12 +82,6 @@ func WithCABundle(caCertBytes []byte) containers.Option[Source] {
 			s.caBundle = caCertBytes
 		}
 	}
-}
-
-// CaBundleFromFile tries to load an x.509 CA certificate from a path
-func CaBundleFromFile(caPath string) ([]byte, error) {
-	bytes, err := os.ReadFile(caPath)
-	return bytes, err
 }
 
 // NewSource constructs and configures a Source.
