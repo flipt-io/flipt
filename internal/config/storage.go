@@ -38,7 +38,7 @@ type StorageConfig struct {
 	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
 	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 	OCI      *OCI        `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
-	ReadOnly *bool       `json:"read_only,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
+	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
@@ -253,7 +253,7 @@ type OCI struct {
 	// Tag defaults to 'latest' when not supplied.
 	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 	// BundlesDirectory is the root directory in which Flipt will store and access local feature bundles.
-	BundlesDirectory string `json:"bundles_directory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
+	BundlesDirectory string `json:"bundlesDirectory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
 	// Authentication configures authentication credentials for accessing the target registry
 	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
 	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
