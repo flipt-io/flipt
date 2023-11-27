@@ -15,7 +15,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec(nil)
 
 	gitea := client.Container().
-		From("gitea/gitea:latest").
+		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
 		WithExec(nil)
 

@@ -204,7 +204,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
-		From("gitea/gitea:latest").
+		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
 		WithExec(nil)
 
