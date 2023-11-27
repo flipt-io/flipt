@@ -2,24 +2,21 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import useSWR from 'swr';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
 import { useError } from '~/data/hooks/error';
-import { ISegmentList } from '~/types/Segment';
 
 export default function Segments() {
   const namespace = useSelector(selectCurrentNamespace);
 
   const path = `/namespaces/${namespace.key}/segments`;
 
-  const { data, error } = useSWR<ISegmentList>(path);
-
-  const segments = data?.segments;
-
+  const { data, error } = useListSegmentsQuery(namespace.key);
+  const segments = data?.segments || [];
   const navigate = useNavigate();
   const { setError, clearError } = useError();
 

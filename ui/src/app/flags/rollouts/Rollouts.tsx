@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -26,17 +27,12 @@ import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 import Rollout from '~/components/rollouts/Rollout';
 import SortableRollout from '~/components/rollouts/SortableRollout';
 import Slideover from '~/components/Slideover';
-import {
-  deleteRollout,
-  listRollouts,
-  listSegments,
-  orderRollouts
-} from '~/data/api';
+import { deleteRollout, listRollouts, orderRollouts } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
 import { IRollout, IRolloutList } from '~/types/Rollout';
-import { ISegment, ISegmentList, SegmentOperatorType } from '~/types/Segment';
+import { SegmentOperatorType } from '~/types/Segment';
 
 type RolloutsProps = {
   flag: IFlag;
@@ -45,7 +41,6 @@ type RolloutsProps = {
 export default function Rollouts(props: RolloutsProps) {
   const { flag } = props;
 
-  const [segments, setSegments] = useState<ISegment[]>([]);
   const [rollouts, setRollouts] = useState<IRollout[]>([]);
 
   const [activeRollout, setActiveRollout] = useState<IRollout | null>(null);
@@ -68,13 +63,10 @@ export default function Rollouts(props: RolloutsProps) {
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
+  const segments = useListSegmentsQuery(namespace.key)?.data?.segments || [];
 
   const loadData = useCallback(async () => {
     // TODO: move to redux
-    const segmentList = (await listSegments(namespace.key)) as ISegmentList;
-    const { segments } = segmentList;
-    setSegments(segments);
-
     const rolloutList = (await listRollouts(
       namespace.key,
       flag.key
@@ -284,7 +276,7 @@ export default function Rollouts(props: RolloutsProps) {
               </p>
             </div>
             <div
-              className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+              className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900
   lg:p-6"
             >
               {rollouts && rollouts.length > 0 && (
