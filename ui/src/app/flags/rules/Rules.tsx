@@ -14,12 +14,13 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { FlagProps } from '~/app/flags/FlagProps';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
@@ -28,20 +29,19 @@ import RuleForm from '~/components/rules/forms/RuleForm';
 import Rule from '~/components/rules/Rule';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
-import { deleteRule, listRules, listSegments, orderRules } from '~/data/api';
+import { deleteRule, listRules, orderRules } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { FlagType } from '~/types/Flag';
 import { IRule, IRuleList } from '~/types/Rule';
-import { ISegment, ISegmentList, SegmentOperatorType } from '~/types/Segment';
+import { ISegment, SegmentOperatorType } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 
 export default function Rules() {
   const { flag } = useOutletContext<FlagProps>();
 
-  const [segments, setSegments] = useState<ISegment[]>([]);
   const [rules, setRules] = useState<IEvaluatable[]>([]);
 
   const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
@@ -60,13 +60,14 @@ export default function Rules() {
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
+  const listSegments = useListSegmentsQuery(namespace.key);
+  const segments = useMemo(
+    () => listSegments.data?.segments || [],
+    [listSegments]
+  );
 
   const loadData = useCallback(async () => {
     // TODO: move to redux
-    const segmentList = (await listSegments(namespace.key)) as ISegmentList;
-    const { segments } = segmentList;
-    setSegments(segments);
-
     const ruleList = (await listRules(namespace.key, flag.key)) as IRuleList;
 
     const rules = ruleList.rules.flatMap((rule: IRule) => {
@@ -133,7 +134,7 @@ export default function Rules() {
     });
 
     setRules(rules);
-  }, [namespace.key, flag]);
+  }, [namespace.key, flag, segments]);
 
   const incrementRulesVersion = () => {
     setRulesVersion(rulesVersion + 1);
@@ -283,7 +284,7 @@ export default function Rules() {
                 </p>
               </div>
               <div
-                className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+                className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900
   lg:w-3/4 lg:p-6"
               >
                 <DndContext

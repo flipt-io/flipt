@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from '~/types/auth/Token';
-import { IConstraintBase } from '~/types/Constraint';
 import { IDistributionBase } from '~/types/Distribution';
 import { FlagType, IFlagBase } from '~/types/Flag';
 import { IRolloutBase } from '~/types/Rollout';
 import { IRuleBase } from '~/types/Rule';
-import { ISegmentBase } from '~/types/Segment';
 import { IVariantBase } from '~/types/Variant';
 
-const apiURL = '/api/v1';
+export const apiURL = '/api/v1';
 const authURL = '/auth/v1';
 const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
@@ -26,34 +24,46 @@ export class APIError extends Error {
 
 //
 // base methods
-function setCsrf(req: any) {
+function headerCsrf(): Record<string, string> {
   const csrfToken = window.localStorage.getItem(csrfTokenHeaderKey);
   if (csrfToken !== null) {
-    req.headers[csrfTokenHeaderKey] = csrfToken;
+    return { 'x-csrf-token': csrfToken };
   }
-
-  return req;
+  return {};
 }
-
-export async function request(method: string, uri: string, body?: any) {
-  const req = setCsrf({
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const res = await fetch(uri, req);
-  if (!res.ok) {
-    if (res.status === 401) {
+// TODO: find a better name for this
+export function checkResponse(response: Response) {
+  if (!response.ok) {
+    if (response.status === 401) {
       window.localStorage.removeItem(csrfTokenHeaderKey);
       window.localStorage.removeItem(sessionKey);
       window.location.reload();
     }
+  }
+}
 
+export function defaultHeaders(): Record<string, string> {
+  const headers = {
+    ...headerCsrf(),
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Cache-Control': 'no-store'
+  };
+
+  return headers;
+}
+
+export async function request(method: string, uri: string, body?: any) {
+  const req = {
+    method,
+    headers: defaultHeaders(),
+    body: JSON.stringify(body)
+  };
+
+  const res = await fetch(uri, req);
+
+  if (!res.ok) {
+    checkResponse(res);
     const contentType = res.headers.get('content-type');
 
     if (!contentType || !contentType.includes('application/json')) {
@@ -64,7 +74,6 @@ export async function request(method: string, uri: string, body?: any) {
     let err = await res.json();
     throw new APIError(err.message, res.status);
   }
-
   return res.json();
 }
 
@@ -216,15 +225,16 @@ export async function orderRollouts(
   flagKey: string,
   rolloutIds: string[]
 ) {
-  const req = setCsrf({
+  const req = {
     method: 'PUT',
     headers: {
+      ...headerCsrf(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       rolloutIds: rolloutIds
     })
-  });
+  };
 
   const res = await fetch(
     `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/order`,
@@ -276,15 +286,16 @@ export async function orderRules(
   flagKey: string,
   ruleIds: string[]
 ) {
-  const req = setCsrf({
+  const req = {
     method: 'PUT',
     headers: {
+      ...headerCsrf(),
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       ruleIds
     })
-  });
+  };
 
   const res = await fetch(
     `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rules/order`,
@@ -351,90 +362,6 @@ export async function deleteVariant(
 ) {
   return del(
     `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`
-  );
-}
-
-//
-// segments
-export async function listSegments(namespaceKey: string) {
-  return get(`/namespaces/${namespaceKey}/segments`);
-}
-
-export async function getSegment(namespaceKey: string, key: string) {
-  return get(`/namespaces/${namespaceKey}/segments/${key}`);
-}
-
-export async function createSegment(
-  namespaceKey: string,
-  values: ISegmentBase
-) {
-  return post(`/namespaces/${namespaceKey}/segments`, values);
-}
-
-export async function updateSegment(
-  namespaceKey: string,
-  key: string,
-  values: ISegmentBase
-) {
-  return put(`/namespaces/${namespaceKey}/segments/${key}`, values);
-}
-
-export async function deleteSegment(namespaceKey: string, key: string) {
-  return del(`/namespaces/${namespaceKey}/segments/${key}`);
-}
-
-export async function copySegment(
-  from: { namespaceKey: string; key: string },
-  to: { namespaceKey: string; key?: string }
-) {
-  let segment = await get(
-    `/namespaces/${from.namespaceKey}/segments/${from.key}`
-  );
-  if (to.key) {
-    segment.key = to.key;
-  }
-
-  // first create the segment
-  await post(`/namespaces/${to.namespaceKey}/segments`, segment);
-
-  // then copy the constraints
-  for (let constraint of segment.constraints) {
-    await createConstraint(to.namespaceKey, segment.key, constraint);
-  }
-}
-
-//
-// constraints
-export async function createConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  values: IConstraintBase
-) {
-  return post(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
-    values
-  );
-}
-
-export async function updateConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  constraintId: string,
-  values: IConstraintBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
-    values
-  );
-}
-
-export async function deleteConstraint(
-  namespaceKey: string,
-  segmentKey: string,
-  constraintId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`
   );
 }
 

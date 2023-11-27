@@ -11,6 +11,7 @@ import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
+import { segmentsApi } from './app/segments/segmentsApi';
 import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
@@ -67,10 +68,13 @@ export const store = configureStore({
     namespaces: namespacesSlice.reducer,
     preferences: preferencesSlice.reducer,
     flags: flagsSlice.reducer,
-    meta: metaSlice.reducer
+    meta: metaSlice.reducer,
+    [segmentsApi.reducerPath]: segmentsApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().prepend(listenerMiddleware.middleware)
+    getDefaultMiddleware()
+      .prepend(listenerMiddleware.middleware)
+      .concat(segmentsApi.middleware)
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
