@@ -3,6 +3,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useCreateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
@@ -10,7 +11,6 @@ import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { RolloutType } from '~/types/Rollout';
@@ -60,28 +60,36 @@ export default function RolloutForm(props: RolloutFormProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
-
+  const [createRollout] = useCreateRolloutMutation();
   const handleSegmentSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flagKey, {
-      rank,
-      type: rolloutRuleType,
-      description: values.description,
-      segment: {
-        segmentKeys: values.segmentKeys?.map((s) => s.key),
-        segmentOperator: values.operator,
-        value: values.value === 'true'
+    return createRollout({
+      namespaceKey: namespace.key,
+      flagKey,
+      values: {
+        rank,
+        type: rolloutRuleType,
+        description: values.description,
+        segment: {
+          segmentKeys: values.segmentKeys?.map((s) => s.key),
+          segmentOperator: values.operator,
+          value: values.value === 'true'
+        }
       }
     });
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flagKey, {
-      rank,
-      type: rolloutRuleType,
-      description: values.description,
-      threshold: {
-        percentage: values.percentage || 0,
-        value: values.value === 'true'
+    return createRollout({
+      namespaceKey: namespace.key,
+      flagKey,
+      values: {
+        rank,
+        type: rolloutRuleType,
+        description: values.description,
+        threshold: {
+          percentage: values.percentage || 0,
+          value: values.value === 'true'
+        }
       }
     });
   };

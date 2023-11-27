@@ -14,8 +14,13 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  useDeleteRolloutMutation,
+  useListRolloutsQuery,
+  useOrderRolloutsMutation
+} from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
@@ -27,11 +32,10 @@ import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 import Rollout from '~/components/rollouts/Rollout';
 import SortableRollout from '~/components/rollouts/SortableRollout';
 import Slideover from '~/components/Slideover';
-import { deleteRollout, listRollouts, orderRollouts } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
-import { IRollout, IRolloutList } from '~/types/Rollout';
+import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
 
 type RolloutsProps = {
@@ -41,11 +45,8 @@ type RolloutsProps = {
 export default function Rollouts(props: RolloutsProps) {
   const { flag } = props;
 
-  const [rollouts, setRollouts] = useState<IRollout[]>([]);
-
   const [activeRollout, setActiveRollout] = useState<IRollout | null>(null);
 
-  const [rolloutsVersion, setRolloutsVersion] = useState(0);
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
 
   const [showEditRolloutForm, setShowEditRolloutForm] =
@@ -63,18 +64,27 @@ export default function Rollouts(props: RolloutsProps) {
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
-  const segments = useListSegmentsQuery(namespace.key)?.data?.segments || [];
+  const segmentsList = useListSegmentsQuery(namespace.key);
+  const segments = useMemo(
+    () => segmentsList.data?.segments || [],
+    [segmentsList]
+  );
 
-  const loadData = useCallback(async () => {
-    // TODO: move to redux
-    const rolloutList = (await listRollouts(
-      namespace.key,
-      flag.key
-    )) as IRolloutList;
+  const [deleteRollout] = useDeleteRolloutMutation();
 
+  const rolloutsList = useListRolloutsQuery({
+    namespaceKey: namespace.key,
+    flagKey: flag.key
+  });
+  const rolloutsRules = useMemo(
+    () => rolloutsList.data?.rules || [],
+    [rolloutsList]
+  );
+
+  const rollouts = useMemo(() => {
     // Combine both segmentKey and segmentKeys for legacy purposes.
     // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
-    const rolloutRules = rolloutList.rules.map((rollout) => {
+    return rolloutsRules.map((rollout) => {
       if (rollout.segment) {
         let segmentKeys: string[] = [];
         if (
@@ -101,13 +111,7 @@ export default function Rollouts(props: RolloutsProps) {
         ...rollout
       };
     });
-
-    setRollouts(rolloutRules);
-  }, [namespace.key, flag.key]);
-
-  const incrementRolloutsVersion = () => {
-    setRolloutsVersion(rolloutsVersion + 1);
-  };
+  }, [rolloutsRules]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -116,14 +120,15 @@ export default function Rollouts(props: RolloutsProps) {
     })
   );
 
+  const [orderRollouts] = useOrderRolloutsMutation();
+
   const reorderRollouts = (rollouts: IRollout[]) => {
-    orderRollouts(
-      namespace.key,
-      flag.key,
-      rollouts.map((rollout) => rollout.id)
-    )
+    orderRollouts({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      rolloutIds: rollouts.map((rollout) => rollout.id)
+    })
       .then(() => {
-        incrementRolloutsVersion();
         clearError();
         setSuccess('Successfully reordered rollouts');
       })
@@ -150,7 +155,6 @@ export default function Rollouts(props: RolloutsProps) {
       })(rollouts);
 
       reorderRollouts(reordered);
-      setRollouts(reordered);
     }
 
     setActiveRollout(null);
@@ -165,10 +169,6 @@ export default function Rollouts(props: RolloutsProps) {
       setActiveRollout(rollout);
     }
   };
-
-  useEffect(() => {
-    loadData();
-  }, [loadData, rolloutsVersion]);
 
   return (
     <>
@@ -187,11 +187,15 @@ export default function Rollouts(props: RolloutsProps) {
           }
           panelType="Rollout"
           setOpen={setShowDeleteRolloutModal}
-          handleDelete={
-            () =>
-              deleteRollout(namespace.key, flag.key, deletingRollout?.id ?? '') // TODO: Determine impact of blank ID param
+          handleDelete={() =>
+            deleteRollout({
+              namespaceKey: namespace.key,
+              flagKey: flag.key,
+              rolloutId: deletingRollout?.id ?? ''
+              // TODO: Determine impact of blank ID param
+            }).unwrap()
           }
-          onSuccess={incrementRolloutsVersion}
+          onSuccess={() => {}}
         />
       </Modal>
 
@@ -207,7 +211,6 @@ export default function Rollouts(props: RolloutsProps) {
           segments={segments}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
-            incrementRolloutsVersion();
             setShowRolloutForm(false);
           }}
         />
@@ -227,7 +230,6 @@ export default function Rollouts(props: RolloutsProps) {
             setOpen={setShowEditRolloutForm}
             onSuccess={() => {
               setShowEditRolloutForm(false);
-              incrementRolloutsVersion();
             }}
           />
         </Slideover>
@@ -297,7 +299,7 @@ export default function Rollouts(props: RolloutsProps) {
                           flag={flag}
                           rollout={rollout}
                           segments={segments}
-                          onSuccess={incrementRolloutsVersion}
+                          onSuccess={() => {}}
                           onEdit={() => {
                             setEditingRollout(rollout);
                             setShowEditRolloutForm(true);
