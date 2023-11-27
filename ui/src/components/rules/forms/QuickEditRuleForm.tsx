@@ -2,18 +2,22 @@ import { Field, FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { twMerge } from 'tailwind-merge';
+import {
+  useUpdateDistributionMutation,
+  useUpdateRuleMutation
+} from '~/app/flags/rulesApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
 import Combobox from '~/components/forms/Combobox';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
-import { updateDistribution, updateRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { DistributionType } from '~/types/Distribution';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
+import { INamespace } from '~/types/Namespace';
 import {
   FilterableSegment,
   ISegment,
@@ -52,7 +56,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(selectCurrentNamespace);
+  const namespace = useSelector(selectCurrentNamespace) as INamespace;
 
   const ruleType =
     rule.rollouts.length === 0
@@ -82,6 +86,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
   const readOnly = useSelector(selectReadonly);
 
+  const [updateRule] = useUpdateRuleMutation();
+  const [updateDistribution] = useUpdateDistributionMutation();
+
   const handleSubmit = async (values: RuleFormValues) => {
     const originalRuleSegments = rule.segments.map((s) => s.key);
     const comparableRuleSegments = values.segmentKeys.map((s) => s.key);
@@ -94,10 +101,15 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     if (!segmentsDidntChange || values.operator !== rule.operator) {
       // update segment if changed
       try {
-        await updateRule(namespace.key, flag.key, rule.id, {
-          rank: rule.rank,
-          segmentKeys: comparableRuleSegments,
-          segmentOperator: values.operator
+        await updateRule({
+          namespaceKey: namespace.key,
+          flagKey: flag.key,
+          ruleId: rule.id,
+          values: {
+            rank: rule.rank,
+            segmentKeys: comparableRuleSegments,
+            segmentOperator: values.operator
+          }
         });
       } catch (err) {
         setError(err as Error);
@@ -116,16 +128,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
             found &&
             found.distribution.rollout !== rollout.distribution.rollout
           ) {
-            return updateDistribution(
-              namespace.key,
-              flag.key,
-              rule.id,
-              rollout.distribution.id,
-              {
+            return updateDistribution({
+              namespaceKey: namespace.key,
+              flagKey: flag.key,
+              ruleId: rule.id,
+              distributionId: rollout.distribution.id,
+              values: {
                 variantId: rollout.distribution.variantId,
                 rollout: rollout.distribution.rollout
               }
-            );
+            });
           }
           return Promise.resolve();
         })
@@ -134,16 +146,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       // update variant if changed
       if (rule.rollouts[0].distribution.variantId !== selectedVariant.id) {
         try {
-          await updateDistribution(
-            namespace.key,
-            flag.key,
-            rule.id,
-            rule.rollouts[0].distribution.id,
-            {
+          await updateDistribution({
+            namespaceKey: namespace.key,
+            flagKey: flag.key,
+            ruleId: rule.id,
+            distributionId: rule.rollouts[0].distribution.id,
+            values: {
               variantId: selectedVariant.id,
               rollout: 100
             }
-          );
+          });
         } catch (err) {
           setError(err as Error);
           return;
