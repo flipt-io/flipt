@@ -48,6 +48,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
+		v.SetDefault("storage.git.insecure_skip_tls", false)
 		if v.GetString("storage.git.authentication.ssh.password") != "" ||
 			v.GetString("storage.git.authentication.ssh.private_key_path") != "" ||
 			v.GetString("storage.git.authentication.ssh.private_key_bytes") != "" {
@@ -90,6 +91,9 @@ func (c *StorageConfig) validate() error {
 		if err := c.Git.Authentication.validate(); err != nil {
 			return err
 		}
+		if err := c.Git.validate(); err != nil {
+			return err
+		}
 
 	case LocalStorageType:
 		if c.Local.Path == "" {
@@ -128,10 +132,20 @@ type Local struct {
 
 // Git contains configuration for referencing a git repository.
 type Git struct {
-	Repository     string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
-	Ref            string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
-	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	Authentication Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
+	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
+	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
+	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-" `
+	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-" `
+	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	PollInterval    time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	Authentication  Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
+}
+
+func (g *Git) validate() error {
+	if g.CaCertPath != "" && g.CaCertBytes != "" {
+		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
+	}
+	return nil
 }
 
 // Object contains configuration of readonly object storage.
