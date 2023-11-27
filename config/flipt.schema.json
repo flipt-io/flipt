@@ -516,6 +516,16 @@
               "type": "string",
               "default": "main"
             },
+            "ca_cert_path": {
+              "type": "string"
+            },
+            "ca_cert_bytes": {
+              "type": "string"
+            },
+            "insecure_skip_tls": {
+              "type": "boolean",
+              "default": "false"
+            },
             "poll_interval": {
               "oneOf": [
                 {
