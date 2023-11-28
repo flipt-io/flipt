@@ -1,4 +1,4 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import * as monaco from 'monaco-editor';
 import tmrw from 'monaco-themes/themes/Tomorrow-Night-Bright.json';
 import { useEffect, useRef } from 'react';
 import styles from './ContextEditor.module.css';
