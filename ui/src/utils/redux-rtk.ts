@@ -6,7 +6,7 @@ type CustomFetchFn = (
   options: RequestInit | undefined
 ) => Promise<Response>;
 
-const customFetchFn: CustomFetchFn = async (url, options) => {
+export const customFetchFn: CustomFetchFn = async (url, options) => {
   const headers = defaultHeaders();
 
   const response = await fetch(url, {

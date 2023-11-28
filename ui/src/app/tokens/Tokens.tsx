@@ -1,7 +1,12 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useDeleteTokensMutation,
+  useListTokensQuery
+} from '~/app/tokens/tokensApi';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
+import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
@@ -9,7 +14,7 @@ import ShowTokenPanel from '~/components/tokens/ShowTokenPanel';
 import TokenForm from '~/components/tokens/TokenForm';
 import TokenTable from '~/components/tokens/TokenTable';
 import Well from '~/components/Well';
-import { deleteTokens, listAuthMethods, listTokens } from '~/data/api';
+import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
 import {
@@ -20,10 +25,6 @@ import {
 
 export default function Tokens() {
   const [tokenAuthEnabled, setTokenAuthEnabled] = useState<boolean>(false);
-
-  const [tokens, setTokens] = useState<IAuthToken[]>([]);
-
-  const [tokensVersion, setTokensVersion] = useState(0);
 
   const { setError, clearError } = useError();
 
@@ -39,6 +40,8 @@ export default function Tokens() {
   const [deletingTokens, setDeletingTokens] = useState<IAuthToken[] | null>(
     null
   );
+
+  const [deleteTokens] = useDeleteTokensMutation();
 
   const tokenFormRef = useRef(null);
 
@@ -57,10 +60,16 @@ export default function Tokens() {
       });
   }, [clearError, setError]);
 
-  const fetchTokens = useCallback(() => {
-    listTokens()
-      .then((data) => {
-        const tokens = data.authentications.map((token: IAuthTokenInternal) => {
+  useEffect(() => {
+    checkTokenAuthEnabled();
+  }, [checkTokenAuthEnabled]);
+
+  const tokensQuery = useListTokensQuery();
+
+  const tokens = useMemo(
+    () =>
+      (tokensQuery.data?.authentications || []).map(
+        (token: IAuthTokenInternal) => {
           return {
             ...token,
             name: token.metadata['io.flipt.auth.token.name'],
@@ -68,26 +77,18 @@ export default function Tokens() {
               token.metadata['io.flipt.auth.token.description'] ?? '',
             namespaceKey: token.metadata['io.flipt.auth.token.namespace'] ?? ''
           };
-        });
-        setTokens(tokens);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [clearError, setError]);
+        }
+      ),
+    [tokensQuery]
+  );
 
-  const incrementTokensVersion = () => {
-    setTokensVersion(tokensVersion + 1);
-  };
+  if (tokensQuery.isError) {
+    setError(tokensQuery.error);
+  }
 
-  useEffect(() => {
-    fetchTokens();
-  }, [tokensVersion, fetchTokens]);
-
-  useEffect(() => {
-    checkTokenAuthEnabled();
-  }, [checkTokenAuthEnabled]);
+  if (tokensQuery.isLoading) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -101,7 +102,6 @@ export default function Tokens() {
           ref={tokenFormRef}
           setOpen={setShowTokenForm}
           onSuccess={(token: IAuthTokenSecret) => {
-            incrementTokensVersion();
             setShowTokenForm(false);
             setCreatedToken(token);
             setShowCreatedTokenModal(true);
@@ -131,13 +131,9 @@ export default function Tokens() {
           panelType="Tokens"
           setOpen={setShowDeleteTokenModal}
           handleDelete={() =>
-            deleteTokens(deletingTokens?.map((t) => t.id) || []).then(() => {
-              incrementTokensVersion();
-            })
+            deleteTokens(deletingTokens?.map((t) => t.id) || [])
           }
-          onSuccess={() => {
-            incrementTokensVersion();
-          }}
+          onSuccess={() => {}}
         />
       </Modal>
 
@@ -159,7 +155,7 @@ export default function Tokens() {
               Static tokens are used to authenticate with the API
             </p>
           </div>
-          {tokenAuthEnabled && tokens.length > 0 && (
+          {tokenAuthEnabled && tokens?.length > 0 && (
             <div className="mt-4">
               <Button primary onClick={() => setShowTokenForm(true)}>
                 <PlusIcon
@@ -178,7 +174,6 @@ export default function Tokens() {
                 tokens={tokens}
                 setDeletingTokens={setDeletingTokens}
                 setShowDeleteTokenModal={setShowDeleteTokenModal}
-                tokensVersion={tokensVersion}
               />
             ) : (
               <EmptyState
