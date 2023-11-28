@@ -75,7 +75,7 @@ export default function RolloutForm(props: RolloutFormProps) {
           value: values.value === 'true'
         }
       }
-    });
+    }).unwrap();
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
@@ -91,7 +91,7 @@ export default function RolloutForm(props: RolloutFormProps) {
           value: values.value === 'true'
         }
       }
-    });
+    }).unwrap();
   };
 
   return (
