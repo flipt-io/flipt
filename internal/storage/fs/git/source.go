@@ -26,11 +26,13 @@ type Source struct {
 	logger *zap.Logger
 	repo   *git.Repository
 
-	url      string
-	ref      string
-	hash     plumbing.Hash
-	interval time.Duration
-	auth     transport.AuthMethod
+	url             string
+	ref             string
+	hash            plumbing.Hash
+	interval        time.Duration
+	auth            transport.AuthMethod
+	caBundle        []byte
+	insecureSkipTLS bool
 }
 
 // WithRef configures the target reference to be used when fetching
@@ -64,6 +66,24 @@ func WithAuth(auth transport.AuthMethod) containers.Option[Source] {
 	}
 }
 
+// WithInsecureTLS returns an option which configures the insecure TLS
+// setting for the provided source.
+func WithInsecureTLS(insecureSkipTLS bool) containers.Option[Source] {
+	return func(s *Source) {
+		s.insecureSkipTLS = insecureSkipTLS
+	}
+}
+
+// WithCABundle returns an option which configures the CA Bundle used for
+// validating the TLS connection to the provided source.
+func WithCABundle(caCertBytes []byte) containers.Option[Source] {
+	return func(s *Source) {
+		if caCertBytes != nil {
+			s.caBundle = caCertBytes
+		}
+	}
+}
+
 // NewSource constructs and configures a Source.
 // The source uses the connection and credential details provided to build
 // fs.FS implementations around a target git repository.
@@ -83,8 +103,10 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 	source.logger = source.logger.With(field)
 
 	source.repo, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		Auth: source.auth,
-		URL:  source.url,
+		Auth:            source.auth,
+		URL:             source.url,
+		CABundle:        source.caBundle,
+		InsecureSkipTLS: source.insecureSkipTLS,
 	})
 	if err != nil {
 		return nil, err

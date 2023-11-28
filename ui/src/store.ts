@@ -5,6 +5,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import { flagsSlice } from './app/flags/flagsSlice';
+import { rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import {
@@ -69,12 +70,13 @@ export const store = configureStore({
     preferences: preferencesSlice.reducer,
     flags: flagsSlice.reducer,
     meta: metaSlice.reducer,
-    [segmentsApi.reducerPath]: segmentsApi.reducer
+    [segmentsApi.reducerPath]: segmentsApi.reducer,
+    [rulesApi.reducerPath]: rulesApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .prepend(listenerMiddleware.middleware)
-      .concat(segmentsApi.middleware)
+      .concat(segmentsApi.middleware, rulesApi.middleware)
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

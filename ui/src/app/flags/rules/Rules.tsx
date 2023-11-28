@@ -14,39 +14,40 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { FlagProps } from '~/app/flags/FlagProps';
+import {
+  useDeleteRuleMutation,
+  useListRulesQuery,
+  useOrderRulesMutation
+} from '~/app/flags/rulesApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
+import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import RuleForm from '~/components/rules/forms/RuleForm';
 import Rule from '~/components/rules/Rule';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
-import { deleteRule, listRules, orderRules } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
-import { FlagType } from '~/types/Flag';
-import { IRule, IRuleList } from '~/types/Rule';
+import { IRule } from '~/types/Rule';
 import { ISegment, SegmentOperatorType } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 
 export default function Rules() {
   const { flag } = useOutletContext<FlagProps>();
 
-  const [rules, setRules] = useState<IEvaluatable[]>([]);
-
   const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
 
-  const [rulesVersion, setRulesVersion] = useState(0);
   const [showRuleForm, setShowRuleForm] = useState<boolean>(false);
 
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
@@ -56,21 +57,26 @@ export default function Rules() {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const navigate = useNavigate();
-
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
-  const listSegments = useListSegmentsQuery(namespace.key);
+  const segmentsList = useListSegmentsQuery(namespace.key);
   const segments = useMemo(
-    () => listSegments.data?.segments || [],
-    [listSegments]
+    () => segmentsList.data?.segments || [],
+    [segmentsList]
   );
 
-  const loadData = useCallback(async () => {
-    // TODO: move to redux
-    const ruleList = (await listRules(namespace.key, flag.key)) as IRuleList;
+  const [deleteRule] = useDeleteRuleMutation();
+  const [orderRules] = useOrderRulesMutation();
 
-    const rules = ruleList.rules.flatMap((rule: IRule) => {
+  const rulesList = useListRulesQuery({
+    namespaceKey: namespace.key,
+    flagKey: flag.key
+  });
+
+  const ruleList = useMemo(() => rulesList.data?.rules || [], [rulesList]);
+
+  const rules = useMemo(() => {
+    return ruleList.flatMap((rule: IRule) => {
       const rollouts = rule.distributions.flatMap(
         (distribution: IDistribution) => {
           const variant = flag?.variants?.find(
@@ -132,13 +138,7 @@ export default function Rules() {
         updatedAt: rule.updatedAt
       };
     });
-
-    setRules(rules);
-  }, [namespace.key, flag, segments]);
-
-  const incrementRulesVersion = () => {
-    setRulesVersion(rulesVersion + 1);
-  };
+  }, [flag, segments, ruleList]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -148,13 +148,13 @@ export default function Rules() {
   );
 
   const reorderRules = (rules: IEvaluatable[]) => {
-    orderRules(
-      namespace.key,
-      flag.key,
-      rules.map((rule) => rule.id)
-    )
+    orderRules({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      ruleIds: rules.map((rule) => rule.id)
+    })
+      .unwrap()
       .then(() => {
-        incrementRulesVersion();
         clearError();
         setSuccess('Successfully reordered rules');
       })
@@ -177,7 +177,6 @@ export default function Rules() {
       })(rules);
 
       reorderRules(reordered);
-      setRules(reordered);
     }
 
     setActiveRule(null);
@@ -193,16 +192,9 @@ export default function Rules() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData, rulesVersion]);
-
-  useEffect(() => {
-    if (flag.type === FlagType.BOOLEAN) {
-      setError('Boolean flags do not support evaluation rules');
-      navigate(`/namespaces/${namespace.key}/flags/${flag.key}`);
-    }
-  }, [flag.type, navigate, setError, namespace.key, flag.key]);
+  if (segmentsList.isLoading || rulesList.isLoading) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -222,9 +214,12 @@ export default function Rules() {
           panelType="Rule"
           setOpen={setShowDeleteRuleModal}
           handleDelete={() =>
-            deleteRule(namespace.key, flag.key, deletingRule?.id ?? '')
+            deleteRule({
+              namespaceKey: namespace.key,
+              flagKey: flag.key,
+              ruleId: deletingRule?.id ?? ''
+            }).unwrap()
           }
-          onSuccess={incrementRulesVersion}
         />
       </Modal>
 
@@ -236,7 +231,6 @@ export default function Rules() {
           segments={segments}
           setOpen={setShowRuleForm}
           onSuccess={() => {
-            incrementRulesVersion();
             setShowRuleForm(false);
           }}
         />
@@ -306,11 +300,11 @@ export default function Rules() {
                             flag={flag}
                             rule={rule}
                             segments={segments}
-                            onSuccess={incrementRulesVersion}
                             onDelete={() => {
                               setDeletingRule(rule);
                               setShowDeleteRuleModal(true);
                             }}
+                            onSuccess={clearError}
                             readOnly={readOnly}
                           />
                         ))}

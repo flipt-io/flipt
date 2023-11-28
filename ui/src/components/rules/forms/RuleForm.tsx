@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
+import { useCreateRuleMutation } from '~/app/flags/rulesApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { createDistribution, createRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
@@ -107,6 +107,8 @@ export default function RuleForm(props: RuleFormProps) {
     }));
   });
 
+  const [createRule] = useCreateRuleMutation();
+
   const initialSegmentKeys: FilterableSegment[] = [];
 
   useEffect(() => {
@@ -126,28 +128,25 @@ export default function RuleForm(props: RuleFormProps) {
       throw new Error('No segments selected');
     }
 
-    const rule = await createRule(namespace.key, flag.key, {
-      segmentKeys: values.segmentKeys.map((s) => s.key),
-      segmentOperator: values.operator,
-      rank
-    });
-
-    if (ruleType === DistributionType.Multi) {
-      const distPromises = distributions?.map((dist: IDistributionVariant) =>
-        createDistribution(namespace.key, flag.key, rule.id, {
-          variantId: dist.variantId,
-          rollout: dist.rollout
-        })
-      );
-      if (distPromises) await Promise.all(distPromises);
+    const dist = [];
+    if (ruleType === DistributionType.Multi && distributions) {
+      dist.push(...distributions);
     } else if (selectedVariant) {
-      // we allow creating rules without variants
-
-      await createDistribution(namespace.key, flag.key, rule.id, {
+      dist.push({
         variantId: selectedVariant.id,
         rollout: 100
       });
     }
+    return createRule({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      values: {
+        segmentKeys: values.segmentKeys.map((s) => s.key),
+        segmentOperator: values.operator,
+        rank
+      },
+      distributions: dist
+    });
   };
 
   return (
