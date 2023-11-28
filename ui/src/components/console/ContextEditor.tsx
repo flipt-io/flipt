@@ -1,8 +1,11 @@
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import 'monaco-editor/esm/vs/language/json/monaco.contribution';
 import tmrw from 'monaco-themes/themes/Tomorrow-Night-Bright.json';
 import { useEffect, useRef } from 'react';
 import styles from './ContextEditor.module.css';
 import './worker';
+
+monaco.editor.defineTheme('tmrw', tmrw as monaco.editor.IStandaloneThemeData);
 
 type ContextEditorProps = {
   id: string;
@@ -14,15 +17,11 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
 ) => {
   const { id, setValue } = props;
 
-  const editor = useRef<undefined | monaco.editor.IStandaloneCodeEditor>();
   const monacoEl = useRef(null);
-  const subscription = useRef<monaco.IDisposable | null>(null);
-
-  monaco.editor.defineTheme('tmrw', tmrw as monaco.editor.IStandaloneThemeData);
 
   useEffect(() => {
     if (monacoEl.current) {
-      editor.current = monaco.editor.create(monacoEl.current!, {
+      const editor = monaco.editor.create(monacoEl.current!, {
         value: '{}',
         language: 'json',
         fontSize: 14,
@@ -39,16 +38,16 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
       });
 
       // After initializing monaco editor
-      if (editor?.current) {
-        subscription.current = editor.current.onDidChangeModelContent(() => {
-          if (editor?.current) setValue(editor.current.getValue());
-        });
-      }
+      const subscription = editor.onDidChangeModelContent(() => {
+        setValue(editor.getValue());
+      });
 
-      return () => editor.current && editor.current.dispose();
+      return () => {
+        subscription.dispose();
+        editor.dispose();
+      };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setValue]);
 
   return <div id={id} className={styles.ContextEditor} ref={monacoEl}></div>;
 };
