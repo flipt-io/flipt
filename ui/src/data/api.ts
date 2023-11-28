@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from '~/types/auth/Token';
-import { IDistributionBase } from '~/types/Distribution';
 import { FlagType, IFlagBase } from '~/types/Flag';
 import { IRolloutBase } from '~/types/Rollout';
-import { IRuleBase } from '~/types/Rule';
 import { IVariantBase } from '~/types/Variant';
 
 export const apiURL = '/api/v1';
@@ -245,92 +243,6 @@ export async function orderRollouts(
     throw new Error(err.message);
   }
   return res.ok;
-}
-
-//
-// rules
-export async function listRules(namespaceKey: string, flagKey: string) {
-  return get(`/namespaces/${namespaceKey}/flags/${flagKey}/rules`);
-}
-
-export async function createRule(
-  namespaceKey: string,
-  flagKey: string,
-  values: IRuleBase
-) {
-  return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rules`, values);
-}
-
-export async function updateRule(
-  namespaceKey: string,
-  flagKey: string,
-  ruleId: string,
-  values: IRuleBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}`,
-    values
-  );
-}
-
-export async function deleteRule(
-  namespaceKey: string,
-  flagKey: string,
-  ruleId: string
-) {
-  return del(`/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}`);
-}
-
-export async function orderRules(
-  namespaceKey: string,
-  flagKey: string,
-  ruleIds: string[]
-) {
-  const req = {
-    method: 'PUT',
-    headers: {
-      ...headerCsrf(),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      ruleIds
-    })
-  };
-
-  const res = await fetch(
-    `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rules/order`,
-    req
-  );
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message);
-  }
-  return res.ok;
-}
-
-export async function createDistribution(
-  namespaceKey: string,
-  flagKey: string,
-  ruleId: string,
-  values: IDistributionBase
-) {
-  return post(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}/distributions`,
-    values
-  );
-}
-
-export async function updateDistribution(
-  namespaceKey: string,
-  flagKey: string,
-  ruleId: string,
-  distributionId: string,
-  values: IDistributionBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}/distributions/${distributionId}`,
-    values
-  );
 }
 
 //
