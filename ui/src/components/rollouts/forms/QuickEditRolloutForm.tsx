@@ -65,7 +65,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           value: values.value === 'true'
         }
       }
-    });
+    }).unwrap();
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
@@ -83,7 +83,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           value: values.value === 'true'
         }
       }
-    });
+    }).unwrap();
   };
 
   const initialValue =
