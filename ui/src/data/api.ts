@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from '~/types/auth/Token';
 import { FlagType, IFlagBase } from '~/types/Flag';
-import { IRolloutBase } from '~/types/Rollout';
 import { IVariantBase } from '~/types/Variant';
 
 export const apiURL = '/api/v1';
@@ -182,69 +181,6 @@ export async function copyFlag(
     await createVariant(to.namespaceKey, flag.key, variant);
   }
 }
-
-// rollouts
-export async function listRollouts(namespaceKey: string, flagKey: string) {
-  return get(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`);
-}
-
-export async function createRollout(
-  namespaceKey: string,
-  flagKey: string,
-  values: IRolloutBase
-) {
-  return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`, values);
-}
-
-export async function updateRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string,
-  values: IRolloutBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`,
-    values
-  );
-}
-
-export async function deleteRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
-  );
-}
-
-export async function orderRollouts(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutIds: string[]
-) {
-  const req = {
-    method: 'PUT',
-    headers: {
-      ...headerCsrf(),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      rolloutIds: rolloutIds
-    })
-  };
-
-  const res = await fetch(
-    `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/order`,
-    req
-  );
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message);
-  }
-  return res.ok;
-}
-
 //
 // variants
 export async function createVariant(

@@ -1,6 +1,7 @@
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
 import { twMerge } from 'tailwind-merge';
+import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
@@ -8,7 +9,6 @@ import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
-import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
@@ -48,32 +48,42 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       : SegmentOperatorType.OR;
 
   const readOnly = useSelector(selectReadonly);
-
+  const [updateRollout] = useUpdateRolloutMutation();
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     let rolloutSegment = rollout;
     rolloutSegment.threshold = undefined;
 
-    return updateRollout(namespace.key, flag.key, rollout.id, {
-      ...rolloutSegment,
-      segment: {
-        segmentKeys: values.segmentKeys?.map((s) => s.key),
-        segmentOperator: values.operator,
-        value: values.value === 'true'
+    return updateRollout({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      rolloutId: rollout.id,
+      values: {
+        ...rolloutSegment,
+        segment: {
+          segmentKeys: values.segmentKeys?.map((s) => s.key),
+          segmentOperator: values.operator,
+          value: values.value === 'true'
+        }
       }
-    });
+    }).unwrap();
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
     let rolloutThreshold = rollout;
     rolloutThreshold.segment = undefined;
 
-    return updateRollout(namespace.key, flag.key, rollout.id, {
-      ...rolloutThreshold,
-      threshold: {
-        percentage: values.percentage || 0,
-        value: values.value === 'true'
+    return updateRollout({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      rolloutId: rollout.id,
+      values: {
+        ...rolloutThreshold,
+        threshold: {
+          percentage: values.percentage || 0,
+          value: values.value === 'true'
+        }
       }
-    });
+    }).unwrap();
   };
 
   const initialValue =
