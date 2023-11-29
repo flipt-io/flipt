@@ -32,27 +32,14 @@ func main() {
 
 	fmt.Fprintln(os.Stderr, "Syncing data to minio at", *minioURL, minioRegion)
 
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		fmt.Fprintln(os.Stderr, "Endpoint resolver", service, region)
-		if service == s3.ServiceID {
-			return aws.Endpoint{
-				PartitionID:       "aws",
-				URL:               *minioURL,
-				HostnameImmutable: true,
-				SigningRegion:     "",
-			}, nil
-		}
-		fmt.Fprintln(os.Stderr, "Unknown Endpoint", service, region)
-		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
-	})
-
 	ctx := context.Background()
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithEndpointResolverWithOptions(customResolver),
-	)
+	cfg, err := config.LoadDefaultConfig(ctx)
 	fatalOnError(err)
 
-	s3Client := s3.NewFromConfig(cfg)
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(*minioURL)
+		o.Region = minioRegion
+	})
 
 	output, err := s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	fatalOnError(err)
