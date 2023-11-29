@@ -1,0 +1,14 @@
+- id: flipt-validate
+  name: flipt validate
+  description: Validate feature flag configuration for Flipt.
+  entry: flipt validate
+  language: golang
+  types: [yaml]
+  pass_filenames: false
+  files: |
+    (?x)^(
+        .*/features\.yaml|
+        .*/features\.yml|
+        .*?/.*\.features.yaml|
+        .*?/.*\.features.yml
+    )$
