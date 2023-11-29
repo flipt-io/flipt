@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { IAuthTokenBase } from '~/types/auth/Token';
 import { FlagType, IFlagBase } from '~/types/Flag';
 import { IVariantBase } from '~/types/Variant';
 
@@ -102,18 +101,6 @@ export async function getAuthSelf() {
 
 export async function expireAuthSelf() {
   return put('/self/expire', {}, authURL);
-}
-
-export async function createToken(values: IAuthTokenBase) {
-  return post('/method/token', values, authURL);
-}
-
-export async function deleteTokens(ids: string[]) {
-  return Promise.all(ids.map((id) => del(`/tokens/${id}`, authURL)));
-}
-
-export async function listTokens(method = 'METHOD_TOKEN') {
-  return get(`/tokens?method=${method}`, authURL);
 }
 
 //

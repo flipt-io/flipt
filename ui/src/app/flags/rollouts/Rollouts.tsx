@@ -195,7 +195,6 @@ export default function Rollouts(props: RolloutsProps) {
               // TODO: Determine impact of blank ID param
             }).unwrap()
           }
-          onSuccess={() => {}}
         />
       </Modal>
 
@@ -299,7 +298,6 @@ export default function Rollouts(props: RolloutsProps) {
                           flag={flag}
                           rollout={rollout}
                           segments={segments}
-                          onSuccess={() => {}}
                           onEdit={() => {
                             setEditingRollout(rollout);
                             setShowEditRolloutForm(true);

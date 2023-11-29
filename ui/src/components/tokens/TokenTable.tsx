@@ -79,12 +79,10 @@ type TokenTableProps = {
   tokens: IAuthToken[];
   setDeletingTokens: (tokens: IAuthToken[]) => void;
   setShowDeleteTokenModal: (show: boolean) => void;
-  tokensVersion: number;
 };
 
 export default function TokenTable(props: TokenTableProps) {
-  const { tokens, setDeletingTokens, setShowDeleteTokenModal, tokensVersion } =
-    props;
+  const { tokens, setDeletingTokens, setShowDeleteTokenModal } = props;
   const searchThreshold = 10;
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -99,7 +97,7 @@ export default function TokenTable(props: TokenTableProps) {
 
   useEffect(() => {
     setRowSelection({});
-  }, [tokensVersion]);
+  }, [tokens]);
 
   const columns = [
     columnHelper.display({

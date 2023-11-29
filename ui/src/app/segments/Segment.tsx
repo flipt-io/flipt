@@ -162,7 +162,6 @@ export default function Segment() {
               // TODO: Determine impact of blank ID param
             }).unwrap()
           }
-          onSuccess={() => {}}
         />
       </Modal>
 
