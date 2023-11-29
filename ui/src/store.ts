@@ -14,6 +14,7 @@ import {
   preferencesSlice
 } from './app/preferences/preferencesSlice';
 import { segmentsApi } from './app/segments/segmentsApi';
+import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
@@ -73,7 +74,8 @@ export const store = configureStore({
     meta: metaSlice.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
     [rulesApi.reducerPath]: rulesApi.reducer,
-    [rolloutsApi.reducerPath]: rolloutsApi.reducer
+    [rolloutsApi.reducerPath]: rolloutsApi.reducer,
+    [tokensApi.reducerPath]: tokensApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -81,7 +83,8 @@ export const store = configureStore({
       .concat(
         segmentsApi.middleware,
         rulesApi.middleware,
-        rolloutsApi.middleware
+        rolloutsApi.middleware,
+        tokensApi.middleware
       )
 });
 
