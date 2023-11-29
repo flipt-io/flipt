@@ -45,12 +45,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
 interface ConsoleFormValues {
   flagKey: string;
   entityId: string;
+  context: string;
 }
 
 export default function Console() {
   const [flags, setFlags] = useState<FilterableFlag[]>([]);
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
-  const [context, setContext] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
@@ -78,7 +78,7 @@ export default function Console() {
   }, [namespace.key]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
-    const { entityId } = values;
+    const { entityId, context } = values;
 
     if (!flag) {
       return;
@@ -87,7 +87,7 @@ export default function Console() {
     let parsed = null;
     try {
       // need to unescape the context string
-      parsed = context ? JSON.parse(context) : undefined;
+      parsed = JSON.parse(context);
     } catch (err) {
       setHasEvaluationError(true);
       setResponse('error: ' + getErrorMessage(err));
@@ -124,7 +124,8 @@ export default function Console() {
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
-    entityId: uuidv4()
+    entityId: uuidv4(),
+    context: '{}'
   };
 
   return (
@@ -212,7 +213,12 @@ export default function Console() {
                             Request Context
                           </label>
                           <div className="nightwind-prevent mt-1">
-                            <ContextEditor id="context" setValue={setContext} />
+                            <ContextEditor
+                              id="context"
+                              setValue={(v) => {
+                                formik.setFieldValue('context', v);
+                              }}
+                            />
                           </div>
                         </div>
                       </div>
