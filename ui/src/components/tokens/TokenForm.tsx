@@ -5,16 +5,17 @@ import { forwardRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { selectNamespaces } from '~/app/namespaces/namespacesSlice';
+import { useCreateTokenMutation } from '~/app/tokens/tokensApi';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Listbox from '~/components/forms/Listbox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
-import { createToken } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { requiredValidation } from '~/data/validations';
 import { IAuthTokenBase, IAuthTokenSecret } from '~/types/auth/Token';
+import { INamespace } from '~/types/Namespace';
 
 type TokenFormProps = {
   setOpen: (open: boolean) => void;
@@ -24,14 +25,17 @@ type TokenFormProps = {
 const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
   const { setOpen, onSuccess } = props;
   const { setError, clearError } = useError();
+  const [createToken] = useCreateTokenMutation();
 
   const handleSubmit = async (values: IAuthTokenBase) => {
-    createToken(values).then((resp) => {
-      onSuccess(resp);
-    });
+    createToken(values)
+      .unwrap()
+      .then((resp) => {
+        onSuccess(resp);
+      });
   };
 
-  const namespaces = useSelector(selectNamespaces);
+  const namespaces = useSelector(selectNamespaces) as INamespace[];
 
   const [namespaceScoped, setNamespaceScoped] = useState<boolean>(false);
 
