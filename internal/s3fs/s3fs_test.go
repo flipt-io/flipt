@@ -63,17 +63,21 @@ func (fs3 *fakeS3Client) ListObjectsV2(_ context.Context, input *s3.ListObjectsV
 			// the fake s3 client
 			return nil, errors.New("Cannot find object for chunk")
 		}
+
+		size := int64(len(v.content))
 		if input.Prefix == nil || strings.HasPrefix(k, *input.Prefix) {
 			objects = append(objects, types.Object{
 				Key:          &k,
-				Size:         int64(len(v.content)),
+				Size:         &size,
 				LastModified: &v.lastModified,
 			})
 		}
 	}
+
+	isTruncated := continuationToken != nil
 	return &s3.ListObjectsV2Output{
 		Contents:              objects,
-		IsTruncated:           continuationToken != nil,
+		IsTruncated:           &isTruncated,
 		ContinuationToken:     input.ContinuationToken,
 		NextContinuationToken: continuationToken,
 	}, nil
@@ -91,8 +95,9 @@ func (fs3 *fakeS3Client) GetObject(ctx context.Context, input *s3.GetObjectInput
 
 	obj, ok := fs3.objects[*input.Key]
 	if ok {
+		contentLength := int64(len(obj.content))
 		return &s3.GetObjectOutput{
-			ContentLength: int64(len(obj.content)),
+			ContentLength: &contentLength,
 			Body:          io.NopCloser(strings.NewReader(obj.content)),
 			LastModified:  &obj.lastModified,
 		}, nil
