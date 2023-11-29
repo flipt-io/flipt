@@ -3,7 +3,6 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [v1.32.0](https://github.com/flipt-io/flipt/releases/tag/v1.32.0) - 2023-11-29
 
 ### Added
@@ -11,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add pre-commit hook support (#2451)
 - Added TLS options for git sources with self-signed certificates (#2443)
 - `ui/tokens`: delete multiple tokens (#2424)
-- Client eval service/endpoints (#2408)
 
 ### Changed
 
