@@ -133,7 +133,6 @@ export default function Tokens() {
           handleDelete={() =>
             deleteTokens(deletingTokens?.map((t) => t.id) || [])
           }
-          onSuccess={() => {}}
         />
       </Modal>
 
