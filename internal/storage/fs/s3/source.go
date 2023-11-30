@@ -2,10 +2,8 @@ package s3
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
@@ -38,30 +36,21 @@ func NewSource(logger *zap.Logger, bucket string, opts ...containers.Option[Sour
 
 	containers.ApplyAll(s, opts...)
 
-	s3opts := make([](func(*config.LoadOptions) error), 0)
-	if s.region != "" {
-		s3opts = append(s3opts, config.WithRegion(s.region))
-	}
-	if s.endpoint != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			if service == s3.ServiceID {
-				return aws.Endpoint{
-					PartitionID:       "aws",
-					URL:               s.endpoint,
-					HostnameImmutable: true,
-					SigningRegion:     s.region,
-				}, nil
-			}
-			return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
-		})
-		s3opts = append(s3opts, config.WithEndpointResolverWithOptions(customResolver))
-	}
 	cfg, err := config.LoadDefaultConfig(context.Background(),
-		s3opts...)
+		config.WithRegion(s.region))
 	if err != nil {
 		return nil, err
 	}
-	s.s3 = s3.NewFromConfig(cfg)
+
+	var s3Opts []func(*s3.Options)
+	if s.endpoint != "" {
+		s3Opts = append(s3Opts, func(o *s3.Options) {
+			o.BaseEndpoint = &s.endpoint
+			o.UsePathStyle = true
+			o.Region = s.region
+		})
+	}
+	s.s3 = s3.NewFromConfig(cfg, s3Opts...)
 
 	return s, nil
 }
