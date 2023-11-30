@@ -94,7 +94,7 @@ func (f *FS) Open(name string) (fs.File, error) {
 	return &File{
 		bucket:       f.bucket,
 		key:          name,
-		length:       output.ContentLength,
+		length:       *output.ContentLength,
 		body:         output.Body,
 		lastModified: *output.LastModified,
 	}, nil
@@ -176,12 +176,12 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 			c := output.Contents[i]
 			fi := &FileInfo{
 				name:    *c.Key,
-				size:    c.Size,
+				size:    *c.Size,
 				modTime: *c.LastModified,
 			}
 			entries = append(entries, fi)
 		}
-		if !output.IsTruncated {
+		if !*output.IsTruncated {
 			return entries, nil
 		}
 		continuationToken = output.NextContinuationToken
