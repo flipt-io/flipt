@@ -14,8 +14,9 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import { evaluateV2, listFlags } from '~/data/api';
+import { evaluateURL, evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import {
   jsonValidation,
   keyValidation,
@@ -23,12 +24,18 @@ import {
 } from '~/data/validations';
 import {
   FilterableFlag,
+  FlagType,
   flagTypeToLabel,
   IFlag,
   IFlagList
 } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
-import { classNames, getErrorMessage } from '~/utils/helpers';
+import {
+  classNames,
+  copyTextToClipboard,
+  generateCurlCommand,
+  getErrorMessage
+} from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
@@ -56,6 +63,7 @@ export default function Console() {
 
   const { setError, clearError } = useError();
   const navigate = useNavigate();
+  const {setSuccess} = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -108,6 +116,32 @@ export default function Console() {
         setHasEvaluationError(true);
         setResponse('error: ' + err.message);
       });
+  };
+
+  const handleCopyAsCurl = (values: ConsoleFormValues) => {
+    let parsed = null;
+    try {
+      // need to unescape the context string
+      parsed = JSON.parse(values.context);
+    } catch (err) {
+      setHasEvaluationError(true);
+      setResponse('error: ' + getErrorMessage(err));
+      return;
+    }
+
+    let route =
+      selectedFlag?.type === FlagType.BOOLEAN ? '/boolean' : '/variant';
+    const uri = window.location.origin + evaluateURL + route;
+
+    const command = generateCurlCommand('POST', uri, {
+      ...values,
+      context: parsed,
+      namespaceKey: namespace.key
+    });
+
+    copyTextToClipboard(command);
+
+    setSuccess("Command copied to clipboard.")
   };
 
   useEffect(() => {
@@ -223,6 +257,17 @@ export default function Console() {
                         </div>
                       </div>
                       <div className="flex justify-end">
+                        <Button
+                          primary
+                          className="ml-3"
+                          type="button"
+                          disabled={!(formik.dirty && formik.isValid)}
+                          onClick={() => {
+                            handleCopyAsCurl(formik.values);
+                          }}
+                        >
+                          Copy as curl
+                        </Button>
                         <Button
                           primary
                           className="ml-3"

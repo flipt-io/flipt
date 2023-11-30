@@ -4,7 +4,7 @@ import { IVariantBase } from '~/types/Variant';
 
 export const apiURL = '/api/v1';
 const authURL = '/auth/v1';
-const evaluateURL = '/evaluate/v1';
+export const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
 const csrfTokenHeaderKey = 'x-csrf-token';
 const sessionKey = 'session';

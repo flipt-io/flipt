@@ -1,3 +1,5 @@
+import { defaultHeaders } from "~/data/api";
+
 export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
@@ -86,4 +88,15 @@ function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
 
 export function getErrorMessage(error: unknown) {
   return toErrorWithMessage(error).message;
+}
+
+export function generateCurlCommand(method: string, uri: string, body?: any) {
+  const headers = defaultHeaders();
+  const curlHeaders = Object.keys(headers)
+    .map((key) => `-H "${key}: ${headers[key]}"`)
+    .join(' ');
+
+  const curlData = `-d '${JSON.stringify(body)}'`;
+
+  return ['curl', `-X ${method}`, curlHeaders, curlData, uri].join(' ');
 }
