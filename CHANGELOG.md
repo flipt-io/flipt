@@ -3,6 +3,34 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.32.0](https://github.com/flipt-io/flipt/releases/tag/v1.32.0) - 2023-11-29
+
+### Added
+
+- Add pre-commit hook support (#2451)
+- Added TLS options for git sources with self-signed certificates (#2443)
+- `ui/tokens`: delete multiple tokens (#2424)
+
+### Changed
+
+- `ui`: move tokens api to Redux RTK (#2468)
+- `ui`: move Rollouts to use Redux storage (#2465)
+- `ui`: move Rules to use Redux for storage (#2461)
+- add mattiaforc as a contributor for code (#2463)
+- `ui`: move Segments to use Redux storage (#2441)
+- add erka as a contributor for code (#2431)
+- `cue`: add failing case for attachment array support
+
+### Fixed
+
+- `ui/console`: rework monaco editor (#2467)
+- `ui/console`: monaco web workers don't work (#2464)
+- incorrect selector usage in redux (#2446)
+- camelcase JSON representation in storage config (#2445)
+- `ui/token`: show search input if it contains user's input (#2439)
+- `ui/token`: default namespaced token does not get created without selecting 'default' (#2438)
+- `cue`: allow arrays for variant attachment
+
 ## [v1.31.3](https://github.com/flipt-io/flipt/releases/tag/v1.31.1) - 2023-11-22
 
 ### Fixed
