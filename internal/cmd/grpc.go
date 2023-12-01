@@ -58,6 +58,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -268,7 +269,10 @@ func NewGRPCServer(
 			return nil, err
 		}
 	case config.FliptStorageType:
-		opts := []grpc.DialOption{grpc.WithBlock()}
+		opts := []grpc.DialOption{
+			grpc.WithBlock(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		}
 		dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
 		defer dialCancel()
 

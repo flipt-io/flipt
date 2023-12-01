@@ -41,6 +41,10 @@ func SnapshotFromEvaluationSnapshot(esnap *evaluation.EvaluationSnapshot) (*Stor
 				CreatedAt:    f.CreatedAt,
 			}
 
+			if _, ok := n.evalRules[f.Key]; !ok {
+				n.evalRules[f.Key] = []*storage.EvaluationRule{}
+			}
+
 			for _, rule := range f.Rules {
 				r := &storage.EvaluationRule{
 					NamespaceKey:    ns,
@@ -68,7 +72,12 @@ func SnapshotFromEvaluationSnapshot(esnap *evaluation.EvaluationSnapshot) (*Stor
 						Constraints: constraints,
 					}
 				}
+
 				n.evalRules[f.Key] = append(n.evalRules[f.Key], r)
+			}
+
+			if _, ok := n.evalRollouts[f.Key]; !ok {
+				n.evalRollouts[f.Key] = []*storage.EvaluationRollout{}
 			}
 
 			for _, rollout := range f.Rollouts {

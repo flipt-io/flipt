@@ -83,7 +83,10 @@ func (srv *Server) pollSnapshots(ctx context.Context) {
 				return nil, err
 			}
 
-			var snap evaluation.EvaluationSnapshot
+			snap := evaluation.EvaluationSnapshot{
+				Namespaces: map[string]*evaluation.EvaluationNamespaceSnapshot{},
+			}
+
 			for _, n := range ns {
 				namespaceSnap, err := srv.getEvaluationSnapshotNamespace(ctx, n.Key)
 				if err != nil {
@@ -98,10 +101,12 @@ func (srv *Server) pollSnapshots(ctx context.Context) {
 		servers []evaluation.DataService_EvaluationSnapshotStreamServer
 	)
 
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case server := <-srv.servers:
+			srv.logger.Debug("accepting new server")
+
 			servers = append(servers, server)
 
 			// if a snapshot hasn't been built yet then we build it
@@ -147,6 +152,7 @@ func (srv *Server) pollSnapshots(ctx context.Context) {
 			lastDigest = currentDigest
 			lastSnap = snap
 
+			srv.logger.Debug("new snapshot build", zap.String("digest", lastDigest.Hex()))
 			// we call send in a deletefunc loop so that we drop any
 			// clients that have their streams cancelled
 			servers = slices.DeleteFunc(servers, func(ds evaluation.DataService_EvaluationSnapshotStreamServer) bool {
