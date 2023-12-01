@@ -184,6 +184,7 @@ var EvaluationService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	DataService_EvaluationSnapshotNamespace_FullMethodName = "/flipt.evaluation.DataService/EvaluationSnapshotNamespace"
+	DataService_EvaluationSnapshotStream_FullMethodName    = "/flipt.evaluation.DataService/EvaluationSnapshotStream"
 )
 
 // DataServiceClient is the client API for DataService service.
@@ -191,6 +192,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataServiceClient interface {
 	EvaluationSnapshotNamespace(ctx context.Context, in *EvaluationNamespaceSnapshotRequest, opts ...grpc.CallOption) (*EvaluationNamespaceSnapshot, error)
+	EvaluationSnapshotStream(ctx context.Context, in *EvaluationSnapshotStreamRequest, opts ...grpc.CallOption) (DataService_EvaluationSnapshotStreamClient, error)
 }
 
 type dataServiceClient struct {
@@ -210,11 +212,44 @@ func (c *dataServiceClient) EvaluationSnapshotNamespace(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *dataServiceClient) EvaluationSnapshotStream(ctx context.Context, in *EvaluationSnapshotStreamRequest, opts ...grpc.CallOption) (DataService_EvaluationSnapshotStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DataService_ServiceDesc.Streams[0], DataService_EvaluationSnapshotStream_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServiceEvaluationSnapshotStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataService_EvaluationSnapshotStreamClient interface {
+	Recv() (*EvaluationSnapshot, error)
+	grpc.ClientStream
+}
+
+type dataServiceEvaluationSnapshotStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServiceEvaluationSnapshotStreamClient) Recv() (*EvaluationSnapshot, error) {
+	m := new(EvaluationSnapshot)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DataServiceServer is the server API for DataService service.
 // All implementations must embed UnimplementedDataServiceServer
 // for forward compatibility
 type DataServiceServer interface {
 	EvaluationSnapshotNamespace(context.Context, *EvaluationNamespaceSnapshotRequest) (*EvaluationNamespaceSnapshot, error)
+	EvaluationSnapshotStream(*EvaluationSnapshotStreamRequest, DataService_EvaluationSnapshotStreamServer) error
 	mustEmbedUnimplementedDataServiceServer()
 }
 
@@ -224,6 +259,9 @@ type UnimplementedDataServiceServer struct {
 
 func (UnimplementedDataServiceServer) EvaluationSnapshotNamespace(context.Context, *EvaluationNamespaceSnapshotRequest) (*EvaluationNamespaceSnapshot, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluationSnapshotNamespace not implemented")
+}
+func (UnimplementedDataServiceServer) EvaluationSnapshotStream(*EvaluationSnapshotStreamRequest, DataService_EvaluationSnapshotStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method EvaluationSnapshotStream not implemented")
 }
 func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
 
@@ -256,6 +294,27 @@ func _DataService_EvaluationSnapshotNamespace_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataService_EvaluationSnapshotStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EvaluationSnapshotStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServiceServer).EvaluationSnapshotStream(m, &dataServiceEvaluationSnapshotStreamServer{stream})
+}
+
+type DataService_EvaluationSnapshotStreamServer interface {
+	Send(*EvaluationSnapshot) error
+	grpc.ServerStream
+}
+
+type dataServiceEvaluationSnapshotStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServiceEvaluationSnapshotStreamServer) Send(m *EvaluationSnapshot) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DataService_ServiceDesc is the grpc.ServiceDesc for DataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -268,6 +327,12 @@ var DataService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DataService_EvaluationSnapshotNamespace_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "EvaluationSnapshotStream",
+			Handler:       _DataService_EvaluationSnapshotStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "evaluation/evaluation.proto",
 }

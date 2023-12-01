@@ -34,11 +34,13 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	"go.flipt.io/flipt/internal/storage/fs"
+	"go.flipt.io/flipt/internal/storage/fs/flipt"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
+	evaluationrpc "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -257,6 +259,25 @@ func NewGRPCServer(
 		source, err := storageoci.NewSource(logger, ocistore, ref,
 			storageoci.WithPollInterval(cfg.Storage.OCI.PollInterval),
 		)
+		if err != nil {
+			return nil, err
+		}
+
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	case config.FliptStorageType:
+		opts := []grpc.DialOption{grpc.WithBlock()}
+		dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer dialCancel()
+
+		clientConn, err := grpc.DialContext(dialCtx, cfg.Storage.Flipt.Address, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		source, err := flipt.NewSource(logger, ctx, evaluationrpc.NewDataServiceClient(clientConn))
 		if err != nil {
 			return nil, err
 		}

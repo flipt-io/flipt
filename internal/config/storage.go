@@ -22,6 +22,7 @@ const (
 	GitStorageType      = StorageType("git")
 	ObjectStorageType   = StorageType("object")
 	OCIStorageType      = StorageType("oci")
+	FliptStorageType    = StorageType("flipt")
 )
 
 type ObjectSubStorageType string
@@ -38,14 +39,15 @@ type StorageConfig struct {
 	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
 	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 	OCI      *OCI        `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
+	Flipt    *Flipt      `json:"flipt,omitempty" mapstructure:"flipt,omitempty" yaml:"flipt,omitempty"`
 	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
-	switch v.GetString("storage.type") {
-	case string(LocalStorageType):
+	switch StorageType(v.GetString("storage.type")) {
+	case LocalStorageType:
 		v.SetDefault("storage.local.path", ".")
-	case string(GitStorageType):
+	case GitStorageType:
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
 		v.SetDefault("storage.git.insecure_skip_tls", false)
@@ -54,7 +56,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 			v.GetString("storage.git.authentication.ssh.private_key_bytes") != "" {
 			v.SetDefault("storage.git.authentication.ssh.user", "git")
 		}
-	case string(ObjectStorageType):
+	case ObjectStorageType:
 		// keep this as a case statement in anticipation of
 		// more object types in the future
 		// nolint:gocritic
@@ -62,7 +64,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		case string(S3ObjectSubStorageType):
 			v.SetDefault("storage.object.s3.poll_interval", "1m")
 		}
-	case string(OCIStorageType):
+	case OCIStorageType:
 		v.SetDefault("storage.oci.poll_interval", "30s")
 
 		dir, err := DefaultBundleDir()
@@ -71,6 +73,8 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		}
 
 		v.SetDefault("storage.oci.bundles_directory", dir)
+	case FliptStorageType:
+		v.SetDefault("storage.flipt.address", "localhost:9000")
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -114,6 +118,10 @@ func (c *StorageConfig) validate() error {
 
 		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
 			return fmt.Errorf("validating OCI configuration: %w", err)
+		}
+	case FliptStorageType:
+		if err := c.Flipt.validate(); err != nil {
+			return err
 		}
 	}
 
@@ -279,6 +287,7 @@ type OCIAuthentication struct {
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 
+// DefaultBundleDir returns the location for storing OCI bundles of Flipt state
 func DefaultBundleDir() (string, error) {
 	dir, err := Dir()
 	if err != nil {
@@ -291,4 +300,19 @@ func DefaultBundleDir() (string, error) {
 	}
 
 	return bundlesDir, nil
+}
+
+// Flipt configures another Flipt as a source for feature flag state
+// In this mode, Flipt will subscribe to snapshots of state from the
+// Flipt instance(s) reachable from the configured address.
+type Flipt struct {
+	Address string `json:"address,omitempty" mapstructure:"address" yaml:"address,omitempty"`
+}
+
+func (f *Flipt) validate() error {
+	if f.Address == "" {
+		return errors.New("flipt address cannot be empty")
+	}
+
+	return nil
 }

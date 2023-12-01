@@ -194,7 +194,14 @@ message EvaluationNamespaceSnapshotRequest {
   string key = 1;
 }
 
+message EvaluationSnapshotStreamRequest {}
+
+message EvaluationSnapshot {
+  map<string, EvaluationNamespaceSnapshot> namespaces = 1;
+}
+
 // flipt:sdk:ignore
 service DataService {
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
+  rpc EvaluationSnapshotStream(EvaluationSnapshotStreamRequest) returns (stream EvaluationSnapshot);
 }
