@@ -1,4 +1,5 @@
-import { defaultHeaders } from "~/data/api";
+import { defaultHeaders } from '~/data/api';
+import { ICurlOptions } from '~/types/Curl';
 
 export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -90,13 +91,18 @@ export function getErrorMessage(error: unknown) {
   return toErrorWithMessage(error).message;
 }
 
-export function generateCurlCommand(method: string, uri: string, body?: any) {
-  const headers = defaultHeaders();
+export function generateCurlCommand(curlOptions: ICurlOptions) {
+  const headers = { ...defaultHeaders(), ...curlOptions.headers };
   const curlHeaders = Object.keys(headers)
     .map((key) => `-H "${key}: ${headers[key]}"`)
     .join(' ');
 
-  const curlData = `-d '${JSON.stringify(body)}'`;
-
-  return ['curl', `-X ${method}`, curlHeaders, curlData, uri].join(' ');
+  const curlData = `-d '${JSON.stringify(curlOptions.body)}'`;
+  return [
+    'curl',
+    `-X ${curlOptions.method}`,
+    curlHeaders,
+    curlData,
+    curlOptions.uri
+  ].join(' ');
 }
