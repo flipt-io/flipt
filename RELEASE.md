@@ -22,8 +22,6 @@ The process for each looks roughly the same using GitHub Actions and GoReleaser 
 
 ![Release Process](.github/images/release-process.png)
 
-:warning: **NOTE:** The macOS build of Flipt is still a work in progress. We do not currently offer a stable release version for macOS. This will be added in a future release.
-
 ### Stable Releases
 
 1. Create a new branch from `main` named `release/vX.Y.Z` (e.g. `release/v1.0.0`).
