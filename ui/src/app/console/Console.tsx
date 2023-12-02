@@ -177,7 +177,7 @@ export default function Console() {
     copyTextToClipboard(command);
 
     setSuccess(
-      'Command copied to clipboard. Generate an API token if necessary.'
+      'Command copied to clipboard'
     );
   };
 
