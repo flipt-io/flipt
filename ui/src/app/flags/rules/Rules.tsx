@@ -17,7 +17,6 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
-import { FlagProps } from '~/app/flags/FlagProps';
 import {
   useDeleteRuleMutation,
   useListRulesQuery,
@@ -39,12 +38,17 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
+import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { ISegment, SegmentOperatorType } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 
+type RulesProps = {
+  flag: IFlag;
+};
+
 export default function Rules() {
-  const { flag } = useOutletContext<FlagProps>();
+  const { flag } = useOutletContext<RulesProps>();
 
   const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
 

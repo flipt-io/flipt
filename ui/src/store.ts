@@ -8,7 +8,7 @@ import {
   namespaceApi,
   namespacesSlice
 } from '~/app/namespaces/namespacesSlice';
-import { flagsSlice } from './app/flags/flagsSlice';
+import { flagsApi } from './app/flags/flagsApi';
 import { rolloutsApi } from './app/flags/rolloutsApi';
 import { rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
@@ -76,19 +76,14 @@ export const store = configureStore({
       status: LoadingStatus.IDLE,
       currentNamespace,
       error: undefined
-    },
-    flags: {
-      status: LoadingStatus.IDLE,
-      flags: {},
-      error: undefined
     }
   },
   reducer: {
     namespaces: namespacesSlice.reducer,
     preferences: preferencesSlice.reducer,
-    flags: flagsSlice.reducer,
     meta: metaSlice.reducer,
     [namespaceApi.reducerPath]: namespaceApi.reducer,
+    [flagsApi.reducerPath]: flagsApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
     [rulesApi.reducerPath]: rulesApi.reducer,
     [rolloutsApi.reducerPath]: rolloutsApi.reducer,
@@ -99,6 +94,7 @@ export const store = configureStore({
       .prepend(listenerMiddleware.middleware)
       .concat(
         namespaceApi.middleware,
+        flagsApi.middleware,
         segmentsApi.middleware,
         rulesApi.middleware,
         rolloutsApi.middleware,

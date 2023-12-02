@@ -3,23 +3,19 @@ import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/tomorrow-night-bright.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import {
-  evaluateURL,
-  evaluateV2,
-  listAuthMethods,
-  listFlags
-} from '~/data/api';
+import { evaluateURL, evaluateV2, listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
@@ -28,13 +24,7 @@ import {
   requiredValidation
 } from '~/data/validations';
 import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
-import {
-  FilterableFlag,
-  FlagType,
-  flagTypeToLabel,
-  IFlag,
-  IFlagList
-} from '~/types/Flag';
+import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import {
   classNames,
@@ -62,7 +52,6 @@ interface ConsoleFormValues {
 }
 
 export default function Console() {
-  const [flags, setFlags] = useState<FilterableFlag[]>([]);
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
@@ -76,23 +65,29 @@ export default function Console() {
 
   const codeRef = useRef<HTMLElement>(null);
 
-  const loadData = useCallback(async () => {
-    const initialFlagList = (await listFlags(namespace.key)) as IFlagList;
-    const { flags } = initialFlagList;
+  const { data, error } = useListFlagsQuery(namespace.key);
 
-    setFlags(
-      flags.map((flag) => {
-        const status = flag.enabled ? 'active' : 'inactive';
+  useEffect(() => {
+    if (error) {
+      setError(error);
+      return;
+    }
+    clearError();
+  }, [clearError, error, setError]);
 
-        return {
-          ...flag,
-          status,
-          filterValue: flag.key,
-          displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
-        };
-      })
-    );
-  }, [namespace.key]);
+  const flags = useMemo(() => {
+    const initialFlags = data?.flags || [];
+    return initialFlags.map((flag) => {
+      const status = flag.enabled ? 'active' : 'inactive';
+
+      return {
+        ...flag,
+        status: status as 'active' | 'inactive',
+        filterValue: flag.key,
+        displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
+      };
+    });
+  }, [data]);
 
   const checkIsAuthRequired = useCallback(() => {
     listAuthMethods()
@@ -176,9 +171,7 @@ export default function Console() {
 
     copyTextToClipboard(command);
 
-    setSuccess(
-      'Command copied to clipboard'
-    );
+    setSuccess('Command copied to clipboard');
   };
 
   useEffect(() => {
@@ -189,14 +182,6 @@ export default function Console() {
     }
     hljs.highlightAll();
   }, [response, codeRef]);
-
-  useEffect(() => {
-    loadData()
-      .then(() => clearError())
-      .catch((err) => {
-        setError(err);
-      });
-  }, [clearError, loadData, setError]);
 
   useEffect(() => {
     checkIsAuthRequired();
@@ -219,7 +204,7 @@ export default function Console() {
         </p>
       </div>
       <div className="flex flex-col md:flex-row">
-        {flags.length > 0 && (
+        {flags && flags.length > 0 && (
           <>
             <div className="mt-8 w-full overflow-hidden md:w-1/2">
               <Formik

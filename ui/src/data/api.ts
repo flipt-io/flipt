@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { FlagType, IFlagBase } from '~/types/Flag';
-import { IVariantBase } from '~/types/Variant';
+import { FlagType } from '~/types/Flag';
 
 export const apiURL = '/api/v1';
-const authURL = '/auth/v1';
+export const authURL = '/auth/v1';
 export const evaluateURL = '/evaluate/v1';
-const metaURL = '/meta';
+export const metaURL = '/meta';
+
 const csrfTokenHeaderKey = 'x-csrf-token';
 const sessionKey = 'session';
 
@@ -85,10 +85,6 @@ async function put<T>(uri: string, values: T, base = apiURL) {
   return request('PUT', base + uri, values);
 }
 
-async function del(uri: string, base = apiURL) {
-  return request('DELETE', base + uri);
-}
-
 //
 // auth
 export async function listAuthMethods() {
@@ -101,81 +97,6 @@ export async function getAuthSelf() {
 
 export async function expireAuthSelf() {
   return put('/self/expire', {}, authURL);
-}
-
-//
-// flags
-export async function listFlags(namespaceKey: string) {
-  return get(`/namespaces/${namespaceKey}/flags`);
-}
-
-export async function getFlag(namespaceKey: string, key: string) {
-  return get(`/namespaces/${namespaceKey}/flags/${key}`);
-}
-
-export async function createFlag(namespaceKey: string, values: IFlagBase) {
-  return post(`/namespaces/${namespaceKey}/flags`, values);
-}
-
-export async function updateFlag(
-  namespaceKey: string,
-  key: string,
-  values: IFlagBase
-) {
-  return put(`/namespaces/${namespaceKey}/flags/${key}`, values);
-}
-
-export async function deleteFlag(namespaceKey: string, key: string) {
-  return del(`/namespaces/${namespaceKey}/flags/${key}`);
-}
-
-export async function copyFlag(
-  from: { namespaceKey: string; key: string },
-  to: { namespaceKey: string; key?: string }
-) {
-  let flag = await get(`/namespaces/${from.namespaceKey}/flags/${from.key}`);
-  if (to.key) {
-    flag.key = to.key;
-  }
-
-  // first create the flag
-  await post(`/namespaces/${to.namespaceKey}/flags`, flag);
-
-  // then copy the variants
-  for (let variant of flag.variants) {
-    await createVariant(to.namespaceKey, flag.key, variant);
-  }
-}
-//
-// variants
-export async function createVariant(
-  namespaceKey: string,
-  flagKey: string,
-  values: IVariantBase
-) {
-  return post(`/namespaces/${namespaceKey}/flags/${flagKey}/variants`, values);
-}
-
-export async function updateVariant(
-  namespaceKey: string,
-  flagKey: string,
-  variantId: string,
-  values: IVariantBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`,
-    values
-  );
-}
-
-export async function deleteVariant(
-  namespaceKey: string,
-  flagKey: string,
-  variantId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`
-  );
 }
 
 //
