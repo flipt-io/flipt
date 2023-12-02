@@ -385,6 +385,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://ediblemonad.dev"><img src="https://avatars.githubusercontent.com/u/11407672?v=4?s=100" width="100px;" alt="Akshay Nair"/><br /><sub><b>Akshay Nair</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=phenax" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/erka"><img src="https://avatars.githubusercontent.com/u/19472?v=4?s=100" width="100px;" alt="Roman Dmytrenko"/><br /><sub><b>Roman Dmytrenko</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=erka" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mattiaforc"><img src="https://avatars.githubusercontent.com/u/11019007?v=4?s=100" width="100px;" alt="Mattia Forcellese"/><br /><sub><b>Mattia Forcellese</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=mattiaforc" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AmineRhazzar"><img src="https://avatars.githubusercontent.com/u/51166100?v=4?s=100" width="100px;" alt="Mohammed El Amine Rhazzar"/><br /><sub><b>Mohammed El Amine Rhazzar</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=AmineRhazzar" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
