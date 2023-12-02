@@ -1,4 +1,5 @@
 .ContextEditor {
-  width: 100vw;
-  height: 50vh;
+  width: 100%;
+  min-height: 50vh;
+  height: 100%;
 }

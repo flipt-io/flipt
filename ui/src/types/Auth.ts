@@ -1,5 +1,9 @@
 export interface IAuthMethod {
-  method: 'METHOD_TOKEN' | 'METHOD_OIDC' | 'METHOD_GITHUB';
+  method:
+    | 'METHOD_TOKEN'
+    | 'METHOD_OIDC'
+    | 'METHOD_GITHUB'
+    | 'METHOD_KUBERNETES';
   enabled: boolean;
   sessionCompatible: boolean;
   metadata: { [key: string]: any };

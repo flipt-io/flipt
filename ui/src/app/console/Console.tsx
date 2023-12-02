@@ -3,7 +3,7 @@ import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/tomorrow-night-bright.css';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,21 +14,34 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import { evaluateV2, listFlags } from '~/data/api';
+import {
+  evaluateURL,
+  evaluateV2,
+  listAuthMethods,
+  listFlags
+} from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import {
   jsonValidation,
   keyValidation,
   requiredValidation
 } from '~/data/validations';
+import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
 import {
   FilterableFlag,
+  FlagType,
   flagTypeToLabel,
   IFlag,
   IFlagList
 } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
-import { classNames, getErrorMessage } from '~/utils/helpers';
+import {
+  classNames,
+  copyTextToClipboard,
+  generateCurlCommand,
+  getErrorMessage
+} from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
@@ -53,11 +66,15 @@ export default function Console() {
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
+  const [isAuthRequired, setIsAuthRequired] = useState<boolean>(false);
 
   const { setError, clearError } = useError();
   const navigate = useNavigate();
+  const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
+
+  const codeRef = useRef<HTMLElement>(null);
 
   const loadData = useCallback(async () => {
     const initialFlagList = (await listFlags(namespace.key)) as IFlagList;
@@ -76,6 +93,20 @@ export default function Console() {
       })
     );
   }, [namespace.key]);
+
+  const checkIsAuthRequired = useCallback(() => {
+    listAuthMethods()
+      .then((resp: IAuthMethodList) => {
+        const enabledAuthMethods = resp.methods.filter(
+          (m: IAuthMethod) => m.enabled
+        );
+        setIsAuthRequired(enabledAuthMethods.length != 0);
+        clearError();
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, [setError, clearError]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
     const { entityId, context } = values;
@@ -110,9 +141,54 @@ export default function Console() {
       });
   };
 
+  const handleCopyAsCurl = (values: ConsoleFormValues) => {
+    let parsed = null;
+    try {
+      // need to unescape the context string
+      parsed = JSON.parse(values.context);
+    } catch (err) {
+      setHasEvaluationError(true);
+      setError('Context provided is invalid.');
+      return;
+    }
+    const uri =
+      window.location.origin +
+      evaluateURL +
+      (selectedFlag?.type === FlagType.BOOLEAN ? '/boolean' : '/variant');
+
+    let headers: Record<string, string> = {};
+
+    if (isAuthRequired) {
+      // user can generate an auth token and use it
+      headers.Authorization = 'Bearer <api-token>';
+    }
+
+    const command = generateCurlCommand({
+      method: 'POST',
+      body: {
+        ...values,
+        context: parsed,
+        namespaceKey: namespace.key
+      },
+      headers,
+      uri
+    });
+
+    copyTextToClipboard(command);
+
+    setSuccess(
+      'Command copied to clipboard'
+    );
+  };
+
   useEffect(() => {
+    if (codeRef.current) {
+      // must unset property 'highlighted' so that it can be highlighted again
+      // otherwise it gets highlighted the first time only
+      delete codeRef.current.dataset.highlighted;
+    }
     hljs.highlightAll();
-  }, [response]);
+  }, [response, codeRef]);
 
   useEffect(() => {
     loadData()
@@ -121,6 +197,10 @@ export default function Console() {
         setError(err);
       });
   }, [clearError, loadData, setError]);
+
+  useEffect(() => {
+    checkIsAuthRequired();
+  }, [checkIsAuthRequired]);
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
@@ -224,6 +304,16 @@ export default function Console() {
                       </div>
                       <div className="flex justify-end">
                         <Button
+                          className="ml-3"
+                          type="button"
+                          disabled={!(formik.dirty && formik.isValid)}
+                          onClick={() => {
+                            handleCopyAsCurl(formik.values);
+                          }}
+                        >
+                          Copy as curl
+                        </Button>
+                        <Button
                           primary
                           className="ml-3"
                           type="submit"
@@ -241,14 +331,16 @@ export default function Console() {
             <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
                 <pre className="p-2 text-sm md:h-full">
-                  <code
-                    className={classNames(
-                      hasEvaluationError ? 'border-red-400 border-4' : '',
-                      'json rounded-sm md:h-full'
-                    )}
-                  >
-                    {response as React.ReactNode}
-                  </code>
+                  {hasEvaluationError ? (
+                    <p className="border-red-400 border-4">{response}</p>
+                  ) : (
+                    <code
+                      className="hljs json rounded-sm md:h-full"
+                      ref={codeRef}
+                    >
+                      {response as React.ReactNode}
+                    </code>
+                  )}
                 </pre>
               )}
               {!response && (
