@@ -204,7 +204,7 @@ export default function Console() {
         </p>
       </div>
       <div className="flex flex-col md:flex-row">
-        {flags && flags.length > 0 && (
+        {flags.length > 0 && (
           <>
             <div className="mt-8 w-full overflow-hidden md:w-1/2">
               <Formik
