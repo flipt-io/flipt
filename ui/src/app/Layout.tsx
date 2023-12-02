@@ -18,8 +18,8 @@ import { useAppDispatch } from '~/data/hooks/store';
 import { fetchConfigAsync, fetchInfoAsync } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
-  fetchNamespacesAsync,
-  selectCurrentNamespace
+  selectCurrentNamespace,
+  useListNamespacesQuery
 } from './namespaces/namespacesSlice';
 
 function InnerLayout() {
@@ -47,8 +47,9 @@ function InnerLayout() {
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
+  useListNamespacesQuery();
+
   useEffect(() => {
-    dispatch(fetchNamespacesAsync());
     dispatch(fetchInfoAsync());
     dispatch(fetchConfigAsync());
   }, [dispatch]);

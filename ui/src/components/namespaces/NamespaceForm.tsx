@@ -4,15 +4,14 @@ import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import * as Yup from 'yup';
 import {
-  createNamespaceAsync,
-  updateNamespaceAsync
+  useCreateNamespaceMutation,
+  useUpdateNamespaceMutation
 } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
-import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { INamespace, INamespaceBase } from '~/types/Namespace';
@@ -34,16 +33,14 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const dispatch = useAppDispatch();
+  const [createNamespace] = useCreateNamespaceMutation();
+  const [updateNamespace] = useUpdateNamespaceMutation();
 
   const handleSubmit = async (values: INamespaceBase) => {
     if (isNew) {
-      return dispatch(createNamespaceAsync(values)).unwrap();
+      return createNamespace(values).unwrap();
     }
-
-    return dispatch(
-      updateNamespaceAsync({ key: namespace.key, namespace: values })
-    ).unwrap();
+    return updateNamespace({ key: namespace.key, values }).unwrap();
   };
 
   return (

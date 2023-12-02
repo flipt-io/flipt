@@ -1,19 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import {
-  createAsyncThunk,
-  createSelector,
-  createSlice
-} from '@reduxjs/toolkit';
-import {
-  createNamespace,
-  deleteNamespace,
-  listNamespaces,
-  updateNamespace
-} from '~/data/api';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { RootState } from '~/store';
 import { LoadingStatus } from '~/types/Meta';
-import { INamespace, INamespaceBase } from '~/types/Namespace';
-
+import { INamespace, INamespaceBase, INamespaceList } from '~/types/Namespace';
+import { baseQuery } from '~/utils/redux-rtk';
 const namespaceKey = 'namespace';
 
 interface INamespacesState {
@@ -37,38 +28,15 @@ export const namespacesSlice = createSlice({
     currentNamespaceChanged: (state, action) => {
       const namespace = action.payload;
       state.currentNamespace = namespace.key;
-    }
-  },
-  extraReducers(builder) {
-    builder
-      .addCase(fetchNamespacesAsync.pending, (state, _action) => {
-        state.status = LoadingStatus.LOADING;
-      })
-      .addCase(fetchNamespacesAsync.fulfilled, (state, action) => {
-        state.status = LoadingStatus.SUCCEEDED;
-        state.namespaces = action.payload;
-      })
-      .addCase(fetchNamespacesAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      })
-      .addCase(createNamespaceAsync.fulfilled, (state, action) => {
-        const namespace = action.payload;
-        state.namespaces[namespace.key] = namespace;
-      })
-      .addCase(updateNamespaceAsync.fulfilled, (state, action) => {
-        const namespace = action.payload;
-        state.namespaces[namespace.key] = namespace;
-      })
-      .addCase(deleteNamespaceAsync.fulfilled, (state, action) => {
-        const key = action.payload;
-        delete state.namespaces[key];
-        // if the current namespace is the one being deleted, set the current namespace to the first one
-        if (state.currentNamespace === key) {
-          state.currentNamespace =
-            state.namespaces[Object.keys(state.namespaces)[0]].key;
-        }
+    },
+    namespacesChanged: (state, action) => {
+      const namespaces: { [key: string]: INamespace } = {};
+      action.payload.namespaces.forEach((namespace: INamespace) => {
+        namespaces[namespace.key] = namespace;
       });
+      state.namespaces = namespaces;
+      state.status = LoadingStatus.SUCCEEDED;
+    }
   }
 });
 
@@ -90,41 +58,58 @@ export const selectCurrentNamespace = createSelector(
     ({ key: 'default', name: 'Default', description: '' } as INamespace)
 );
 
-export const fetchNamespacesAsync = createAsyncThunk(
-  'namespaces/fetchNamespaces',
-  async () => {
-    const response = await listNamespaces();
-    const namespaces: { [key: string]: INamespace } = {};
-    response.namespaces.forEach((namespace: INamespace) => {
-      namespaces[namespace.key] = namespace;
-    });
-    return namespaces;
-  }
-);
+export const namespaceApi = createApi({
+  reducerPath: 'namespaces-api',
+  baseQuery,
+  tagTypes: ['Namespace'],
+  endpoints: (builder) => ({
+    // get list of namespaces
+    listNamespaces: builder.query<INamespaceList, void>({
+      query: () => '/namespaces',
+      providesTags: () => [{ type: 'Namespace' }]
+    }),
+    // create the namespace
+    createNamespace: builder.mutation<INamespace, INamespaceBase>({
+      query(values) {
+        return {
+          url: '/namespaces',
+          method: 'POST',
+          body: values
+        };
+      },
+      invalidatesTags: () => [{ type: 'Namespace' }]
+    }),
+    // update the namespace
+    updateNamespace: builder.mutation<
+      INamespace,
+      { key: string; values: INamespaceBase }
+    >({
+      query({ key, values }) {
+        return {
+          url: `/namespaces/${key}`,
+          method: 'PUT',
+          body: values
+        };
+      },
+      invalidatesTags: () => [{ type: 'Namespace' }]
+    }),
+    // delete the namespace
+    deleteNamespace: builder.mutation<void, string>({
+      query(namespaceKey) {
+        return {
+          url: `/namespaces/${namespaceKey}`,
+          method: 'DELETE'
+        };
+      },
+      invalidatesTags: () => [{ type: 'Namespace' }]
+    })
+  })
+});
 
-export const createNamespaceAsync = createAsyncThunk(
-  'namespaces/createNamespace',
-  async (namespace: INamespaceBase) => {
-    const response = await createNamespace(namespace);
-    return response;
-  }
-);
-
-export const updateNamespaceAsync = createAsyncThunk(
-  'namespaces/updateNamespace',
-  async (payload: { key: string; namespace: INamespaceBase }) => {
-    const { key, namespace } = payload;
-    const response = await updateNamespace(key, namespace);
-    return response;
-  }
-);
-
-export const deleteNamespaceAsync = createAsyncThunk(
-  'namespaces/deleteNamespace',
-  async (key: string) => {
-    await deleteNamespace(key);
-    return key;
-  }
-);
-
+export const {
+  useListNamespacesQuery,
+  useCreateNamespaceMutation,
+  useDeleteNamespaceMutation,
+  useUpdateNamespaceMutation
+} = namespaceApi;
 export default namespacesSlice.reducer;
