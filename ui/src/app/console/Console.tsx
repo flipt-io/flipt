@@ -304,7 +304,6 @@ export default function Console() {
                       </div>
                       <div className="flex justify-end">
                         <Button
-                          primary
                           className="ml-3"
                           type="button"
                           disabled={!(formik.dirty && formik.isValid)}
