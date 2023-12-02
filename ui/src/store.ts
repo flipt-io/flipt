@@ -4,11 +4,14 @@ import {
   isAnyOf
 } from '@reduxjs/toolkit';
 
+import {
+  namespaceApi,
+  namespacesSlice
+} from '~/app/namespaces/namespacesSlice';
 import { flagsSlice } from './app/flags/flagsSlice';
 import { rolloutsApi } from './app/flags/rolloutsApi';
 import { rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
-import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import {
   preferencesKey,
   preferencesSlice
@@ -45,6 +48,19 @@ listenerMiddleware.startListening({
     );
   }
 });
+/*
+ * It could be anti-pattern but it feels like the right thing to do.
+ * The namespacesSlice holds the namespaces globally and doesn't refetch them
+ * from server as often as it could be with `useListNamespacesQuery`.
+ * Each time the the app is loaded or namespaces changed by user this
+ * listener will propagate the latest namespaces to the namespacesSlice.
+ */
+listenerMiddleware.startListening({
+  matcher: namespaceApi.endpoints.listNamespaces.matchFulfilled,
+  effect: (action, api) => {
+    api.dispatch(namespacesSlice.actions.namespacesChanged(action.payload));
+  }
+});
 
 const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
@@ -72,6 +88,7 @@ export const store = configureStore({
     preferences: preferencesSlice.reducer,
     flags: flagsSlice.reducer,
     meta: metaSlice.reducer,
+    [namespaceApi.reducerPath]: namespaceApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
     [rulesApi.reducerPath]: rulesApi.reducer,
     [rolloutsApi.reducerPath]: rolloutsApi.reducer,
@@ -81,6 +98,7 @@ export const store = configureStore({
     getDefaultMiddleware()
       .prepend(listenerMiddleware.middleware)
       .concat(
+        namespaceApi.middleware,
         segmentsApi.middleware,
         rulesApi.middleware,
         rolloutsApi.middleware,

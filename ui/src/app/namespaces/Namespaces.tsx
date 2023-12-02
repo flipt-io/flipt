@@ -1,5 +1,5 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import EmptyState from '~/components/EmptyState';
@@ -9,9 +9,11 @@ import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
-import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
-import { deleteNamespaceAsync, selectNamespaces } from './namespacesSlice';
+import {
+  useDeleteNamespaceMutation,
+  useListNamespacesQuery
+} from './namespacesSlice';
 
 export default function Namespaces() {
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);
@@ -25,12 +27,13 @@ export default function Namespaces() {
   const [deletingNamespace, setDeletingNamespace] = useState<INamespace | null>(
     null
   );
+  const listNamespaces = useListNamespacesQuery();
 
-  const dispatch = useAppDispatch();
-
-  const namespaces = useSelector(selectNamespaces);
+  const namespaces = useMemo(() => {
+    return listNamespaces.data?.namespaces || [];
+  }, [listNamespaces]);
   const readOnly = useSelector(selectReadonly);
-
+  const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
 
   return (
@@ -70,9 +73,7 @@ export default function Namespaces() {
           panelType="Namespace"
           setOpen={setShowDeleteNamespaceModal}
           handleDelete={() =>
-            dispatch(
-              deleteNamespaceAsync(deletingNamespace?.key ?? '')
-            ).unwrap()
+            deleteNamespace(deletingNamespace?.key ?? '').unwrap()
           }
         />
       </Modal>

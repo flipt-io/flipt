@@ -104,28 +104,6 @@ export async function expireAuthSelf() {
 }
 
 //
-// namespaces
-export async function listNamespaces() {
-  return get('/namespaces');
-}
-
-export async function getNamespace(key: string) {
-  return get(`/namespaces/${key}`);
-}
-
-export async function createNamespace(values: any) {
-  return post('/namespaces', values);
-}
-
-export async function updateNamespace(key: string, values: any) {
-  return put(`/namespaces/${key}`, values);
-}
-
-export async function deleteNamespace(key: string) {
-  return del(`/namespaces/${key}`);
-}
-
-//
 // flags
 export async function listFlags(namespaceKey: string) {
   return get(`/namespaces/${namespaceKey}/flags`);
