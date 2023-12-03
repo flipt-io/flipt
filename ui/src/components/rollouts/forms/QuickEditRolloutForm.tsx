@@ -1,6 +1,5 @@
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
-import { twMerge } from 'tailwind-merge';
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -19,6 +18,7 @@ import {
   segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
+import { cls } from '~/utils/helpers';
 
 type QuickEditRolloutFormProps = {
   flag: IFlag;
@@ -228,10 +228,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={twMerge(
-                                  `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
-                                    readOnly ? 'cursor-not-allowed' : undefined
-                                  }`
+                                className={cls(
+                                  'text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400',
+                                  { 'cursor-not-allowed': readOnly }
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(
@@ -283,12 +282,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className={twMerge(
-                    `w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle ${
-                      readOnly
-                        ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
-                        : undefined
-                    }`
+                  className={cls(
+                    'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
+                    { 'text-gray-500 bg-gray-100 cursor-not-allowed': readOnly }
                   )}
                   disabled={readOnly}
                 />

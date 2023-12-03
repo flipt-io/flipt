@@ -1,8 +1,10 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { defaultHeaders } from '~/data/api';
 import { ICurlOptions } from '~/types/Curl';
 
-export function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
+export function cls(...args: ClassValue[]) {
+  return twMerge(clsx(args));
 }
 
 export function copyTextToClipboard(text: string) {

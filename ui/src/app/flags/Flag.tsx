@@ -23,14 +23,13 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType } from '~/types/Flag';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
 import Rollouts from './rollouts/Rollouts';
-
 const tabs = [
   { name: 'Variants', to: '' },
   { name: 'Rules', to: 'rules' }
@@ -206,11 +205,13 @@ export default function Flag() {
                       key={tab.name}
                       to={tab.to}
                       className={({ isActive }) =>
-                        classNames(
-                          isActive
-                            ? 'text-violet-600 border-violet-500'
-                            : 'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300',
-                          'whitespace-nowrap border-b-2 px-1 py-2 font-medium'
+                        cls(
+                          'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
+                          {
+                            'text-violet-600 border-violet-500': isActive,
+                            'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                              !isActive
+                          }
                         )
                       }
                     >
