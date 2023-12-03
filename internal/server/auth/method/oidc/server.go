@@ -19,14 +19,14 @@ import (
 )
 
 const (
-	storageMetadataOIDCProvider         = "io.flipt.auth.oidc.provider"
-	storageMetadataOIDCEmail            = "io.flipt.auth.oidc.email"
-	storageMetadataOIDCEmailVerified    = "io.flipt.auth.oidc.email_verified"
-	storageMetadataOIDCName             = "io.flipt.auth.oidc.name"
-	storageMetadataOIDCProfile          = "io.flipt.auth.oidc.profile"
-	storageMetadataOIDCPicture          = "io.flipt.auth.oidc.picture"
-	storageMetadataOIDCSub              = "io.flipt.auth.oidc.sub"
-	storageMetadataOIDCPreferedUsername = "io.flipt.auth.oidc.preferred_username"
+	storageMetadataOIDCProvider          = "io.flipt.auth.oidc.provider"
+	storageMetadataOIDCEmail             = "io.flipt.auth.oidc.email"
+	storageMetadataOIDCEmailVerified     = "io.flipt.auth.oidc.email_verified"
+	storageMetadataOIDCName              = "io.flipt.auth.oidc.name"
+	storageMetadataOIDCProfile           = "io.flipt.auth.oidc.profile"
+	storageMetadataOIDCPicture           = "io.flipt.auth.oidc.picture"
+	storageMetadataOIDCSub               = "io.flipt.auth.oidc.sub"
+	storageMetadataOIDCPreferredUsername = "io.flipt.auth.oidc.preferred_username"
 )
 
 // errProviderNotFound is returned when a provider is requested which
