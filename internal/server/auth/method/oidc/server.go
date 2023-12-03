@@ -19,13 +19,14 @@ import (
 )
 
 const (
-	storageMetadataOIDCProviderKey    = "io.flipt.auth.oidc.provider"
-	storageMetadataIDEmailKey         = "io.flipt.auth.oidc.email"
-	storageMetadataIDEmailVerifiedKey = "io.flipt.auth.oidc.email_verified"
-	storageMetadataIDNameKey          = "io.flipt.auth.oidc.name"
-	storageMetadataIDProfileKey       = "io.flipt.auth.oidc.profile"
-	storageMetadataIDPictureKey       = "io.flipt.auth.oidc.picture"
-	storageMetadataIDSubKey           = "io.flipt.auth.oidc.sub"
+	storageMetadataOIDCProvider         = "io.flipt.auth.oidc.provider"
+	storageMetadataOIDCEmail            = "io.flipt.auth.oidc.email"
+	storageMetadataOIDCEmailVerified    = "io.flipt.auth.oidc.email_verified"
+	storageMetadataOIDCName             = "io.flipt.auth.oidc.name"
+	storageMetadataOIDCProfile          = "io.flipt.auth.oidc.profile"
+	storageMetadataOIDCPicture          = "io.flipt.auth.oidc.picture"
+	storageMetadataOIDCSub              = "io.flipt.auth.oidc.sub"
+	storageMetadataOIDCPreferedUsername = "io.flipt.auth.oidc.preferred_username"
 )
 
 // errProviderNotFound is returned when a provider is requested which
@@ -133,7 +134,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}
 
 	metadata := map[string]string{
-		storageMetadataOIDCProviderKey: req.Provider,
+		storageMetadataOIDCProvider: req.Provider,
 	}
 
 	// Extract custom claims
@@ -230,13 +231,13 @@ func (c claims) addToMetadata(m map[string]string) {
 		}
 	}
 
-	set(storageMetadataIDEmailKey, c.Email)
-	set(storageMetadataIDNameKey, c.Name)
-	set(storageMetadataIDProfileKey, c.Profile)
-	set(storageMetadataIDPictureKey, c.Picture)
-	set(storageMetadataIDSubKey, c.Sub)
+	set(storageMetadataOIDCEmail, c.Email)
+	set(storageMetadataOIDCName, c.Name)
+	set(storageMetadataOIDCProfile, c.Profile)
+	set(storageMetadataOIDCPicture, c.Picture)
+	set(storageMetadataOIDCSub, c.Sub)
 
 	if c.Verified != nil {
-		m[storageMetadataIDEmailVerifiedKey] = fmt.Sprintf("%v", *c.Verified)
+		m[storageMetadataOIDCEmailVerified] = fmt.Sprintf("%v", *c.Verified)
 	}
 }
