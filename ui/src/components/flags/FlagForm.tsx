@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
-import { createFlagAsync, updateFlagAsync } from '~/app/flags/flagsSlice';
+import {
+  useCreateFlagMutation,
+  useUpdateFlagMutation
+} from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
@@ -12,7 +15,6 @@ import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
-import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
@@ -40,7 +42,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const submitPhrase = isNew ? 'Create' : 'Update';
 
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -48,19 +49,22 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
+  const [createFlag] = useCreateFlagMutation();
+  const [updateFlag] = useUpdateFlagMutation();
+
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {
-      return dispatch(
-        createFlagAsync({ namespaceKey: namespace.key, values: values })
-      ).unwrap();
-    }
-    return dispatch(
-      updateFlagAsync({
+      return createFlag({
         namespaceKey: namespace.key,
-        key: flag?.key,
         values: values
-      })
-    ).unwrap();
+      }).unwrap();
+    }
+
+    return updateFlag({
+      namespaceKey: namespace.key,
+      flagKey: flag?.key,
+      values: values
+    }).unwrap();
   };
 
   const initialValues: IFlagBase = {

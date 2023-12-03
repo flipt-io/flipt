@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
-import { SWRConfig } from 'swr';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
@@ -14,7 +13,6 @@ import { selectTheme } from './app/preferences/preferencesSlice';
 import NewSegment from './app/segments/NewSegment';
 import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
-import { request } from './data/api';
 import { Theme } from './types/Preferences';
 const Flags = loadable(() => import('./app/flags/Flags'));
 const Variants = loadable(() => import('./app/flags/variants/Variants'));
@@ -131,10 +129,6 @@ const router = createHashRouter([
   }
 ]);
 
-const fetcher = async (uri: String) => {
-  return request('GET', '/api/v1' + uri);
-};
-
 export default function App() {
   const theme = useSelector(selectTheme);
   const [systemPrefersDark, setSystemPrefersDark] = useState(
@@ -164,15 +158,9 @@ export default function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script dangerouslySetInnerHTML={{ __html: nightwind.init() }} />
       </Helmet>
-      <SWRConfig
-        value={{
-          fetcher
-        }}
-      >
-        <SessionProvider>
-          <RouterProvider router={router} />
-        </SessionProvider>
-      </SWRConfig>
+      <SessionProvider>
+        <RouterProvider router={router} />
+      </SessionProvider>
     </>
   );
 }

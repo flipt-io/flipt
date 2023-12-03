@@ -104,9 +104,11 @@ export default function Segment() {
     namespaceKey: namespace.key,
     segmentKey: segmentKey || ''
   });
+
   const [deleteSegment] = useDeleteSegmentMutation();
   const [deleteSegmentConstraint] = useDeleteConstraintMutation();
   const [copySegment] = useCopySegmentMutation();
+
   const constraintFormRef = useRef(null);
 
   if (isError) {

@@ -4,7 +4,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -20,60 +20,58 @@ import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import { useError } from '~/data/hooks/error';
-import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { RootState } from '~/store';
 import { FlagType } from '~/types/Flag';
 import { classNames } from '~/utils/helpers';
 import {
-  copyFlagAsync,
-  deleteFlagAsync,
-  fetchFlagAsync,
-  selectFlag
-} from './flagsSlice';
+  useCopyFlagMutation,
+  useDeleteFlagMutation,
+  useGetFlagQuery
+} from './flagsApi';
 import Rollouts from './rollouts/Rollouts';
+
+const tabs = [
+  { name: 'Variants', to: '' },
+  { name: 'Rules', to: 'rules' }
+];
 
 export default function Flag() {
   let { flagKey } = useParams();
   const { inTimezone } = useTimezone();
 
+  const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
+  const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
+
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
-  const flag = useSelector((state: RootState) =>
-    selectFlag(state, flagKey || '')
-  );
+  const {
+    data: flag,
+    error,
+    isLoading,
+    isError
+  } = useGetFlagQuery({
+    namespaceKey: namespace.key,
+    flagKey: flagKey || ''
+  });
 
-  const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
-  const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
+  const [deleteFlag] = useDeleteFlagMutation();
+  const [copyFlag] = useCopyFlagMutation();
 
-  const tabs = [
-    { name: 'Variants', to: '' },
-    { name: 'Rules', to: 'rules' }
-  ];
+  if (isError) {
+    setError(error);
+  }
 
-  useEffect(() => {
-    if (!namespace.key || !flagKey) return;
-
-    dispatch(fetchFlagAsync({ namespaceKey: namespace.key, key: flagKey }))
-      .unwrap()
-      .then(() => {
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [flagKey, namespace.key, clearError, setError, dispatch]);
-
-  if (!flag || flag.key != flagKey) return <Loading />;
+  if (isLoading || !flag) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -90,9 +88,10 @@ export default function Flag() {
           panelType="Flag"
           setOpen={setShowDeleteFlagModal}
           handleDelete={() =>
-            dispatch(
-              deleteFlagAsync({ namespaceKey: namespace.key, key: flag.key })
-            )
+            deleteFlag({
+              namespaceKey: namespace.key,
+              flagKey: flag.key
+            }).unwrap()
           }
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
@@ -113,12 +112,10 @@ export default function Flag() {
           panelType="Flag"
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
-            dispatch(
-              copyFlagAsync({
-                from: { namespaceKey: namespace.key, key: flag.key },
-                to: { namespaceKey: namespaceKey, key: flag.key }
-              })
-            )
+            copyFlag({
+              from: { namespaceKey: namespace.key, flagKey: flag.key },
+              to: { namespaceKey: namespaceKey, flagKey: flag.key }
+            }).unwrap()
           }
           onSuccess={() => {
             clearError();

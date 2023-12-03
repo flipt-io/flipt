@@ -2,22 +2,20 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import useSWR from 'swr';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import FlagTable from '~/components/flags/FlagTable';
 import Button from '~/components/forms/buttons/Button';
 import { useError } from '~/data/hooks/error';
-import { IFlagList } from '~/types/Flag';
+import { useListFlagsQuery } from './flagsApi';
 
 export default function Flags() {
   const namespace = useSelector(selectCurrentNamespace);
   const path = `/namespaces/${namespace.key}/flags`;
 
-  const { data, error } = useSWR<IFlagList>(path);
-
-  const flags = data?.flags;
+  const { data, error } = useListFlagsQuery(namespace.key);
+  const flags = data?.flags || [];
 
   const navigate = useNavigate();
   const { setError, clearError } = useError();
