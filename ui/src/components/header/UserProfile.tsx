@@ -86,21 +86,23 @@ export default function UserProfile(props: UserProfileProps) {
         leaveTo="transform opacity-0 scale-95"
       >
         <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          <Menu.Item disabled>
-            {({ active }) => (
-              <span
-                className={cls(
-                  'border-gray-200 flex flex-col border-b px-4 py-2',
-                  { 'bg-gray-100': active }
-                )}
-              >
-                <span className="text-gray-600 flex-1 text-sm">{name}</span>
-                {login && (
-                  <span className="text-gray-400 text-xs">{login}</span>
-                )}
-              </span>
-            )}
-          </Menu.Item>
+          {(name || login) && (
+            <Menu.Item disabled>
+              {({ active }) => (
+                <span
+                  className={cls(
+                    'border-gray-200 flex flex-col border-b px-4 py-2',
+                    { 'bg-gray-100': active }
+                  )}
+                >
+                  <span className="text-gray-600 flex-1 text-sm">{name}</span>
+                  {login && (
+                    <span className="text-gray-400 text-xs">{login}</span>
+                  )}
+                </span>
+              )}
+            </Menu.Item>
+          )}
           <Menu.Item key="logout">
             {({ active }) => (
               <a
