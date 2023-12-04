@@ -32,10 +32,11 @@ type OAuth2Client interface {
 }
 
 const (
-	storageMetadataGithubEmail   = "io.flipt.auth.github.email"
-	storageMetadataGithubName    = "io.flipt.auth.github.name"
-	storageMetadataGithubPicture = "io.flipt.auth.github.picture"
-	storageMetadataGithubSub     = "io.flipt.auth.github.sub"
+	storageMetadataGithubEmail             = "io.flipt.auth.github.email"
+	storageMetadataGithubName              = "io.flipt.auth.github.name"
+	storageMetadataGithubPicture           = "io.flipt.auth.github.picture"
+	storageMetadataGithubSub               = "io.flipt.auth.github.sub"
+	storageMetadataGitHubPreferredUsername = "io.flipt.auth.github.preferred_username"
 )
 
 // Server is an Github server side handler.
@@ -140,6 +141,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
 		AvatarURL string `json:"avatar_url,omitempty"`
+		Login     string `json:"login,omitempty"`
 		ID        uint64 `json:"id,omitempty"`
 	}
 
@@ -163,6 +165,10 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 
 	if githubUserResponse.ID != 0 {
 		metadata[storageMetadataGithubSub] = fmt.Sprintf("%d", githubUserResponse.ID)
+	}
+
+	if githubUserResponse.Login != "" {
+		metadata[storageMetadataGitHubPreferredUsername] = githubUserResponse.Login
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
