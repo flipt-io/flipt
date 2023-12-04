@@ -32,14 +32,14 @@ type Server struct {
 	evaluation.UnimplementedDataServiceServer
 }
 
-func New(logger *zap.Logger, store EvaluationStore) *Server {
+func New(ctx context.Context, logger *zap.Logger, store EvaluationStore) *Server {
 	s := &Server{
 		logger:  logger,
 		store:   store,
 		servers: make(chan evaluation.DataService_EvaluationSnapshotStreamServer),
 	}
 
-	go s.pollSnapshots(context.Background())
+	go s.pollSnapshots(ctx)
 
 	return s
 }

@@ -355,7 +355,7 @@ func NewGRPCServer(
 		fliptsrv    = fliptserver.New(logger, store)
 		metasrv     = metadata.New(cfg, info)
 		evalsrv     = evaluation.New(logger, store)
-		evalDataSrv = evaluationdata.New(logger, store)
+		evalDataSrv = evaluationdata.New(ctx, logger, store)
 		healthsrv   = health.NewServer()
 	)
 
