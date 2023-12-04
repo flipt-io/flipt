@@ -12,6 +12,7 @@ export interface IAuthMethodGithubMetadata {
   'io.flipt.auth.github.email'?: string;
   'io.flipt.auth.github.name'?: string;
   'io.flipt.auth.github.picture'?: string;
+  'io.flipt.auth.github.preferred_username'?: string;
 }
 
 export interface IAuthGithubInternal extends IAuth {
