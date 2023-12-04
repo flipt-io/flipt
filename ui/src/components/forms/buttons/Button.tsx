@@ -28,11 +28,11 @@ export default function Button(props: ButtonProps) {
         !disabled && onClick && onClick(e);
       }}
       className={cls(
-        'mb-1 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1',
+        ' cursor-hand mb-1 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1',
         className,
         {
           'cursor-not-allowed': disabled,
-          'cursor-hand': !disabled,
+         }
           'text-white bg-violet-300 border-transparent enabled:bg-violet-400 enabled:hover:bg-violet-600 enabled:focus:ring-violet-500':
             primary,
           'bg-white text-gray-500 border-violet-300 enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
