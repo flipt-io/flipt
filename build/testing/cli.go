@@ -61,10 +61,29 @@ Run 'flipt --help' for usage.`))); err != nil {
 	}
 
 	{
-		container := container.Pipeline("flipt (no config)")
-		if _, err := assertExec(ctx, container.WithExec([]string{"rm", "/etc/flipt/config/default.yml"}), flipt(),
-			fails,
-			stderr(contains(`loading configuration: open /etc/flipt/config/default.yml: no such file or directory`)),
+		container := container.Pipeline("flipt (no config present) defaults")
+		container = container.
+			// in order to stop a blocking process via SIGTERM and capture a successful exit code
+			// we use a shell script to start flipt in the background, sleep for two seconds,
+			// send the SIGTERM signal, wait for process to exit and then propagate Flipts exit code
+			WithNewFile("/test.sh", dagger.ContainerWithNewFileOpts{
+				Contents: `#!/bin/sh
+rm -rf /etc/flipt/config/default.yml
+/flipt &
+
+sleep 2
+
+kill -s TERM $!
+
+wait $!
+
+exit $?`,
+				Owner:       "flipt",
+				Permissions: 0777,
+			})
+
+		if _, err := assertExec(ctx, container, []string{"/test.sh"},
+			stdout(contains("no configuration file found, using defaults")),
 		); err != nil {
 			return err
 		}
