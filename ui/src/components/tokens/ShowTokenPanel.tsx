@@ -10,8 +10,7 @@ import 'highlight.js/styles/tokyo-night-dark.css';
 import { useEffect, useState } from 'react';
 import Button from '~/components/forms/buttons/Button';
 import { IAuthTokenSecret } from '~/types/auth/Token';
-import { classNames, copyTextToClipboard } from '~/utils/helpers';
-
+import { cls, copyTextToClipboard } from '~/utils/helpers';
 hljs.registerLanguage('text', text);
 
 type ShowTokenPanelProps = {
@@ -73,15 +72,21 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
                   }}
                 >
                   <CheckIcon
-                    className={classNames(
+                    className={cls(
                       'text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
-                      copied ? 'visible opacity-100' : 'invisible opacity-0'
+                      {
+                        'visible opacity-100': copied,
+                        'invisible opacity-0': !copied
+                      }
                     )}
                   />
                   <ClipboardDocumentIcon
-                    className={classNames(
+                    className={cls(
                       'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
-                      copied ? 'invisible opacity-0' : 'visible opacity-100'
+                      {
+                        'invisible opacity-0': copied,
+                        'visible opacity-100': !copied
+                      }
                     )}
                   />
                 </button>

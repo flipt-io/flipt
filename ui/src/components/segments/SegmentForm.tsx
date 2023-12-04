@@ -17,7 +17,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
-import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 
 const segmentMatchTypes = [
   {
@@ -141,12 +141,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                   Key
                 </label>
                 <div
-                  className={classNames(
-                    isNew ? '' : 'flex items-center justify-between'
-                  )}
+                  className={cls({
+                    'flex items-center justify-between': !isNew
+                  })}
                 >
                   <Input
-                    className={classNames(isNew ? 'mt-1' : 'mt-1 md:mr-2')}
+                    className={cls('mt-1', { 'md:mr-2': !isNew })}
                     name="key"
                     id="key"
                     disabled={!isNew || readOnly}
@@ -170,19 +170,21 @@ export default function SegmentForm(props: SegmentFormProps) {
                       }}
                     >
                       <CheckIcon
-                        className={classNames(
+                        className={cls(
                           'nightwind-prevent text-green-400 absolute m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out',
-                          keyCopied
-                            ? 'visible opacity-100'
-                            : 'invisible opacity-0'
+                          {
+                            'visible opacity-100': keyCopied,
+                            'invisible opacity-0': !keyCopied
+                          }
                         )}
                       />
                       <ClipboardDocumentIcon
-                        className={classNames(
+                        className={cls(
                           'text-gray-300 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                          keyCopied
-                            ? 'invisible opacity-0'
-                            : 'visible opacity-100'
+                          {
+                            'visible opacity-100': !keyCopied,
+                            'invisible opacity-0': keyCopied
+                          }
                         )}
                       />
                     </button>

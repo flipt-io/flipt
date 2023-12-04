@@ -1,9 +1,10 @@
 import { Switch } from '@headlessui/react';
 import { Formik } from 'formik';
+import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Select from '~/components/forms/Select';
 import { Theme, Timezone } from '~/types/Preferences';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 import {
   selectTheme,
   selectTimezone,
@@ -21,6 +22,8 @@ export default function Preferences() {
     timezone: timezone,
     theme: theme
   };
+
+  const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
@@ -71,28 +74,24 @@ export default function Preferences() {
               </Switch.Label>
               <dd className="text-gray-900 mt-1 flex text-sm sm:col-span-2 sm:mt-0">
                 <Switch
-                  checked={timezone === Timezone.UTC}
+                  checked={isUTC}
                   onChange={() => {
                     dispatch(
-                      timezoneChanged(
-                        timezone === Timezone.UTC
-                          ? Timezone.LOCAL
-                          : Timezone.UTC
-                      )
+                      timezoneChanged(isUTC ? Timezone.LOCAL : Timezone.UTC)
                     );
                   }}
-                  className={classNames(
-                    timezone === Timezone.UTC ? 'bg-violet-400' : 'bg-gray-200',
-                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:ml-auto'
+                  className={cls(
+                    'bg-gray-200 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:ml-auto',
+                    { 'bg-violet-400': isUTC }
                   )}
                 >
                   <span
                     aria-hidden="true"
-                    className={classNames(
-                      timezone === Timezone.UTC
-                        ? 'translate-x-5'
-                        : 'translate-x-0',
-                      'bg-white inline-block h-5 w-5 transform rounded-full shadow ring-0 transition duration-200 ease-in-out'
+                    className={cls(
+                      'bg-white inline-block h-5 w-5 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out',
+                      {
+                        'translate-x-5': isUTC
+                      }
                     )}
                   />
                 </Switch>

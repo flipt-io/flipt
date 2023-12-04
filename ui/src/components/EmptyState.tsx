@@ -1,9 +1,7 @@
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { Icon } from 'types/Icon';
-import { classNames } from '~/utils/helpers';
-
+import { cls } from '~/utils/helpers';
 type EmptyStateProps = {
-  className?: string;
   text?: string;
   secondaryText?: string;
   disabled?: boolean;
@@ -15,7 +13,6 @@ export default function EmptyState(props: EmptyStateProps) {
   const {
     text,
     secondaryText,
-    className = '',
     disabled = false,
     Icon = PlusCircleIcon,
     onClick
@@ -23,9 +20,11 @@ export default function EmptyState(props: EmptyStateProps) {
 
   return (
     <button
-      className={classNames(
-        disabled ? 'hover:cursor-not-allowed' : 'hover: cursor-hand',
-        `${className} border-gray-300 relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center hover:border-gray-400 focus:outline-none`
+      className={cls(
+        'hover:cursor-hand relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center selection:border-gray-300 hover:border-gray-400 focus:outline-none',
+        {
+          'hover:cursor-not-allowed': disabled
+        }
       )}
       disabled={!onClick || disabled}
       onClick={onClick}

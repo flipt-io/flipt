@@ -4,7 +4,7 @@ import { forwardRef, Fragment, Ref } from 'react';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
@@ -43,19 +43,22 @@ const Rule = forwardRef(
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rule.id}
-            className={classNames(
-              readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-              'text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex'
+            className={cls(
+              'text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex',
+              {
+                'hover:cursor-not-allowed': readOnly,
+                'hover:cursor-move': !readOnly
+              }
             )}
             {...rest}
           >
             {rule.rank}
           </span>
           <h3
-            className={classNames(
-              readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-              'text-gray-700 text-sm font-normal leading-6'
-            )}
+            className={cls('text-gray-700 text-sm font-normal leading-6', {
+              'hover:cursor-not-allowed': readOnly,
+              'hover:cursor-move': !readOnly
+            })}
             {...rest}
           >
             Rule
@@ -86,9 +89,9 @@ const Rule = forwardRef(
                           e.preventDefault();
                           onDelete && onDelete();
                         }}
-                        className={classNames(
-                          active ? 'bg-gray-50' : '',
-                          'text-gray-900 block px-3 py-1 text-sm leading-6'
+                        className={cls(
+                          'text-gray-900 block px-3 py-1 text-sm leading-6',
+                          { 'bg-gray-50': active }
                         )}
                       >
                         Delete
