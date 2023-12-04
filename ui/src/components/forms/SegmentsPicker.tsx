@@ -1,9 +1,8 @@
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
-import { truncateKey } from '~/utils/helpers';
+import { cls, truncateKey } from '~/utils/helpers';
 
 type SegmentPickerProps = {
   readonly?: boolean;
@@ -101,10 +100,9 @@ export default function SegmentsPicker({
             <div>
               <button
                 type="button"
-                className={twMerge(`
-                  text-gray-400 mt-2 hover:text-gray-500 ${
-                    readonly ? 'hover:text-gray-400' : undefined
-                  }`)}
+                className={cls('text-gray-400 mt-2 hover:text-gray-500', {
+                  'hover:text-gray-400': readonly
+                })}
                 onClick={() => setEditing(false)}
                 title={readonly ? 'Not allowed in Read-Only mode' : undefined}
                 disabled={readonly}

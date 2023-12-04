@@ -2,9 +2,8 @@ import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { IFilterable } from '~/types/Selectable';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 
 type ComboboxProps<T extends IFilterable> = {
   id: string;
@@ -54,8 +53,9 @@ export default function Combobox<T extends IFilterable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className={twMerge(
-            `text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm ${inputClassName}`
+          className={cls(
+            'text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm',
+            inputClassName
           )}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
@@ -83,9 +83,9 @@ export default function Combobox<T extends IFilterable>(
               key={v?.key}
               value={v}
               className={({ active }) =>
-                classNames(
+                cls(
                   'relative w-full cursor-default select-none py-2 pl-3 pr-9',
-                  active ? 'bg-violet-100' : ''
+                  { 'bg-violet-100': active }
                 )
               }
             >
@@ -94,18 +94,17 @@ export default function Combobox<T extends IFilterable>(
                   <div className="flex items-center">
                     {v?.status && (
                       <span
-                        className={classNames(
-                          'mr-3 inline-block h-2 w-2 flex-shrink-0 rounded-full',
-                          v.status === 'active' ? 'bg-green-400' : 'bg-gray-200'
+                        className={cls(
+                          'bg-gray-200 mr-3 inline-block h-2 w-2 flex-shrink-0 rounded-full',
+                          { 'bg-green-400': v.status === 'active' }
                         )}
                         aria-hidden="true"
                       />
                     )}
                     <span
-                      className={classNames(
-                        selected ? 'font-semibold' : '',
-                        'text-gray-700 truncate'
-                      )}
+                      className={cls('text-gray-700 truncate', {
+                        'font-semibold': selected
+                      })}
                     >
                       {v?.filterValue}
                     </span>
@@ -116,9 +115,9 @@ export default function Combobox<T extends IFilterable>(
 
                   {selected && (
                     <span
-                      className={classNames(
-                        'absolute inset-y-0 right-0 flex items-center pr-4',
-                        active ? 'text-white' : 'text-violet-600'
+                      className={cls(
+                        'text-violet-600 absolute inset-y-0 right-0 flex items-center pr-4',
+                        { 'text-white': active }
                       )}
                     >
                       <CheckIcon className="h-5 w-5" aria-hidden="true" />

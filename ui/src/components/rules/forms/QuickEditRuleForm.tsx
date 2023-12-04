@@ -1,7 +1,6 @@
 import { Field, FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { twMerge } from 'tailwind-merge';
 import {
   useUpdateDistributionMutation,
   useUpdateRuleMutation
@@ -25,7 +24,7 @@ import {
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
-import { truncateKey } from '~/utils/helpers';
+import { cls, truncateKey } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 
 type QuickEditRuleFormProps = {
@@ -248,10 +247,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={twMerge(
-                                  `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
-                                    readOnly ? 'cursor-not-allowed' : undefined
-                                  }`
+                                className={cls(
+                                  'text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400',
+                                  { 'cursor-not-allowed': readOnly }
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(
@@ -391,12 +389,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                       <Field
                                         key={index}
                                         type="number"
-                                        className={twMerge(
-                                          `text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm ${
-                                            readOnly
-                                              ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
-                                              : undefined
-                                          }`
+                                        className={cls(
+                                          'text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
+                                          {
+                                            'text-gray-500 bg-gray-100 cursor-not-allowed':
+                                              readOnly
+                                          }
                                         )}
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}

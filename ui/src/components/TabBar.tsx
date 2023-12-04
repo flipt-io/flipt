@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { classNames } from '~/utils/helpers';
-
+import { cls } from '~/utils/helpers';
 export interface Tab {
   name: string;
   to: string;
@@ -23,11 +22,13 @@ export default function TabBar(props: TabBarProps) {
               key={tab.name}
               to={tab.to}
               className={({ isActive }) =>
-                classNames(
-                  isActive
-                    ? 'text-violet-600 border-violet-500'
-                    : 'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300',
-                  'whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium'
+                cls(
+                  'whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium',
+                  {
+                    'text-violet-600 border-violet-500': isActive,
+                    'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                      !isActive
+                  }
                 )
               }
             >

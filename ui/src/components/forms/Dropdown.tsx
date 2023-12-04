@@ -2,7 +2,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
 import { Icon } from '~/types/Icon';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 
 type DropdownAction = {
   id: string;
@@ -52,12 +52,13 @@ export default function Dropdown(props: DropdownProps) {
                   {({ active }) => (
                     <a
                       href="#"
-                      className={classNames(
+                      className={cls(
+                        'group flex items-center px-4 py-2 text-sm',
+                        action.className,
                         active
                           ? action.activeClassName ??
                               'text-gray-900 bg-gray-100'
-                          : action.inActiveClassName ?? 'text-gray-700',
-                        `${action.className} group flex items-center px-4 py-2 text-sm`
+                          : action.inActiveClassName ?? 'text-gray-700'
                       )}
                       onClick={(e) => {
                         e.preventDefault();
@@ -79,12 +80,13 @@ export default function Dropdown(props: DropdownProps) {
                 <Menu.Item key={action.id}>
                   {({ active }) => (
                     <span
-                      className={classNames(
+                      className={cls(
+                        'group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed',
+                        action.className,
                         active
                           ? action.activeClassName ??
                               'text-gray-700 bg-gray-100'
-                          : action.inActiveClassName ?? 'text-gray-500',
-                        `${action.className} group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed`
+                          : action.inActiveClassName ?? 'text-gray-500'
                       )}
                     >
                       {action.icon && (

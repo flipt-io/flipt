@@ -137,12 +137,13 @@ type Go mg.Namespace
 
 // Keeping these aliases for backwards compatibility for now
 var Aliases = map[string]interface{}{
-	"dev":   Go.Run,
-	"test":  Go.Test,
-	"bench": Go.Bench,
-	"lint":  Go.Lint,
-	"fmt":   Go.Fmt,
-	"proto": Go.Proto,
+	"dev":    Go.Run,
+	"test":   Go.Test,
+	"bench":  Go.Bench,
+	"lint":   Go.Lint,
+	"fmt":    Go.Fmt,
+	"proto":  Go.Proto,
+	"ui:dev": UI.Run,
 }
 
 // Runs Go benchmarking tests

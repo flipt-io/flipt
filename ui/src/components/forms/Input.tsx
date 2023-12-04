@@ -1,6 +1,5 @@
 import { useField } from 'formik';
-import { classNames } from '~/utils/helpers';
-
+import { cls } from '~/utils/helpers';
 type InputProps = {
   id: string;
   name: string;
@@ -29,9 +28,12 @@ export default function Input(props: InputProps) {
     <>
       <input
         ref={forwardRef}
-        className={classNames(
-          hasError ? 'border-red-400' : 'border-gray-300',
-          `${className} text-gray-900 bg-gray-50 block w-full rounded-md shadow-sm focus:border-violet-300 disabled:text-gray-500 disabled:bg-gray-100 disabled:border-gray-200 focus:ring-violet-300 disabled:cursor-not-allowed sm:text-sm`
+        className={cls(
+          'text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md shadow-sm focus:border-violet-300 disabled:text-gray-500 disabled:bg-gray-100 disabled:border-gray-200 focus:ring-violet-300 disabled:cursor-not-allowed sm:text-sm',
+          className,
+          {
+            'border-red-400': hasError
+          }
         )}
         id={id}
         type={type}
