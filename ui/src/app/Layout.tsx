@@ -50,9 +50,12 @@ function InnerLayout() {
   useListNamespacesQuery();
 
   useEffect(() => {
-    dispatch(fetchInfoAsync());
-    dispatch(fetchConfigAsync());
-  }, [dispatch]);
+    if(currentNamespace)
+    {  
+      dispatch(fetchInfoAsync());
+      dispatch(fetchConfigAsync());
+    }
+  }, [currentNamespace, dispatch]);
 
   if (!session) {
     return <Navigate to="/login" />;
