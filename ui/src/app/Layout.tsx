@@ -50,8 +50,7 @@ function InnerLayout() {
   useListNamespacesQuery();
 
   useEffect(() => {
-    if(currentNamespace)
-    {  
+    if (currentNamespace) {  
       dispatch(fetchInfoAsync());
       dispatch(fetchConfigAsync());
     }
