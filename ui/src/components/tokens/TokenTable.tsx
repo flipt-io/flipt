@@ -4,7 +4,9 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
+  PaginationState,
   Row,
   RowSelectionState,
   SortingState,
@@ -14,6 +16,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import React, { HTMLProps, useEffect, useState } from 'react';
 import Button from '~/components/forms/buttons/Button';
+import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { IAuthToken } from '~/types/auth/Token';
 
@@ -85,6 +88,10 @@ export default function TokenTable(props: TokenTableProps) {
   const { tokens, setDeletingTokens, setShowDeleteTokenModal } = props;
   const searchThreshold = 10;
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20
+  });
 
   const [filter, setFilter] = useState<string>('');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -210,6 +217,7 @@ export default function TokenTable(props: TokenTableProps) {
     data: tokens,
     columns,
     state: {
+      pagination,
       globalFilter: filter,
       sorting,
       rowSelection
@@ -219,7 +227,9 @@ export default function TokenTable(props: TokenTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: setRowSelection
+    onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel()
   });
 
   return (
@@ -305,6 +315,17 @@ export default function TokenTable(props: TokenTableProps) {
                 ))}
               </tbody>
             </table>
+            {table.getPageCount() > 1 && (
+              <Pagination
+                currentPage={table.getState().pagination.pageIndex + 1}
+                totalCount={table.getFilteredRowModel().rows.length}
+                pageSize={pagination.pageSize}
+                onPageChange={(page: number, size: number) => {
+                  table.setPageIndex(page - 1);
+                  table.setPageSize(size);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

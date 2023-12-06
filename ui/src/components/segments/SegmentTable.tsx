@@ -33,13 +33,12 @@ export default function SegmentTable(props: SegmentTableProps) {
 
   const path = `/namespaces/${namespace.key}/segments`;
 
-  const pageSize = 20;
   const searchThreshold = 10;
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize
+    pageSize: 20
   });
 
   const [filter, setFilter] = useState<string>('');
@@ -211,12 +210,12 @@ export default function SegmentTable(props: SegmentTableProps) {
       </table>
       {table.getPageCount() > 1 && (
         <Pagination
-          className="mt-4"
           currentPage={table.getState().pagination.pageIndex + 1}
           totalCount={table.getFilteredRowModel().rows.length}
-          pageSize={pageSize}
-          onPageChange={(page: number) => {
+          pageSize={pagination.pageSize}
+          onPageChange={(page: number, size: number) => {
             table.setPageIndex(page - 1);
+            table.setPageSize(size);
           }}
         />
       )}

@@ -55,7 +55,7 @@ export type PaginationProps = {
   currentPage: number;
   totalCount: number;
   pageSize: number;
-  onPageChange: (page: number) => void;
+  onPageChange: (page: number, size: number) => void;
 };
 
 export default function Pagination(props: PaginationProps) {
@@ -75,11 +75,11 @@ export default function Pagination(props: PaginationProps) {
   });
 
   const onNextPage = () => {
-    onPageChange(currentPage + 1);
+    onPageChange(currentPage + 1, pageSize);
   };
 
   const onPreviousPage = () => {
-    onPageChange(currentPage - 1);
+    onPageChange(currentPage - 1, pageSize);
   };
 
   const lastPage = paginationRange[paginationRange.length - 1];
@@ -112,9 +112,28 @@ export default function Pagination(props: PaginationProps) {
             key={i}
             page={page}
             currentPage={currentPage}
-            onPageChange={onPageChange}
+            onPageChange={(page) => onPageChange(page, pageSize)}
           />
         ))}
+      </div>
+      <div className="hidden md:-mt-px md:flex">
+        <select
+          className="text-gray-500 mt-4 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
+          value={pageSize}
+          onChange={(e) => {
+            onPageChange(currentPage, Number(e.target.value));
+          }}
+        >
+          {[10, 20, 30, 40, 50].map((pageSize) => (
+            <option
+              key={pageSize}
+              value={pageSize}
+              className="text-gray-500 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
+            >
+              Show {pageSize}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="-mt-px flex w-0 flex-1 justify-end">
         {currentPage < lastPage && (

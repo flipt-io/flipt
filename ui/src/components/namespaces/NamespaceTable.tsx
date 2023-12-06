@@ -5,13 +5,16 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
+  PaginationState,
   Row,
   SortingState,
   useReactTable
 } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
+import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { INamespace } from '~/types/Namespace';
 
@@ -95,6 +98,11 @@ export default function NamespaceTable(props: NamespaceTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [filter, setFilter] = useState<string>('');
+
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20
+  });
 
   const columnHelper = createColumnHelper<INamespace>();
 
@@ -186,13 +194,16 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     columns,
     state: {
       globalFilter: filter,
-      sorting
+      sorting,
+      pagination
     },
     globalFilterFn: 'includesString',
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
+    getFilteredRowModel: getFilteredRowModel(),
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel()
   });
 
   return (
@@ -278,6 +289,17 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                 ))}
               </tbody>
             </table>
+            {table.getPageCount() > 1 && (
+              <Pagination
+                currentPage={table.getState().pagination.pageIndex + 1}
+                totalCount={table.getFilteredRowModel().rows.length}
+                pageSize={pagination.pageSize}
+                onPageChange={(page: number, size: number) => {
+                  table.setPageIndex(page - 1);
+                  table.setPageSize(size);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
