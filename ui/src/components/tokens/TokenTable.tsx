@@ -315,17 +315,16 @@ export default function TokenTable(props: TokenTableProps) {
                 ))}
               </tbody>
             </table>
-            {table.getPageCount() > 1 && (
-              <Pagination
-                currentPage={table.getState().pagination.pageIndex + 1}
-                totalCount={table.getFilteredRowModel().rows.length}
-                pageSize={pagination.pageSize}
-                onPageChange={(page: number, size: number) => {
-                  table.setPageIndex(page - 1);
-                  table.setPageSize(size);
-                }}
-              />
-            )}
+
+            <Pagination
+              currentPage={table.getState().pagination.pageIndex + 1}
+              totalCount={table.getFilteredRowModel().rows.length}
+              pageSize={pagination.pageSize}
+              onPageChange={(page: number, size: number) => {
+                table.setPageIndex(page - 1);
+                table.setPageSize(size);
+              }}
+            />
           </div>
         </div>
       </div>

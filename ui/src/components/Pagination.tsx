@@ -12,6 +12,8 @@ type PageProps = {
   onPageChange: (page: number) => void;
 };
 
+const pageSizes = [20, 50, 100];
+
 function Page(props: PageProps) {
   const { page, currentPage, onPageChange } = props;
   const isCurrentPage = useMemo(
@@ -84,6 +86,10 @@ export default function Pagination(props: PaginationProps) {
 
   const lastPage = paginationRange[paginationRange.length - 1];
 
+  if (totalCount <= pageSizes[0]) {
+    return;
+  }
+
   return (
     <nav
       className={`${className} border-gray-200 flex items-center justify-between border-t px-4 sm:px-0`}
@@ -106,25 +112,27 @@ export default function Pagination(props: PaginationProps) {
           </a>
         )}
       </div>
-      <div className="hidden md:-mt-px md:flex">
-        {paginationRange.map((page, i) => (
-          <Page
-            key={i}
-            page={page}
-            currentPage={currentPage}
-            onPageChange={(page) => onPageChange(page, pageSize)}
-          />
-        ))}
-      </div>
+      {paginationRange.length > 1 && (
+        <div className="hidden md:-mt-px md:flex">
+          {paginationRange.map((page, i) => (
+            <Page
+              key={i}
+              page={page}
+              currentPage={currentPage}
+              onPageChange={(page) => onPageChange(page, pageSize)}
+            />
+          ))}
+        </div>
+      )}
       <div className="hidden md:-mt-px md:flex">
         <select
-          className="text-gray-500 mt-4 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
+          className="text-gray-500 bg-gray-50 mt-4 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
           value={pageSize}
           onChange={(e) => {
             onPageChange(currentPage, Number(e.target.value));
           }}
         >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
+          {pageSizes.map((pageSize) => (
             <option
               key={pageSize}
               value={pageSize}
