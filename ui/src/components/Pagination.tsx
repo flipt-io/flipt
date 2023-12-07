@@ -87,7 +87,7 @@ export default function Pagination(props: PaginationProps) {
   const lastPage = paginationRange[paginationRange.length - 1];
 
   if (totalCount <= pageSizes[0]) {
-    return;
+    return null;
   }
 
   return (
