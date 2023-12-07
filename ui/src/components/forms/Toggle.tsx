@@ -1,6 +1,6 @@
 import { Switch } from '@headlessui/react';
 import { useField } from 'formik';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 
 type ToggleProps = {
   id: string;
@@ -40,17 +40,21 @@ export default function Toggle(props: ToggleProps) {
         onChange={(e: boolean) => {
           onChange && onChange(e);
         }}
-        className={classNames(
-          checked ? 'bg-green-400' : 'bg-violet-200',
-          disabled ? 'hover:cursor-not-allowed' : 'hover:cursor-pointer',
-          'relative inline-flex h-6 w-11 items-center rounded-full focus:ring-0'
+        className={cls(
+          'bg-violet-200 relative inline-flex h-6 w-11 items-center rounded-full hover:cursor-pointer focus:ring-0',
+          {
+            'bg-green-400': checked,
+            'hover:cursor-not-allowed': disabled
+          }
         )}
       >
         <span className="sr-only">Enable</span>
         <span
-          className={classNames(
-            checked ? 'translate-x-6' : 'translate-x-1',
-            'bg-white inline-block h-4 w-4 transform rounded-full ring-0 transition'
+          className={cls(
+            'bg-white inline-block h-4 w-4 translate-x-1 transform rounded-full ring-0 transition',
+            {
+              'translate-x-6': checked
+            }
           )}
         />
       </Switch>

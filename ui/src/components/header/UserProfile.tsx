@@ -6,7 +6,7 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethodGithubMetadata } from '~/types/auth/Github';
 import { IAuthMethodOIDCMetadata } from '~/types/auth/OIDC';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 
 type UserProfileProps = {
   metadata?: IAuthMethodOIDCMetadata | IAuthMethodGithubMetadata;
@@ -90,9 +90,9 @@ export default function UserProfile(props: UserProfileProps) {
             <Menu.Item disabled>
               {({ active }) => (
                 <span
-                  className={classNames(
-                    active ? 'bg-gray-100' : '',
-                    'border-gray-200 flex flex-col border-b px-4 py-2'
+                  className={cls(
+                    'border-gray-200 flex flex-col border-b px-4 py-2',
+                    { 'bg-gray-100': active }
                   )}
                 >
                   <span className="text-gray-600 flex-1 text-sm">{name}</span>
@@ -111,10 +111,9 @@ export default function UserProfile(props: UserProfileProps) {
                   e.preventDefault();
                   logout();
                 }}
-                className={classNames(
-                  active ? 'bg-gray-100' : '',
-                  'text-gray-700 block px-4 py-2 text-sm'
-                )}
+                className={cls('text-gray-700 block px-4 py-2 text-sm', {
+                  'bg-gray-100': active
+                })}
               >
                 Logout
               </a>

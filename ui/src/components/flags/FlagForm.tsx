@@ -18,7 +18,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
-import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 
 const flagTypes = [
   {
@@ -160,12 +160,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     Key
                   </label>
                   <div
-                    className={classNames(
-                      isNew ? '' : 'flex items-center justify-between'
-                    )}
+                    className={cls({
+                      'flex items-center justify-between': !isNew
+                    })}
                   >
                     <Input
-                      className={classNames(isNew ? 'mt-1' : 'mt-1 md:mr-2')}
+                      className={cls('mt-1', { 'md:mr-2': !isNew })}
                       name="key"
                       id="key"
                       disabled={!isNew || readOnly}
@@ -189,19 +189,19 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         }}
                       >
                         <CheckIcon
-                          className={classNames(
-                            'nightwind-prevent text-green-400 absolute m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out',
-                            keyCopied
-                              ? 'visible opacity-100'
-                              : 'invisible opacity-0'
+                          className={cls(
+                            'nightwind-prevent text-green-400 invisible absolute m-auto h-5 w-5 justify-center align-middle opacity-0 transition-opacity duration-300 ease-in-out',
+                            {
+                              'visible opacity-100': keyCopied
+                            }
                           )}
                         />
                         <ClipboardDocumentIcon
-                          className={classNames(
-                            'text-gray-300 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                            keyCopied
-                              ? 'invisible opacity-0'
-                              : 'visible opacity-100'
+                          className={cls(
+                            'text-gray-300 visible m-auto h-5 w-5 justify-center align-middle opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
+                            {
+                              'invisible opacity-0': keyCopied
+                            }
                           )}
                         />
                       </button>

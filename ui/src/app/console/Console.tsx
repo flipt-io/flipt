@@ -27,7 +27,6 @@ import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
 import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import {
-  classNames,
   copyTextToClipboard,
   generateCurlCommand,
   getErrorMessage
@@ -262,11 +261,7 @@ export default function Console() {
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <ArrowPathIcon
-                                className={classNames(
-                                  'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500'
-                                )}
-                              />
+                              <ArrowPathIcon className="text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500" />
                             </button>
                           </div>
                         </div>

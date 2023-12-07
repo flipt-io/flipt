@@ -2,7 +2,6 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
-import { twMerge } from 'tailwind-merge';
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -21,6 +20,7 @@ import {
   segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
+import { cls } from '~/utils/helpers';
 
 const rolloutRuleTypes = [
   {
@@ -322,10 +322,9 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={twMerge(
-                                  `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
-                                    readOnly ? 'cursor-not-allowed' : undefined
-                                  }`
+                                className={cls(
+                                  'text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400',
+                                  { 'cursor-not-allowed': readOnly }
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(

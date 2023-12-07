@@ -8,7 +8,7 @@ import {
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 import NamespaceListbox from './namespaces/NamespaceListbox';
 
 type Icon = (
@@ -30,11 +30,14 @@ function NavItem(props: NavItemProps) {
       key={name}
       to={to}
       className={({ isActive }) =>
-        classNames(
-          isActive
-            ? 'nightwind-prevent text-white bg-gray-800 md:text-gray-700 md:bg-gray-50 md:dark:text-gray-50 md:dark:bg-gray-700'
-            : 'nightwind-prevent text-white hover:bg-gray-700 md:text-gray-600 md:hover:text-gray-700 md:hover:bg-gray-50 md:dark:text-gray-400 md:dark:hover:text-gray-300 md:dark:hover:bg-gray-700',
-          'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
+        cls(
+          'group nightwind-prevent text-white flex items-center rounded-md px-2 py-2 text-sm font-medium',
+          {
+            'bg-gray-800 md:text-gray-700 md:bg-gray-50 md:dark:text-gray-50 md:dark:bg-gray-700':
+              isActive,
+            'hover:bg-gray-700 md:text-gray-600 md:hover:text-gray-700 md:hover:bg-gray-50 md:dark:text-gray-400 md:dark:hover:text-gray-300 md:dark:hover:bg-gray-700':
+              !isActive
+          }
         )
       }
       onClick={onClick}

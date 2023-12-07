@@ -2,8 +2,9 @@ import {
   ArrowLongLeftIcon,
   ArrowLongRightIcon
 } from '@heroicons/react/20/solid';
+import { useMemo } from 'react';
 import { usePagination } from '~/data/hooks/pagination';
-import { classNames } from '~/utils/helpers';
+import { cls } from '~/utils/helpers';
 
 type PageProps = {
   page: number | string;
@@ -13,6 +14,11 @@ type PageProps = {
 
 function Page(props: PageProps) {
   const { page, currentPage, onPageChange } = props;
+  const isCurrentPage = useMemo(
+    () => page === currentPage,
+    [page, currentPage]
+  );
+
   // we are using '...' (string) to represent page links that should not be rendered
   if (typeof page === 'string') {
     return (
@@ -25,13 +31,15 @@ function Page(props: PageProps) {
   return (
     <a
       href="#"
-      className={classNames(
-        page === currentPage
-          ? 'text-violet-600 border-violet-500'
-          : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300',
-        'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium'
+      className={cls(
+        'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium',
+        {
+          'text-violet-600 border-violet-500': isCurrentPage,
+          'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300':
+            !isCurrentPage
+        }
       )}
-      aria-current={page === currentPage ? 'page' : undefined}
+      aria-current={isCurrentPage ? 'page' : undefined}
       onClick={(e) => {
         e.preventDefault();
         onPageChange(page);

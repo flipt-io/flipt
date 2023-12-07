@@ -158,10 +158,12 @@ func exec() error {
 
 // determineConfig will figure out which file to use for Flipt configuration.
 func determineConfig(configFile string) (string, bool) {
+	// if config file is provided, use it
 	if configFile != "" {
 		return configFile, true
 	}
 
+	// otherwise, check if user config file exists on filesystem
 	_, err := os.Stat(userConfigFile)
 	if err == nil {
 		return userConfigFile, true
@@ -171,7 +173,17 @@ func determineConfig(configFile string) (string, bool) {
 		defaultLogger.Warn("unexpected error checking configuration file", zap.String("config_file", userConfigFile), zap.Error(err))
 	}
 
-	return defaultConfigFile, defaultConfigFile != ""
+	// finally, check if default config file exists on filesystem
+	_, err = os.Stat(defaultConfigFile)
+	if err == nil {
+		return defaultConfigFile, true
+	}
+
+	if !errors.Is(err, fs.ErrNotExist) {
+		defaultLogger.Warn("unexpected error checking configuration file", zap.String("config_file", defaultConfigFile), zap.Error(err))
+	}
+
+	return "", false
 }
 
 func buildConfig() (*zap.Logger, *config.Config, error) {
