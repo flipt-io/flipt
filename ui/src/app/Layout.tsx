@@ -9,13 +9,19 @@ import {
 } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
+import Loading from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
-import { fetchConfigAsync, fetchInfoAsync } from './meta/metaSlice';
+import { LoadingStatus } from '~/types/Meta';
+import {
+  fetchConfigAsync,
+  fetchInfoAsync,
+  selectConfig
+} from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
@@ -32,6 +38,7 @@ function InnerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentNamespace = useSelector(selectCurrentNamespace);
+  const config = useSelector(selectConfig);
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -47,7 +54,7 @@ function InnerLayout() {
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
-  useListNamespacesQuery();
+  const namespaces = useListNamespacesQuery();
 
   useEffect(() => {
     dispatch(fetchInfoAsync());
@@ -56,6 +63,10 @@ function InnerLayout() {
 
   if (!session) {
     return <Navigate to="/login" />;
+  }
+
+  if (namespaces.isLoading || config.status != LoadingStatus.SUCCEEDED) {
+    return <Loading fullScreen />;
   }
 
   return (

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getConfig, getInfo } from '~/data/api';
-import { IConfig, IInfo, StorageType } from '~/types/Meta';
+import { IConfig, IInfo, LoadingStatus, StorageType } from '~/types/Meta';
 import { Theme } from '~/types/Preferences';
 
 interface IMetaSlice {
@@ -21,6 +21,7 @@ const initialState: IMetaSlice = {
     isRelease: false
   },
   config: {
+    status: LoadingStatus.IDLE,
     storage: {
       type: StorageType.DATABASE,
       readOnly: false
@@ -40,8 +41,12 @@ export const metaSlice = createSlice({
       .addCase(fetchInfoAsync.fulfilled, (state, action) => {
         state.info = action.payload;
       })
+      .addCase(fetchConfigAsync.pending, (state, _action) => {
+        state.config.status = LoadingStatus.LOADING;
+      })
       .addCase(fetchConfigAsync.fulfilled, (state, action) => {
         state.config = action.payload;
+        state.config.status = LoadingStatus.SUCCEEDED;
         if (action.payload.storage?.readOnly === undefined) {
           state.config.storage.readOnly =
             action.payload.storage?.type &&
