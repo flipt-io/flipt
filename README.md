@@ -65,6 +65,15 @@ With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-go
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
+## Managed Services
+
+Don't want to manage your own Flipt instance? We've got you covered! Check out our in-progress [managed offerings](https://www.flipt.io/docs/managed/overview).
+
+- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your own cloud account, managed by us
+- [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
+
+Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
+
 ## Usecases
 
 Flipt supports use cases such as:
@@ -208,14 +217,6 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
-
-<br clear="both"/>
-
-<p align="center">
-    <a href="https://github.com/flipt-io/labs"><img src=".github/images/labs.png" alt="Flipt Labs" width=960 /></a>
-</p>
-
-<br clear="both"/>
 
 ### REST API
 
