@@ -1,5 +1,7 @@
 # Contributing
 
+Checkout our [Development](DEVELOPMENT.md) guide for more information on how to get started developing Flipt.
+
 ## Issues
 
 Let us know how we can help!

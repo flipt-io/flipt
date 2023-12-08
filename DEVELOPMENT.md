@@ -2,6 +2,8 @@
 
 The following are instructions for setting up your local machine for Flipt development. For info on using VSCode Remote Containers / GitHub Codespaces, see [#cdes](#cdes) below.
 
+Also check out our [Contributing](CONTRIBUTING.md) guide for more information on how to get changes merged into the project.
+
 ## Requirements
 
 Before starting, make sure you have the following installed:
