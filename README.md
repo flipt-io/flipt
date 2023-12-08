@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An open source, self-hosted feature flag solution</p>
+<p align="center">An open source, self-hosted, enterprise-ready, feature management solution</p>
 
 <hr />
 
@@ -56,12 +56,23 @@
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
+With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your Platform Engineering, DevOps, and CI/CD workflows to enable continuous configuration and deployment.
+
 <br clear="both"/>
 
 <p align="center">
     <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
+
+## Managed Services
+
+Don't want to manage your own Flipt instance? We've got you covered! Check out our in-progress [managed offerings](https://www.flipt.io/docs/managed/overview).
+
+- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your own cloud account, managed by us
+- [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
+
+Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
 
 ## Usecases
 
@@ -87,10 +98,37 @@ Flipt supports use cases such as:
 - Import and export to allow storing your data as code
 - Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
+- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support **GitOps** workflows and more.
 - Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
+
+<br clear="both"/>
+
+## Contributing
+
+We would love your help! Before submitting a PR, please read over the [Contributing](CONTRIBUTING.md) guide.
+
+No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
+
+Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+
+Not sure how to get started? You can:
+
+- [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
+- Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+- Dive into any of the open issues, here are some examples: 
+  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
+  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
+
+<br clear="both"/>
+
+## Community
+
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
 
 <br clear="both"/>
 
@@ -157,21 +195,21 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 
 <br clear="both"/>
 
-## Works With
+## Supports
 
 <p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=125 />
-    <img src="./logos/mysql.svg" alt="MySQL" width=125 />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=125 />
-    <img src="./logos/turso.svg" alt="Turso" width=150 />
-    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=75 />
+    <img src="./logos/sqlite.svg" alt="SQLite" height=75 />
+    <img src="./logos/mysql.svg" alt="MySQL" height=75 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" height=75 />
+    <img src="./logos/turso.svg" alt="Turso" height=25 />
+    <img src="./logos/cockroachdb.svg" alt="CockroachDB" height=50 />
 </p>
 <p align="center">
-    <img src="./logos/redis.svg" alt="Redis" width=150 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 />
-    <img src="./logos/openid.svg" alt="OpenID" width=100 />
-    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=125 />
-    <img src="./logos/git.svg" alt="Git" width=125 />
+    <img src="./logos/redis.svg" alt="Redis" height=75 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" height=75 />
+    <img src="./logos/openid.svg" alt="OpenID" height=75 />
+    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" height=75 />
+    <img src="./logos/git.svg" alt="Git" height=50 />
 </p>
 
 <br clear="both"/>
@@ -179,14 +217,6 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
-
-<br clear="both"/>
-
-<p align="center">
-    <a href="https://github.com/flipt-io/labs"><img src=".github/images/labs.png" alt="Flipt Labs" width=960 /></a>
-</p>
-
-<br clear="both"/>
 
 ### REST API
 
@@ -268,62 +298,6 @@ The client code is the code that you would integrate into your applications, whi
 The server code is licensed under the [GPL 3.0 License](https://spdx.org/licenses/GPL-3.0.html).
 
 See [LICENSE](LICENSE).
-
-<br clear="both"/>
-
-## Logos
-
-Some of the organizations depending on Flipt in production.
-
-<p align="center">
-    <a href="https://paradigm.co">
-        <img src="./logos/users/paradigm.png" alt="Paradigm" />
-    </a>&nbsp;&nbsp;
-    <a href="https://rokt.com">
-        <img src="./logos/users/rokt.svg" alt="Rokt" width="200"/>
-    </a>&nbsp;&nbsp;
-    <a href="https://asphaltbot.com">
-        <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
-    </a>&nbsp;&nbsp;
-    <a href="https://prose.com">
-        <img src="./logos/users/prose.png" alt="Prose" width="200"/>
-    </a>&nbsp;&nbsp;
-    <a href="https://www.gov.uk/government/organisations/ministry-of-justice">
-        <img src="./logos/users/uk-moj.png" alt="UK Ministry of Justice" width="200" />
-    </a>&nbsp;&nbsp;
-    <a href="https://www.ocrolus.com">
-        <img src="./logos/users/ocrolus.svg" alt="Ocrolus" width="250" />
-    </a>
-</p>
-
-Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls) and add your logo here!
-
-<br clear="both"/>
-
-## Community
-
-For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
-
-<br clear="both"/>
-
-## Contributing
-
-We would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
-
-No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
-
-Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
-
-Not sure how to get started? You can:
-
-- [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
-- Join our [Discord](https://www.flipt.io/discord), and ask any questions there
-- Dive into any of the open issues, here are some examples: 
-  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
-  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
-
-Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
 <br clear="both"/>
 
