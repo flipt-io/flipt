@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An open source, self-hosted, enterprise-ready, feature flag management solution</p>
+<p align="center">An open source, self-hosted, enterprise-ready, feature management solution</p>
 
 <hr />
 
