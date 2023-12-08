@@ -21,6 +21,7 @@ export interface IUI {
 }
 
 export interface IConfig {
+  status: LoadingStatus;
   storage: IStorage;
   ui: IUI;
 }
