@@ -118,6 +118,8 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		return nil, errors.New("invalid token")
 	}
 
+	fmt.Println("%v", token)
+
 	var githubUserResponse struct {
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
@@ -126,7 +128,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	if err = s.api(ctx, token, githubUser, &githubUserResponse); err != nil {
+	if err = api(ctx, token, githubUser, &githubUserResponse); err != nil {
 		return nil, err
 	}
 
@@ -154,7 +156,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 
 	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
 		var githubUserOrgsResponse []githubSimpleOrganization
-		if err = s.api(ctx, token, githubUserOrganizations, &githubUserOrgsResponse); err != nil {
+		if err = api(ctx, token, githubUserOrganizations, &githubUserOrgsResponse); err != nil {
 			return nil, err
 		}
 		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
@@ -186,7 +188,7 @@ type githubSimpleOrganization struct {
 }
 
 // api calls Github API, decodes and stores successful response in the value pointed to by v.
-func (s *Server) api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) error {
+func api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) error {
 	c := &http.Client{
 		Timeout: 5 * time.Second,
 	}
