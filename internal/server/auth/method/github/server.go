@@ -118,8 +118,6 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		return nil, errors.New("invalid token")
 	}
 
-	fmt.Println("%v", token)
-
 	var githubUserResponse struct {
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
