@@ -198,7 +198,7 @@
                   "type": ["array", "null"],
                   "items": { "type": "string" }
                 },
-                "member_of": {
+                "allowed_organizations": {
                   "type": ["array", "null"],
                   "additionalProperties": false
                 }

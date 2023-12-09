@@ -429,11 +429,11 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
-	ClientId        string   `json:"-" mapstructure:"client_id" yaml:"-"`
-	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
-	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
-	MemberOf        []string `json:"member_of,omitempty" mapstructure:"member_of" yaml:"member_of,omitempty"`
+	ClientId             string   `json:"-" mapstructure:"client_id" yaml:"-"`
+	ClientSecret         string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress      string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes               []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	AllowedOrganizations []string `json:"allowed_organizations,omitempty" mapstructure:"allowed_organizations" yaml:"allowed_organizations,omitempty"`
 }
 
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}

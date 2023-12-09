@@ -152,7 +152,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		metadata[storageMetadataGitHubPreferredUsername] = githubUserResponse.Login
 	}
 
-	if len(s.config.Methods.Github.Method.MemberOf) != 0 {
+	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
 		var githubUserOrgsResponse struct {
 			organizations []struct {
 				login string
@@ -162,7 +162,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		if err != nil {
 			return nil, err
 		}
-		if !slices.ContainsFunc(s.config.Methods.Github.Method.MemberOf, func(org string) bool {
+		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
 			return slices.ContainsFunc(githubUserOrgsResponse.organizations, func(githubOrg struct {
 				login string
 			}) bool {

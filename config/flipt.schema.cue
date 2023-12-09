@@ -73,7 +73,7 @@ import "strings"
 				client_id?:        string
 				redirect_address?: string
 				scopes?: [...string]
-				member_of?: [...] | string
+				allowed_organizations?: [...] | string
 			}
 		}
 
