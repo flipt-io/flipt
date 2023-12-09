@@ -11,11 +11,11 @@ Before starting, make sure you have the following installed:
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.20+](https://golang.org/doc/install)
-- [NodeJS >= 18](https://nodejs.org/en/)
+- [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
 
-### CGO
+## CGO
 
 Flipt uses [CGO](https://golang.org/cmd/cgo/) to compile SQLite.
 
