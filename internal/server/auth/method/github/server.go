@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/auth/method"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -125,8 +126,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	err = s.api(ctx, token, githubUser, &githubUserResponse)
-	if err != nil {
+	if err = s.api(ctx, token, githubUser, &githubUserResponse); err != nil {
 		return nil, err
 	}
 
@@ -153,23 +153,16 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	}
 
 	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
-		var githubUserOrgsResponse struct {
-			organizations []struct {
-				login string
-			}
-		}
-		err = s.api(ctx, token, githubUser, &githubUserOrgsResponse)
-		if err != nil {
+		var githubUserOrgsResponse []githubSimpleOrganization
+		if err = s.api(ctx, token, githubUserOrganizations, &githubUserOrgsResponse); err != nil {
 			return nil, err
 		}
 		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
-			return slices.ContainsFunc(githubUserOrgsResponse.organizations, func(githubOrg struct {
-				login string
-			}) bool {
-				return githubOrg.login == org
+			return slices.ContainsFunc(githubUserOrgsResponse, func(githubOrg githubSimpleOrganization) bool {
+				return githubOrg.Login == org
 			})
 		}) {
-			return nil, errors.New("request was not authenticated")
+			return nil, authmiddlewaregrpc.ErrUnauthenticated
 		}
 	}
 
@@ -186,6 +179,10 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ClientToken:    clientToken,
 		Authentication: a,
 	}, nil
+}
+
+type githubSimpleOrganization struct {
+	Login string
 }
 
 // api calls Github API, decodes and stores successful response in the value pointed to by v.

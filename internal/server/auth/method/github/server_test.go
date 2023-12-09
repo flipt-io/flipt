@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,6 +20,8 @@ import (
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 )
 
@@ -146,8 +149,49 @@ func Test_Server(t *testing.T) {
 		Reply(400)
 
 	_, err = client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-	assert.EqualError(t, err, "rpc error: code = Internal desc = github user info response status: \"400 Bad Request\"")
+	assert.EqualError(t, err, "rpc error: code = Internal desc = github /user info response status: \"400 Bad Request\"")
 
+	gock.Off()
+
+	// check allowed organizations successfully
+	s.config.Methods.Github.Method.AllowedOrganizations = []string{"flipt-io"}
+	gock.New("https://api.github.com").
+		MatchHeader("Authorization", "Bearer AccessToken").
+		MatchHeader("Accept", "application/vnd.github+json").
+		Get("/user").
+		Reply(200).
+		JSON(map[string]any{"name": "fliptuser", "email": "user@flipt.io", "avatar_url": "https://thispicture.com", "id": 1234567890})
+
+	gock.New("https://api.github.com").
+		MatchHeader("Authorization", "Bearer AccessToken").
+		MatchHeader("Accept", "application/vnd.github+json").
+		Get("/user/orgs").
+		Reply(200).
+		JSON([]githubSimpleOrganization{{Login: "flipt-io"}})
+
+	c, err = client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
+	require.NoError(t, err)
+	assert.NotEmpty(t, c.ClientToken)
+	gock.Off()
+
+	// check allowed organizations  unsuccessfully
+	s.config.Methods.Github.Method.AllowedOrganizations = []string{"flipt-io"}
+	gock.New("https://api.github.com").
+		MatchHeader("Authorization", "Bearer AccessToken").
+		MatchHeader("Accept", "application/vnd.github+json").
+		Get("/user").
+		Reply(200).
+		JSON(map[string]any{"name": "fliptuser", "email": "user@flipt.io", "avatar_url": "https://thispicture.com", "id": 1234567890})
+
+	gock.New("https://api.github.com").
+		MatchHeader("Authorization", "Bearer AccessToken").
+		MatchHeader("Accept", "application/vnd.github+json").
+		Get("/user/orgs").
+		Reply(200).
+		JSON([]githubSimpleOrganization{{Login: "github"}})
+
+	_, err = client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
+	require.ErrorIs(t, err, status.Error(codes.Unauthenticated, "request was not authenticated"))
 	gock.Off()
 }
 
@@ -162,4 +206,27 @@ func TestCallbackURL(t *testing.T) {
 
 	callback = callbackURL("https://flipt.io/")
 	assert.Equal(t, callback, "https://flipt.io/auth/v1/method/github/callback")
+}
+
+func TestGithubSimpleOrganizationDecode(t *testing.T) {
+	var body = `[{
+	"login": "github",
+	"id": 1,
+	"node_id": "MDEyOk9yZ2FuaXphdGlvbjE=",
+	"url": "https://api.github.com/orgs/github",
+	"repos_url": "https://api.github.com/orgs/github/repos",
+	"events_url": "https://api.github.com/orgs/github/events",
+	"hooks_url": "https://api.github.com/orgs/github/hooks",
+	"issues_url": "https://api.github.com/orgs/github/issues",
+	"members_url": "https://api.github.com/orgs/github/members{/member}",
+	"public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+	"avatar_url": "https://github.com/images/error/octocat_happy.gif",
+	"description": "A great organization"
+	}]`
+
+	var githubUserOrgsResponse []githubSimpleOrganization
+	err := json.Unmarshal([]byte(body), &githubUserOrgsResponse)
+	require.NoError(t, err)
+	require.Len(t, githubUserOrgsResponse, 1)
+	require.Equal(t, "github", githubUserOrgsResponse[0].Login)
 }
