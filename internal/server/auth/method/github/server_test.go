@@ -146,7 +146,7 @@ func Test_Server(t *testing.T) {
 		Reply(400)
 
 	_, err = client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-	assert.EqualError(t, err, "rpc error: code = Internal desc = github user info response status: \"400 Bad Request\"")
+	assert.EqualError(t, err, "rpc error: code = Internal desc = github /user info response status: \"400 Bad Request\"")
 
 	gock.Off()
 }

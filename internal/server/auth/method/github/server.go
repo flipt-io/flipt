@@ -125,8 +125,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	err = s.api(ctx, token, githubUser, &githubUserResponse)
-	if err != nil {
+	if err = s.api(ctx, token, githubUser, &githubUserResponse); err != nil {
 		return nil, err
 	}
 
@@ -158,8 +157,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 				login string
 			}
 		}
-		err = s.api(ctx, token, githubUser, &githubUserOrgsResponse)
-		if err != nil {
+		if err = s.api(ctx, token, githubUser, &githubUserOrgsResponse); err != nil {
 			return nil, err
 		}
 		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
