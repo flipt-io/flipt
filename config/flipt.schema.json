@@ -197,6 +197,10 @@
                 "scopes": {
                   "type": ["array", "null"],
                   "items": { "type": "string" }
+                },
+                "member_of": {
+                  "type": ["array", "null"],
+                  "additionalProperties": false
                 }
               },
               "title": "Github",

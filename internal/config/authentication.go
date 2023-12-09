@@ -433,6 +433,7 @@ type AuthenticationMethodGithubConfig struct {
 	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	MemberOf        []string `json:"member_of,omitempty" mapstructure:"member_of" yaml:"member_of,omitempty"`
 }
 
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}

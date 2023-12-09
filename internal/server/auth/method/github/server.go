@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,8 +21,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type endpoint string
+
 const (
-	githubUserAPI = "https://api.github.com/user"
+	githubAPI                        = "https://api.github.com"
+	githubUser              endpoint = "/user"
+	githubUserOrganizations endpoint = "/user/orgs"
 )
 
 // OAuth2Client is our abstraction of communication with an OAuth2 Provider.
@@ -112,31 +117,6 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		return nil, errors.New("invalid token")
 	}
 
-	c := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	userReq, err := http.NewRequestWithContext(ctx, "GET", githubUserAPI, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
-	userReq.Header.Set("Accept", "application/vnd.github+json")
-
-	userResp, err := c.Do(userReq)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		userResp.Body.Close()
-	}()
-
-	if userResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("github user info response status: %q", userResp.Status)
-	}
-
 	var githubUserResponse struct {
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
@@ -145,7 +125,8 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
+	err = s.api(ctx, token, githubUser, &githubUserResponse)
+	if err != nil {
 		return nil, err
 	}
 
@@ -171,6 +152,27 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		metadata[storageMetadataGitHubPreferredUsername] = githubUserResponse.Login
 	}
 
+	if len(s.config.Methods.Github.Method.MemberOf) != 0 {
+		var githubUserOrgsResponse struct {
+			organizations []struct {
+				login string
+			}
+		}
+		err = s.api(ctx, token, githubUser, &githubUserOrgsResponse)
+		if err != nil {
+			return nil, err
+		}
+		if !slices.ContainsFunc(s.config.Methods.Github.Method.MemberOf, func(org string) bool {
+			return slices.ContainsFunc(githubUserOrgsResponse.organizations, func(githubOrg struct {
+				login string
+			}) bool {
+				return githubOrg.login == org
+			})
+		}) {
+			return nil, errors.New("request was not authenticated")
+		}
+	}
+
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_GITHUB,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
@@ -184,4 +186,33 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ClientToken:    clientToken,
 		Authentication: a,
 	}, nil
+}
+
+// api calls Github API, decodes and stores successful response in the value pointed to by v.
+func (s *Server) api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) error {
+	c := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	userReq, err := http.NewRequestWithContext(ctx, "GET", string(githubAPI+endpoint), nil)
+	if err != nil {
+		return err
+	}
+
+	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	userReq.Header.Set("Accept", "application/vnd.github+json")
+
+	resp, err := c.Do(userReq)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("github %s info response status: %q", endpoint, resp.Status)
+	}
+	return json.NewDecoder(resp.Body).Decode(v)
 }
