@@ -42,6 +42,7 @@ func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Contai
 	return ui.
 		WithServiceBinding("flipt", flipt.
 			WithEnvVariable("CI", os.Getenv("CI")).
+			WithEnvVariable("ARGOS_TOKEN", os.Getenv("ARGOS_TOKEN")).
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			WithExec(nil)).
