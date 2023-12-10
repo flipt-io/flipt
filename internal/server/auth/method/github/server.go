@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/auth/method"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -20,8 +22,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type endpoint string
+
 const (
-	githubUserAPI = "https://api.github.com/user"
+	githubAPI                        = "https://api.github.com"
+	githubUser              endpoint = "/user"
+	githubUserOrganizations endpoint = "/user/orgs"
 )
 
 // OAuth2Client is our abstraction of communication with an OAuth2 Provider.
@@ -112,31 +118,6 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		return nil, errors.New("invalid token")
 	}
 
-	c := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	userReq, err := http.NewRequestWithContext(ctx, "GET", githubUserAPI, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
-	userReq.Header.Set("Accept", "application/vnd.github+json")
-
-	userResp, err := c.Do(userReq)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		userResp.Body.Close()
-	}()
-
-	if userResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("github user info response status: %q", userResp.Status)
-	}
-
 	var githubUserResponse struct {
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
@@ -145,7 +126,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
+	if err = api(ctx, token, githubUser, &githubUserResponse); err != nil {
 		return nil, err
 	}
 
@@ -171,6 +152,20 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		metadata[storageMetadataGitHubPreferredUsername] = githubUserResponse.Login
 	}
 
+	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
+		var githubUserOrgsResponse []githubSimpleOrganization
+		if err = api(ctx, token, githubUserOrganizations, &githubUserOrgsResponse); err != nil {
+			return nil, err
+		}
+		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
+			return slices.ContainsFunc(githubUserOrgsResponse, func(githubOrg githubSimpleOrganization) bool {
+				return githubOrg.Login == org
+			})
+		}) {
+			return nil, authmiddlewaregrpc.ErrUnauthenticated
+		}
+	}
+
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_GITHUB,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
@@ -184,4 +179,37 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ClientToken:    clientToken,
 		Authentication: a,
 	}, nil
+}
+
+type githubSimpleOrganization struct {
+	Login string
+}
+
+// api calls Github API, decodes and stores successful response in the value pointed to by v.
+func api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) error {
+	c := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	userReq, err := http.NewRequestWithContext(ctx, "GET", string(githubAPI+endpoint), nil)
+	if err != nil {
+		return err
+	}
+
+	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	userReq.Header.Set("Accept", "application/vnd.github+json")
+
+	resp, err := c.Do(userReq)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("github %s info response status: %q", endpoint, resp.Status)
+	}
+	return json.NewDecoder(resp.Body).Decode(v)
 }

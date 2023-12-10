@@ -197,6 +197,10 @@
                 "scopes": {
                   "type": ["array", "null"],
                   "items": { "type": "string" }
+                },
+                "allowed_organizations": {
+                  "type": ["array", "null"],
+                  "additionalProperties": false
                 }
               },
               "title": "Github",
