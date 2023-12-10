@@ -111,3 +111,5 @@ jobs:
 
       - name: Run UI Tests
         run: mage dagger:run test:ui
+        env:
+          ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
