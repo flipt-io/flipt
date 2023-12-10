@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -133,6 +134,7 @@ func (c *AuthenticationConfig) SessionEnabled() bool {
 
 func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
+
 	for _, info := range c.Methods.AllMethods() {
 		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
 		if info.Cleanup == nil {
@@ -167,6 +169,12 @@ func (c *AuthenticationConfig) validate() error {
 		// domain cookies are not allowed to have a scheme or port
 		// https://github.com/golang/go/issues/28297
 		c.Session.Domain = host
+	}
+
+	for _, info := range c.Methods.AllMethods() {
+		if err := info.validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -245,6 +253,8 @@ type StaticAuthenticationMethodInfo struct {
 
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
+	// used for auth method specific validation
+	validate func() error
 
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
@@ -284,6 +294,7 @@ func (a AuthenticationMethodInfo) Name() string {
 type AuthenticationMethodInfoProvider interface {
 	setDefaults(map[string]any)
 	info() AuthenticationMethodInfo
+	validate() error
 }
 
 // AuthenticationMethod is a container for authentication methods.
@@ -309,6 +320,7 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 		Cleanup:                  a.Cleanup,
 
 		setDefaults: a.setDefaults,
+		validate:    a.validate,
 		setEnabled: func() {
 			a.Enabled = true
 		},
@@ -316,6 +328,14 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 			a.Cleanup = &c
 		},
 	}
+}
+
+func (a *AuthenticationMethod[C]) validate() error {
+	if !a.Enabled {
+		return nil
+	}
+
+	return a.Method.validate()
 }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
@@ -335,6 +355,8 @@ func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 		SessionCompatible: false,
 	}
 }
+
+func (a AuthenticationMethodTokenConfig) validate() error { return nil }
 
 // AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
 // bootstrap process for the authentication method "token".
@@ -379,6 +401,8 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 
 	return info
 }
+
+func (a AuthenticationMethodOIDCConfig) validate() error { return nil }
 
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
@@ -426,6 +450,8 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 	}
 }
 
+func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
+
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
@@ -453,4 +479,13 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 	info.Metadata, _ = structpb.NewStruct(metadata)
 
 	return info
+}
+
+func (a AuthenticationMethodGithubConfig) validate() error {
+	// ensure scopes contain read:org if allowed organizations is not empty
+	if len(a.AllowedOrganizations) > 0 && !slices.Contains(a.Scopes, "read:org") {
+		return fmt.Errorf("scopes must contain read:org when allowed_organizations is not empty")
+	}
+
+	return nil
 }
