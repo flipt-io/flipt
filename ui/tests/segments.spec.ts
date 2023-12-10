@@ -1,3 +1,4 @@
+import { argosScreenshot } from '@argos-ci/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Segments', () => {
@@ -8,6 +9,7 @@ test.describe('Segments', () => {
 
   test('can create segment', async ({ page }) => {
     await page.getByRole('button', { name: 'New Segment' }).click();
+    await argosScreenshot(page, 'create-segment');
     await page.getByLabel('Name').fill('Test Segment');
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
@@ -16,6 +18,7 @@ test.describe('Segments', () => {
 
   test('can update segment', async ({ page }) => {
     await page.getByRole('link', { name: 'test-segment' }).click();
+    await argosScreenshot(page, 'update-segment');
     await page.getByLabel('Description').click();
     await page.getByLabel('Description').fill("i'm a test");
     await page.getByRole('button', { name: 'Update' }).click();
@@ -27,6 +30,7 @@ test.describe('Segments', () => {
 
     await test.step('add constraint', async () => {
       await page.getByRole('button', { name: 'New Constraint' }).click();
+      await argosScreenshot(page, 'create-constraint');
       await page.getByLabel('Property').fill('foo');
       await page
         .getByRole('combobox', { name: 'Type' })
@@ -42,6 +46,7 @@ test.describe('Segments', () => {
 
     await test.step('edit constraint properties', async () => {
       await page.getByRole('link', { name: 'Edit , foo' }).click();
+      await argosScreenshot(page, 'update-constraint');
       await page
         .getByRole('combobox', { name: 'Type' })
         .selectOption('STRING_COMPARISON_TYPE');

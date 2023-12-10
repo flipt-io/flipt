@@ -1,3 +1,4 @@
+import { argosScreenshot } from '@argos-ci/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Namespaces', () => {
@@ -12,7 +13,9 @@ test.describe('Namespaces', () => {
     await expect(
       page.getByRole('heading', { name: 'Namespaces' })
     ).toBeVisible();
+    await argosScreenshot(page, 'list-namespaces');
     await page.getByRole('button', { name: 'New Namespace' }).click();
+    await argosScreenshot(page, 'create-namespace');
     await page.getByLabel('Name', { exact: true }).fill('staging');
     await page.getByLabel('Description').fill('Staging Namespace');
     await page.getByRole('button', { name: 'Create' }).click();
@@ -35,6 +38,7 @@ test.describe('Namespaces', () => {
       page.getByRole('heading', { name: 'Namespaces' })
     ).toBeVisible();
     await page.getByRole('link', { name: 'staging', exact: true }).click();
+    await argosScreenshot(page, 'update-namespace');
     await page.getByLabel('Name', { exact: true }).fill('test');
     await page.getByLabel('Description').fill('Test Namespace');
     await page.getByRole('button', { name: 'Update' }).click();

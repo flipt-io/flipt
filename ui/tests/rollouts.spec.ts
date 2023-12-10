@@ -1,3 +1,4 @@
+import { argosScreenshot } from '@argos-ci/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Rollouts', () => {
@@ -20,6 +21,7 @@ test.describe('Rollouts', () => {
   test('can create rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
+    argosScreenshot(page, 'create-rollout');
     await page.getByLabel('Percentage').fill('100');
     await page.getByLabel('Value').selectOption('false');
     await page.getByRole('textbox').fill('test'); // TODO: should get description by label
@@ -50,6 +52,7 @@ test.describe('Rollouts', () => {
     await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
     await page.getByRole('textbox').click();
+    argosScreenshot(page, 'update-rollout');
     await page.getByRole('textbox').fill('test2');
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated rollout')).toBeVisible();

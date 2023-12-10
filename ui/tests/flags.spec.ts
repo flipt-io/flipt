@@ -1,3 +1,4 @@
+import { argosScreenshot } from '@argos-ci/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Flags', () => {
@@ -8,6 +9,7 @@ test.describe('Flags', () => {
 
   test('can create flag', async ({ page }) => {
     await page.getByRole('button', { name: 'New Flag' }).click();
+    await argosScreenshot(page, 'create-flag');
     await page.getByLabel('Name').fill('Test Flag');
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
@@ -16,6 +18,7 @@ test.describe('Flags', () => {
 
   test('can update flag', async ({ page }) => {
     await page.getByRole('link', { name: 'test-flag' }).click();
+    await argosScreenshot(page, 'update-flag');
     await page.getByLabel('Description').click();
     await page.getByLabel('Description').fill('Test flag description');
     await page.getByRole('button', { name: 'Update' }).click();
@@ -27,6 +30,7 @@ test.describe('Flags', () => {
 
     await test.step('add variant', async () => {
       await page.getByRole('button', { name: 'New Variant' }).click();
+      await argosScreenshot(page, 'create-variant');
       await page
         .getByRole('dialog', { name: 'New Variant' })
         .locator('#key')
@@ -59,6 +63,7 @@ test.describe('Flags', () => {
 
     await test.step('edit variant description', async () => {
       await page.getByRole('link', { name: 'Edit ,chrome' }).click();
+      await argosScreenshot(page, 'update-variant');
       await page
         .getByRole('dialog', { name: 'Edit Variant' })
         .locator('#description')

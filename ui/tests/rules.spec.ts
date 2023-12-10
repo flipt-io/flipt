@@ -1,3 +1,4 @@
+import { argosScreenshot } from '@argos-ci/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Rules', () => {
@@ -40,6 +41,7 @@ test.describe('Rules', () => {
       await page.getByRole('link', { name: 'test-rule' }).click();
       await page.getByRole('link', { name: 'Rules' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
+      argosScreenshot(page, 'create-rule');
       await page.locator('#segmentKey-0-select-button').click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
       await page.getByLabel('Multi-Variate').check();
@@ -65,6 +67,7 @@ test.describe('Rules', () => {
       await page
         .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
         .click();
+      argosScreenshot(page, 'update-rule');
       await page
         .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
         .fill('40');
