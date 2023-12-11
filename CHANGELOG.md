@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `cli`: silence usage on error (#2512)
 - `ui`: cleanup header; show user name and opt login in user dropdown (#2480)
 - `ui`: replace classNames with clsx library (#2482)
 - `ui`: use rtk for flags (#2478)
