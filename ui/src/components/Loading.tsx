@@ -10,7 +10,7 @@ export default function Loading(props: LoadingProps) {
 
   return (
     <div
-      className={cls('flex h-screen items-center justify-center', {
+      className={cls('flex items-center justify-center', {
         'h-screen': fullScreen
       })}
     >
