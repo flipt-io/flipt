@@ -3,6 +3,29 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.33.0](https://github.com/flipt-io/flipt/releases/tag/v1.33.0) - 2023-12-11
+
+### Added
+
+- `auth/github`: add organization membership check to GitHub (#2508)
+- `ui`: allow setting page size for tables (#2503)
+- use default config even on linux if no config found (#2496)
+- `ui/console`: add copy as curl button (#2474)
+
+### Changed
+
+- `ui`: cleanup header; show user name and opt login in user dropdown (#2480)
+- `ui`: replace classNames with clsx library (#2482)
+- `ui`: use rtk for flags (#2478)
+- `ui`: move namespaces to use redux rtk (#2472)
+- rework tests for TLS options for git sources with self-signed certificates
+
+### Fixed
+
+- `ui`: remove h-screen from default for Loading component (#2527)
+- `ui`: page api call could finish earlier that Layout api calls (#2506)
+- dont show name/login section if only email (#2495)
+
 ## [v1.32.0](https://github.com/flipt-io/flipt/releases/tag/v1.32.0) - 2023-11-29
 
 ### Added
