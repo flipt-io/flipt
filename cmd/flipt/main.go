@@ -109,6 +109,7 @@ func exec() error {
 			CompletionOptions: cobra.CompletionOptions{
 				DisableDefaultCmd: true,
 			},
+			SilenceUsage: true,
 		}
 
 		t   = template.Must(template.New("banner").Parse(bannerTmpl))
