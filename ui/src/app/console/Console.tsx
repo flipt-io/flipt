@@ -3,11 +3,12 @@ import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/tomorrow-night-bright.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
@@ -15,7 +16,7 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import { evaluateURL, evaluateV2, listAuthMethods } from '~/data/api';
+import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
@@ -23,7 +24,7 @@ import {
   keyValidation,
   requiredValidation
 } from '~/data/validations';
-import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
+import { IAuthMethod } from '~/types/Auth';
 import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import {
@@ -54,7 +55,6 @@ export default function Console() {
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
-  const [isAuthRequired, setIsAuthRequired] = useState<boolean>(false);
 
   const { setError, clearError } = useError();
   const navigate = useNavigate();
@@ -88,19 +88,14 @@ export default function Console() {
     });
   }, [data]);
 
-  const checkIsAuthRequired = useCallback(() => {
-    listAuthMethods()
-      .then((resp: IAuthMethodList) => {
-        const enabledAuthMethods = resp.methods.filter(
-          (m: IAuthMethod) => m.enabled
-        );
-        setIsAuthRequired(enabledAuthMethods.length != 0);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [setError, clearError]);
+  const { data: listAuthProviders } = useListAuthProvidersQuery();
+
+  const isAuthRequired = useMemo(() => {
+    return (
+      (listAuthProviders?.methods || []).filter((m: IAuthMethod) => m.enabled)
+        .length > 0
+    );
+  }, [listAuthProviders]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
     const { entityId, context } = values;
@@ -181,10 +176,6 @@ export default function Console() {
     }
     hljs.highlightAll();
   }, [response, codeRef]);
-
-  useEffect(() => {
-    checkIsAuthRequired();
-  }, [checkIsAuthRequired]);
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',

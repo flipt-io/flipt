@@ -87,9 +87,6 @@ async function put<T>(uri: string, values: T, base = apiURL) {
 
 //
 // auth
-export async function listAuthMethods() {
-  return get('/method', authURL);
-}
 
 export async function getAuthSelf() {
   return get('/self', authURL);

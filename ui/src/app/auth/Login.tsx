@@ -2,25 +2,32 @@ import {
   faGithub,
   faGitlab,
   faGoogle,
-  faOpenid
+  faOpenid,
+  IconDefinition
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toLower, upperFirst } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
+import Loading from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
-import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
-import { IAuthMethodGithub } from '~/types/auth/Github';
-import { IAuthMethodOIDC } from '~/types/auth/OIDC';
 
 interface ILoginProvider {
   displayName: string;
-  icon?: any;
+  icon: IconDefinition;
+}
+
+interface IAuthDisplay {
+  name: string;
+  authorize_url: string;
+  callback_url: string;
+  icon: IconDefinition;
 }
 
 const knownProviders: Record<string, ILoginProvider> = {
@@ -33,7 +40,8 @@ const knownProviders: Record<string, ILoginProvider> = {
     icon: faGitlab
   },
   auth0: {
-    displayName: 'Auth0'
+    displayName: 'Auth0',
+    icon: faOpenid
   },
   github: {
     displayName: 'Github',
@@ -41,18 +49,7 @@ const knownProviders: Record<string, ILoginProvider> = {
   }
 };
 
-function InnerLogin() {
-  const { session } = useSession();
-
-  const [providers, setProviders] = useState<
-    {
-      name: string;
-      authorize_url: string;
-      callback_url: string;
-      icon: any;
-    }[]
-  >([]);
-
+function InnerLoginButtons() {
   const { setError, clearError } = useError();
 
   const authorize = async (uri: string) => {
@@ -73,31 +70,38 @@ function InnerLogin() {
     const body = await res.json();
     window.location.href = body.authorizeUrl;
   };
+  const {
+    data: listAuthProviders,
+    isLoading,
+    error
+  } = useListAuthProvidersQuery();
+  if (error) {
+    setError(error);
+  }
 
-  useEffect(() => {
-    const loadProviders = async () => {
-      try {
-        const resp = await listAuthMethods();
-        // TODO: support alternative auth methods
-        const authOIDC = resp.methods.find(
-          (m: IAuthMethod) => m.method === 'METHOD_OIDC' && m.enabled
-        ) as IAuthMethodOIDC;
-
-        const authGithub = resp.methods.find(
-          (m: IAuthMethod) => m.method === 'METHOD_GITHUB' && m.enabled
-        ) as IAuthMethodGithub;
-
-        if (!authOIDC && !authGithub) {
-          return;
+  const providers = useMemo(() => {
+    return (listAuthProviders?.methods || [])
+      .filter(
+        (m: IAuthMethod) =>
+          (m.method === 'METHOD_OIDC' || m.method === 'METHOD_GITHUB') &&
+          m.enabled
+      )
+      .flatMap<any, IAuthDisplay>((m: IAuthMethod) => {
+        if (m.method === 'METHOD_GITHUB') {
+          return {
+            name: 'Github',
+            authorize_url: m.metadata.authorize_url,
+            callback_url: m.metadata.callback_url,
+            icon: faGithub
+          };
         }
-
-        let loginProviders: any[] = [];
-
-        if (authOIDC) {
-          const oidcLoginProviders = Object.entries(
-            authOIDC.metadata.providers
-          ).map(([k, v]) => {
+        if (m.method === 'METHOD_OIDC') {
+          return Object.entries(m.metadata.providers).map(([k, value]) => {
             k = toLower(k);
+            const v = value as {
+              authorize_url: string;
+              callback_url: string;
+            };
             return {
               name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
               authorize_url: v.authorize_url,
@@ -105,31 +109,72 @@ function InnerLogin() {
               icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
             };
           });
-
-          loginProviders = loginProviders.concat(oidcLoginProviders);
         }
+      });
+  }, [listAuthProviders]);
 
-        if (authGithub) {
-          const githubLogin = [
-            {
-              name: 'GitHub',
-              authorize_url: authGithub.metadata.authorize_url,
-              callback_url: authGithub.metadata.callback_url,
-              icon: faGithub
-            }
-          ];
+  if (isLoading) {
+    return <Loading />;
+  }
 
-          loginProviders = loginProviders.concat(githubLogin);
-        }
+  return (
+    <>
+      {providers.length > 0 && (
+        <div className="mt-6 flex flex-col space-y-5">
+          {providers.map((provider) => (
+            <div key={provider.name}>
+              <a
+                href="#"
+                className="bg-white text-gray-500 border-gray-300 inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm hover:text-violet-500 hover:shadow-violet-300"
+                onClick={(e) => {
+                  e.preventDefault();
+                  authorize(provider.authorize_url);
+                }}
+              >
+                <span className="sr-only">Sign in with {provider.name}</span>
+                <FontAwesomeIcon
+                  icon={provider.icon}
+                  className="text-gray h-5 w-5"
+                  aria-hidden={true}
+                />
+                <span className="ml-2">With {provider.name}</span>
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+      {providers.length === 0 && (
+        <div className="bg-white shadow sm:rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-gray-900 text-base font-semibold leading-6">
+              No Providers
+            </h3>
+            <div className="text-gray-500 mt-2 max-w-xl text-sm">
+              <p>
+                Authentication is set to{' '}
+                <span className="font-medium">required</span>, however, there
+                are no login providers configured. Please see the documentation
+                for more information.
+              </p>
+            </div>
+            <div className="mt-3 text-sm leading-6">
+              <a
+                href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
+                className="text-violet-600 font-semibold hover:text-violet-500"
+              >
+                Configuring Authentication
+                <span aria-hidden="true"> &rarr;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
-        setProviders([...loginProviders]);
-      } catch (err) {
-        setError(err);
-      }
-    };
-
-    loadProviders();
-  }, [setProviders, setError]);
+function InnerLogin() {
+  const { session } = useSession();
 
   if (session && (!session.required || session.authenticated)) {
     return <Navigate to="/" />;
@@ -146,7 +191,7 @@ function InnerLogin() {
                 alt="logo"
                 width={512}
                 height={512}
-                className="m-auto h-20 w-auto"
+                className="m-auto h-20 w-20"
               />
               <h2 className="text-gray-900 mt-6 text-center text-3xl font-bold tracking-tight">
                 Login to Flipt
@@ -154,58 +199,7 @@ function InnerLogin() {
             </div>
             <div className="mt-8 max-w-sm sm:mx-auto sm:w-full md:max-w-lg">
               <div className="px-4 py-8 sm:px-10">
-                {providers && providers.length > 0 && (
-                  <div className="mt-6 flex flex-col space-y-5">
-                    {providers.map((provider) => (
-                      <div key={provider.name}>
-                        <a
-                          href="#"
-                          className="bg-white text-gray-500 border-gray-300 inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm hover:text-violet-500 hover:shadow-violet-300"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            authorize(provider.authorize_url);
-                          }}
-                        >
-                          <span className="sr-only">
-                            Sign in with {provider.name}
-                          </span>
-                          <FontAwesomeIcon
-                            icon={provider.icon}
-                            className="text-gray h-5 w-5"
-                            aria-hidden={true}
-                          />
-                          <span className="ml-2">With {provider.name}</span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {(!providers || providers.length === 0) && (
-                  <div className="bg-white shadow sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                      <h3 className="text-gray-900 text-base font-semibold leading-6">
-                        No Providers
-                      </h3>
-                      <div className="text-gray-500 mt-2 max-w-xl text-sm">
-                        <p>
-                          Authentication is set to{' '}
-                          <span className="font-medium">required</span>,
-                          however, there are no login providers configured.
-                          Please see the documentation for more information.
-                        </p>
-                      </div>
-                      <div className="mt-3 text-sm leading-6">
-                        <a
-                          href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
-                          className="text-violet-600 font-semibold hover:text-violet-500"
-                        >
-                          Configuring Authentication
-                          <span aria-hidden="true"> &rarr;</span>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <InnerLoginButtons />
               </div>
             </div>
           </div>
