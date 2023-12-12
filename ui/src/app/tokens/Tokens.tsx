@@ -1,5 +1,6 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import {
   useDeleteTokensMutation,
   useListTokensQuery
@@ -14,9 +15,8 @@ import ShowTokenPanel from '~/components/tokens/ShowTokenPanel';
 import TokenForm from '~/components/tokens/TokenForm';
 import TokenTable from '~/components/tokens/TokenTable';
 import Well from '~/components/Well';
-import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
+import { IAuthMethod } from '~/types/Auth';
 import {
   IAuthToken,
   IAuthTokenInternal,
@@ -24,9 +24,7 @@ import {
 } from '~/types/auth/Token';
 
 export default function Tokens() {
-  const [tokenAuthEnabled, setTokenAuthEnabled] = useState<boolean>(false);
-
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const [createdToken, setCreatedToken] = useState<IAuthTokenSecret | null>(
     null
@@ -45,24 +43,13 @@ export default function Tokens() {
 
   const tokenFormRef = useRef(null);
 
-  const checkTokenAuthEnabled = useCallback(() => {
-    listAuthMethods()
-      .then((resp: IAuthMethodList) => {
-        const authToken = resp.methods.find(
-          (m: IAuthMethod) => m.method === 'METHOD_TOKEN' && m.enabled
-        );
+  const { data: listAuthProviders } = useListAuthProvidersQuery();
 
-        setTokenAuthEnabled(!!authToken);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [clearError, setError]);
-
-  useEffect(() => {
-    checkTokenAuthEnabled();
-  }, [checkTokenAuthEnabled]);
+  const tokenAuthEnabled = useMemo(() => {
+    return listAuthProviders?.methods.find(
+      (m: IAuthMethod) => m.method === 'METHOD_TOKEN' && m.enabled
+    );
+  }, [listAuthProviders]);
 
   const tokensQuery = useListTokensQuery();
 

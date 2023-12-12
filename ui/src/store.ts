@@ -4,6 +4,7 @@ import {
   isAnyOf
 } from '@reduxjs/toolkit';
 
+import { authProvidersApi } from '~/app/auth/authApi';
 import {
   namespaceApi,
   namespacesSlice
@@ -87,7 +88,8 @@ export const store = configureStore({
     [segmentsApi.reducerPath]: segmentsApi.reducer,
     [rulesApi.reducerPath]: rulesApi.reducer,
     [rolloutsApi.reducerPath]: rolloutsApi.reducer,
-    [tokensApi.reducerPath]: tokensApi.reducer
+    [tokensApi.reducerPath]: tokensApi.reducer,
+    [authProvidersApi.reducerPath]: authProvidersApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -98,7 +100,8 @@ export const store = configureStore({
         segmentsApi.middleware,
         rulesApi.middleware,
         rolloutsApi.middleware,
-        tokensApi.middleware
+        tokensApi.middleware,
+        authProvidersApi.middleware
       )
 });
 
