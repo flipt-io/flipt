@@ -3,7 +3,9 @@ package sql
 import (
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
+	"io/fs"
 	"net/url"
 
 	sq "github.com/Masterminds/squirrel"
@@ -19,6 +21,24 @@ import (
 )
 
 func init() {
+	// we do a bit of surgery in dburl to stop it from walking
+	// up the provided file:/path to see if any parent directories
+	// exist, else dburl assumes the postgres protocol.
+	// see: https://github.com/xo/dburl/issues/35
+	stat := dburl.Stat
+	dburl.Stat = func(name string) (fs.FileInfo, error) {
+		fi, err := stat(name)
+		if err == nil {
+			return fi, nil
+		}
+
+		if errors.Is(err, fs.ErrNotExist) {
+			return fileInfo(name), nil
+		}
+
+		return nil, err
+	}
+
 	// register libsql driver with dburl
 	dburl.Register(dburl.Scheme{
 		Driver:    "libsql",
