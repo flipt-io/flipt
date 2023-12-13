@@ -184,14 +184,14 @@ func withSQLite(fn testCaseFn) testCaseFn {
 
 func withLibSQL(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-		return fn(ctx, client, base, flipt.WithEnvVariable("FLIPT_TEST_DATABASE_PROTOCOL", "libsql"), conf)
+		return fn(ctx, client, base, flipt.WithEnvVariable("FLIPT_DB_URL", "libsql://file:/etc/flipt/flipt.db"), conf)
 	}
 }
 
 func withPostgres(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		return fn(ctx, client, base, flipt.
-			WithEnvVariable("FLIPT_TEST_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
 			WithServiceBinding("postgres", client.Container().
 				From("postgres").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
@@ -206,7 +206,7 @@ func withMySQL(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable(
-				"FLIPT_TEST_DB_URL",
+				"FLIPT_DB_URL",
 				"mysql://flipt:password@mysql:3306/flipt_test?multiStatements=true",
 			).
 			WithServiceBinding("mysql", client.Container().
@@ -225,7 +225,7 @@ func withMySQL(fn testCaseFn) testCaseFn {
 func withCockroach(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		return fn(ctx, client, base, flipt.
-			WithEnvVariable("FLIPT_TEST_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
+			WithEnvVariable("FLIPT_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
 			WithServiceBinding("cockroach", client.Container().
 				From("cockroachdb/cockroach:latest-v21.2").
 				WithEnvVariable("COCKROACH_USER", "root").
