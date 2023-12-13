@@ -35,6 +35,7 @@ var (
 		"fs/local":      local,
 		"fs/s3":         s3,
 		"fs/oci":        oci,
+		"fs/azblob":     azblob,
 		"import/export": importExport,
 	}
 )
@@ -494,4 +495,36 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 
 		return err
 	}
+}
+
+// azurite simulates the Azure blob service
+func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0"}).
+		AsService()
+
+	_, err := base.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_SHARED_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", testdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "azblob").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_CONTAINER", "testdata").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_SHARED_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }

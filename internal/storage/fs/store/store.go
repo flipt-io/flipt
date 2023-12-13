@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
+	"go.flipt.io/flipt/internal/storage/fs/azblob"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
@@ -153,6 +154,22 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		}
 
 		snapStore, err := s3.NewSnapshotStore(ctx, logger, objectCfg.S3.Bucket, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		return storagefs.NewStore(snapStore), nil
+	case config.AZBlobObjectSubStorageType:
+		opts := []containers.Option[azblob.SnapshotStore]{
+			azblob.WithAccount(objectCfg.AZBlob.Account),
+			azblob.NewWithSharedKey(objectCfg.AZBlob.SharedKey),
+			azblob.WithEndpoint(objectCfg.AZBlob.Endpoint),
+			azblob.WithPollOptions(
+				storagefs.WithInterval(objectCfg.AZBlob.PollInterval),
+			),
+		}
+
+		snapStore, err := azblob.NewSnapshotStore(ctx, logger, objectCfg.AZBlob.Container, opts...)
 		if err != nil {
 			return nil, err
 		}
