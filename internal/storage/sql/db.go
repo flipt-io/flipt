@@ -19,6 +19,8 @@ import (
 )
 
 func init() {
+	// see: https://github.com/xo/dburl/issues/35
+	dburl.ResolveSchemeType = false
 	// register libsql driver with dburl
 	dburl.Register(dburl.Scheme{
 		Driver:    "libsql",
