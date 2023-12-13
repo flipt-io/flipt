@@ -33,7 +33,7 @@ func init() {
 		}
 
 		if errors.Is(err, fs.ErrNotExist) {
-			return nil, nil
+			return fileInfo(name), nil
 		}
 
 		return nil, err
