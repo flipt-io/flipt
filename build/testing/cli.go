@@ -361,7 +361,8 @@ exit $?`,
 			container.WithServiceBinding("zot",
 				client.Container().
 					From(image).
-					WithExposedPort(5000)),
+					WithExposedPort(5000).
+					AsService()),
 			flipt("bundle", "push", "mybundle:latest", "http://zot:5000/myremotebundle:latest"),
 			stdout(matches(`sha256:[a-f0-9]{64}`)),
 		)
@@ -374,7 +375,8 @@ exit $?`,
 			container.WithServiceBinding("zot",
 				client.Container().
 					From(image).
-					WithExposedPort(5000)),
+					WithExposedPort(5000).
+					AsService()),
 			flipt("bundle", "pull", "http://zot:5000/myremotebundle:latest"),
 			stdout(matches(`sha256:[a-f0-9]{64}`)),
 		)

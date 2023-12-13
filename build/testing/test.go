@@ -20,7 +20,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec(nil)
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", gitea.AsService()).
 		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", "./internal/storage/fs/git/testdata"})
 
 	out, err := flipt.Stdout(ctx)
@@ -41,13 +41,13 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec([]string{"server", "/data", "--address", ":9009"})
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
 		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", "./internal/storage/fs/s3/testdata"})
 
 	flipt, err = flipt.
-		WithServiceBinding("redis", redisSrv).
+		WithServiceBinding("redis", redisSrv.AsService()).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).

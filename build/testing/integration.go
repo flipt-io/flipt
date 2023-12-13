@@ -196,7 +196,8 @@ func withPostgres(fn testCaseFn) testCaseFn {
 				From("postgres").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
 				WithExposedPort(5432).
-				WithExec(nil)),
+				WithExec(nil).
+				AsService()),
 			conf,
 		)
 	}
@@ -216,7 +217,8 @@ func withMySQL(fn testCaseFn) testCaseFn {
 				WithEnvVariable("MYSQL_DATABASE", "flipt_test").
 				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
 				WithExposedPort(3306).
-				WithExec(nil)),
+				WithExec(nil).
+				AsService()),
 			conf,
 		)
 	}
@@ -231,7 +233,8 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_USER", "root").
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithExposedPort(26257).
-				WithExec([]string{"start-single-node", "--insecure"})),
+				WithExec([]string{"start-single-node", "--insecure"}).
+				AsService()),
 			conf,
 		)
 
@@ -269,7 +272,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithExec(nil)
 
 	_, err := base.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", gitea.AsService()).
 		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", testdataDir}).
 		Sync(ctx)
 	if err != nil {
@@ -277,7 +280,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	}
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", gitea.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
@@ -295,7 +298,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithExec([]string{"server", "/data", "--address", ":9009"})
 
 	_, err := base.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
 		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", testdataDir}).
@@ -305,7 +308,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	}
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
@@ -357,7 +360,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	if _, err := flipt.
 		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
 		WithWorkdir("/tmp/testdata").
-		WithServiceBinding("zot", zot).
+		WithServiceBinding("zot", zot.AsService()).
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
@@ -369,7 +372,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	}
 
 	flipt = flipt.
-		WithServiceBinding("zot", zot).
+		WithServiceBinding("zot", zot.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
 		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
@@ -408,7 +411,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
 			WithFile("import.yaml", seed).
-			WithServiceBinding("flipt", fliptToTest).
+			WithServiceBinding("flipt", fliptToTest.AsService()).
 			// it appears it takes a little while for Flipt to come online
 			// For the go tests they have to compile and that seems to be enough
 			// time for the target Flipt to come up.
@@ -443,7 +446,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		// use target flipt binary to invoke import
 		generated, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", fliptToTest).
+			WithServiceBinding("flipt", fliptToTest.AsService()).
 			WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
 			File("/tmp/output.yaml").
 			Contents(ctx)
@@ -482,7 +485,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt).
+			WithServiceBinding("flipt", flipt.AsService()).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
