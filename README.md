@@ -88,11 +88,11 @@ Flipt supports use cases such as:
 
 ## Values
 
-- :lock: **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, OAuth, Service and API Token authentication methods supported out of the box.
-- :ice: **Transparency** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-- :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
-- :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :thumbsup: **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
+- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, OAuth, Service and API Token authentication methods supported out of the box.
+- 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
+- ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
+- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
 
 <br clear="both"/>
 
@@ -104,7 +104,7 @@ Flipt supports use cases such as:
 - Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
 - Import and export to allow storing your data as code
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support **GitOps** workflows and more.
+- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
 - Audit logging with Webhook support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
