@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -27,7 +25,11 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		"api":           api,
+		"api/sqlite":    withSQLite(api),
+		"api/libsql":    withLibSQL(api),
+		"api/postgres":  withPostgres(api),
+		"api/mysql":     withMySQL(api),
+		"api/cockroach": withCockroach(api),
 		"api/cache":     cache,
 		"fs/git":        git,
 		"fs/local":      local,
@@ -118,8 +120,6 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		}
 	}
 
-	rand.Seed(time.Now().Unix())
-
 	var g errgroup.Group
 
 	for caseName, fn := range cases {
@@ -176,6 +176,66 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 	return suite(ctx, "api", base,
 		// create unique instance for test case
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
+}
+
+func withSQLite(fn testCaseFn) testCaseFn {
+	return fn
+}
+
+func withLibSQL(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.WithEnvVariable("FLIPT_TEST_DATABASE_PROTOCOL", "libsql"), conf)
+	}
+}
+
+func withPostgres(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_TEST_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithServiceBinding("postgres", client.Container().
+				From("postgres").
+				WithEnvVariable("POSTGRES_PASSWORD", "password").
+				WithExposedPort(5432).
+				WithExec(nil)),
+			conf,
+		)
+	}
+}
+
+func withMySQL(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable(
+				"FLIPT_TEST_DB_URL",
+				"mysql://flipt:password@mysql:3306/flipt_test?multiStatements=true",
+			).
+			WithServiceBinding("mysql", client.Container().
+				From("mysql:8").
+				WithEnvVariable("MYSQL_USER", "flipt").
+				WithEnvVariable("MYSQL_PASSWORD", "password").
+				WithEnvVariable("MYSQL_DATABASE", "flipt_test").
+				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
+				WithExposedPort(3306).
+				WithExec(nil)),
+			conf,
+		)
+	}
+}
+
+func withCockroach(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_TEST_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
+			WithServiceBinding("cockroach", client.Container().
+				From("cockroachdb/cockroach:latest-v21.2").
+				WithEnvVariable("COCKROACH_USER", "root").
+				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
+				WithExposedPort(26257).
+				WithExec([]string{"start-single-node", "--insecure"})),
+			conf,
+		)
+
+	}
 }
 
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
