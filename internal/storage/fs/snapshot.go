@@ -110,7 +110,7 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*StoreSn
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
 func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*StoreSnapshot, error) {
-	now := timestamppb.Now()
+	now := flipt.Now()
 	s := StoreSnapshot{
 		ns: map[string]*namespace{
 			defaultNs: newNamespace("default", "Default", now),

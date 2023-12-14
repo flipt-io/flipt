@@ -67,8 +67,12 @@ var (
 )
 
 func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
+	level, err := zap.ParseAtomicLevel(os.Getenv(config.EnvPrefix + "_LOG_LEVEL"))
+	if err != nil {
+		level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	}
 	return zap.Config{
-		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		Level:            level,
 		Development:      false,
 		Encoding:         "console",
 		EncoderConfig:    encoding,

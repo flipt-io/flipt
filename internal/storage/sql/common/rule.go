@@ -10,7 +10,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -372,7 +371,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 	}
 
 	var (
-		now  = timestamppb.Now()
+		now  = flipt.Now()
 		rule = &flipt.Rule{
 			Id:              uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey:    r.NamespaceKey,
@@ -469,7 +468,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 	_, err = s.builder.Update("rules").
 		RunWith(tx).
 		Set("segment_operator", segmentOperator).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.Eq{"id": r.Id, "namespace_key": r.NamespaceKey, "flag_key": r.FlagKey}).
 		ExecContext(ctx)
 	if err != nil {
@@ -592,7 +591,7 @@ func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) erro
 }
 
 func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceKey, flagKey string, ruleIDs []string) error {
-	updatedAt := timestamppb.Now()
+	updatedAt := flipt.Now()
 
 	for i, id := range ruleIDs {
 		_, err := s.builder.Update("rules").
@@ -645,7 +644,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	}
 
 	var (
-		now = timestamppb.Now()
+		now = flipt.Now()
 		d   = &flipt.Distribution{
 			Id:        uuid.Must(uuid.NewV4()).String(),
 			RuleId:    r.RuleId,
@@ -699,7 +698,7 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
 		Set("variant_id", r.VariantId).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.Eq{"id": r.Id, "rule_id": r.RuleId})
 
 	res, err := query.ExecContext(ctx)

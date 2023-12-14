@@ -141,6 +141,6 @@ func buildUI(ctx context.Context, ui, flipt *dagger.Container, theme string) (_ 
 	}
 
 	return ui.
-		WithServiceBinding("flipt", flipt.WithExec(nil)).WithFile("/usr/bin/flipt", flipt.File("/flipt")).
+		WithServiceBinding("flipt", flipt.WithExec(nil).AsService()).WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }

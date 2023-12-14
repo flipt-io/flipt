@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/build/testing/integration"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
@@ -94,7 +94,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 
 		t.Run("Expire Self", func(t *testing.T) {
 			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
-				ExpiresAt: timestamppb.Now(),
+				ExpiresAt: flipt.Now(),
 			})
 
 			if opts.AuthConfig == integration.AuthNamespaced {

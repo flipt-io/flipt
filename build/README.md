@@ -45,7 +45,6 @@ The test section of the Mage targets handles running Flipts various unit tests w
 ```sh
   test:all             runs Flipt's unit test suite against all the databases Flipt supports.
   test:cli             runs a suite of test cases which exercise the `flipt` binary CLI.
-  test:database        runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
   test:integration     runs the entire integration test suite (one of ["*", "list", "<test-case>"] use "list" to see available cases).
   test:ui              runs the entire integration test suite for the UI.
   test:unit            runs the base suite of tests for all of Flipt.
@@ -55,10 +54,8 @@ The test section of the Mage targets handles running Flipts various unit tests w
 
 `mage test:all` runs the entire suite for each database concurrently.
 `mage test:unit` runs the entire test suite with `SQLite` as the backing database.
-`mage test:database <db>` runs the entire test suite with the desired database (`sqlite`, `postgres`, `mysql` and `cockroach` available).
 
 These tests run [Flipts Go suite](testing/test.go) of unit tests.
-There are a number of ways to invoke them with different backing databases.
 
 ### Integration Tests (End to End)
 

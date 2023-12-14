@@ -44,7 +44,8 @@ func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Contai
 			WithEnvVariable("CI", os.Getenv("CI")).
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("UNIQUE", time.Now().String()).
-			WithExec(nil)).
+			WithExec(nil).
+			AsService()).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }
