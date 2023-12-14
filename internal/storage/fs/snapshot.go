@@ -844,7 +844,7 @@ func (ss *StoreSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey st
 
 	rules, ok := ns.evalRules[flagKey]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf(`rules: flag "%s/%s"`, namespaceKey, flagKey)
 	}
 
 	return rules, nil
@@ -867,7 +867,7 @@ func (ss *StoreSnapshot) GetEvaluationRollouts(ctx context.Context, namespaceKey
 
 	rollouts, ok := ns.evalRollouts[flagKey]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf(`rollouts: flag "%s/%s"`, namespaceKey, flagKey)
 	}
 
 	return rollouts, nil

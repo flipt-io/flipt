@@ -34,11 +34,13 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	"go.flipt.io/flipt/internal/storage/fs"
+	"go.flipt.io/flipt/internal/storage/fs/flipt"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
+	evaluationrpc "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -56,6 +58,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -265,6 +268,28 @@ func NewGRPCServer(
 		if err != nil {
 			return nil, err
 		}
+	case config.FliptStorageType:
+		opts := []grpc.DialOption{
+			grpc.WithBlock(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		}
+		dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer dialCancel()
+
+		clientConn, err := grpc.DialContext(dialCtx, cfg.Storage.Flipt.Address, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		source, err := flipt.NewSource(logger, ctx, evaluationrpc.NewDataServiceClient(clientConn))
+		if err != nil {
+			return nil, err
+		}
+
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
@@ -330,7 +355,7 @@ func NewGRPCServer(
 		fliptsrv    = fliptserver.New(logger, store)
 		metasrv     = metadata.New(cfg, info)
 		evalsrv     = evaluation.New(logger, store)
-		evalDataSrv = evaluationdata.New(logger, store)
+		evalDataSrv = evaluationdata.New(ctx, logger, store)
 		healthsrv   = health.NewServer()
 	)
 
