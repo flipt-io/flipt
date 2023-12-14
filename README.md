@@ -100,7 +100,6 @@ Flipt supports use cases such as:
 
 - Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
-- Native [GRPC](#grpc-client-libraries) and [REST](#rest-client-libraries) server-side SDKs to integrate with your existing applications 
 - Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
 - Import and export to allow storing your data as code
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
