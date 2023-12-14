@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/auth"
+	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -38,7 +39,7 @@ func NewStore(opts ...Option) *Store {
 	store := &Store{
 		byID:    map[string]*rpcauth.Authentication{},
 		byToken: map[string]*rpcauth.Authentication{},
-		now:     timestamppb.Now,
+		now:     rpcflipt.Now,
 		generateID: func() string {
 			return uuid.Must(uuid.NewV4()).String()
 		},
