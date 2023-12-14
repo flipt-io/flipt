@@ -196,6 +196,7 @@ func withPostgres(fn testCaseFn) testCaseFn {
 				From("postgres").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
 				WithExposedPort(5432).
+				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExec(nil).
 				AsService()),
 			conf,
@@ -216,6 +217,7 @@ func withMySQL(fn testCaseFn) testCaseFn {
 				WithEnvVariable("MYSQL_PASSWORD", "password").
 				WithEnvVariable("MYSQL_DATABASE", "flipt_test").
 				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
+				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(3306).
 				WithExec(nil).
 				AsService()),
@@ -232,6 +234,7 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				From("cockroachdb/cockroach:latest-v21.2").
 				WithEnvVariable("COCKROACH_USER", "root").
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
+				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
 				WithExec([]string{"start-single-node", "--insecure"}).
 				AsService()),
