@@ -14,7 +14,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/rpc/flipt"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -416,7 +415,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	}
 
 	var (
-		now     = timestamppb.Now()
+		now     = flipt.Now()
 		rollout = &flipt.Rollout{
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
@@ -560,7 +559,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 	query := s.builder.Update(tableRollouts).
 		RunWith(tx).
 		Set("description", r.Description).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(whereClause)
 
 	res, err := query.ExecContext(ctx)
@@ -764,7 +763,7 @@ func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest
 }
 
 func (s *Store) orderRollouts(ctx context.Context, runner sq.BaseRunner, namespaceKey, flagKey string, rolloutIDs []string) error {
-	updatedAt := timestamppb.Now()
+	updatedAt := flipt.Now()
 
 	for i, id := range rolloutIDs {
 		_, err := s.builder.Update(tableRollouts).

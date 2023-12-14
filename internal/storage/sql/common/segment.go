@@ -16,7 +16,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetSegment gets a segment
@@ -319,7 +318,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	}
 
 	var (
-		now     = timestamppb.Now()
+		now     = flipt.Now()
 		segment = &flipt.Segment{
 			NamespaceKey: r.NamespaceKey,
 			Key:          r.Key,
@@ -358,7 +357,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
 
 	res, err := query.ExecContext(ctx)
@@ -399,7 +398,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 
 	var (
 		operator = strings.ToLower(r.Operator)
-		now      = timestamppb.Now()
+		now      = flipt.Now()
 		c        = &flipt.Constraint{
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
@@ -461,7 +460,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		Set("operator", operator).
 		Set("value", r.Value).
 		Set("description", r.Description).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(whereClause).
 		ExecContext(ctx)
 	if err != nil {
