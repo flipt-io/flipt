@@ -222,7 +222,25 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 
 Check out our [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
 
-### GRPC Client Libraries
+There are two ways to evaluate feature flags with Flipt:
+
+- [Server Side](#server-side-evaluation)
+- [Client Side](#client-side-evaluation)
+
+### Server Side Evaluation
+
+Server-side evaluation is the most common way to evaluate feature flags. This is where your application makes a request to Flipt to evaluate a feature flag and Flipt responds with the result of the evaluation.
+
+Flipt exposes two different APIs for performing server-side evaluation:
+
+- [GRPC](#grpc)
+- [REST](#rest)
+
+#### GRPC
+
+Flipt is equipped with a fully functional GRPC API. GRPC is a high performance, low latency, binary protocol that is used by many large scale companies such as Google, Netflix, and more.
+
+#### GRPC SDKs
 
 | Language | Version | Status |
 | -------- | ------- | ------ |
@@ -230,21 +248,22 @@ Check out our [integration documentation](https://flipt.io/docs/integration/) fo
 | [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [.NET](https://github.com/flipt-io/flipt-grpc-dotnet) | ![Nuget](https://img.shields.io/nuget/v/flipt.grpc) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 
-### Generate Your Own
+#### Generate Your Own
 
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
 
 Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
 
-<br clear="both"/>
-
-### REST API
+#### REST
 
 Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
-### REST Client Libraries
+#### REST SDKs
+
+> [!NOTE]
+> We will be revamping our current REST SDKs in the coming weeks in order to simplify the API and make them easier to use. If you have any feedback on the current REST SDKs, please open an issue in the respective repository.
 
 | Language | Version | Status |
 | -------- | ------- | ------ |
@@ -254,6 +273,28 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-stable-green) |
 | [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 | [PHP](https://github.com/flipt-io/flipt-php) | [![Packagist](https://img.shields.io/packagist/v/flipt-io/flipt)](https://packagist.org/packages/flipt-io/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
+
+### Client Side Evaluation
+
+Client-side evaluation is a great way to reduce the number of requests that your application needs to make to Flipt. This is done by retrieving all of the feature flags that your application needs to evaluate and then evaluating them locally.
+
+For more information on client-side evaluation, check out our [client-side evaluation documentation](https://www.flipt.io/docs/integration/client).
+
+#### Client Side SDKs
+
+> [!WARNING]
+> Our client-side SDKs are currently experimental. We are looking for feedback on the design and implementation. Please open an issue if you have any feedback or questions.
+
+Our client-side SDKs are available in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/) repository.
+
+We currently support the following languages:
+
+- [Go](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-go)
+- [Node/TypeScript](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-node)
+- [Python](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-python)
+- [Ruby](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-ruby)
+
+We will be adding more languages in the future. If you'd like to see a specific language supported, please open an issue in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/issues/new) repository.
 
 <br clear="both"/>
 
