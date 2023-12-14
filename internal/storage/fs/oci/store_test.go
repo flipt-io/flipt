@@ -10,41 +10,42 @@ import (
 
 	"github.com/opencontainers/go-digest"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/containers"
 	fliptoci "go.flipt.io/flipt/internal/oci"
-	storagefs "go.flipt.io/flipt/internal/storage/fs"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap/zaptest"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/oci"
 )
 
 func Test_SourceString(t *testing.T) {
-	require.Equal(t, "oci", (&Source{}).String())
-}
-
-func Test_SourceGet(t *testing.T) {
-	source, _ := testSource(t)
-
-	snap, err := source.Get(context.Background())
-	require.NoError(t, err)
-
-	_, err = snap.GetNamespace(context.TODO(), "production")
-	require.NoError(t, err)
+	require.Equal(t, "oci", (&SnapshotStore{}).String())
 }
 
 func Test_SourceSubscribe(t *testing.T) {
-	source, target := testSource(t)
+	ch := make(chan struct{})
+	store, target := testStore(t, WithPollOptions(
+		fs.WithInterval(time.Second),
+		fs.WithNotify(t, func(modified bool) {
+			if modified {
+				close(ch)
+			}
+		}),
+	))
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := context.Background()
 
-	// prime source
-	_, err := source.Get(context.Background())
-	require.NoError(t, err)
+	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+		_, err := s.GetNamespace(ctx, "production")
+		require.NoError(t, err)
 
-	// start subscription
-	ch := make(chan *storagefs.StoreSnapshot)
-	go source.Subscribe(ctx, ch)
+		_, err = s.GetFlag(ctx, "production", "foo")
+		require.Error(t, err, "should error as flag should not exist yet")
+
+		return nil
+	}))
 
 	updateRepoContents(t, target,
 		layer(
@@ -57,34 +58,22 @@ func Test_SourceSubscribe(t *testing.T) {
 	t.Log("waiting for new snapshot")
 
 	// assert matching state
-	var snap *storagefs.StoreSnapshot
 	select {
-	case snap = <-ch:
+	case <-ch:
 	case <-time.After(time.Minute):
 		t.Fatal("timed out waiting for snapshot")
 	}
 
-	require.NoError(t, err)
-
 	t.Log("received new snapshot")
 
-	_, err = snap.GetFlag(ctx, "production", "foo")
-	require.NoError(t, err)
-
-	// ensure closed
-	cancel()
-
-	_, open := <-ch
-	require.False(t, open, "expected channel to be closed after cancel")
-
-	// fetch again and expected to get the same snapshot
-	found, err := source.Get(context.Background())
-	require.NoError(t, err)
-
-	assert.Equal(t, snap, found)
+	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, "production", "foo")
+		require.NoError(t, err)
+		return nil
+	}))
 }
 
-func testSource(t *testing.T) (*Source, oras.Target) {
+func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, oras.Target) {
 	t.Helper()
 
 	target, dir, repo := testRepository(t,
@@ -97,10 +86,14 @@ func testSource(t *testing.T) (*Source, oras.Target) {
 	ref, err := fliptoci.ParseReference(fmt.Sprintf("flipt://local/%s:latest", repo))
 	require.NoError(t, err)
 
-	source, err := NewSource(zaptest.NewLogger(t),
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	source, err := NewSnapshotStore(ctx,
+		zaptest.NewLogger(t),
 		store,
 		ref,
-		WithPollInterval(time.Second))
+		opts...)
 	require.NoError(t, err)
 
 	return source, target
