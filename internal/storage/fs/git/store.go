@@ -119,7 +119,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	// fetch snapshot at-least once before returning store
 	// to ensure we have some state to serve
-	if _, err := store.update(ctx); err != nil {
+	if err := store.get(ctx); err != nil {
 		return nil, err
 	}
 
