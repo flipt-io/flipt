@@ -2,13 +2,34 @@
 
 Checkout our [Development](DEVELOPMENT.md) guide for more information on how to get started developing Flipt.
 
+## What To Work On
+
+Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+
+Not sure how to get started? You can:
+
+- [Book a pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
+- Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+
+- Dive into any of the open issues, here are some examples: 
+  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
+  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+- Looking for issues by effort? We've got you covered:
+  - [XS](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axs)
+  - [Small](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Asm)
+  - [Medium](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Amd)
+  - [Large](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Alg)
+  - [XL](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axl)
+
 ## Issues
 
 Let us know how we can help!
 
-* Include any **stack traces** with your error
-* List versions you are using: Flipt, Go, OS, etc.
-* List the contents of your Flipt configuration file. (ex: default.yml)
+- Include any **stack traces** with your error
+- List versions you are using: Flipt, Go, OS, etc.
+- List the contents of your Flipt configuration file. (ex: default.yml)
 
 ## Code
 

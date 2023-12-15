@@ -48,6 +48,7 @@
         <a href="http://www.flipt.io">Website</a> •
         <a href="http://www.flipt.io/blog">Blog</a> •
         <a href="https://features.flipt.io/">Feedback</a> •
+        <a href="#contributing">Contributing</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
 </div>
