@@ -4,7 +4,7 @@ Checkout our [Development](DEVELOPMENT.md) guide for more information on how to 
 
 ## What To Work On
 
-Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+Check out our [public roadmap](https://github.com/orgs/flipt-io/projects/4) to see what we're working on and where you can help.
 
 Not sure how to get started? You can:
 
