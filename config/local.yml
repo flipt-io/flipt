@@ -5,24 +5,19 @@ log:
   level: DEBUG
 
 # authentication:
-#   required: false
+#   required: true
 #   session:
 #     domain: "localhost:8080"
 #     secure: false
 #   methods:
-#     token:
+#     basic:
 #       enabled: true
-#       bootstrap:
-#         token: "secret"
-#         expiration: 24h
-#       cleanup:
-#         interval: 2h
-#         grace_period: 48h
+#       username: "admin"
+#       bcrypt_password: "$2y$05$Djg.k2WHG.1vsHyttxkhce20Y1ZKP3DGOlJnlxa41KWTs8MoKytmK"
 
 cors:
   enabled: true
   allowed_origins: ["*"]
-
 # server:
 #   protocol: http
 #   host: 0.0.0.0
