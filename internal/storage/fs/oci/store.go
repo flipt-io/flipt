@@ -73,7 +73,7 @@ func (s *SnapshotStore) String() string {
 // If the state has not change sinced the last observed image digest it skips
 // updating the snapshot and returns false (not modified).
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	resp, err := s.store.Fetch(context.Background(), s.ref, oci.IfNoMatch(s.lastDigest))
+	resp, err := s.store.Fetch(ctx, s.ref, oci.IfNoMatch(s.lastDigest))
 	if err != nil {
 		return false, err
 	}
