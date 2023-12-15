@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method"
+	authbasic "go.flipt.io/flipt/internal/server/auth/method/basic"
 	authgithub "go.flipt.io/flipt/internal/server/auth/method/github"
 	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
@@ -139,6 +140,12 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
+	if authCfg.Methods.Basic.Enabled {
+		register.Add(authbasic.New(logger, store, authCfg))
+
+		logger.Debug("authentication method \"basic\" server registered")
+	}
+
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
 		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
@@ -234,6 +241,10 @@ func authenticationHTTPMount(
 
 		if cfg.Methods.Github.Enabled {
 			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+		}
+
+		if cfg.Methods.Basic.Enabled {
+			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodBasicServiceHandler))
 		}
 
 		middleware = append(middleware, methodMiddleware.Handler)

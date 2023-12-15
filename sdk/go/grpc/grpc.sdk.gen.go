@@ -49,6 +49,10 @@ func (t authClient) AuthenticationMethodGithubServiceClient() auth.Authenticatio
 	return auth.NewAuthenticationMethodGithubServiceClient(t.cc)
 }
 
+func (t authClient) AuthenticationMethodBasicServiceClient() auth.AuthenticationMethodBasicServiceClient {
+	return auth.NewAuthenticationMethodBasicServiceClient(t.cc)
+}
+
 func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{cc: t.cc}
 }

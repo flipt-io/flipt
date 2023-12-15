@@ -436,6 +436,47 @@ func (x *authenticationMethodGithubServiceClient) Callback(ctx context.Context, 
 	return &output, nil
 }
 
+func (t authClient) AuthenticationMethodBasicServiceClient() auth.AuthenticationMethodBasicServiceClient {
+	return &authenticationMethodBasicServiceClient{client: t.client, addr: t.addr}
+}
+
+type authenticationMethodBasicServiceClient struct {
+	client *http.Client
+	addr   string
+}
+
+func (x *authenticationMethodBasicServiceClient) Login(ctx context.Context, v *auth.LoginRequest, _ ...grpc.CallOption) (*auth.CallbackResponse, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/auth/v1/method/basic/login", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output auth.CallbackResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{client: t.client, addr: t.addr}
 }

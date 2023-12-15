@@ -15,6 +15,7 @@ type AuthClient interface {
 	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
 	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
 	AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient
+	AuthenticationMethodBasicServiceClient() auth.AuthenticationMethodBasicServiceClient
 }
 
 type Auth struct {
@@ -184,4 +185,23 @@ func (x *AuthenticationMethodGithubService) Callback(ctx context.Context, v *aut
 		return nil, err
 	}
 	return x.transport.Callback(ctx, v)
+}
+
+type AuthenticationMethodBasicService struct {
+	transport     auth.AuthenticationMethodBasicServiceClient
+	tokenProvider ClientTokenProvider
+}
+
+func (s Auth) AuthenticationMethodBasicService() *AuthenticationMethodBasicService {
+	return &AuthenticationMethodBasicService{
+		transport:     s.transport.AuthenticationMethodBasicServiceClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+func (x *AuthenticationMethodBasicService) Login(ctx context.Context, v *auth.LoginRequest) (*auth.CallbackResponse, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.Login(ctx, v)
 }

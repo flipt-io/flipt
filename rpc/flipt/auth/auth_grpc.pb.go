@@ -785,3 +785,94 @@ var AuthenticationMethodGithubService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "auth/auth.proto",
 }
+
+const (
+	AuthenticationMethodBasicService_Login_FullMethodName = "/flipt.auth.AuthenticationMethodBasicService/Login"
+)
+
+// AuthenticationMethodBasicServiceClient is the client API for AuthenticationMethodBasicService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AuthenticationMethodBasicServiceClient interface {
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
+}
+
+type authenticationMethodBasicServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuthenticationMethodBasicServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodBasicServiceClient {
+	return &authenticationMethodBasicServiceClient{cc}
+}
+
+func (c *authenticationMethodBasicServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*CallbackResponse, error) {
+	out := new(CallbackResponse)
+	err := c.cc.Invoke(ctx, AuthenticationMethodBasicService_Login_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthenticationMethodBasicServiceServer is the server API for AuthenticationMethodBasicService service.
+// All implementations must embed UnimplementedAuthenticationMethodBasicServiceServer
+// for forward compatibility
+type AuthenticationMethodBasicServiceServer interface {
+	Login(context.Context, *LoginRequest) (*CallbackResponse, error)
+	mustEmbedUnimplementedAuthenticationMethodBasicServiceServer()
+}
+
+// UnimplementedAuthenticationMethodBasicServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticationMethodBasicServiceServer struct {
+}
+
+func (UnimplementedAuthenticationMethodBasicServiceServer) Login(context.Context, *LoginRequest) (*CallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthenticationMethodBasicServiceServer) mustEmbedUnimplementedAuthenticationMethodBasicServiceServer() {
+}
+
+// UnsafeAuthenticationMethodBasicServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticationMethodBasicServiceServer will
+// result in compilation errors.
+type UnsafeAuthenticationMethodBasicServiceServer interface {
+	mustEmbedUnimplementedAuthenticationMethodBasicServiceServer()
+}
+
+func RegisterAuthenticationMethodBasicServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodBasicServiceServer) {
+	s.RegisterService(&AuthenticationMethodBasicService_ServiceDesc, srv)
+}
+
+func _AuthenticationMethodBasicService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodBasicServiceServer).Login(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthenticationMethodBasicService_Login_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodBasicServiceServer).Login(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuthenticationMethodBasicService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodBasicService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuthenticationMethodBasicService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.AuthenticationMethodBasicService",
+	HandlerType: (*AuthenticationMethodBasicServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Login",
+			Handler:    _AuthenticationMethodBasicService_Login_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/auth.proto",
+}

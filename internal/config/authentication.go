@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"slices"
@@ -220,6 +221,7 @@ type AuthenticationMethods struct {
 	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github" yaml:"github,omitempty"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
+	Basic      AuthenticationMethod[AuthenticationMethodBasic]            `json:"basic,omitempty" mapstructure:"basic" yaml:"basic,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -229,6 +231,7 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 		a.Github.info(),
 		a.OIDC.info(),
 		a.Kubernetes.info(),
+		a.Basic.info(),
 	}
 }
 
@@ -488,4 +491,31 @@ func (a AuthenticationMethodGithubConfig) validate() error {
 	}
 
 	return nil
+}
+
+type AuthenticationMethodBasic struct {
+	Username       string `json:"-" mapstructure:"username" yaml:"-"`
+	BCryptPassword string `json:"-" mapstructure:"bcrypt_password" yaml:"-"`
+}
+
+func (a AuthenticationMethodBasic) validate() error {
+	if a.Username == "" {
+		return errors.New("basic: username is required")
+	}
+
+	if a.BCryptPassword == "" {
+		return errors.New("basic: bcrypt password is required")
+	}
+
+	return nil
+}
+
+func (a AuthenticationMethodBasic) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "basic".
+func (a AuthenticationMethodBasic) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_BASIC,
+		SessionCompatible: true,
+	}
 }
