@@ -31,7 +31,7 @@
     <a href="https://flipt.io/discord">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
-    <a href="https://features.flipt.io/roadmap">
+    <a href="https://github.com/orgs/flipt-io/projects/4">
         <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
     </a>
     <a href="https://flipt.io/#newsletter">
@@ -48,6 +48,7 @@
         <a href="http://www.flipt.io">Website</a> •
         <a href="http://www.flipt.io/blog">Blog</a> •
         <a href="https://features.flipt.io/">Feedback</a> •
+        <a href="#contributing">Contributing</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
 </div>
@@ -116,7 +117,7 @@ We would love your help! Before submitting a PR, please read over the [Contribut
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
-Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+Check out our [public roadmap](https://github.com/orgs/flipt-io/projects/4) to see what we're working on and where you can help.
 
 Not sure how to get started? You can:
 
@@ -157,6 +158,9 @@ Try the latest version of Flipt for yourself.
     </a>&nbsp;
     <a href="https://render.com/deploy" alt="Deploy to Render">
         <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
+    </a>
+    <a href="https://railway.app/template/dz-JCO" alt="Deploy to Railway">
+      <img width="150" alt="Deploy to Railway" src="https://railway.app/button.svg" />
     </a>
 </div>
 
