@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An open source, self-hosted, enterprise-ready, feature management solution</p>
+<p align="center">An enterprise-ready, GRPC powered, GitOps enabled, feature management solution</p>
 
 <hr />
 
@@ -31,7 +31,7 @@
     <a href="https://flipt.io/discord">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
-    <a href="https://features.flipt.io/roadmap">
+    <a href="https://github.com/orgs/flipt-io/projects/4">
         <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
     </a>
     <a href="https://flipt.io/#newsletter">
@@ -48,15 +48,16 @@
         <a href="http://www.flipt.io">Website</a> •
         <a href="http://www.flipt.io/blog">Blog</a> •
         <a href="https://features.flipt.io/">Feedback</a> •
+        <a href="#contributing">Contributing</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
 </div>
 
-[Flipt](https://www.flipt.io) is an open-source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
+[Flipt](https://www.flipt.io) enables you to follow DevOps best practices and seperate releases from deployments. Built with high performance engineering organizations in mind.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
-With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your Platform Engineering, DevOps, and CI/CD workflows to enable continuous configuration and deployment.
+With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your CI/CD workflows to enable continuous configuration and deployment with confidence.
 
 <br clear="both"/>
 
@@ -86,20 +87,25 @@ Flipt supports use cases such as:
 
 <br clear="both"/>
 
+## Values
+
+- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, OAuth, Service and API Token authentication methods supported out of the box.
+- 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
+- ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
+- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
+
+<br clear="both"/>
+
 ## Features
 
-- Fast. Written in Go. Optimized for performance
 - Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
-- Native [GRPC](https://grpc.io/) client [SDKs](#grpc-client-libraries) to integrate with your existing GRPC architecture
-- Powerful REST API with native [SDKs](#rest-client-libraries) for easy integration
 - Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
-- Supports multiple databases: Postgres, MySQL, SQLite, [libSQL](https://turso.tech/libsql), and [CockroachDB](https://github.com/cockroachdb/cockroach)
 - Import and export to allow storing your data as code
-- Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support **GitOps** workflows and more.
-- Audit logging with webhooks support to track changes to your data
+- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
+- Audit logging with Webhook support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
@@ -111,16 +117,24 @@ We would love your help! Before submitting a PR, please read over the [Contribut
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
-Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+Check out our [public roadmap](https://github.com/orgs/flipt-io/projects/4) to see what we're working on and where you can help.
 
 Not sure how to get started? You can:
 
-- [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
+- [Book a pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+
 - Dive into any of the open issues, here are some examples: 
   - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
   - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
   - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+- Looking for issues by effort? We've got you covered:
+  - [XS](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axs)
+  - [Small](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Asm)
+  - [Medium](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Amd)
+  - [Large](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Alg)
+  - [XL](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axl)
 
 Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
@@ -129,16 +143,6 @@ Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) doc
 ## Community
 
 For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
-
-<br clear="both"/>
-
-## Values
-
-- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. [Auditing](https://www.flipt.io/docs/configuration/auditing). No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-- :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
-- :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
-- :eyes: **Observability** - Flipt integrates with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) to provide metrics and tracing. We support sending trace data to [Jaeger](https://www.jaegertracing.io/), [Zipkin](https://zipkin.io/), and [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/docs/reference/specification/protocol/) backends.
 
 <br clear="both"/>
 
@@ -154,6 +158,9 @@ Try the latest version of Flipt for yourself.
     </a>&nbsp;
     <a href="https://render.com/deploy" alt="Deploy to Render">
         <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
+    </a>
+    <a href="https://railway.app/template/dz-JCO" alt="Deploy to Railway">
+      <img width="150" alt="Deploy to Railway" src="https://railway.app/button.svg" />
     </a>
 </div>
 
@@ -216,15 +223,50 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 
 ## Integration
 
-Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
+Check out our [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
 
-### REST API
+There are two ways to evaluate feature flags with Flipt:
+
+- [Server Side](#server-side-evaluation)
+- [Client Side](#client-side-evaluation)
+
+### Server Side Evaluation
+
+Server-side evaluation is the most common way to evaluate feature flags. This is where your application makes a request to Flipt to evaluate a feature flag and Flipt responds with the result of the evaluation.
+
+Flipt exposes two different APIs for performing server-side evaluation:
+
+- [GRPC](#grpc)
+- [REST](#rest)
+
+#### GRPC
+
+Flipt is equipped with a fully functional GRPC API. GRPC is a high performance, low latency, binary protocol that is used by many large scale companies such as Google, Netflix, and more.
+
+#### GRPC SDKs
+
+| Language | Version | Status |
+| -------- | ------- | ------ |
+| [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [.NET](https://github.com/flipt-io/flipt-grpc-dotnet) | ![Nuget](https://img.shields.io/nuget/v/flipt.grpc) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+
+#### Generate Your Own
+
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
+
+Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+
+#### REST
 
 Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
-### REST Client Libraries
+#### REST SDKs
+
+> [!NOTE]
+> We will be revamping our current REST SDKs in the coming weeks in order to simplify the API and make them easier to use. If you have any feedback on the current REST SDKs, please open an issue in the respective repository.
 
 | Language | Version | Status |
 | -------- | ------- | ------ |
@@ -235,19 +277,27 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 | [PHP](https://github.com/flipt-io/flipt-php) | [![Packagist](https://img.shields.io/packagist/v/flipt-io/flipt)](https://packagist.org/packages/flipt-io/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
 
-### GRPC Client Libraries
+### Client Side Evaluation
 
-| Language | Version | Status |
-| -------- | ------- | ------ |
-| [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [.NET](https://github.com/flipt-io/flipt-grpc-dotnet) | ![Nuget](https://img.shields.io/nuget/v/flipt.grpc) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+Client-side evaluation is a great way to reduce the number of requests that your application needs to make to Flipt. This is done by retrieving all of the feature flags that your application needs to evaluate and then evaluating them locally.
 
-### Generate Your Own
+For more information on client-side evaluation, check out our [client-side evaluation documentation](https://www.flipt.io/docs/integration/client).
 
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
+#### Client Side SDKs
 
-Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+> [!WARNING]
+> Our client-side SDKs are currently experimental. We are looking for feedback on the design and implementation. Please open an issue if you have any feedback or questions.
+
+Our client-side SDKs are available in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/) repository.
+
+We currently support the following languages:
+
+- [Go](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-go)
+- [Node/TypeScript](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-node)
+- [Python](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-python)
+- [Ruby](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-ruby)
+
+We will be adding more languages in the future. If you'd like to see a specific language supported, please open an issue in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/issues/new) repository.
 
 <br clear="both"/>
 

@@ -151,6 +151,19 @@ func WithOrder(order Order) QueryOption {
 	}
 }
 
+// ReadOnlyStore is a storage implementation which only supports
+// reading the various types of state configuring within Flipt
+type ReadOnlyStore interface {
+	ReadOnlyNamespaceStore
+	ReadOnlyFlagStore
+	ReadOnlySegmentStore
+	ReadOnlyRuleStore
+	ReadOnlyRolloutStore
+	EvaluationStore
+	fmt.Stringer
+}
+
+// Store supports reading and writing all the resources within Flipt
 type Store interface {
 	NamespaceStore
 	FlagStore
@@ -177,21 +190,31 @@ type EvaluationStore interface {
 	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRollout, error)
 }
 
-// NamespaceStore stores and retrieves namespaces
-type NamespaceStore interface {
+// ReadOnlyNamespaceStore support retrieval of namespaces only
+type ReadOnlyNamespaceStore interface {
 	GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error)
 	ListNamespaces(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Namespace], error)
 	CountNamespaces(ctx context.Context) (uint64, error)
+}
+
+// NamespaceStore stores and retrieves namespaces
+type NamespaceStore interface {
+	ReadOnlyNamespaceStore
 	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error)
 	DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error
 }
 
-// FlagStore stores and retrieves flags and variants
-type FlagStore interface {
+// ReadOnlyFlagStore supports retrieval of flags
+type ReadOnlyFlagStore interface {
 	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
 	ListFlags(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
 	CountFlags(ctx context.Context, namespaceKey string) (uint64, error)
+}
+
+// FlagStore stores and retrieves flags and variants
+type FlagStore interface {
+	ReadOnlyFlagStore
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -200,11 +223,16 @@ type FlagStore interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
-// SegmentStore stores and retrieves segments and constraints
-type SegmentStore interface {
+// ReadOnlySegmentStore supports retrieval of segments and constraints
+type ReadOnlySegmentStore interface {
 	GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error)
 	ListSegments(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
 	CountSegments(ctx context.Context, namespaceKey string) (uint64, error)
+}
+
+// SegmentStore stores and retrieves segments and constraints
+type SegmentStore interface {
+	ReadOnlySegmentStore
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
@@ -213,11 +241,16 @@ type SegmentStore interface {
 	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
 }
 
-// RuleStore stores and retrieves rules and distributions
-type RuleStore interface {
+// ReadOnlyRuleStore supports retrieval of rules and distributions
+type ReadOnlyRuleStore interface {
 	GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error)
 	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
 	CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
+}
+
+// RuleStore stores and retrieves rules and distributions
+type RuleStore interface {
+	ReadOnlyRuleStore
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
@@ -227,10 +260,16 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
-type RolloutStore interface {
+// ReadOnlyRolloutStore supports retrieval of rollouts
+type ReadOnlyRolloutStore interface {
 	GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error)
 	ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rollout], error)
 	CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
+}
+
+// RolloutStore supports storing and retrieving rollouts
+type RolloutStore interface {
+	ReadOnlyRolloutStore
 	CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
 	UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error)
 	DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error

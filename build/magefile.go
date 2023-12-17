@@ -19,7 +19,6 @@ import (
 	"go.flipt.io/flipt/build/release"
 	"go.flipt.io/flipt/build/testing"
 	"golang.org/x/mod/modfile"
-	"golang.org/x/sync/errgroup"
 )
 
 // Build is a collection of targets which build Flipt into target Docker images.
@@ -67,20 +66,6 @@ func (b Build) Base(ctx context.Context) error {
 // Test contains all the targets used to test the Flipt base container.
 type Test mg.Namespace
 
-// All runs Flipt's unit test suite against all the databases Flipt supports.
-func (t Test) All(ctx context.Context) error {
-	var g errgroup.Group
-
-	for db := range testing.All {
-		db := db
-		g.Go(func() error {
-			return t.Database(ctx, db)
-		})
-	}
-
-	return g.Wait()
-}
-
 // Unit runs the base suite of tests for all of Flipt.
 // It uses SQLite as the default database.
 func (t Test) Unit(ctx context.Context) error {
@@ -91,23 +76,6 @@ func (t Test) Unit(ctx context.Context) error {
 		}
 
 		return testing.Unit(ctx, client, base)
-	})
-}
-
-// Database runs the unit test suite against the desired database (one of ["sqlite" "libsql" "postgres" "mysql" "cockroach"]).
-func (t Test) Database(ctx context.Context, db string) error {
-	return daggerRun(ctx, func(client *dagger.Client, req internal.FliptRequest) error {
-		base, err := internal.Base(ctx, client, req)
-		if err != nil {
-			return err
-		}
-
-		test, ok := testing.All[db]
-		if !ok {
-			return fmt.Errorf("unexpected database name: %q", db)
-		}
-
-		return testing.Unit(test(ctx, client, base))
 	})
 }
 

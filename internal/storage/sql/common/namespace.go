@@ -13,7 +13,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
@@ -164,7 +163,7 @@ func (s *Store) CountNamespaces(ctx context.Context) (uint64, error) {
 
 func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
 	var (
-		now       = timestamppb.Now()
+		now       = flipt.Now()
 		namespace = &flipt.Namespace{
 			Key:         r.Key,
 			Name:        r.Name,
@@ -194,7 +193,7 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 	query := s.builder.Update("namespaces").
 		Set("name", r.Name).
 		Set("description", r.Description).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)

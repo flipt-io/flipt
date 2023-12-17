@@ -2,6 +2,9 @@
 
 The following are instructions for setting up your local machine for Flipt development. For info on using VSCode Remote Containers / GitHub Codespaces, see [#cdes](#cdes) below.
 
+> [!TIP]
+> Try our new [devenv](#devenv) solution to quickly get setup developing Flipt!
+
 Also check out our [Contributing](CONTRIBUTING.md) guide for more information on how to get changes merged into the project.
 
 ## Requirements
@@ -129,3 +132,13 @@ For VSCode Remote Containers (devcontainers), make sure you have [Docker](https:
 If you have access to [GitHub Codespaces](https://github.com/features/codespaces), simply open Flipt in a codespaces from the `Code` tab in the repo on GitHub or click the button below:
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
+
+## devenv
+
+[devenv](devenv.sh) is a solution that creates fast, declarative, reproducible, and composable developer environments using Nix.
+
+To use it for developing Flipt, you'll first need to install it. See the devenv [getting started](https://devenv.sh/getting-started/) guide for more information.
+
+Once you have devenv installed, you can run `devenv up` from the root of this repository to start a development environment.
+
+This will start a Docker container with the Flipt server running on port `8080` and the UI development server running on port `5173`.

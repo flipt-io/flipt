@@ -113,7 +113,7 @@ func TestFSWithIndex(t *testing.T) {
 
 type FSIndexSuite struct {
 	suite.Suite
-	store storage.Store
+	store storage.ReadOnlyStore
 }
 
 func (fis *FSIndexSuite) TestCountFlag() {
@@ -790,7 +790,7 @@ func (fis *FSIndexSuite) TestCountRules() {
 
 type FSWithoutIndexSuite struct {
 	suite.Suite
-	store storage.Store
+	store storage.ReadOnlyStore
 }
 
 func TestFSWithoutIndex(t *testing.T) {

@@ -17,6 +17,7 @@ import (
 )
 
 const Version = "1.0"
+const EnvPrefix = "FLIPT"
 
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
@@ -75,7 +76,7 @@ func Dir() (string, error) {
 
 func Load(path string) (*Result, error) {
 	v := viper.New()
-	v.SetEnvPrefix("FLIPT")
+	v.SetEnvPrefix(EnvPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 

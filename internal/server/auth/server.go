@@ -9,12 +9,12 @@ import (
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -166,7 +166,7 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 		s.logger.Debug("ExpireAuthentication", zap.String("id", auth.Id))
 
 		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
-			req.ExpiresAt = timestamppb.Now()
+			req.ExpiresAt = flipt.Now()
 		}
 
 		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)

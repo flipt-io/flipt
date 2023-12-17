@@ -68,7 +68,7 @@ func main() {
 	fmt.Fprintln(os.Stderr, "Creating Repository from", *testdataDir)
 
 	repo, err := git.InitWithOptions(memory.NewStorage(), workdir, git.InitOptions{
-		DefaultBranch: "main",
+		DefaultBranch: "refs/heads/main",
 	})
 	fatalOnError(err)
 
@@ -126,7 +126,7 @@ func main() {
 	repo.Push(&git.PushOptions{
 		Auth:       &githttp.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
-		RefSpecs:   []config.RefSpec{"main:refs/heads/main"},
+		RefSpecs:   []config.RefSpec{"refs/heads/main:refs/heads/main"},
 	})
 	fmt.Fprintln(os.Stderr, "Pushed")
 

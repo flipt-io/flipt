@@ -16,7 +16,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func compactJSONString(jsonString string) (string, error) {
@@ -339,7 +338,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	}
 
 	var (
-		now  = timestamppb.Now()
+		now  = flipt.Now()
 		flag = &flipt.Flag{
 			NamespaceKey: r.NamespaceKey,
 			Key:          r.Key,
@@ -381,7 +380,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
 
 	res, err := query.ExecContext(ctx)
@@ -421,7 +420,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	}
 
 	var (
-		now = timestamppb.Now()
+		now = flipt.Now()
 		v   = &flipt.Variant{
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
@@ -477,7 +476,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("attachment", emptyAsNil(r.Attachment)).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(whereClause)
 
 	res, err := query.ExecContext(ctx)

@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.21"
-  DAGGER_VERSION: "0.8.3"
+  DAGGER_VERSION: "0.9.4"
 
 jobs:
   cli:
@@ -47,7 +47,11 @@ jobs:
       matrix:
         test:
           [
-            "api",
+            "api/sqlite",
+            "api/libsql",
+            "api/postgres",
+            "api/mysql",
+            "api/cockroach",
             "api/cache",
             "fs/git",
             "fs/local",
