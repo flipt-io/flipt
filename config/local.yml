@@ -4,16 +4,16 @@
 log:
   level: DEBUG
 
-# authentication:
-#   required: true
-#   session:
-#     domain: "localhost:8080"
-#     secure: false
-#   methods:
-#     basic:
-#       enabled: true
-#       username: "admin"
-#       bcrypt_password: "$2y$05$Djg.k2WHG.1vsHyttxkhce20Y1ZKP3DGOlJnlxa41KWTs8MoKytmK"
+authentication:
+  required: true
+  session:
+    domain: "localhost:8080"
+    secure: false
+  methods:
+    basic:
+      enabled: true
+      username: "admin"
+      bcrypt_password: "$2y$05$Djg.k2WHG.1vsHyttxkhce20Y1ZKP3DGOlJnlxa41KWTs8MoKytmK"
 
 cors:
   enabled: true

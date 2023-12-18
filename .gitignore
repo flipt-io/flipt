@@ -37,6 +37,9 @@ tmp
 __debug_bin
 *.tar
 
+package-lock.json
+package.json
+
 Brewfile.lock.json
 *.key
 build/hack/out/

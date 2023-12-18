@@ -17,7 +17,7 @@ import ErrorNotification from '~/components/notifications/ErrorNotification';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
-
+import LoginForm from './LoginForm';
 interface ILoginProvider {
   displayName: string;
   icon: IconDefinition;
@@ -197,9 +197,11 @@ function InnerLogin() {
                 Login to Flipt
               </h2>
             </div>
-            <div className="mt-8 max-w-sm sm:mx-auto sm:w-full md:max-w-lg">
+            <div className="mt-8">
               <div className="px-4 py-8 sm:px-10">
-                <InnerLoginButtons />
+                <div className="text-center">
+                  <LoginForm />
+                </div>
               </div>
             </div>
           </div>
