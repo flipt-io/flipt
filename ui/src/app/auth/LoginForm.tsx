@@ -6,7 +6,6 @@ function LoginForm() {
     username: '',
     password: ''
   });
-
   const [modalOpen, setModalOpen] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loginSuccess, setLoginSuccess] = useState('');
@@ -19,6 +18,7 @@ function LoginForm() {
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setLoginError('');
+    setLoginSuccess('');
 
     try {
       const response = await fetch(
@@ -44,13 +44,13 @@ function LoginForm() {
     }
   };
 
-  const openModal = () => {
-    setModalOpen(true);
-  };
-
   const closeModal = () => {
+    setLoginError('');
+    setLoginSuccess('');
+    setFormData({ username: '', password: '' });
     setModalOpen(false);
   };
+
   const isFormIncomplete = !formData.username || !formData.password;
 
   return (
@@ -99,12 +99,12 @@ function LoginForm() {
           {loginSuccess && (
             <div className="text-gteen-500 mb-3">{loginSuccess}</div>
           )}
-          <div className="text-center">
+          <div className="flex justify-center gap-4 text-center">
             <button
               type="submit"
               className={`text-white rounded px-4 py-2 font-bold ${
                 isFormIncomplete
-                  ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400'
+                  ? 'bg-purple-300 cursor-not-allowed hover:bg-purple-400'
                   : 'bg-purple-500 hover:bg-purple-700'
               }`}
               disabled={isFormIncomplete}
@@ -116,14 +116,11 @@ function LoginForm() {
             >
               Login
             </button>
-          </div>
-          <div className="text-center">
+
             <button
-              type="submit"
-              className={
-                'bg-white-500 hover:bg-white-700 text-purple-500 border-purple-500 rounded px-4 py-2 font-bold'
-              }
-              onClick={() => setModalOpen(false)}
+              type="button"
+              className="hover:bg-white-700 text-purple-500 border-purple-500 rounded border px-4 py-2 font-bold hover:border-purple-700"
+              onClick={closeModal}
             >
               Cancel
             </button>
