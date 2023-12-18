@@ -94,12 +94,12 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: flipt-snapshot-linux
           path: tmp/dist
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: flipt-snapshot-darwin
           path: tmp/dist
