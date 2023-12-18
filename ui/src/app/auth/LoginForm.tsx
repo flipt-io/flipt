@@ -8,6 +8,8 @@ function LoginForm() {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState('');
 
   const handleInputChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
@@ -16,19 +18,29 @@ function LoginForm() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    setLoginError('');
 
-    const response = await fetch('/auth/v1/method/basic/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    });
+    try {
+      const response = await fetch(
+        'http://localhost:8080/auth/v1/method/basic/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        }
+      );
 
-    if (response.ok) {
-      // Authentication successful
-    } else {
-      // Authentication failed
+      if (response.ok) {
+        setLoginSuccess('Success!🎉');
+      } else {
+        const errorData = await response.json();
+        setLoginError(errorData.message || 'Failed to log in.');
+      }
+    } catch (error) {
+      console.error('Network or server error:', error);
+      setLoginError('Network error or server is unreachable.');
     }
   };
 
@@ -54,12 +66,6 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="p-4">
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-2xl font-semibold">Login</h2>
-            <button
-              onClick={() => setModalOpen(false)}
-              className="text-gray-800 bg-gray-200 rounded-full p-2 hover:bg-gray-300"
-            >
-              &times;
-            </button>
           </div>
           <div className="mb-4">
             <label htmlFor="username" className="text-gray-700 block font-bold">
@@ -72,7 +78,7 @@ function LoginForm() {
               value={formData.username}
               onChange={handleInputChange}
               required
-              className="border-gray-400 w-full rounded border p-2 focus:border-purple-500 focus:outline-none"
+              className="border-purple-400 w-full rounded border p-2 focus:border-purple-500 focus:outline-none"
             />
           </div>
           <div className="mb-4">
@@ -86,9 +92,13 @@ function LoginForm() {
               value={formData.password}
               onChange={handleInputChange}
               required
-              className="border-gray-400 w-full rounded border p-2 focus:border-purple-500 focus:outline-none"
+              className="border-purple-400 w-full rounded border p-2 focus:border-purple-500 focus:outline-none"
             />
           </div>
+          {loginError && <div className="text-red-500 mb-3">{loginError}</div>}
+          {loginSuccess && (
+            <div className="text-gteen-500 mb-3">{loginSuccess}</div>
+          )}
           <div className="text-center">
             <button
               type="submit"
@@ -105,6 +115,17 @@ function LoginForm() {
               }
             >
               Login
+            </button>
+          </div>
+          <div className="text-center">
+            <button
+              type="submit"
+              className={
+                'bg-white-500 hover:bg-white-700 text-purple-500 border-purple-500 rounded px-4 py-2 font-bold'
+              }
+              onClick={() => setModalOpen(false)}
+            >
+              Cancel
             </button>
           </div>
         </form>
