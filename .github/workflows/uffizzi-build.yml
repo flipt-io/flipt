@@ -61,14 +61,14 @@ jobs:
           cat docker-compose.rendered.yml
 
       - name: Upload Rendered Compose File as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: preview-spec
           path: docker-compose.rendered.yml
           retention-days: 2
 
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: preview-spec
           path: ${{ github.event_path }}
@@ -81,7 +81,7 @@ jobs:
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: preview-spec
           path: ${{ github.event_path }}
