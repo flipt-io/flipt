@@ -197,7 +197,7 @@ function InnerLogin() {
                 Login to Flipt
               </h2>
             </div>
-            <div className="mt-8">
+            <div className="mt-4">
               <div className="px-4 py-8 sm:px-10">
                 <div className="text-center">
                   <LoginForm />

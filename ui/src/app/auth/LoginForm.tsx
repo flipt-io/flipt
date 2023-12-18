@@ -51,6 +51,10 @@ function LoginForm() {
     setModalOpen(false);
   };
 
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   const isFormIncomplete = !formData.username || !formData.password;
 
   return (
@@ -59,7 +63,7 @@ function LoginForm() {
         onClick={() => setModalOpen(true)}
         className="text-white bg-purple-500 rounded px-4 py-2 font-bold hover:bg-purple-700"
       >
-        Login
+        Login with Basic Authentication
       </button>
 
       <Modal open={modalOpen} setOpen={setModalOpen}>
@@ -95,7 +99,11 @@ function LoginForm() {
               className="border-purple-400 w-full rounded border p-2 focus:border-purple-500 focus:outline-none"
             />
           </div>
-          {loginError && <div className="text-red-500 mb-3">{loginError}</div>}
+          {loginError && (
+            <div className="text-red-500 mb-3">
+              {capitalizeFirstLetter(loginError)}
+            </div>
+          )}
           {loginSuccess && (
             <div className="text-green-500 mb-3">{loginSuccess}</div>
           )}
