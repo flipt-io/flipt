@@ -97,7 +97,7 @@ function LoginForm() {
           </div>
           {loginError && <div className="text-red-500 mb-3">{loginError}</div>}
           {loginSuccess && (
-            <div className="text-gteen-500 mb-3">{loginSuccess}</div>
+            <div className="text-green-500 mb-3">{loginSuccess}</div>
           )}
           <div className="flex justify-center gap-4 text-center">
             <button
