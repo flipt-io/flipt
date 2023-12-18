@@ -2,6 +2,7 @@ package azblob
 
 import (
 	"context"
+	"encoding/base64"
 	"os"
 	"testing"
 	"time"
@@ -20,6 +21,26 @@ var aruziteURL = os.Getenv("TEST_AZURE_ENDPOINT")
 
 func Test_Store_String(t *testing.T) {
 	require.Equal(t, "azblob", (&SnapshotStore{}).String())
+}
+
+func TestNewClient(t *testing.T) {
+	testSharedKey := base64.StdEncoding.EncodeToString([]byte("sharedkey"))
+	tests := []struct {
+		account     string
+		sharedkey   string
+		endpoint    string
+		expectedURL string
+	}{
+		{"devaccount1", testSharedKey, "", "https://devaccount1.blob.core.windows.net/"},
+		{"devaccount1", testSharedKey, "http://localhost:10000/", "http://localhost:10000/"},
+		{"devaccount1", "", "", "https://devaccount1.blob.core.windows.net/"},
+		{"devaccount1", "", "http://localhost:10000/", "http://localhost:10000/"},
+	}
+	for _, tt := range tests {
+		client, err := newClient(tt.account, tt.sharedkey, tt.endpoint)
+		require.NoError(t, err)
+		require.Equal(t, tt.expectedURL, client.URL())
+	}
 }
 
 func Test_Store(t *testing.T) {
