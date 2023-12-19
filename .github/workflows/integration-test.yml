@@ -82,11 +82,11 @@ jobs:
         run: mage dagger:run "test:integration ${{ matrix.test }}"
 
       - name: Upload Flipt Service Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: Flipt Service Logs
-          path: build/logs
+          path: "build/logs/${{ matrix.test }}"
           retention-days: 5
 
   ui:
