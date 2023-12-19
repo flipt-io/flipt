@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
-	"go.flipt.io/flipt/internal/s3fs"
+	"go.flipt.io/flipt/internal/storage/fs/blob"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +21,7 @@ type FS struct {
 	containerName string
 
 	// cached entries
-	dirEntry *s3fs.Dir
+	dirEntry *blob.Dir
 }
 
 // ensure FS implements fs.FS aka Open
@@ -68,7 +68,7 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	return s3fs.NewFile(
+	return blob.NewFile(
 		f.containerName,
 		name,
 		*output.ContentLength,
@@ -89,7 +89,7 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 		}
 	}
 
-	return s3fs.NewDir(s3fs.NewFileInfo(name, 0, time.Time{})), nil
+	return blob.NewDir(blob.NewFileInfo(name, 0, time.Time{})), nil
 }
 
 // ReadDir implements fs.ReadDirFS. This can only be called on the
@@ -116,11 +116,11 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 		if err != nil {
 			return nil, err
 		}
-		for _, blob := range resp.Segment.BlobItems {
-			fi := s3fs.NewFileInfo(
-				*blob.Name,
-				*blob.Properties.ContentLength,
-				*blob.Properties.LastModified,
+		for _, item := range resp.Segment.BlobItems {
+			fi := blob.NewFileInfo(
+				*item.Name,
+				*item.Properties.ContentLength,
+				*item.Properties.LastModified,
 			)
 			entries = append(entries, fi)
 		}
