@@ -10,15 +10,11 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) (_ []*storage.EvaluationRule, err error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) (_ []*storage.EvaluationRule, err error) {
 	ruleMetaRows, err := s.builder.
 		Select("id, \"rank\", segment_operator").
 		From("rules").
-		Where(sq.And{sq.Eq{"flag_key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
+		Where(sq.Eq{"flag_key": flag.Key, "namespace_key": flag.Namespace()}).
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -116,8 +112,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 		rm := rmMap[intermediateStorageRule.ID]
 
-		intermediateStorageRule.FlagKey = flagKey
-		intermediateStorageRule.NamespaceKey = namespaceKey
+		intermediateStorageRule.FlagKey = flag.Key
+		intermediateStorageRule.NamespaceKey = flag.Namespace()
 		intermediateStorageRule.Rank = rm.Rank
 		intermediateStorageRule.SegmentOperator = rm.SegmentOperator
 
@@ -201,11 +197,11 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	return rules, nil
 }
 
-func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (_ []*storage.EvaluationDistribution, err error) {
+func (s *Store) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) (_ []*storage.EvaluationDistribution, err error) {
 	rows, err := s.builder.Select("d.id, d.rule_id, d.variant_id, d.rollout, v.\"key\", v.attachment").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
-		Where(sq.Eq{"d.rule_id": ruleID}).
+		Where(sq.Eq{"d.rule_id": rule.ID}).
 		OrderBy("d.created_at ASC").
 		QueryContext(ctx)
 	if err != nil {
@@ -254,11 +250,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	return distributions, nil
 }
 
-func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) (_ []*storage.EvaluationRollout, err error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) (_ []*storage.EvaluationRollout, err error) {
 	rows, err := s.builder.Select(`
 		r.id,
 		r.namespace_key,
@@ -294,7 +286,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 		LEFT JOIN constraints AS c ON (rsr.segment_key = c.segment_key)
 	) rss ON (r.id = rss.rollout_id)
 	`).
-		Where(sq.And{sq.Eq{"r.namespace_key": namespaceKey}, sq.Eq{"r.flag_key": flagKey}}).
+		Where(sq.Eq{"r.namespace_key": flag.Namespace(), "r.flag_key": flag.Key}).
 		OrderBy(`r."rank" ASC`).
 		QueryContext(ctx)
 	if err != nil {

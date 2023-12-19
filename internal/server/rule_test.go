@@ -25,7 +25,7 @@ func TestGetRule(t *testing.T) {
 		req = &flipt.GetRuleRequest{Id: "id", FlagKey: "flagKey"}
 	)
 
-	store.On("GetRule", mock.Anything, mock.Anything, "id").Return(&flipt.Rule{
+	store.On("GetRule", mock.Anything, storage.NewNamespace(""), "id").Return(&flipt.Rule{
 		Id: "1",
 	}, nil)
 
@@ -47,15 +47,11 @@ func TestListRules_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListRules", mock.Anything, mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert offset is provided
-		return params.PageToken == "" && params.Offset > 0
-	})).Return(
+	store.On("ListRules", mock.Anything, storage.ListWithOptions(storage.NewResource("", "flagKey"),
+		storage.ListWithQueryParamOptions[storage.ResourceRequest](
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Rule]{
 			Results: []*flipt.Rule{
 				{
@@ -65,7 +61,7 @@ func TestListRules_PaginationOffset(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountRules", mock.Anything, mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountRules", mock.Anything, storage.NewResource("", "flagKey")).Return(uint64(1), nil)
 
 	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
 		Offset: 10,
@@ -90,15 +86,12 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListRules", mock.Anything, mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert page token is preferred over offset
-		return params.PageToken == "Zm9v" && params.Offset == 0
-	})).Return(
+	store.On("ListRules", mock.Anything, storage.ListWithOptions(storage.NewResource("", "flagKey"),
+		storage.ListWithQueryParamOptions[storage.ResourceRequest](
+			storage.WithPageToken("Zm9v"),
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Rule]{
 			Results: []*flipt.Rule{
 				{
@@ -108,7 +101,7 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountRules", mock.Anything, mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountRules", mock.Anything, storage.NewResource("", "flagKey")).Return(uint64(1), nil)
 
 	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
 		PageToken: "Zm9v",

@@ -11,7 +11,9 @@ import (
 
 func (s *Server) GetRollout(ctx context.Context, r *flipt.GetRolloutRequest) (*flipt.Rollout, error) {
 	s.logger.Debug("get rollout rule", zap.Stringer("request", r))
-	rollout, err := s.store.GetRollout(ctx, r.NamespaceKey, r.Id)
+	rollout, err := s.store.GetRollout(ctx,
+		storage.NewNamespace(r.NamespaceKey, storage.WithReference(r.Reference)), r.Id,
+	)
 	s.logger.Debug("get rollout rule", zap.Stringer("response", rollout))
 	return rollout, err
 }
@@ -19,10 +21,8 @@ func (s *Server) GetRollout(ctx context.Context, r *flipt.GetRolloutRequest) (*f
 func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
 	s.logger.Debug("list rollout rules", zap.Stringer("request", r))
 
-	results, err := s.store.ListRollouts(ctx, r.NamespaceKey, r.FlagKey,
-		storage.WithPageToken(r.GetPageToken()),
-		storage.WithLimit(uint64(r.GetLimit())),
-	)
+	flag := storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference))
+	results, err := s.store.ListRollouts(ctx, storage.ListWithParameters(flag, r))
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) 
 		Rules: results.Results,
 	}
 
-	total, err := s.store.CountRollouts(ctx, r.NamespaceKey, r.FlagKey)
+	total, err := s.store.CountRollouts(ctx, flag)
 	if err != nil {
 		return nil, err
 	}

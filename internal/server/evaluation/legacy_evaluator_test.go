@@ -11,6 +11,7 @@ import (
 	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -872,7 +873,7 @@ func TestEvaluator_FlagDisabled(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	resp, err := s.Evaluate(context.TODO(), disabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), disabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -896,7 +897,7 @@ func TestEvaluator_NonVariantFlag(t *testing.T) {
 		Key:     "foo",
 		Enabled: true,
 		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
-	}, &flipt.EvaluationRequest{
+	}, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -916,9 +917,9 @@ func TestEvaluator_FlagNoRules(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return([]*storage.EvaluationRule{}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -938,9 +939,9 @@ func TestEvaluator_ErrorGettingRules(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, errors.New("error getting rules!"))
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return([]*storage.EvaluationRule{}, errors.New("error getting rules!"))
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -960,7 +961,7 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1004,7 +1005,7 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -1025,7 +1026,7 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1049,7 +1050,7 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -1069,7 +1070,7 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1093,7 +1094,7 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -1114,7 +1115,7 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1138,9 +1139,9 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, errors.New("error getting distributions!"))
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, errors.New("error getting distributions!"))
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		EntityId: "1",
 		FlagKey:  "foo",
 		Context: map[string]string{
@@ -1161,7 +1162,7 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1185,16 +1186,16 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
-		req       *flipt.EvaluationRequest
+		req       *evaluation.EvaluationRequest
 		wantMatch bool
 	}{
 		{
 			name: "match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1205,7 +1206,7 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 		},
 		{
 			name: "no match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1249,7 +1250,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:              "1",
@@ -1287,16 +1288,16 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
-		req       *flipt.EvaluationRequest
+		req       *evaluation.EvaluationRequest
 		wantMatch bool
 	}{
 		{
 			name: "match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1308,7 +1309,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 		},
 		{
 			name: "no match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1355,7 +1356,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1387,7 +1388,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -1399,7 +1400,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
 		EntityId: "123",
 		Context: map[string]string{
@@ -1422,7 +1423,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1454,7 +1455,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -1468,12 +1469,12 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		req       *flipt.EvaluationRequest
+		req       *evaluation.EvaluationRequest
 		wantMatch bool
 	}{
 		{
 			name: "matches all",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1485,7 +1486,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no match all",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1496,7 +1497,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no match just bool value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1506,7 +1507,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no match just string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1551,7 +1552,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1576,7 +1577,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -1596,13 +1597,13 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1614,7 +1615,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 		},
 		{
 			name: "match string value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "2",
 				Context: map[string]string{
@@ -1626,7 +1627,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 		},
 		{
 			name: "no match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1671,7 +1672,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1706,7 +1707,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -1724,7 +1725,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
 		EntityId: uuid.Must(uuid.NewV4()).String(),
 		Context: map[string]string{
@@ -1749,7 +1750,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1764,7 +1765,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -1784,13 +1785,13 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match no value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "10",
 				Context:  map[string]string{},
@@ -1800,7 +1801,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 		},
 		{
 			name: "match no value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "01",
 				Context:  map[string]string{},
@@ -1810,7 +1811,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 		},
 		{
 			name: "match string value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "01",
 				Context: map[string]string{
@@ -1859,7 +1860,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1883,16 +1884,16 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
-		req       *flipt.EvaluationRequest
+		req       *evaluation.EvaluationRequest
 		wantMatch bool
 	}{
 		{
 			name: "match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1903,7 +1904,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 		},
 		{
 			name: "no match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -1947,7 +1948,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -1979,7 +1980,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -1992,12 +1993,12 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		req       *flipt.EvaluationRequest
+		req       *evaluation.EvaluationRequest
 		wantMatch bool
 	}{
 		{
 			name: "matches all",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2009,7 +2010,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "matches one",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2021,7 +2022,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "matches just bool value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2032,7 +2033,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "matches just string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2043,7 +2044,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no matches wrong bool value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2053,7 +2054,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no matches wrong string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2063,7 +2064,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 		},
 		{
 			name: "no match none",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2108,7 +2109,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -2133,7 +2134,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2153,13 +2154,13 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2171,7 +2172,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 		},
 		{
 			name: "match string value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "2",
 				Context: map[string]string{
@@ -2183,7 +2184,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 		},
 		{
 			name: "no match string value",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2228,7 +2229,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -2272,7 +2273,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2290,7 +2291,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 			},
 		}, nil)
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
 		EntityId: uuid.Must(uuid.NewV4()).String(),
 		Context: map[string]string{
@@ -2315,7 +2316,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -2330,7 +2331,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2350,13 +2351,13 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match no value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "10",
 				Context:  map[string]string{},
@@ -2366,7 +2367,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 		},
 		{
 			name: "match no value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "01",
 				Context:  map[string]string{},
@@ -2376,7 +2377,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 		},
 		{
 			name: "match string value - variant 2",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "01",
 				Context: map[string]string{
@@ -2425,7 +2426,7 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -2450,7 +2451,7 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "4",
@@ -2470,13 +2471,13 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{
@@ -2524,7 +2525,7 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -2549,7 +2550,7 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:         "1",
@@ -2597,13 +2598,13 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		req               *flipt.EvaluationRequest
+		req               *evaluation.EvaluationRequest
 		matchesVariantKey string
 		wantMatch         bool
 	}{
 		{
 			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
+			req: &evaluation.EvaluationRequest{
 				FlagKey:  "foo",
 				EntityId: "1",
 				Context: map[string]string{

@@ -81,7 +81,7 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 
 	require.NoError(t, err)
 
-	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), storage.NewResource(storage.DefaultNamespace, flag.Key))
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
@@ -167,7 +167,7 @@ func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), "", flag.Key)
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), storage.NewResource("", flag.Key))
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
@@ -260,7 +260,7 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), s.namespace, flag.Key)
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), storage.NewResource(s.namespace, flag.Key))
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
@@ -359,7 +359,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -464,7 +464,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -561,7 +561,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -603,7 +603,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err = s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err = s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -669,7 +669,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 
 	require.NoError(t, err)
 
-	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), storage.NewResource(storage.DefaultNamespace, flag.Key))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationRollouts))
@@ -758,7 +758,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), "", flag.Key)
+	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), storage.NewResource("", flag.Key))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationRollouts))
@@ -844,7 +844,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), s.namespace, flag.Key)
+	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), storage.NewResource(s.namespace, flag.Key))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationRollouts))

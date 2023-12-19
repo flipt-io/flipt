@@ -60,8 +60,8 @@ func (s *Store) get(ctx context.Context, key string, value any) bool {
 	return true
 }
 
-func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
-	cacheKey := fmt.Sprintf(evaluationRulesCacheKeyFmt, namespaceKey, flagKey)
+func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
+	cacheKey := fmt.Sprintf(evaluationRulesCacheKeyFmt, flag.Namespace(), flag.Key)
 
 	var rules []*storage.EvaluationRule
 
@@ -70,7 +70,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		return rules, nil
 	}
 
-	rules, err := s.Store.GetEvaluationRules(ctx, namespaceKey, flagKey)
+	rules, err := s.Store.GetEvaluationRules(ctx, flag)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +79,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	return rules, nil
 }
 
-func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	cacheKey := fmt.Sprintf(evaluationRolloutsCacheKeyFmt, namespaceKey, flagKey)
+func (s *Store) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
+	cacheKey := fmt.Sprintf(evaluationRolloutsCacheKeyFmt, flag.Namespace(), flag.Key)
 
 	var rollouts []*storage.EvaluationRollout
 
@@ -89,7 +89,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 		return rollouts, nil
 	}
 
-	rollouts, err := s.Store.GetEvaluationRollouts(ctx, namespaceKey, flagKey)
+	rollouts, err := s.Store.GetEvaluationRollouts(ctx, flag)
 	if err != nil {
 		return nil, err
 	}

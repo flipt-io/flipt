@@ -235,6 +235,10 @@ func local_request_Flipt_BatchEvaluate_1(ctx context.Context, marshaler runtime.
 
 }
 
+var (
+	filter_Flipt_GetNamespace_0 = &utilities.DoubleArray{Encoding: map[string]int{"key": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+)
+
 func request_Flipt_GetNamespace_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetNamespaceRequest
 	var metadata runtime.ServerMetadata
@@ -254,6 +258,13 @@ func request_Flipt_GetNamespace_0(ctx context.Context, marshaler runtime.Marshal
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetNamespace_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -280,6 +291,13 @@ func local_request_Flipt_GetNamespace_0(ctx context.Context, marshaler runtime.M
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetNamespace_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetNamespace(ctx, &protoReq)
@@ -547,6 +565,10 @@ func local_request_Flipt_GetFlag_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
+var (
+	filter_Flipt_GetFlag_1 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "namespaceKey": 1, "key": 2}, Base: []int{1, 1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 3, 4, 4}}
+)
+
 func request_Flipt_GetFlag_1(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetFlagRequest
 	var metadata runtime.ServerMetadata
@@ -576,6 +598,13 @@ func request_Flipt_GetFlag_1(ctx context.Context, marshaler runtime.Marshaler, c
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetFlag_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetFlag(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -612,6 +641,13 @@ func local_request_Flipt_GetFlag_1(ctx context.Context, marshaler runtime.Marsha
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetFlag_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetFlag(ctx, &protoReq)
@@ -1749,6 +1785,10 @@ func local_request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
+var (
+	filter_Flipt_GetRule_1 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "namespaceKey": 1, "flag_key": 2, "flagKey": 3, "id": 4}, Base: []int{1, 1, 2, 3, 4, 6, 0, 0, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6}}
+)
+
 func request_Flipt_GetRule_1(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetRuleRequest
 	var metadata runtime.ServerMetadata
@@ -1788,6 +1828,13 @@ func request_Flipt_GetRule_1(ctx context.Context, marshaler runtime.Marshaler, c
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetRule_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetRule(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -1834,6 +1881,13 @@ func local_request_Flipt_GetRule_1(ctx context.Context, marshaler runtime.Marsha
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetRule_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetRule(ctx, &protoReq)
@@ -2691,6 +2745,10 @@ func local_request_Flipt_DeleteRule_1(ctx context.Context, marshaler runtime.Mar
 
 }
 
+var (
+	filter_Flipt_GetRollout_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "namespaceKey": 1, "flag_key": 2, "flagKey": 3, "id": 4}, Base: []int{1, 1, 2, 3, 4, 6, 0, 0, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6}}
+)
+
 func request_Flipt_GetRollout_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetRolloutRequest
 	var metadata runtime.ServerMetadata
@@ -2730,6 +2788,13 @@ func request_Flipt_GetRollout_0(ctx context.Context, marshaler runtime.Marshaler
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetRollout_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetRollout(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -2776,6 +2841,13 @@ func local_request_Flipt_GetRollout_0(ctx context.Context, marshaler runtime.Mar
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetRollout_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetRollout(ctx, &protoReq)
@@ -3991,6 +4063,10 @@ func local_request_Flipt_GetSegment_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
+var (
+	filter_Flipt_GetSegment_1 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "namespaceKey": 1, "key": 2}, Base: []int{1, 1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 3, 4, 4}}
+)
+
 func request_Flipt_GetSegment_1(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetSegmentRequest
 	var metadata runtime.ServerMetadata
@@ -4020,6 +4096,13 @@ func request_Flipt_GetSegment_1(ctx context.Context, marshaler runtime.Marshaler
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetSegment_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetSegment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -4056,6 +4139,13 @@ func local_request_Flipt_GetSegment_1(ctx context.Context, marshaler runtime.Mar
 	protoReq.Key, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_GetSegment_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetSegment(ctx, &protoReq)

@@ -69,12 +69,14 @@ message NamespaceList {
 
 message GetNamespaceRequest {
   string key = 1;
+  string reference = 2;
 }
 
 message ListNamespaceRequest {
   int32 limit = 1;
   int32 offset = 2 [deprecated = true];
   string page_token = 3;
+  string reference = 4;
 }
 
 message CreateNamespaceRequest {
@@ -119,6 +121,7 @@ message FlagList {
 message GetFlagRequest {
   string key = 1;
   string namespace_key = 2;
+  string reference = 3;
 }
 
 message ListFlagRequest {
@@ -126,6 +129,7 @@ message ListFlagRequest {
   int32 offset = 2 [deprecated = true];
   string page_token = 3;
   string namespace_key = 4;
+  string reference = 5;
 }
 
 message CreateFlagRequest {
@@ -212,6 +216,7 @@ message SegmentList {
 message GetSegmentRequest {
   string key = 1;
   string namespace_key = 2;
+  string reference = 3;
 }
 
 message ListSegmentRequest {
@@ -219,6 +224,7 @@ message ListSegmentRequest {
   int32 offset = 2 [deprecated = true];
   string page_token = 3;
   string namespace_key = 4;
+  string reference = 5;
 }
 
 message CreateSegmentRequest {
@@ -339,12 +345,14 @@ message ListRolloutRequest {
   string flag_key = 2;
   int32 limit = 3;
   string page_token = 4;
+  string reference = 5;
 }
 
 message GetRolloutRequest {
   string id = 1;
   string namespace_key = 2;
   string flag_key = 3;
+  string reference = 4;
 }
 
 message CreateRolloutRequest {
@@ -406,12 +414,14 @@ message ListRuleRequest {
   string flag_key = 3;
   string page_token = 4;
   string namespace_key = 5;
+  string reference = 6;
 }
 
 message GetRuleRequest {
   string id = 1;
   string flag_key = 2;
   string namespace_key = 3;
+  string reference = 4;
 }
 
 message CreateRuleRequest {
