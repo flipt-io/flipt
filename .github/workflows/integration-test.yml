@@ -85,8 +85,8 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: Flipt Service Logs
-          path: "build/logs/${{ matrix.test }}"
+          name: "build-logs-${{ matrix.test }}"
+          path: "build/logs"
           retention-days: 5
 
   ui:

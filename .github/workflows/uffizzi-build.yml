@@ -45,7 +45,7 @@ jobs:
     name: Render Docker Compose File
     # Pass output of this workflow to another triggered by `workflow_run` event.
     runs-on: ubuntu-latest
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event.action != 'closed' }}
     needs:
       - build
     steps:
@@ -63,14 +63,14 @@ jobs:
       - name: Upload Rendered Compose File as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: preview-spec
+          name: preview-spec-compose
           path: docker-compose.rendered.yml
           retention-days: 2
 
       - name: Upload PR Event as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: preview-spec
+          name: preview-spec-event
           path: ${{ github.event_path }}
           retention-days: 2
 
