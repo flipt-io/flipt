@@ -186,8 +186,8 @@ type S3 struct {
 
 // AZBlob contains configuration for referencing a Azure Blob Storage
 type AZBlob struct {
-	Account      string        `json:"account,omitempty" mapstructure:"account" yaml:"account,omitempty"`
-	SharedKey    string        `json:"shared_key,omitempty" mapstructure:"shared_key" yaml:"shared_key,omitempty"`
+	Account      string        `json:"-" mapstructure:"account" yaml:"account,omitempty"`
+	SharedKey    string        `json:"-" mapstructure:"shared_key" yaml:"shared_key,omitempty"`
 	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
