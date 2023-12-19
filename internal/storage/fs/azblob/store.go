@@ -2,12 +2,12 @@ package azblob
 
 import (
 	"context"
-	"fmt"
+	"net/url"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -20,7 +20,6 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // This implementation is backed by an S3 bucket
 type SnapshotStore struct {
 	logger *zap.Logger
-	client *azblob.Client
 
 	mu   sync.RWMutex
 	snap storage.ReadOnlyStore
@@ -42,38 +41,6 @@ func (s *SnapshotStore) View(fn func(storage.ReadOnlyStore) error) error {
 	return fn(s.snap)
 }
 
-// newClient provides the client based on the provided option
-// There are 2 options supported for Azure Blob Storage authentication:
-//   - Any system using environment variables supported by the Azure SDK for Go.
-//   - Secret Access Key, using the account_shared_key attribute to specify
-//     the primary or secondary account key for your Azure Blob Storage account
-func newClient(account, sharedKey, endpoint string) (*azblob.Client, error) {
-	if endpoint == "" {
-		endpoint = fmt.Sprintf("https://%s.blob.core.windows.net/", account)
-	}
-
-	if sharedKey != "" {
-		credentials, err := azblob.NewSharedKeyCredential(account, sharedKey)
-		if err != nil {
-			return nil, err
-		}
-		client, err := azblob.NewClientWithSharedKeyCredential(endpoint, credentials, nil)
-		if err != nil {
-			return nil, err
-		}
-		return client, nil
-	}
-	credentials, err := azidentity.NewDefaultAzureCredential(nil)
-	if err != nil {
-		return nil, err
-	}
-	client, err := azblob.NewClient(endpoint, credentials, nil)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
-
 // NewSnapshotStore constructs a Store
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, container string, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, error) {
 	s := &SnapshotStore{
@@ -85,12 +52,19 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, container string,
 	}
 
 	containers.ApplyAll(s, opts...)
+	os.Setenv("AZURE_STORAGE_ACCOUNT", s.account)
+	os.Setenv("AZURE_STORAGE_KEY", s.sharedKey)
 
-	client, err := newClient(s.account, s.sharedKey, s.endpoint)
-	if err != nil {
-		return nil, err
+	if s.endpoint != "" {
+		url, err := url.Parse(s.endpoint)
+		if err != nil {
+			return nil, err
+		}
+		os.Setenv("AZURE_STORAGE_PROTOCOL", url.Scheme)
+		os.Setenv("AZURE_STORAGE_IS_LOCAL_EMULATOR", strconv.FormatBool(url.Scheme == "http"))
+		os.Setenv("AZURE_STORAGE_DOMAIN", url.Host)
 	}
-	s.client = client
+
 	// fetch snapshot at-least once before returning store
 	// to ensure we have some state to serve
 	if _, err := s.update(ctx); err != nil {
@@ -132,7 +106,7 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 
 // Update fetches a new snapshot and swaps it out for the current one.
 func (s *SnapshotStore) update(context.Context) (bool, error) {
-	fs, err := NewFS(s.logger, s.client, s.container)
+	fs, err := NewFS(s.logger, "azblob", s.container)
 	if err != nil {
 		return false, err
 	}

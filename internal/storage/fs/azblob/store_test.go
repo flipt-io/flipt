@@ -2,11 +2,11 @@ package azblob
 
 import (
 	"context"
-	"encoding/base64"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
@@ -23,26 +23,6 @@ func Test_Store_String(t *testing.T) {
 	require.Equal(t, "azblob", (&SnapshotStore{}).String())
 }
 
-func TestNewClient(t *testing.T) {
-	testSharedKey := base64.StdEncoding.EncodeToString([]byte("sharedkey"))
-	tests := []struct {
-		account     string
-		sharedkey   string
-		endpoint    string
-		expectedURL string
-	}{
-		{"devaccount1", testSharedKey, "", "https://devaccount1.blob.core.windows.net/"},
-		{"devaccount1", testSharedKey, "http://localhost:10000/", "http://localhost:10000/"},
-		{"devaccount1", "", "", "https://devaccount1.blob.core.windows.net/"},
-		{"devaccount1", "", "http://localhost:10000/", "http://localhost:10000/"},
-	}
-	for _, tt := range tests {
-		client, err := newClient(tt.account, tt.sharedkey, tt.endpoint)
-		require.NoError(t, err)
-		require.Equal(t, tt.expectedURL, client.URL())
-	}
-}
-
 func Test_Store(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, WithPollOptions(
@@ -57,7 +37,7 @@ func Test_Store(t *testing.T) {
 		return
 	}
 
-	azbClient := store.client
+	client := testClient(t)
 
 	// flag shouldn't be present until we update it
 	require.Error(t, store.View(func(s storage.ReadOnlyStore) error {
@@ -71,7 +51,7 @@ flags:
       name: Foo`)
 
 	// update features.yml
-	_, err := azbClient.UploadBuffer(context.TODO(), store.container, "features.yml", updated, nil)
+	_, err := client.UploadBuffer(context.TODO(), store.container, "features.yml", updated, nil)
 	require.NoError(t, err)
 
 	// assert matching state
@@ -96,22 +76,30 @@ flags:
 
 }
 
+func testClient(t *testing.T) *azblob.Client {
+	t.Helper()
+	account := os.Getenv("AZURE_STORAGE_ACCOUNT")
+	sharedKey := os.Getenv("AZURE_STORAGE_KEY")
+	credentials, err := azblob.NewSharedKeyCredential(account, sharedKey)
+	require.NoError(t, err)
+	client, err := azblob.NewClientWithSharedKeyCredential(aruziteURL, credentials, nil)
+	require.NoError(t, err)
+	return client
+}
+
 func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
 	t.Helper()
-
 	if aruziteURL == "" {
 		t.Skip("Set non-empty TEST_AZURE_ENDPOINT env var to run this test.")
 		return nil, true
 	}
-
+	account := os.Getenv("AZURE_STORAGE_ACCOUNT")
+	sharedKey := os.Getenv("AZURE_STORAGE_KEY")
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	account := os.Getenv("TEST_AZURE_ACCOUNT")
-	sharedKey := os.Getenv("TEST_AZURE_SHARED_KEY")
-	client, err := newClient(account, sharedKey, aruziteURL)
-	require.NoError(t, err)
+	client := testClient(t)
 	// create container
-	_, err = client.CreateContainer(ctx, testContainer, nil)
+	_, err := client.CreateContainer(ctx, testContainer, nil)
 	if err != nil {
 		if !bloberror.HasCode(err, bloberror.ContainerAlreadyExists) {
 			require.NoError(t, err)

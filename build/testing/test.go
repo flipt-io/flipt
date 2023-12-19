@@ -60,8 +60,8 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
 		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("TEST_AZURE_ENDPOINT", "http://azurite:10000/devstoreaccount1").
-		WithEnvVariable("TEST_AZURE_ACCOUNT", "devstoreaccount1").
-		WithEnvVariable("TEST_AZURE_SHARED_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {

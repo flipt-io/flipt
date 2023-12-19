@@ -2,12 +2,17 @@ package azblob
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"go.flipt.io/flipt/internal/storage/fs/blob"
 	"go.uber.org/zap"
+
+	gcblob "gocloud.dev/blob"
+	_ "gocloud.dev/blob/azureblob"
 )
 
 // FS is only for accessing files in a single bucket. The directory
@@ -15,10 +20,10 @@ import (
 // that calls fs.WalkDir and does not fully implement all fs operations
 type FS struct {
 	logger *zap.Logger
-	client ClientAPI
 
 	// configuration
 	containerName string
+	urlstr        string
 
 	// cached entries
 	dirEntry *blob.Dir
@@ -34,11 +39,11 @@ var _ fs.StatFS = &FS{}
 var _ fs.ReadDirFS = &FS{}
 
 // New creates a FS for the container
-func NewFS(logger *zap.Logger, client ClientAPI, containerName string) (*FS, error) {
+func NewFS(logger *zap.Logger, schema string, containerName string) (*FS, error) {
 	return &FS{
 		logger:        logger,
-		client:        client,
 		containerName: containerName,
+		urlstr:        fmt.Sprintf("%s://%s", schema, containerName),
 	}, nil
 }
 
@@ -57,24 +62,16 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	output, err := f.client.DownloadStream(context.Background(), f.containerName, name, nil)
+	ctx := context.TODO()
+	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
 	if err != nil {
-		if bloberror.HasCode(err,
-			bloberror.ContainerNotFound, bloberror.BlobNotFound, bloberror.ResourceNotFound,
-		) {
-			return nil, pathError
-		}
-		pathError.Err = err
-		return nil, pathError
+		return nil, err
 	}
-
-	return blob.NewFile(
-		f.containerName,
-		name,
-		*output.ContentLength,
-		output.Body,
-		*output.LastModified,
-	), nil
+	defer bucket.Close()
+	bucket.SetIOFSCallback(func() (context.Context, *gcblob.ReaderOptions) {
+		return ctx, nil
+	})
+	return bucket.Open(name)
 }
 
 // Stat implements fs.StatFS. For the  filesystem, this gets the
@@ -109,21 +106,29 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	// if the list is large, they are not stored on the FS object.
 	entries := []fs.DirEntry{}
 
-	pager := f.client.NewListBlobsFlatPager(f.containerName, nil)
-
-	for pager.More() {
-		resp, err := pager.NextPage(context.TODO())
+	ctx := context.TODO()
+	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
+	if err != nil {
+		return nil, err
+	}
+	defer bucket.Close()
+	iterator := bucket.List(&gcblob.ListOptions{})
+	for {
+		item, err := iterator.Next(ctx)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			return nil, err
 		}
-		for _, item := range resp.Segment.BlobItems {
-			fi := blob.NewFileInfo(
-				*item.Name,
-				*item.Properties.ContentLength,
-				*item.Properties.LastModified,
-			)
-			entries = append(entries, fi)
-		}
+		fi := blob.NewFileInfo(
+			item.Key,
+			item.Size,
+			item.ModTime,
+		)
+		fi.SetDir(item.IsDir)
+		entries = append(entries, fi)
+
 	}
 	return entries, nil
 }
