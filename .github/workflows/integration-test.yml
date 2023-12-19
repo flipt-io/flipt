@@ -86,7 +86,7 @@ jobs:
         if: ${{ always() }}
         with:
           name: Flipt Service Logs
-          path: build/logs
+          path: "build/logs/${{ matrix.test }}"
           retention-days: 5
 
   ui:
