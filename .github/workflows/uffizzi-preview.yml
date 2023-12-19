@@ -26,22 +26,26 @@ jobs:
                repo: context.repo.repo,
                run_id: context.payload.workflow_run.id,
             });
-            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "preview-spec"
-            })[0];
-            if (matchArtifact === undefined) {
+            let matchArtifacts = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name.startsWith("preview-spec");
+            });
+            if (matchArtifacts === undefined) {
               throw TypeError('Build Artifact not found!');
             }
-            let download = await github.rest.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
+            matchArtifacts.map((matchArtifact) => {
+              let download = await github.rest.actions.downloadArtifact({
+                 owner: context.repo.owner,
+                 repo: context.repo.repo,
+                 artifact_id: matchArtifact.id,
+                 archive_format: 'zip',
+              });
+              let fs = require('fs');
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/${matchArtifact.name}.zip`, Buffer.from(download.data));
             });
-            let fs = require('fs');
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/preview-spec.zip`, Buffer.from(download.data));
-      - name: "Unzip artifact"
-        run: unzip preview-spec.zip
+      - name: "Unzip compose artifact"
+        run: unzip preview-spec-compose.zip
+      - name: "Unzip event artifact"
+        run: unzip preview-spec-event.zip
       - name: Read Event into ENV
         run: |
           echo 'EVENT_JSON<<EOF' >> $GITHUB_ENV
