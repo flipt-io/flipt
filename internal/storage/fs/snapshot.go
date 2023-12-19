@@ -236,6 +236,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// Read index file
 	inFile, err := source.Open(indexFile)
 	if err == nil {
+		defer inFile.Close()
 		if derr := yaml.NewDecoder(inFile).Decode(&idx); derr != nil {
 			return nil, fmt.Errorf("yaml: %w", derr)
 		}
