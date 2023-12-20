@@ -8,7 +8,7 @@ import (
 	"io/fs"
 	"time"
 
-	"go.flipt.io/flipt/internal/storage/fs/blob"
+	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
 
 	gcblob "gocloud.dev/blob"
@@ -106,7 +106,7 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	// if the list is large, they are not stored on the FS object.
 	entries := []fs.DirEntry{}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
 	if err != nil {
 		return nil, err

@@ -12,11 +12,11 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
-	"go.flipt.io/flipt/internal/storage/fs/azblob"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
+	"go.flipt.io/flipt/internal/storage/fs/object/azblob"
+	"go.flipt.io/flipt/internal/storage/fs/object/s3"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
-	"go.flipt.io/flipt/internal/storage/fs/s3"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
