@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"io/fs"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,13 +37,10 @@ func Test_FS(t *testing.T) {
 	})
 
 	t.Run("Ensure files exist with expected contents", func(t *testing.T) {
+		dir := t.TempDir()
 		// setup the mock
 		ctx, cancel := context.WithCancel(context.Background())
 		t.Cleanup(cancel)
-
-		dir, err := os.MkdirTemp("/tmp", "flipt-io-test*")
-		require.NoError(t, err)
-		t.Cleanup(func() { os.RemoveAll(dir) })
 
 		bucket, err := blob.OpenBucket(ctx, "file://"+dir)
 		require.NoError(t, err)
