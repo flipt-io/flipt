@@ -26,10 +26,7 @@ type SnapshotStore struct {
 
 	endpoint  string
 	container string
-	account   string
-	sharedKey string
-
-	pollOpts []containers.Option[storagefs.Poller]
+	pollOpts  []containers.Option[storagefs.Poller]
 }
 
 // View accepts a function which takes a *StoreSnapshot.
@@ -52,8 +49,6 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, container string,
 	}
 
 	containers.ApplyAll(s, opts...)
-	os.Setenv("AZURE_STORAGE_ACCOUNT", s.account)
-	os.Setenv("AZURE_STORAGE_KEY", s.sharedKey)
 
 	if s.endpoint != "" {
 		url, err := url.Parse(s.endpoint)

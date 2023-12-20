@@ -167,7 +167,7 @@ func (o *Object) validate() error {
 		}
 	case AZBlobObjectSubStorageType:
 		if o.AZBlob == nil || o.AZBlob.Container == "" {
-			return errors.New("azblob container and account must be specified")
+			return errors.New("azblob container must be specified")
 		}
 	default:
 		return errors.New("object storage type must be specified")
