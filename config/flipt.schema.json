@@ -614,7 +614,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["s3"],
+              "enum": ["s3", "azblob"],
               "default": "s3"
             },
             "s3": {
@@ -647,6 +647,31 @@
                 }
               },
               "title": "S3"
+            },
+            "azblob": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties":{
+                "container": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
+                "poll_interval": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": "1m"
+                }
+              },
+              "title": "Azure Blob Storage"
             }
           },
           "title": "Object"

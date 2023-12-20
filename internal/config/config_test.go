@@ -795,6 +795,30 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/invalid_object_storage_type_not_specified.yml",
 			wantErr: errors.New("object storage type must be specified"),
 		},
+		{
+			name:    "azblob config invalid",
+			path:    "./testdata/storage/azblob_invalid.yml",
+			wantErr: errors.New("azblob container must be specified"),
+		},
+		{
+			name: "azblob full config provided",
+			path: "./testdata/storage/azblob_full.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: AZBlobObjectSubStorageType,
+						AZBlob: &AZBlob{
+							Container:    "testdata",
+							Endpoint:     "https//devaccount.blob.core.windows.net",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {

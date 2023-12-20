@@ -40,6 +40,12 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithExec([]string{"server", "/data", "--address", ":9009"})
 
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0"}).
+		AsService()
+
 	flipt = flipt.
 		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
@@ -48,10 +54,14 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 
 	flipt, err = flipt.
 		WithServiceBinding("redis", redisSrv.AsService()).
+		WithServiceBinding("azurite", azurite).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
 		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
+		WithEnvVariable("TEST_AZURE_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {
