@@ -62,7 +62,7 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
 	if err != nil {
 		return nil, err
