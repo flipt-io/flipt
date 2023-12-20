@@ -507,8 +507,8 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 
 	_, err := base.
 		WithServiceBinding("azurite", azurite).
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ACCOUNT", "devstoreaccount1").
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_SHARED_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", testdataDir}).
 		Sync(ctx)
 	if err != nil {
@@ -522,8 +522,8 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "azblob").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ENDPOINT", "http://azurite:10000/devstoreaccount1").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_CONTAINER", "testdata").
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ACCOUNT", "devstoreaccount1").
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_SHARED_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)

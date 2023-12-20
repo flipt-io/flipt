@@ -93,8 +93,6 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 		t.Skip("Set non-empty TEST_AZURE_ENDPOINT env var to run this test.")
 		return nil, true
 	}
-	account := os.Getenv("AZURE_STORAGE_ACCOUNT")
-	sharedKey := os.Getenv("AZURE_STORAGE_KEY")
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	client := testClient(t)
@@ -111,8 +109,6 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 	source, err := NewSnapshotStore(ctx, zaptest.NewLogger(t), testContainer,
 		append([]containers.Option[SnapshotStore]{
 			WithEndpoint(aruziteURL),
-			WithAccount(account),
-			NewWithSharedKey(sharedKey),
 		},
 			opts...)...,
 	)

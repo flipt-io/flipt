@@ -161,8 +161,6 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		return storagefs.NewStore(snapStore), nil
 	case config.AZBlobObjectSubStorageType:
 		opts := []containers.Option[azblob.SnapshotStore]{
-			azblob.WithAccount(objectCfg.AZBlob.Account),
-			azblob.NewWithSharedKey(objectCfg.AZBlob.SharedKey),
 			azblob.WithEndpoint(objectCfg.AZBlob.Endpoint),
 			azblob.WithPollOptions(
 				storagefs.WithInterval(objectCfg.AZBlob.PollInterval),

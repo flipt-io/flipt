@@ -798,7 +798,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "azblob config invalid",
 			path:    "./testdata/storage/azblob_invalid.yml",
-			wantErr: errors.New("azblob container and account must be specified"),
+			wantErr: errors.New("azblob container must be specified"),
 		},
 		{
 			name: "azblob full config provided",
@@ -811,8 +811,6 @@ func TestLoad(t *testing.T) {
 						Type: AZBlobObjectSubStorageType,
 						AZBlob: &AZBlob{
 							Container:    "testdata",
-							Account:      "devaccount",
-							SharedKey:    "sharedkey",
 							Endpoint:     "https//devaccount.blob.core.windows.net",
 							PollInterval: 5 * time.Minute,
 						},

@@ -83,20 +83,6 @@ func WithEndpoint(endpoint string) containers.Option[SnapshotStore] {
 	}
 }
 
-// WithAccount configures the account
-func WithAccount(account string) containers.Option[SnapshotStore] {
-	return func(s *SnapshotStore) {
-		s.account = account
-	}
-}
-
-// WithAccount configures the account
-func NewWithSharedKey(sharedKey string) containers.Option[SnapshotStore] {
-	return func(s *SnapshotStore) {
-		s.sharedKey = sharedKey
-	}
-}
-
 // WithPollOptions configures the poller options used when periodically updating snapshot state
 func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {

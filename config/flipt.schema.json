@@ -655,12 +655,6 @@
                 "container": {
                   "type": "string"
                 },
-                "account": {
-                  "type": "string"
-                },
-                "shared_key": {
-                  "type": "string"
-                },
                 "endpoint": {
                   "type": "string"
                 },

@@ -4,7 +4,5 @@ storage:
     type: azblob
     azblob:
       container: testdata
-      account: devaccount
-      shared_key: sharedkey
       endpoint: https//devaccount.blob.core.windows.net
       poll_interval: "5m"

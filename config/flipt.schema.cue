@@ -181,8 +181,6 @@ import "strings"
 			}
 			azblob?: {
 				container: string
-				account: string
-				shared_key?: string
 				endpoint?: string
 				poll_interval?: =~#duration | *"1m"
 			}

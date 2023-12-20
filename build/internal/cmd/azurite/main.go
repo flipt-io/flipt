@@ -33,8 +33,8 @@ func main() {
 	ctx := context.Background()
 
 	credentials, err := azblob.NewSharedKeyCredential(
-		os.Getenv("FLIPT_STORAGE_OBJECT_AZBLOB_ACCOUNT"),
-		os.Getenv("FLIPT_STORAGE_OBJECT_AZBLOB_SHARED_KEY"),
+		os.Getenv("AZURE_STORAGE_ACCOUNT"),
+		os.Getenv("AZURE_STORAGE_KEY"),
 	)
 	fatalOnError(err)
 	client, err := azblob.NewClientWithSharedKeyCredential(blobURL, credentials, nil)
