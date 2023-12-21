@@ -52,7 +52,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 			WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
 			WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").
 			WithServiceBinding("redis", client.Container().
-				From("redis").
+				From("redis:alpine").
 				WithExposedPort(6379).
 				WithExec(nil).
 				AsService())
