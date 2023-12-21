@@ -1,4 +1,4 @@
-package azblob
+package blob
 
 import (
 	"context"
@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"strings"
 	"time"
 
-	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
-
 	gcblob "gocloud.dev/blob"
-	_ "gocloud.dev/blob/azureblob"
 )
 
 // FS is only for accessing files in a single bucket. The directory
@@ -22,11 +20,12 @@ type FS struct {
 	logger *zap.Logger
 
 	// configuration
-	containerName string
-	urlstr        string
+	bucket string
+	prefix string
+	urlstr string
 
 	// cached entries
-	dirEntry *blob.Dir
+	dirEntry *Dir
 }
 
 // ensure FS implements fs.FS aka Open
@@ -38,13 +37,36 @@ var _ fs.StatFS = &FS{}
 // ensure FS implements fs.ReadDirFS aka ReadDir
 var _ fs.ReadDirFS = &FS{}
 
+func StrUrl(schema, bucket string) string {
+	return fmt.Sprintf("%s://%s", schema, bucket)
+}
+
 // New creates a FS for the container
-func NewFS(logger *zap.Logger, schema string, containerName string) (*FS, error) {
+func NewFS(logger *zap.Logger, urlstr string, bucket string, prefix string) (*FS, error) {
+	if prefix != "" {
+		prefix = strings.Trim(prefix, "/") + "/" // to match "a/subfolder/"
+	}
+
 	return &FS{
-		logger:        logger,
-		containerName: containerName,
-		urlstr:        fmt.Sprintf("%s://%s", schema, containerName),
+		logger: logger,
+		bucket: bucket,
+		urlstr: urlstr,
+		prefix: prefix,
 	}, nil
+}
+
+func (f *FS) openBucket(ctx context.Context) (*gcblob.Bucket, error) {
+	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
+	if err != nil {
+		return nil, err
+	}
+	if f.prefix != "" {
+		bucket = gcblob.PrefixedBucket(bucket, f.prefix)
+	}
+	bucket.SetIOFSCallback(func() (context.Context, *gcblob.ReaderOptions) {
+		return ctx, nil
+	})
+	return bucket, err
 }
 
 // Open implements fs.FS. it fetches the object contents from azure blob.
@@ -63,14 +85,11 @@ func (f *FS) Open(name string) (fs.File, error) {
 	}
 
 	ctx := context.Background()
-	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
+	bucket, err := f.openBucket(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer bucket.Close()
-	bucket.SetIOFSCallback(func() (context.Context, *gcblob.ReaderOptions) {
-		return ctx, nil
-	})
 	return bucket.Open(name)
 }
 
@@ -86,7 +105,7 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 		}
 	}
 
-	return blob.NewDir(blob.NewFileInfo(name, 0, time.Time{})), nil
+	return NewDir(NewFileInfo(name, 0, time.Time{})), nil
 }
 
 // ReadDir implements fs.ReadDirFS. This can only be called on the
@@ -94,7 +113,7 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	// ReadDir can only be called on the current directory, aka
 	// "." or the bucket
-	if name != "." && name != f.containerName {
+	if name != "." && name != f.bucket {
 		return nil, &fs.PathError{
 			Op:   "ReadDir",
 			Path: name,
@@ -107,7 +126,7 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	entries := []fs.DirEntry{}
 
 	ctx := context.Background()
-	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
+	bucket, err := f.openBucket(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +140,7 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 			}
 			return nil, err
 		}
-		fi := blob.NewFileInfo(
+		fi := NewFileInfo(
 			item.Key,
 			item.Size,
 			item.ModTime,

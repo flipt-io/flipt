@@ -1,43 +1,17 @@
-package s3
+package gcs
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 	"sync"
 	"time"
 
-	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
-	gcaws "gocloud.dev/aws"
-	gcblob "gocloud.dev/blob"
-	"gocloud.dev/blob/s3blob"
+	"gocloud.dev/blob/gcsblob"
 )
-
-const (
-	Schema = "s3i"
-)
-
-func init() {
-	gcblob.DefaultURLMux().RegisterBucket(Schema, new(urlSessionOpener))
-}
-
-type urlSessionOpener struct{}
-
-func (o *urlSessionOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*gcblob.Bucket, error) {
-	cfg, err := gcaws.V2ConfigFromURLParams(ctx, u.Query())
-	if err != nil {
-		return nil, fmt.Errorf("open bucket %v: %w", u, err)
-	}
-	clientV2 := s3v2.NewFromConfig(cfg, func(o *s3v2.Options) {
-		o.UsePathStyle = true
-	})
-	return s3blob.OpenBucketV2(ctx, clientV2, u.Host, &s3blob.Options{})
-}
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 
@@ -51,10 +25,8 @@ type SnapshotStore struct {
 	mu   sync.RWMutex
 	snap storage.ReadOnlyStore
 
-	endpoint string
-	region   string
-	bucket   string
-	prefix   string
+	bucket string
+	prefix string
 
 	pollOpts []containers.Option[storagefs.Poller]
 }
@@ -93,24 +65,10 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, bucket string, op
 	return s, nil
 }
 
-// WithPrefix configures the prefix for s3
+// WithPrefix configures the prefix
 func WithPrefix(prefix string) containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {
 		s.prefix = prefix
-	}
-}
-
-// WithRegion configures the region for s3
-func WithRegion(region string) containers.Option[SnapshotStore] {
-	return func(s *SnapshotStore) {
-		s.region = region
-	}
-}
-
-// WithEndpoint configures the region for s3
-func WithEndpoint(endpoint string) containers.Option[SnapshotStore] {
-	return func(s *SnapshotStore) {
-		s.endpoint = endpoint
 	}
 }
 
@@ -123,17 +81,7 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 
 // Update fetches a new snapshot and swaps it out for the current one.
 func (s *SnapshotStore) update(context.Context) (bool, error) {
-	q := url.Values{}
-	q.Set("awssdk", "v2")
-	if s.region != "" {
-		q.Set("region", s.region)
-	}
-	if s.endpoint != "" {
-		q.Set("endpoint", s.endpoint)
-	}
-
-	strurl := fmt.Sprintf("%s://%s?%s", Schema, s.bucket, q.Encode())
-	fs, err := blob.NewFS(s.logger, strurl, s.bucket, s.prefix)
+	fs, err := blob.NewFS(s.logger, blob.StrUrl(gcsblob.Scheme, s.bucket), s.bucket, s.prefix)
 	if err != nil {
 		return false, err
 	}
@@ -152,5 +100,5 @@ func (s *SnapshotStore) update(context.Context) (bool, error) {
 
 // String returns an identifier string for the store type.
 func (s *SnapshotStore) String() string {
-	return "s3"
+	return "gcs"
 }

@@ -1,4 +1,4 @@
-package azblob
+package blob
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func Test_FS(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	// run with no prefix, returning all files
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
-		azfs, err := NewFS(logger, "mem", containerName)
+		azfs, err := NewFS(logger, "mem://containerName", containerName, "")
 		require.NoError(t, err)
 
 		_, err = azfs.Open("..")
@@ -42,7 +42,7 @@ func Test_FS(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		t.Cleanup(cancel)
 
-		bucket, err := blob.OpenBucket(ctx, "file://"+dir)
+		bucket, err := blob.OpenBucket(ctx, "file://"+dir+"?prefix=data/")
 		require.NoError(t, err)
 
 		objectChunks := []string{"one", "two"}
@@ -52,7 +52,7 @@ func Test_FS(t *testing.T) {
 		}
 		require.NoError(t, bucket.Close())
 
-		azfs, err := NewFS(logger, "file", dir)
+		azfs, err := NewFS(logger, "file://"+dir, dir, "data")
 		require.NoError(t, err)
 
 		// running test

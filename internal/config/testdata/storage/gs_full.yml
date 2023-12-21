@@ -1,0 +1,8 @@
+storage:
+  type: object
+  object:
+    type: gs
+    gs:
+      bucket: testdata
+      prefix: prefix
+      poll_interval: "5m"

@@ -11,7 +11,10 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
+
+	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
+	"gocloud.dev/blob/azureblob"
 )
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
@@ -28,6 +31,7 @@ type SnapshotStore struct {
 
 	endpoint  string
 	container string
+	prefix    string
 	pollOpts  []containers.Option[storagefs.Poller]
 }
 
@@ -91,7 +95,7 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 
 // Update fetches a new snapshot and swaps it out for the current one.
 func (s *SnapshotStore) update(context.Context) (bool, error) {
-	fs, err := NewFS(s.logger, "azblob", s.container)
+	fs, err := blob.NewFS(s.logger, blob.StrUrl(azureblob.Scheme, s.container), s.container, s.prefix)
 	if err != nil {
 		return false, err
 	}

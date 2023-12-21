@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
@@ -50,7 +51,7 @@ flags:
 
 	buf := bytes.NewReader(updated)
 
-	s3Client := store.s3
+	s3Client := testClient(t, store.region, store.endpoint)
 	// update features.yml
 	path := "features.yml"
 	_, err := s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -123,4 +124,20 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 	})
 
 	return source, false
+}
+
+func testClient(t *testing.T, region string, endpoint string) *s3.Client {
+	t.Helper()
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region))
+	require.NoError(t, err)
+	var s3Opts []func(*s3.Options)
+	if endpoint != "" {
+		s3Opts = append(s3Opts, func(o *s3.Options) {
+			o.BaseEndpoint = &endpoint
+			o.UsePathStyle = true
+			o.Region = region
+		})
+	}
+	return s3.NewFromConfig(cfg, s3Opts...)
 }
