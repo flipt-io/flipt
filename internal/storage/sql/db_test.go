@@ -34,7 +34,7 @@ func TestOpen(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "sqlite url",
+			name: "sqlite file",
 			cfg: config.DatabaseConfig{
 				URL:             "file:/flipt.db",
 				MaxOpenConn:     5,
@@ -43,7 +43,25 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.SQLite,
 		},
 		{
-			name: "sqlite url (without slash)",
+			name: "sqlite proto",
+			cfg: config.DatabaseConfig{
+				URL:             "sqlite3://flipt.db",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.SQLite,
+		},
+		{
+			name: "sqlite proto Windows",
+			cfg: config.DatabaseConfig{
+				URL:             "sqlite3://C:\\Users\\sballmer\\AppData\\Local\\flipt\\flipt.db",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.SQLite,
+		},
+		{
+			name: "sqlite (without slash)",
 			cfg: config.DatabaseConfig{
 				URL:             "file:flipt.db",
 				MaxOpenConn:     5,
@@ -52,7 +70,7 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.SQLite,
 		},
 		{
-			name: "libsql url",
+			name: "libsql",
 			cfg: config.DatabaseConfig{
 				URL:             "libsql://file:/flipt.db",
 				MaxOpenConn:     5,
@@ -61,7 +79,7 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.LibSQL,
 		},
 		{
-			name: "libsql with http",
+			name: "libsql http",
 			cfg: config.DatabaseConfig{
 				URL:             "http://127.0.0.1:8000",
 				MaxOpenConn:     5,
@@ -70,7 +88,7 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.LibSQL,
 		},
 		{
-			name: "libsql with https",
+			name: "libsql https",
 			cfg: config.DatabaseConfig{
 				URL:             "https://turso.remote",
 				MaxOpenConn:     5,
@@ -79,28 +97,28 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.LibSQL,
 		},
 		{
-			name: "postgres url",
+			name: "postgres",
 			cfg: config.DatabaseConfig{
 				URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 			},
 			driver: fliptsql.Postgres,
 		},
 		{
-			name: "mysql url",
+			name: "mysql",
 			cfg: config.DatabaseConfig{
 				URL: "mysql://mysql@localhost:3306/flipt",
 			},
 			driver: fliptsql.MySQL,
 		},
 		{
-			name: "cockroachdb url",
+			name: "cockroachdb",
 			cfg: config.DatabaseConfig{
 				URL: "cockroachdb://cockroachdb@localhost:26257/flipt?sslmode=disable",
 			},
 			driver: fliptsql.CockroachDB,
 		},
 		{
-			name: "invalid url",
+			name: "invalid",
 			cfg: config.DatabaseConfig{
 				URL: "tcp://a b",
 			},
