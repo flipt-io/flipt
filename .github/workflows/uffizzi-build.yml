@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate UUID image name
         id: uuid
-        run: echo "UUID_FLIPT=$(uuidgen)" >> $GITHUB_ENV
+        run: echo "UUID_FLIPT=flipt-$(uuidgen --time)" >> $GITHUB_ENV
 
       - name: Docker metadata
         id: meta
