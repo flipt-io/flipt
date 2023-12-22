@@ -53,7 +53,9 @@ func NewPoller(logger *zap.Logger, ctx context.Context, update UpdateFunc, opts 
 
 func (p *Poller) Close() error {
 	p.cancel()
+
 	<-p.done
+
 	return nil
 }
 
