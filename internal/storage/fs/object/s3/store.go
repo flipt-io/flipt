@@ -78,9 +78,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, bucket string, op
 		return nil, err
 	}
 
-	s.Poller = storagefs.NewPoller(s.logger, s.pollOpts...)
+	s.Poller = storagefs.NewPoller(s.logger, ctx, s.update, s.pollOpts...)
 
-	go s.Poll(ctx, s.update)
+	go s.Poll()
 
 	return s, nil
 }

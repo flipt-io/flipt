@@ -127,9 +127,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	// if the reference is a static hash then it is immutable
 	// if we have already fetched it once, there is not point updating again
-	store.Poller = storagefs.NewPoller(store.logger, store.pollOpts...)
+	store.Poller = storagefs.NewPoller(store.logger, ctx, store.update, store.pollOpts...)
 	if store.hash == plumbing.ZeroHash {
-		go store.Poll(ctx, store.update)
+		go store.Poll()
 	}
 
 	return store, nil
