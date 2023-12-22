@@ -6,7 +6,7 @@ authentication:
   methods:
     github:
       enabled: true
+      client_id: "client_id"
+      client_secret: "client_secret"
       scopes:
         - "user:email"
-      allowed_organizations:
-        - "github.com/flipt-io"
