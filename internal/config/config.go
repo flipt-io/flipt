@@ -438,7 +438,7 @@ func Default() *Config {
 		panic(err)
 	}
 
-	dbPath := filepath.Join(dbRoot, "flipt.db")
+	dbPath := filepath.ToSlash(filepath.Join(dbRoot, "flipt.db"))
 
 	return &Config{
 		Log: LogConfig{
