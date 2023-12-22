@@ -19,6 +19,8 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // SnapshotStore represents an implementation of storage.SnapshotStore
 // This implementation is backed by an S3 bucket
 type SnapshotStore struct {
+	*storagefs.Poller
+
 	logger *zap.Logger
 	s3     *s3.Client
 
@@ -76,7 +78,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, bucket string, op
 		return nil, err
 	}
 
-	go storagefs.NewPoller(s.logger, s.pollOpts...).Poll(ctx, s.update)
+	s.Poller = storagefs.NewPoller(s.logger, ctx, s.update, s.pollOpts...)
+
+	go s.Poll()
 
 	return s, nil
 }
