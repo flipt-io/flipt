@@ -96,6 +96,10 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 		opts...)
 	require.NoError(t, err)
 
+	t.Cleanup(func() {
+		_ = source.Close()
+	})
+
 	return source, target
 }
 

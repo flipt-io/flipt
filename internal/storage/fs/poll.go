@@ -13,7 +13,10 @@ type Poller struct {
 	logger *zap.Logger
 
 	interval time.Duration
-	notify   func(modified bool)
+
+	cancel func()
+	done   chan struct{}
+	notify func(modified bool)
 }
 
 func WithInterval(interval time.Duration) containers.Option[Poller] {
@@ -32,15 +35,27 @@ func WithNotify(t *testing.T, n func(modified bool)) containers.Option[Poller] {
 func NewPoller(logger *zap.Logger, opts ...containers.Option[Poller]) *Poller {
 	p := &Poller{
 		logger:   logger,
+		cancel:   func() {},
+		done:     make(chan struct{}),
 		interval: 30 * time.Second,
 	}
 	containers.ApplyAll(p, opts...)
 	return p
 }
 
+func (p *Poller) Close() error {
+	p.cancel()
+	<-p.done
+	return nil
+}
+
 // Poll is a utility function for a common polling strategy used by lots of declarative
 // store implementations.
 func (p *Poller) Poll(ctx context.Context, update func(context.Context) (bool, error)) {
+	defer close(p.done)
+
+	ctx, p.cancel = context.WithCancel(ctx)
+
 	ticker := time.NewTicker(p.interval)
 	for {
 		select {

@@ -179,6 +179,10 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 	)
 	require.NoError(t, err)
 
+	t.Cleanup(func() {
+		_ = source.Close()
+	})
+
 	return source, false
 }
 
@@ -198,5 +202,10 @@ func testStoreWithError(t *testing.T, opts ...containers.Option[SnapshotStore]) 
 		},
 			opts...)...,
 	)
+
+	t.Cleanup(func() {
+		_ = source.Close()
+	})
+
 	return source, err
 }
