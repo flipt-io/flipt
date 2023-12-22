@@ -202,10 +202,13 @@ func testStoreWithError(t *testing.T, opts ...containers.Option[SnapshotStore]) 
 		},
 			opts...)...,
 	)
+	if err != nil {
+		return err
+	}
 
 	t.Cleanup(func() {
 		_ = source.Close()
 	})
 
-	return err
+	return nil
 }
