@@ -122,7 +122,7 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 }
 
 // Update fetches a new snapshot and swaps it out for the current one.
-func (s *SnapshotStore) update(context.Context) (bool, error) {
+func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	q := url.Values{}
 	q.Set("awssdk", "v2")
 	if s.region != "" {
@@ -133,7 +133,7 @@ func (s *SnapshotStore) update(context.Context) (bool, error) {
 	}
 
 	strurl := fmt.Sprintf("%s://%s?%s", Schema, s.bucket, q.Encode())
-	fs, err := blob.NewFS(s.logger, strurl, s.bucket, s.prefix)
+	fs, err := blob.NewFS(ctx, strurl, s.bucket, s.prefix)
 	if err != nil {
 		return false, err
 	}

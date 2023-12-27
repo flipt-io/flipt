@@ -852,7 +852,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "gs config invalid",
 			path:    "./testdata/storage/gs_invalid.yml",
-			wantErr: errors.New("gs bucket must be specified"),
+			wantErr: errors.New("googlecloud bucket must be specified"),
 		},
 		{
 			name: "gs full config provided",

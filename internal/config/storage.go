@@ -29,7 +29,7 @@ type ObjectSubStorageType string
 const (
 	S3ObjectSubStorageType     = ObjectSubStorageType("s3")
 	AZBlobObjectSubStorageType = ObjectSubStorageType("azblob")
-	GSBlobObjectSubStorageType = ObjectSubStorageType("gs")
+	GSBlobObjectSubStorageType = ObjectSubStorageType("googlecloud")
 )
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
@@ -160,7 +160,7 @@ type Object struct {
 	Type   ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
 	S3     *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
 	AZBlob *AZBlob              `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
-	GS     *GS                  `json:"gs,omitempty" mapstructure:"gs,omitempty" yaml:"gs,omitempty"`
+	GS     *GS                  `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
 }
 
 // validate is only called if storage.type == "object"
@@ -176,7 +176,7 @@ func (o *Object) validate() error {
 		}
 	case GSBlobObjectSubStorageType:
 		if o.GS == nil || o.GS.Bucket == "" {
-			return errors.New("gs bucket must be specified")
+			return errors.New("googlecloud bucket must be specified")
 		}
 	default:
 		return errors.New("object storage type must be specified")
@@ -200,7 +200,7 @@ type AZBlob struct {
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
-// GS contains configuration for referencing a Azure Blob Storage
+// GS contains configuration for referencing a Google Cloud Storage
 type GS struct {
 	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`

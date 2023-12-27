@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"go.uber.org/zap"
 	gcblob "gocloud.dev/blob"
 )
 
@@ -17,7 +16,7 @@ import (
 // entries are cached. It is specifically intended for use by a source
 // that calls fs.WalkDir and does not fully implement all fs operations
 type FS struct {
-	logger *zap.Logger
+	ctx context.Context
 
 	// configuration
 	bucket string
@@ -42,21 +41,21 @@ func StrUrl(schema, bucket string) string {
 }
 
 // New creates a FS for the container
-func NewFS(logger *zap.Logger, urlstr string, bucket string, prefix string) (*FS, error) {
+func NewFS(ctx context.Context, urlstr string, bucket string, prefix string) (*FS, error) {
 	if prefix != "" {
 		prefix = strings.Trim(prefix, "/") + "/" // to match "a/subfolder/"
 	}
 
 	return &FS{
-		logger: logger,
+		ctx:    ctx,
 		bucket: bucket,
 		urlstr: urlstr,
 		prefix: prefix,
 	}, nil
 }
 
-func (f *FS) openBucket(ctx context.Context) (*gcblob.Bucket, error) {
-	bucket, err := gcblob.OpenBucket(ctx, f.urlstr)
+func (f *FS) openBucket() (*gcblob.Bucket, error) {
+	bucket, err := gcblob.OpenBucket(f.ctx, f.urlstr)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +63,7 @@ func (f *FS) openBucket(ctx context.Context) (*gcblob.Bucket, error) {
 		bucket = gcblob.PrefixedBucket(bucket, f.prefix)
 	}
 	bucket.SetIOFSCallback(func() (context.Context, *gcblob.ReaderOptions) {
-		return ctx, nil
+		return f.ctx, nil
 	})
 	return bucket, err
 }
@@ -84,8 +83,7 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	ctx := context.Background()
-	bucket, err := f.openBucket(ctx)
+	bucket, err := f.openBucket()
 	if err != nil {
 		return nil, err
 	}
@@ -125,15 +123,14 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	// if the list is large, they are not stored on the FS object.
 	entries := []fs.DirEntry{}
 
-	ctx := context.Background()
-	bucket, err := f.openBucket(ctx)
+	bucket, err := f.openBucket()
 	if err != nil {
 		return nil, err
 	}
 	defer bucket.Close()
 	iterator := bucket.List(&gcblob.ListOptions{})
 	for {
-		item, err := iterator.Next(ctx)
+		item, err := iterator.Next(f.ctx)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				break

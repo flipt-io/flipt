@@ -80,8 +80,8 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 }
 
 // Update fetches a new snapshot and swaps it out for the current one.
-func (s *SnapshotStore) update(context.Context) (bool, error) {
-	fs, err := blob.NewFS(s.logger, blob.StrUrl(gcsblob.Scheme, s.bucket), s.bucket, s.prefix)
+func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
+	fs, err := blob.NewFS(ctx, blob.StrUrl(gcsblob.Scheme, s.bucket), s.bucket, s.prefix)
 	if err != nil {
 		return false, err
 	}

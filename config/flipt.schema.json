@@ -614,7 +614,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["s3", "azblob", "gs"],
+              "enum": ["s3", "azblob", "googlecloud"],
               "default": "s3"
             },
             "s3": {
@@ -673,7 +673,7 @@
               },
               "title": "Azure Blob Storage"
             },
-            "gs": {
+            "googlecloud": {
               "type": "object",
               "additionalProperties": false,
               "properties": {

@@ -552,8 +552,8 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithServiceBinding("gcs", gcs).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "gs").
-		WithEnvVariable("FLIPT_STORAGE_OBJECT_GS_BUCKET", "testdata").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "googlecloud").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_GOOGLECLOUD_BUCKET", "testdata").
 		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 

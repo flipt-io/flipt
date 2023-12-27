@@ -7,18 +7,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"gocloud.dev/blob"
-	_ "gocloud.dev/blob/fileblob"
-	_ "gocloud.dev/blob/memblob"
+	"gocloud.dev/blob/fileblob"
+	"gocloud.dev/blob/memblob"
 )
 
 func Test_FS(t *testing.T) {
 	containerName := "test-container"
-	logger := zaptest.NewLogger(t)
 	// run with no prefix, returning all files
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
-		azfs, err := NewFS(logger, "mem://containerName", containerName, "")
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+		azfs, err := NewFS(ctx, StrUrl(memblob.Scheme, containerName), containerName, "")
 		require.NoError(t, err)
 
 		_, err = azfs.Open("..")
@@ -52,7 +52,7 @@ func Test_FS(t *testing.T) {
 		}
 		require.NoError(t, bucket.Close())
 
-		azfs, err := NewFS(logger, "file://"+dir, dir, "data")
+		azfs, err := NewFS(ctx, StrUrl(fileblob.Scheme, dir), dir, "data")
 		require.NoError(t, err)
 
 		// running test

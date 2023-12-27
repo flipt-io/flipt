@@ -94,8 +94,8 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 }
 
 // Update fetches a new snapshot and swaps it out for the current one.
-func (s *SnapshotStore) update(context.Context) (bool, error) {
-	fs, err := blob.NewFS(s.logger, blob.StrUrl(azureblob.Scheme, s.container), s.container, s.prefix)
+func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
+	fs, err := blob.NewFS(ctx, blob.StrUrl(azureblob.Scheme, s.container), s.container, s.prefix)
 	if err != nil {
 		return false, err
 	}

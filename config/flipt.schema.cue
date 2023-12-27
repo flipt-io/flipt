@@ -171,7 +171,7 @@ import "strings"
 			})
 		}
 		object?: {
-			type: "s3" | "azblob" | "gs" | *""
+			type: "s3" | "azblob" | "googlecloud" | *""
 			s3?: {
 				region:         string
 				bucket:         string
