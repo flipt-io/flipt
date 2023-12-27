@@ -16,7 +16,7 @@ import (
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 
 // SnapshotStore represents an implementation of storage.SnapshotStore
-// This implementation is backed by an S3 bucket
+// This implementation is backed by a Google Cloud bucket
 type SnapshotStore struct {
 	*storagefs.Poller
 
