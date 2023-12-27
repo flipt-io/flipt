@@ -66,7 +66,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		case string(AZBlobObjectSubStorageType):
 			v.SetDefault("storage.object.azblob.poll_interval", "1m")
 		case string(GSBlobObjectSubStorageType):
-			v.SetDefault("storage.object.gs.poll_interval", "1m")
+			v.SetDefault("storage.object.googlecloud.poll_interval", "1m")
 		}
 
 	case string(OCIStorageType):
