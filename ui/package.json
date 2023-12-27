@@ -31,7 +31,7 @@
     "highlight.js": "^11.9.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
-    "monaco-editor": "^0.43.0",
+    "monaco-editor": "^0.45.0",
     "monaco-themes": "^0.4.4",
     "nightwind": "^1.1.13",
     "playwright": "^1.40.1",
