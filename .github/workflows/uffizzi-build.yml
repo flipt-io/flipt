@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate UUID image name
         id: uuid
-        run: echo "UUID_FLIPT=$(uuidgen)" >> $GITHUB_ENV
+        run: echo "UUID_FLIPT=flipt-$(uuidgen --time)" >> $GITHUB_ENV
 
       - name: Docker metadata
         id: meta
@@ -45,7 +45,7 @@ jobs:
     name: Render Docker Compose File
     # Pass output of this workflow to another triggered by `workflow_run` event.
     runs-on: ubuntu-latest
-    if: ${{ github.triggering_actor != 'dependabot[bot]' }}
+    if: ${{ github.triggering_actor != 'dependabot[bot]' && github.event.action != 'closed' }}
     needs:
       - build
     steps:
@@ -61,16 +61,16 @@ jobs:
           cat docker-compose.rendered.yml
 
       - name: Upload Rendered Compose File as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: preview-spec
+          name: preview-spec-compose
           path: docker-compose.rendered.yml
           retention-days: 2
 
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: preview-spec
+          name: preview-spec-event
           path: ${{ github.event_path }}
           retention-days: 2
 
@@ -81,7 +81,7 @@ jobs:
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: preview-spec
           path: ${{ github.event_path }}

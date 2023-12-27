@@ -57,6 +57,7 @@ jobs:
             "fs/local",
             "fs/s3",
             "fs/oci",
+            "fs/azblob",
             "import/export",
           ]
     steps:
@@ -81,12 +82,14 @@ jobs:
       - name: Run Integration Tests
         run: mage dagger:run "test:integration ${{ matrix.test }}"
 
+      - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
+
       - name: Upload Flipt Service Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: Flipt Service Logs
-          path: build/logs
+          name: "build-logs-${{ env.INTEGRATION_TEST_NAME }}"
+          path: "build/logs"
           retention-days: 5
 
   ui:

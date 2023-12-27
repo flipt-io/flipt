@@ -16,6 +16,8 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // SnapshotStore implements storagefs.SnapshotStore which
 // is backed by the local filesystem through os.DirFS
 type SnapshotStore struct {
+	*storagefs.Poller
+
 	logger *zap.Logger
 	dir    string
 
@@ -40,9 +42,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, dir string, opts 
 		return nil, err
 	}
 
-	go storagefs.
-		NewPoller(logger, s.pollOpts...).
-		Poll(ctx, s.update)
+	s.Poller = storagefs.NewPoller(logger, ctx, s.update, s.pollOpts...)
+
+	go s.Poll()
 
 	return s, nil
 }

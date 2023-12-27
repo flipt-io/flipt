@@ -402,7 +402,15 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	return info
 }
 
-func (a AuthenticationMethodOIDCConfig) validate() error { return nil }
+func (a AuthenticationMethodOIDCConfig) validate() error {
+	for provider, config := range a.Providers {
+		if err := config.validate(); err != nil {
+			return fmt.Errorf("provider %q: %w", provider, err)
+		}
+	}
+
+	return nil
+}
 
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
@@ -412,6 +420,22 @@ type AuthenticationMethodOIDCProvider struct {
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+}
+
+func (a AuthenticationMethodOIDCProvider) validate() error {
+	if a.ClientID == "" {
+		return errFieldWrap("client_id", errValidationRequired)
+	}
+
+	if a.ClientSecret == "" {
+		return errFieldWrap("client_secret", errValidationRequired)
+	}
+
+	if a.RedirectAddress == "" {
+		return errFieldWrap("redirect_address", errValidationRequired)
+	}
+
+	return nil
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
@@ -482,9 +506,25 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 }
 
 func (a AuthenticationMethodGithubConfig) validate() error {
+	errWrap := func(err error) error {
+		return fmt.Errorf("provider %q: %w", "github", err)
+	}
+
+	if a.ClientId == "" {
+		return errWrap(errFieldWrap("client_id", errValidationRequired))
+	}
+
+	if a.ClientSecret == "" {
+		return errWrap(errFieldWrap("client_secret", errValidationRequired))
+	}
+
+	if a.RedirectAddress == "" {
+		return errWrap(errFieldWrap("redirect_address", errValidationRequired))
+	}
+
 	// ensure scopes contain read:org if allowed organizations is not empty
 	if len(a.AllowedOrganizations) > 0 && !slices.Contains(a.Scopes, "read:org") {
-		return fmt.Errorf("scopes must contain read:org when allowed_organizations is not empty")
+		return errWrap(errFieldWrap("scopes", fmt.Errorf("must contain read:org when allowed_organizations is not empty")))
 	}
 
 	return nil
