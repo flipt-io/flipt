@@ -1,4 +1,4 @@
 storage:
   type: object
   object:
-    type: gs
+    type: googlecloud

@@ -184,7 +184,7 @@ import "strings"
 				endpoint?: string
 				poll_interval?: =~#duration | *"1m"
 			}
-			gs?: {
+			googlecloud?: {
 				bucket:         string
 				prefix?:        string
 				poll_interval?: =~#duration | *"1m"
