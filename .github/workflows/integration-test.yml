@@ -57,6 +57,7 @@ jobs:
             "fs/local",
             "fs/s3",
             "fs/oci",
+            "fs/azblob",
             "import/export",
           ]
     steps:

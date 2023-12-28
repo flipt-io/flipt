@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	flipterrors "go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/storage/fs/blob"
+	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
 )
 

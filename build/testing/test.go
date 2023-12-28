@@ -10,7 +10,7 @@ import (
 func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
 	// create Redis service container
 	redisSrv := client.Container().
-		From("redis").
+		From("redis:alpine").
 		WithExposedPort(6379).
 		WithExec(nil)
 
@@ -38,20 +38,31 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-		WithExec([]string{"server", "/data", "--address", ":9009"})
+		WithEnvVariable("MINIO_BROWSER", "off").
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
+
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		AsService()
 
 	flipt = flipt.
 		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", "./internal/storage/fs/s3/testdata"})
+		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", "./internal/storage/fs/object/s3/testdata"})
 
 	flipt, err = flipt.
 		WithServiceBinding("redis", redisSrv.AsService()).
+		WithServiceBinding("azurite", azurite).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
 		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
+		WithEnvVariable("TEST_AZURE_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {

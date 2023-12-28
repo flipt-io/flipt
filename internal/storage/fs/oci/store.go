@@ -17,6 +17,8 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // SnapshotStore is an implementation storage.SnapshotStore backed by OCI repositories.
 // It fetches instances of OCI manifests and uses them to build snapshots from their contents.
 type SnapshotStore struct {
+	*storagefs.Poller
+
 	logger *zap.Logger
 
 	store *oci.Store
@@ -47,13 +49,16 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, store *oci.Store,
 		store:  store,
 		ref:    ref,
 	}
+
 	containers.ApplyAll(s, opts...)
 
 	if _, err := s.update(ctx); err != nil {
 		return nil, err
 	}
 
-	go storagefs.NewPoller(logger, s.pollOpts...).Poll(ctx, s.update)
+	s.Poller = storagefs.NewPoller(logger, ctx, s.update, s.pollOpts...)
+
+	go s.Poller.Poll()
 
 	return s, nil
 }

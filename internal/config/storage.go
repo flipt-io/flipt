@@ -27,7 +27,8 @@ const (
 type ObjectSubStorageType string
 
 const (
-	S3ObjectSubStorageType = ObjectSubStorageType("s3")
+	S3ObjectSubStorageType     = ObjectSubStorageType("s3")
+	AZBlobObjectSubStorageType = ObjectSubStorageType("azblob")
 )
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
@@ -61,6 +62,8 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		switch v.GetString("storage.object.type") {
 		case string(S3ObjectSubStorageType):
 			v.SetDefault("storage.object.s3.poll_interval", "1m")
+		case string(AZBlobObjectSubStorageType):
+			v.SetDefault("storage.object.azblob.poll_interval", "1m")
 		}
 	case string(OCIStorageType):
 		v.SetDefault("storage.oci.poll_interval", "30s")
@@ -150,8 +153,9 @@ func (g *Git) validate() error {
 
 // Object contains configuration of readonly object storage.
 type Object struct {
-	Type ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	S3   *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
+	Type   ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	S3     *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
+	AZBlob *AZBlob              `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
 }
 
 // validate is only called if storage.type == "object"
@@ -160,6 +164,10 @@ func (o *Object) validate() error {
 	case S3ObjectSubStorageType:
 		if o.S3 == nil || o.S3.Bucket == "" {
 			return errors.New("s3 bucket must be specified")
+		}
+	case AZBlobObjectSubStorageType:
+		if o.AZBlob == nil || o.AZBlob.Container == "" {
+			return errors.New("azblob container must be specified")
 		}
 	default:
 		return errors.New("object storage type must be specified")
@@ -173,6 +181,13 @@ type S3 struct {
 	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	Region       string        `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
+	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+}
+
+// AZBlob contains configuration for referencing a Azure Blob Storage
+type AZBlob struct {
+	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
+	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
