@@ -1,8 +1,7 @@
-package s3fs
+package s3
 
 import (
 	"context"
-	"io"
 	"io/fs"
 	"strings"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage/fs/object/blob"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +30,7 @@ type FS struct {
 	prefix string
 
 	// cached entries
-	dirEntry *Dir
+	dirEntry *blob.Dir
 }
 
 // ensure FS implements fs.FS aka Open
@@ -43,7 +43,7 @@ var _ fs.StatFS = &FS{}
 var _ fs.ReadDirFS = &FS{}
 
 // New creates a FS for the single bucket
-func New(logger *zap.Logger, s3Client S3ClientAPI, bucket string, prefix string) (*FS, error) {
+func NewFS(logger *zap.Logger, s3Client S3ClientAPI, bucket string, prefix string) (*FS, error) {
 	return &FS{
 		logger:   logger,
 		s3Client: s3Client,
@@ -91,13 +91,13 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	return &File{
-		bucket:       f.bucket,
-		key:          name,
-		length:       *output.ContentLength,
-		body:         output.Body,
-		lastModified: *output.LastModified,
-	}, nil
+	return blob.NewFile(
+		f.bucket,
+		name,
+		*output.ContentLength,
+		output.Body,
+		*output.LastModified,
+	), nil
 }
 
 // Stat implements fs.StatFS. For the s3 filesystem, this gets the
@@ -113,14 +113,8 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 			Err:  fs.ErrInvalid,
 		}
 	}
-	dirInfo := &FileInfo{
-		name: name,
-		size: 0,
-	}
-	f.dirEntry = &Dir{
-		FileInfo: dirInfo,
-	}
 
+	f.dirEntry = blob.NewDir(blob.NewFileInfo(name, 0, time.Time{}))
 	// AWS S3 does not store the last modified time for the bucket
 	// anywhere. We'd have to iterate through all the objects to
 	// calculate it, which doesn't seem worth it.
@@ -174,11 +168,11 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 		for i := range output.Contents {
 			c := output.Contents[i]
-			fi := &FileInfo{
-				name:    *c.Key,
-				size:    *c.Size,
-				modTime: *c.LastModified,
-			}
+			fi := blob.NewFileInfo(
+				*c.Key,
+				*c.Size,
+				*c.LastModified,
+			)
 			entries = append(entries, fi)
 		}
 		if !*output.IsTruncated {
@@ -195,100 +189,4 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 		Path: name,
 		Err:  fs.ErrClosed,
 	}
-}
-
-type Dir struct {
-	*FileInfo
-}
-
-// ensure Dir implements fs.FileInfo
-var _ fs.FileInfo = &Dir{}
-
-func (d *Dir) Stat() (fs.FileInfo, error) {
-	return d.FileInfo, nil
-}
-
-func (d *Dir) Read(p []byte) (n int, err error) {
-	return 0, io.EOF
-}
-
-func (d *Dir) Close() error {
-	return nil
-}
-
-func (d *Dir) IsDir() bool {
-	return true
-}
-
-func (d *Dir) Mode() fs.FileMode {
-	return fs.ModeDir
-}
-
-// ensure FileInfo implements fs.FileInfo
-var _ fs.FileInfo = &FileInfo{}
-
-// ensure FileInfo implements fs.DirEntry
-var _ fs.DirEntry = &FileInfo{}
-
-type FileInfo struct {
-	name    string
-	size    int64
-	modTime time.Time
-}
-
-func (fi *FileInfo) Name() string {
-	return fi.name
-}
-
-func (fi *FileInfo) Size() int64 {
-	return fi.size
-}
-
-func (fi *FileInfo) Type() fs.FileMode {
-	return 0
-}
-
-func (fi *FileInfo) Mode() fs.FileMode {
-	return fs.ModePerm
-}
-
-func (fi *FileInfo) ModTime() time.Time {
-	return fi.modTime
-}
-
-func (fi *FileInfo) IsDir() bool {
-	return false
-}
-
-func (fi *FileInfo) Sys() any {
-	return nil
-}
-func (fi *FileInfo) Info() (fs.FileInfo, error) {
-	return fi, nil
-}
-
-type File struct {
-	bucket       string
-	key          string
-	length       int64
-	body         io.ReadCloser
-	lastModified time.Time
-}
-
-// ensure File implements the fs.File interface
-var _ fs.File = &File{}
-
-func (f *File) Stat() (fs.FileInfo, error) {
-	return &FileInfo{
-		name: f.key,
-		size: f.length,
-	}, nil
-}
-
-func (f *File) Read(p []byte) (int, error) {
-	return f.body.Read(p)
-}
-
-func (f *File) Close() error {
-	return f.body.Close()
 }

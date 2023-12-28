@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/s3fs"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
@@ -20,6 +19,8 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // SnapshotStore represents an implementation of storage.SnapshotStore
 // This implementation is backed by an S3 bucket
 type SnapshotStore struct {
+	*storagefs.Poller
+
 	logger *zap.Logger
 	s3     *s3.Client
 
@@ -77,7 +78,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, bucket string, op
 		return nil, err
 	}
 
-	go storagefs.NewPoller(s.logger, s.pollOpts...).Poll(ctx, s.update)
+	s.Poller = storagefs.NewPoller(s.logger, ctx, s.update, s.pollOpts...)
+
+	go s.Poll()
 
 	return s, nil
 }
@@ -112,7 +115,7 @@ func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Opt
 
 // Update fetches a new snapshot and swaps it out for the current one.
 func (s *SnapshotStore) update(context.Context) (bool, error) {
-	fs, err := s3fs.New(s.logger, s.s3, s.bucket, s.prefix)
+	fs, err := NewFS(s.logger, s.s3, s.bucket, s.prefix)
 	if err != nil {
 		return false, err
 	}

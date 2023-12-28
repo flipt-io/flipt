@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"sync"
 
@@ -27,6 +28,8 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // When subscribing to this source, the upstream reference is tracked
 // by polling the upstream on a configurable interval.
 type SnapshotStore struct {
+	io.Closer
+
 	logger *zap.Logger
 	repo   *git.Repository
 
@@ -95,6 +98,7 @@ func WithCABundle(caCertBytes []byte) containers.Option[SnapshotStore] {
 // fs.FS implementations around a target git repository.
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts ...containers.Option[SnapshotStore]) (_ *SnapshotStore, err error) {
 	store := &SnapshotStore{
+		Closer: io.NopCloser(nil),
 		logger: logger.With(zap.String("repository", url)),
 		url:    url,
 		ref:    "main",
@@ -126,9 +130,9 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 	// if the reference is a static hash then it is immutable
 	// if we have already fetched it once, there is not point updating again
 	if store.hash == plumbing.ZeroHash {
-		go storagefs.
-			NewPoller(store.logger, store.pollOpts...).
-			Poll(ctx, store.update)
+		poller := storagefs.NewPoller(store.logger, ctx, store.update, store.pollOpts...)
+		store.Closer = poller
+		go poller.Poll()
 	}
 
 	return store, nil

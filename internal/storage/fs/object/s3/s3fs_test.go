@@ -1,4 +1,4 @@
-package s3fs
+package s3
 
 import (
 	"context"
@@ -152,7 +152,7 @@ func Test_FS(t *testing.T) {
 	fakeS3Client := newFakeS3Client()
 	logger := zaptest.NewLogger(t)
 	// run with no prefix, returning all files
-	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket, "")
+	s3fs, err := NewFS(logger, fakeS3Client, fakeS3Client.bucket, "")
 	require.NoError(t, err)
 
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
@@ -224,7 +224,7 @@ func Test_FS_Prefix(t *testing.T) {
 	fakeS3Client := newFakeS3Client()
 	logger := zaptest.NewLogger(t)
 	// run with prefix, returning only prefixed files
-	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket, "prefix/")
+	s3fs, err := NewFS(logger, fakeS3Client, fakeS3Client.bucket, "prefix/")
 	require.NoError(t, err)
 
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {

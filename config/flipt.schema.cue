@@ -171,12 +171,17 @@ import "strings"
 			})
 		}
 		object?: {
-			type: "s3" | *""
+			type: "s3" | "azblob" | *""
 			s3?: {
 				region:         string
 				bucket:         string
 				prefix?:        string
 				endpoint?:      string
+				poll_interval?: =~#duration | *"1m"
+			}
+			azblob?: {
+				container: string
+				endpoint?: string
 				poll_interval?: =~#duration | *"1m"
 			}
 		}

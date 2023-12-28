@@ -447,8 +447,38 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name:    "authentication github requires read:org scope when allowing orgs",
-			path:    "./testdata/authentication/github_no_org_scope.yml",
-			wantErr: errors.New("scopes must contain read:org when allowed_organizations is not empty"),
+			path:    "./testdata/authentication/github_missing_org_scope.yml",
+			wantErr: errors.New("provider \"github\": field \"scopes\": must contain read:org when allowed_organizations is not empty"),
+		},
+		{
+			name:    "authentication github missing client id",
+			path:    "./testdata/authentication/github_missing_client_id.yml",
+			wantErr: errors.New("provider \"github\": field \"client_id\": non-empty value is required"),
+		},
+		{
+			name:    "authentication github missing client secret",
+			path:    "./testdata/authentication/github_missing_client_secret.yml",
+			wantErr: errors.New("provider \"github\": field \"client_secret\": non-empty value is required"),
+		},
+		{
+			name:    "authentication github missing client id",
+			path:    "./testdata/authentication/github_missing_redirect_address.yml",
+			wantErr: errors.New("provider \"github\": field \"redirect_address\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client id",
+			path:    "./testdata/authentication/oidc_missing_client_id.yml",
+			wantErr: errors.New("provider \"foo\": field \"client_id\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client secret",
+			path:    "./testdata/authentication/oidc_missing_client_secret.yml",
+			wantErr: errors.New("provider \"foo\": field \"client_secret\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client id",
+			path:    "./testdata/authentication/oidc_missing_redirect_address.yml",
+			wantErr: errors.New("provider \"foo\": field \"redirect_address\": non-empty value is required"),
 		},
 		{
 			name: "advanced",
@@ -795,6 +825,30 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/invalid_object_storage_type_not_specified.yml",
 			wantErr: errors.New("object storage type must be specified"),
 		},
+		{
+			name:    "azblob config invalid",
+			path:    "./testdata/storage/azblob_invalid.yml",
+			wantErr: errors.New("azblob container must be specified"),
+		},
+		{
+			name: "azblob full config provided",
+			path: "./testdata/storage/azblob_full.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: AZBlobObjectSubStorageType,
+						AZBlob: &AZBlob{
+							Container:    "testdata",
+							Endpoint:     "https//devaccount.blob.core.windows.net",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -885,7 +939,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					return
 				}
-				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
+				require.Fail(t, "expected error", "expected %q, found %q", wantErr, err)
 			}
 
 			require.NoError(t, err)
