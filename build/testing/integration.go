@@ -35,6 +35,7 @@ var (
 		"fs/local":      local,
 		"fs/s3":         s3,
 		"fs/oci":        oci,
+		"fs/azblob":     azblob,
 		"import/export": importExport,
 	}
 )
@@ -193,7 +194,7 @@ func withPostgres(fn testCaseFn) testCaseFn {
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
 			WithServiceBinding("postgres", client.Container().
-				From("postgres").
+				From("postgres:alpine").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
 				WithExposedPort(5432).
 				WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -298,7 +299,8 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-		WithExec([]string{"server", "/data", "--address", ":9009"})
+		WithEnvVariable("MINIO_BROWSER", "off").
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
 
 	_, err := base.
 		WithServiceBinding("minio", minio.AsService()).
@@ -494,4 +496,36 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 
 		return err
 	}
+}
+
+// azurite simulates the Azure blob service
+func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		AsService()
+
+	_, err := base.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", testdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "azblob").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_CONTAINER", "testdata").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }

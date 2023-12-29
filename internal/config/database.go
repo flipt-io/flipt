@@ -62,7 +62,7 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) error {
 			return fmt.Errorf("getting default database directory: %w", err)
 		}
 
-		path := filepath.Join(dbRoot, "flipt.db")
+		path := filepath.ToSlash(filepath.Join(dbRoot, "flipt.db"))
 		v.SetDefault("db.url", "file:"+path)
 	}
 

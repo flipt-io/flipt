@@ -1,0 +1,8 @@
+storage:
+  type: object
+  object:
+    type: azblob
+    azblob:
+      container: testdata
+      endpoint: https//devaccount.blob.core.windows.net
+      poll_interval: "5m"

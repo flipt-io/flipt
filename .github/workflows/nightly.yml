@@ -77,7 +77,7 @@ jobs:
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
           QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: flipt-nightly-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
