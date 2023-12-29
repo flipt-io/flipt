@@ -245,7 +245,7 @@ Flipt is equipped with a fully functional GRPC API. GRPC is a high-performance, 
 
 #### GRPC SDKs
 
-See our [GRCP Server SDK documentation](https://www.flipt.io/docs/integration/server/grpc) for the latest information.
+See our [GRPC Server SDK documentation](https://www.flipt.io/docs/integration/server/grpc) for the latest information.
 
 #### REST
 
@@ -267,9 +267,6 @@ Client-side evaluation is a great way to reduce the number of requests that your
 For more information on client-side evaluation, check out our [client-side evaluation documentation](https://www.flipt.io/docs/integration/client).
 
 #### Client Side SDKs
-
-> [!WARNING]
-> Our client-side SDKs are currently experimental. We are looking for feedback on the design and implementation. Please open an issue if you have any feedback or questions.
 
 See our [Client SDK documentation](https://www.flipt.io/docs/integration/client) for the latest information.
 
