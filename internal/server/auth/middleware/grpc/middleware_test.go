@@ -109,7 +109,7 @@ func TestUnaryInterceptor(t *testing.T) {
 		{
 			name: "cookie header with no flipt_client_token",
 			metadata: metadata.MD{
-				"grcpgateway-cookie": []string{"blah"},
+				"grpcgateway-cookie": []string{"blah"},
 			},
 			expectedErr: ErrUnauthenticated,
 		},
