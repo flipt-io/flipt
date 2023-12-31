@@ -53,11 +53,11 @@
     </h4>
 </div>
 
-[Flipt](https://www.flipt.io) enables you to follow DevOps best practices and seperate releases from deployments. Built with high performance engineering organizations in mind.
+[Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
-With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your CI/CD workflows to enable continuous configuration and deployment with confidence.
+With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your CI/CD workflows to enable continuous configuration and deployment with confidence.
 
 <br clear="both"/>
 
@@ -70,7 +70,7 @@ With our [GitOps friendly functionality](https://www.flipt.io/docs/guides/get-go
 
 Don't want to manage your own Flipt instance? We've got you covered! Check out our in-progress [managed offerings](https://www.flipt.io/docs/managed/overview).
 
-- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your own cloud account, managed by us
+- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your cloud account, managed by us
 - [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
 
 Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
@@ -82,14 +82,14 @@ Flipt supports use cases such as:
 - Enabling [trunk-based development](https://trunkbaseddevelopment.com/) workflows
 - Testing new features internally during development before releasing them fully in production
 - Ensuring overall system safety by guarding new releases with an emergency kill switch
-- Gating certain features for different permission levels allowing you to control who sees what
+- Gating certain features for different permission levels allows you to control who sees what
 - Enabling continuous configuration by changing values during runtime without additional deployments
 
 <br clear="both"/>
 
 ## Values
 
-- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, OAuth, Service and API Token authentication methods supported out of the box.
+- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, OAuth, Service, and API Token authentication methods supported out of the box.
 - 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
@@ -99,7 +99,7 @@ Flipt supports use cases such as:
 
 ## Features
 
-- Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
+- Stand-alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
 - Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
 - Import and export to allow storing your data as code
@@ -158,7 +158,7 @@ Try the latest version of Flipt for yourself.
     </a>&nbsp;
     <a href="https://render.com/deploy" alt="Deploy to Render">
         <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
-    </a>
+    </a>&nbsp;
     <a href="https://railway.app/template/dz-JCO" alt="Deploy to Railway">
       <img width="150" alt="Deploy to Railway" src="https://railway.app/button.svg" />
     </a>
@@ -241,41 +241,24 @@ Flipt exposes two different APIs for performing server-side evaluation:
 
 #### GRPC
 
-Flipt is equipped with a fully functional GRPC API. GRPC is a high performance, low latency, binary protocol that is used by many large scale companies such as Google, Netflix, and more.
+Flipt is equipped with a fully functional GRPC API. GRPC is a high-performance, low-latency, binary protocol that is used by many large-scale companies such as Google, Netflix, and more.
 
 #### GRPC SDKs
 
-| Language | Version | Status |
-| -------- | ------- | ------ |
-| [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [.NET](https://github.com/flipt-io/flipt-grpc-dotnet) | ![Nuget](https://img.shields.io/nuget/v/flipt.grpc) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
-
-#### Generate Your Own
-
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
-
-Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+See our [GRPC Server SDK documentation](https://www.flipt.io/docs/integration/server/grpc) for the latest information.
 
 #### REST
 
-Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
+Flipt is equipped with a fully functional REST API. The Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
 #### REST SDKs
 
 > [!NOTE]
-> We will be revamping our current REST SDKs in the coming weeks in order to simplify the API and make them easier to use. If you have any feedback on the current REST SDKs, please open an issue in the respective repository.
+> We will be revamping our current REST SDKs in the coming weeks to simplify the API and make them easier to use. If you have any feedback on the current REST SDKs, please open an issue in the respective repository.
 
-| Language | Version | Status |
-| -------- | ------- | ------ |
-| [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Java](https://github.com/flipt-io/flipt-java) | [![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java)](https://central.sonatype.com/artifact/io.flipt/flipt-java) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-stable-green) |
-| [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
-| [PHP](https://github.com/flipt-io/flipt-php) | [![Packagist](https://img.shields.io/packagist/v/flipt-io/flipt)](https://packagist.org/packages/flipt-io/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
+See our [REST Server SDK documentation](https://www.flipt.io/docs/integration/server/rest) for the latest information.
 
 ### Client Side Evaluation
 
@@ -285,19 +268,7 @@ For more information on client-side evaluation, check out our [client-side evalu
 
 #### Client Side SDKs
 
-> [!WARNING]
-> Our client-side SDKs are currently experimental. We are looking for feedback on the design and implementation. Please open an issue if you have any feedback or questions.
-
-Our client-side SDKs are available in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/) repository.
-
-We currently support the following languages:
-
-- [Go](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-go)
-- [Node/TypeScript](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-node)
-- [Python](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-python)
-- [Ruby](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-ruby)
-
-We will be adding more languages in the future. If you'd like to see a specific language supported, please open an issue in the [flipt-client-sdks](https://github.com/flipt-io/flipt-client-sdks/issues/new) repository.
+See our [Client SDK documentation](https://www.flipt.io/docs/integration/client) for the latest information.
 
 <br clear="both"/>
 
@@ -410,6 +381,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/erka"><img src="https://avatars.githubusercontent.com/u/19472?v=4?s=100" width="100px;" alt="Roman Dmytrenko"/><br /><sub><b>Roman Dmytrenko</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=erka" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mattiaforc"><img src="https://avatars.githubusercontent.com/u/11019007?v=4?s=100" width="100px;" alt="Mattia Forcellese"/><br /><sub><b>Mattia Forcellese</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=mattiaforc" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AmineRhazzar"><img src="https://avatars.githubusercontent.com/u/51166100?v=4?s=100" width="100px;" alt="Mohammed El Amine Rhazzar"/><br /><sub><b>Mohammed El Amine Rhazzar</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=AmineRhazzar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/julesglad"><img src="https://avatars.githubusercontent.com/u/91433872?v=4?s=100" width="100px;" alt="Julie Gladden"/><br /><sub><b>Julie Gladden</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=julesglad" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
