@@ -194,7 +194,6 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 
 	p, err := capoidc.NewProvider(config)
 	if err != nil {
-		p.Done()
 		return nil, nil, err
 	}
 
