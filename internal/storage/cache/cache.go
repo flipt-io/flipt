@@ -18,8 +18,12 @@ type Store struct {
 	logger *zap.Logger
 }
 
-// storage:evaluationRules:<namespaceKey>:<flagKey>
-const evaluationRulesCacheKeyFmt = "s:er:%s:%s"
+const (
+	// storage:evaluationRules:<namespaceKey>:<flagKey>
+	evaluationRulesCacheKeyFmt = "s:er:%s:%s"
+	// storage:evaluationRollouts:<namespaceKey>:<flagKey>
+	evaluationRolloutsCacheKeyFmt = "s:ero:%s:%s"
+)
 
 func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
 	return &Store{Store: store, cacher: cacher, logger: logger}
@@ -73,4 +77,23 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	s.set(ctx, cacheKey, rules)
 	return rules, nil
+}
+
+func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	cacheKey := fmt.Sprintf(evaluationRolloutsCacheKeyFmt, namespaceKey, flagKey)
+
+	var rollouts []*storage.EvaluationRollout
+
+	cacheHit := s.get(ctx, cacheKey, &rollouts)
+	if cacheHit {
+		return rollouts, nil
+	}
+
+	rollouts, err := s.Store.GetEvaluationRollouts(ctx, namespaceKey, flagKey)
+	if err != nil {
+		return nil, err
+	}
+
+	s.set(ctx, cacheKey, rollouts)
+	return rollouts, nil
 }
