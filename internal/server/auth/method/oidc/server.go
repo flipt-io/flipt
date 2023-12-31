@@ -128,6 +128,8 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		return nil, err
 	}
 
+	defer provider.Done()
+
 	responseToken, err := provider.Exchange(ctx, oidcRequest, req.State, req.Code)
 	if err != nil {
 		return nil, err
@@ -192,6 +194,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 
 	p, err := capoidc.NewProvider(config)
 	if err != nil {
+		p.Done()
 		return nil, nil, err
 	}
 
@@ -209,6 +212,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		oidcOpts...,
 	)
 	if err != nil {
+		p.Done()
 		return nil, nil, err
 	}
 
