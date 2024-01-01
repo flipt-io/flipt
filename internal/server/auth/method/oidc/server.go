@@ -92,6 +92,8 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 		return nil, fmt.Errorf("authorize: %w", err)
 	}
 
+	defer provider.Done()
+
 	// Create an auth URL
 	authURL, err := provider.AuthURL(context.Background(), oidcRequest)
 	if err != nil {
