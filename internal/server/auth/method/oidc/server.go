@@ -92,6 +92,8 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 		return nil, fmt.Errorf("authorize: %w", err)
 	}
 
+	defer provider.Done()
+
 	// Create an auth URL
 	authURL, err := provider.AuthURL(context.Background(), oidcRequest)
 	if err != nil {
@@ -127,6 +129,8 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	if err != nil {
 		return nil, err
 	}
+
+	defer provider.Done()
 
 	responseToken, err := provider.Exchange(ctx, oidcRequest, req.State, req.Code)
 	if err != nil {
@@ -209,6 +213,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		oidcOpts...,
 	)
 	if err != nil {
+		p.Done()
 		return nil, nil, err
 	}
 
