@@ -42,9 +42,6 @@ func StrUrl(schema, bucket string) string {
 
 // New creates a FS for the container
 func NewFS(ctx context.Context, urlstr string, bucket string, prefix string) (*FS, error) {
-	if prefix != "" {
-		prefix = strings.Trim(prefix, "/") + "/" // to match "a/subfolder/"
-	}
 
 	return &FS{
 		ctx:    ctx,
