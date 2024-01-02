@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"strings"
 	"time"
 
 	gcblob "gocloud.dev/blob"
