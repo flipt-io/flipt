@@ -2,8 +2,6 @@ ARG GO_VERSION=1.21
 
 FROM golang:${GO_VERSION}
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
     curl \
@@ -41,7 +39,12 @@ RUN go mod download -x
 
 COPY . .
 
-RUN mage bootstrap
+ENV GOPATH=/workspace/go \
+    PATH=/workspace/go/bin:$PATH
+
+# /workspace is the default mount point for the dev container, set the sqlite DB path to this location
+# because of potential permission issues 
+ENV FLIPT_DB_URL=file:/workspace/flipt/flipt.db
 
 EXPOSE 8080
 EXPOSE 9000
