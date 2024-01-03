@@ -52,7 +52,7 @@ func Test_FS(t *testing.T) {
 		}
 		require.NoError(t, bucket.Close())
 
-		azfs, err := NewFS(ctx, StrUrl(fileblob.Scheme, dir), dir, "data")
+		azfs, err := NewFS(ctx, StrUrl(fileblob.Scheme, dir), dir, "data/")
 		require.NoError(t, err)
 
 		// running test
