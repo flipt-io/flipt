@@ -17,7 +17,6 @@ type Poller struct {
 
 	ctx    context.Context
 	cancel func()
-	force  chan func(modified bool)
 	done   chan struct{}
 	notify func(modified bool)
 }
@@ -40,7 +39,6 @@ type UpdateFunc func(context.Context) (bool, error)
 func NewPoller(logger *zap.Logger, ctx context.Context, update UpdateFunc, opts ...containers.Option[Poller]) *Poller {
 	p := &Poller{
 		logger:   logger,
-		force:    make(chan func(bool)),
 		done:     make(chan struct{}),
 		interval: 30 * time.Second,
 		update:   update,
@@ -61,19 +59,6 @@ func (p *Poller) Close() error {
 	return nil
 }
 
-func (p *Poller) Tick() (modified bool) {
-	ch := make(chan struct{})
-
-	p.force <- func(m bool) {
-		modified = m
-		close(ch)
-	}
-
-	<-ch
-
-	return
-}
-
 // Poll is a utility function for a common polling strategy used by lots of declarative
 // store implementations.
 func (p *Poller) Poll() {
@@ -85,36 +70,22 @@ func (p *Poller) Poll() {
 		case <-p.ctx.Done():
 			return
 		case <-ticker.C:
-			p.doUpdate(p.notify)
-		case notify := <-p.force:
-			p.doUpdate(notify)
+			modified, err := p.update(p.ctx)
+			if err != nil {
+				p.logger.Error("error getting file system from directory", zap.Error(err))
+				continue
+			}
 
-			ticker.Reset(p.interval)
+			if p.notify != nil {
+				p.notify(modified)
+			}
+
+			if !modified {
+				p.logger.Debug("skipping snapshot update as it has not been modified")
+				continue
+			}
+
+			p.logger.Debug("snapshot updated")
 		}
-	}
-}
-
-func (p *Poller) doUpdate(notify func(bool)) {
-	var (
-		modified bool
-		err      error
-	)
-
-	defer func() {
-		if notify != nil {
-			notify(modified)
-		}
-	}()
-
-	modified, err = p.update(p.ctx)
-	if err != nil {
-		p.logger.Error("error getting file system from directory", zap.Error(err))
-		return
-	}
-
-	if !modified {
-		p.logger.Debug("skipping snapshot update as it has not been modified")
-	} else {
-		p.logger.Debug("snapshot updated")
 	}
 }
