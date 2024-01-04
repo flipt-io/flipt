@@ -291,6 +291,8 @@ We welcome contributions of any kind, including but not limited to bug fixes, fe
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/flipt-io/flipt)
+
 <br clear="both"/>
 
 ## Examples

@@ -141,7 +141,7 @@ func authenticationGRPC(
 
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
-		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
+		interceptors = append(interceptors, authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
 			logger,
 			store,
 			authOpts...,

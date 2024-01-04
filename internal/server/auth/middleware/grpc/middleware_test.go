@@ -142,7 +142,7 @@ func TestUnaryInterceptor(t *testing.T) {
 				ctx = metadata.NewIncomingContext(ctx, test.metadata)
 			}
 
-			_, err := UnaryInterceptor(logger, authenticator)(
+			_, err := ClientTokenAuthenticationInterceptor(logger, authenticator)(
 				ctx,
 				nil,
 				&grpc.UnaryServerInfo{Server: test.server},
