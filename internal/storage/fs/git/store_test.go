@@ -39,12 +39,12 @@ func Test_Store_Subscribe_Hash(t *testing.T) {
 	// this helper will fail if there is a problem with this option
 	// the only difference in behaviour is that the poll loop
 	// will silently (intentionally) not run
-	testStore(t, WithRef(head))
+	testStore(t, gitRepoURL, WithRef(head))
 }
 
 func Test_Store_Subscribe(t *testing.T) {
 	ch := make(chan struct{})
-	store, skip := testStore(t, WithPollOptions(
+	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
@@ -126,10 +126,9 @@ func Test_Store_SelfSignedSkipTLS(t *testing.T) {
 	// This is not a valid Git source, but it still proves the point that a
 	// well-known server with a self-signed certificate will be accepted by Flipt
 	// when configuring the TLS options for the source
-	gitRepoURL = ts.URL
-	err := testStoreWithError(t, WithInsecureTLS(false))
+	err := testStoreWithError(t, ts.URL, WithInsecureTLS(false))
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-	err = testStoreWithError(t, WithInsecureTLS(true))
+	err = testStoreWithError(t, ts.URL, WithInsecureTLS(true))
 	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
@@ -148,21 +147,22 @@ func Test_Store_SelfSignedCABytes(t *testing.T) {
 	// This is not a valid Git source, but it still proves the point that a
 	// well-known server with a self-signed certificate will be accepted by Flipt
 	// when configuring the TLS options for the source
-	gitRepoURL = ts.URL
-	err = testStoreWithError(t)
+	err = testStoreWithError(t, ts.URL)
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-	err = testStoreWithError(t, WithCABundle(buf.Bytes()))
+	err = testStoreWithError(t, ts.URL, WithCABundle(buf.Bytes()))
 	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
 
-func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
+func testStore(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
 	t.Helper()
 
 	if gitRepoURL == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_URL env var to run this test.")
 		return nil, true
 	}
+
+	t.Log("Git repo host:", gitRepoURL)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -186,7 +186,7 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 	return source, false
 }
 
-func testStoreWithError(t *testing.T, opts ...containers.Option[SnapshotStore]) error {
+func testStoreWithError(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) error {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
