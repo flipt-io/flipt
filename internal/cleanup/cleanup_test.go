@@ -53,9 +53,9 @@ func TestCleanup(t *testing.T) {
 		// it should be a safe operation given they share the same lock service
 		service := NewAuthenticationService(logger, lock, authstore, authConfig)
 		service.Run(ctx)
-		defer func() {
+		t.Cleanup(func() {
 			require.NoError(t, service.Shutdown(context.TODO()))
-		}()
+		})
 	}
 
 	t.Run("ensure non-expiring token exists", func(t *testing.T) {
@@ -67,40 +67,39 @@ func TestCleanup(t *testing.T) {
 	for _, info := range authConfig.Methods.AllMethods() {
 		info := info
 		t.Run(fmt.Sprintf("Authentication Method %q", info.Method), func(t *testing.T) {
-			t.Run("create an expiring token and ensure it exists", func(t *testing.T) {
-				clientToken, storedAuth, err = authstore.CreateAuthentication(
-					ctx,
-					&authstorage.CreateAuthenticationRequest{
-						Method:    info.Method,
-						ExpiresAt: timestamppb.New(time.Now().UTC().Add(5 * time.Second)),
-					},
-				)
-				require.NoError(t, err)
+			t.Parallel()
 
-				retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-				require.NoError(t, err)
-				assert.Equal(t, storedAuth, retrievedAuth)
-			})
+			t.Log("create an expiring token and ensure it exists")
+			clientToken, storedAuth, err := authstore.CreateAuthentication(
+				ctx,
+				&authstorage.CreateAuthenticationRequest{
+					Method:    info.Method,
+					ExpiresAt: timestamppb.New(time.Now().UTC().Add(5 * time.Second)),
+				},
+			)
+			require.NoError(t, err)
 
-			t.Run("ensure grace period protects token from being deleted", func(t *testing.T) {
-				// token should still exist as it wont be deleted until
-				// expiry + grace period (5s + 5s == 10s)
-				time.Sleep(5 * time.Second)
+			retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
+			require.NoError(t, err)
+			assert.Equal(t, storedAuth, retrievedAuth)
 
-				retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-				require.NoError(t, err)
-				assert.Equal(t, storedAuth, retrievedAuth)
+			t.Log("ensure grace period protects token from being deleted")
+			// token should still exist as it wont be deleted until
+			// expiry + grace period (5s + 5s == 10s)
+			time.Sleep(5 * time.Second)
 
-				// ensure authentication is expired but still persisted
-				assert.True(t, retrievedAuth.ExpiresAt.AsTime().Before(time.Now().UTC()))
-			})
+			retrievedAuth, err = authstore.GetAuthenticationByClientToken(ctx, clientToken)
+			require.NoError(t, err)
+			assert.Equal(t, storedAuth, retrievedAuth)
 
-			t.Run("once expiry and grace period ellapses ensure token is deleted", func(t *testing.T) {
-				time.Sleep(10 * time.Second)
+			// ensure authentication is expired but still persisted
+			assert.True(t, retrievedAuth.ExpiresAt.AsTime().Before(time.Now().UTC()))
 
-				_, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-				require.Error(t, err, "resource not found")
-			})
+			t.Log("once expiry and grace period ellapses ensure token is deleted")
+			time.Sleep(10 * time.Second)
+
+			_, err = authstore.GetAuthenticationByClientToken(ctx, clientToken)
+			require.Error(t, err, "token should not be fetchable")
 		})
 	}
 }

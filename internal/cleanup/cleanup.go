@@ -29,7 +29,7 @@ type AuthenticationService struct {
 // NewAuthenticationService constructs and configures a new instance of authentication service.
 func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store authstorage.Store, config config.AuthenticationConfig) *AuthenticationService {
 	return &AuthenticationService{
-		logger: logger,
+		logger: logger.With(zap.String("service", "authentication cleanup service")),
 		lock:   lock,
 		store:  store,
 		config: config,
@@ -107,6 +107,11 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 
 // Stop signals for the cleanup goroutines to cancel and waits for them to finish.
 func (s *AuthenticationService) Shutdown(ctx context.Context) error {
+	s.logger.Debug("shutting down...")
+	defer func() {
+		s.logger.Debug("shutdown complete")
+	}()
+
 	s.cancel()
 
 	return s.errgroup.Wait()
