@@ -77,9 +77,9 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := map[string]string{
-			".":   "",
-			"one": "onedata",
-			"two": "twodata",
+			".":        "",
+			"data/one": "onedata",
+			"data/two": "twodata",
 		}
 		require.Equal(t, expected, seen)
 	})

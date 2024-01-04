@@ -55,9 +55,6 @@ func (f *FS) openBucket() (*gcblob.Bucket, error) {
 	if err != nil {
 		return nil, err
 	}
-	if f.prefix != "" {
-		bucket = gcblob.PrefixedBucket(bucket, f.prefix)
-	}
 	bucket.SetIOFSCallback(func() (context.Context, *gcblob.ReaderOptions) {
 		return f.ctx, nil
 	})
@@ -124,7 +121,9 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 		return nil, err
 	}
 	defer bucket.Close()
-	iterator := bucket.List(&gcblob.ListOptions{})
+	iterator := bucket.List(&gcblob.ListOptions{
+		Prefix: f.prefix,
+	})
 	for {
 		item, err := iterator.Next(f.ctx)
 		if err != nil {
