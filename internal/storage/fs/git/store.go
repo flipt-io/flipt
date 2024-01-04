@@ -30,7 +30,7 @@ type SnapshotStore struct {
 
 	logger          *zap.Logger
 	url             string
-	ref             string
+	baseRef         string
 	auth            transport.AuthMethod
 	insecureSkipTLS bool
 	caBundle        []byte
@@ -48,7 +48,7 @@ type SnapshotStore struct {
 // Otherwise, it is treated as a reference in the origin upstream.
 func WithRef(ref string) containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {
-		s.ref = ref
+		s.baseRef = ref
 	}
 }
 
@@ -90,13 +90,13 @@ func WithCABundle(caCertBytes []byte) containers.Option[SnapshotStore] {
 // fs.FS implementations around a target git repository.
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts ...containers.Option[SnapshotStore]) (_ *SnapshotStore, err error) {
 	store := &SnapshotStore{
-		logger: logger.With(zap.String("repository", url)),
-		url:    url,
-		ref:    "main",
+		logger:  logger.With(zap.String("repository", url)),
+		url:     url,
+		baseRef: "main",
 	}
 	containers.ApplyAll(store, opts...)
 
-	store.logger = store.logger.With(zap.String("ref", store.ref))
+	store.logger = store.logger.With(zap.String("ref", store.baseRef))
 
 	store.snaps, err = newCache[plumbing.Hash](3)
 	if err != nil {
@@ -115,7 +115,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	// fetch base ref snapshot at-least once before returning store
 	// to ensure we have a servable default state
-	snap, hash, err := store.buildReference(ctx, store.ref)
+	snap, hash, err := store.buildReference(ctx, store.baseRef)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 	// base reference is stored as fixed in the cache
 	// meaning the reference will never be evicted and
 	// always point to a live snapshot
-	store.snaps.AddFixed(ctx, store.ref, hash, snap)
+	store.snaps.AddFixed(ctx, store.baseRef, hash, snap)
 
 	store.Poller = storagefs.NewPoller(store.logger, ctx, store.update, store.pollOpts...)
 
@@ -138,13 +138,15 @@ func (*SnapshotStore) String() string {
 }
 
 // View accepts a function which takes a *StoreSnapshot.
-// The SnapshotStore will supply a snapshot which is valid
-// for the lifetime of the provided function call.
+// It supplies the provided function with a *Snapshot if one can be resolved for the requested revision reference.
+// Providing an empty reference defaults View to using the stores base reference.
+// The base reference will always be quickly accessible via minimal locking (single read-lock).
+// Alternative references which have not yet been observed will be resolved and newly built into snapshots on demand.
 func (s *SnapshotStore) View(storeRef storage.Reference, fn func(storage.ReadOnlyStore) error) error {
 	ctx := context.TODO()
 	ref := string(storeRef)
 	if ref == "" {
-		ref = s.ref
+		ref = s.baseRef
 	}
 
 	snap, ok := s.snaps.Get(ref)
