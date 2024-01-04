@@ -1,0 +1,5 @@
+image:
+  file: .devcontainer/Dockerfile
+tasks:
+  - init: mage bootstrap
+    command: cat .devcontainer/welcome-message.txt

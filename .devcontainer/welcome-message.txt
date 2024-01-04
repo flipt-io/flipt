@@ -1,14 +1,13 @@
-👋 Welcome to "Flipt Development" in GitHub Codespaces!
+👋 Welcome to "Flipt Development" in a Cloud Development Environment!
 
 🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P or F1).
 
 ℹ️  Look at https://github.com/flipt-io/flipt/blob/main/DEVELOPMENT.md for more contribution details.
 
 ⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐
-    - To run the backend server, run `mage go:run` in the terminal.
+    - To run the backend server, run `mage dev` in the terminal.
 
-    - To run the frontend server, from within the `ui` directory, run `npm run dev` 
-      in the terminal (in a new tab).
+    - To run the frontend server, run `mage ui:dev` in the terminal (in a new tab).
 
     - To run the tests, run `mage go:test` in the terminal.
 
