@@ -154,12 +154,22 @@ func (s *SnapshotStore) View(storeRef storage.Reference, fn func(storage.ReadOnl
 
 	hash, err := s.resolve(ref)
 	if err != nil {
-		return err
+		// if an initial resolve fails then attempt to
+		// fetch from the reference upstream
+		if _, err := s.fetch(ctx, ref); err != nil {
+			return err
+		}
+
+		// reattempt resolution of reference to hash
+		hash, err = s.resolve(ref)
+		if err != nil {
+			return err
+		}
 	}
 
 	snap, err = s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot)
 	if err != nil {
-
+		return err
 	}
 
 	return fn(snap)
