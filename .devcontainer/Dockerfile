@@ -42,9 +42,8 @@ COPY . .
 ENV GOPATH=/workspace/go \
     PATH=/workspace/go/bin:$PATH
 
-# /workspace is the default mount point for the dev container, set the sqlite DB path to this location
-# because of potential permission issues 
-ENV FLIPT_DB_URL=file:/workspace/flipt/flipt.db
+# set the sqlite DB path to the user's home because of potential permission issues
+ENV FLIPT_DB_URL=file:$HOME/flipt/flipt.db
 
 EXPOSE 8080
 EXPOSE 9000
