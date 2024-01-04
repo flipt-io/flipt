@@ -57,16 +57,18 @@ func (c *cache[K]) AddFixed(ctx context.Context, ref string, k K, s *fs.Snapshot
 // If the reference r is already tracked in the fixed set, then it is updated there.
 // Otherwise, the entry is added to the LRU cache.
 func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildFunc[K]) (*fs.Snapshot, error) {
-	s, ok, err := c.getOrBuild(ctx, ref, k, build)
+	s, ok, err := c.getByRefAndKey(ctx, ref, k)
 	if err != nil {
 		return s, err
 	}
 
-	// fast path: r, k and v are all as expected already
+	// fast path: ref and key already exist and point to a valid snapshot
 	if ok {
 		return s, nil
 	}
 
+	// we build a new snapshot if getOrBuild failed to return one from
+	// the cache for the key k
 	if s == nil {
 		s, err = build(ctx, k)
 		if err != nil {
@@ -74,20 +76,20 @@ func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildF
 		}
 	}
 
-	// Otherwise, either r did not resolve to k or there was
-	// no v stored for k
-	// In all cases we update both atomically to ensure that
-	// we don't get a race condition leading to a broken
-	// reference to key to value link
-
+	// obtain a write lock to update all references to match the requested
+	// ref, key and snapshot
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if _, ok := c.fixed[ref]; ok {
+		// reference exists in the fixed set, so we updated it there
 		c.fixed[ref] = k
 	} else {
+		// otherwise, we store the reference in the extra LRU cache
 		c.extra.Add(ref, k)
 	}
+
+	// update snapshot map using provided key
 	c.store[k] = s
 
 	return s, nil
@@ -113,16 +115,14 @@ func (c *cache[K]) Get(ref string) (s *fs.Snapshot, ok bool) {
 	return
 }
 
-func (c *cache[K]) getOrBuild(ctx context.Context, ref string, k K, build buildFunc[K]) (s *fs.Snapshot, ok bool, err error) {
+func (c *cache[K]) getByRefAndKey(ctx context.Context, ref string, k K) (s *fs.Snapshot, ok bool, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	s, ok = c.store[k]
 	if !ok {
-		// if there is no V for the provided k then we
-		// return early with ok is false to let the caller
-		// know to update all the references
-		s, err = build(ctx, k)
+		// return early as there is no k to snapshot mapping
+		// the snapshot is nil to signify it needs to be built
 		return
 	}
 
