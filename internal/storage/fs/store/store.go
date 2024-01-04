@@ -93,7 +93,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			return nil, err
 		}
 
-		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
+		return storagefs.NewStore(snapStore), nil
 	case config.LocalStorageType:
 		snapStore, err := local.NewSnapshotStore(ctx, logger, cfg.Storage.Local.Path)
 		if err != nil {
