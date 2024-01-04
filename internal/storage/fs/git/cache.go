@@ -14,7 +14,7 @@ type buildFunc[K comparable] func(context.Context, K) (*fs.Snapshot, error)
 // cache contains a fixed set of non-evictable entries along
 // with additional capacity stored in an LRU.
 // The cache is keyed by reference with an indirect index
-// (type K for key) through into the stored snapshots.
+// (type K for key) through into a target set of stored snapshots.
 // The type K is generic to support the different kinds of content
 // address types we expect to support (commit SHA and OCI digest).
 type cache[K comparable] struct {
@@ -67,7 +67,7 @@ func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildF
 		return s, nil
 	}
 
-	// we build a new snapshot if getOrBuild failed to return one from
+	// we build a new snapshot if getByRefAndKey failed to return one from
 	// the cache for the key k
 	if s == nil {
 		s, err = build(ctx, k)
@@ -81,16 +81,27 @@ func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildF
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if _, ok := c.fixed[ref]; ok {
+	previous, ok := c.fixed[ref]
+	if ok {
 		// reference exists in the fixed set, so we updated it there
 		c.fixed[ref] = k
 	} else {
 		// otherwise, we store the reference in the extra LRU cache
+		// we peek at the existing value before replacing it so we
+		// can compare the previous value for deciding on eviction
+		previous, ok = c.extra.Peek(ref)
 		c.extra.Add(ref, k)
 	}
 
 	// update snapshot map using provided key
 	c.store[k] = s
+
+	// if the provided (new) target key (k) does not match the
+	// (now) previous key pointed at by ref then we attempt to
+	// evict the snapshot pointed at by the previous key
+	if ok && k != previous {
+		c.evict(ref, previous)
+	}
 
 	return s, nil
 }
@@ -150,15 +161,16 @@ func (c *cache[K]) References() []string {
 	return append(maps.Keys(c.fixed), c.extra.Keys()...)
 }
 
-// evict is used for garbage collection when keys are evicted from
-// the LRU cache.
+// evict is used for garbage collection while evicting fro the LRU
+// and when AddOrBuild leaves old revision keys dangling.
 // It checks to see if the target key for the evicted reference is
-// still being referenced by other existing references in either the
+// still being pointed at by other existing references in either the
 // fixed set or the remaining LRU entries.
 // If the key is dangling then it removes the entry from the store.
 // NOTE: calls to evict must be made while holding a write lock
-// the LRU implementation inlines calls to evict on calls to cache.Add
-// we only call Add in AddOrBuild while holding a write lock
+// the LRU implementation we use inlines calls to evict during calls
+// to cache.Add and we also manually call evict when redirect a reference
+// both of which occur during the write lock held by AddOrBuild
 func (c *cache[K]) evict(_ string, k K) {
 	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
 		if key == k {
