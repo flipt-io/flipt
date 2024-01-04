@@ -39,7 +39,7 @@ type SnapshotStore struct {
 	mu   sync.RWMutex
 	repo *git.Repository
 
-	snaps *cache[string, plumbing.Hash]
+	snaps *cache[plumbing.Hash]
 }
 
 // WithRef configures the target reference to be used when fetching
@@ -98,7 +98,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	store.logger = store.logger.With(zap.String("ref", store.ref))
 
-	store.snaps, err = newCache[string, plumbing.Hash](3)
+	store.snaps, err = newCache[plumbing.Hash](3)
 	if err != nil {
 		return nil, err
 	}
