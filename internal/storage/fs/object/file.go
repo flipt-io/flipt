@@ -1,4 +1,4 @@
-package blob
+package object
 
 import (
 	"io"
@@ -7,7 +7,6 @@ import (
 )
 
 type File struct {
-	bucket       string
 	key          string
 	length       int64
 	body         io.ReadCloser
@@ -33,9 +32,8 @@ func (f *File) Close() error {
 	return f.body.Close()
 }
 
-func NewFile(bucket string, key string, length int64, body io.ReadCloser, lastModified time.Time) *File {
+func NewFile(key string, length int64, body io.ReadCloser, lastModified time.Time) *File {
 	return &File{
-		bucket:       bucket,
 		key:          key,
 		length:       length,
 		body:         body,
