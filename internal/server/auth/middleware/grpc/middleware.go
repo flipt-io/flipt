@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/containers"
 	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
@@ -111,6 +113,47 @@ type SkipsAuthenticationServer interface {
 	SkipsAuthentication(ctx context.Context) bool
 }
 
+// AuthenticationRequiredInterceptor is a grpc.UnaryServerInterceptor which requires that
+// all requests contain an Authentication instance on the context.
+func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipped(ctx, info.Server, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
+		if auth == nil {
+			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
+			return ctx, ErrUnauthenticated
+		}
+
+		return handler(ctx, req)
+	}
+}
+
+// JWTInterceptorSelector is a grpc.UnaryServerInterceptor which selects requests
+// which contain a JWT in the authorization header.
+func JWTInterceptorSelector() selector.Matcher {
+	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return false
+		}
+
+		_, err := jwtFromMetadata(md)
+		if err != nil {
+			return false
+		}
+
+		return true
+	})
+}
+
 func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
@@ -164,6 +207,22 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
 	}
+}
+
+func ClientTokenInterceptorSelector() selector.Matcher {
+	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return false
+		}
+
+		_, err := clientTokenFromMetadata(md)
+		if err != nil {
+			return false
+		}
+
+		return true
+	})
 }
 
 // ClientTokenAuthenticationInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found

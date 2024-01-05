@@ -9,6 +9,7 @@ import (
 	"regexp"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/cleanup"
@@ -144,7 +145,6 @@ func authenticationGRPC(
 
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
-
 		if authCfg.Methods.JWT.Enabled {
 			authJWT := authCfg.Methods.JWT
 
@@ -187,14 +187,14 @@ func authenticationGRPC(
 				exp.Audiences = authJWT.Method.ValidateClaims.Audiences
 			}
 
-			interceptors = append(interceptors, authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...))
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 		}
 
-		interceptors = append(interceptors, authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
+		interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
 			logger,
 			store,
 			authOpts...,
-		))
+		), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 
 		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
 			rgxs := make([]*regexp.Regexp, 0, len(authCfg.Methods.OIDC.Method.EmailMatches))
@@ -208,12 +208,16 @@ func authenticationGRPC(
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...))
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
 
 		if authCfg.Methods.Token.Enabled {
-			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...))
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
+
+		// at this point, we have already registered all authentication methods that are enabled
+		// so atleast one authentication method should pass if authentication is required
+		interceptors = append(interceptors, authmiddlewaregrpc.AuthenticationRequiredInterceptor(logger, authOpts...))
 
 		logger.Info("authentication middleware enabled")
 	}
