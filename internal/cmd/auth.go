@@ -2,12 +2,15 @@ package cmd
 
 import (
 	"context"
+	"crypto"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -141,6 +144,52 @@ func authenticationGRPC(
 
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
+
+		if authCfg.Methods.JWT.Enabled {
+			authJWT := authCfg.Methods.JWT
+
+			var ks jwt.KeySet
+
+			if authJWT.Method.JWKSURL != "" {
+				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+				}
+			} else if authJWT.Method.KeyFile != "" {
+				keyPEMBlock, err := os.ReadFile(authJWT.Method.KeyFile)
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
+				}
+
+				publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+				}
+
+				ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+				}
+			}
+
+			validator, err := jwt.NewValidator(ks)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+			}
+
+			var exp jwt.Expected
+
+			if authJWT.Method.ValidateClaims.Issuer != "" {
+				exp.Issuer = authJWT.Method.ValidateClaims.Issuer
+			}
+
+			if len(authJWT.Method.ValidateClaims.Audiences) != 0 {
+				exp.Audiences = authJWT.Method.ValidateClaims.Audiences
+			}
+
+			interceptors = append(interceptors, authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...))
+		}
+
 		interceptors = append(interceptors, authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
 			logger,
 			store,

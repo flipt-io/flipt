@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -533,18 +534,16 @@ func (a AuthenticationMethodGithubConfig) validate() error {
 }
 
 type AuthenticationMethodJWTConfig struct {
-	// Issuer is the issuer of the JWT token.
-	// This is used to validate the "iss" claim of the JWT token.
-	Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
-	// Audience is the audience of the JWT token.
-	// This is used to validate the "aud" claim of the JWT token.
-	Audience string `json:"-" mapstructure:"audience" yaml:"audience,omitempty"`
+	// ValidateClaims is used to validate the claims of the JWT token.
+	ValidateClaims struct {
+		// Issuer is the issuer of the JWT token.
+		Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
+		// Audiences is the audience of the JWT token.
+		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
+	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
 	// JWKsURL is the URL to the JWKS endpoint.
 	// This is used to fetch the public keys used to validate the JWT token.
-	JWKsURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
-	// JWKsFile is the path to the JWKS file on disk instead of fetching from the JWKS endpoint.
-	// This is used to fetch the public keys used to validate the JWT token.
-	JWKSFile string `json:"-" mapstructure:"jwks_file" yaml:"jwks_file,omitempty"`
+	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
 	// KeyFile is the path to the private PEM encoded key file on disk.
 	KeyFile string `json:"-" mapstructure:"key_file" yaml:"key_file,omitempty"`
 	// KeyID is the ID (kid) of the private key used to sign the JWT token.
@@ -562,21 +561,27 @@ func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
 }
 
 func (a AuthenticationMethodJWTConfig) validate() error {
-	if a.Issuer == "" {
-		return errFieldWrap("issuer", errValidationRequired)
-	}
-
-	if a.Audience == "" {
-		return errFieldWrap("audience", errValidationRequired)
-	}
-
-	setFields := nonEmpty([]string{a.JWKsURL, a.JWKSFile, a.KeyFile})
+	setFields := nonEmpty([]string{a.JWKSURL, a.KeyFile})
 	if setFields < 1 {
-		return fmt.Errorf("one of jwks_url, jwks_file or key_file is required")
+		return fmt.Errorf("one of jwks_url or key_file is required")
 	}
 
 	if setFields > 1 {
-		return fmt.Errorf("only one of jwks_url, jwks_file or key_file can be set")
+		return fmt.Errorf("only one of jwks_url or key_file can be set")
+	}
+
+	if a.JWKSURL != "" {
+		// ensure jwks url is valid
+		if _, err := url.Parse(a.JWKSURL); err != nil {
+			return errFieldWrap("jwks_url", err)
+		}
+	}
+
+	if a.KeyFile != "" {
+		// ensure key file exists
+		if _, err := os.Stat(a.KeyFile); err != nil {
+			return errFieldWrap("key_file", err)
+		}
 	}
 
 	return nil

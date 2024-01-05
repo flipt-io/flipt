@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An enterprise-ready, GRPC powered, GitOps enabled, feature management solution</p>
+<p align="center">An enterprise-ready, GRPC powered, GitOps enabled, CloudNative, feature management solution</p>
 
 <hr />
 
@@ -101,10 +101,10 @@ Flipt supports use cases such as:
 
 - Stand-alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
-- Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
+- Modern UI and debug console with dark mode 🌙
 - Import and export to allow storing your data as code
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
+- CloudNative [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
 - Audit logging with Webhook support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
