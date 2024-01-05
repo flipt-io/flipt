@@ -137,7 +137,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			return ctx, ErrUnauthenticated
 		}
 
-		// TODO: map claims to auth metadata
+		// TODO: map claims to auth metadata?
 		_, err = validator.Validate(ctx, token, expected)
 		if err != nil {
 			logger.Error("unauthenticated",
