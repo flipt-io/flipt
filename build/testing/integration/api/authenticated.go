@@ -31,7 +31,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 		t.Run("Get Self", func(t *testing.T) {
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
 
-			if opts.AuthConfig == integration.AuthNamespaced {
+			if opts.AuthConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 				return
 			}
@@ -51,7 +51,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 				})
 
 				// a namespaced token should not be able to create any other tokens
-				if opts.AuthConfig == integration.AuthNamespaced {
+				if opts.AuthConfig == integration.StaticTokenAuthNamespaced {
 					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 					return
 				}
@@ -78,7 +78,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 				})
 
 				// a namespaced token should not be able to create any other tokens
-				if opts.AuthConfig == integration.AuthNamespaced {
+				if opts.AuthConfig == integration.StaticTokenAuthNamespaced {
 					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 					return
 				}
@@ -97,7 +97,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 				ExpiresAt: flipt.Now(),
 			})
 
-			if opts.AuthConfig == integration.AuthNamespaced {
+			if opts.AuthConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 				return
 			}

@@ -2,6 +2,11 @@ package testing
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"log"
@@ -11,12 +16,27 @@ import (
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
+	"github.com/go-jose/go-jose/v3"
+	jjwt "github.com/go-jose/go-jose/v3/jwt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
+	"github.com/hashicorp/cap/jwt"
 	"golang.org/x/sync/errgroup"
 )
 
 const bootstrapToken = "s3cr3t"
+
+var priv *rsa.PrivateKey
+
+func init() {
+	// Generate a key to sign JWTs with throughout most test cases.
+	// It can be slow sometimes to generate a 4096-bit RSA key, so we only do it once.
+	var err error
+	priv, err = rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		panic(err)
+	}
+}
 
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
@@ -71,12 +91,24 @@ type authConfig int
 
 const (
 	noAuth authConfig = iota
-	authNoNamespace
-	authNamespaced
+	staticAuth
+	staticAuthNamespaced
+	jwtAuth
 )
 
 func (a authConfig) enabled() bool {
 	return a != noAuth
+}
+
+func (a authConfig) method() string {
+	switch a {
+	case staticAuth, staticAuthNamespaced:
+		return "static"
+	case jwtAuth:
+		return "jwt"
+	default:
+		return ""
+	}
 }
 
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
@@ -98,7 +130,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespaced} {
+			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced} {
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
 					namespace: namespace,
@@ -110,10 +142,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				switch auth {
 				case noAuth:
 					config.name = fmt.Sprintf("%s without auth", config.name)
-				case authNoNamespace:
-					config.name = fmt.Sprintf("%s with auth no namespaced token", config.name)
-				case authNamespaced:
-					config.name = fmt.Sprintf("%s with auth namespaced token", config.name)
+				case staticAuth:
+					config.name = fmt.Sprintf("%s with static auth token", config.name)
+				case staticAuthNamespaced:
+					config.name = fmt.Sprintf("%s with static auth namespaced token", config.name)
+				case jwtAuth:
+					config.name = fmt.Sprintf("%s with jwt auth", config.name)
 				}
 
 				configs = append(configs, config)
@@ -132,10 +166,26 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			flipt := flipt
 			if config.auth.enabled() {
+				bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+				if err != nil {
+					return err
+				}
+
+				bytes = pem.EncodeToMemory(&pem.Block{
+					Type:  "public key",
+					Bytes: bytes,
+				})
+
+				// write public key to file
+				flipt := flipt.
+					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)})
+
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_KEY_FILE", "/etc/flipt/jwt.pem")
 			}
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -481,10 +531,21 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		}
 
 		if conf.auth.enabled() {
-			flags = append(flags, "--flipt-token", bootstrapToken)
-			if conf.auth == authNamespaced {
-				flags = append(flags, "--flipt-create-namespaced-token")
+			switch conf.auth.method() {
+			case "static":
+				flags = append(flags, "--flipt-token", bootstrapToken)
+				if conf.auth == staticAuthNamespaced {
+					flags = append(flags, "--flipt-create-namespaced-token")
+				}
+			case "jwt":
+				token := signJWT(priv, map[string]interface{}{
+					"sub": "flipt",
+					"iss": "flipt.io",
+				})
+				flags = append(flags, "--flipt-token", token)
 			}
+
+			flags = append(flags, "--flipt-token-type", conf.auth.method())
 		}
 
 		_, err = base.
@@ -528,4 +589,20 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
+func signJWT(key crypto.PrivateKey, claims interface{}) string {
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.SignatureAlgorithm(string(jwt.RS256)), Key: key},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
+
+	raw, err := jjwt.Signed(sig).
+		Claims(claims).
+		CompactSerialize()
+	if err != nil {
+		panic(err)
+	}
+
+	return raw
 }

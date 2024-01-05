@@ -28,7 +28,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
-			if authConfig == integration.AuthNamespaced {
+			if authConfig == integration.StaticTokenAuthNamespaced {
 				t.Log("Create namespace.")
 
 				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
@@ -506,7 +506,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, int32(3), updatedRuleThree.Rank)
 
 		// ensure you can not link flags and segments from different namespaces.
-		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
+		if !namespaceIsDefault(namespace) && authConfig != integration.StaticTokenAuthNamespaced {
 			t.Log(`Ensure that rules can only link entities in the same namespace.`)
 			_, err = client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    "test",
@@ -586,7 +586,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		})
 		require.NoError(t, err)
 
-		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
+		if !namespaceIsDefault(namespace) && authConfig != integration.StaticTokenAuthNamespaced {
 			t.Log(`Ensure that distributions and all entities associated with them are part of same namespace.`)
 			var (
 				flagKey = "defaultflag"
@@ -1339,7 +1339,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		t.Log(`Returns Flipt service information.`)
 
 		// meta shouldn't be reachable with a namespace scoped token
-		if authConfig == integration.AuthNamespaced {
+		if authConfig == integration.StaticTokenAuthNamespaced {
 			_, err := client.Meta().GetInfo(ctx)
 			require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 			return
@@ -1392,7 +1392,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if authConfig == integration.AuthNoNamespace {
+			if authConfig == integration.StaticTokenAuth {
 				// only valid with a non-scoped token
 				assert.NoError(t, err)
 			} else {

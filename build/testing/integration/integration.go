@@ -18,6 +18,7 @@ import (
 
 var (
 	fliptAddr                  = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
+	fliptTokenType             = flag.String("flipt-token-type", "static", "Type of token to be used during test suite (static, jwt)")
 	fliptToken                 = flag.String("flipt-token", "", "Authentication token to be used during test suite")
 	fliptCreateNamespacedToken = flag.Bool("flipt-create-namespaced-token", false, "Create a namespaced token for the test suite")
 	fliptNamespace             = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
@@ -27,18 +28,21 @@ type AuthConfig int
 
 const (
 	NoAuth AuthConfig = iota
-	AuthNoNamespace
-	AuthNamespaced
+	StaticTokenAuth
+	StaticTokenAuthNamespaced
+	JWTAuth
 )
 
 func (a AuthConfig) String() string {
 	switch a {
 	case NoAuth:
 		return "NoAuth"
-	case AuthNoNamespace:
-		return "AuthNoNamespace"
-	case AuthNamespaced:
-		return "AuthNamespaced"
+	case StaticTokenAuth:
+		return "StaticTokenAuth"
+	case StaticTokenAuthNamespaced:
+		return "StaticTokenAuthNamespaced"
+	case JWTAuth:
+		return "JWTAuth"
 	default:
 		return "Unknown"
 	}
@@ -82,35 +86,43 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		namespace = *fliptNamespace
 	}
 
-	if authentication := *fliptToken != ""; authentication {
-		authConfig = AuthNoNamespace
+	if *fliptTokenType == "static" {
+		if authentication := *fliptToken != ""; authentication {
+			authConfig = StaticTokenAuth
 
-		opts = append(opts, sdk.WithClientTokenProvider(
-			sdk.StaticClientTokenProvider(*fliptToken),
-		))
+			opts = append(opts, sdk.WithAuthenticationProvider(
+				sdk.StaticTokenAuthenticationProvider(*fliptToken),
+			))
 
-		client = sdk.New(transport, opts...)
+			client = sdk.New(transport, opts...)
 
-		if *fliptCreateNamespacedToken {
-			authConfig = AuthNamespaced
+			if *fliptCreateNamespacedToken {
+				authConfig = StaticTokenAuthNamespaced
 
-			t.Log("Creating namespaced token for test suite")
+				t.Log("Creating namespaced token for test suite")
 
-			ctx := context.Background()
-			authn, err := client.Auth().AuthenticationMethodTokenService().CreateToken(
-				ctx,
-				&auth.CreateTokenRequest{
-					Name:         "Integration Test Token",
-					NamespaceKey: namespace,
-				},
-			)
+				authn, err := client.Auth().AuthenticationMethodTokenService().CreateToken(
+					context.Background(),
+					&auth.CreateTokenRequest{
+						Name:         "Integration Test Token",
+						NamespaceKey: namespace,
+					},
+				)
 
-			t.Log("Created token", authn.ClientToken, authn.Authentication.Metadata)
+				t.Log("Created token", authn.ClientToken, authn.Authentication.Metadata)
 
-			require.NoError(t, err)
+				require.NoError(t, err)
 
-			opts = append(opts, sdk.WithClientTokenProvider(
-				sdk.StaticClientTokenProvider(authn.ClientToken),
+				opts = append(opts, sdk.WithAuthenticationProvider(
+					sdk.StaticTokenAuthenticationProvider(authn.ClientToken),
+				))
+			}
+		}
+	} else if *fliptTokenType == "jwt" {
+		if authentication := *fliptToken != ""; authentication {
+			authConfig = JWTAuth
+			opts = append(opts, sdk.WithAuthenticationProvider(
+				sdk.JWTAuthenticationProvider(*fliptToken),
 			))
 		}
 	}

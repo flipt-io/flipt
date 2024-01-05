@@ -88,7 +88,7 @@ func generateSDK(gen *protogen.Plugin) {
 		g.P("func (s SDK) ", t[0], "() *", t[0], "{")
 		g.P("return &", t[0], "{")
 		g.P("transport: s.transport.", t[1], "(),")
-		g.P("tokenProvider: s.tokenProvider,")
+		g.P("authenticationProvider: s.authenticationProvider,")
 		g.P("}")
 		g.P("}\n")
 	}
@@ -129,7 +129,7 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", typ, " struct {")
 		g.P("transport ", typ, "Client")
-		g.P("tokenProvider ", "ClientTokenProvider")
+		g.P("authenticationProvider ", "ClientAuthenticationProvider")
 		g.P("}\n")
 	}
 
@@ -141,14 +141,14 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", serviceName, " struct {")
 		g.P("transport ", relativeImport(g, file, srv.GoName+"Client"))
-		g.P("tokenProvider ", "ClientTokenProvider")
+		g.P("authenticationProvider ", "ClientAuthenticationProvider")
 		g.P("}\n")
 
 		if !oneServicePackage {
 			g.P("func (s ", typ, ") ", srv.GoName, "() *", srv.GoName, "{")
 			g.P("return &", srv.GoName, "{")
 			g.P("transport: s.transport.", srv.GoName+"Client", "(),")
-			g.P("tokenProvider: ", "s.tokenProvider,")
+			g.P("authenticationProvider: ", "s.authenticationProvider,")
 			g.P("}")
 			g.P("}")
 		}
@@ -168,12 +168,12 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 			if method.Output.GoIdent.GoImportPath != emptyImport {
 				g.P(append(signature, ") (*", method.Output.GoIdent, ", error) {")...)
-				g.P("ctx, err := authenticate(ctx, x.tokenProvider)")
+				g.P("ctx, err := authenticate(ctx, x.authenticationProvider)")
 				g.P("if err != nil { return nil, err }")
 				g.P(append([]any{"return "}, returnStatement...)...)
 			} else {
 				g.P(append(signature, ") error {")...)
-				g.P("ctx, err := authenticate(ctx, x.tokenProvider)")
+				g.P("ctx, err := authenticate(ctx, x.authenticationProvider)")
 				g.P("if err != nil { return err }")
 				g.P(append([]any{"_, err = "}, returnStatement...)...)
 				g.P("return err")
@@ -187,13 +187,13 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 func authenticateFunction(g *protogen.GeneratedFile) {
 	context := importPackage(g, "context")
-	g.P("func authenticate(ctx ", context("Context"), ", p ClientTokenProvider) (", context("Context"), ", error) {")
+	g.P("func authenticate(ctx ", context("Context"), ", p ClientAuthenticationProvider) (", context("Context"), ", error) {")
 	metadata := importPackage(g, "google.golang.org/grpc/metadata")
 	g.P("if p != nil {")
-	g.P("token, err := p.ClientToken()")
+	g.P("authentication, err := p.Authentication()")
 	g.P("if err != nil { return ctx, err }")
 	g.P()
-	g.P("ctx = ", metadata("AppendToOutgoingContext"), `(ctx, "authorization", "Bearer "+token)`)
+	g.P("ctx = ", metadata("AppendToOutgoingContext"), `(ctx, "authorization", authentication)`)
 	g.P("}\n")
 	g.P("return ctx, nil")
 	g.P("}")
@@ -220,11 +220,11 @@ func relativeImport(g *protogen.GeneratedFile, file *protogen.File, name string)
 	})
 }
 
-const sdkBase = `// ClientTokenProvider is a type which when requested provides a
-// client token which can be used to authenticate RPC/API calls
+const sdkBase = `// ClientAuthenticationProvider is a type which when requested provides a
+// client authentication which can be used to authenticate RPC/API calls
 // invoked through the SDK.
-type ClientTokenProvider interface {
-	ClientToken() (string, error)
+type ClientAuthenticationProvider interface {
+	Authentication() (string, error)
 }
 
 // SDK is the definition of Flipt's Go SDK.
@@ -234,27 +234,36 @@ type ClientTokenProvider interface {
 // lifecycle support.
 type SDK struct {
 	transport Transport
-    tokenProvider ClientTokenProvider
+    authenticationProvider ClientAuthenticationProvider
 }
 
 // Option is a functional option which configures the Flipt SDK.
 type Option func(*SDK)
 
-// WithClientTokenProviders returns an Option which configures
-// any supplied SDK with the provided ClientTokenProvider.
-func WithClientTokenProvider(p ClientTokenProvider) Option {
+// WithAuthenticationProviders returns an Option which configures
+// any supplied SDK with the provided ClientAuthenticationProvider.
+func WithAuthenticationProvider(p ClientAuthenticationProvider) Option {
 	return func(s *SDK) {
-        s.tokenProvider = p
+        s.authenticationProvider = p
     }
 }
 
-// StaticClientTokenProvider is a string which is supplied as a static client token
+// StaticTokenAuthenticationProvider is a string which is supplied as a static client authentication
 // on each RPC which requires authentication.
-type StaticClientTokenProvider string
+type StaticTokenAuthenticationProvider string
 
-// ClientToken returns the underlying string that is the StaticClientTokenProvider.
-func (p StaticClientTokenProvider) ClientToken() (string, error) {
-    return string(p), nil
+// Authentication returns the underlying string that is the StaticTokenAuthenticationProvider.
+func (p StaticTokenAuthenticationProvider) Authentication() (string, error) {
+    return "Bearer " + string(p), nil
+}
+
+// JWTAuthenticationProvider is a string which is supplied as a JWT client authentication
+// on each RPC which requires authentication.
+type JWTAuthenticationProvider string
+
+// Authentication returns the underlying string that is the JWTAuthenticationProvider.
+func (p JWTAuthenticationProvider) Authentication() (string, error) {
+    return "JWT " + string(p), nil
 }
 
 // New constructs and configures a Flipt SDK instance from

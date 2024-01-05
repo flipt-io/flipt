@@ -67,8 +67,8 @@ func fliptClient(address, token string) (*sdk.Flipt, error) {
 
 	var opts []sdk.Option
 	if token != "" {
-		opts = append(opts, sdk.WithClientTokenProvider(
-			sdk.StaticClientTokenProvider(token),
+		opts = append(opts, sdk.WithAuthenticationProvider(
+			sdk.StaticTokenAuthenticationProvider(token),
 		))
 	}
 

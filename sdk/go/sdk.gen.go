@@ -17,11 +17,11 @@ type Transport interface {
 	MetaClient() meta.MetadataServiceClient
 }
 
-// ClientTokenProvider is a type which when requested provides a
-// client token which can be used to authenticate RPC/API calls
+// ClientAuthenticationProvider is a type which when requested provides a
+// client authentication which can be used to authenticate RPC/API calls
 // invoked through the SDK.
-type ClientTokenProvider interface {
-	ClientToken() (string, error)
+type ClientAuthenticationProvider interface {
+	Authentication() (string, error)
 }
 
 // SDK is the definition of Flipt's Go SDK.
@@ -30,28 +30,37 @@ type ClientTokenProvider interface {
 // It also provides consistent client-side instrumentation and authentication
 // lifecycle support.
 type SDK struct {
-	transport     Transport
-	tokenProvider ClientTokenProvider
+	transport              Transport
+	authenticationProvider ClientAuthenticationProvider
 }
 
 // Option is a functional option which configures the Flipt SDK.
 type Option func(*SDK)
 
-// WithClientTokenProviders returns an Option which configures
-// any supplied SDK with the provided ClientTokenProvider.
-func WithClientTokenProvider(p ClientTokenProvider) Option {
+// WithAuthenticationProviders returns an Option which configures
+// any supplied SDK with the provided ClientAuthenticationProvider.
+func WithAuthenticationProvider(p ClientAuthenticationProvider) Option {
 	return func(s *SDK) {
-		s.tokenProvider = p
+		s.authenticationProvider = p
 	}
 }
 
-// StaticClientTokenProvider is a string which is supplied as a static client token
+// StaticTokenAuthenticationProvider is a string which is supplied as a static client authentication
 // on each RPC which requires authentication.
-type StaticClientTokenProvider string
+type StaticTokenAuthenticationProvider string
 
-// ClientToken returns the underlying string that is the StaticClientTokenProvider.
-func (p StaticClientTokenProvider) ClientToken() (string, error) {
-	return string(p), nil
+// Authentication returns the underlying string that is the StaticTokenAuthenticationProvider.
+func (p StaticTokenAuthenticationProvider) Authentication() (string, error) {
+	return "Bearer " + string(p), nil
+}
+
+// JWTAuthenticationProvider is a string which is supplied as a JWT client authentication
+// on each RPC which requires authentication.
+type JWTAuthenticationProvider string
+
+// Authentication returns the underlying string that is the JWTAuthenticationProvider.
+func (p JWTAuthenticationProvider) Authentication() (string, error) {
+	return "JWT " + string(p), nil
 }
 
 // New constructs and configures a Flipt SDK instance from
@@ -68,40 +77,40 @@ func New(t Transport, opts ...Option) SDK {
 
 func (s SDK) Auth() *Auth {
 	return &Auth{
-		transport:     s.transport.AuthClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 
 func (s SDK) Evaluation() *Evaluation {
 	return &Evaluation{
-		transport:     s.transport.EvaluationClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.EvaluationClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 
 func (s SDK) Flipt() *Flipt {
 	return &Flipt{
-		transport:     s.transport.FliptClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.FliptClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 
 func (s SDK) Meta() *Meta {
 	return &Meta{
-		transport:     s.transport.MetaClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.MetaClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 
-func authenticate(ctx context.Context, p ClientTokenProvider) (context.Context, error) {
+func authenticate(ctx context.Context, p ClientAuthenticationProvider) (context.Context, error) {
 	if p != nil {
-		token, err := p.ClientToken()
+		authentication, err := p.Authentication()
 		if err != nil {
 			return ctx, err
 		}
 
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", authentication)
 	}
 
 	return ctx, nil

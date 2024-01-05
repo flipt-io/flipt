@@ -8,12 +8,12 @@ import (
 )
 
 type Evaluation struct {
-	transport     evaluation.EvaluationServiceClient
-	tokenProvider ClientTokenProvider
+	transport              evaluation.EvaluationServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (x *Evaluation) Boolean(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.BooleanEvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func (x *Evaluation) Boolean(ctx context.Context, v *evaluation.EvaluationReques
 }
 
 func (x *Evaluation) Variant(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.VariantEvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (x *Evaluation) Variant(ctx context.Context, v *evaluation.EvaluationReques
 }
 
 func (x *Evaluation) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest) (*evaluation.BatchEvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
