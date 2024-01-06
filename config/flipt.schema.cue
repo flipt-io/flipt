@@ -75,6 +75,16 @@ import "strings"
 				scopes?: [...string]
 				allowed_organizations?: [...] | string
 			}
+
+			jwt?: {
+				enabled?: bool | *false
+				validate_claims?: {
+					issuer?: string
+					audiences?: [...string]
+				}
+				jwks_url?: string
+				key_file?:     string
+			}
 		}
 
 		#authentication_cleanup: {

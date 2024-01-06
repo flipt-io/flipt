@@ -481,6 +481,26 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("provider \"foo\": field \"redirect_address\": non-empty value is required"),
 		},
 		{
+			name:    "authentication jwt key file or jwks url required",
+			path:    "./testdata/authentication/jwt_missing_key_file_and_jwks_url.yml",
+			wantErr: errors.New("one of jwks_url or key_file is required"),
+		},
+		{
+			name:    "authentication jwt key file and jwks url mutually exclusive",
+			path:    "./testdata/authentication/jwt_key_file_and_jwks_url.yml",
+			wantErr: errors.New("only one of jwks_url or key_file can be set"),
+		},
+		{
+			name:    "authentication jwks invalid url",
+			path:    "./testdata/authentication/jwt_invalid_jwks_url.yml",
+			wantErr: errors.New(`field "jwks_url": parse " http://localhost:8080/.well-known/jwks.json": first path segment in URL cannot contain colon`),
+		},
+		{
+			name:    "authentication jwt key file not found",
+			path:    "./testdata/authentication/jwt_key_file_not_found.yml",
+			wantErr: errors.New(`field "key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
