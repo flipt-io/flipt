@@ -1,4 +1,4 @@
-FROM node:18-alpine3.16
+FROM node:18-alpine3.18
 
 WORKDIR /ui
 

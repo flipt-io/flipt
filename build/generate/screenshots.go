@@ -33,7 +33,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 
 	cache := client.CacheVolume(fmt.Sprintf("node-modules-screenshot-%x", sha256.Sum256([]byte(contents))))
 
-	ui, err := client.Container().From("node:18-bullseye").
+	ui, err := client.Container().From("node:18-alpine3.18").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
 		WithExec([]string{"npm", "install"}).
