@@ -130,7 +130,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced} {
+			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced, jwtAuth} {
 				auth := auth
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
@@ -183,7 +183,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
 					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_KEY_FILE", "/etc/flipt/jwt.pem")
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_KEY_FILE", "/etc/flipt/jwt.pem").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
 			}
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -539,8 +540,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 				}
 			case "jwt":
 				token := signJWT(priv, map[string]interface{}{
-					"sub": "flipt",
-					"iss": "flipt.io",
+					"iss": "https://flipt.io",
 				})
 				flags = append(flags, "--flipt-token", token)
 			}

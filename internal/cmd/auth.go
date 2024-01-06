@@ -177,7 +177,9 @@ func authenticationGRPC(
 				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
 			}
 
-			var exp jwt.Expected
+			exp := jwt.Expected{
+				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512},
+			}
 
 			if authJWT.Method.ValidateClaims.Issuer != "" {
 				exp.Issuer = authJWT.Method.ValidateClaims.Issuer

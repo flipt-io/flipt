@@ -181,7 +181,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		}
 
 		// TODO: map claims to auth metadata?
-		_, err = validator.Validate(ctx, token, expected)
+		_, err = validator.ValidateAllowMissingIatNbfExp(ctx, token, expected)
 		if err != nil {
 			logger.Error("unauthenticated",
 				zap.String("reason", "error validating jwt"),
