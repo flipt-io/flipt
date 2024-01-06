@@ -169,6 +169,7 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 			object.WithPollOptions(
 				storagefs.WithInterval(ocfg.S3.PollInterval),
 			),
+			object.WithPrefix(ocfg.S3.Prefix),
 		)
 	case config.AZBlobObjectSubStorageType:
 		scheme = azureblob.Scheme
@@ -199,6 +200,7 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 			object.WithPollOptions(
 				storagefs.WithInterval(ocfg.GS.PollInterval),
 			),
+			object.WithPrefix(ocfg.GS.Prefix),
 		)
 	default:
 		return nil, fmt.Errorf("unexpected object storage subtype: %q", ocfg.Type)

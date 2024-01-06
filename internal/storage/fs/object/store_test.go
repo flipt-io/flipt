@@ -71,7 +71,7 @@ func Test_Store(t *testing.T) {
 			t.Helper()
 			q := url.Values{}
 			q.Set("awssdk", "v2")
-			q.Set("region", "us-east-1")
+			q.Set("region", "minio")
 			q.Set("endpoint", minioURL)
 			s3 := &url.URL{
 				Scheme:   "s3i",
@@ -249,9 +249,6 @@ flags:
 
 		t.Log("Creating store to test")
 
-		// prefix the bucket from here on
-		bucket = gcblob.PrefixedBucket(bucket, "prefix")
-
 		u, err := url.Parse(dest)
 		require.NoError(t, err)
 
@@ -260,6 +257,7 @@ flags:
 			zaptest.NewLogger(t),
 			u.Scheme,
 			bucket,
+			WithPrefix("prefix"),
 		)
 		require.NoError(t, err)
 
@@ -319,7 +317,7 @@ func s3Client(t *testing.T, endpoint string) *s3.Client {
 	t.Helper()
 
 	cfg, err := config.LoadDefaultConfig(context.Background(),
-		config.WithRegion("us-east-1"))
+		config.WithRegion("minio"))
 	require.NoError(t, err)
 
 	var s3Opts []func(*s3.Options)
@@ -327,7 +325,7 @@ func s3Client(t *testing.T, endpoint string) *s3.Client {
 		s3Opts = append(s3Opts, func(o *s3.Options) {
 			o.BaseEndpoint = &endpoint
 			o.UsePathStyle = true
-			o.Region = "us-east-1"
+			o.Region = "minio"
 		})
 	}
 	return s3.NewFromConfig(cfg, s3Opts...)
