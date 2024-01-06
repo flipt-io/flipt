@@ -26,13 +26,8 @@ type FliptIndex struct {
 
 // DefaultFliptIndex returns the default value for the FliptIndex.
 // It used when a .flipt.yml can not be located.
-func DefaultFliptIndex() *FliptIndex {
-	idx, err := newFliptIndex(defaultFliptIndex())
-	if err != nil {
-		panic(err)
-	}
-
-	return idx
+func DefaultFliptIndex() (*FliptIndex, error) {
+	return newFliptIndex(defaultFliptIndex())
 }
 
 // OpenFliptIndex attempts to retrieve a FliptIndex from the provided source
@@ -48,7 +43,7 @@ func OpenFliptIndex(logger *zap.Logger, src fs.FS) (*FliptIndex, error) {
 
 		logger.Debug("using default index", zap.String("file", IndexFileName), zap.Error(err))
 
-		return DefaultFliptIndex(), nil
+		return DefaultFliptIndex()
 	}
 	defer fi.Close()
 

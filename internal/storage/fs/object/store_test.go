@@ -312,6 +312,7 @@ func writeTestDataToBucket(t *testing.T, ctx context.Context, bucket *gcblob.Buc
 
 		return nil
 	})
+	require.NoError(t, err)
 }
 
 func s3Client(t *testing.T, endpoint string) *s3.Client {

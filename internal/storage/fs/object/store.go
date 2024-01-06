@@ -186,5 +186,5 @@ func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, er
 			zap.Error(fs.ErrNotExist))
 	}
 
-	return storagefs.DefaultFliptIndex(), nil
+	return storagefs.DefaultFliptIndex()
 }
