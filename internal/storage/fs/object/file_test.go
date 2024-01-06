@@ -1,4 +1,4 @@
-package blob
+package object
 
 import (
 	"io"
@@ -12,7 +12,7 @@ import (
 func TestNewFile(t *testing.T) {
 	modTime := time.Now()
 	r := io.NopCloser(strings.NewReader("hello"))
-	f := NewFile("bucket", "f.txt", 5, r, modTime)
+	f := NewFile("f.txt", 5, r, modTime)
 	fi, err := f.Stat()
 	require.NoError(t, err)
 	require.Equal(t, "f.txt", fi.Name())

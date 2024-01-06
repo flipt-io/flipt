@@ -3,7 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -14,11 +16,12 @@ import (
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
-	"go.flipt.io/flipt/internal/storage/fs/object/azblob"
-	"go.flipt.io/flipt/internal/storage/fs/object/gcs"
-	"go.flipt.io/flipt/internal/storage/fs/object/s3"
+	"go.flipt.io/flipt/internal/storage/fs/object"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	"go.uber.org/zap"
+	"gocloud.dev/blob"
+	"gocloud.dev/blob/azureblob"
+	"gocloud.dev/blob/gcsblob"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -136,60 +139,86 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 
 // newObjectStore create a new storate.Store from the object config
 func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger) (store storage.Store, err error) {
-	objectCfg := cfg.Storage.Object
+	var (
+		ocfg       = cfg.Storage.Object
+		opts       []containers.Option[object.SnapshotStore]
+		scheme     string
+		bucketName string
+		values     = url.Values{}
+	)
 	// keep this as a case statement in anticipation of
 	// more object types in the future
 	// nolint:gocritic
-	switch objectCfg.Type {
+	switch ocfg.Type {
 	case config.S3ObjectSubStorageType:
-		opts := []containers.Option[s3.SnapshotStore]{
-			s3.WithPollOptions(
-				storagefs.WithInterval(objectCfg.S3.PollInterval),
+		scheme = "s3i"
+		bucketName = ocfg.S3.Bucket
+		if ocfg.S3.Endpoint != "" {
+			values.Set("endpoint", ocfg.S3.Endpoint)
+		}
+
+		if ocfg.S3.Region != "" {
+			values.Set("region", ocfg.S3.Region)
+		}
+
+		if ocfg.S3.Prefix != "" {
+			values.Set("prefix", ocfg.S3.Prefix)
+		}
+
+		opts = append(opts,
+			object.WithPollOptions(
+				storagefs.WithInterval(ocfg.S3.PollInterval),
 			),
-		}
-		if objectCfg.S3.Endpoint != "" {
-			opts = append(opts, s3.WithEndpoint(objectCfg.S3.Endpoint))
-		}
-		if objectCfg.S3.Region != "" {
-			opts = append(opts, s3.WithRegion(objectCfg.S3.Region))
-		}
-
-		snapStore, err := s3.NewSnapshotStore(ctx, logger, objectCfg.S3.Bucket, opts...)
-		if err != nil {
-			return nil, err
-		}
-
-		return storagefs.NewStore(snapStore), nil
+		)
 	case config.AZBlobObjectSubStorageType:
-		opts := []containers.Option[azblob.SnapshotStore]{
-			azblob.WithEndpoint(objectCfg.AZBlob.Endpoint),
-			azblob.WithPollOptions(
-				storagefs.WithInterval(objectCfg.AZBlob.PollInterval),
-			),
-		}
+		scheme = azureblob.Scheme
+		bucketName = ocfg.AZBlob.Container
 
-		snapStore, err := azblob.NewSnapshotStore(ctx, logger, objectCfg.AZBlob.Container, opts...)
+		url, err := url.Parse(ocfg.AZBlob.Endpoint)
 		if err != nil {
 			return nil, err
 		}
 
-		return storagefs.NewStore(snapStore), nil
+		os.Setenv("AZURE_STORAGE_PROTOCOL", url.Scheme)
+		os.Setenv("AZURE_STORAGE_IS_LOCAL_EMULATOR", strconv.FormatBool(url.Scheme == "http"))
+		os.Setenv("AZURE_STORAGE_DOMAIN", url.Host)
 
+		opts = append(opts,
+			object.WithPollOptions(
+				storagefs.WithInterval(ocfg.AZBlob.PollInterval),
+			),
+		)
 	case config.GSBlobObjectSubStorageType:
-		opts := []containers.Option[gcs.SnapshotStore]{
-			gcs.WithPrefix(objectCfg.GS.Prefix),
-			gcs.WithPollOptions(
-				storagefs.WithInterval(objectCfg.GS.PollInterval),
+		scheme = gcsblob.Scheme
+		bucketName = ocfg.GS.Bucket
+		if ocfg.GS.Prefix != "" {
+			values.Set("prefix", ocfg.GS.Prefix)
+		}
+
+		opts = append(opts,
+			object.WithPollOptions(
+				storagefs.WithInterval(ocfg.GS.PollInterval),
 			),
-		}
-
-		snapStore, err := gcs.NewSnapshotStore(ctx, logger, objectCfg.GS.Bucket, opts...)
-		if err != nil {
-			return nil, err
-		}
-
-		return storagefs.NewStore(snapStore), nil
+		)
+	default:
+		return nil, fmt.Errorf("unexpected object storage subtype: %q", ocfg.Type)
 	}
 
-	return nil, fmt.Errorf("unexpected object storage subtype: %q", objectCfg.Type)
+	u := &url.URL{
+		Scheme:   scheme,
+		Host:     bucketName,
+		RawQuery: values.Encode(),
+	}
+
+	bucket, err := blob.OpenBucket(ctx, u.String())
+	if err != nil {
+		return nil, err
+	}
+
+	snap, err := object.NewSnapshotStore(ctx, logger, scheme, bucket, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return storagefs.NewStore(snap), nil
 }
