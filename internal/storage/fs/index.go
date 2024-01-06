@@ -132,7 +132,7 @@ func defaultFliptIndex() fliptIndex {
 func parseFliptIndex(r io.Reader) (fliptIndex, error) {
 	idx := fliptIndex{Version: indexVersion}
 	if derr := yaml.NewDecoder(r).Decode(&idx); derr != nil {
-		return idx, fmt.Errorf("yaml: %w", derr)
+		return idx, derr
 	}
 
 	return idx, nil

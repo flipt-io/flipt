@@ -58,6 +58,7 @@ jobs:
             "fs/s3",
             "fs/oci",
             "fs/azblob",
+            "fs/gcs",
             "import/export",
           ]
     steps:
