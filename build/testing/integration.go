@@ -131,6 +131,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
 			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced} {
+				auth := auth
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
 					namespace: namespace,
@@ -176,15 +177,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					Bytes: bytes,
 				})
 
-				// write public key to file
-				flipt := flipt.
-					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)})
-
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_KEY_FILE", "/etc/flipt/jwt.pem")
 			}
 
@@ -531,6 +529,8 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		}
 
 		if conf.auth.enabled() {
+			flags = append(flags, "--flipt-token-type", conf.auth.method())
+
 			switch conf.auth.method() {
 			case "static":
 				flags = append(flags, "--flipt-token", bootstrapToken)
@@ -544,8 +544,6 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 				})
 				flags = append(flags, "--flipt-token", token)
 			}
-
-			flags = append(flags, "--flipt-token-type", conf.auth.method())
 		}
 
 		_, err = base.

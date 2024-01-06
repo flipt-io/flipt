@@ -87,7 +87,7 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 	}
 
 	if *fliptTokenType == "static" {
-		if authentication := *fliptToken != ""; authentication {
+		if *fliptToken != "" {
 			authConfig = StaticTokenAuth
 
 			opts = append(opts, sdk.WithAuthenticationProvider(
