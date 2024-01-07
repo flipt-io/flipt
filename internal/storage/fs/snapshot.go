@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/cue"
@@ -25,19 +24,10 @@ import (
 )
 
 const (
-	indexFile = ".flipt.yml"
 	defaultNs = "default"
 )
 
 var _ storage.ReadOnlyStore = (*Snapshot)(nil)
-
-// FliptIndex represents the structure of a well-known file ".flipt.yml"
-// at the root of an FS.
-type FliptIndex struct {
-	Version string   `yaml:"version,omitempty"`
-	Include []string `yaml:"include,omitempty"`
-	Exclude []string `yaml:"exclude,omitempty"`
-}
 
 // Snapshot contains the structures necessary for serving
 // flag state to a client.
@@ -77,20 +67,20 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 // SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*Snapshot, error) {
-	files, err := listStateFiles(logger, fs)
+func SnapshotFromFS(logger *zap.Logger, src fs.FS) (*Snapshot, error) {
+	paths, err := listStateFiles(logger, src)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("opening state files", zap.Strings("paths", files))
-
-	return SnapshotFromPaths(logger, fs, files...)
+	return SnapshotFromPaths(logger, src, paths...)
 }
 
 // SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
 func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*Snapshot, error) {
+	logger.Debug("opening state files", zap.Strings("paths", paths))
+
 	var files []fs.File
 	for _, file := range paths {
 		fi, err := ffs.Open(file)
@@ -118,6 +108,12 @@ func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*Snapshot, error) 
 
 	for _, fi := range files {
 		defer fi.Close()
+		info, err := fi.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		logger.Debug("opening state file", zap.String("path", info.Name()))
 
 		docs, err := documentsFromFile(fi)
 		if err != nil {
@@ -223,45 +219,14 @@ func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
 }
 
 // listStateFiles lists all the file paths in a provided fs.FS containing Flipt feature state
-func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
-	// This is the default variable + value for the FliptIndex. It will preserve its value if
-	// a .flipt.yml can not be read for whatever reason.
-	idx := FliptIndex{
-		Version: "1.0",
-		Include: []string{
-			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
-		},
-	}
-
-	// Read index file
-	inFile, err := source.Open(indexFile)
-	if err == nil {
-		defer inFile.Close()
-		if derr := yaml.NewDecoder(inFile).Decode(&idx); derr != nil {
-			return nil, fmt.Errorf("yaml: %w", derr)
-		}
-	}
-
+func listStateFiles(logger *zap.Logger, src fs.FS) ([]string, error) {
+	idx, err := OpenFliptIndex(logger, src)
 	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return nil, err
-		} else {
-			logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
-		}
+		return nil, err
 	}
 
-	var includes []glob.Glob
-	for _, g := range idx.Include {
-		glob, err := glob.Compile(g)
-		if err != nil {
-			return nil, fmt.Errorf("compiling include glob: %w", err)
-		}
-
-		includes = append(includes, glob)
-	}
-
-	filenames := make([]string, 0)
-	if err := fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+	var paths []string
+	if err := fs.WalkDir(src, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -270,11 +235,8 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 			return nil
 		}
 
-		for _, glob := range includes {
-			if glob.Match(path) {
-				filenames = append(filenames, path)
-				return nil
-			}
+		if idx.Match(path) {
+			paths = append(paths, path)
 		}
 
 		return nil
@@ -282,29 +244,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 		return nil, err
 	}
 
-	if len(idx.Exclude) > 0 {
-		var excludes []glob.Glob
-		for _, g := range idx.Exclude {
-			glob, err := glob.Compile(g)
-			if err != nil {
-				return nil, fmt.Errorf("compiling include glob: %w", err)
-			}
-
-			excludes = append(excludes, glob)
-		}
-
-	OUTER:
-		for i := len(filenames) - 1; i >= 0; i-- {
-			for _, glob := range excludes {
-				if glob.Match(filenames[i]) {
-					filenames = append(filenames[:i], filenames[i+1:]...)
-					continue OUTER
-				}
-			}
-		}
-	}
-
-	return filenames, nil
+	return paths, nil
 }
 
 func (ss *Snapshot) addDoc(doc *ext.Document) error {
