@@ -147,7 +147,7 @@ func JWTInterceptorSelector() selector.Matcher {
 
 		_, err := jwtFromMetadata(md)
 		return err == nil
-	)
+	})
 }
 
 func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
