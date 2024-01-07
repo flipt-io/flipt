@@ -33,7 +33,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
 	github.com/h2non/gock v1.2.0
-	github.com/hashicorp/cap v0.4.0
+	github.com/hashicorp/cap v0.4.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lib/pq v1.10.9
 	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b
