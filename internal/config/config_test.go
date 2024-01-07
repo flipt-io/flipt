@@ -869,6 +869,30 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name:    "gs config invalid",
+			path:    "./testdata/storage/gs_invalid.yml",
+			wantErr: errors.New("googlecloud bucket must be specified"),
+		},
+		{
+			name: "gs full config provided",
+			path: "./testdata/storage/gs_full.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: GSBlobObjectSubStorageType,
+						GS: &GS{
+							Bucket:       "testdata",
+							Prefix:       "prefix",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {

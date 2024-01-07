@@ -181,7 +181,7 @@ import "strings"
 			})
 		}
 		object?: {
-			type: "s3" | "azblob" | *""
+			type: "s3" | "azblob" | "googlecloud" | *""
 			s3?: {
 				region:         string
 				bucket:         string
@@ -192,6 +192,11 @@ import "strings"
 			azblob?: {
 				container: string
 				endpoint?: string
+				poll_interval?: =~#duration | *"1m"
+			}
+			googlecloud?: {
+				bucket:         string
+				prefix?:        string
 				poll_interval?: =~#duration | *"1m"
 			}
 		}

@@ -1,4 +1,4 @@
-package blob
+package object
 
 import (
 	"io/fs"

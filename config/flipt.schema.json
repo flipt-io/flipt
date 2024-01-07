@@ -643,7 +643,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["s3", "azblob"],
+              "enum": ["s3", "azblob", "googlecloud"],
               "default": "s3"
             },
             "s3": {
@@ -701,6 +701,31 @@
                 }
               },
               "title": "Azure Blob Storage"
+            },
+            "googlecloud": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "bucket": {
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "poll_interval": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": "1m"
+                }
+              },
+              "title": "Google Cloud Storage"
             }
           },
           "title": "Object"

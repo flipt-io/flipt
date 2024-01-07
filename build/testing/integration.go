@@ -56,6 +56,7 @@ var (
 		"fs/s3":         s3,
 		"fs/oci":        oci,
 		"fs/azblob":     azblob,
+		"fs/gcs":        gcs,
 		"import/export": importExport,
 	}
 )
@@ -584,6 +585,35 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_CONTAINER", "testdata").
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
+// gcs simulates the Google Cloud Storage service
+func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	gcs := client.Container().
+		From("fsouza/fake-gcs-server").
+		WithExposedPort(4443).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		AsService()
+
+	_, err := base.
+		WithServiceBinding("gcs", gcs).
+		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
+		WithExec([]string{"go", "run", "./build/internal/cmd/gcs/...", "-testdata-dir", testdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("gcs", gcs).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "googlecloud").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_GOOGLECLOUD_BUCKET", "testdata").
+		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
