@@ -546,8 +546,6 @@ type AuthenticationMethodJWTConfig struct {
 	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
 	// KeyFile is the path to the private PEM encoded key file on disk.
 	KeyFile string `json:"-" mapstructure:"key_file" yaml:"key_file,omitempty"`
-	// KeyID is the ID (kid) of the private key used to sign the JWT token.
-	KeyID string `json:"-" mapstructure:"key_id" yaml:"key_id,omitempty"`
 }
 
 func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
