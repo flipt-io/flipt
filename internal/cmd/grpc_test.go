@@ -3,11 +3,15 @@ package cmd
 import (
 	"context"
 	"errors"
+	"fmt"
+	"path/filepath"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/info"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestGetTraceExporter(t *testing.T) {
@@ -109,4 +113,13 @@ func TestGetTraceExporter(t *testing.T) {
 			assert.NotNil(t, expFunc)
 		})
 	}
+}
+
+func TestNewGRPCServer(t *testing.T) {
+	tmp := t.TempDir()
+	cfg := &config.Config{}
+	cfg.Database.URL = fmt.Sprintf("file:%s", filepath.Join(tmp, "flipt.db"))
+	s, err := NewGRPCServer(context.Background(), zaptest.NewLogger(t), cfg, info.Flipt{}, false)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, s.Server.GetServiceInfo())
 }
