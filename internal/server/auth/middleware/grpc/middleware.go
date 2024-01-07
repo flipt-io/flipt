@@ -146,12 +146,8 @@ func JWTInterceptorSelector() selector.Matcher {
 		}
 
 		_, err := jwtFromMetadata(md)
-		if err != nil {
-			return false
-		}
-
-		return true
-	})
+		return err == nil
+	)
 }
 
 func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
@@ -217,11 +213,7 @@ func ClientTokenInterceptorSelector() selector.Matcher {
 		}
 
 		_, err := clientTokenFromMetadata(md)
-		if err != nil {
-			return false
-		}
-
-		return true
+		return err == nil
 	})
 }
 
