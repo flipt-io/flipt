@@ -29,6 +29,10 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 		})
 
 		t.Run("Get Self", func(t *testing.T) {
+			if !opts.AuthConfig.StaticToken() {
+				t.Skip("Skipping test for non-static token authentication")
+			}
+
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
 
 			if opts.AuthConfig == integration.StaticTokenAuthNamespaced {
@@ -93,6 +97,10 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 		})
 
 		t.Run("Expire Self", func(t *testing.T) {
+			if !opts.AuthConfig.StaticToken() {
+				t.Skip("Skipping test for non-static token authentication")
+			}
+
 			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
 				ExpiresAt: flipt.Now(),
 			})

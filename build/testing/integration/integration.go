@@ -48,6 +48,10 @@ func (a AuthConfig) String() string {
 	}
 }
 
+func (a AuthConfig) StaticToken() bool {
+	return a == StaticTokenAuth || a == StaticTokenAuthNamespaced
+}
+
 func (a AuthConfig) Required() bool {
 	return a != NoAuth
 }

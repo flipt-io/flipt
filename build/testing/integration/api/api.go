@@ -1392,7 +1392,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if authConfig == integration.StaticTokenAuth {
+			if authConfig == integration.StaticTokenAuth || authConfig == integration.JWTAuth {
 				// only valid with a non-scoped token
 				assert.NoError(t, err)
 			} else {
