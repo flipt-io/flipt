@@ -856,6 +856,18 @@
         },
         "cert_key": {
           "type": "string"
+        },
+        "grpc_max_connection_idle": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "grpc_max_connection_age": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "grpc_max_connection_age_grace": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
         }
       },
       "required": [],

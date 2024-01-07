@@ -873,6 +873,17 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name: "grpc keepalive config provided",
+			path: "./testdata/server/grpc_keepalive.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Server.GRPCMaxConnectionIdle = 1 * time.Hour
+				cfg.Server.GRPCMaxConnectionAge = 30 * time.Second
+				cfg.Server.GRPCMaxConnectionAgeGrace = 10 * time.Second
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
