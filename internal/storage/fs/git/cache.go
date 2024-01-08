@@ -49,15 +49,13 @@ func (c *cache[K]) AddFixed(ctx context.Context, ref string, k K, s *fs.Snapshot
 
 	c.fixed[ref] = k
 	c.store[k] = s
-
-	return
 }
 
 // AddOrBuild adds the reference, key and value tuple.
 // If the reference r is already tracked in the fixed set, then it is updated there.
 // Otherwise, the entry is added to the LRU cache.
 func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildFunc[K]) (*fs.Snapshot, error) {
-	s, ok, err := c.getByRefAndKey(ctx, ref, k)
+	s, ok, err := c.getByRefAndKey(ref, k)
 	if err != nil {
 		return s, err
 	}
@@ -126,7 +124,7 @@ func (c *cache[K]) Get(ref string) (s *fs.Snapshot, ok bool) {
 	return
 }
 
-func (c *cache[K]) getByRefAndKey(ctx context.Context, ref string, k K) (s *fs.Snapshot, ok bool, err error) {
+func (c *cache[K]) getByRefAndKey(ref string, k K) (s *fs.Snapshot, ok bool, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
