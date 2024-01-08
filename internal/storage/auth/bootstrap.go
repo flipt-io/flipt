@@ -40,7 +40,7 @@ func Bootstrap(ctx context.Context, store Store, opts ...BootstrapOption) (strin
 		opt(&o)
 	}
 
-	set, err := store.ListAuthentications(ctx, storage.NewListRequest(ListWithMethod(rpcauth.Method_METHOD_TOKEN)))
+	set, err := store.ListAuthentications(ctx, storage.ListWithOptions(ListMethod(rpcauth.Method_METHOD_TOKEN)))
 	if err != nil {
 		return "", fmt.Errorf("bootstrapping authentication store: %w", err)
 	}

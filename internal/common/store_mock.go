@@ -18,18 +18,18 @@ func (m *StoreMock) String() string {
 	return "mock"
 }
 
-func (m *StoreMock) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
-	args := m.Called(ctx, key)
+func (m *StoreMock) GetNamespace(ctx context.Context, ns storage.NamespaceRequest) (*flipt.Namespace, error) {
+	args := m.Called(ctx, ns)
 	return args.Get(0).(*flipt.Namespace), args.Error(1)
 }
 
-func (m *StoreMock) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Namespace], error) {
-	args := m.Called(ctx, opts)
+func (m *StoreMock) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (storage.ResultSet[*flipt.Namespace], error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(storage.ResultSet[*flipt.Namespace]), args.Error(1)
 }
 
-func (m *StoreMock) CountNamespaces(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *StoreMock) CountNamespaces(ctx context.Context, p storage.ReferenceRequest) (uint64, error) {
+	args := m.Called(ctx, p)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -48,18 +48,18 @@ func (m *StoreMock) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespac
 	return args.Error(0)
 }
 
-func (m *StoreMock) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error) {
-	args := m.Called(ctx, namespaceKey, key)
+func (m *StoreMock) GetFlag(ctx context.Context, flag storage.ResourceRequest) (*flipt.Flag, error) {
+	args := m.Called(ctx, flag)
 	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
-func (m *StoreMock) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
-	args := m.Called(ctx, namespaceKey, opts)
+func (m *StoreMock) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(storage.ResultSet[*flipt.Flag]), args.Error(1)
 }
 
-func (m *StoreMock) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	args := m.Called(ctx, namespaceKey)
+func (m *StoreMock) CountFlags(ctx context.Context, ns storage.NamespaceRequest) (uint64, error) {
+	args := m.Called(ctx, ns)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -93,18 +93,18 @@ func (m *StoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	return args.Error(0)
 }
 
-func (m *StoreMock) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
-	args := m.Called(ctx, namespaceKey, key)
+func (m *StoreMock) GetSegment(ctx context.Context, segment storage.ResourceRequest) (*flipt.Segment, error) {
+	args := m.Called(ctx, segment)
 	return args.Get(0).(*flipt.Segment), args.Error(1)
 }
 
-func (m *StoreMock) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	args := m.Called(ctx, namespaceKey, opts)
+func (m *StoreMock) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Segment], error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(storage.ResultSet[*flipt.Segment]), args.Error(1)
 }
 
-func (m *StoreMock) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
-	args := m.Called(ctx, namespaceKey)
+func (m *StoreMock) CountSegments(ctx context.Context, ns storage.NamespaceRequest) (uint64, error) {
+	args := m.Called(ctx, ns)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -138,18 +138,18 @@ func (m *StoreMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
-func (m *StoreMock) ListRollouts(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
-	args := m.Called(ctx, namespaceKey, flagKey, opts)
+func (m *StoreMock) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (storage.ResultSet[*flipt.Rollout], error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(storage.ResultSet[*flipt.Rollout]), args.Error(1)
 }
 
-func (m *StoreMock) CountRollouts(ctx context.Context, namespaceKey string, flagKey string) (uint64, error) {
-	args := m.Called(ctx, namespaceKey, flagKey)
+func (m *StoreMock) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
+	args := m.Called(ctx, flag)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (m *StoreMock) GetRollout(ctx context.Context, namespaceKey string, key string) (*flipt.Rollout, error) {
-	args := m.Called(ctx, namespaceKey, key)
+func (m *StoreMock) GetRollout(ctx context.Context, ns storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
+	args := m.Called(ctx, ns, id)
 	return args.Get(0).(*flipt.Rollout), args.Error(1)
 }
 
@@ -173,18 +173,18 @@ func (m *StoreMock) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsReq
 	return args.Error(0)
 }
 
-func (m *StoreMock) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
-	args := m.Called(ctx, namespaceKey, id)
+func (m *StoreMock) GetRule(ctx context.Context, ns storage.NamespaceRequest, id string) (*flipt.Rule, error) {
+	args := m.Called(ctx, ns, id)
 	return args.Get(0).(*flipt.Rule), args.Error(1)
 }
 
-func (m *StoreMock) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
-	args := m.Called(ctx, namespaceKey, flagKey, opts)
+func (m *StoreMock) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (storage.ResultSet[*flipt.Rule], error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(storage.ResultSet[*flipt.Rule]), args.Error(1)
 }
 
-func (m *StoreMock) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	args := m.Called(ctx, namespaceKey, flagKey)
+func (m *StoreMock) CountRules(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
+	args := m.Called(ctx, flag)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -223,17 +223,17 @@ func (m *StoreMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistr
 	return args.Error(0)
 }
 
-func (m *StoreMock) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
-	args := m.Called(ctx, namespaceKey, flagKey)
+func (m *StoreMock) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
+	args := m.Called(ctx, flag)
 	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
 }
 
-func (m *StoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	args := m.Called(ctx, ruleID)
+func (m *StoreMock) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	args := m.Called(ctx, rule)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }
 
-func (m *StoreMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	args := m.Called(ctx, namespaceKey, flagKey)
+func (m *StoreMock) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
+	args := m.Called(ctx, flag)
 	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
 }

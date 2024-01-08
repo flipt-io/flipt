@@ -25,7 +25,7 @@ func (s *DBTestSuite) TestGetNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, ns)
 
-	got, err := s.store.GetNamespace(context.TODO(), ns.Key)
+	got, err := s.store.GetNamespace(context.TODO(), storage.NewNamespace(ns.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -40,7 +40,7 @@ func (s *DBTestSuite) TestGetNamespace() {
 func (s *DBTestSuite) TestGetNamespaceNotFound() {
 	t := s.T()
 
-	_, err := s.store.GetNamespace(context.TODO(), "foo")
+	_, err := s.store.GetNamespace(context.TODO(), storage.NewNamespace("foo"))
 	assert.EqualError(t, err, "namespace \"foo\" not found")
 }
 
@@ -65,10 +65,17 @@ func (s *DBTestSuite) TestListNamespaces() {
 		require.NoError(t, err)
 	}
 
-	_, err := s.store.ListNamespaces(context.TODO(), storage.WithPageToken("Hello World"))
+	_, err := s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+			storage.WithPageToken("Hello World"),
+		),
+	))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
-	res, err := s.store.ListNamespaces(context.TODO())
+	res, err := s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+	))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -110,7 +117,14 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	// get middle namespace
-	res, err := s.store.ListNamespaces(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListNamespaces(context.TODO(),
+		storage.ListWithOptions(
+			storage.ReferenceRequest{},
+			storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+				storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1)),
+		),
+	)
+
 	require.NoError(t, err)
 
 	got := res.Results
@@ -119,7 +133,14 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	// get first (newest) namespace
-	res, err = s.store.ListNamespaces(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	res, err = s.store.ListNamespaces(context.TODO(),
+		storage.ListWithOptions(
+			storage.ReferenceRequest{},
+			storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+				storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)),
+		),
+	)
+
 	require.NoError(t, err)
 
 	got = res.Results
@@ -128,7 +149,13 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 	assert.Equal(t, newest.Key, got[0].Key)
 
 	// get last (oldest) namespace
-	res, err = s.store.ListNamespaces(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	res, err = s.store.ListNamespaces(context.TODO(),
+		storage.ListWithOptions(
+			storage.ReferenceRequest{},
+			storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+				storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2)),
+		),
+	)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -137,7 +164,14 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 	assert.Equal(t, oldest.Key, got[0].Key)
 
 	// get all namespaces
-	res, err = s.store.ListNamespaces(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	res, err = s.store.ListNamespaces(context.TODO(),
+		storage.ListWithOptions(
+			storage.ReferenceRequest{},
+			storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+				storage.WithOrder(storage.OrderDesc),
+			),
+		),
+	)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -179,7 +213,10 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	// get newest namespace
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListNamespaces(context.TODO(), opts...)
+	res, err := s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](opts...),
+	))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -200,7 +237,10 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle namespace
-	res, err = s.store.ListNamespaces(context.TODO(), opts...)
+	res, err = s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](opts...),
+	))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -219,7 +259,10 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest namespace
-	res, err = s.store.ListNamespaces(context.TODO(), opts...)
+	res, err = s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](opts...),
+	))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -228,7 +271,10 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
 	// get all namespaces
-	res, err = s.store.ListNamespaces(context.TODO(), opts...)
+	res, err = s.store.ListNamespaces(context.TODO(), storage.ListWithOptions(
+		storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](opts...),
+	))
 	require.NoError(t, err)
 
 	got = res.Results

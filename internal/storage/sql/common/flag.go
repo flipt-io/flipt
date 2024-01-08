@@ -34,11 +34,7 @@ func emptyAsNil(str string) *string {
 }
 
 // GetFlag gets a flag with variants by key
-func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.Flag, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -47,7 +43,7 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 		err = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).
+			Where(sq.Eq{"namespace_key": p.Namespace(), "\"key\"": p.Key}).
 			QueryRowContext(ctx).
 			Scan(
 				&flag.NamespaceKey,
@@ -62,7 +58,7 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
+			return nil, errs.ErrNotFoundf("flag %q", p)
 		}
 
 		return nil, err
@@ -73,7 +69,7 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, attachment, created_at, updated_at").
 		From("variants").
-		Where(sq.And{sq.Eq{"namespace_key": flag.NamespaceKey}, sq.Eq{"flag_key": flag.Key}}).
+		Where(sq.Eq{"namespace_key": flag.NamespaceKey, "flag_key": flag.Key}).
 		OrderBy("created_at ASC")
 
 	rows, err := query.QueryContext(ctx)
@@ -136,43 +132,33 @@ type optionalVariant struct {
 }
 
 // ListFlags lists all flags with variants
-func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
-	params := &storage.QueryParams{}
-
-	for _, opt := range opts {
-		opt(params)
-	}
-
+func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error) {
 	var (
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
 		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.Eq{"namespace_key": namespaceKey}).
-			OrderBy(fmt.Sprintf("created_at %s", params.Order))
+			Where(sq.Eq{"namespace_key": req.Predicate.Namespace()}).
+			OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
 	)
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit + 1)
+	if req.QueryParams.Limit > 0 {
+		query = query.Limit(req.QueryParams.Limit + 1)
 	}
 
 	var offset uint64
 
-	if params.PageToken != "" {
-		token, err := decodePageToken(s.logger, params.PageToken)
+	if req.QueryParams.PageToken != "" {
+		token, err := decodePageToken(s.logger, req.QueryParams.PageToken)
 		if err != nil {
 			return results, err
 		}
 
 		offset = token.Offset
 		query = query.Offset(offset)
-	} else if params.Offset > 0 {
-		offset = params.Offset
+	} else if req.QueryParams.Offset > 0 {
+		offset = req.QueryParams.Offset
 		query = query.Offset(offset)
 	}
 
@@ -224,15 +210,15 @@ func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...stor
 		return results, err
 	}
 
-	if err := s.setVariants(ctx, namespaceKey, flagsByKey); err != nil {
+	if err := s.setVariants(ctx, req.Predicate.Namespace(), flagsByKey); err != nil {
 		return results, err
 	}
 
 	var next *flipt.Flag
 
-	if len(flags) > int(params.Limit) && params.Limit > 0 {
+	if len(flags) > int(req.QueryParams.Limit) && req.QueryParams.Limit > 0 {
 		next = flags[len(flags)-1]
-		flags = flags[:params.Limit]
+		flags = flags[:req.QueryParams.Limit]
 	}
 
 	results.Results = flags
@@ -313,16 +299,12 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 }
 
 // CountFlags counts all flags
-func (s *Store) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
 	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("flags").
-		Where(sq.Eq{"namespace_key": namespaceKey}).
+		Where(sq.Eq{"namespace_key": p.Namespace()}).
 		QueryRowContext(ctx).
 		Scan(&count); err != nil {
 		return 0, err
@@ -393,11 +375,13 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		return nil, err
 	}
 
+	p := storage.NewResource(r.NamespaceKey, r.Key)
+
 	if count != 1 {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.Key)
+		return nil, errs.ErrNotFoundf("flag %q", p)
 	}
 
-	return s.GetFlag(ctx, r.NamespaceKey, r.Key)
+	return s.GetFlag(ctx, p)
 }
 
 // DeleteFlag deletes a flag

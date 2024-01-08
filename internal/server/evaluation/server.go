@@ -12,10 +12,10 @@ import (
 
 // Storer is the minimal abstraction for interacting with the storage layer for evaluation.
 type Storer interface {
-	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
-	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error)
+	GetFlag(ctx context.Context, flag storage.ResourceRequest) (*flipt.Flag, error)
+	GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID storage.IDRequest) ([]*storage.EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error)
 }
 
 // Server serves the Flipt evaluate v2 gRPC Server.
