@@ -108,7 +108,10 @@ func TestGetTraceExporter(t *testing.T) {
 				assert.EqualError(t, err, tt.wantErr.Error())
 				return
 			}
-			t.Cleanup(func() { expFunc(context.Background()) })
+			t.Cleanup(func() {
+				err := expFunc(context.Background())
+				assert.NoError(t, err)
+			})
 			assert.NoError(t, err)
 			assert.NotNil(t, exp)
 			assert.NotNil(t, expFunc)
@@ -125,6 +128,9 @@ func TestNewGRPCServer(t *testing.T) {
 	t.Cleanup(cancel)
 	s, err := NewGRPCServer(ctx, zaptest.NewLogger(t), cfg, info.Flipt{}, false)
 	assert.NoError(t, err)
-	t.Cleanup(func() { s.Shutdown(ctx) })
+	t.Cleanup(func() {
+		err := s.Shutdown(ctx)
+		assert.NoError(t, err)
+	})
 	assert.NotEmpty(t, s.Server.GetServiceInfo())
 }
