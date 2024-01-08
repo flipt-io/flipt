@@ -247,9 +247,9 @@ import "strings"
 		grpc_port?:  int | *9000
 		cert_file?:  string
 		cert_key?:   string
-		grpc_max_connection_idle?: =~#duration
-		grpc_max_connection_age?: =~#duration
-		grpc_max_connection_age_grace?: =~#duration
+		grpc_conn_max_idle_time?: =~#duration
+		grpc_conn_max_age?: =~#duration
+		grpc_conn_max_age_grace?: =~#duration
 	}
 
 	#tracing: {

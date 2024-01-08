@@ -21,9 +21,9 @@ type ServerConfig struct {
 	GRPCPort                  int           `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
 	CertFile                  string        `json:"-" mapstructure:"cert_file" yaml:"-"`
 	CertKey                   string        `json:"-" mapstructure:"cert_key" yaml:"-"`
-	GRPCMaxConnectionIdle     time.Duration `json:"-" mapstructure:"grpc_max_connection_idle" yaml:"-"`
-	GRPCMaxConnectionAge      time.Duration `json:"-" mapstructure:"grpc_max_connection_age" yaml:"-"`
-	GRPCMaxConnectionAgeGrace time.Duration `json:"-" mapstructure:"grpc_max_connection_age_grace" yaml:"-"`
+	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
+	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
+	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {

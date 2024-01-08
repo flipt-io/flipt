@@ -362,9 +362,9 @@ func NewGRPCServer(
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionIdle:     cfg.Server.GRPCMaxConnectionIdle,
-			MaxConnectionAge:      cfg.Server.GRPCMaxConnectionAge,
-			MaxConnectionAgeGrace: cfg.Server.GRPCMaxConnectionAgeGrace,
+			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
+			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
+			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
 		}),
 	}
 
