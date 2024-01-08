@@ -3,7 +3,6 @@ package git
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/go-git/go-git/v5"
@@ -113,6 +112,11 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		return nil, err
 	}
 
+	// do an initial fetch to setup remote tracking branches
+	if _, err := store.fetch(ctx); err != nil {
+		return nil, err
+	}
+
 	// fetch base ref snapshot at-least once before returning store
 	// to ensure we have a servable default state
 	snap, hash, err := store.buildReference(ctx, store.baseRef)
@@ -154,19 +158,14 @@ func (s *SnapshotStore) View(storeRef storage.Reference, fn func(storage.ReadOnl
 		return fn(snap)
 	}
 
+	// force attempt a fetch to get the latest references
+	if _, err := s.fetch(ctx); err != nil {
+		return err
+	}
+
 	hash, err := s.resolve(ref)
 	if err != nil {
-		// if an initial resolve fails then attempt to
-		// fetch from the reference upstream
-		if _, err := s.fetch(ctx, ref); err != nil {
-			return err
-		}
-
-		// reattempt resolution of reference to hash
-		hash, err = s.resolve(ref)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	snap, err = s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot)
@@ -181,15 +180,13 @@ func (s *SnapshotStore) View(storeRef storage.Reference, fn func(storage.ReadOnl
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	refs := s.snaps.References()
-
-	if updated, err := s.fetch(ctx, refs...); !(err == nil && updated) {
+	if updated, err := s.fetch(ctx); !(err == nil && updated) {
 		// either nothing updated or err != nil
 		return updated, err
 	}
 
 	var errs []error
-	for _, ref := range refs {
+	for _, ref := range s.snaps.References() {
 		hash, err := s.resolve(ref)
 		if err != nil {
 			errs = append(errs, err)
@@ -204,29 +201,15 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	return true, errors.Join(errs...)
 }
 
-func (s *SnapshotStore) fetch(ctx context.Context, refs ...string) (bool, error) {
+func (s *SnapshotStore) fetch(ctx context.Context) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var refSpecs []config.RefSpec
-	for _, ref := range refs {
-		// we only fetch references and not specific hashes
-		if plumbing.IsHash(ref) {
-			continue
-		}
-
-		refSpecs = append(refSpecs, config.RefSpec(
-			fmt.Sprintf(
-				"+%s:%s",
-				plumbing.NewBranchReferenceName(ref),
-				plumbing.NewRemoteReferenceName("origin", ref),
-			),
-		))
-	}
-
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
-		Auth:     s.auth,
-		RefSpecs: refSpecs,
+		Auth: s.auth,
+		RefSpecs: []config.RefSpec{
+			"+refs/heads/*:refs/heads/*",
+		},
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return false, err
