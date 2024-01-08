@@ -248,11 +248,7 @@ func request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Context,
 	var protoReq CreateTokenRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -265,11 +261,7 @@ func local_request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Co
 	var protoReq CreateTokenRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -279,7 +271,7 @@ func local_request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Co
 }
 
 var (
-	filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -349,7 +341,7 @@ func local_request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Co
 }
 
 var (
-	filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -422,11 +414,7 @@ func request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(ctx co
 	var protoReq VerifyServiceAccountRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -439,11 +427,7 @@ func local_request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(
 	var protoReq VerifyServiceAccountRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
