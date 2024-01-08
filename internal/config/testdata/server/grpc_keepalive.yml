@@ -1,0 +1,30 @@
+# log:
+#   level: INFO
+#   grpc_level: ERROR
+
+# ui:
+#   enabled: true
+
+# cors:
+#   enabled: false
+#   allowed_origins: "*"
+
+# cache:
+#   enabled: false
+#   backend: memory
+#   ttl: 60s
+#   memory:
+#     eviction_interval: 5m # Evict Expired Items Every 5m
+
+server:
+#   protocol: https
+#   host: 0.0.0.0
+#   https_port: 443
+#   http_port: 8080
+#   grpc_port: 9000
+    grpc_conn_max_idle_time: 1h
+    grpc_conn_max_age: 30s
+    grpc_conn_max_age_grace: 10s
+
+# db:
+#   url: file:/var/opt/flipt/flipt.db

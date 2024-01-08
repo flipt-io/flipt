@@ -53,6 +53,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
@@ -358,7 +359,14 @@ func NewGRPCServer(
 	otel.SetTracerProvider(tracingProvider)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
-	grpcOpts := []grpc.ServerOption{grpc.ChainUnaryInterceptor(interceptors...)}
+	grpcOpts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(interceptors...),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
+			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
+			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
+		}),
+	}
 
 	if cfg.Server.Protocol == config.HTTPS {
 		creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)

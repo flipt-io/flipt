@@ -535,8 +535,8 @@ func (ss Snapshot) String() string {
 	return "snapshot"
 }
 
-func (ss *Snapshot) GetRule(ctx context.Context, namespaceKey string, id string) (rule *flipt.Rule, _ error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetRule(ctx context.Context, p storage.NamespaceRequest, id string) (rule *flipt.Rule, _ error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
@@ -544,39 +544,39 @@ func (ss *Snapshot) GetRule(ctx context.Context, namespaceKey string, id string)
 	var ok bool
 	rule, ok = ns.rules[id]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
+		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, p.Namespace(), id)
 	}
 
 	return rule, nil
 }
 
-func (ss *Snapshot) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rule], _ error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rule], _ error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
 
 	rules := make([]*flipt.Rule, 0, len(ns.rules))
 	for _, rule := range ns.rules {
-		if rule.FlagKey == flagKey {
+		if rule.FlagKey == req.Predicate.Key {
 			rules = append(rules, rule)
 		}
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return rules[i].Rank < rules[j].Rank
 	}, rules...)
 }
 
-func (ss *Snapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountRules(ctx context.Context, req storage.ResourceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return 0, err
 	}
 
 	var count uint64 = 0
 	for _, rule := range ns.rules {
-		if rule.FlagKey == flagKey {
+		if rule.FlagKey == req.Key {
 			count += 1
 		}
 	}
@@ -584,22 +584,22 @@ func (ss *Snapshot) CountRules(ctx context.Context, namespaceKey, flagKey string
 	return count, nil
 }
 
-func (ss *Snapshot) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetSegment(ctx context.Context, req storage.ResourceRequest) (*flipt.Segment, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
-	segment, ok := ns.segments[key]
+	segment, ok := ns.segments[req.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf("segment %q", req)
 	}
 
 	return segment, nil
 }
 
-func (ss *Snapshot) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Segment], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Segment], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
@@ -609,13 +609,13 @@ func (ss *Snapshot) ListSegments(ctx context.Context, namespaceKey string, opts 
 		segments = append(segments, segment)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return segments[i].Key < segments[j].Key
 	}, segments...)
 }
 
-func (ss *Snapshot) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountSegments(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return 0, err
 	}
@@ -623,8 +623,8 @@ func (ss *Snapshot) CountSegments(ctx context.Context, namespaceKey string) (uin
 	return uint64(len(ns.segments)), nil
 }
 
-func (ss *Snapshot) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
-	ns, err := ss.getNamespace(key)
+func (ss *Snapshot) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (*flipt.Namespace, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
@@ -632,37 +632,37 @@ func (ss *Snapshot) GetNamespace(ctx context.Context, key string) (*flipt.Namesp
 	return ns.resource, nil
 }
 
-func (ss *Snapshot) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
+func (ss *Snapshot) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (set storage.ResultSet[*flipt.Namespace], err error) {
 	ns := make([]*flipt.Namespace, 0, len(ss.ns))
 	for _, n := range ss.ns {
 		ns = append(ns, n.resource)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return ns[i].Key < ns[j].Key
 	}, ns...)
 }
 
-func (ss *Snapshot) CountNamespaces(ctx context.Context) (uint64, error) {
+func (ss *Snapshot) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest) (uint64, error) {
 	return uint64(len(ss.ns)), nil
 }
 
-func (ss *Snapshot) GetFlag(ctx context.Context, namespaceKey string, key string) (*flipt.Flag, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*flipt.Flag, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
-	flag, ok := ns.flags[key]
+	flag, ok := ns.flags[req.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf("flag %q", req)
 	}
 
 	return flag, nil
 }
 
-func (ss *Snapshot) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Flag], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Flag], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
@@ -672,13 +672,13 @@ func (ss *Snapshot) ListFlags(ctx context.Context, namespaceKey string, opts ...
 		flags = append(flags, flag)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return flags[i].Key < flags[j].Key
 	}, flags...)
 }
 
-func (ss *Snapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return 0, err
 	}
@@ -686,84 +686,84 @@ func (ss *Snapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64
 	return uint64(len(ns.flags)), nil
 }
 
-func (ss *Snapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
-	ns, ok := ss.ns[namespaceKey]
+func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
+	ns, ok := ss.ns[flag.Namespace()]
 	if !ok {
-		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
 
-	rules, ok := ns.evalRules[flagKey]
+	rules, ok := ns.evalRules[flag.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf("flag %q", flag)
 	}
 
 	return rules, nil
 }
 
-func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	dists, ok := ss.evalDists[ruleID]
+func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
-		return nil, errs.ErrNotFoundf("rule %q", ruleID)
+		return nil, errs.ErrNotFoundf("rule %q", rule.ID)
 	}
 
 	return dists, nil
 }
 
-func (ss *Snapshot) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	ns, ok := ss.ns[namespaceKey]
+func (ss *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
+	ns, ok := ss.ns[flag.Namespace()]
 	if !ok {
-		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
 
-	rollouts, ok := ns.evalRollouts[flagKey]
+	rollouts, ok := ns.evalRollouts[flag.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf("flag %q", flag)
 	}
 
 	return rollouts, nil
 }
 
-func (ss *Snapshot) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetRollout(ctx context.Context, p storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
 	rollout, ok := ns.rollouts[id]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, namespaceKey, id)
+		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, p.Namespace(), id)
 	}
 
 	return rollout, nil
 }
 
-func (ss *Snapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rollout], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rollout], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
 
 	rollouts := make([]*flipt.Rollout, 0)
 	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == flagKey {
+		if rollout.FlagKey == req.Predicate.Key {
 			rollouts = append(rollouts, rollout)
 		}
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return rollouts[i].Rank < rollouts[j].Rank
 	}, rollouts...)
 }
 
-func (ss *Snapshot) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(flag.Namespace())
 	if err != nil {
 		return 0, err
 	}
 
 	var count uint64 = 0
 	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == flagKey {
+		if rollout.FlagKey == flag.Key {
 			count += 1
 		}
 	}

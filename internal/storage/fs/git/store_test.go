@@ -115,7 +115,7 @@ flags:
 	t.Log("received new snapshot")
 
 	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-		_, err = s.GetFlag(ctx, "production", "foo")
+		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		return err
 	}))
 }

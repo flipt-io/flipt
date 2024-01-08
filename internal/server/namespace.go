@@ -13,7 +13,7 @@ import (
 // GetNamespace gets a namespace
 func (s *Server) GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
 	s.logger.Debug("get namespace", zap.Stringer("request", r))
-	namespace, err := s.store.GetNamespace(ctx, r.Key)
+	namespace, err := s.store.GetNamespace(ctx, storage.NewNamespace(r.Key, storage.WithReference(r.Reference)))
 	s.logger.Debug("get namespace", zap.Stringer("response", namespace))
 	return namespace, err
 }
@@ -22,20 +22,8 @@ func (s *Server) GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest)
 func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
 	s.logger.Debug("list namespaces", zap.Stringer("request", r))
 
-	if r.Offset < 0 {
-		r.Offset = 0
-	}
-
-	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
-
-	if r.PageToken != "" {
-		opts = append(opts, storage.WithPageToken(r.PageToken))
-	} else if r.Offset >= 0 {
-		// TODO: deprecate
-		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
-	}
-
-	results, err := s.store.ListNamespaces(ctx, opts...)
+	ref := storage.ReferenceRequest{Reference: storage.Reference(r.Reference)}
+	results, err := s.store.ListNamespaces(ctx, storage.ListWithParameters(ref, r))
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +32,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 		Namespaces: results.Results,
 	}
 
-	total, err := s.store.CountNamespaces(ctx)
+	total, err := s.store.CountNamespaces(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +63,7 @@ func (s *Server) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRe
 // DeleteNamespace deletes a namespace
 func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (*empty.Empty, error) {
 	s.logger.Debug("delete namespace", zap.Stringer("request", r))
-	namespace, err := s.store.GetNamespace(ctx, r.Key)
+	namespace, err := s.store.GetNamespace(ctx, storage.NewNamespace(r.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +78,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 	}
 
 	// if any flags exist under the namespace then it cannot be deleted
-	count, err := s.store.CountFlags(ctx, r.Key)
+	count, err := s.store.CountFlags(ctx, storage.NewNamespace(r.Key))
 	if err != nil {
 		return nil, err
 	}

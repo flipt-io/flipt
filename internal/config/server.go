@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -13,13 +14,16 @@ var _ defaulter = (*ServerConfig)(nil)
 // ServerConfig contains fields, which configure both HTTP and gRPC
 // API serving.
 type ServerConfig struct {
-	Host      string `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Protocol  Scheme `json:"protocol,omitempty" mapstructure:"protocol" yaml:"protocol,omitempty"`
-	HTTPPort  int    `json:"httpPort,omitempty" mapstructure:"http_port" yaml:"http_port,omitempty"`
-	HTTPSPort int    `json:"httpsPort,omitempty" mapstructure:"https_port" yaml:"https_port,omitempty"`
-	GRPCPort  int    `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
-	CertFile  string `json:"-" mapstructure:"cert_file" yaml:"-"`
-	CertKey   string `json:"-" mapstructure:"cert_key" yaml:"-"`
+	Host                      string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Protocol                  Scheme        `json:"protocol,omitempty" mapstructure:"protocol" yaml:"protocol,omitempty"`
+	HTTPPort                  int           `json:"httpPort,omitempty" mapstructure:"http_port" yaml:"http_port,omitempty"`
+	HTTPSPort                 int           `json:"httpsPort,omitempty" mapstructure:"https_port" yaml:"https_port,omitempty"`
+	GRPCPort                  int           `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
+	CertFile                  string        `json:"-" mapstructure:"cert_file" yaml:"-"`
+	CertKey                   string        `json:"-" mapstructure:"cert_key" yaml:"-"`
+	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
+	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
+	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {

@@ -8,6 +8,7 @@ import (
 
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 )
 
 var (
@@ -19,24 +20,63 @@ var (
 	ErrNotImplemented = errors.New("not implemented")
 )
 
+// ReferencedSnapshotStore is a type which has a single function View.
+// View is a functional transaction interface for reading a snapshot
+// during the lifetime of a supplied function.
+type ReferencedSnapshotStore interface {
+	// View accepts a function which takes a storage.ReadOnlyStore (*StoreSnapshot).
+	// The ReferencedSnapshotStore will supply a snapshot which is valid
+	// for the lifetime of the provided function call.
+	// It expects a reference to be supplied on calls to View.
+	// Empty reference will be regarded as the default reference by the store.
+	View(storage.Reference, func(storage.ReadOnlyStore) error) error
+	fmt.Stringer
+}
+
 // SnapshotStore is a type which has a single function View.
 // View is a functional transaction interface for reading a snapshot
 // during the lifetime of a supplied function.
 type SnapshotStore interface {
-	// View accepts a function which takes a *StoreSnapshot.
+	// View accepts a function which takes a storage.ReadOnlyStore (*SnapshotStore).
 	// The SnapshotStore will supply a snapshot which is valid
 	// for the lifetime of the provided function call.
 	View(func(storage.ReadOnlyStore) error) error
 	fmt.Stringer
 }
 
+// SingleReferenceSnapshotStore implements ReferencedSnapshotStore but delegates to a SnapshotStore implementation.
+// Calls with View with a non-empty reference log a warning with the requested reference.
+type SingleReferenceSnapshotStore struct {
+	SnapshotStore
+
+	logger *zap.Logger
+}
+
+// NewSingleReferenceStore adapts a SnapshotStore implementation into
+// a ReferencedSnapshotStore implementation which expects to be called with
+// an empty reference.
+func NewSingleReferenceStore(logger *zap.Logger, s SnapshotStore) *SingleReferenceSnapshotStore {
+	return &SingleReferenceSnapshotStore{s, logger}
+}
+
+// View delegates to the embedded snapshot store implementation and drops the reference.
+// It logs a warning if a non-empty reference is supplied as the wrapped store
+// isn't intended for use with custom references.
+func (s *SingleReferenceSnapshotStore) View(ref storage.Reference, fn func(storage.ReadOnlyStore) error) error {
+	if ref != "" {
+		s.logger.Warn("single reference store called with non-empty reference", zap.String("reference", string(ref)))
+	}
+
+	return s.SnapshotStore.View(fn)
+}
+
 // Store embeds a StoreSnapshot and wraps the Store methods with a read-write mutex
 // to synchronize reads with atomic replacements of the embedded snapshot.
 type Store struct {
-	viewer SnapshotStore
+	viewer ReferencedSnapshotStore
 }
 
-func NewStore(viewer SnapshotStore) *Store {
+func NewStore(viewer ReferencedSnapshotStore) *Store {
 	return &Store{viewer: viewer}
 }
 
@@ -44,188 +84,128 @@ func (s *Store) String() string {
 	return path.Join("declarative", s.viewer.String())
 }
 
-func (s *Store) GetFlag(ctx context.Context, namespaceKey string, key string) (flag *flipt.Flag, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return flag, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		flag, err = ss.GetFlag(ctx, namespaceKey, key)
+func (s *Store) GetFlag(ctx context.Context, req storage.ResourceRequest) (flag *flipt.Flag, err error) {
+	return flag, s.viewer.View(req.Reference, func(ss storage.ReadOnlyStore) error {
+		flag, err = ss.GetFlag(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Flag], err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return set, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListFlags(ctx, namespaceKey, opts...)
+func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Flag], err error) {
+	return set, s.viewer.View(req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
+		set, err = ss.ListFlags(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) CountFlags(ctx context.Context, namespaceKey string) (count uint64, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return count, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountFlags(ctx, namespaceKey)
+func (s *Store) CountFlags(ctx context.Context, p storage.NamespaceRequest) (count uint64, err error) {
+	return count, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		count, err = ss.CountFlags(ctx, p)
 		return err
 	})
 }
 
-func (s *Store) GetRule(ctx context.Context, namespaceKey string, id string) (rule *flipt.Rule, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return rule, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		rule, err = ss.GetRule(ctx, namespaceKey, id)
+func (s *Store) GetRule(ctx context.Context, p storage.NamespaceRequest, id string) (rule *flipt.Rule, err error) {
+	return rule, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		rule, err = ss.GetRule(ctx, p, id)
 		return err
 	})
 }
 
-func (s *Store) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rule], err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return set, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListRules(ctx, namespaceKey, flagKey, opts...)
+func (s *Store) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rule], err error) {
+	return set, s.viewer.View(req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
+		set, err = ss.ListRules(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (count uint64, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return count, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountRules(ctx, namespaceKey, flagKey)
+func (s *Store) CountRules(ctx context.Context, flag storage.ResourceRequest) (count uint64, err error) {
+	return count, s.viewer.View(flag.Reference, func(ss storage.ReadOnlyStore) error {
+		count, err = ss.CountRules(ctx, flag)
 		return err
 	})
 }
 
-func (s *Store) GetSegment(ctx context.Context, namespaceKey string, key string) (segment *flipt.Segment, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return segment, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		segment, err = ss.GetSegment(ctx, namespaceKey, key)
+func (s *Store) GetSegment(ctx context.Context, p storage.ResourceRequest) (segment *flipt.Segment, err error) {
+	return segment, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		segment, err = ss.GetSegment(ctx, p)
 		return err
 	})
 }
 
-func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Segment], err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return set, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListSegments(ctx, namespaceKey, opts...)
+func (s *Store) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Segment], err error) {
+	return set, s.viewer.View(req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
+		set, err = ss.ListSegments(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) CountSegments(ctx context.Context, namespaceKey string) (count uint64, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return count, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountSegments(ctx, namespaceKey)
+func (s *Store) CountSegments(ctx context.Context, p storage.NamespaceRequest) (count uint64, err error) {
+	return count, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		count, err = ss.CountSegments(ctx, p)
 		return err
 	})
 }
 
-func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) (rules []*storage.EvaluationRule, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return rules, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		rules, err = ss.GetEvaluationRules(ctx, namespaceKey, flagKey)
+func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) (rules []*storage.EvaluationRule, err error) {
+	return rules, s.viewer.View(flag.Reference, func(ss storage.ReadOnlyStore) error {
+		rules, err = ss.GetEvaluationRules(ctx, flag)
 		return err
 	})
 }
 
-func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (dists []*storage.EvaluationDistribution, err error) {
-	return dists, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		dists, err = ss.GetEvaluationDistributions(ctx, ruleID)
+func (s *Store) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) (dists []*storage.EvaluationDistribution, err error) {
+	return dists, s.viewer.View(rule.Reference, func(ss storage.ReadOnlyStore) error {
+		dists, err = ss.GetEvaluationDistributions(ctx, rule)
 		return err
 	})
 }
 
-func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) (rollouts []*storage.EvaluationRollout, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return rollouts, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		rollouts, err = ss.GetEvaluationRollouts(ctx, namespaceKey, flagKey)
+func (s *Store) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) (rollouts []*storage.EvaluationRollout, err error) {
+	return rollouts, s.viewer.View(flag.Reference, func(ss storage.ReadOnlyStore) error {
+		rollouts, err = ss.GetEvaluationRollouts(ctx, flag)
 		return err
 	})
 }
 
-func (s *Store) GetNamespace(ctx context.Context, key string) (ns *flipt.Namespace, err error) {
-	if key == "" {
-		key = flipt.DefaultNamespace
-	}
-
-	return ns, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		ns, err = ss.GetNamespace(ctx, key)
+func (s *Store) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (ns *flipt.Namespace, err error) {
+	return ns, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		ns, err = ss.GetNamespace(ctx, p)
 		return err
 	})
 }
 
-func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
-	return set, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListNamespaces(ctx, opts...)
+func (s *Store) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (set storage.ResultSet[*flipt.Namespace], err error) {
+	return set, s.viewer.View(req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
+		set, err = ss.ListNamespaces(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) CountNamespaces(ctx context.Context) (count uint64, err error) {
-	return count, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountNamespaces(ctx)
+func (s *Store) CountNamespaces(ctx context.Context, req storage.ReferenceRequest) (count uint64, err error) {
+	return count, s.viewer.View(req.Reference, func(ss storage.ReadOnlyStore) error {
+		count, err = ss.CountNamespaces(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (rollout *flipt.Rollout, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return rollout, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		rollout, err = ss.GetRollout(ctx, namespaceKey, id)
+func (s *Store) GetRollout(ctx context.Context, p storage.NamespaceRequest, id string) (rollout *flipt.Rollout, err error) {
+	return rollout, s.viewer.View(p.Reference, func(ss storage.ReadOnlyStore) error {
+		rollout, err = ss.GetRollout(ctx, p, id)
 		return err
 	})
 }
 
-func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rollout], err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return set, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListRollouts(ctx, namespaceKey, flagKey, opts...)
+func (s *Store) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rollout], err error) {
+	return set, s.viewer.View(req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
+		set, err = ss.ListRollouts(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (count uint64, err error) {
-	if namespaceKey == "" {
-		namespaceKey = flipt.DefaultNamespace
-	}
-
-	return count, s.viewer.View(func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountRollouts(ctx, namespaceKey, flagKey)
+func (s *Store) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (count uint64, err error) {
+	return count, s.viewer.View(flag.Reference, func(ss storage.ReadOnlyStore) error {
+		count, err = ss.CountRollouts(ctx, flag)
 		return err
 	})
 }
