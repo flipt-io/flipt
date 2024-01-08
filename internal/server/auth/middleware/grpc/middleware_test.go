@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -153,8 +154,46 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		},
 	} {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+
+		t.Run(fmt.Sprintf("%s/static", tt.name), func(t *testing.T) {
 			ks, err := jwt.NewStaticKeySet(pub)
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			var (
+				logger = zaptest.NewLogger(t)
+
+				ctx     = context.Background()
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				}
+				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
+			)
+
+			if tt.metadataFunc != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadataFunc())
+			}
+
+			if tt.server != nil {
+				srv.Server = tt.server
+			}
+
+			_, err = JWTAuthenticationInterceptor(logger, *validator, tt.expectedJWT)(
+				ctx,
+				nil,
+				srv,
+				handler,
+			)
+			assert.Equal(t, tt.expectedErr, err)
+		})
+
+		t.Run(fmt.Sprintf("%s/remote", tt.name), func(t *testing.T) {
+			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
+			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test")
+
+			ks, err := jwt.NewJSONWebKeySet(context.Background(), tp.Addr()+"/.well-known/jwks.json", "")
 			require.NoError(t, err)
 
 			validator, err := jwt.NewValidator(ks)
