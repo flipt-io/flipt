@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -540,9 +541,18 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 					flags = append(flags, "--flipt-create-namespaced-token")
 				}
 			case "jwt":
+				var (
+					now        = time.Now()
+					nowUnix    = float64(now.Unix())
+					futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+				)
+
 				token := signJWT(priv, map[string]interface{}{
 					"iss": "https://flipt.io",
+					"iat": nowUnix,
+					"exp": futureUnix,
 				})
+
 				flags = append(flags, "--flipt-token", token)
 			}
 		}
