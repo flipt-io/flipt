@@ -1,35 +1,38 @@
-package git
+package fs
 
 import (
 	"context"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru/v2"
-	"go.flipt.io/flipt/internal/storage/fs"
 	"golang.org/x/exp/maps"
 )
 
-type buildFunc[K comparable] func(context.Context, K) (*fs.Snapshot, error)
+// CacheBuildFunc is a function that can build a snapshot for a given content key (K).
+type CacheBuildFunc[K comparable] func(context.Context, K) (*Snapshot, error)
 
-// cache contains a fixed set of non-evictable entries along
+// SnapshotCache contains a fixed set of non-evictable entries along
 // with additional capacity stored in an LRU.
-// The cache is keyed by reference with an indirect index
+// The SnapshotCache is keyed by reference with an indirect index
 // (type K for key) through into a target set of stored snapshots.
 // The type K is generic to support the different kinds of content
 // address types we expect to support (commit SHA and OCI digest).
-type cache[K comparable] struct {
+type SnapshotCache[K comparable] struct {
 	mu sync.RWMutex
 
 	fixed map[string]K
 	extra *lru.Cache[string, K]
 
-	store map[K]*fs.Snapshot
+	store map[K]*Snapshot
 }
 
-func newCache[K comparable](extra int) (_ *cache[K], err error) {
-	c := &cache[K]{
+// NewSnapshotCache constructs and configures a snapshot cache with the provided size
+// for extra cache entries. These are opposed to the fixed entries which are added via
+// AddFixed and do not count towards this extra total.
+func NewSnapshotCache[K comparable](extra int) (_ *SnapshotCache[K], err error) {
+	c := &SnapshotCache[K]{
 		fixed: map[string]K{},
-		store: map[K]*fs.Snapshot{},
+		store: map[K]*Snapshot{},
 	}
 
 	c.extra, err = lru.NewWithEvict[string, K](extra, c.evict)
@@ -40,10 +43,11 @@ func newCache[K comparable](extra int) (_ *cache[K], err error) {
 	return c, nil
 }
 
-// AddFixed forcibly adds the reference, key and value tuple to fixed storage.
-// The supplied reference will never be evicted.
+// AddFixed adds the reference, key and value tuple to fixed storage.
+// The supplied *reference* will NEVER be evicted.
 // Subsequent calls to Add with the same value for ref will update the fixed entries.
-func (c *cache[K]) AddFixed(ctx context.Context, ref string, k K, s *fs.Snapshot) {
+// This should be called during initialization of a store.
+func (c *SnapshotCache[K]) AddFixed(ctx context.Context, ref string, k K, s *Snapshot) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -54,7 +58,7 @@ func (c *cache[K]) AddFixed(ctx context.Context, ref string, k K, s *fs.Snapshot
 // AddOrBuild adds the reference, key and value tuple.
 // If the reference r is already tracked in the fixed set, then it is updated there.
 // Otherwise, the entry is added to the LRU cache.
-func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildFunc[K]) (*fs.Snapshot, error) {
+func (c *SnapshotCache[K]) AddOrBuild(ctx context.Context, ref string, k K, build CacheBuildFunc[K]) (*Snapshot, error) {
 	s, ok, err := c.getByRefAndKey(ref, k)
 	if err != nil {
 		return s, err
@@ -105,7 +109,7 @@ func (c *cache[K]) AddOrBuild(ctx context.Context, ref string, k K, build buildF
 }
 
 // Get attempts to resolve a snapshot for a given reference r.
-func (c *cache[K]) Get(ref string) (s *fs.Snapshot, ok bool) {
+func (c *SnapshotCache[K]) Get(ref string) (s *Snapshot, ok bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -124,7 +128,7 @@ func (c *cache[K]) Get(ref string) (s *fs.Snapshot, ok bool) {
 	return
 }
 
-func (c *cache[K]) getByRefAndKey(ref string, k K) (s *fs.Snapshot, ok bool, err error) {
+func (c *SnapshotCache[K]) getByRefAndKey(ref string, k K) (s *Snapshot, ok bool, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -144,15 +148,15 @@ func (c *cache[K]) getByRefAndKey(ref string, k K) (s *fs.Snapshot, ok bool, err
 	}
 
 	// same as before except this time we check in the LRU
-	if ek, present := c.extra.Get(ref); present {
-		ok = ek == k
-	}
+	ek, present := c.extra.Get(ref)
+	// only return ok if both present in the LRU and existing key matches
+	ok = present && ek == k
 
 	return
 }
 
 // References returns all the references currently tracked within the cache.
-func (c *cache[K]) References() []string {
+func (c *SnapshotCache[K]) References() []string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -169,7 +173,7 @@ func (c *cache[K]) References() []string {
 // the LRU implementation we use inlines calls to evict during calls
 // to cache.Add and we also manually call evict when redirect a reference
 // both of which occur during the write lock held by AddOrBuild
-func (c *cache[K]) evict(_ string, k K) {
+func (c *SnapshotCache[K]) evict(_ string, k K) {
 	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
 		if key == k {
 			return
