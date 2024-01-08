@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -161,8 +162,10 @@ func Test_Store_Subscribe_WithRevision(t *testing.T) {
 
 	updated := []byte(`namespace: production
 flags:
-    - key: foo
-      name: Foo`)
+  - key: foo
+    name: Foo
+  - key: bar
+    name: Bar`)
 
 	_, err = fi.Write(updated)
 	require.NoError(t, err)
@@ -179,6 +182,7 @@ flags:
 	require.NoError(t, repo.Push(&git.PushOptions{
 		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
 	}))
 
 	// wait until the snapshot is updated or
@@ -193,20 +197,23 @@ flags:
 
 	t.Log("received new snapshot")
 
-	require.Error(t, store.View("", func(s storage.ReadOnlyStore) error {
-		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
-		return err
-	}), "flag should not be found in default revision")
+	require.NoError(t, store.View("", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.Error(t, err, "flag should not be found in default revision")
+		return nil
+	}))
 
-	require.Error(t, store.View("main", func(s storage.ReadOnlyStore) error {
-		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
-		return err
-	}), "flag should not be found in explicitly named main revision")
+	require.NoError(t, store.View("main", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.Error(t, err, "flag should not be found in explicitly named main revision")
+		return nil
+	}))
 
 	require.NoError(t, store.View("new-branch", func(s storage.ReadOnlyStore) error {
-		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
-		return err
-	}), "flag should be present on new-branch")
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.NoError(t, err, "flag should be present on new-branch")
+		return nil
+	}))
 }
 
 func Test_Store_SelfSignedSkipTLS(t *testing.T) {
