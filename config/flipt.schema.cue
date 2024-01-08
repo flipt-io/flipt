@@ -83,7 +83,7 @@ import "strings"
 					audiences?: [...string]
 				}
 				jwks_url?: string
-				key_file?: string
+				public_key_file?: string
 			}
 		}
 

@@ -544,8 +544,8 @@ type AuthenticationMethodJWTConfig struct {
 	// JWKsURL is the URL to the JWKS endpoint.
 	// This is used to fetch the public keys used to validate the JWT token.
 	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
-	// KeyFile is the path to the private PEM encoded key file on disk.
-	KeyFile string `json:"-" mapstructure:"key_file" yaml:"key_file,omitempty"`
+	// PublicKeyFile is the path to the public PEM encoded key file on disk.
+	PublicKeyFile string `json:"-" mapstructure:"public_key_file" yaml:"public_key_file,omitempty"`
 }
 
 func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
@@ -559,13 +559,13 @@ func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
 }
 
 func (a AuthenticationMethodJWTConfig) validate() error {
-	setFields := nonEmpty([]string{a.JWKSURL, a.KeyFile})
+	setFields := nonEmpty([]string{a.JWKSURL, a.PublicKeyFile})
 	if setFields < 1 {
-		return fmt.Errorf("one of jwks_url or key_file is required")
+		return fmt.Errorf("one of jwks_url or public_key_file is required")
 	}
 
 	if setFields > 1 {
-		return fmt.Errorf("only one of jwks_url or key_file can be set")
+		return fmt.Errorf("only one of jwks_url or public_key_file can be set")
 	}
 
 	if a.JWKSURL != "" {
@@ -575,10 +575,10 @@ func (a AuthenticationMethodJWTConfig) validate() error {
 		}
 	}
 
-	if a.KeyFile != "" {
-		// ensure key file exists
-		if _, err := os.Stat(a.KeyFile); err != nil {
-			return errFieldWrap("key_file", err)
+	if a.PublicKeyFile != "" {
+		// ensure public key file exists
+		if _, err := os.Stat(a.PublicKeyFile); err != nil {
+			return errFieldWrap("public_key_file", err)
 		}
 	}
 

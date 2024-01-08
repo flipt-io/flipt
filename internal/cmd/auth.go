@@ -155,8 +155,8 @@ func authenticationGRPC(
 				if err != nil {
 					return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
 				}
-			} else if authJWT.Method.KeyFile != "" {
-				keyPEMBlock, err := os.ReadFile(authJWT.Method.KeyFile)
+			} else if authJWT.Method.PublicKeyFile != "" {
+				keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
 				if err != nil {
 					return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
 				}

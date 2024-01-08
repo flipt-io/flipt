@@ -6,4 +6,4 @@ authentication:
   methods:
     jwt:
       enabled: true
-      key_file: "testdata/authentication/jwt_key_file.pem"
+      public_key_file: "testdata/authentication/jwt_key_file.pem"

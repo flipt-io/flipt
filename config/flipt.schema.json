@@ -227,7 +227,7 @@
                 "jwks_url": {
                   "type": "string"
                 },
-                "key_file": {
+                "public_key_file": {
                   "type": "string"
                 }
               },

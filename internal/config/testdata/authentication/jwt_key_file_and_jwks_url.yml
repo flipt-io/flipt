@@ -7,4 +7,4 @@ authentication:
     jwt:
       enabled: true
       jwks_url: "https://example.com/.well-known/jwks.json"
-      key_file: "testdata/authentication/jwt_key_file.pem"
+      public_key_file: "testdata/authentication/jwt_key_file.pem"
