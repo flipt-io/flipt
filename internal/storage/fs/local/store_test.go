@@ -62,7 +62,7 @@ func Test_Store(t *testing.T) {
 	}
 
 	assert.NoError(t, s.View(func(s storage.ReadOnlyStore) error {
-		_, err = s.GetNamespace(ctx, "staging")
+		_, err = s.GetNamespace(ctx, storage.NewNamespace("staging"))
 		return err
 	}))
 }
