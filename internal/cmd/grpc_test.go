@@ -108,9 +108,11 @@ func TestGetTraceExporter(t *testing.T) {
 				assert.EqualError(t, err, tt.wantErr.Error())
 				return
 			}
+			t.Cleanup(func() { expFunc(context.Background()) })
 			assert.NoError(t, err)
 			assert.NotNil(t, exp)
 			assert.NotNil(t, expFunc)
+
 		})
 	}
 }
@@ -119,7 +121,10 @@ func TestNewGRPCServer(t *testing.T) {
 	tmp := t.TempDir()
 	cfg := &config.Config{}
 	cfg.Database.URL = fmt.Sprintf("file:%s", filepath.Join(tmp, "flipt.db"))
-	s, err := NewGRPCServer(context.Background(), zaptest.NewLogger(t), cfg, info.Flipt{}, false)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	s, err := NewGRPCServer(ctx, zaptest.NewLogger(t), cfg, info.Flipt{}, false)
 	assert.NoError(t, err)
+	t.Cleanup(func() { s.Shutdown(ctx) })
 	assert.NotEmpty(t, s.Server.GetServiceInfo())
 }
