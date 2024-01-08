@@ -661,7 +661,7 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if authConfig == integration.StaticTokenAuth {
+				if authConfig == integration.StaticTokenAuth || authConfig == integration.JWTAuth {
 					assert.NoError(t, err)
 				} else {
 					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
