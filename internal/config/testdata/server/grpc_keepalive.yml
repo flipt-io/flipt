@@ -22,9 +22,9 @@ server:
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
-    grpc_max_connection_idle: 1h
-    grpc_max_connection_age: 30s
-    grpc_max_connection_age_grace: 10s
+    grpc_conn_max_idle_time: 1h
+    grpc_conn_max_age: 30s
+    grpc_conn_max_age_grace: 10s
 
 # db:
 #   url: file:/var/opt/flipt/flipt.db
