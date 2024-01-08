@@ -58,7 +58,7 @@ func (s *DBTestSuite) TestGetRule() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, rule.Id)
+	got, err := s.store.GetRule(context.TODO(), storage.NewNamespace(storage.DefaultNamespace), rule.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -122,7 +122,7 @@ func (s *DBTestSuite) TestGetRule_MultipleSegments() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, rule.Id)
+	got, err := s.store.GetRule(context.TODO(), storage.NewNamespace(storage.DefaultNamespace), rule.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -184,7 +184,7 @@ func (s *DBTestSuite) TestGetRuleNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := s.store.GetRule(context.TODO(), s.namespace, rule.Id)
+	got, err := s.store.GetRule(context.TODO(), storage.NewNamespace(s.namespace), rule.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -201,14 +201,14 @@ func (s *DBTestSuite) TestGetRuleNamespace() {
 func (s *DBTestSuite) TestGetRule_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, "0")
+	_, err := s.store.GetRule(context.TODO(), storage.NewNamespace(storage.DefaultNamespace), "0")
 	assert.EqualError(t, err, "rule \"default/0\" not found")
 }
 
 func (s *DBTestSuite) TestGetRuleNamespace_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetRule(context.TODO(), s.namespace, "0")
+	_, err := s.store.GetRule(context.TODO(), storage.NewNamespace(s.namespace), "0")
 	assert.EqualError(t, err, fmt.Sprintf("rule \"%s/0\" not found", s.namespace))
 }
 
@@ -262,10 +262,15 @@ func (s *DBTestSuite) TestListRules() {
 		require.NoError(t, err)
 	}
 
-	_, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithPageToken("Hello World"))
+	_, err = s.store.ListRules(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken("Hello World")),
+		),
+	)
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -337,10 +342,13 @@ func (s *DBTestSuite) TestListRules_MultipleSegments() {
 		require.NoError(t, err)
 	}
 
-	_, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithPageToken("Hello World"))
+	_, err = s.store.ListRules(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken("Hello World"))))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -411,7 +419,7 @@ func (s *DBTestSuite) TestListRulesNamespace() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRules(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -474,7 +482,11 @@ func (s *DBTestSuite) TestListRulesPagination_LimitOffset() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListRules(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithLimit(1), storage.WithOffset(1)),
+		))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -534,7 +546,11 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
+	res, err := s.store.ListRules(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](opts...),
+		))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -553,7 +569,11 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
-	res, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
+	res, err = s.store.ListRules(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](opts...),
+		))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -626,15 +646,25 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		}
 	}
 
-	resp, err := s.store.ListRules(ctx, namespace, flag.Key,
-		storage.WithLimit(pageSize))
+	resp, err := s.store.ListRules(ctx,
+		storage.ListWithOptions(
+			storage.NewResource(namespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](
+				storage.WithLimit(pageSize),
+			),
+		))
 	require.NoError(t, err)
 
 	found := resp.Results
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
-		resp, err = s.store.ListRules(ctx, namespace, flag.Key,
-			storage.WithLimit(pageSize),
-			storage.WithPageToken(token),
+		resp, err = s.store.ListRules(ctx,
+			storage.ListWithOptions(
+				storage.NewResource(namespace, flag.Key),
+				storage.ListWithQueryParamOptions[storage.ResourceRequest](
+					storage.WithLimit(pageSize),
+					storage.WithPageToken(token),
+				),
+			),
 		)
 		require.NoError(t, err)
 
@@ -1332,7 +1362,7 @@ func (s *DBTestSuite) TestDeleteRule() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	// ensure rules are in correct order
 	require.NoError(t, err)
 
@@ -1407,7 +1437,7 @@ func (s *DBTestSuite) TestDeleteRuleNamespace() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 	// ensure rules are in correct order
 	require.NoError(t, err)
 
@@ -1529,7 +1559,7 @@ func (s *DBTestSuite) TestOrderRules() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
@@ -1618,7 +1648,7 @@ func (s *DBTestSuite) TestOrderRulesNamespace() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 
 	// ensure rules are in correct order
 	require.NoError(t, err)

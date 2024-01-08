@@ -31,7 +31,7 @@ func (s *DBTestSuite) TestGetSegment() {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	got, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+	got, err := s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -59,7 +59,7 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	got, err := s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
+	got, err := s.store.GetSegment(context.TODO(), storage.NewResource(s.namespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -76,14 +76,14 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 func (s *DBTestSuite) TestGetSegment_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, "foo")
+	_, err := s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, "foo"))
 	assert.EqualError(t, err, "segment \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestGetSegmentNamespace_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetSegment(context.TODO(), s.namespace, "foo")
+	_, err := s.store.GetSegment(context.TODO(), storage.NewResource(s.namespace, "foo"))
 	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
@@ -107,7 +107,7 @@ func (s *DBTestSuite) TestGetSegment_WithConstraint() {
 
 	require.NoError(t, err)
 
-	got, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+	got, err := s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -144,10 +144,10 @@ func (s *DBTestSuite) TestListSegments() {
 		require.NoError(t, err)
 	}
 
-	_, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithPageToken("Hello World"))
+	_, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithPageToken("Hello World"))))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
-	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
+	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace)))
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
@@ -182,7 +182,7 @@ func (s *DBTestSuite) TestListSegmentsNamespace() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListSegments(context.TODO(), s.namespace)
+	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(s.namespace)))
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
@@ -228,7 +228,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	// get middle segment
-	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -237,7 +237,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	// get first (newest) segment
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -246,7 +246,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, newest.Key, got[0].Key)
 
 	// get last (oldest) segment
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -255,7 +255,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, oldest.Key, got[0].Key)
 
 	// get all segments
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc))
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithOrder(storage.OrderDesc))))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -301,7 +301,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	// get newest segment
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
+	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](opts...)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -322,7 +322,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle segment
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](opts...)))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -341,7 +341,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest segment
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](opts...)))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -350,7 +350,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
 	// get all segments
-	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](opts...)))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -405,16 +405,18 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 		}
 	}
 
-	resp, err := s.store.ListSegments(ctx, namespace,
-		storage.WithLimit(pageSize))
+	req := storage.ListWithOptions(
+		storage.NewNamespace(namespace),
+		storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithLimit(pageSize)),
+	)
+	resp, err := s.store.ListSegments(ctx, req)
+
 	require.NoError(t, err)
 
 	found := resp.Results
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
-		resp, err = s.store.ListSegments(ctx, namespace,
-			storage.WithLimit(pageSize),
-			storage.WithPageToken(token),
-		)
+		req.QueryParams.PageToken = token
+		resp, err = s.store.ListSegments(ctx, req)
 		require.NoError(t, err)
 
 		found = append(found, resp.Results...)
@@ -787,7 +789,7 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.Equal(t, "desc", constraint.Description)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -833,7 +835,7 @@ func (s *DBTestSuite) TestCreateConstraintNamespace() {
 	assert.Equal(t, "desc", constraint.Description)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(s.namespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -911,7 +913,7 @@ func (s *DBTestSuite) TestGetSegmentWithConstraintMultiNamespace() {
 	}
 
 	// get the default namespaced segment
-	segment, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, t.Name())
+	segment, err := s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, t.Name()))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -989,7 +991,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -1057,7 +1059,7 @@ func (s *DBTestSuite) TestUpdateConstraintNamespace() {
 	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(s.namespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -1142,7 +1144,7 @@ func (s *DBTestSuite) TestDeleteConstraint() {
 	require.NoError(t, err)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(storage.DefaultNamespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -1183,7 +1185,7 @@ func (s *DBTestSuite) TestDeleteConstraintNamespace() {
 	require.NoError(t, err)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.NewResource(s.namespace, segment.Key))
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -1269,19 +1271,22 @@ func BenchmarkListSegments(b *testing.B) {
 
 	b.ResetTimer()
 
+	req := storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace))
 	b.Run("no-pagination", func(b *testing.B) {
+		req := req
 		for i := 0; i < b.N; i++ {
-			segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
+			segments, err := s.store.ListSegments(context.TODO(), req)
 			require.NoError(t, err)
 			assert.NotEmpty(t, segments)
 		}
 	})
 
 	for _, pageSize := range []uint64{10, 25, 100, 500} {
-		pageSize := pageSize
+		req := req
+		req.QueryParams.Limit = pageSize
 		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithLimit(pageSize))
+				segments, err := s.store.ListSegments(context.TODO(), req)
 				require.NoError(t, err)
 				assert.NotEmpty(t, segments)
 			}
@@ -1289,8 +1294,12 @@ func BenchmarkListSegments(b *testing.B) {
 	}
 
 	b.Run("pagination", func(b *testing.B) {
+		req := req
+		req.QueryParams.Limit = 500
+		req.QueryParams.Offset = 50
+		req.QueryParams.Order = storage.OrderDesc
 		for i := 0; i < b.N; i++ {
-			segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
+			segments, err := s.store.ListSegments(context.TODO(), req)
 			require.NoError(t, err)
 			assert.NotEmpty(t, segments)
 		}

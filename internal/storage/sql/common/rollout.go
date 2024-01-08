@@ -23,15 +23,11 @@ const (
 	tableRolloutSegmentReferences = "rollout_segment_references"
 )
 
-func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
-	return getRollout(ctx, s.builder, namespaceKey, id)
+func (s *Store) GetRollout(ctx context.Context, ns storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
+	return getRollout(ctx, s.builder, ns, id)
 }
 
-func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceKey, id string) (*flipt.Rollout, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func getRollout(ctx context.Context, builder sq.StatementBuilderType, ns storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -40,7 +36,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 
 		err = builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
 			From(tableRollouts).
-			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
+			Where(sq.Eq{"id": id, "namespace_key": ns.Namespace()}).
 			QueryRowContext(ctx).
 			Scan(
 				&rollout.Id,
@@ -55,7 +51,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, namespaceKey, id)
+			return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, ns.Namespace(), id)
 		}
 
 		return nil, err
@@ -133,7 +129,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 
 		if err := builder.Select("percentage, \"value\"").
 			From(tableRolloutPercentages).
-			Where(sq.And{sq.Eq{"rollout_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
+			Where(sq.Eq{"rollout_id": rollout.Id, "namespace_key": rollout.NamespaceKey}).
 			Limit(1).
 			QueryRowContext(ctx).
 			Scan(
@@ -151,35 +147,25 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 	return rollout, nil
 }
 
-func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
-	params := &storage.QueryParams{}
-
-	for _, opt := range opts {
-		opt(params)
-	}
-
+func (s *Store) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (storage.ResultSet[*flipt.Rollout], error) {
 	var (
 		rollouts []*flipt.Rollout
 		results  = storage.ResultSet[*flipt.Rollout]{}
 
 		query = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
 			From(tableRollouts).
-			Where(sq.Eq{"flag_key": flagKey, "namespace_key": namespaceKey}).
-			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
+			Where(sq.Eq{"flag_key": req.Predicate.Key, "namespace_key": req.Predicate.Namespace()}).
+			OrderBy(fmt.Sprintf("\"rank\" %s", req.QueryParams.Order))
 	)
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit + 1)
+	if req.QueryParams.Limit > 0 {
+		query = query.Limit(req.QueryParams.Limit + 1)
 	}
 
 	var offset uint64
 
-	if params.PageToken != "" {
-		token, err := decodePageToken(s.logger, params.PageToken)
+	if req.QueryParams.PageToken != "" {
+		token, err := decodePageToken(s.logger, req.QueryParams.PageToken)
 		if err != nil {
 			return results, err
 		}
@@ -358,9 +344,9 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 
 	var next *flipt.Rollout
 
-	if len(rollouts) > int(params.Limit) && params.Limit > 0 {
+	if len(rollouts) > int(req.QueryParams.Limit) && req.QueryParams.Limit > 0 {
 		next = rollouts[len(rollouts)-1]
-		rollouts = rollouts[:params.Limit]
+		rollouts = rollouts[:req.QueryParams.Limit]
 	}
 
 	results.Results = rollouts
@@ -377,16 +363,12 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 }
 
 // CountRollouts counts all rollouts
-func (s *Store) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
 	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From(tableRollouts).
-		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
+		Where(sq.Eq{"namespace_key": flag.Namespace(), "flag_key": flag.Key}).
 		QueryRowContext(ctx).
 		Scan(&count); err != nil {
 		return 0, err
@@ -548,8 +530,9 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		}
 	}()
 
+	ns := storage.NewNamespace(r.NamespaceKey)
 	// get current state for rollout
-	rollout, err := getRollout(ctx, s.builder.RunWith(tx), r.NamespaceKey, r.Id)
+	rollout, err := getRollout(ctx, s.builder.RunWith(tx), ns, r.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -659,7 +642,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		return nil, err
 	}
 
-	rollout, err = getRollout(ctx, s.builder, r.NamespaceKey, r.Id)
+	rollout, err = getRollout(ctx, s.builder, ns, r.Id)
 	if err != nil {
 		return nil, err
 	}

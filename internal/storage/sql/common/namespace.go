@@ -15,7 +15,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
+func (s *Store) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (*flipt.Namespace, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -24,7 +24,7 @@ func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace,
 
 		err = s.builder.Select("\"key\", name, description, protected, created_at, updated_at").
 			From("namespaces").
-			Where(sq.Eq{"\"key\"": key}).
+			Where(sq.Eq{"\"key\"": p.Namespace()}).
 			QueryRowContext(ctx).
 			Scan(
 				&namespace.Key,
@@ -37,7 +37,7 @@ func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace,
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf(`namespace "%s"`, key)
+			return nil, errs.ErrNotFoundf("namespace %q", p)
 		}
 
 		return nil, err
@@ -49,38 +49,32 @@ func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace,
 	return namespace, nil
 }
 
-func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Namespace], error) {
-	params := &storage.QueryParams{}
-
-	for _, opt := range opts {
-		opt(params)
-	}
-
+func (s *Store) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (storage.ResultSet[*flipt.Namespace], error) {
 	var (
 		namespaces []*flipt.Namespace
 		results    = storage.ResultSet[*flipt.Namespace]{}
 
 		query = s.builder.Select("\"key\", name, description, protected, created_at, updated_at").
 			From("namespaces").
-			OrderBy(fmt.Sprintf("created_at %s", params.Order))
+			OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
 	)
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit + 1)
+	if req.QueryParams.Limit > 0 {
+		query = query.Limit(req.QueryParams.Limit + 1)
 	}
 
 	var offset uint64
 
-	if params.PageToken != "" {
-		token, err := decodePageToken(s.logger, params.PageToken)
+	if req.QueryParams.PageToken != "" {
+		token, err := decodePageToken(s.logger, req.QueryParams.PageToken)
 		if err != nil {
 			return results, err
 		}
 
 		offset = token.Offset
 		query = query.Offset(offset)
-	} else if params.Offset > 0 {
-		offset = params.Offset
+	} else if req.QueryParams.Offset > 0 {
+		offset = req.QueryParams.Offset
 		query = query.Offset(offset)
 	}
 
@@ -130,9 +124,9 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 
 	var next *flipt.Namespace
 
-	if len(namespaces) > int(params.Limit) && params.Limit > 0 {
+	if len(namespaces) > int(req.QueryParams.Limit) && req.QueryParams.Limit > 0 {
 		next = namespaces[len(namespaces)-1]
-		namespaces = namespaces[:params.Limit]
+		namespaces = namespaces[:req.QueryParams.Limit]
 	}
 
 	results.Results = namespaces
@@ -148,7 +142,7 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 	return results, nil
 }
 
-func (s *Store) CountNamespaces(ctx context.Context) (uint64, error) {
+func (s *Store) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest) (uint64, error) {
 	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
@@ -206,11 +200,13 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 		return nil, err
 	}
 
+	p := storage.NewNamespace(r.Key)
+
 	if count != 1 {
-		return nil, errs.ErrNotFoundf(`namespace "%s"`, r.Key)
+		return nil, errs.ErrNotFoundf("namespace %q", p)
 	}
 
-	return s.GetNamespace(ctx, r.Key)
+	return s.GetNamespace(ctx, p)
 }
 
 func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {

@@ -51,12 +51,10 @@ type CreateAuthenticationRequest struct {
 	ClientToken string
 }
 
-// ListWithMethod can be passed to storage.NewListRequest.
+// ListMethod can be passed to storage.NewListRequest.
 // The request can then be used to predicate ListAuthentications by auth method.
-func ListWithMethod(method auth.Method) storage.ListOption[ListAuthenticationsPredicate] {
-	return func(r *storage.ListRequest[ListAuthenticationsPredicate]) {
-		r.Predicate.Method = &method
-	}
+func ListMethod(method auth.Method) ListAuthenticationsPredicate {
+	return ListAuthenticationsPredicate{Method: &method}
 }
 
 // ListAuthenticationsPredicate contains the fields necessary to predicate a list operation

@@ -19,11 +19,7 @@ import (
 )
 
 // GetSegment gets a segment
-func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) GetSegment(ctx context.Context, req storage.ResourceRequest) (*flipt.Segment, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -32,7 +28,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 
 		err = s.builder.Select("namespace_key, \"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).
+			Where(sq.Eq{"namespace_key": req.Namespace(), "\"key\"": req.Key}).
 			QueryRowContext(ctx).
 			Scan(
 				&segment.NamespaceKey,
@@ -46,7 +42,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
+			return nil, errs.ErrNotFoundf("segment %q", req)
 		}
 
 		return nil, err
@@ -115,43 +111,33 @@ type optionalConstraint struct {
 }
 
 // ListSegments lists all segments
-func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
-	params := &storage.QueryParams{}
-
-	for _, opt := range opts {
-		opt(params)
-	}
-
+func (s *Store) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Segment], error) {
 	var (
 		segments []*flipt.Segment
 		results  = storage.ResultSet[*flipt.Segment]{}
 
 		query = s.builder.Select("namespace_key, \"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			Where(sq.Eq{"namespace_key": namespaceKey}).
-			OrderBy(fmt.Sprintf("created_at %s", params.Order))
+			Where(sq.Eq{"namespace_key": req.Predicate.Namespace()}).
+			OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
 	)
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit + 1)
+	if req.QueryParams.Limit > 0 {
+		query = query.Limit(req.QueryParams.Limit + 1)
 	}
 
 	var offset uint64
 
-	if params.PageToken != "" {
-		token, err := decodePageToken(s.logger, params.PageToken)
+	if req.QueryParams.PageToken != "" {
+		token, err := decodePageToken(s.logger, req.QueryParams.PageToken)
 		if err != nil {
 			return results, err
 		}
 
 		offset = token.Offset
 		query = query.Offset(offset)
-	} else if params.Offset > 0 {
-		offset = params.Offset
+	} else if req.QueryParams.Offset > 0 {
+		offset = req.QueryParams.Offset
 		query = query.Offset(offset)
 	}
 
@@ -202,15 +188,15 @@ func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...s
 		return results, err
 	}
 
-	if err := s.setConstraints(ctx, namespaceKey, segmentsByKey); err != nil {
+	if err := s.setConstraints(ctx, req.Predicate.Namespace(), segmentsByKey); err != nil {
 		return results, err
 	}
 
 	var next *flipt.Segment
 
-	if len(segments) > int(params.Limit) && params.Limit > 0 {
+	if len(segments) > int(req.QueryParams.Limit) && req.QueryParams.Limit > 0 {
 		next = segments[len(segments)-1]
-		segments = segments[:params.Limit]
+		segments = segments[:req.QueryParams.Limit]
 	}
 
 	results.Results = segments
@@ -293,16 +279,12 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 }
 
 // CountSegments counts all segments
-func (s *Store) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) CountSegments(ctx context.Context, ns storage.NamespaceRequest) (uint64, error) {
 	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("segments").
-		Where(sq.Eq{"namespace_key": namespaceKey}).
+		Where(sq.Eq{"namespace_key": ns.Namespace()}).
 		QueryRowContext(ctx).
 		Scan(&count); err != nil {
 		return 0, err
@@ -358,7 +340,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
-		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
+		Where(sq.Eq{"namespace_key": r.NamespaceKey, "\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -370,11 +352,13 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		return nil, err
 	}
 
+	p := storage.NewResource(r.NamespaceKey, r.Key)
+
 	if count != 1 {
-		return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.Key)
+		return nil, errs.ErrNotFoundf("segment %q", p)
 	}
 
-	return s.GetSegment(ctx, r.NamespaceKey, r.Key)
+	return s.GetSegment(ctx, p)
 }
 
 // DeleteSegment deletes a segment

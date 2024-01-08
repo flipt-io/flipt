@@ -16,7 +16,7 @@ import (
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.Debug("get flag", zap.Stringer("request", r))
 
-	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.Key)
+	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.Key, storage.WithReference(r.Reference)))
 
 	spanAttrs := []attribute.KeyValue{
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
@@ -39,20 +39,8 @@ func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.F
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
-	if r.Offset < 0 {
-		r.Offset = 0
-	}
-
-	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
-
-	if r.PageToken != "" {
-		opts = append(opts, storage.WithPageToken(r.PageToken))
-	} else if r.Offset >= 0 {
-		// TODO: deprecate
-		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
-	}
-
-	results, err := s.store.ListFlags(ctx, r.NamespaceKey, opts...)
+	ns := storage.NewNamespace(r.NamespaceKey, storage.WithReference(r.GetReference()))
+	results, err := s.store.ListFlags(ctx, storage.ListWithParameters(ns, r))
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +49,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 		Flags: results.Results,
 	}
 
-	total, err := s.store.CountFlags(ctx, r.NamespaceKey)
+	total, err := s.store.CountFlags(ctx, ns)
 	if err != nil {
 		return nil, err
 	}

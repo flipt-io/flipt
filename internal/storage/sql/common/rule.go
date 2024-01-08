@@ -18,11 +18,7 @@ import (
 )
 
 // GetRule gets an individual rule with distributions by ID
-func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) GetRule(ctx context.Context, ns storage.NamespaceRequest, id string) (*flipt.Rule, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -31,14 +27,14 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 
 		err = s.builder.Select("id, namespace_key, flag_key, \"rank\", segment_operator, created_at, updated_at").
 			From("rules").
-			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
+			Where(sq.Eq{"id": id, "namespace_key": ns.Namespace()}).
 			QueryRowContext(ctx).
 			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.Rank, &rule.SegmentOperator, &createdAt, &updatedAt)
 	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
+			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, ns.Namespace(), id)
 		}
 
 		return nil, err
@@ -134,43 +130,33 @@ type optionalDistribution struct {
 }
 
 // ListRules gets all rules for a flag with distributions
-func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
-	params := &storage.QueryParams{}
-
-	for _, opt := range opts {
-		opt(params)
-	}
-
+func (s *Store) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (storage.ResultSet[*flipt.Rule], error) {
 	var (
 		rules   []*flipt.Rule
 		results = storage.ResultSet[*flipt.Rule]{}
 
 		query = s.builder.Select("id, namespace_key, flag_key, \"rank\", segment_operator, created_at, updated_at").
 			From("rules").
-			Where(sq.Eq{"flag_key": flagKey, "namespace_key": namespaceKey}).
-			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
+			Where(sq.Eq{"flag_key": req.Predicate.Key, "namespace_key": req.Predicate.Namespace()}).
+			OrderBy(fmt.Sprintf("\"rank\" %s", req.QueryParams.Order))
 	)
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit + 1)
+	if req.QueryParams.Limit > 0 {
+		query = query.Limit(req.QueryParams.Limit + 1)
 	}
 
 	var offset uint64
 
-	if params.PageToken != "" {
-		token, err := decodePageToken(s.logger, params.PageToken)
+	if req.QueryParams.PageToken != "" {
+		token, err := decodePageToken(s.logger, req.QueryParams.PageToken)
 		if err != nil {
 			return results, err
 		}
 
 		offset = token.Offset
 		query = query.Offset(offset)
-	} else if params.Offset > 0 {
-		offset = params.Offset
+	} else if req.QueryParams.Offset > 0 {
+		offset = req.QueryParams.Offset
 		query = query.Offset(offset)
 	}
 
@@ -266,9 +252,9 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 
 	var next *flipt.Rule
 
-	if len(rules) > int(params.Limit) && params.Limit > 0 {
+	if len(rules) > int(req.QueryParams.Limit) && req.QueryParams.Limit > 0 {
 		next = rules[len(rules)-1]
-		rules = rules[:params.Limit]
+		rules = rules[:req.QueryParams.Limit]
 	}
 
 	results.Results = rules
@@ -344,16 +330,12 @@ func (s *Store) setDistributions(ctx context.Context, rulesById map[string]*flip
 }
 
 // CountRules counts all rules
-func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	if namespaceKey == "" {
-		namespaceKey = storage.DefaultNamespace
-	}
-
+func (s *Store) CountRules(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
 	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("rules").
-		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
+		Where(sq.Eq{"namespace_key": flag.Namespace(), "flag_key": flag.Key}).
 		QueryRowContext(ctx).
 		Scan(&count); err != nil {
 		return 0, err
@@ -502,7 +484,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		return nil, err
 	}
 
-	return s.GetRule(ctx, r.NamespaceKey, r.Id)
+	return s.GetRule(ctx, storage.NewNamespace(r.NamespaceKey), r.Id)
 }
 
 // DeleteRule deletes a rule

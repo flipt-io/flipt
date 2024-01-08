@@ -189,13 +189,13 @@ func testStore(t *testing.T, fn func(t *testing.T) string) {
 		// both the production and prefix namespaces should be present
 		// however, both should be empty
 		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-			_, err := s.GetNamespace(ctx, "production")
+			_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 			require.NoError(t, err)
 
-			_, err = s.GetNamespace(ctx, "prefix")
+			_, err = s.GetNamespace(ctx, storage.NewNamespace("prefix"))
 			require.NoError(t, err)
 
-			_, err = s.GetFlag(ctx, "production", "foo")
+			_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 			require.Error(t, err, "flag should not be defined yet")
 
 			return nil
@@ -220,17 +220,17 @@ flags:
 		t.Log("received new snapshot")
 
 		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-			_, err = s.GetNamespace(context.TODO(), "production")
+			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("production"))
 			if err != nil {
 				return err
 			}
 
-			_, err = s.GetFlag(context.TODO(), "production", "foo")
+			_, err = s.GetFlag(context.TODO(), storage.NewResource("production", "foo"))
 			if err != nil {
 				return err
 			}
 
-			_, err = s.GetNamespace(context.TODO(), "prefix")
+			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("prefix"))
 			return err
 		}))
 	})
@@ -268,13 +268,13 @@ flags:
 		// both the production and prefix namespaces should be present
 		// however, both should be empty
 		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-			_, err := s.GetNamespace(ctx, "production")
+			_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 			require.Error(t, err, "should not exist in prefixed bucket")
 
-			_, err = s.GetFlag(ctx, "production", "foo")
+			_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 			require.Error(t, err, "flag should not be defined yet")
 
-			_, err = s.GetNamespace(ctx, "prefix")
+			_, err = s.GetNamespace(ctx, storage.NewNamespace("prefix"))
 			require.NoError(t, err)
 
 			return nil

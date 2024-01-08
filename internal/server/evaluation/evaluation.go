@@ -10,6 +10,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/metrics"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
+	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
@@ -21,7 +22,7 @@ import (
 // Variant evaluates a request for a multi-variate flag and entity.
 // It adapts the 'v2' evaluation API and proxies the request to the 'v1' evaluation API.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +54,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 }
 
 func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	resp, err := s.evaluator.Evaluate(ctx, flag, &flipt.EvaluationRequest{
-		RequestId:    r.RequestId,
-		FlagKey:      r.FlagKey,
-		EntityId:     r.EntityId,
-		Context:      r.Context,
-		NamespaceKey: r.NamespaceKey,
-	})
+	resp, err := s.evaluator.Evaluate(ctx, flag, r)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +88,7 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +122,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 }
 
 func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.NamespaceKey, flag.Key)
+	rollouts, err := s.store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +251,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 	}
 
 	for _, req := range b.GetRequests() {
-		f, err := s.store.GetFlag(ctx, req.NamespaceKey, req.FlagKey)
+		f, err := s.store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if errors.As(err, &errnf) {

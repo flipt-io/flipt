@@ -43,7 +43,7 @@ func (s *DBTestSuite) TestGetRollout() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	got, err := s.store.GetRollout(context.TODO(), storage.DefaultNamespace, rollout.Id)
+	got, err := s.store.GetRollout(context.TODO(), storage.NewNamespace(storage.DefaultNamespace), rollout.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -88,7 +88,7 @@ func (s *DBTestSuite) TestGetRolloutNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	got, err := s.store.GetRollout(context.TODO(), s.namespace, rollout.Id)
+	got, err := s.store.GetRollout(context.TODO(), storage.NewNamespace(s.namespace), rollout.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -106,14 +106,14 @@ func (s *DBTestSuite) TestGetRolloutNamespace() {
 func (s *DBTestSuite) TestGetRollout_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetRollout(context.TODO(), storage.DefaultNamespace, "0")
+	_, err := s.store.GetRollout(context.TODO(), storage.NewNamespace(storage.DefaultNamespace), "0")
 	assert.EqualError(t, err, "rollout \"default/0\" not found")
 }
 
 func (s *DBTestSuite) TestGetRolloutNamespace_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetRollout(context.TODO(), s.namespace, "0")
+	_, err := s.store.GetRollout(context.TODO(), storage.NewNamespace(s.namespace), "0")
 	assert.EqualError(t, err, fmt.Sprintf("rollout \"%s/0\" not found", s.namespace))
 }
 
@@ -169,7 +169,7 @@ func (s *DBTestSuite) TestListRollouts() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -242,7 +242,7 @@ func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -306,7 +306,7 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRollouts(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -360,7 +360,10 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitOffset() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(
+		storage.NewResource(storage.DefaultNamespace, flag.Key),
+		storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithLimit(1), storage.WithOffset(1)),
+	))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -412,7 +415,12 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
+	res, err := s.store.ListRollouts(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](opts...),
+		),
+	)
 	require.NoError(t, err)
 
 	got := res.Results
@@ -432,7 +440,12 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
-	res, err = s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
+	res, err = s.store.ListRollouts(context.TODO(),
+		storage.ListWithOptions(
+			storage.NewResource(storage.DefaultNamespace, flag.Key),
+			storage.ListWithQueryParamOptions[storage.ResourceRequest](opts...),
+		),
+	)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -889,7 +902,7 @@ func (s *DBTestSuite) TestDeleteRollout() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	// ensure rollouts are in correct order
 	require.NoError(t, err)
 
@@ -949,7 +962,7 @@ func (s *DBTestSuite) TestDeleteRolloutNamespace() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRollouts(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 	// ensure rollouts are in correct order
 	require.NoError(t, err)
 
@@ -1059,7 +1072,7 @@ func (s *DBTestSuite) TestOrderRollouts() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 
 	// ensure rollouts are in correct order
 	require.NoError(t, err)
@@ -1133,7 +1146,7 @@ func (s *DBTestSuite) TestOrderRolloutsNamespace() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRollouts(context.TODO(), s.namespace, flag.Key)
+	res, err := s.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(s.namespace, flag.Key)))
 
 	// ensure rollouts are in correct order
 	require.NoError(t, err)

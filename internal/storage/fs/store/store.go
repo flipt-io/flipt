@@ -93,14 +93,14 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			return nil, err
 		}
 
-		return storagefs.NewStore(snapStore), nil
+		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
 	case config.LocalStorageType:
 		snapStore, err := local.NewSnapshotStore(ctx, logger, cfg.Storage.Local.Path)
 		if err != nil {
 			return nil, err
 		}
 
-		return storagefs.NewStore(snapStore), nil
+		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
 	case config.ObjectStorageType:
 		return newObjectStore(ctx, cfg, logger)
 	case config.OCIStorageType:
@@ -131,7 +131,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			return nil, err
 		}
 
-		return storagefs.NewStore(snapStore), nil
+		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
 	}
 
 	return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
@@ -222,5 +222,5 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		return nil, err
 	}
 
-	return storagefs.NewStore(snap), nil
+	return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snap)), nil
 }
