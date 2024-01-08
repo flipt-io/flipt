@@ -188,7 +188,7 @@ func testStore(t *testing.T, fn func(t *testing.T) string) {
 
 		// both the production and prefix namespaces should be present
 		// however, both should be empty
-		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 			_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 			require.NoError(t, err)
 
@@ -219,7 +219,7 @@ flags:
 
 		t.Log("received new snapshot")
 
-		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("production"))
 			if err != nil {
 				return err
@@ -267,7 +267,7 @@ flags:
 
 		// both the production and prefix namespaces should be present
 		// however, both should be empty
-		require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 			_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 			require.Error(t, err, "should not exist in prefixed bucket")
 
