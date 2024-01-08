@@ -6,7 +6,9 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
+	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -16,7 +18,7 @@ import (
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
 
-	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
 	if err != nil {
 		var resp = &flipt.EvaluationResponse{}
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
@@ -29,7 +31,13 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		return resp, err
 	}
 
-	resp, err := s.evaluator.Evaluate(ctx, flag, r)
+	resp, err := s.evaluator.Evaluate(ctx, flag, &evaluation.EvaluationRequest{
+		RequestId:    r.RequestId,
+		FlagKey:      r.FlagKey,
+		EntityId:     r.EntityId,
+		Context:      r.Context,
+		NamespaceKey: r.NamespaceKey,
+	})
 	if err != nil {
 		return resp, err
 	}
@@ -89,7 +97,7 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 			return &res, errs.InvalidFieldError("namespace_key", "must be the same for all requests if specified")
 		}
 
-		flag, err := s.store.GetFlag(ctx, req.NamespaceKey, req.FlagKey)
+		flag, err := s.store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey))
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
@@ -100,7 +108,13 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		}
 
 		// TODO: we also need to validate each request, we should likely do this in the validation middleware
-		f, err := s.evaluator.Evaluate(ctx, flag, req)
+		f, err := s.evaluator.Evaluate(ctx, flag, &evaluation.EvaluationRequest{
+			RequestId:    req.RequestId,
+			FlagKey:      req.FlagKey,
+			EntityId:     req.EntityId,
+			Context:      req.Context,
+			NamespaceKey: req.NamespaceKey,
+		})
 		if err != nil {
 			s.logger.Error("error evaluating flag", zap.Error(err))
 			return &res, err

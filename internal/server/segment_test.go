@@ -25,7 +25,7 @@ func TestGetSegment(t *testing.T) {
 		req = &flipt.GetSegmentRequest{Key: "foo"}
 	)
 
-	store.On("GetSegment", mock.Anything, mock.Anything, "foo").Return(&flipt.Segment{
+	store.On("GetSegment", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Segment{
 		Key: req.Key,
 	}, nil)
 
@@ -47,15 +47,11 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListSegments", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert offset is provided
-		return params.PageToken == "" && params.Offset > 0
-	})).Return(
+	store.On("ListSegments", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
+		storage.ListWithQueryParamOptions[storage.NamespaceRequest](
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Segment]{
 			Results: []*flipt.Segment{
 				{
@@ -65,7 +61,7 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountSegments", mock.Anything, storage.NewNamespace("")).Return(uint64(1), nil)
 
 	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
 		Offset: 10,
@@ -90,15 +86,12 @@ func TestListSegments_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListSegments", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert page token is preferred over offset
-		return params.PageToken == "Zm9v" && params.Offset == 0
-	})).Return(
+	store.On("ListSegments", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
+		storage.ListWithQueryParamOptions[storage.NamespaceRequest](
+			storage.WithOffset(10),
+			storage.WithPageToken("Zm9v"),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Segment]{
 			Results: []*flipt.Segment{
 				{
@@ -108,7 +101,7 @@ func TestListSegments_PaginationPageToken(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountSegments", mock.Anything, storage.NewNamespace("")).Return(uint64(1), nil)
 
 	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
 		PageToken: "Zm9v",

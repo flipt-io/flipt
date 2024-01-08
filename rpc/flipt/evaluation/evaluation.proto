@@ -12,11 +12,13 @@ message EvaluationRequest {
   string flag_key = 3;
   string entity_id = 4;
   map<string, string> context = 5;
+  string reference = 6;
 }
 
 message BatchEvaluationRequest {
   string request_id = 1;
   repeated EvaluationRequest requests = 3;
+  string reference = 4;
 }
 
 message BatchEvaluationResponse {
@@ -192,6 +194,7 @@ message EvaluationNamespaceSnapshot {
 
 message EvaluationNamespaceSnapshotRequest {
   string key = 1;
+  string reference = 2;
 }
 
 // flipt:sdk:ignore
