@@ -32,10 +32,10 @@ func TestBatchEvaluate(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "foo")).Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "bar")).Return(disabled, nil)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("default", "foo")).Return([]*storage.EvaluationRule{}, nil)
 
 	resp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
 		RequestId: "12345",
@@ -97,11 +97,11 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "foo")).Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "bar")).Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "NotFoundFlag")).Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("default", "foo")).Return([]*storage.EvaluationRule{}, nil)
 
 	resp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
 		RequestId:       "12345",
@@ -142,11 +142,11 @@ func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "foo")).Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "bar")).Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, storage.NewResource("default", "NotFoundFlag")).Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("default", "foo")).Return([]*storage.EvaluationRule{}, nil)
 
 	_, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
 		RequestId:       "12345",

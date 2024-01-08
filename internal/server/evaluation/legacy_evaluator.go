@@ -15,6 +15,7 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
@@ -34,7 +35,7 @@ func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	}
 }
 
-func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluation.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	// Flag should be of variant type by default. However, for maximum backwards compatibility
 	// on this layer, we will check against the integer value of the flag type.
 	if int(flag.Type) != 0 || flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
@@ -96,7 +97,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		return resp, nil
 	}
 
-	rules, err := e.store.GetEvaluationRules(ctx, r.NamespaceKey, r.FlagKey)
+	rules, err := e.store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err
@@ -157,7 +158,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 			resp.SegmentKeys = segmentKeys
 		}
 
-		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
+		distributions, err := e.store.GetEvaluationDistributions(ctx, storage.NewID(rule.ID))
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err

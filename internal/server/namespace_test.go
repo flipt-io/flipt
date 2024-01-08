@@ -25,7 +25,7 @@ func TestGetNamespace(t *testing.T) {
 		req = &flipt.GetNamespaceRequest{Key: "foo"}
 	)
 
-	store.On("GetNamespace", mock.Anything, "foo").Return(&flipt.Namespace{
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
 		Key: req.Key,
 	}, nil)
 
@@ -48,15 +48,12 @@ func TestListNamespaces_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListNamespaces", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert offset is provided
-		return params.PageToken == "" && params.Offset > 0
-	})).Return(
+	store.On("ListNamespaces", mock.Anything, storage.ListWithOptions(storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+			storage.WithLimit(0),
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Namespace]{
 			Results: []*flipt.Namespace{
 				{
@@ -66,7 +63,7 @@ func TestListNamespaces_PaginationOffset(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)
+	store.On("CountNamespaces", mock.Anything, storage.ReferenceRequest{}).Return(uint64(1), nil)
 
 	got, err := s.ListNamespaces(context.TODO(), &flipt.ListNamespaceRequest{
 		Offset: 10,
@@ -91,15 +88,12 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListNamespaces", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert page token is preferred over offset
-		return params.PageToken == "Zm9v" && params.Offset == 0
-	})).Return(
+	store.On("ListNamespaces", mock.Anything, storage.ListWithOptions(storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](
+			storage.WithPageToken("Zm9v"),
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Namespace]{
 			Results: []*flipt.Namespace{
 				{
@@ -109,7 +103,7 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)
+	store.On("CountNamespaces", mock.Anything, storage.ReferenceRequest{}).Return(uint64(1), nil)
 
 	got, err := s.ListNamespaces(context.TODO(), &flipt.ListNamespaceRequest{
 		PageToken: "Zm9v",
@@ -190,11 +184,11 @@ func TestDeleteNamespace(t *testing.T) {
 		}
 	)
 
-	store.On("GetNamespace", mock.Anything, "foo").Return(&flipt.Namespace{
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
 		Key: req.Key,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, "foo").Return(uint64(0), nil)
+	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(0), nil)
 
 	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
 
@@ -218,7 +212,7 @@ func TestDeleteNamespace_NonExistent(t *testing.T) {
 	)
 
 	var ns *flipt.Namespace
-	store.On("GetNamespace", mock.Anything, "foo").Return(ns, nil) // mock library does not like nil
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(ns, nil) // mock library does not like nil
 
 	store.AssertNotCalled(t, "CountFlags")
 	store.AssertNotCalled(t, "DeleteNamespace")
@@ -242,12 +236,12 @@ func TestDeleteNamespace_Protected(t *testing.T) {
 		}
 	)
 
-	store.On("GetNamespace", mock.Anything, "foo").Return(&flipt.Namespace{
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
 		Key:       req.Key,
 		Protected: true,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, "foo").Return(uint64(0), nil)
+	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(0), nil)
 
 	store.AssertNotCalled(t, "DeleteNamespace")
 
@@ -269,11 +263,11 @@ func TestDeleteNamespace_HasFlags(t *testing.T) {
 		}
 	)
 
-	store.On("GetNamespace", mock.Anything, "foo").Return(&flipt.Namespace{
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
 		Key: req.Key,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, "foo").Return(uint64(1), nil)
+	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(1), nil)
 
 	store.AssertNotCalled(t, "DeleteNamespace")
 

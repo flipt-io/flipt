@@ -24,7 +24,7 @@ func TestGetRollout(t *testing.T) {
 		req = &flipt.GetRolloutRequest{Id: "id", FlagKey: "flagKey"}
 	)
 
-	store.On("GetRollout", mock.Anything, mock.Anything, "id").Return(&flipt.Rollout{
+	store.On("GetRollout", mock.Anything, storage.NewNamespace(""), "id").Return(&flipt.Rollout{
 		Id: "1",
 	}, nil)
 
@@ -46,15 +46,11 @@ func TestListRollouts_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListRollouts", mock.Anything, mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert page token is preferred over offset
-		return params.PageToken == "Zm9v" && params.Limit == 0
-	})).Return(
+	store.On("ListRollouts", mock.Anything, storage.ListWithOptions(storage.NewResource("", "flagKey"),
+		storage.ListWithQueryParamOptions[storage.ResourceRequest](
+			storage.WithPageToken("Zm9v"),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Rollout]{
 			Results: []*flipt.Rollout{
 				{
@@ -64,7 +60,7 @@ func TestListRollouts_PaginationPageToken(t *testing.T) {
 			NextPageToken: "YmFy",
 		}, nil)
 
-	store.On("CountRollouts", mock.Anything, mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountRollouts", mock.Anything, storage.NewResource("", "flagKey")).Return(uint64(1), nil)
 
 	got, err := s.ListRollouts(context.TODO(), &flipt.ListRolloutRequest{FlagKey: "flagKey",
 		PageToken: "Zm9v",

@@ -25,7 +25,7 @@ func TestGetFlag(t *testing.T) {
 		req = &flipt.GetFlagRequest{Key: "foo"}
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Flag{
 		Key:     req.Key,
 		Enabled: true,
 	}, nil)
@@ -50,15 +50,11 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListFlags", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert offset is provided
-		return params.PageToken == "" && params.Offset > 0
-	})).Return(
+	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
+		storage.ListWithQueryParamOptions[storage.NamespaceRequest](
+			storage.WithOffset(10),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Flag]{
 			Results: []*flipt.Flag{
 				{
@@ -93,15 +89,12 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	params := storage.QueryParams{}
-	store.On("ListFlags", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		// assert page token is preferred over offset
-		return params.PageToken == "Zm9v" && params.Offset == 0
-	})).Return(
+	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
+		storage.ListWithQueryParamOptions[storage.NamespaceRequest](
+			storage.WithOffset(10),
+			storage.WithPageToken("Zm9v"),
+		),
+	)).Return(
 		storage.ResultSet[*flipt.Flag]{
 			Results: []*flipt.Flag{
 				{

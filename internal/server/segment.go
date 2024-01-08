@@ -12,7 +12,7 @@ import (
 // GetSegment gets a segment
 func (s *Server) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
 	s.logger.Debug("get segment", zap.Stringer("request", r))
-	segment, err := s.store.GetSegment(ctx, r.NamespaceKey, r.Key)
+	segment, err := s.store.GetSegment(ctx, storage.NewResource(r.NamespaceKey, r.Key, storage.WithReference(r.Reference)))
 	s.logger.Debug("get segment", zap.Stringer("response", segment))
 	return segment, err
 }
@@ -21,20 +21,8 @@ func (s *Server) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*f
 func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
 	s.logger.Debug("list segments", zap.Stringer("request", r))
 
-	if r.Offset < 0 {
-		r.Offset = 0
-	}
-
-	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
-
-	if r.PageToken != "" {
-		opts = append(opts, storage.WithPageToken(r.PageToken))
-	} else if r.Offset >= 0 {
-		// TODO: deprecate
-		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
-	}
-
-	results, err := s.store.ListSegments(ctx, r.NamespaceKey, opts...)
+	ns := storage.NewNamespace(r.NamespaceKey, storage.WithReference(r.Reference))
+	results, err := s.store.ListSegments(ctx, storage.ListWithParameters(ns, r))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +31,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 		Segments: results.Results,
 	}
 
-	total, err := s.store.CountSegments(ctx, r.NamespaceKey)
+	total, err := s.store.CountSegments(ctx, ns)
 	if err != nil {
 		return nil, err
 	}

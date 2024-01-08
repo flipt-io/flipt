@@ -38,10 +38,10 @@ func Test_SourceSubscribe(t *testing.T) {
 	ctx := context.Background()
 
 	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-		_, err := s.GetNamespace(ctx, "production")
+		_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 		require.NoError(t, err)
 
-		_, err = s.GetFlag(ctx, "production", "foo")
+		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		require.Error(t, err, "should error as flag should not exist yet")
 
 		return nil
@@ -67,7 +67,7 @@ func Test_SourceSubscribe(t *testing.T) {
 	t.Log("received new snapshot")
 
 	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
-		_, err := s.GetFlag(ctx, "production", "foo")
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		require.NoError(t, err)
 		return nil
 	}))
