@@ -34,7 +34,7 @@ type SnapshotStore struct {
 // View accepts a function which takes a *StoreSnapshot.
 // The SnapshotStore will supply a snapshot which is valid
 // for the lifetime of the provided function call.
-func (s *SnapshotStore) View(fn func(storage.ReadOnlyStore) error) error {
+func (s *SnapshotStore) View(_ context.Context, fn func(storage.ReadOnlyStore) error) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return fn(s.snap)
