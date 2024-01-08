@@ -115,7 +115,7 @@ flags:
 
 	t.Log("received new snapshot")
 
-	require.NoError(t, store.View("", func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		return err
 	}))
@@ -197,19 +197,19 @@ flags:
 
 	t.Log("received new snapshot")
 
-	require.NoError(t, store.View("", func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.Error(t, err, "flag should not be found in default revision")
 		return nil
 	}))
 
-	require.NoError(t, store.View("main", func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, "main", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.Error(t, err, "flag should not be found in explicitly named main revision")
 		return nil
 	}))
 
-	require.NoError(t, store.View("new-branch", func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.NoError(t, err, "flag should be present on new-branch")
 		return nil

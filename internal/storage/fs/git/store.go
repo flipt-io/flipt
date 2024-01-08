@@ -146,8 +146,7 @@ func (*SnapshotStore) String() string {
 // Providing an empty reference defaults View to using the stores base reference.
 // The base reference will always be quickly accessible via minimal locking (single read-lock).
 // Alternative references which have not yet been observed will be resolved and newly built into snapshots on demand.
-func (s *SnapshotStore) View(storeRef storage.Reference, fn func(storage.ReadOnlyStore) error) error {
-	ctx := context.TODO()
+func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn func(storage.ReadOnlyStore) error) error {
 	ref := string(storeRef)
 	if ref == "" {
 		ref = s.baseRef
