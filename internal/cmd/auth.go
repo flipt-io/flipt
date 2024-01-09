@@ -177,8 +177,11 @@ func authenticationGRPC(
 				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
 			}
 
+			// intentionally restricted to a set of common asymmetric algorithms
+			// if we want to support symmetric algorithms, we need to add support for
+			// private keys in the configuration
 			exp := jwt.Expected{
-				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512},
+				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512, jwt.EdDSA},
 			}
 
 			if authJWT.Method.ValidateClaims.Issuer != "" {
