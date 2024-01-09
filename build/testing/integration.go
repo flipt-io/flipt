@@ -22,7 +22,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/hashicorp/cap/jwt"
+	"go.flipt.io/stew/config"
 	"golang.org/x/sync/errgroup"
+	"gopkg.in/yaml.v3"
 )
 
 const bootstrapToken = "s3cr3t"
@@ -305,13 +307,13 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 }
 
 const (
-	testdataDir     = "build/testing/integration/readonly/testdata"
-	testdataPathFmt = testdataDir + "/%s.yaml"
+	rootTestdataDir           = "build/testing/integration/readonly/testdata"
+	singleRevisionTestdataDir = rootTestdataDir + "/main"
 )
 
 func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
-		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
@@ -326,9 +328,50 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithExposedPort(3000).
 		WithExec(nil)
 
-	_, err := base.
+	stew := config.Config{
+		URL: "http://gitea:3000",
+		Admin: struct {
+			Username string "json:\"username\""
+			Email    string "json:\"email\""
+			Password string "json:\"password\""
+		}{
+			Username: "root",
+			Password: "password",
+			Email:    "dev@flipt.io",
+		},
+		Repositories: []config.Repository{
+			{
+				Name: "features",
+				Contents: []config.Content{
+					{
+						Branch:  "main",
+						Path:    "/work/base/main",
+						Message: "feat: add main directory contents",
+					},
+					{
+						Branch:  "alternate",
+						Path:    "/work/base/alternate",
+						Message: "feat: add alternate directory contents",
+					},
+				},
+			},
+		},
+	}
+
+	contents, err := yaml.Marshal(&stew)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	_, err = client.Container().
+		From("ghcr.io/flipt-io/stew:latest").
+		WithWorkdir("/work").
+		WithDirectory("/work/base", base.Directory(rootTestdataDir)).
+		WithNewFile("/etc/stew/config.yml", dagger.ContainerWithNewFileOpts{
+			Contents: string(contents),
+		}).
 		WithServiceBinding("gitea", gitea.AsService()).
-		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", testdataDir}).
+		WithExec(nil).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
@@ -339,6 +382,8 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
+		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_USERNAME", "root").
+		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_PASSWORD", "password").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
@@ -357,7 +402,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", testdataDir}).
+		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", singleRevisionTestdataDir}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
@@ -414,7 +459,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithNewFile("/etc/zot/config.json", dagger.ContainerWithNewFileOpts{Contents: zotConfig})
 
 	if _, err := flipt.
-		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
 		WithWorkdir("/tmp/testdata").
 		WithServiceBinding("zot", zot.AsService()).
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
@@ -452,7 +497,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			ns = conf.namespace
 		}
 
-		seed := base.File(fmt.Sprintf(testdataPathFmt, ns))
+		seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
 
 		var (
 			// create unique instance for test case
@@ -580,7 +625,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		WithServiceBinding("azurite", azurite).
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
-		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", testdataDir}).
+		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", singleRevisionTestdataDir}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
@@ -611,7 +656,7 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	_, err := base.
 		WithServiceBinding("gcs", gcs).
 		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
-		WithExec([]string{"go", "run", "./build/internal/cmd/gcs/...", "-testdata-dir", testdataDir}).
+		WithExec([]string{"go", "run", "./build/internal/cmd/gcs/...", "-testdata-dir", singleRevisionTestdataDir}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
