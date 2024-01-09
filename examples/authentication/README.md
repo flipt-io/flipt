@@ -7,5 +7,5 @@ For more information on how to secure your Flipt instance and setup authenticati
 ## Contents
 
 * [Reverse Proxy Authentication](proxy/README.md)
-* [OIDC Authentication with Dex](dex/README.md)
+* [OIDC Authentication with Dex](oidc/README.md)
 * [Static Token Authentication](token/README.md)

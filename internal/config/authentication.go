@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -220,6 +221,7 @@ type AuthenticationMethods struct {
 	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github" yaml:"github,omitempty"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
+	JWT        AuthenticationMethod[AuthenticationMethodJWTConfig]        `json:"jwt,omitempty" mapstructure:"jwt" yaml:"jwt,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -229,6 +231,7 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 		a.Github.info(),
 		a.OIDC.info(),
 		a.Kubernetes.info(),
+		a.JWT.info(),
 	}
 }
 
@@ -528,4 +531,73 @@ func (a AuthenticationMethodGithubConfig) validate() error {
 	}
 
 	return nil
+}
+
+type AuthenticationMethodJWTConfig struct {
+	// ValidateClaims is used to validate the claims of the JWT token.
+	ValidateClaims struct {
+		// Issuer is the issuer of the JWT token.
+		Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
+		// Audiences is the audience of the JWT token.
+		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
+	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
+	// JWKsURL is the URL to the JWKS endpoint.
+	// This is used to fetch the public keys used to validate the JWT token.
+	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
+	// PublicKeyFile is the path to the public PEM encoded key file on disk.
+	PublicKeyFile string `json:"-" mapstructure:"public_key_file" yaml:"public_key_file,omitempty"`
+}
+
+func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "jwt".
+func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_JWT,
+		SessionCompatible: false,
+	}
+}
+
+func (a AuthenticationMethodJWTConfig) validate() error {
+	setFields := nonEmpty([]string{a.JWKSURL, a.PublicKeyFile})
+	if setFields < 1 {
+		return fmt.Errorf("one of jwks_url or public_key_file is required")
+	}
+
+	if setFields > 1 {
+		return fmt.Errorf("only one of jwks_url or public_key_file can be set")
+	}
+
+	if a.JWKSURL != "" {
+		// ensure jwks url is valid
+		if _, err := url.Parse(a.JWKSURL); err != nil {
+			return errFieldWrap("jwks_url", err)
+		}
+	}
+
+	if a.PublicKeyFile != "" {
+		// ensure public key file exists
+		if _, err := os.Stat(a.PublicKeyFile); err != nil {
+			return errFieldWrap("public_key_file", err)
+		}
+	}
+
+	return nil
+}
+
+func nonEmpty(values []string) int {
+	set := filter(values, func(s string) bool {
+		return s != ""
+	})
+
+	return len(set)
+}
+
+func filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
 }

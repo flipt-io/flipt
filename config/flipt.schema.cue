@@ -75,6 +75,16 @@ import "strings"
 				scopes?: [...string]
 				allowed_organizations?: [...] | string
 			}
+
+			jwt?: {
+				enabled?: bool | *false
+				validate_claims?: {
+					issuer?: string
+					audiences?: [...string]
+				}
+				jwks_url?: string
+				public_key_file?: string
+			}
 		}
 
 		#authentication_cleanup: {
@@ -119,16 +129,16 @@ import "strings"
 	}
 
 	#cors: {
-		enabled?:         bool | *false
+		enabled?: bool | *false
 		allowed_origins?: [...] | string | *["*"]
 		allowed_headers?: [...string] | string | *[
-					"Accept",
-					"Authorization",
-					"Content-Type",
-					"X-CSRF-Token",
-					"X-Fern-Language",
-					"X-Fern-SDK-Name",
-					"X-Fern-SDK-Version",
+			"Accept",
+			"Authorization",
+			"Content-Type",
+			"X-CSRF-Token",
+			"X-Fern-Language",
+			"X-Fern-SDK-Name",
+			"X-Fern-SDK-Version",
 		]
 	}
 
@@ -139,17 +149,17 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local" | "object" | "oci" | *""
- 		read_only?: bool | *false
+		type:       "database" | "git" | "local" | "object" | "oci" | *""
+		read_only?: bool | *false
 		local?: path: string | *"."
 		git?: {
 			repository:         string
 			ref?:               string | *"main"
 			poll_interval?:     =~#duration | *"30s"
-			ca_cert_path?:       string
-			ca_cert_bytes?:      string
+			ca_cert_path?:      string
+			ca_cert_bytes?:     string
 			insecure_skip_tls?: bool | *false
-			authentication?: ({
+			authentication?:    ({
 				basic: {
 					username: string
 					password: string
@@ -180,8 +190,8 @@ import "strings"
 				poll_interval?: =~#duration | *"1m"
 			}
 			azblob?: {
-				container: string
-				endpoint?: string
+				container:      string
+				endpoint?:      string
 				poll_interval?: =~#duration | *"1m"
 			}
 			googlecloud?: {
@@ -218,7 +228,7 @@ import "strings"
 	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
-	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
+	_#all: _#lower + [for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
 		encoding?:   *"console" | "json"
