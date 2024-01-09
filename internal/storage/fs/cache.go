@@ -169,7 +169,7 @@ func (c *SnapshotCache[K]) References() []string {
 	return append(maps.Keys(c.fixed), c.extra.Keys()...)
 }
 
-// evict is used for garbage collection while evicting fro the LRU
+// evict is used for garbage collection while evicting from the LRU
 // and when AddOrBuild leaves old revision keys dangling.
 // It checks to see if the target key for the evicted reference is
 // still being pointed at by other existing references in either the
