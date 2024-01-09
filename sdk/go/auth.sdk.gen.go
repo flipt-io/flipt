@@ -18,23 +18,23 @@ type AuthClient interface {
 }
 
 type Auth struct {
-	transport     AuthClient
-	tokenProvider ClientTokenProvider
+	transport              AuthClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 type PublicAuthenticationService struct {
-	transport     auth.PublicAuthenticationServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.PublicAuthenticationServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) PublicAuthenticationService() *PublicAuthenticationService {
 	return &PublicAuthenticationService{
-		transport:     s.transport.PublicAuthenticationServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.PublicAuthenticationServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *PublicAuthenticationService) ListAuthenticationMethods(ctx context.Context) (*auth.ListAuthenticationMethodsResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -42,18 +42,18 @@ func (x *PublicAuthenticationService) ListAuthenticationMethods(ctx context.Cont
 }
 
 type AuthenticationService struct {
-	transport     auth.AuthenticationServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.AuthenticationServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) AuthenticationService() *AuthenticationService {
 	return &AuthenticationService{
-		transport:     s.transport.AuthenticationServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthenticationServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*auth.Authentication, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*aut
 }
 
 func (x *AuthenticationService) GetAuthentication(ctx context.Context, v *auth.GetAuthenticationRequest) (*auth.Authentication, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (x *AuthenticationService) GetAuthentication(ctx context.Context, v *auth.G
 }
 
 func (x *AuthenticationService) ListAuthentications(ctx context.Context, v *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (x *AuthenticationService) ListAuthentications(ctx context.Context, v *auth
 }
 
 func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, v *auth.DeleteAuthenticationRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, v *aut
 }
 
 func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v *auth.ExpireAuthenticationSelfRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -95,18 +95,18 @@ func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v 
 }
 
 type AuthenticationMethodTokenService struct {
-	transport     auth.AuthenticationMethodTokenServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.AuthenticationMethodTokenServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) AuthenticationMethodTokenService() *AuthenticationMethodTokenService {
 	return &AuthenticationMethodTokenService{
-		transport:     s.transport.AuthenticationMethodTokenServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthenticationMethodTokenServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -114,18 +114,18 @@ func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *a
 }
 
 type AuthenticationMethodOIDCService struct {
-	transport     auth.AuthenticationMethodOIDCServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.AuthenticationMethodOIDCServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) AuthenticationMethodOIDCService() *AuthenticationMethodOIDCService {
 	return &AuthenticationMethodOIDCService{
-		transport:     s.transport.AuthenticationMethodOIDCServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthenticationMethodOIDCServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *AuthenticationMethodOIDCService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (x *AuthenticationMethodOIDCService) AuthorizeURL(ctx context.Context, v *a
 }
 
 func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -141,18 +141,18 @@ func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.
 }
 
 type AuthenticationMethodKubernetesService struct {
-	transport     auth.AuthenticationMethodKubernetesServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.AuthenticationMethodKubernetesServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) AuthenticationMethodKubernetesService() *AuthenticationMethodKubernetesService {
 	return &AuthenticationMethodKubernetesService{
-		transport:     s.transport.AuthenticationMethodKubernetesServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthenticationMethodKubernetesServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, v *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -160,18 +160,18 @@ func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context
 }
 
 type AuthenticationMethodGithubService struct {
-	transport     auth.AuthenticationMethodGithubServiceClient
-	tokenProvider ClientTokenProvider
+	transport              auth.AuthenticationMethodGithubServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (s Auth) AuthenticationMethodGithubService() *AuthenticationMethodGithubService {
 	return &AuthenticationMethodGithubService{
-		transport:     s.transport.AuthenticationMethodGithubServiceClient(),
-		tokenProvider: s.tokenProvider,
+		transport:              s.transport.AuthenticationMethodGithubServiceClient(),
+		authenticationProvider: s.authenticationProvider,
 	}
 }
 func (x *AuthenticationMethodGithubService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (x *AuthenticationMethodGithubService) AuthorizeURL(ctx context.Context, v 
 }
 
 func (x *AuthenticationMethodGithubService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}

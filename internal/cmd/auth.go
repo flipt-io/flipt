@@ -2,12 +2,16 @@ package cmd
 
 import (
 	"context"
+	"crypto"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -141,11 +145,61 @@ func authenticationGRPC(
 
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
-		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
+		if authCfg.Methods.JWT.Enabled {
+			authJWT := authCfg.Methods.JWT
+
+			var ks jwt.KeySet
+
+			if authJWT.Method.JWKSURL != "" {
+				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+				}
+			} else if authJWT.Method.PublicKeyFile != "" {
+				keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
+				}
+
+				publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+				}
+
+				ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+				}
+			}
+
+			validator, err := jwt.NewValidator(ks)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+			}
+
+			// intentionally restricted to a set of common asymmetric algorithms
+			// if we want to support symmetric algorithms, we need to add support for
+			// private keys in the configuration
+			exp := jwt.Expected{
+				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512, jwt.EdDSA},
+			}
+
+			if authJWT.Method.ValidateClaims.Issuer != "" {
+				exp.Issuer = authJWT.Method.ValidateClaims.Issuer
+			}
+
+			if len(authJWT.Method.ValidateClaims.Audiences) != 0 {
+				exp.Audiences = authJWT.Method.ValidateClaims.Audiences
+			}
+
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+		}
+
+		interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
 			logger,
 			store,
 			authOpts...,
-		))
+		), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 
 		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
 			rgxs := make([]*regexp.Regexp, 0, len(authCfg.Methods.OIDC.Method.EmailMatches))
@@ -159,12 +213,16 @@ func authenticationGRPC(
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...))
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
 
 		if authCfg.Methods.Token.Enabled {
-			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...))
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
+
+		// at this point, we have already registered all authentication methods that are enabled
+		// so atleast one authentication method should pass if authentication is required
+		interceptors = append(interceptors, authmiddlewaregrpc.AuthenticationRequiredInterceptor(logger, authOpts...))
 
 		logger.Info("authentication middleware enabled")
 	}

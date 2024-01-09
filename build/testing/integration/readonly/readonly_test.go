@@ -45,7 +45,7 @@ func TestReadOnly(t *testing.T) {
 				Limit:     10,
 				PageToken: "Hello World",
 			})
-			if authConfig == integration.AuthNamespaced {
+			if authConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 			} else {
 				require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
@@ -55,7 +55,7 @@ func TestReadOnly(t *testing.T) {
 			// so we're just interested in the shape of the response as
 			// opposed to the specific contents of namespaces
 			ns, err := sdk.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
-			if authConfig == integration.AuthNamespaced {
+			if authConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 				// stop the test here as we shouldn't be able to
 				// list namespaces due to authentication
@@ -661,7 +661,7 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if authConfig == integration.AuthNoNamespace {
+				if authConfig == integration.StaticTokenAuth || authConfig == integration.JWTAuth {
 					assert.NoError(t, err)
 				} else {
 					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")

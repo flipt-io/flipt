@@ -143,8 +143,7 @@
                   "required": []
                 },
                 "email_matches": {
-                  "type": ["array", "null"],
-                  "additionalProperties": false
+                  "type": ["array", "null"]
                 }
               },
               "required": [],
@@ -199,11 +198,41 @@
                   "items": { "type": "string" }
                 },
                 "allowed_organizations": {
-                  "type": ["array", "null"],
-                  "additionalProperties": false
+                  "type": ["array", "null"]
                 }
               },
+              "required": [],
               "title": "Github",
+              "additionalProperties": false
+            },
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "validate_claims": {
+                  "type": "object",
+                  "properties": {
+                    "audiences": {
+                      "type": ["array", "null"],
+                      "items": { "type": "string" }
+                    },
+                    "issuer": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "jwks_url": {
+                  "type": "string"
+                },
+                "public_key_file": {
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "JWT",
               "additionalProperties": false
             }
           },
@@ -651,7 +680,7 @@
             "azblob": {
               "type": "object",
               "additionalProperties": false,
-              "properties":{
+              "properties": {
                 "container": {
                   "type": "string"
                 },

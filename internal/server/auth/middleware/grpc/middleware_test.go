@@ -2,10 +2,17 @@ package grpc_middleware
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
 
+	jjwt "github.com/go-jose/go-jose/v3/jwt"
+	"github.com/hashicorp/cap/jwt"
+	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage/auth"
@@ -32,12 +39,203 @@ func (s *mockServer) AllowsNamespaceScopedAuthentication(ctx context.Context) bo
 	return s.allowNamespacedAuth
 }
 
-func TestUnaryInterceptor(t *testing.T) {
+var priv *rsa.PrivateKey
+
+func init() {
+	// Generate a key to sign JWTs with throughout most test cases.
+	// It can be slow sometimes to generate a 4096-bit RSA key, so we only do it once.
+	var err error
+	priv, err = rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func TestJWTAuthenticationInterceptor(t *testing.T) {
+	var (
+		now        = time.Now()
+		nowUnix    = float64(now.Unix())
+		futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+		pub        = []crypto.PublicKey{priv.Public()}
+	)
+
+	for _, tt := range []struct {
+		name         string
+		metadataFunc func() metadata.MD
+		server       any
+		expectedJWT  jwt.Expected
+		expectedErr  error
+	}{
+		{
+			name: "successful authentication",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "https://flipt.io/",
+					"aud": "flipt",
+					"iat": nowUnix,
+					"exp": futureUnix,
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:    "https://flipt.io/",
+				Audiences: []string{"flipt"},
+			},
+		},
+		{
+			name: "invalid issuer",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "https://foo.com/",
+					"iat": nowUnix,
+					"exp": futureUnix,
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer: "https://flipt.io/",
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "invalid audience",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "https://flipt.io/",
+					"iat": nowUnix,
+					"exp": futureUnix,
+					"aud": "bar",
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:    "https://flipt.io/",
+				Audiences: []string{"flipt"},
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "successful authentication (skipped)",
+			server: &mockServer{
+				skipsAuth: true,
+			},
+		},
+		{
+			name: "client token missing JWT prefix",
+			metadataFunc: func() metadata.MD {
+				return metadata.MD{
+					"Authorization": []string{"blah"},
+				}
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "authorization header not set",
+			metadataFunc: func() metadata.MD {
+				return metadata.MD{}
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name:        "no metadata on context",
+			expectedErr: ErrUnauthenticated,
+		},
+	} {
+		tt := tt
+
+		t.Run(fmt.Sprintf("%s/static", tt.name), func(t *testing.T) {
+			ks, err := jwt.NewStaticKeySet(pub)
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			var (
+				logger = zaptest.NewLogger(t)
+
+				ctx     = context.Background()
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				}
+				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
+			)
+
+			if tt.metadataFunc != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadataFunc())
+			}
+
+			if tt.server != nil {
+				srv.Server = tt.server
+			}
+
+			_, err = JWTAuthenticationInterceptor(logger, *validator, tt.expectedJWT)(
+				ctx,
+				nil,
+				srv,
+				handler,
+			)
+			assert.Equal(t, tt.expectedErr, err)
+		})
+
+		t.Run(fmt.Sprintf("%s/remote", tt.name), func(t *testing.T) {
+			tp := oidc.StartTestProvider(t, oidc.WithNoTLS())
+			tp.SetSigningKeys(priv, priv.Public(), oidc.RS256, "test")
+
+			ks, err := jwt.NewJSONWebKeySet(context.Background(), tp.Addr()+"/.well-known/jwks.json", "")
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			var (
+				logger = zaptest.NewLogger(t)
+
+				ctx     = context.Background()
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				}
+				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
+			)
+
+			if tt.metadataFunc != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadataFunc())
+			}
+
+			if tt.server != nil {
+				srv.Server = tt.server
+			}
+
+			_, err = JWTAuthenticationInterceptor(logger, *validator, tt.expectedJWT)(
+				ctx,
+				nil,
+				srv,
+				handler,
+			)
+			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
+}
+
+func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
+
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
 		&auth.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
 	)
+
 	require.NoError(t, err)
 
 	// expired auth
@@ -48,9 +246,10 @@ func TestUnaryInterceptor(t *testing.T) {
 			ExpiresAt: timestamppb.New(time.Now().UTC().Add(-time.Hour)),
 		},
 	)
+
 	require.NoError(t, err)
 
-	for _, test := range []struct {
+	for _, tt := range []struct {
 		name         string
 		metadata     metadata.MD
 		server       any
@@ -124,8 +323,8 @@ func TestUnaryInterceptor(t *testing.T) {
 			expectedErr: ErrUnauthenticated,
 		},
 	} {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
@@ -136,20 +335,25 @@ func TestUnaryInterceptor(t *testing.T) {
 					retrievedCtx = ctx
 					return nil, nil
 				}
+				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
 			)
 
-			if test.metadata != nil {
-				ctx = metadata.NewIncomingContext(ctx, test.metadata)
+			if tt.metadata != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadata)
 			}
 
-			_, err := UnaryInterceptor(logger, authenticator)(
+			if tt.server != nil {
+				srv.Server = tt.server
+			}
+
+			_, err := ClientTokenAuthenticationInterceptor(logger, authenticator)(
 				ctx,
 				nil,
-				&grpc.UnaryServerInfo{Server: test.server},
+				srv,
 				handler,
 			)
-			require.Equal(t, test.expectedErr, err)
-			assert.Equal(t, test.expectedAuth, GetAuthenticationFrom(retrievedCtx))
+			assert.Equal(t, tt.expectedErr, err)
+			assert.Equal(t, tt.expectedAuth, GetAuthenticationFrom(retrievedCtx))
 		})
 	}
 }
@@ -205,10 +409,9 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	for _, test := range []struct {
+	for _, tt := range []struct {
 		name         string
 		metadata     metadata.MD
-		server       any
 		auth         *authrpc.Authentication
 		emailMatches []string
 		expectedErr  error
@@ -277,24 +480,25 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 			expectedErr: ErrUnauthenticated,
 		},
 	} {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
 
-				ctx     = ContextWithAuthentication(context.Background(), test.auth)
+				ctx     = ContextWithAuthentication(context.Background(), tt.auth)
 				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
 					return nil, nil
 				}
+				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
 			)
 
-			if test.metadata != nil {
-				ctx = metadata.NewIncomingContext(ctx, test.metadata)
+			if tt.metadata != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadata)
 			}
 
-			rgxs := make([]*regexp.Regexp, 0, len(test.emailMatches))
+			rgxs := make([]*regexp.Regexp, 0, len(tt.emailMatches))
 
-			for _, em := range test.emailMatches {
+			for _, em := range tt.emailMatches {
 				rgx, err := regexp.Compile(em)
 				require.NoError(t, err)
 
@@ -304,10 +508,10 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 			_, err := EmailMatchingInterceptor(logger, rgxs)(
 				ctx,
 				nil,
-				&grpc.UnaryServerInfo{Server: test.server},
+				srv,
 				handler,
 			)
-			require.Equal(t, test.expectedErr, err)
+			assert.Equal(t, tt.expectedErr, err)
 		})
 	}
 }
@@ -524,7 +728,6 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 		},
 	} {
 		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger        = zaptest.NewLogger(t)
@@ -548,8 +751,6 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{
 					allowNamespacedAuth: true,
 				}}
-
-				unaryInterceptor = NamespaceMatchingInterceptor(logger)
 			)
 
 			if tt.srv != nil {
@@ -560,8 +761,8 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				"Authorization": []string{"Bearer " + clientToken},
 			})
 
-			_, err = unaryInterceptor(ctx, tt.req, srv, handler)
-			require.Equal(t, tt.expectedErr, err)
+			_, err = NamespaceMatchingInterceptor(logger)(ctx, tt.req, srv, handler)
+			assert.Equal(t, tt.expectedErr, err)
 		})
 	}
 }

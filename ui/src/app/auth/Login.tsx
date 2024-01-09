@@ -159,7 +159,7 @@ function InnerLoginButtons() {
             </div>
             <div className="mt-3 text-sm leading-6">
               <a
-                href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
+                href="https://www.flipt.io/docs/configuration/authentication"
                 className="text-violet-600 font-semibold hover:text-violet-500"
               >
                 Configuring Authentication
