@@ -68,14 +68,10 @@ func (c *SnapshotCache[K]) AddFixed(ctx context.Context, ref string, k K, s *Sna
 // AddOrBuild adds the reference, key and value tuple.
 // If the reference r is already tracked in the fixed set, then it is updated there.
 // Otherwise, the entry is added to the LRU cache.
-func (c *SnapshotCache[K]) AddOrBuild(ctx context.Context, ref string, k K, build CacheBuildFunc[K]) (*Snapshot, error) {
-	s, ok, err := c.getByRefAndKey(ref, k)
-	if err != nil {
-		return s, err
-	}
-
-	// fast path: ref and key already exist and point to a valid snapshot
+func (c *SnapshotCache[K]) AddOrBuild(ctx context.Context, ref string, k K, build CacheBuildFunc[K]) (s *Snapshot, err error) {
+	s, ok := c.getByRefAndKey(ref, k)
 	if ok {
+		// fast path: ref and key already exist and point to a valid snapshot
 		return s, nil
 	}
 
@@ -138,7 +134,7 @@ func (c *SnapshotCache[K]) Get(ref string) (s *Snapshot, ok bool) {
 	return
 }
 
-func (c *SnapshotCache[K]) getByRefAndKey(ref string, k K) (s *Snapshot, ok bool, err error) {
+func (c *SnapshotCache[K]) getByRefAndKey(ref string, k K) (s *Snapshot, ok bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
