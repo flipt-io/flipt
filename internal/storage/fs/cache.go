@@ -2,23 +2,32 @@ package fs
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru/v2"
+	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 )
 
 // CacheBuildFunc is a function that can build a snapshot for a given content key (K).
 type CacheBuildFunc[K comparable] func(context.Context, K) (*Snapshot, error)
 
-// SnapshotCache contains a fixed set of non-evictable entries along
-// with additional capacity stored in an LRU.
-// The SnapshotCache is keyed by reference with an indirect index
-// (type K for key) through into a target set of stored snapshots.
+// SnapshotCache contains a fixed set of non-evictable reference entries along
+// with additional capacity for references stored in an LRU.
+// The SnapshotCache is keyed by reference (R') with an indirect index (K')
+// through into a target set of stored snapshots (S').
+//
+// R1 ---> K1 ---> S1
+// R2 -----^
+// R3 ---> K2 ---> S2
+//
 // The type K is generic to support the different kinds of content
 // address types we expect to support (commit SHA and OCI digest).
 type SnapshotCache[K comparable] struct {
 	mu sync.RWMutex
+
+	logger *zap.Logger
 
 	fixed map[string]K
 	extra *lru.Cache[string, K]
@@ -29,10 +38,11 @@ type SnapshotCache[K comparable] struct {
 // NewSnapshotCache constructs and configures a snapshot cache with the provided size
 // for extra cache entries. These are opposed to the fixed entries which are added via
 // AddFixed and do not count towards this extra total.
-func NewSnapshotCache[K comparable](extra int) (_ *SnapshotCache[K], err error) {
+func NewSnapshotCache[K comparable](logger *zap.Logger, extra int) (_ *SnapshotCache[K], err error) {
 	c := &SnapshotCache[K]{
-		fixed: map[string]K{},
-		store: map[K]*Snapshot{},
+		logger: logger,
+		fixed:  map[string]K{},
+		store:  map[K]*Snapshot{},
 	}
 
 	c.extra, err = lru.NewWithEvict[string, K](extra, c.evict)
@@ -173,7 +183,9 @@ func (c *SnapshotCache[K]) References() []string {
 // the LRU implementation we use inlines calls to evict during calls
 // to cache.Add and we also manually call evict when redirect a reference
 // both of which occur during the write lock held by AddOrBuild
-func (c *SnapshotCache[K]) evict(_ string, k K) {
+func (c *SnapshotCache[K]) evict(ref string, k K) {
+	logger := c.logger.With(zap.String("reference", ref))
+	logger.Debug("reference evicted")
 	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
 		if key == k {
 			return
@@ -181,4 +193,6 @@ func (c *SnapshotCache[K]) evict(_ string, k K) {
 	}
 
 	delete(c.store, k)
+
+	logger.Debug("snapshot evicted", zap.String("key", fmt.Sprintf("%v", k)))
 }

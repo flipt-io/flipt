@@ -97,7 +97,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	store.logger = store.logger.With(zap.String("ref", store.baseRef))
 
-	store.snaps, err = storagefs.NewSnapshotCache[plumbing.Hash](3)
+	store.snaps, err = storagefs.NewSnapshotCache[plumbing.Hash](logger, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	store.Poller = storagefs.NewPoller(store.logger, ctx, store.update, store.pollOpts...)
 
-	go store.Poller.Poll()
+	go store.Poll()
 
 	return store, nil
 }
