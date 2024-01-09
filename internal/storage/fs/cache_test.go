@@ -226,7 +226,6 @@ type snapshotBuiler struct {
 	mu     sync.Mutex
 	snaps  map[string]*Snapshot
 	builds map[string]int
-	snap   *Snapshot
 }
 
 func newSnapshotBuilder(snaps map[string]*Snapshot) *snapshotBuiler {
