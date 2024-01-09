@@ -31,14 +31,23 @@ The following is an example of creating an instance of the SDK using the HTTP tr
 
 # Authenticating the SDK
 
-The remote procedure calls mades by this SDK are authenticated via a [ClientTokenProvider] implementation.
-This can be supplied to [New] via the [WithClientTokenProvider] option.
+The remote procedure calls mades by this SDK are authenticated via a [ClientAuthenticationProvider] implementation.
+This can be supplied to [New] via the [WithAuthenticationProvider] option.
 
-Currently, there only exists a single implementation [StaticClientTokenProvider]:
+Currently, there are two implementations:
+
+- [StaticTokenAuthenticationProvider]:
 
 	func main() {
-		provider := sdk.StaticClientTokenProvider("some-flipt-token")
-		client := sdk.New(transport, sdk.WithClientTokenProvider(provider))
+		provider := sdk.StaticTokenAuthenticationProvider("some-flipt-token")
+		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
+	}
+
+- [JWTAuthenticationProvider]:
+
+	func main() {
+		provider := sdk.JWTAuthenticationProvider("some-flipt-jwt")
+		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
 # SDK Services
