@@ -1,61 +1,13 @@
 version: "1.2"
-namespace: service_b
+namespace: production
 flags:
-- key: flag_alternate_variant
+- key: flag_variant
   name: Alternate Flag Type Variant
   type: VARIANT_FLAG_TYPE
-  description: Some Description
+  description: Variant Flag Description
   enabled: false
-  variants:
-  - key: variant_001
-    name: VARIANT_001
-  - key: variant_002
-    name: VARIANT_002
-  rules:
-  - segment: segment_001
-    distributions:
-    - variant: variant_001
-      rollout: 50
-    - variant: variant_002
-      rollout: 50
-- key: flag_alternate_boolean
+- key: flag_boolean
   name: Alternate Flag Type Boolean
   type: BOOLEAN_FLAG_TYPE
   description: Boolean Flag Description
   enabled: true
-  rollouts:
-  - description: enabled for segment_001
-    segment:
-      key: segment_001
-      value: true
-  - description: disabled for segment_002
-    segment:
-      key: segment_002
-      value: false
-  - description: enabled for 25%
-    threshold:
-      percentage: 45
-      value: false
-segments:
-- key: segment_001
-  name: SEGMENT_001
-  description: Some Segment Description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: in_segment
-    operator: eq
-    value: segment_001
-  match_type: ALL_MATCH_TYPE
-- key: segment_002
-  name: SEGMENT_002
-  description: Some Segment Description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: in_segment
-    operator: eq
-    value: segment_002
-  - type: STRING_COMPARISON_TYPE
-    property: in_segment
-    operator: eq
-    value: segment_002
-  match_type: ALL_MATCH_TYPE
