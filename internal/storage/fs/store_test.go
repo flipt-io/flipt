@@ -231,7 +231,7 @@ func newSnapshotStoreMock() snapshotStoreMock {
 // View accepts a function which takes a *StoreSnapshot.
 // The SnapshotStore will supply a snapshot which is valid
 // for the lifetime of the provided function call.
-func (s snapshotStoreMock) View(_ storage.Reference, fn func(storage.ReadOnlyStore) error) error {
+func (s snapshotStoreMock) View(_ context.Context, _ storage.Reference, fn func(storage.ReadOnlyStore) error) error {
 	return fn(s.StoreMock)
 }
 

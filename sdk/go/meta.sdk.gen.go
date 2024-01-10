@@ -10,12 +10,12 @@ import (
 )
 
 type Meta struct {
-	transport     meta.MetadataServiceClient
-	tokenProvider ClientTokenProvider
+	transport              meta.MetadataServiceClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error)
 }
 
 func (x *Meta) GetInfo(ctx context.Context) (*httpbody.HttpBody, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}

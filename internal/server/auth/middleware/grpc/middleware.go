@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/containers"
 	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -24,14 +27,33 @@ const (
 	cookieHeaderKey         = "grpcgateway-cookie"
 )
 
+type authenticationScheme uint8
+
+const (
+	_ authenticationScheme = iota
+	authenticationSchemeBearer
+	authenticationSchemeJWT
+)
+
+func (a authenticationScheme) String() string {
+	switch a {
+	case authenticationSchemeBearer:
+		return "Bearer"
+	case authenticationSchemeJWT:
+		return "JWT"
+	default:
+		return ""
+	}
+}
+
 var ErrUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
 
 type authenticationContextKey struct{}
 
-// Authenticator is the minimum subset of an authentication provider
+// ClientTokenAuthenticator is the minimum subset of an authentication provider
 // required by the middleware to perform lookups for Authentication instances
 // using a obtained clientToken.
-type Authenticator interface {
+type ClientTokenAuthenticator interface {
 	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*authrpc.Authentication, error)
 }
 
@@ -51,7 +73,7 @@ func ContextWithAuthentication(ctx context.Context, a *authrpc.Authentication) c
 	return context.WithValue(ctx, authenticationContextKey{}, a)
 }
 
-// InterceptorOptions configure the UnaryInterceptor
+// InterceptorOptions configure the basic AuthUnaryInterceptors
 type InterceptorOptions struct {
 	skippedServers []any
 }
@@ -91,10 +113,114 @@ type SkipsAuthenticationServer interface {
 	SkipsAuthentication(ctx context.Context) bool
 }
 
-// UnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
+// AuthenticationRequiredInterceptor is a grpc.UnaryServerInterceptor which requires that
+// all requests contain an Authentication instance on the context.
+func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipped(ctx, info.Server, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
+		if auth == nil {
+			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
+			return ctx, ErrUnauthenticated
+		}
+
+		return handler(ctx, req)
+	}
+}
+
+// JWTInterceptorSelector is a grpc.UnaryServerInterceptor which selects requests
+// which contain a JWT in the authorization header.
+func JWTInterceptorSelector() selector.Matcher {
+	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return false
+		}
+
+		_, err := jwtFromMetadata(md)
+		return err == nil
+	})
+}
+
+func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipped(ctx, info.Server, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
+			return ctx, ErrUnauthenticated
+		}
+
+		token, err := jwtFromMetadata(md)
+		if err != nil {
+			logger.Error("unauthenticated",
+				zap.String("reason", "no authorization provided"),
+				zap.Error(err))
+
+			return ctx, ErrUnauthenticated
+		}
+
+		// TODO: map claims to auth metadata?
+		_, err = validator.Validate(ctx, token, expected)
+		if err != nil {
+			logger.Error("unauthenticated",
+				zap.String("reason", "error validating jwt"),
+				zap.Error(err))
+
+			if errors.Is(err, context.Canceled) {
+				err = status.Error(codes.Canceled, err.Error())
+				return ctx, err
+			}
+
+			if errors.Is(err, context.DeadlineExceeded) {
+				err = status.Error(codes.DeadlineExceeded, err.Error())
+				return ctx, err
+			}
+
+			return ctx, ErrUnauthenticated
+		}
+
+		auth := &authrpc.Authentication{
+			Method:   authrpc.Method_METHOD_JWT,
+			Metadata: map[string]string{},
+		}
+
+		return handler(ContextWithAuthentication(ctx, auth), req)
+	}
+}
+
+func ClientTokenInterceptorSelector() selector.Matcher {
+	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return false
+		}
+
+		_, err := clientTokenFromMetadata(md)
+		return err == nil
+	})
+}
+
+// ClientTokenAuthenticationInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
 // within the authorization field on the incoming requests metadata.
 // The fields value is expected to be in the form "Bearer <clientToken>".
-func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator ClientTokenAuthenticator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -283,7 +409,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 
 func clientTokenFromMetadata(md metadata.MD) (string, error) {
 	if authenticationHeader := md.Get(authenticationHeaderKey); len(authenticationHeader) > 0 {
-		return clientTokenFromAuthorization(authenticationHeader[0])
+		return fromAuthorization(authenticationHeader[0], authenticationSchemeBearer)
 	}
 
 	cookie, err := cookieFromMetadata(md, middlewarecommon.TokenCookieKey)
@@ -294,15 +420,6 @@ func clientTokenFromMetadata(md metadata.MD) (string, error) {
 	return cookie.Value, nil
 }
 
-func clientTokenFromAuthorization(auth string) (string, error) {
-	// ensure token was prefixed with "Bearer "
-	if clientToken := strings.TrimPrefix(auth, "Bearer "); auth != clientToken {
-		return clientToken, nil
-	}
-
-	return "", ErrUnauthenticated
-}
-
 func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
 	// sadly net/http does not expose cookie parsing
 	// outside of http.Request.
@@ -311,4 +428,21 @@ func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
 	return (&http.Request{
 		Header: http.Header{"Cookie": md.Get(cookieHeaderKey)},
 	}).Cookie(key)
+}
+
+func jwtFromMetadata(md metadata.MD) (string, error) {
+	if authenticationHeader := md.Get(authenticationHeaderKey); len(authenticationHeader) > 0 {
+		return fromAuthorization(authenticationHeader[0], authenticationSchemeJWT)
+	}
+
+	return "", ErrUnauthenticated
+}
+
+func fromAuthorization(auth string, scheme authenticationScheme) (string, error) {
+	// Ensure auth is prefixed with the scheme
+	if a := strings.TrimPrefix(auth, scheme.String()+" "); auth != a {
+		return a, nil
+	}
+
+	return "", ErrUnauthenticated
 }

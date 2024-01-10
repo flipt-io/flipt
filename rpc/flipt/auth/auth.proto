@@ -14,6 +14,7 @@ enum Method {
   METHOD_OIDC = 2;
   METHOD_KUBERNETES = 3;
   METHOD_GITHUB = 4;
+  METHOD_JWT = 5;
 }
 
 message MethodInfo {

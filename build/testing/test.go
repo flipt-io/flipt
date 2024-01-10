@@ -3,7 +3,6 @@ package testing
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"dagger.io/dagger"
@@ -78,8 +77,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
-		fmt.Println("GOFLAGS", goFlags)
-		flipt.WithEnvVariable("GOFLAGS", goFlags)
+		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
 	}
 
 	flipt, err = flipt.

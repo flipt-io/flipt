@@ -45,7 +45,7 @@ func TestReadOnly(t *testing.T) {
 				Limit:     10,
 				PageToken: "Hello World",
 			})
-			if authConfig == integration.AuthNamespaced {
+			if authConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 			} else {
 				require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
@@ -55,7 +55,7 @@ func TestReadOnly(t *testing.T) {
 			// so we're just interested in the shape of the response as
 			// opposed to the specific contents of namespaces
 			ns, err := sdk.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
-			if authConfig == integration.AuthNamespaced {
+			if authConfig == integration.StaticTokenAuthNamespaced {
 				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 				// stop the test here as we shouldn't be able to
 				// list namespaces due to authentication
@@ -661,7 +661,7 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if authConfig == integration.AuthNoNamespace {
+				if authConfig == integration.StaticTokenAuth || authConfig == integration.JWTAuth {
 					assert.NoError(t, err)
 				} else {
 					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
@@ -670,6 +670,56 @@ func TestReadOnly(t *testing.T) {
 			t.Run("Public", func(t *testing.T) {
 				_, err := sdk.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
 				require.NoError(t, err)
+			})
+		})
+
+		t.Run("Custom Reference", func(t *testing.T) {
+			if !opts.References {
+				t.Skip("backend does not support references")
+				return
+			}
+
+			reference := "alternate"
+			t.Run("ListFlags", func(t *testing.T) {
+				flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+					NamespaceKey: namespace,
+					Reference:    reference,
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, int32(2), flags.TotalCount)
+				assert.Len(t, flags.Flags, 2)
+			})
+
+			t.Run("GetFlag", func(t *testing.T) {
+				variant, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+					NamespaceKey: namespace,
+					Key:          "flag_variant",
+					Reference:    reference,
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, variant.NamespaceKey, namespace)
+				assert.Equal(t, variant.Key, "flag_variant")
+				assert.Equal(t, variant.Type, flipt.FlagType_VARIANT_FLAG_TYPE)
+				assert.Equal(t, variant.Name, "Alternate Flag Type Variant")
+				assert.Equal(t, variant.Description, "Variant Flag Description")
+				assert.False(t, variant.Enabled)
+
+				boolean, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+					NamespaceKey: namespace,
+					Key:          "flag_boolean",
+					Reference:    reference,
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, boolean.NamespaceKey, namespace)
+				assert.Equal(t, boolean.Key, "flag_boolean")
+				assert.Equal(t, boolean.Type, flipt.FlagType_BOOLEAN_FLAG_TYPE)
+				assert.Equal(t, boolean.Name, "Alternate Flag Type Boolean")
+				assert.Equal(t, boolean.Description, "Boolean Flag Description")
+				assert.True(t, boolean.Enabled)
 			})
 		})
 	})

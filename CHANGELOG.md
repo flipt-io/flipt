@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.35.0](https://github.com/flipt-io/flipt/releases/tag/v1.35.0) - 2024-01-09
+
+### Added
+
+- JWT auth (#2620)
+- `grpc`: grpc keepalive configuration (#2621)
+- `storage/gcs`: add support for Google Cloud Storage (#2589)
+- cache evaluation rollouts at storage layer (#2610)
+
+### Changed
+
+- `cleanup`: parallelize cleanup method tests (#2612)
+
+### Fixed
+
+- `ui`: searchbox has a black text color in dark mode so it's very hard (#2619)
+- config init does not work correctly (#2616)
+- close oidc providers per lib recommendation (#2598)
+
 ## [v1.34.0](https://github.com/flipt-io/flipt/releases/tag/v1.34.0) - 2023-12-28
 
 ### Added
