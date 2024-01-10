@@ -65,11 +65,12 @@ var (
 )
 
 type testConfig struct {
-	name      string
-	namespace string
-	address   string
-	auth      authConfig
-	port      int
+	name       string
+	namespace  string
+	address    string
+	auth       authConfig
+	port       int
+	references bool
 }
 
 type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
@@ -386,6 +387,9 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_PASSWORD", "password").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
+	// Git backend supports arbitrary references
+	conf.references = true
+
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
@@ -574,6 +578,10 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		flags := []string{"--flipt-addr", conf.address}
 		if conf.namespace != "" {
 			flags = append(flags, "--flipt-namespace", conf.namespace)
+		}
+
+		if conf.references {
+			flags = append(flags, "--flipt-supports-references")
 		}
 
 		if conf.auth.enabled() {

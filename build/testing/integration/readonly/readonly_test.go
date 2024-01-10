@@ -674,6 +674,11 @@ func TestReadOnly(t *testing.T) {
 		})
 
 		t.Run("Custom Reference", func(t *testing.T) {
+			if !opts.References {
+				t.Skip("backend does not support references")
+				return
+			}
+
 			reference := "alternate"
 			t.Run("ListFlags", func(t *testing.T) {
 				flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{

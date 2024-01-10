@@ -22,6 +22,7 @@ var (
 	fliptToken                 = flag.String("flipt-token", "", "Authentication token to be used during test suite")
 	fliptCreateNamespacedToken = flag.Bool("flipt-create-namespaced-token", false, "Create a namespaced token for the test suite")
 	fliptNamespace             = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
+	fliptReferences            = flag.Bool("flipt-supports-references", false, "Identifies the backend as supporting references")
 )
 
 type AuthConfig int
@@ -61,6 +62,7 @@ type TestOpts struct {
 	Protocol   string
 	Namespace  string
 	AuthConfig AuthConfig
+	References bool
 }
 
 func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
@@ -140,6 +142,7 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 			Addr:       *fliptAddr,
 			Namespace:  namespace,
 			AuthConfig: authConfig,
+			References: *fliptReferences,
 		})
 	})
 }
