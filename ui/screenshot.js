@@ -1,6 +1,6 @@
-const { chromium } = require('playwright');
-const { exec } = require('child_process');
-const fs = require('fs');
+import { exec } from 'child_process';
+import { existsSync } from 'fs';
+import { chromium } from 'playwright';
 
 const fliptAddr = process.env.FLIPT_ADDRESS ?? 'http://localhost:8080';
 
@@ -20,7 +20,7 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 const capture = async function (folder, name, fn, opts = {}) {
   try {
     const path = `${__dirname}/screenshot/${folder}/fixtures/${name}.yml`;
-    if (fs.existsSync(path)) {
+    if (existsSync(path)) {
       exec(
         `flipt import --address=${fliptAddr} ${path}`,
         (error, stdout, stderr) => {
@@ -60,4 +60,4 @@ const capture = async function (folder, name, fn, opts = {}) {
   await browser.close();
 };
 
-module.exports = { capture, sleep, screenshot, scrollToBottom };
+export default { capture, sleep, screenshot, scrollToBottom };

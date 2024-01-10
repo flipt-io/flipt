@@ -1,4 +1,4 @@
-const { capture, scrollToBottom } = require('../../screenshot.js');
+import { capture, scrollToBottom } from '../../screenshot.js';
 
 (async () => {
   await capture('concepts', 'rollouts', async (page) => {
