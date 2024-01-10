@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// REFERENCE_CACHE_EXTRA_CAPACITY is the additionaly capacity reserved in the cache
+// REFERENCE_CACHE_EXTRA_CAPACITY is the additionally capacity reserved in the cache
 // for non-default references
 const REFERENCE_CACHE_EXTRA_CAPACITY = 3
 
