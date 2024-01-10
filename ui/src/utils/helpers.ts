@@ -15,12 +15,12 @@ export function copyTextToClipboard(text: string) {
   }
 }
 
+export function upperFirst(word: string) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export function titleCase(str: string) {
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  return str.toLowerCase().split(' ').map(upperFirst).join(' ');
 }
 
 export function stringAsKey(str: string) {

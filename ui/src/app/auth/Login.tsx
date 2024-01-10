@@ -6,7 +6,6 @@ import {
   IconDefinition
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { toLower, upperFirst } from 'lodash';
 import { useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
@@ -17,6 +16,7 @@ import ErrorNotification from '~/components/notifications/ErrorNotification';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
+import { upperFirst } from '~/utils/helpers';
 
 interface ILoginProvider {
   displayName: string;
@@ -97,7 +97,7 @@ function InnerLoginButtons() {
         }
         if (m.method === 'METHOD_OIDC') {
           return Object.entries(m.metadata.providers).map(([k, value]) => {
-            k = toLower(k);
+            k = k.toLowerCase();
             const v = value as {
               authorize_url: string;
               callback_url: string;
