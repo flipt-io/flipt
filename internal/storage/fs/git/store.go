@@ -17,6 +17,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// REFERENCE_CACHE_EXTRA_CAPACITY is the additionaly capacity reserved in the cache
+// for non-default references
+const REFERENCE_CACHE_EXTRA_CAPACITY = 3
+
 // ensure that the git *Store implements storage.ReferencedSnapshotStore
 var _ storagefs.ReferencedSnapshotStore = (*SnapshotStore)(nil)
 
@@ -97,7 +101,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 	store.logger = store.logger.With(zap.String("ref", store.baseRef))
 
-	store.snaps, err = storagefs.NewSnapshotCache[plumbing.Hash](logger, 3)
+	store.snaps, err = storagefs.NewSnapshotCache[plumbing.Hash](logger, REFERENCE_CACHE_EXTRA_CAPACITY)
 	if err != nil {
 		return nil, err
 	}
