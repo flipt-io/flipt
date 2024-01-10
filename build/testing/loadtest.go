@@ -9,7 +9,7 @@ import (
 )
 
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
-	seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
+	seed := base.File("build/testing/integration/readonly/testdata/main/default.yaml")
 	importCmd := []string{"/flipt", "import", "import.yaml"}
 
 	flipt = flipt.

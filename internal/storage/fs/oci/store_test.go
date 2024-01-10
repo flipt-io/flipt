@@ -37,7 +37,7 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	ctx := context.Background()
 
-	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 		_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
 		require.NoError(t, err)
 
@@ -66,7 +66,7 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	t.Log("received new snapshot")
 
-	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		require.NoError(t, err)
 		return nil

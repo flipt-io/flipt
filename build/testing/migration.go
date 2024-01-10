@@ -42,12 +42,18 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		Tag(*release.TagName).
 		Tree()
 
+	// handle the case that we're migrating to a new path location (path now includes "/main/")
+	fi, err := base.File("build/testing/integration/readonly/testdata/main/default.yaml").Sync(ctx)
+	if err != nil {
+		fi = base.File("build/testing/integration/readonly/testdata/default.yaml")
+	}
+
 	base = base.
 		WithMountedDirectory(".", fliptDir)
 
 	// import testdata into latest Flipt instance (using latest image for import)
 	_, err = latest.
-		WithFile("import.yaml", base.File("build/testing/integration/readonly/testdata/default.yaml")).
+		WithFile("import.yaml", fi).
 		WithServiceBinding("flipt", latest.WithExec(nil).AsService()).
 		WithExec([]string{"sh", "-c", "sleep 5 && /flipt import --address grpc://flipt:9000 import.yaml"}).
 		Sync(ctx)

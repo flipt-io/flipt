@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -39,12 +40,12 @@ func Test_Store_Subscribe_Hash(t *testing.T) {
 	// this helper will fail if there is a problem with this option
 	// the only difference in behaviour is that the poll loop
 	// will silently (intentionally) not run
-	testStore(t, WithRef(head))
+	testStore(t, gitRepoURL, WithRef(head))
 }
 
 func Test_Store_Subscribe(t *testing.T) {
 	ch := make(chan struct{})
-	store, skip := testStore(t, WithPollOptions(
+	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
@@ -114,9 +115,104 @@ flags:
 
 	t.Log("received new snapshot")
 
-	require.NoError(t, store.View(func(s storage.ReadOnlyStore) error {
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 		return err
+	}))
+}
+
+func Test_Store_Subscribe_WithRevision(t *testing.T) {
+	ch := make(chan struct{})
+	store, skip := testStore(t, gitRepoURL, WithPollOptions(
+		fs.WithInterval(time.Second),
+		fs.WithNotify(t, func(modified bool) {
+			if modified {
+				close(ch)
+			}
+		}),
+	))
+	if skip {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	// pull repo
+	workdir := memfs.New()
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
+	require.NoError(t, err)
+
+	tree, err := repo.Worktree()
+	require.NoError(t, err)
+
+	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
+		Branch: "refs/heads/new-branch",
+		Create: true,
+	}))
+
+	// update features.yml
+	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	require.NoError(t, err)
+
+	updated := []byte(`namespace: production
+flags:
+  - key: foo
+    name: Foo
+  - key: bar
+    name: Bar`)
+
+	_, err = fi.Write(updated)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	// commit changes
+	_, err = tree.Commit("chore: update features.yml", &git.CommitOptions{
+		All:    true,
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
+	require.NoError(t, err)
+
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
+		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
+		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
+	}))
+
+	// wait until the snapshot is updated or
+	// we timeout
+	select {
+	case <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for snapshot")
+	}
+
+	require.NoError(t, err)
+
+	t.Log("received new snapshot")
+
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.Error(t, err, "flag should not be found in default revision")
+		return nil
+	}))
+
+	require.NoError(t, store.View(ctx, "main", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.Error(t, err, "flag should not be found in explicitly named main revision")
+		return nil
+	}))
+
+	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.NoError(t, err, "flag should be present on new-branch")
+		return nil
 	}))
 }
 
@@ -126,10 +222,9 @@ func Test_Store_SelfSignedSkipTLS(t *testing.T) {
 	// This is not a valid Git source, but it still proves the point that a
 	// well-known server with a self-signed certificate will be accepted by Flipt
 	// when configuring the TLS options for the source
-	gitRepoURL = ts.URL
-	err := testStoreWithError(t, WithInsecureTLS(false))
+	err := testStoreWithError(t, ts.URL, WithInsecureTLS(false))
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-	err = testStoreWithError(t, WithInsecureTLS(true))
+	err = testStoreWithError(t, ts.URL, WithInsecureTLS(true))
 	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
@@ -148,21 +243,22 @@ func Test_Store_SelfSignedCABytes(t *testing.T) {
 	// This is not a valid Git source, but it still proves the point that a
 	// well-known server with a self-signed certificate will be accepted by Flipt
 	// when configuring the TLS options for the source
-	gitRepoURL = ts.URL
-	err = testStoreWithError(t)
+	err = testStoreWithError(t, ts.URL)
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-	err = testStoreWithError(t, WithCABundle(buf.Bytes()))
+	err = testStoreWithError(t, ts.URL, WithCABundle(buf.Bytes()))
 	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
 
-func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
+func testStore(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
 	t.Helper()
 
 	if gitRepoURL == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_URL env var to run this test.")
 		return nil, true
 	}
+
+	t.Log("Git repo host:", gitRepoURL)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -186,7 +282,7 @@ func testStore(t *testing.T, opts ...containers.Option[SnapshotStore]) (*Snapsho
 	return source, false
 }
 
-func testStoreWithError(t *testing.T, opts ...containers.Option[SnapshotStore]) error {
+func testStoreWithError(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) error {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())

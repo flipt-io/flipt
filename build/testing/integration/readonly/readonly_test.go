@@ -672,5 +672,55 @@ func TestReadOnly(t *testing.T) {
 				require.NoError(t, err)
 			})
 		})
+
+		t.Run("Custom Reference", func(t *testing.T) {
+			if !opts.References {
+				t.Skip("backend does not support references")
+				return
+			}
+
+			reference := "alternate"
+			t.Run("ListFlags", func(t *testing.T) {
+				flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+					NamespaceKey: namespace,
+					Reference:    reference,
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, int32(2), flags.TotalCount)
+				assert.Len(t, flags.Flags, 2)
+			})
+
+			t.Run("GetFlag", func(t *testing.T) {
+				variant, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+					NamespaceKey: namespace,
+					Key:          "flag_variant",
+					Reference:    reference,
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, variant.NamespaceKey, namespace)
+				assert.Equal(t, variant.Key, "flag_variant")
+				assert.Equal(t, variant.Type, flipt.FlagType_VARIANT_FLAG_TYPE)
+				assert.Equal(t, variant.Name, "Alternate Flag Type Variant")
+				assert.Equal(t, variant.Description, "Variant Flag Description")
+				assert.False(t, variant.Enabled)
+
+				boolean, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+					NamespaceKey: namespace,
+					Key:          "flag_boolean",
+					Reference:    reference,
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, boolean.NamespaceKey, namespace)
+				assert.Equal(t, boolean.Key, "flag_boolean")
+				assert.Equal(t, boolean.Type, flipt.FlagType_BOOLEAN_FLAG_TYPE)
+				assert.Equal(t, boolean.Name, "Alternate Flag Type Boolean")
+				assert.Equal(t, boolean.Description, "Boolean Flag Description")
+				assert.True(t, boolean.Enabled)
+			})
+		})
 	})
 }

@@ -37,6 +37,7 @@ require (
 	github.com/h2non/gock v1.2.0
 	github.com/hashicorp/cap v0.4.1
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/lib/pq v1.10.9
 	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b
 	github.com/magefile/mage v1.15.0

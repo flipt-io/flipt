@@ -1,0 +1,13 @@
+version: "1.2"
+namespace: production
+flags:
+- key: flag_variant
+  name: Alternate Flag Type Variant
+  type: VARIANT_FLAG_TYPE
+  description: Variant Flag Description
+  enabled: false
+- key: flag_boolean
+  name: Alternate Flag Type Boolean
+  type: BOOLEAN_FLAG_TYPE
+  description: Boolean Flag Description
+  enabled: true
