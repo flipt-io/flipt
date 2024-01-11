@@ -24,6 +24,30 @@ export const jsonValidation = Yup.string()
     }
   });
 
+// contextValidation is similar to json validation but it only allows object with strings
+export const contextValidation = Yup.string()
+  .nullable()
+  .optional()
+  .test('is-context', 'Must be valid context value', (value: any) => {
+    if (value === undefined || value === null || value === '') {
+      return true;
+    }
+    try {
+      const data = JSON.parse(value);
+      if (Array.isArray(data) || typeof data !== 'object') {
+        return false;
+      }
+      for (const value of Object.values(data)) {
+        if (typeof value !== 'string') {
+          return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
 const MAX_JSON_ARRAY_ITEMS = 100;
 
 const checkJsonArray =
