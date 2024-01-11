@@ -13,6 +13,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lint": "^6.4.2",
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/sortable": "^7.0.2",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
@@ -23,12 +25,12 @@
     "@loadable/component": "^5.16.3",
     "@reduxjs/toolkit": "^2.0.1",
     "@tanstack/react-table": "^8.11.2",
+    "@uiw/codemirror-theme-tokyo-night": "^4.21.21",
+    "@uiw/react-codemirror": "^4.21.21",
     "buffer": "^6.0.3",
     "clsx": "^2.1.0",
     "date-fns": "^3.2.0",
     "formik": "^2.4.5",
-    "monaco-editor": "^0.45.0",
-    "monaco-themes": "^0.4.4",
     "nightwind": "^1.1.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
