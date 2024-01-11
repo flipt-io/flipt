@@ -25,7 +25,7 @@
     "@types/react-redux": "^7.1.31",
     "buffer": "^6.0.3",
     "clsx": "^2.1.0",
-    "date-fns": "^2.30.0",
+    "date-fns": "^3.2.0",
     "dotenv": "^16.3.1",
     "formik": "^2.4.5",
     "highlight.js": "^11.9.0",
