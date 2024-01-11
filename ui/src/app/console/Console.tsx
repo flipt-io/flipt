@@ -297,7 +297,7 @@ export default function Console() {
             </div>
             <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
-                <pre className="monaco-editor bg-[#] p-2 text-sm md:h-full">
+                <pre className="monaco-editor p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
                     <p className="text-red-400">{response}</p>
                   ) : (
