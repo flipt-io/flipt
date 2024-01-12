@@ -39,6 +39,11 @@ export default function Combobox<T extends IFilterable>(
     v.filterValue.toLowerCase().includes(query.toLowerCase())
   );
 
+  console.log(query);
+  console.log('values filtered', filteredValues);
+  console.log(selected);
+  console.log(setSelected, 'set selected fired');
+
   return (
     <C
       as="div"
@@ -52,12 +57,12 @@ export default function Combobox<T extends IFilterable>(
       nullable
     >
       <div
-        onFocus={() => setOpenOptions(true)}
-        onBlur={() => setOpenOptions(false)}
+        onFocus={() => setTimeout(() => setOpenOptions(true), 100)}
+        onBlur={() => setTimeout(() => setOpenOptions(false), 100)}
       >
         <div className="relative flex w-full flex-row">
           <C.Input
-            // id={id} <-- Id causing unneeded popover suggestion
+            //id={id}
             className={cls(
               'text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm',
               inputClassName
