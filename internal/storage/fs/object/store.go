@@ -167,24 +167,23 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 
 func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, error) {
 	rd, err := s.bucket.NewReader(ctx, s.prefix+storagefs.IndexFileName, &gcblob.ReaderOptions{})
-	if err == nil {
-		idx, err := storagefs.ParseFliptIndex(rd)
-		if err != nil {
-			return nil, err
-		}
-
-		return idx, nil
-	}
 
 	if err != nil {
 		if gcerrors.Code(err) != gcerrors.NotFound {
 			return nil, err
 		}
-
 		s.logger.Debug("using default index",
 			zap.String("file", storagefs.IndexFileName),
 			zap.Error(fs.ErrNotExist))
+		return storagefs.DefaultFliptIndex()
 	}
 
-	return storagefs.DefaultFliptIndex()
+	defer rd.Close()
+	idx, err := storagefs.ParseFliptIndex(rd)
+	if err != nil {
+		return nil, err
+	}
+
+	return idx, nil
+
 }
