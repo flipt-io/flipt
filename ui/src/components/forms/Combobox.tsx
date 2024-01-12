@@ -39,11 +39,6 @@ export default function Combobox<T extends IFilterable>(
     v.filterValue.toLowerCase().includes(query.toLowerCase())
   );
 
-  console.log(query);
-  console.log('values filtered', filteredValues);
-  console.log(selected);
-  console.log(setSelected, 'set selected fired');
-
   return (
     <C
       as="div"
