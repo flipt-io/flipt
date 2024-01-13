@@ -45,6 +45,17 @@ export const distTypes = [
   }
 ];
 
+const ruleValidationSchema = Yup.object({
+  segmentKeys: Yup.array()
+    .of(
+      Yup.object().shape({
+        key: keyValidation
+      })
+    )
+    .required()
+    .min(1)
+});
+
 const computePercentages = (n: number): number[] => {
   const sum = 100 * 100;
 
@@ -155,16 +166,7 @@ export default function RuleForm(props: RuleFormProps) {
         segmentKeys: initialSegmentKeys,
         operator: SegmentOperatorType.OR
       }}
-      validationSchema={Yup.object({
-        segmentKeys: Yup.array()
-          .of(
-            Yup.object().shape({
-              key: keyValidation
-            })
-          )
-          .required()
-          .min(1)
-      })}
+      validationSchema={ruleValidationSchema}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {

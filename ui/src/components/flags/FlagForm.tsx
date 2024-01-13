@@ -35,6 +35,11 @@ const flagTypes = [
   }
 ];
 
+const flagValidationSchema = Yup.object({
+  key: keyValidation,
+  name: requiredValidation
+});
+
 export default function FlagForm(props: { flag?: IFlag }) {
   const { flag } = props;
 
@@ -99,10 +104,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        key: keyValidation,
-        name: requiredValidation
-      })}
+      validationSchema={flagValidationSchema}
     >
       {(formik) => {
         const { enabled } = formik.values;
