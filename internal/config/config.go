@@ -12,7 +12,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-	"github.com/uber/jaeger-client-go"
 	"golang.org/x/exp/constraints"
 )
 
@@ -508,8 +507,8 @@ func Default() *Config {
 			Enabled:  false,
 			Exporter: TracingJaeger,
 			Jaeger: JaegerTracingConfig{
-				Host: jaeger.DefaultUDPSpanServerHost,
-				Port: jaeger.DefaultUDPSpanServerPort,
+				Host: "localhost",
+				Port: 6831,
 			},
 			Zipkin: ZipkinTracingConfig{
 				Endpoint: "http://localhost:9411/api/v2/spans",
