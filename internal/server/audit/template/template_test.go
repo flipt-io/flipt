@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
-	"gotest.tools/assert"
 )
 
 type dummyExecuter struct{}
@@ -22,7 +21,7 @@ func TestSink(t *testing.T) {
 		executers: []Executer{&dummyExecuter{}},
 	}
 
-	assert.Equal(t, "templates", s.String())
+	require.Equal(t, "templates", s.String())
 
 	err := s.SendAudits(context.TODO(), []audit.Event{
 		{
