@@ -39,7 +39,7 @@
     "react-router-dom": "^6.21.1",
     "tailwind-merge": "^2.2.0",
     "uuid": "^9.0.1",
-    "yup": "^0.32.11"
+    "yup": "^1.3.3"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.23.3",

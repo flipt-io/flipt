@@ -20,7 +20,7 @@ import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
-  jsonValidation,
+  contextValidation,
   keyValidation,
   requiredValidation
 } from '~/data/validations';
@@ -42,6 +42,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
 
   return null;
 }
+
+const consoleValidationSchema = Yup.object({
+  flagKey: keyValidation,
+  entityId: requiredValidation,
+  context: contextValidation
+});
 
 interface ConsoleFormValues {
   flagKey: string;
@@ -186,11 +192,7 @@ export default function Console() {
             <div className="mt-8 w-full overflow-hidden md:w-1/2">
               <Formik
                 initialValues={initialvalues}
-                validationSchema={Yup.object({
-                  flagKey: keyValidation,
-                  entityId: requiredValidation,
-                  context: jsonValidation
-                })}
+                validationSchema={consoleValidationSchema}
                 onSubmit={(values) => {
                   handleSubmit(selectedFlag, values);
                 }}
