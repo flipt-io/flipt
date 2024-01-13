@@ -73,7 +73,7 @@ export default function Preferences() {
                   Display dates and times in UTC timezone
                 </p>
                 <p className="text-gray-400 mt-2 text-sm">
-                  {inTimezone(new Date().toUTCString())}
+                  {inTimezone(new Date().toISOString())}
                 </p>
               </Switch.Label>
               <dd className="text-gray-900 mt-1 flex text-sm sm:col-span-2 sm:mt-0">
