@@ -17,6 +17,11 @@ import { keyValidation, requiredValidation } from '~/data/validations';
 import { INamespace, INamespaceBase } from '~/types/Namespace';
 import { stringAsKey } from '~/utils/helpers';
 
+const namespaceValidationSchema = Yup.object({
+  key: keyValidation,
+  name: requiredValidation
+});
+
 type NamespaceFormProps = {
   setOpen: (open: boolean) => void;
   namespace?: INamespace;
@@ -66,10 +71,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        key: keyValidation,
-        name: requiredValidation
-      })}
+      validationSchema={namespaceValidationSchema}
     >
       {(formik) => (
         <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
