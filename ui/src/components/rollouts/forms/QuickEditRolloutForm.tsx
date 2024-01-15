@@ -92,8 +92,8 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
         ? 'true'
         : 'false'
       : rollout.segment?.value
-      ? 'true'
-      : 'false';
+        ? 'true'
+        : 'false';
 
   return (
     <Formik
