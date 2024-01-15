@@ -61,8 +61,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     rule.rollouts.length === 0
       ? DistributionType.None
       : rule.rollouts.length === 1
-      ? DistributionType.Single
-      : DistributionType.Multi;
+        ? DistributionType.Single
+        : DistributionType.Multi;
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {

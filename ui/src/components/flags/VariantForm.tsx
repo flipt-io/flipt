@@ -19,6 +19,11 @@ import { useSuccess } from '~/data/hooks/success';
 import { jsonValidation, keyValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
 
+const variantValidationSchema = Yup.object({
+  key: keyValidation,
+  attachment: jsonValidation
+});
+
 type VariantFormProps = {
   setOpen: (open: boolean) => void;
   flagKey: string;
@@ -82,10 +87,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        key: keyValidation,
-        attachment: jsonValidation
-      })}
+      validationSchema={variantValidationSchema}
     >
       {(formik) => (
         <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
