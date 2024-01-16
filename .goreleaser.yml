@@ -2,6 +2,9 @@
 
 project_name: flipt
 
+git:
+  tag_sort: semver
+
 monorepo:
   tag_prefix: v
 

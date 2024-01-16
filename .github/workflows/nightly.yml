@@ -64,6 +64,10 @@ jobs:
       - name: Prep Build
         run: mage prep
 
+      - name: Git Tag
+        run: |
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v5
         with:
@@ -71,6 +75,7 @@ jobs:
           version: latest
           args: release --clean --nightly -f .goreleaser.${{ matrix.name }}.yml
         env:
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
@@ -127,6 +132,10 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
+      - name: Git Tag
+        run: |
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+
       - name: GoReleaser (Nightly) Release
         uses: goreleaser/goreleaser-action@v5
         with:
@@ -134,6 +143,7 @@ jobs:
           version: latest
           args: release --nightly -f .goreleaser.nightly.yml
         env:
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
