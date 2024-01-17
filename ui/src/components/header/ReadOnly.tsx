@@ -34,7 +34,7 @@ export default function ReadOnly() {
     >
       {config.storage?.type == 'git' && (
         <span
-          className="max-w-32 truncate font-medium"
+          className="nightwind-prevent text-violet-200 max-w-32 truncate font-medium"
           title={`ref: ${config.storage?.git?.ref} repo: ${config.storage?.git?.repository}`}
         >
           {config.storage?.git?.ref}
