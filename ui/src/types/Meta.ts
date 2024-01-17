@@ -11,9 +11,15 @@ export interface IInfo {
   isRelease: boolean;
 }
 
+export interface IGit {
+  ref: string;
+  repository: string;
+}
+
 export interface IStorage {
   type: StorageType;
   readOnly?: boolean;
+  git?: IGit;
 }
 
 export interface IUI {
