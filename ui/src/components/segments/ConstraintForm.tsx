@@ -253,7 +253,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const [hasValue, setHasValue] = useState(true);
+  const [hasValue, setHasValue] = useState(
+    !NoValueOperators.includes(constraint?.operator || 'eq')
+  );
 
   const namespace = useSelector(selectCurrentNamespace);
 
