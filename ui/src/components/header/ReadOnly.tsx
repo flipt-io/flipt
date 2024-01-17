@@ -1,27 +1,27 @@
-import {
-  CircleStackIcon,
-  CloudIcon,
-  CodeBracketIcon,
-  CubeIcon,
-  DocumentIcon
-} from '@heroicons/react/20/solid';
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
-import { Icon } from '~/types/Icon';
 import { titleCase } from '~/utils/helpers';
+import { IconDefinition, faGitAlt } from '@fortawesome/free-brands-svg-icons';
+import {
+  faCube,
+  faCloud,
+  faDatabase,
+  faFileCode
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const storageTypes: Record<string, Icon> = {
-  local: DocumentIcon,
-  object: CloudIcon,
-  git: CodeBracketIcon,
-  database: CircleStackIcon,
-  oci: CubeIcon
+const storageTypes: Record<string, IconDefinition> = {
+  local: faFileCode,
+  object: faCloud,
+  git: faGitAlt,
+  database: faDatabase,
+  oci: faCube
 };
 
 export default function ReadOnly() {
   const config = useSelector(selectConfig);
 
-  const StorageIcon = config.storage?.type
+  const storageIcon = config.storage?.type
     ? storageTypes[config.storage?.type]
     : undefined;
 
@@ -32,8 +32,20 @@ export default function ReadOnly() {
         config.storage?.type || 'unknown'
       )} Storage`}
     >
-      {StorageIcon && (
-        <StorageIcon className="h-4 w-4 fill-gray-200" aria-hidden="true" />
+      {config.storage?.type == 'git' && (
+        <span
+          className="nightwind-prevent text-violet-200 max-w-32 truncate font-medium"
+          title={`ref: ${config.storage?.git?.ref} repo: ${config.storage?.git?.repository}`}
+        >
+          {config.storage?.git?.ref}
+        </span>
+      )}
+      {storageIcon && (
+        <FontAwesomeIcon
+          icon={storageIcon}
+          className="text-gray h-5 w-5"
+          aria-hidden={true}
+        />
       )}
       Read-Only
     </span>
