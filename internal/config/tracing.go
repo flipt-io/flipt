@@ -22,7 +22,7 @@ type TracingConfig struct {
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
 		"enabled":  false,
-		"exporter": TracingOTLP,
+		"exporter": TracingJaeger,
 		"jaeger": map[string]any{
 			"host": "localhost",
 			"port": 6831,

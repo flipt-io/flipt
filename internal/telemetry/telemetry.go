@@ -21,7 +21,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.3"
+	version  = "1.4"
 	event    = "flipt.ping"
 )
 
@@ -45,6 +45,10 @@ type authentication struct {
 	Methods []string `json:"methods,omitempty"`
 }
 
+type tracing struct {
+	Exporter string `json:"exporter,omitempty"`
+}
+
 type flipt struct {
 	Version        string                    `json:"version"`
 	OS             string                    `json:"os"`
@@ -52,6 +56,7 @@ type flipt struct {
 	Storage        *storage                  `json:"storage,omitempty"`
 	Authentication *authentication           `json:"authentication,omitempty"`
 	Audit          *audit                    `json:"audit,omitempty"`
+	Tracing        *tracing                  `json:"tracing,omitempty"`
 	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
 }
 
@@ -240,6 +245,13 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	if len(auditSinks) > 0 {
 		flipt.Audit = &audit{
 			Sinks: auditSinks,
+		}
+	}
+
+	// only report tracing if enabled
+	if r.cfg.Tracing.Enabled {
+		flipt.Tracing = &tracing{
+			Exporter: r.cfg.Tracing.Exporter.String(),
 		}
 	}
 

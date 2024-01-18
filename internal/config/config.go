@@ -505,7 +505,7 @@ func Default() *Config {
 
 		Tracing: TracingConfig{
 			Enabled:  false,
-			Exporter: TracingOTLP,
+			Exporter: TracingJaeger,
 			Jaeger: JaegerTracingConfig{
 				Host: "localhost",
 				Port: 6831,
