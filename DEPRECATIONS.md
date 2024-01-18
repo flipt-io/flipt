@@ -32,27 +32,11 @@ Description.
 
 -->
 
-### tracing.jaeger.enabled
+### Jaeger Tracing Exporter
 
-> since [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2)
+> since [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0)
 
-Enabling OpenTelemetry tracing with the Jaeger expoerter via `tracing.jaeger` is deprecated in favor of setting the `tracing.exporter` to `jaeger` and `tracing.enabled` to `true`.
-
-=== Before
-
-    ``` yaml
-    tracing:
-      jaeger:
-        enabled: true
-    ```
-
-=== After
-
-    ``` yaml
-    tracing:
-      enabled: true
-      backend: jaeger
-    ```
+This module is no longer supported. OpenTelemetry dropped support for Jaeger exporter in July 2023. Jaeger officially accepts and recommends using OTLP.
 
 ### API ListFlagRequest, ListSegmentRequest, ListRuleRequest offset
 
@@ -63,6 +47,11 @@ Enabling OpenTelemetry tracing with the Jaeger expoerter via `tracing.jaeger` is
 ## Expired Deprecation Notices
 
 The following options were deprecated in the past and were already removed.
+
+### tracing.jaeger.enabled
+
+> deprecated in [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2)
+> removed in [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0)
 
 ### ui.enabled
 
