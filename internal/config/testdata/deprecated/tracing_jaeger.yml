@@ -1,3 +1,4 @@
 tracing:
+  exporter: "jaeger"
   jaeger:
     enabled: true

@@ -238,23 +238,16 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated tracing jaeger enabled",
-			path: "./testdata/deprecated/tracing_jaeger_enabled.yml",
+			name: "deprecated tracing jaeger",
+			path: "./testdata/deprecated/tracing_jaeger.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Tracing.Enabled = true
 				cfg.Tracing.Exporter = TracingJaeger
 				return cfg
 			},
 			warnings: []string{
-				"\"tracing.jaeger.enabled\" is deprecated. Please use 'tracing.enabled' and 'tracing.exporter' instead.",
+				"\"tracing.exporter.jaeger\" is deprecated and will be removed in a future release.",
 			},
-		},
-		{
-			name:     "deprecated experimental filesystem_storage",
-			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
-			expected: Default,
-			warnings: []string{"\"experimental.filesystem_storage\" is deprecated. The experimental filesystem storage backend has graduated to a stable feature. Please use 'storage' instead."},
 		},
 		{
 			name: "cache no backend set",
