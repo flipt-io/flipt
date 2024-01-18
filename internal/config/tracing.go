@@ -22,7 +22,7 @@ type TracingConfig struct {
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
 		"enabled":  false,
-		"exporter": TracingJaeger,
+		"exporter": TracingOTLP,
 		"jaeger": map[string]any{
 			"host": "localhost",
 			"port": 6831,
@@ -41,7 +41,7 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
 	var deprecations []deprecated
 
-	if v.GetString("tracing.exporter") == TracingJaeger.String() {
+	if v.GetString("tracing.exporter") == TracingJaeger.String() && v.GetBool("tracing.enabled") {
 		deprecations = append(deprecations, "tracing.exporter.jaeger")
 	}
 

@@ -242,6 +242,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/deprecated/tracing_jaeger.yml",
 			expected: func() *Config {
 				cfg := Default()
+				cfg.Tracing.Enabled = true
 				cfg.Tracing.Exporter = TracingJaeger
 				return cfg
 			},
