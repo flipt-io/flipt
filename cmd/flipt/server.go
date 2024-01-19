@@ -43,7 +43,7 @@ func fliptServer(logger *zap.Logger, cfg *config.Config) (*server.Server, func()
 	return server.New(logger, store), func() { _ = db.Close() }, nil
 }
 
-func fliptClient(address, token string) (*sdk.Flipt, error) {
+func fliptSDK(address, token string) (*sdk.SDK, error) {
 	addr, err := url.Parse(address)
 	if err != nil {
 		return nil, fmt.Errorf("export address is invalid %w", err)
@@ -71,6 +71,14 @@ func fliptClient(address, token string) (*sdk.Flipt, error) {
 			sdk.StaticTokenAuthenticationProvider(token),
 		))
 	}
+	s := sdk.New(transport, opts...)
+	return &s, nil
+}
 
-	return sdk.New(transport, opts...).Flipt(), nil
+func fliptClient(address, token string) (*sdk.Flipt, error) {
+	s, err := fliptSDK(address, token)
+	if err != nil {
+		return nil, err
+	}
+	return s.Flipt(), nil
 }

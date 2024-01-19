@@ -146,6 +146,7 @@ func exec() error {
 	rootCmd.AddCommand(newCompletionCommand())
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newBundleCommand())
+	rootCmd.AddCommand(newEvaluateCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
