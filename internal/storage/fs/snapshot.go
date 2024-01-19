@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
@@ -64,21 +65,31 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 	}
 }
 
+type SnapshotOption struct {
+	validatorOption []cue.FeaturesValidatorOption
+}
+
+func WithValidatorOption(opts ...cue.FeaturesValidatorOption) containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.validatorOption = opts
+	}
+}
+
 // SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func SnapshotFromFS(logger *zap.Logger, src fs.FS) (*Snapshot, error) {
+func SnapshotFromFS(logger *zap.Logger, src fs.FS, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
 	paths, err := listStateFiles(logger, src)
 	if err != nil {
 		return nil, err
 	}
 
-	return SnapshotFromPaths(logger, src, paths...)
+	return SnapshotFromPaths(logger, src, paths, opts...)
 }
 
 // SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
-func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*Snapshot, error) {
+func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
 	logger.Debug("opening state files", zap.Strings("paths", paths))
 
 	var files []fs.File
@@ -91,12 +102,12 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*Snapsho
 		files = append(files, fi)
 	}
 
-	return SnapshotFromFiles(logger, files...)
+	return SnapshotFromFiles(logger, files, opts...)
 }
 
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
-func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*Snapshot, error) {
+func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
 	now := flipt.Now()
 	s := Snapshot{
 		ns: map[string]*namespace{
@@ -105,6 +116,9 @@ func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*Snapshot, error) 
 		evalDists: map[string][]*storage.EvaluationDistribution{},
 		now:       now,
 	}
+
+	var so SnapshotOption
+	containers.ApplyAll(&so, opts...)
 
 	for _, fi := range files {
 		defer fi.Close()
@@ -115,7 +129,7 @@ func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*Snapshot, error) 
 
 		logger.Debug("opening state file", zap.String("path", info.Name()))
 
-		docs, err := documentsFromFile(fi)
+		docs, err := documentsFromFile(fi, so)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +161,7 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		docs, err := documentsFromFile(fi)
+		docs, err := documentsFromFile(fi, SnapshotOption{})
 		if err != nil {
 			return err
 		}
@@ -163,8 +177,8 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 }
 
 // documentsFromFile parses and validates a document from a single fs.File instance
-func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
-	validator, err := cue.NewFeaturesValidator()
+func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error) {
+	validator, err := cue.NewFeaturesValidator(opts.validatorOption...)
 	if err != nil {
 		return nil, err
 	}
