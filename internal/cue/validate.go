@@ -68,17 +68,39 @@ type FeaturesValidator struct {
 	v   cue.Value
 }
 
-func NewFeaturesValidator() (*FeaturesValidator, error) {
+type FeaturesValidatorOption func(*FeaturesValidator) error
+
+func WithSchemaExtension(v []byte) FeaturesValidatorOption {
+	return func(fv *FeaturesValidator) error {
+		schema := fv.cue.CompileBytes(v)
+		if err := schema.Err(); err != nil {
+			return err
+		}
+
+		fv.v = fv.v.Unify(schema)
+		return fv.v.Err()
+	}
+}
+
+func NewFeaturesValidator(opts ...FeaturesValidatorOption) (*FeaturesValidator, error) {
 	cctx := cuecontext.New()
 	v := cctx.CompileBytes(cueFile)
 	if v.Err() != nil {
 		return nil, v.Err()
 	}
 
-	return &FeaturesValidator{
+	f := &FeaturesValidator{
 		cue: cctx,
 		v:   v,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		if err := opt(f); err != nil {
+			return nil, err
+		}
+	}
+
+	return f, nil
 }
 
 func (v FeaturesValidator) validateSingleDocument(file string, f *ast.File, offset int) error {

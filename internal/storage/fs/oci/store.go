@@ -89,7 +89,7 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 		return false, nil
 	}
 
-	snap, err := storagefs.SnapshotFromFiles(s.logger, resp.Files...)
+	snap, err := storagefs.SnapshotFromFiles(s.logger, resp.Files)
 	if err != nil {
 		return false, err
 	}
