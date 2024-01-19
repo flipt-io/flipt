@@ -9,25 +9,44 @@ export const flagsApi = createApi({
   tagTypes: ['Flag'],
   endpoints: (builder) => ({
     // get list of flags in this namespace
-    listFlags: builder.query<IFlagList, string>({
-      query: (namespaceKey) => `/namespaces/${namespaceKey}/flags`,
-      providesTags: (result, _error, namespaceKey) =>
-        result
-          ? [
-              ...result.flags.map(({ key }) => ({
-                type: 'Flag' as const,
-                id: namespaceKey + '/' + key
-              })),
-              { type: 'Flag', id: namespaceKey }
-            ]
-          : [{ type: 'Flag', id: namespaceKey }]
-    }),
+    listFlags: builder.query<IFlagList, { namespaceKey: string; ref?: string }>(
+      {
+        query: ({ namespaceKey, ref }) => {
+          let url = `/namespaces/${namespaceKey}/flags`;
+          if (ref) {
+            url += `?ref=${ref}`;
+          }
+          return url;
+        },
+        providesTags: (result, _error, { namespaceKey }) =>
+          result
+            ? [
+                ...result.flags.map(({ key }) => ({
+                  type: 'Flag' as const,
+                  id: namespaceKey + '/' + key
+                })),
+                { type: 'Flag', id: namespaceKey }
+              ]
+            : [{ type: 'Flag', id: namespaceKey }]
+      }
+    ),
     // get flag in this namespace
-    getFlag: builder.query<IFlag, { namespaceKey: string; flagKey: string }>({
-      query: ({ namespaceKey, flagKey }) =>
-        `/namespaces/${namespaceKey}/flags/${flagKey}`,
+    getFlag: builder.query<
+      IFlag,
+      { namespaceKey: string; flagKey: string; ref?: string }
+    >({
+      query: ({ namespaceKey, flagKey, ref }) => {
+        let url = `/namespaces/${namespaceKey}/flags/${flagKey}`;
+        if (ref) {
+          url += `?ref=${ref}`;
+        }
+        return url;
+      },
       providesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
+        {
+          type: 'Flag',
+          id: namespaceKey + '/' + flagKey
+        }
       ]
     }),
     // create a new flag in the namespace

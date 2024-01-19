@@ -9,12 +9,19 @@ import FlagTable from '~/components/flags/FlagTable';
 import Button from '~/components/forms/buttons/Button';
 import { useError } from '~/data/hooks/error';
 import { useListFlagsQuery } from './flagsApi';
+import { selectCurrentRef } from '~/app/refs/refsSlice';
 
 export default function Flags() {
   const namespace = useSelector(selectCurrentNamespace);
+  const ref = useSelector(selectCurrentRef);
+
   const path = `/namespaces/${namespace.key}/flags`;
 
-  const { data, error } = useListFlagsQuery(namespace.key);
+  const { data, error } = useListFlagsQuery({
+    namespaceKey: namespace.key,
+    ref: ref
+  });
+
   const flags = data?.flags || [];
 
   const navigate = useNavigate();

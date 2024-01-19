@@ -7,6 +7,7 @@ import {
 import { authProvidersApi } from '~/app/auth/authApi';
 import {
   namespaceApi,
+  namespaceKey,
   namespacesSlice
 } from '~/app/namespaces/namespacesSlice';
 import { flagsApi } from './app/flags/flagsApi';
@@ -20,10 +21,9 @@ import {
 import { segmentsApi } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
+import { refsKey, refsSlice } from './app/refs/refsSlice';
 
 const listenerMiddleware = createListenerMiddleware();
-
-const namespaceKey = 'namespace';
 
 listenerMiddleware.startListening({
   matcher: isAnyOf(
@@ -49,6 +49,18 @@ listenerMiddleware.startListening({
     );
   }
 });
+
+listenerMiddleware.startListening({
+  matcher: isAnyOf(refsSlice.actions.currentRefChanged),
+  effect: (_action, api) => {
+    // save to local storage
+    localStorage.setItem(
+      refsKey,
+      (api.getState() as RootState).refs.currentRef || ''
+    );
+  }
+});
+
 /*
  * It could be anti-pattern but it feels like the right thing to do.
  * The namespacesSlice holds the namespaces globally and doesn't refetch them
@@ -67,10 +79,15 @@ const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
 );
 
+const currentRef = localStorage.getItem(refsKey) || undefined;
+
 const currentNamespace = localStorage.getItem(namespaceKey) || 'default';
 
 export const store = configureStore({
   preloadedState: {
+    refs: {
+      currentRef
+    },
     preferences: preferencesState,
     namespaces: {
       namespaces: {},
@@ -80,6 +97,7 @@ export const store = configureStore({
     }
   },
   reducer: {
+    refs: refsSlice.reducer,
     namespaces: namespacesSlice.reducer,
     preferences: preferencesSlice.reducer,
     meta: metaSlice.reducer,
