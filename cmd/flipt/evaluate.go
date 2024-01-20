@@ -29,8 +29,8 @@ func newEvaluateCommand() *cobra.Command {
 	c := &evaluateCommand{}
 
 	cmd := &cobra.Command{
-		Use:   "evaluate [flag]",
-		Short: "Evaluate the flag",
+		Use:   "evaluate [flagKey]",
+		Short: "Evaluate a flag",
 		Args:  cobra.ExactArgs(1),
 		RunE:  c.run,
 	}
@@ -65,14 +65,14 @@ func newEvaluateCommand() *cobra.Command {
 		&c.address,
 		"address", "a",
 		"http://localhost:8080",
-		"address of Flipt instance to evaluate.",
+		"address of Flipt instance.",
 	)
 
 	cmd.Flags().StringVarP(
 		&c.token,
 		"token", "t",
 		"",
-		"client token used to authenticate access to Flipt instance when evaluating.",
+		"client token used to authenticate access to Flipt instance.",
 	)
 
 	cmd.Flags().BoolVarP(
@@ -86,7 +86,7 @@ func newEvaluateCommand() *cobra.Command {
 		&c.interval,
 		"interval", "i",
 		time.Second,
-		"internal between requests in watch mode.",
+		"interval between requests in watch mode.",
 	)
 
 	return cmd
