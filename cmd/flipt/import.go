@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage/sql"
-	"go.uber.org/zap"
 )
 
 type importCommand struct {
@@ -47,14 +46,14 @@ func newImportCommand() *cobra.Command {
 		&importCmd.address,
 		"address", "a",
 		"",
-		"address of remote Flipt instance to import into (defaults to direct DB import if not supplied)",
+		"address of Flipt instance (defaults to direct DB import if not supplied).",
 	)
 
 	cmd.Flags().StringVarP(
 		&importCmd.token,
 		"token", "t",
 		"",
-		"client token used to authenticate access to remote Flipt instance when importing.",
+		"client token used to authenticate access to Flipt instance.",
 	)
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
@@ -63,9 +62,8 @@ func newImportCommand() *cobra.Command {
 
 func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	var (
-		in     io.Reader = os.Stdin
-		logger           = zap.Must(zap.NewDevelopment())
-		enc              = ext.EncodingYML
+		in  io.Reader = os.Stdin
+		enc           = ext.EncodingYML
 	)
 
 	if !c.importStdin {
@@ -79,8 +77,6 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		}
 
 		f := filepath.Clean(importFilename)
-
-		logger.Debug("importing", zap.String("source_path", f))
 
 		fi, err := os.Open(f)
 		if err != nil {
@@ -117,7 +113,6 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	// drop tables if specified
 	if c.dropBeforeImport {
-		logger.Debug("dropping tables")
 
 		migrator, err := sql.NewMigrator(*cfg, logger)
 		if err != nil {

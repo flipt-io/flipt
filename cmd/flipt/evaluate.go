@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
-	"go.uber.org/zap"
 )
 
 type evaluateCommand struct {
@@ -137,10 +137,31 @@ func (c *evaluateCommand) run(cmd *cobra.Command, args []string) error {
 		case <-ticker.C:
 			err := c.evaluate(ctx, flag.Type, sdk, request)
 			if err != nil {
-				defaultLogger.Error("failed to evaluate", zap.Error(err))
+				fmt.Printf("failed to evaluate: %s", err)
 			}
 		}
 	}
+}
+
+type booleanEvaluateResponse struct {
+	FlagKey               string    `json:"flag_key,omitempty"`
+	Enabled               bool      `json:"enabled,omitempty"`
+	Reason                string    `json:"reason,omitempty"`
+	RequestID             string    `json:"request_id,omitempty"`
+	RequestDurationMillis float64   `json:"request_duration_millis,omitempty"`
+	Timestamp             time.Time `json:"timestamp,omitempty"`
+}
+
+type variantEvaluationResponse struct {
+	FlagKey               string    `json:"flag_key,omitempty"`
+	Match                 bool      `json:"match,omitempty"`
+	Reason                string    `json:"reason,omitempty"`
+	VariantKey            string    `json:"variant_key,omitempty"`
+	VariantAttachment     string    `json:"variant_attachment,omitempty"`
+	SegmentKeys           []string  `json:"segment_keys,omitempty"`
+	RequestID             string    `json:"request_id,omitempty"`
+	RequestDurationMillis float64   `json:"request_duration_millis,omitempty"`
+	Timestamp             time.Time `json:"timestamp,omitempty"`
 }
 
 func (c *evaluateCommand) evaluate(ctx context.Context, flagType flipt.FlagType, sdk *sdk.SDK, req *evaluation.EvaluationRequest) error {
@@ -151,31 +172,49 @@ func (c *evaluateCommand) evaluate(ctx context.Context, flagType flipt.FlagType,
 		if err != nil {
 			return err
 		}
-		defaultLogger.Info("boolean",
-			zap.String("flag", response.FlagKey),
-			zap.Bool("enabled", response.Enabled),
-			zap.String("reason", response.Reason.String()),
-			zap.String("requestId", response.RequestId),
-			zap.Float64("requestDurationMillis", response.RequestDurationMillis),
-			zap.Time("timestamp", response.Timestamp.AsTime()),
-		)
+
+		boolResponse := &booleanEvaluateResponse{
+			FlagKey:               response.FlagKey,
+			Enabled:               response.Enabled,
+			Reason:                response.Reason.String(),
+			RequestID:             response.RequestId,
+			RequestDurationMillis: response.RequestDurationMillis,
+			Timestamp:             response.Timestamp.AsTime(),
+		}
+
+		out, err := json.Marshal(boolResponse)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(out))
+
 		return nil
 	case flipt.FlagType_VARIANT_FLAG_TYPE:
 		response, err := client.Variant(ctx, req)
 		if err != nil {
 			return err
 		}
-		defaultLogger.Info("variant",
-			zap.String("flag", response.FlagKey),
-			zap.Bool("match", response.Match),
-			zap.String("reason", response.Reason.String()),
-			zap.String("variantKey", response.VariantKey),
-			zap.String("variantAttachment", response.VariantAttachment),
-			zap.Strings("segmentKeys", response.SegmentKeys),
-			zap.String("requestId", response.RequestId),
-			zap.Float64("requestDurationMillis", response.RequestDurationMillis),
-			zap.Time("timestamp", response.Timestamp.AsTime()),
-		)
+
+		variantResponse := &variantEvaluationResponse{
+			FlagKey:               response.FlagKey,
+			Match:                 response.Match,
+			Reason:                response.Reason.String(),
+			VariantKey:            response.VariantKey,
+			VariantAttachment:     response.VariantAttachment,
+			SegmentKeys:           response.SegmentKeys,
+			RequestID:             response.RequestId,
+			RequestDurationMillis: response.RequestDurationMillis,
+			Timestamp:             response.Timestamp.AsTime(),
+		}
+
+		out, err := json.Marshal(variantResponse)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(out))
+
 		return nil
 	default:
 		return fmt.Errorf("unsupported flag type: %v", flagType)
