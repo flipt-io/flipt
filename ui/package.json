@@ -52,7 +52,7 @@
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@types/react-helmet": "^6.1.11",
-    "@types/react-redux": "^7.1.31",
+    "@types/react-redux": "^7.1.33",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
