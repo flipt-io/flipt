@@ -30,7 +30,7 @@
     "@uiw/react-codemirror": "^4.21.21",
     "buffer": "^6.0.3",
     "clsx": "^2.1.0",
-    "date-fns": "^3.2.0",
+    "date-fns": "^3.3.1",
     "formik": "^2.4.5",
     "nightwind": "^1.1.13",
     "react": "^18.2.0",
