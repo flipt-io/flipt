@@ -69,6 +69,7 @@ service:
 ### Clickhouse
 
 #### Requirements
+
 1. [Clickhouse CLI](https://clickhouse.com/docs/en/install)
 
 #### Introduction
@@ -96,6 +97,5 @@ SELECT SpanName, avg(Duration), quantile(0.9)(Duration) AS p90, quantile(0.95)(D
 ```
 
 !['Clickhouse Example'](../../images/clickhouse.png)
-
 
 This query will return average, and quantile results (p90, p95, p99) for `Variant` and `Boolean` evaluations. To do more cool and insighful things via their SQL syntax, you can refer to the [Clickhouse SQL reference docs](https://clickhouse.com/docs/en/sql-reference).
