@@ -1,0 +1,12 @@
+authentication:
+  required: true
+  session:
+    domain: "http://localhost:8080"
+    secure: false
+  methods:
+    github:
+      enabled: true
+      client_id: "client_id"
+      client_secret: "client_secret"
+      scopes:
+        - "user:email"

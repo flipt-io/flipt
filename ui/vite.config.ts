@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react';
+import path from 'path';
 import { defineConfig } from 'vite';
-const path = require('path');
 
 const fliptAddr = process.env.FLIPT_ADDRESS ?? 'http://localhost:8080';
 

@@ -1,0 +1,10 @@
+authentication:
+  required: true
+  session:
+    domain: "http://localhost:8080"
+    secure: false
+  methods:
+    jwt:
+      enabled: true
+      jwks_url: "https://example.com/.well-known/jwks.json"
+      public_key_file: "testdata/authentication/jwt_key_file.pem"

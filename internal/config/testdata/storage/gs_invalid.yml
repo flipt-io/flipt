@@ -1,0 +1,4 @@
+storage:
+  type: object
+  object:
+    type: googlecloud

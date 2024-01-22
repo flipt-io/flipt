@@ -3,7 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
+	"path"
 
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -18,7 +20,7 @@ const (
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
 type EvaluationRule struct {
-	ID              string                        `json:"id"`
+	ID              string                        `json:"id,omitempty"`
 	NamespaceKey    string                        `json:"namespace_key,omitempty"`
 	FlagKey         string                        `json:"flag_key,omitempty"`
 	Segments        map[string]*EvaluationSegment `json:"segments,omitempty"`
@@ -34,24 +36,24 @@ type EvaluationSegment struct {
 
 // EvaluationRollout represents a rollout in the form that helps with evaluation.
 type EvaluationRollout struct {
-	NamespaceKey string
-	RolloutType  flipt.RolloutType
-	Rank         int32
-	Threshold    *RolloutThreshold
-	Segment      *RolloutSegment
+	NamespaceKey string            `json:"namespace_key,omitempty"`
+	RolloutType  flipt.RolloutType `json:"rollout_type,omitempty"`
+	Rank         int32             `json:"rank,omitempty"`
+	Threshold    *RolloutThreshold `json:"threshold,omitempty"`
+	Segment      *RolloutSegment   `json:"segment,omitempty"`
 }
 
 // RolloutThreshold represents Percentage(s) for use in evaluation.
 type RolloutThreshold struct {
-	Percentage float32
-	Value      bool
+	Percentage float32 `json:"percentage,omitempty"`
+	Value      bool    `json:"value,omitempty"`
 }
 
 // RolloutSegment represents Segment(s) for use in evaluation.
 type RolloutSegment struct {
-	Value           bool
-	SegmentOperator flipt.SegmentOperator
-	Segments        map[string]*EvaluationSegment
+	Value           bool                          `json:"value,omitempty"`
+	SegmentOperator flipt.SegmentOperator         `json:"segment_operator,omitempty"`
+	Segments        map[string]*EvaluationSegment `json:"segments,omitempty"`
 }
 
 // EvaluationConstraint represents a segment constraint that is used for evaluation
@@ -151,6 +153,19 @@ func WithOrder(order Order) QueryOption {
 	}
 }
 
+// ReadOnlyStore is a storage implementation which only supports
+// reading the various types of state configuring within Flipt
+type ReadOnlyStore interface {
+	ReadOnlyNamespaceStore
+	ReadOnlyFlagStore
+	ReadOnlySegmentStore
+	ReadOnlyRuleStore
+	ReadOnlyRolloutStore
+	EvaluationStore
+	fmt.Stringer
+}
+
+// Store supports reading and writing all the resources within Flipt
 type Store interface {
 	NamespaceStore
 	FlagStore
@@ -172,26 +187,38 @@ const DefaultNamespace = "default"
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
 	// Note: Rules MUST be returned in order by Rank
-	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRollout, error)
+	GetEvaluationRules(ctx context.Context, flag ResourceRequest) ([]*EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, rule IDRequest) ([]*EvaluationDistribution, error)
+	// GetEvaluationRollouts returns rollouts applicable to namespaceKey + flagKey provided
+	// Note: Rollouts MUST be returned in order by rank
+	GetEvaluationRollouts(ctx context.Context, flag ResourceRequest) ([]*EvaluationRollout, error)
+}
+
+// ReadOnlyNamespaceStore support retrieval of namespaces only
+type ReadOnlyNamespaceStore interface {
+	GetNamespace(ctx context.Context, ns NamespaceRequest) (*flipt.Namespace, error)
+	ListNamespaces(ctx context.Context, req *ListRequest[ReferenceRequest]) (ResultSet[*flipt.Namespace], error)
+	CountNamespaces(ctx context.Context, req ReferenceRequest) (uint64, error)
 }
 
 // NamespaceStore stores and retrieves namespaces
 type NamespaceStore interface {
-	GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error)
-	ListNamespaces(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Namespace], error)
-	CountNamespaces(ctx context.Context) (uint64, error)
+	ReadOnlyNamespaceStore
 	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error)
 	DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error
 }
 
+// ReadOnlyFlagStore supports retrieval of flags
+type ReadOnlyFlagStore interface {
+	GetFlag(ctx context.Context, req ResourceRequest) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, req *ListRequest[NamespaceRequest]) (ResultSet[*flipt.Flag], error)
+	CountFlags(ctx context.Context, ns NamespaceRequest) (uint64, error)
+}
+
 // FlagStore stores and retrieves flags and variants
 type FlagStore interface {
-	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
-	ListFlags(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
-	CountFlags(ctx context.Context, namespaceKey string) (uint64, error)
+	ReadOnlyFlagStore
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -200,11 +227,16 @@ type FlagStore interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
+// ReadOnlySegmentStore supports retrieval of segments and constraints
+type ReadOnlySegmentStore interface {
+	GetSegment(ctx context.Context, req ResourceRequest) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, req *ListRequest[NamespaceRequest]) (ResultSet[*flipt.Segment], error)
+	CountSegments(ctx context.Context, ns NamespaceRequest) (uint64, error)
+}
+
 // SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
-	GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
-	CountSegments(ctx context.Context, namespaceKey string) (uint64, error)
+	ReadOnlySegmentStore
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
@@ -213,11 +245,16 @@ type SegmentStore interface {
 	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
 }
 
+// ReadOnlyRuleStore supports retrieval of rules and distributions
+type ReadOnlyRuleStore interface {
+	GetRule(ctx context.Context, ns NamespaceRequest, id string) (*flipt.Rule, error)
+	ListRules(ctx context.Context, req *ListRequest[ResourceRequest]) (ResultSet[*flipt.Rule], error)
+	CountRules(ctx context.Context, flag ResourceRequest) (uint64, error)
+}
+
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
-	GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error)
-	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
-	CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
+	ReadOnlyRuleStore
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
@@ -227,10 +264,16 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
+// ReadOnlyRolloutStore supports retrieval of rollouts
+type ReadOnlyRolloutStore interface {
+	GetRollout(ctx context.Context, ns NamespaceRequest, id string) (*flipt.Rollout, error)
+	ListRollouts(ctx context.Context, req *ListRequest[ResourceRequest]) (ResultSet[*flipt.Rollout], error)
+	CountRollouts(ctx context.Context, flag ResourceRequest) (uint64, error)
+}
+
+// RolloutStore supports storing and retrieving rollouts
 type RolloutStore interface {
-	GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error)
-	ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rollout], error)
-	CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
+	ReadOnlyRolloutStore
 	CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
 	UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error)
 	DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error
@@ -258,13 +301,150 @@ func ListWithQueryParamOptions[T any](opts ...QueryOption) ListOption[T] {
 	}
 }
 
-// NewListRequest constructs a new ListRequest using the provided ListOption.
-func NewListRequest[T any](opts ...ListOption[T]) *ListRequest[T] {
-	req := &ListRequest[T]{}
+// PageParameter is any type which exposes limit and page token
+// accessors used to identify pages.
+type PageParameter interface {
+	GetLimit() int32
+	GetPageToken() string
+}
+
+// OffsetPageParameter is a type which exposes an additional offset
+// accessor for legacy paging implementations (page token supersedes).
+type OffsetPageParameter interface {
+	PageParameter
+	GetOffset() int32
+}
+
+// ListWithParameters constructs a new ListRequest using the page parameters
+// exposed by the provided PageParameter implementation.
+func ListWithParameters[T any](t T, p PageParameter) *ListRequest[T] {
+	opts := []QueryOption{
+		WithLimit(uint64(p.GetLimit())),
+		WithPageToken(p.GetPageToken()),
+	}
+
+	if po, ok := p.(OffsetPageParameter); ok {
+		opts = append(opts, WithOffset(uint64(po.GetOffset())))
+	}
+
+	return ListWithOptions[T](t, ListWithQueryParamOptions[T](opts...))
+}
+
+// ListWithOptions constructs a new ListRequest using the provided ListOption.
+func ListWithOptions[T any](t T, opts ...ListOption[T]) *ListRequest[T] {
+	req := &ListRequest[T]{
+		Predicate: t,
+	}
 
 	for _, opt := range opts {
 		opt(req)
 	}
 
 	return req
+}
+
+// Reference is a string which can refer to either a concrete
+// revision or it can be an indirect named reference.
+type Reference string
+
+// ReferenceRequest is used to identify a request predicated solely by a revision reference.
+// This is primarily used for namespaces as it is the highest level domain model.
+type ReferenceRequest struct {
+	Reference
+}
+
+// WithReference sets the provided reference identifier on a *ReferenceRequest.
+func WithReference(ref string) containers.Option[ReferenceRequest] {
+	return func(rp *ReferenceRequest) {
+		if ref != "" {
+			rp.Reference = Reference(ref)
+		}
+	}
+}
+
+// ListWithReference is a ListOption constrained to ReferenceRequest types.
+// It sets the reference on the resulting list request.
+func ListWithReference(ref string) ListOption[ReferenceRequest] {
+	return func(rp *ListRequest[ReferenceRequest]) {
+		if ref != "" {
+			rp.Predicate.Reference = Reference(ref)
+		}
+	}
+}
+
+// NamespaceRequest is used to identify a request predicated by both a revision and a namespace.
+// This is used to identify namespaces and list resources directly beneath them (e.g. flags and segments).
+type NamespaceRequest struct {
+	ReferenceRequest
+	key string
+}
+
+// NewNamespace constructs a *NamespaceRequest from the provided key string.
+// Optionally, the target storage revision reference can also be supplied.
+func NewNamespace(key string, opts ...containers.Option[ReferenceRequest]) NamespaceRequest {
+	p := NamespaceRequest{key: key}
+
+	containers.ApplyAll(&p.ReferenceRequest, opts...)
+
+	return p
+}
+
+// String returns the resolved target namespace key string.
+// If the underlying key is the empty string, the default namespace ("default")
+// is returned instead.
+func (n NamespaceRequest) String() string {
+	return n.Namespace()
+}
+
+// Namespace returns the resolved target namespace key string.
+// If the underlying key is the empty string, the default namespace ("default")
+// is returned instead.
+func (n NamespaceRequest) Namespace() string {
+	if n.key == "" {
+		return flipt.DefaultNamespace
+	}
+
+	return n.key
+}
+
+// ResourceRequest is used to identify a request predicated by revision, namespace and a key.
+// This is used for core resources (e.g. flag and segment) as well as to list sub-resources (e.g. rules and constraints).
+type ResourceRequest struct {
+	NamespaceRequest
+	Key string
+}
+
+// NewResource constructs and configures and new *ResourceRequest from the provided namespace and resource keys.
+// Optionally, the target storage revision reference can also be supplied.
+func NewResource(ns, key string, opts ...containers.Option[ReferenceRequest]) ResourceRequest {
+	p := ResourceRequest{
+		NamespaceRequest: NamespaceRequest{
+			key: ns,
+		},
+		Key: key,
+	}
+
+	containers.ApplyAll(&p.ReferenceRequest, opts...)
+
+	return p
+}
+
+// String returns a representation of the combined resource namespace and key separated by a '/'.
+func (p ResourceRequest) String() string {
+	return path.Join(p.Namespace(), p.Key)
+}
+
+// IDRequest is used to identify any sub-resources which have a unique random identifier.
+// This is used for sub-resources with no key identifiers (e.g. rules and rollouts).
+type IDRequest struct {
+	ReferenceRequest
+	ID string
+}
+
+// NewID constructs and configures a new *IDRequest with the provided ID string.
+// Optionally, the target storage revision reference can also be supplied.
+func NewID(id string, opts ...containers.Option[ReferenceRequest]) IDRequest {
+	p := IDRequest{ID: id}
+	containers.ApplyAll(&p.ReferenceRequest, opts...)
+	return p
 }

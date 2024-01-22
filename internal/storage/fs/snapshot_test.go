@@ -113,18 +113,18 @@ func TestFSWithIndex(t *testing.T) {
 
 type FSIndexSuite struct {
 	suite.Suite
-	store storage.Store
+	store storage.ReadOnlyStore
 }
 
 func (fis *FSIndexSuite) TestCountFlag() {
 	t := fis.T()
 
-	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
+	flagCount, err := fis.store.CountFlags(context.TODO(), storage.NewNamespace("production"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 12, int(flagCount))
 
-	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
+	flagCount, err = fis.store.CountFlags(context.TODO(), storage.NewNamespace("sandbox"))
 	require.NoError(t, err)
 	assert.Equal(t, 12, int(flagCount))
 }
@@ -188,7 +188,7 @@ func (fis *FSIndexSuite) TestGetFlag() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flag, err := fis.store.GetFlag(context.TODO(), tc.namespace, tc.flagKey)
+			flag, err := fis.store.GetFlag(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.flag.Key, flag.Key)
@@ -240,7 +240,10 @@ func (fis *FSIndexSuite) TestListFlags() {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListFlags(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			flags, err := fis.store.ListFlags(context.TODO(), storage.ListWithOptions(
+				storage.NewNamespace(tc.namespace),
+				storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithLimit(5), storage.WithPageToken(tc.pageToken)),
+			))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -280,7 +283,7 @@ func (fis *FSIndexSuite) TestGetNamespace() {
 	}
 
 	for _, tc := range testCases {
-		ns, err := fis.store.GetNamespace(context.TODO(), tc.namespaceKey)
+		ns, err := fis.store.GetNamespace(context.TODO(), storage.NewNamespace(tc.namespaceKey))
 		require.NoError(t, err)
 
 		assert.Equal(t, tc.fliptNs.Key, ns.Key)
@@ -293,7 +296,7 @@ func (fis *FSIndexSuite) TestGetNamespace() {
 func (fis *FSIndexSuite) TestCountNamespaces() {
 	t := fis.T()
 
-	namespacesCount, err := fis.store.CountNamespaces(context.TODO())
+	namespacesCount, err := fis.store.CountNamespaces(context.TODO(), storage.ReferenceRequest{})
 	require.NoError(t, err)
 
 	assert.Equal(t, 3, int(namespacesCount))
@@ -302,7 +305,8 @@ func (fis *FSIndexSuite) TestCountNamespaces() {
 func (fis *FSIndexSuite) TestListNamespaces() {
 	t := fis.T()
 
-	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.WithLimit(2), storage.WithPageToken("0"))
+	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.ListWithOptions(storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](storage.WithLimit(2), storage.WithPageToken("0"))))
 	require.NoError(t, err)
 
 	assert.Len(t, namespaces.Results, 2)
@@ -385,7 +389,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			sgmt, err := fis.store.GetSegment(context.TODO(), tc.namespace, tc.segmentKey)
+			sgmt, err := fis.store.GetSegment(context.TODO(), storage.NewResource(tc.namespace, tc.segmentKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.segment.Key, sgmt.Key)
@@ -440,7 +444,10 @@ func (fis *FSIndexSuite) TestListSegments() {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListSegments(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			flags, err := fis.store.ListSegments(context.TODO(), storage.ListWithOptions(
+				storage.NewNamespace(tc.namespace),
+				storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithLimit(5), storage.WithPageToken(tc.pageToken)),
+			))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -456,12 +463,12 @@ func (fis *FSIndexSuite) TestListSegments() {
 func (fis *FSIndexSuite) TestCountSegment() {
 	t := fis.T()
 
-	segmentCount, err := fis.store.CountSegments(context.TODO(), "production")
+	segmentCount, err := fis.store.CountSegments(context.TODO(), storage.NewNamespace("production"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 11, int(segmentCount))
 
-	segmentCount, err = fis.store.CountSegments(context.TODO(), "sandbox")
+	segmentCount, err = fis.store.CountSegments(context.TODO(), storage.NewNamespace("sandbox"))
 	require.NoError(t, err)
 	assert.Equal(t, 11, int(segmentCount))
 }
@@ -488,7 +495,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
+			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Len(t, rollouts, 2)
@@ -569,7 +576,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.GetEvaluationRules(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Len(t, rules, 1)
@@ -617,11 +624,11 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey)))
 			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
-			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rules.Results[0].Id))
 
 			require.NoError(t, err)
 
@@ -634,11 +641,11 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 func (fis *FSIndexSuite) TestCountRollouts() {
 	t := fis.T()
 
-	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), "production", "flag_boolean")
+	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), storage.NewResource("production", "flag_boolean"))
 	require.NoError(t, err)
 	assert.Equal(t, 2, int(rolloutsCount))
 
-	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "sandbox", "flag_boolean")
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), storage.NewResource("sandbox", "flag_boolean"))
 	require.NoError(t, err)
 	assert.Equal(t, 2, int(rolloutsCount))
 }
@@ -681,7 +688,8 @@ func (fis *FSIndexSuite) TestListAndGetRollouts() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rollouts, err := fis.store.ListRollouts(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			rollouts, err := fis.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey),
+				storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -690,7 +698,7 @@ func (fis *FSIndexSuite) TestListAndGetRollouts() {
 			require.NoError(t, err)
 
 			for _, rollout := range rollouts.Results {
-				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
+				r, err := fis.store.GetRollout(context.TODO(), storage.NewNamespace(tc.namespace), rollout.Id)
 				require.NoError(t, err)
 
 				assert.Equal(t, r, rollout)
@@ -737,7 +745,8 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			rules, err := fis.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey),
+				storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -746,7 +755,7 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 			require.NoError(t, err)
 
 			for _, rule := range rules.Results {
-				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
+				r, err := fis.store.GetRule(context.TODO(), storage.NewNamespace(tc.namespace), rule.Id)
 				require.NoError(t, err)
 
 				assert.Equal(t, r, rule)
@@ -780,7 +789,7 @@ func (fis *FSIndexSuite) TestCountRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			count, err := fis.store.CountRules(context.TODO(), tc.namespace, tc.flagKey)
+			count, err := fis.store.CountRules(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.count, count)
@@ -790,7 +799,7 @@ func (fis *FSIndexSuite) TestCountRules() {
 
 type FSWithoutIndexSuite struct {
 	suite.Suite
-	store storage.Store
+	store storage.ReadOnlyStore
 }
 
 func TestFSWithoutIndex(t *testing.T) {
@@ -809,16 +818,16 @@ func TestFSWithoutIndex(t *testing.T) {
 func (fis *FSWithoutIndexSuite) TestCountFlag() {
 	t := fis.T()
 
-	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
+	flagCount, err := fis.store.CountFlags(context.TODO(), storage.NewNamespace("production"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 14, int(flagCount))
 
-	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
+	flagCount, err = fis.store.CountFlags(context.TODO(), storage.NewNamespace("sandbox"))
 	require.NoError(t, err)
 	assert.Equal(t, 14, int(flagCount))
 
-	flagCount, err = fis.store.CountFlags(context.TODO(), "staging")
+	flagCount, err = fis.store.CountFlags(context.TODO(), storage.NewNamespace("staging"))
 	require.NoError(t, err)
 	assert.Equal(t, 14, int(flagCount))
 }
@@ -974,7 +983,7 @@ func (fis *FSWithoutIndexSuite) TestGetFlag() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flag, err := fis.store.GetFlag(context.TODO(), tc.namespace, tc.flagKey)
+			flag, err := fis.store.GetFlag(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.flag.Key, flag.Key)
@@ -1031,7 +1040,8 @@ func (fis *FSWithoutIndexSuite) TestListFlags() {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListFlags(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			flags, err := fis.store.ListFlags(context.TODO(), storage.ListWithOptions(storage.NewNamespace(tc.namespace),
+				storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithLimit(5), storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -1080,7 +1090,7 @@ func (fis *FSWithoutIndexSuite) TestGetNamespace() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ns, err := fis.store.GetNamespace(context.TODO(), tc.namespaceKey)
+			ns, err := fis.store.GetNamespace(context.TODO(), storage.NewNamespace(tc.namespaceKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.fliptNs.Key, ns.Key)
@@ -1092,7 +1102,7 @@ func (fis *FSWithoutIndexSuite) TestGetNamespace() {
 func (fis *FSWithoutIndexSuite) TestCountNamespaces() {
 	t := fis.T()
 
-	namespacesCount, err := fis.store.CountNamespaces(context.TODO())
+	namespacesCount, err := fis.store.CountNamespaces(context.TODO(), storage.ReferenceRequest{})
 	require.NoError(t, err)
 
 	assert.Equal(t, 4, int(namespacesCount))
@@ -1101,7 +1111,8 @@ func (fis *FSWithoutIndexSuite) TestCountNamespaces() {
 func (fis *FSWithoutIndexSuite) TestListNamespaces() {
 	t := fis.T()
 
-	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.WithLimit(3), storage.WithPageToken("0"))
+	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.ListWithOptions(storage.ReferenceRequest{},
+		storage.ListWithQueryParamOptions[storage.ReferenceRequest](storage.WithLimit(3), storage.WithPageToken("0"))))
 	require.NoError(t, err)
 
 	assert.Len(t, namespaces.Results, 3)
@@ -1295,7 +1306,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			sgmt, err := fis.store.GetSegment(context.TODO(), tc.namespace, tc.segmentKey)
+			sgmt, err := fis.store.GetSegment(context.TODO(), storage.NewResource(tc.namespace, tc.segmentKey))
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.segment.Key, sgmt.Key)
@@ -1319,16 +1330,16 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 func (fis *FSWithoutIndexSuite) TestCountSegment() {
 	t := fis.T()
 
-	segmentCount, err := fis.store.CountSegments(context.TODO(), "production")
+	segmentCount, err := fis.store.CountSegments(context.TODO(), storage.NewNamespace("production"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 12, int(segmentCount))
 
-	segmentCount, err = fis.store.CountSegments(context.TODO(), "sandbox")
+	segmentCount, err = fis.store.CountSegments(context.TODO(), storage.NewNamespace("sandbox"))
 	require.NoError(t, err)
 	assert.Equal(t, 12, int(segmentCount))
 
-	segmentCount, err = fis.store.CountSegments(context.TODO(), "staging")
+	segmentCount, err = fis.store.CountSegments(context.TODO(), storage.NewNamespace("staging"))
 	require.NoError(t, err)
 	assert.Equal(t, 12, int(segmentCount))
 }
@@ -1369,7 +1380,8 @@ func (fis *FSWithoutIndexSuite) TestListSegments() {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListSegments(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			flags, err := fis.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(tc.namespace),
+				storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithLimit(5), storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -1409,7 +1421,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
+			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Len(t, rollouts, 2)
@@ -1513,7 +1525,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.GetEvaluationRules(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey))
 			require.NoError(t, err)
 
 			assert.Len(t, rules, 1)
@@ -1567,11 +1579,11 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey)))
 			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
-			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rules.Results[0].Id))
 
 			require.NoError(t, err)
 
@@ -1584,17 +1596,17 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 func (fis *FSWithoutIndexSuite) TestCountRollouts() {
 	t := fis.T()
 
-	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), "production", "flag_boolean")
+	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), storage.NewResource("production", "flag_boolean"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, int(rolloutsCount))
 
-	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "sandbox", "flag_boolean")
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), storage.NewResource("sandbox", "flag_boolean"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, int(rolloutsCount))
 
-	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "staging", "flag_boolean")
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), storage.NewResource("staging", "flag_boolean"))
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, int(rolloutsCount))
@@ -1643,7 +1655,8 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRollouts() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rollouts, err := fis.store.ListRollouts(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			rollouts, err := fis.store.ListRollouts(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey),
+				storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -1652,7 +1665,7 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRollouts() {
 			require.NoError(t, err)
 
 			for _, rollout := range rollouts.Results {
-				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
+				r, err := fis.store.GetRollout(context.TODO(), storage.NewNamespace(tc.namespace), rollout.Id)
 				require.NoError(t, err)
 
 				assert.Equal(t, r, rollout)
@@ -1704,7 +1717,8 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			rules, err := fis.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(tc.namespace, tc.flagKey),
+				storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken(tc.pageToken))))
 			if tc.listError != nil {
 				assert.EqualError(t, err, tc.listError.Error())
 				return
@@ -1713,7 +1727,7 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 			require.NoError(t, err)
 
 			for _, rule := range rules.Results {
-				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
+				r, err := fis.store.GetRule(context.TODO(), storage.NewNamespace(tc.namespace), rule.Id)
 				require.NoError(t, err)
 
 				assert.Equal(t, r, rule)
@@ -1727,16 +1741,18 @@ func TestFS_Empty_Features_File(t *testing.T) {
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 
-	_, err = ss.ListFlags(context.TODO(), flipt.DefaultNamespace)
+	defaultList := storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace))
+	_, err = ss.ListFlags(context.TODO(), defaultList)
 	require.NoError(t, err)
 
-	_, err = ss.ListSegments(context.TODO(), flipt.DefaultNamespace)
+	_, err = ss.ListSegments(context.TODO(), defaultList)
 	require.NoError(t, err)
 
-	_, err = ss.ListRollouts(context.TODO(), flipt.DefaultNamespace, "no-flag")
+	defaultListByFlag := storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, "no-flag"))
+	_, err = ss.ListRollouts(context.TODO(), defaultListByFlag)
 	require.NoError(t, err)
 
-	_, err = ss.ListRules(context.TODO(), flipt.DefaultNamespace, "no-flag")
+	_, err = ss.ListRules(context.TODO(), defaultListByFlag)
 	require.NoError(t, err)
 }
 
@@ -1745,7 +1761,7 @@ func TestFS_YAML_Stream(t *testing.T) {
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 
-	ns, err := ss.ListNamespaces(context.TODO())
+	ns, err := ss.ListNamespaces(context.TODO(), storage.ListWithOptions(storage.ReferenceRequest{}))
 	require.NoError(t, err)
 
 	// 3 namespaces including default
@@ -1760,25 +1776,29 @@ func TestFS_YAML_Stream(t *testing.T) {
 		assert.Contains(t, namespaces, namespace)
 	}
 
-	fflags, err := ss.ListFlags(context.TODO(), "football")
+	var (
+		listFootball = storage.ListWithOptions(storage.NewNamespace("football"))
+		listFruit    = storage.ListWithOptions(storage.NewNamespace("fruit"))
+	)
+	fflags, err := ss.ListFlags(context.TODO(), listFootball)
 	require.NoError(t, err)
 
 	assert.Len(t, fflags.Results, 1)
 	assert.Equal(t, "team", fflags.Results[0].Key)
 
-	frflags, err := ss.ListFlags(context.TODO(), "fruit")
+	frflags, err := ss.ListFlags(context.TODO(), listFruit)
 	require.NoError(t, err)
 
 	assert.Len(t, frflags.Results, 1)
 	assert.Equal(t, "apple", frflags.Results[0].Key)
 
-	fsegments, err := ss.ListSegments(context.TODO(), "football")
+	fsegments, err := ss.ListSegments(context.TODO(), listFootball)
 	require.NoError(t, err)
 
 	assert.Len(t, fsegments.Results, 1)
 	assert.Equal(t, "internal", fsegments.Results[0].Key)
 
-	frsegments, err := ss.ListSegments(context.TODO(), "fruit")
+	frsegments, err := ss.ListSegments(context.TODO(), listFruit)
 	require.NoError(t, err)
 
 	assert.Len(t, frsegments.Results, 1)

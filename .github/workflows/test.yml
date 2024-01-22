@@ -8,19 +8,16 @@ on:
 
 env:
   GO_VERSION: "1.21"
-  DAGGER_VERSION: "0.8.3"
+  DAGGER_VERSION: "0.9.4"
 
 jobs:
   test:
     name: "Tests (Go)"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        database: ["mysql", "postgres", "cockroachdb", "sqlite", "libsql"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -36,8 +33,8 @@ jobs:
         with:
           install-only: true
 
-      - name: Unit Test ${{ matrix.database }}
-        run: mage dagger:run "test:database ${{ matrix.database }}"
+      - name: Unit Test
+        run: mage dagger:run "test:unit"
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
@@ -48,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -83,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true

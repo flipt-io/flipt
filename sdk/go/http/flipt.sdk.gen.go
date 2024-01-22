@@ -86,7 +86,8 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 
 func (x *FliptClient) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
 	if err != nil {
 		return nil, err
@@ -117,6 +118,7 @@ func (x *FliptClient) ListNamespaces(ctx context.Context, v *flipt.ListNamespace
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/namespaces", body)
 	if err != nil {
 		return nil, err
@@ -234,7 +236,8 @@ func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamesp
 
 func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ...grpc.CallOption) (*flipt.Flag, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
@@ -265,6 +268,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
@@ -473,7 +477,8 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 
 func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ...grpc.CallOption) (*flipt.Rule, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
@@ -504,6 +509,7 @@ func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
@@ -653,7 +659,8 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 
 func (x *FliptClient) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest, _ ...grpc.CallOption) (*flipt.Rollout, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
@@ -683,6 +690,7 @@ func (x *FliptClient) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequ
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("pageToken", v.PageToken)
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
@@ -924,7 +932,8 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 
 func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest, _ ...grpc.CallOption) (*flipt.Segment, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
@@ -955,6 +964,7 @@ func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequ
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
+	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err

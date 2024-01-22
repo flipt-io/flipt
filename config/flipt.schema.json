@@ -143,8 +143,7 @@
                   "required": []
                 },
                 "email_matches": {
-                  "type": ["array", "null"],
-                  "additionalProperties": false
+                  "type": ["array", "null"]
                 }
               },
               "required": [],
@@ -197,9 +196,43 @@
                 "scopes": {
                   "type": ["array", "null"],
                   "items": { "type": "string" }
+                },
+                "allowed_organizations": {
+                  "type": ["array", "null"]
                 }
               },
+              "required": [],
               "title": "Github",
+              "additionalProperties": false
+            },
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "validate_claims": {
+                  "type": "object",
+                  "properties": {
+                    "audiences": {
+                      "type": ["array", "null"],
+                      "items": { "type": "string" }
+                    },
+                    "issuer": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "jwks_url": {
+                  "type": "string"
+                },
+                "public_key_file": {
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "title": "JWT",
               "additionalProperties": false
             }
           },
@@ -487,7 +520,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["database", "git", "local", "object"],
+          "enum": ["database", "git", "local", "object", "oci"],
           "default": "database"
         },
         "read_only": {
@@ -610,7 +643,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["s3"],
+              "enum": ["s3", "azblob", "googlecloud"],
               "default": "s3"
             },
             "s3": {
@@ -643,6 +676,56 @@
                 }
               },
               "title": "S3"
+            },
+            "azblob": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "container": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
+                "poll_interval": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": "1m"
+                }
+              },
+              "title": "Azure Blob Storage"
+            },
+            "googlecloud": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "bucket": {
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "poll_interval": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": "1m"
+                }
+              },
+              "title": "Google Cloud Storage"
             }
           },
           "title": "Object"
@@ -802,6 +885,18 @@
         },
         "cert_key": {
           "type": "string"
+        },
+        "grpc_conn_max_idle_time": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "grpc_conn_max_age": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "grpc_conn_max_age_grace": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
         }
       },
       "required": [],

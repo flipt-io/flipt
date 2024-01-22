@@ -12,7 +12,7 @@ import (
 )
 
 type EvaluationStore interface {
-	ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error)
+	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
 	storage.EvaluationStore
 }
 
@@ -92,6 +92,7 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
+		reference    = r.Reference
 		resp         = &evaluation.EvaluationNamespaceSnapshot{
 			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
@@ -107,8 +108,10 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 	for remaining {
 		res, err := srv.store.ListFlags(
 			ctx,
-			namespaceKey,
-			storage.WithPageToken(nextPage),
+			storage.ListWithOptions(
+				storage.NewNamespace(namespaceKey, storage.WithReference(reference)),
+				storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithPageToken(nextPage)),
+			),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("getting flags: %w", err)
@@ -129,8 +132,9 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 				UpdatedAt:   f.UpdatedAt,
 			}
 
+			flagKey := storage.NewResource(namespaceKey, f.Key, storage.WithReference(reference))
 			if f.Type == flipt.FlagType_VARIANT_FLAG_TYPE {
-				rules, err := srv.store.GetEvaluationRules(ctx, namespaceKey, f.Key)
+				rules, err := srv.store.GetEvaluationRules(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rules for flag %q: %w", f.Key, err)
 				}
@@ -167,7 +171,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 							rule.Segments = append(rule.Segments, ss)
 						}
 
-						distributions, err := srv.store.GetEvaluationDistributions(ctx, r.ID)
+						distributions, err := srv.store.GetEvaluationDistributions(ctx, storage.NewID(r.ID, storage.WithReference(reference)))
 						if err != nil {
 							return nil, fmt.Errorf("getting distributions for rule %q: %w", r.ID, err)
 						}
@@ -190,7 +194,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			}
 
 			if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
-				rollouts, err := srv.store.GetEvaluationRollouts(ctx, namespaceKey, f.Key)
+				rollouts, err := srv.store.GetEvaluationRollouts(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
 				}

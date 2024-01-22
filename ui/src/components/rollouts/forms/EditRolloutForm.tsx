@@ -111,8 +111,8 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
         ? 'true'
         : 'false'
       : rollout.segment?.value
-      ? 'true'
-      : 'false';
+        ? 'true'
+        : 'false';
 
   return (
     <Formik

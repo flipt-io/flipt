@@ -58,7 +58,7 @@ func TestGetEvaluationRules(t *testing.T) {
 		store         = &common.StoreMock{}
 	)
 
-	store.On("GetEvaluationRules", context.TODO(), "ns", "flag-1").Return(
+	store.On("GetEvaluationRules", context.TODO(), storage.NewResource("ns", "flag-1")).Return(
 		expectedRules, nil,
 	)
 
@@ -68,7 +68,7 @@ func TestGetEvaluationRules(t *testing.T) {
 		cachedStore = NewStore(store, cacher, logger)
 	)
 
-	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
+	rules, err := cachedStore.GetEvaluationRules(context.TODO(), storage.NewResource("ns", "flag-1"))
 	assert.Nil(t, err)
 	assert.Equal(t, expectedRules, rules)
 
@@ -78,24 +78,72 @@ func TestGetEvaluationRules(t *testing.T) {
 
 func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
-		expectedRules = []*storage.EvaluationRule{{ID: "123"}}
+		expectedRules = []*storage.EvaluationRule{{Rank: 12}}
 		store         = &common.StoreMock{}
 	)
 
-	store.AssertNotCalled(t, "GetEvaluationRules", context.TODO(), "ns", "flag-1")
+	store.AssertNotCalled(t, "GetEvaluationRules", context.TODO(), storage.NewResource("ns", "flag-1"))
 
 	var (
 		cacher = &cacheSpy{
 			cached:      true,
-			cachedValue: []byte(`[{"id":"123"}]`),
+			cachedValue: []byte(`[{"rank":12}]`),
 		}
 
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
 	)
 
-	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
+	rules, err := cachedStore.GetEvaluationRules(context.TODO(), storage.NewResource("ns", "flag-1"))
 	assert.Nil(t, err)
 	assert.Equal(t, expectedRules, rules)
 	assert.Equal(t, "s:er:ns:flag-1", cacher.cacheKey)
+}
+
+func TestGetEvaluationRollouts(t *testing.T) {
+	var (
+		expectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}
+		store            = &common.StoreMock{}
+	)
+
+	store.On("GetEvaluationRollouts", context.TODO(), storage.NewResource("ns", "flag-1")).Return(
+		expectedRollouts, nil,
+	)
+
+	var (
+		cacher      = &cacheSpy{}
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
+	)
+
+	rollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), storage.NewResource("ns", "flag-1"))
+	assert.Nil(t, err)
+	assert.Equal(t, expectedRollouts, rollouts)
+
+	assert.Equal(t, "s:ero:ns:flag-1", cacher.cacheKey)
+	assert.Equal(t, []byte(`[{"rank":1}]`), cacher.cachedValue)
+}
+
+func TestGetEvaluationRolloutsCached(t *testing.T) {
+	var (
+		expectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}
+		store            = &common.StoreMock{}
+	)
+
+	store.AssertNotCalled(t, "GetEvaluationRollouts", context.TODO(), storage.NewResource("ns", "flag-1"))
+
+	var (
+		cacher = &cacheSpy{
+			cached:      true,
+			cachedValue: []byte(`[{"rank":1}]`),
+		}
+
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
+	)
+
+	rollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), storage.NewResource("ns", "flag-1"))
+	assert.Nil(t, err)
+	assert.Equal(t, expectedRollouts, rollouts)
+	assert.Equal(t, "s:ero:ns:flag-1", cacher.cacheKey)
 }

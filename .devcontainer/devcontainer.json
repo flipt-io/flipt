@@ -18,7 +18,9 @@
         "go.useLanguageServer": true,
         "go.formatTool": "goimports",
         "go.lintTool": "golangci-lint",
-        "go.lintFlags": ["--fast"]
+        "go.lintFlags": [
+          "--fast"
+        ]
       },
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
@@ -42,8 +44,8 @@
       "onAutoForward": "notify"
     }
   },
-  // Uncomment the next line to run commands after the container is created - for example installing curl.
-  "postCreateCommand": "cat .devcontainer/welcome-message.txt"
+  "postCreateCommand": "mage bootstrap",
+  "postStartCommand": "cat .devcontainer/welcome-message.txt"
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
   // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
   // Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.

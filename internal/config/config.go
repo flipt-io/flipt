@@ -12,11 +12,11 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-	"github.com/uber/jaeger-client-go"
 	"golang.org/x/exp/constraints"
 )
 
 const Version = "1.0"
+const EnvPrefix = "FLIPT"
 
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
@@ -75,7 +75,7 @@ func Dir() (string, error) {
 
 func Load(path string) (*Result, error) {
 	v := viper.New()
-	v.SetEnvPrefix("FLIPT")
+	v.SetEnvPrefix(EnvPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
@@ -437,7 +437,7 @@ func Default() *Config {
 		panic(err)
 	}
 
-	dbPath := filepath.Join(dbRoot, "flipt.db")
+	dbPath := filepath.ToSlash(filepath.Join(dbRoot, "flipt.db"))
 
 	return &Config{
 		Log: LogConfig{
@@ -507,8 +507,8 @@ func Default() *Config {
 			Enabled:  false,
 			Exporter: TracingJaeger,
 			Jaeger: JaegerTracingConfig{
-				Host: jaeger.DefaultUDPSpanServerHost,
-				Port: jaeger.DefaultUDPSpanServerPort,
+				Host: "localhost",
+				Port: 6831,
 			},
 			Zipkin: ZipkinTracingConfig{
 				Endpoint: "http://localhost:9411/api/v2/spans",

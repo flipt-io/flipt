@@ -45,7 +45,6 @@ The test section of the Mage targets handles running Flipts various unit tests w
 ```sh
   test:all             runs Flipt's unit test suite against all the databases Flipt supports.
   test:cli             runs a suite of test cases which exercise the `flipt` binary CLI.
-  test:database        runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
   test:integration     runs the entire integration test suite (one of ["*", "list", "<test-case>"] use "list" to see available cases).
   test:ui              runs the entire integration test suite for the UI.
   test:unit            runs the base suite of tests for all of Flipt.
@@ -55,10 +54,8 @@ The test section of the Mage targets handles running Flipts various unit tests w
 
 `mage test:all` runs the entire suite for each database concurrently.
 `mage test:unit` runs the entire test suite with `SQLite` as the backing database.
-`mage test:database <db>` runs the entire test suite with the desired database (`sqlite`, `postgres`, `mysql` and `cockroach` available).
 
 These tests run [Flipts Go suite](testing/test.go) of unit tests.
-There are a number of ways to invoke them with different backing databases.
 
 ### Integration Tests (End to End)
 
@@ -86,7 +83,7 @@ The `hack` namespace within the Mage targets can be used to run various tasks th
 
 `mage hack:loadTest` runs a load test against a running instance of Flipt using [Pyroscope](https://pyroscope.io) and vegeta.
 
-The test will import data from [testdata/default.yaml](testing/integration/readonly/testdata/default.yaml) into Flipt and then run a series of evaluation requests against a running instance of Flipt for a period of 60 seconds.
+The test will import data from [testdata/main/default.yaml](testing/integration/readonly/testdata/main/default.yaml) into Flipt and then run a series of evaluation requests against a running instance of Flipt for a period of 60 seconds.
 
 After running this command, the results will be available in the `./build/hack/out/profiles` directory.
 

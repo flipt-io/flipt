@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.uber.org/zap"
 )
 
 type exportCommand struct {
@@ -42,14 +41,14 @@ func newExportCommand() *cobra.Command {
 		&export.address,
 		"address", "a",
 		"",
-		"address of remote Flipt instance to export from (defaults to direct DB export if not supplied)",
+		"address of Flipt instance (defaults to direct DB export if not supplied).",
 	)
 
 	cmd.Flags().StringVarP(
 		&export.token,
 		"token", "t",
 		"",
-		"client token used to authenticate access to remote Flipt instance when exporting.",
+		"client token used to authenticate access to Flipt instance.",
 	)
 
 	cmd.Flags().StringVarP(
@@ -86,15 +85,12 @@ func newExportCommand() *cobra.Command {
 func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	var (
 		// default to stdout
-		out    io.Writer = os.Stdout
-		logger           = zap.Must(zap.NewDevelopment())
-		enc              = ext.EncodingYML
+		out io.Writer = os.Stdout
+		enc           = ext.EncodingYML
 	)
 
 	// export to file
 	if c.filename != "" {
-		logger.Debug("exporting", zap.String("destination_path", c.filename))
-
 		fi, err := os.Create(c.filename)
 		if err != nil {
 			return fmt.Errorf("creating output file: %w", err)

@@ -13,6 +13,7 @@ $ flipt --config /path/to/config.yml migrate
 Available Commands:
   bundle      Manage Flipt bundles
   config      Manage Flipt configuration
+  evaluate    Evaluate a flag
   export      Export Flipt data to file/stdout
   help        Help about any command
   import      Import Flipt data from file/stdin

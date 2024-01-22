@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -133,6 +135,7 @@ func (c *AuthenticationConfig) SessionEnabled() bool {
 
 func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
+
 	for _, info := range c.Methods.AllMethods() {
 		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
 		if info.Cleanup == nil {
@@ -167,6 +170,12 @@ func (c *AuthenticationConfig) validate() error {
 		// domain cookies are not allowed to have a scheme or port
 		// https://github.com/golang/go/issues/28297
 		c.Session.Domain = host
+	}
+
+	for _, info := range c.Methods.AllMethods() {
+		if err := info.validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -212,6 +221,7 @@ type AuthenticationMethods struct {
 	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github" yaml:"github,omitempty"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
+	JWT        AuthenticationMethod[AuthenticationMethodJWTConfig]        `json:"jwt,omitempty" mapstructure:"jwt" yaml:"jwt,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -221,6 +231,7 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 		a.Github.info(),
 		a.OIDC.info(),
 		a.Kubernetes.info(),
+		a.JWT.info(),
 	}
 }
 
@@ -245,6 +256,8 @@ type StaticAuthenticationMethodInfo struct {
 
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
+	// used for auth method specific validation
+	validate func() error
 
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
@@ -284,6 +297,7 @@ func (a AuthenticationMethodInfo) Name() string {
 type AuthenticationMethodInfoProvider interface {
 	setDefaults(map[string]any)
 	info() AuthenticationMethodInfo
+	validate() error
 }
 
 // AuthenticationMethod is a container for authentication methods.
@@ -309,6 +323,7 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 		Cleanup:                  a.Cleanup,
 
 		setDefaults: a.setDefaults,
+		validate:    a.validate,
 		setEnabled: func() {
 			a.Enabled = true
 		},
@@ -316,6 +331,14 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 			a.Cleanup = &c
 		},
 	}
+}
+
+func (a *AuthenticationMethod[C]) validate() error {
+	if !a.Enabled {
+		return nil
+	}
+
+	return a.Method.validate()
 }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
@@ -335,6 +358,8 @@ func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 		SessionCompatible: false,
 	}
 }
+
+func (a AuthenticationMethodTokenConfig) validate() error { return nil }
 
 // AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
 // bootstrap process for the authentication method "token".
@@ -380,6 +405,16 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	return info
 }
 
+func (a AuthenticationMethodOIDCConfig) validate() error {
+	for provider, config := range a.Providers {
+		if err := config.validate(); err != nil {
+			return fmt.Errorf("provider %q: %w", provider, err)
+		}
+	}
+
+	return nil
+}
+
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
 	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
@@ -388,6 +423,22 @@ type AuthenticationMethodOIDCProvider struct {
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+}
+
+func (a AuthenticationMethodOIDCProvider) validate() error {
+	if a.ClientID == "" {
+		return errFieldWrap("client_id", errValidationRequired)
+	}
+
+	if a.ClientSecret == "" {
+		return errFieldWrap("client_secret", errValidationRequired)
+	}
+
+	if a.RedirectAddress == "" {
+		return errFieldWrap("redirect_address", errValidationRequired)
+	}
+
+	return nil
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
@@ -426,13 +477,16 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 	}
 }
 
+func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
+
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
-	ClientId        string   `json:"-" mapstructure:"client_id" yaml:"-"`
-	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
-	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	ClientId             string   `json:"-" mapstructure:"client_id" yaml:"-"`
+	ClientSecret         string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress      string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes               []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	AllowedOrganizations []string `json:"allowedOrganizations,omitempty" mapstructure:"allowed_organizations" yaml:"allowed_organizations,omitempty"`
 }
 
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}
@@ -452,4 +506,98 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 	info.Metadata, _ = structpb.NewStruct(metadata)
 
 	return info
+}
+
+func (a AuthenticationMethodGithubConfig) validate() error {
+	errWrap := func(err error) error {
+		return fmt.Errorf("provider %q: %w", "github", err)
+	}
+
+	if a.ClientId == "" {
+		return errWrap(errFieldWrap("client_id", errValidationRequired))
+	}
+
+	if a.ClientSecret == "" {
+		return errWrap(errFieldWrap("client_secret", errValidationRequired))
+	}
+
+	if a.RedirectAddress == "" {
+		return errWrap(errFieldWrap("redirect_address", errValidationRequired))
+	}
+
+	// ensure scopes contain read:org if allowed organizations is not empty
+	if len(a.AllowedOrganizations) > 0 && !slices.Contains(a.Scopes, "read:org") {
+		return errWrap(errFieldWrap("scopes", fmt.Errorf("must contain read:org when allowed_organizations is not empty")))
+	}
+
+	return nil
+}
+
+type AuthenticationMethodJWTConfig struct {
+	// ValidateClaims is used to validate the claims of the JWT token.
+	ValidateClaims struct {
+		// Issuer is the issuer of the JWT token.
+		Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
+		// Audiences is the audience of the JWT token.
+		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
+	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
+	// JWKsURL is the URL to the JWKS endpoint.
+	// This is used to fetch the public keys used to validate the JWT token.
+	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
+	// PublicKeyFile is the path to the public PEM encoded key file on disk.
+	PublicKeyFile string `json:"-" mapstructure:"public_key_file" yaml:"public_key_file,omitempty"`
+}
+
+func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "jwt".
+func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_JWT,
+		SessionCompatible: false,
+	}
+}
+
+func (a AuthenticationMethodJWTConfig) validate() error {
+	setFields := nonEmpty([]string{a.JWKSURL, a.PublicKeyFile})
+	if setFields < 1 {
+		return fmt.Errorf("one of jwks_url or public_key_file is required")
+	}
+
+	if setFields > 1 {
+		return fmt.Errorf("only one of jwks_url or public_key_file can be set")
+	}
+
+	if a.JWKSURL != "" {
+		// ensure jwks url is valid
+		if _, err := url.Parse(a.JWKSURL); err != nil {
+			return errFieldWrap("jwks_url", err)
+		}
+	}
+
+	if a.PublicKeyFile != "" {
+		// ensure public key file exists
+		if _, err := os.Stat(a.PublicKeyFile); err != nil {
+			return errFieldWrap("public_key_file", err)
+		}
+	}
+
+	return nil
+}
+
+func nonEmpty(values []string) int {
+	set := filter(values, func(s string) bool {
+		return s != ""
+	})
+
+	return len(set)
+}
+
+func filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
 }

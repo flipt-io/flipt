@@ -2,10 +2,14 @@ package testing
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path"
 	"strings"
@@ -13,12 +17,29 @@ import (
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
+	"github.com/go-jose/go-jose/v3"
+	jjwt "github.com/go-jose/go-jose/v3/jwt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
+	"github.com/hashicorp/cap/jwt"
+	"go.flipt.io/stew/config"
 	"golang.org/x/sync/errgroup"
+	"gopkg.in/yaml.v3"
 )
 
 const bootstrapToken = "s3cr3t"
+
+var priv *rsa.PrivateKey
+
+func init() {
+	// Generate a key to sign JWTs with throughout most test cases.
+	// It can be slow sometimes to generate a 4096-bit RSA key, so we only do it once.
+	var err error
+	priv, err = rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		panic(err)
+	}
+}
 
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
@@ -27,22 +48,29 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		"api":           api,
+		"api/sqlite":    withSQLite(api),
+		"api/libsql":    withLibSQL(api),
+		"api/postgres":  withPostgres(api),
+		"api/mysql":     withMySQL(api),
+		"api/cockroach": withCockroach(api),
 		"api/cache":     cache,
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
 		"fs/oci":        oci,
+		"fs/azblob":     azblob,
+		"fs/gcs":        gcs,
 		"import/export": importExport,
 	}
 )
 
 type testConfig struct {
-	name      string
-	namespace string
-	address   string
-	auth      authConfig
-	port      int
+	name       string
+	namespace  string
+	address    string
+	auth       authConfig
+	port       int
+	references bool
 }
 
 type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
@@ -68,12 +96,24 @@ type authConfig int
 
 const (
 	noAuth authConfig = iota
-	authNoNamespace
-	authNamespaced
+	staticAuth
+	staticAuthNamespaced
+	jwtAuth
 )
 
 func (a authConfig) enabled() bool {
 	return a != noAuth
+}
+
+func (a authConfig) method() string {
+	switch a {
+	case staticAuth, staticAuthNamespaced:
+		return "static"
+	case jwtAuth:
+		return "jwt"
+	default:
+		return ""
+	}
 }
 
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
@@ -95,7 +135,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespaced} {
+			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced, jwtAuth} {
+				auth := auth
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
 					namespace: namespace,
@@ -107,18 +148,18 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				switch auth {
 				case noAuth:
 					config.name = fmt.Sprintf("%s without auth", config.name)
-				case authNoNamespace:
-					config.name = fmt.Sprintf("%s with auth no namespaced token", config.name)
-				case authNamespaced:
-					config.name = fmt.Sprintf("%s with auth namespaced token", config.name)
+				case staticAuth:
+					config.name = fmt.Sprintf("%s with static auth token", config.name)
+				case staticAuthNamespaced:
+					config.name = fmt.Sprintf("%s with static auth namespaced token", config.name)
+				case jwtAuth:
+					config.name = fmt.Sprintf("%s with jwt auth", config.name)
 				}
 
 				configs = append(configs, config)
 			}
 		}
 	}
-
-	rand.Seed(time.Now().Unix())
 
 	var g errgroup.Group
 
@@ -131,10 +172,24 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			flipt := flipt
 			if config.auth.enabled() {
+				bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+				if err != nil {
+					return err
+				}
+
+				bytes = pem.EncodeToMemory(&pem.Block{
+					Type:  "public key",
+					Bytes: bytes,
+				})
+
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
 			}
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -178,6 +233,72 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }
 
+func withSQLite(fn testCaseFn) testCaseFn {
+	return fn
+}
+
+func withLibSQL(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.WithEnvVariable("FLIPT_DB_URL", "libsql://file:/etc/flipt/flipt.db"), conf)
+	}
+}
+
+func withPostgres(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithServiceBinding("postgres", client.Container().
+				From("postgres:alpine").
+				WithEnvVariable("POSTGRES_PASSWORD", "password").
+				WithExposedPort(5432).
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				WithExec(nil).
+				AsService()),
+			conf,
+		)
+	}
+}
+
+func withMySQL(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable(
+				"FLIPT_DB_URL",
+				"mysql://flipt:password@mysql:3306/flipt_test?multiStatements=true",
+			).
+			WithServiceBinding("mysql", client.Container().
+				From("mysql:8").
+				WithEnvVariable("MYSQL_USER", "flipt").
+				WithEnvVariable("MYSQL_PASSWORD", "password").
+				WithEnvVariable("MYSQL_DATABASE", "flipt_test").
+				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				WithExposedPort(3306).
+				WithExec(nil).
+				AsService()),
+			conf,
+		)
+	}
+}
+
+func withCockroach(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
+			WithServiceBinding("cockroach", client.Container().
+				From("cockroachdb/cockroach:latest-v21.2").
+				WithEnvVariable("COCKROACH_USER", "root").
+				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				WithExposedPort(26257).
+				WithExec([]string{"start-single-node", "--insecure"}).
+				AsService()),
+			conf,
+		)
+
+	}
+}
+
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
@@ -187,13 +308,13 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 }
 
 const (
-	testdataDir     = "build/testing/integration/readonly/testdata"
-	testdataPathFmt = testdataDir + "/%s.yaml"
+	rootTestdataDir           = "build/testing/integration/readonly/testdata"
+	singleRevisionTestdataDir = rootTestdataDir + "/main"
 )
 
 func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
-		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
@@ -208,20 +329,66 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithExposedPort(3000).
 		WithExec(nil)
 
-	_, err := base.
-		WithServiceBinding("gitea", gitea).
-		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", testdataDir}).
+	stew := config.Config{
+		URL: "http://gitea:3000",
+		Admin: struct {
+			Username string "json:\"username\""
+			Email    string "json:\"email\""
+			Password string "json:\"password\""
+		}{
+			Username: "root",
+			Password: "password",
+			Email:    "dev@flipt.io",
+		},
+		Repositories: []config.Repository{
+			{
+				Name: "features",
+				Contents: []config.Content{
+					{
+						Branch:  "main",
+						Path:    "/work/base/main",
+						Message: "feat: add main directory contents",
+					},
+					{
+						Branch:  "alternate",
+						Path:    "/work/base/alternate",
+						Message: "feat: add alternate directory contents",
+					},
+				},
+			},
+		},
+	}
+
+	contents, err := yaml.Marshal(&stew)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	_, err = client.Container().
+		From("ghcr.io/flipt-io/stew:latest").
+		WithWorkdir("/work").
+		WithDirectory("/work/base", base.Directory(rootTestdataDir)).
+		WithNewFile("/etc/stew/config.yml", dagger.ContainerWithNewFileOpts{
+			Contents: string(contents),
+		}).
+		WithServiceBinding("gitea", gitea.AsService()).
+		WithExec(nil).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
 	}
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", gitea.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
+		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_USERNAME", "root").
+		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_PASSWORD", "password").
 		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	// Git backend supports arbitrary references
+	conf.references = true
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
@@ -232,20 +399,21 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-		WithExec([]string{"server", "/data", "--address", ":9009"})
+		WithEnvVariable("MINIO_BROWSER", "off").
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
 
 	_, err := base.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", testdataDir}).
+		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", singleRevisionTestdataDir}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
 	}
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
@@ -295,9 +463,9 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithNewFile("/etc/zot/config.json", dagger.ContainerWithNewFileOpts{Contents: zotConfig})
 
 	if _, err := flipt.
-		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
 		WithWorkdir("/tmp/testdata").
-		WithServiceBinding("zot", zot).
+		WithServiceBinding("zot", zot.AsService()).
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
@@ -309,7 +477,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	}
 
 	flipt = flipt.
-		WithServiceBinding("zot", zot).
+		WithServiceBinding("zot", zot.AsService()).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
 		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
@@ -333,7 +501,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			ns = conf.namespace
 		}
 
-		seed := base.File(fmt.Sprintf(testdataPathFmt, ns))
+		seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
 
 		var (
 			// create unique instance for test case
@@ -348,7 +516,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
 			WithFile("import.yaml", seed).
-			WithServiceBinding("flipt", fliptToTest).
+			WithServiceBinding("flipt", fliptToTest.AsService()).
 			// it appears it takes a little while for Flipt to come online
 			// For the go tests they have to compile and that seems to be enough
 			// time for the target Flipt to come up.
@@ -383,7 +551,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		// use target flipt binary to invoke import
 		generated, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", fliptToTest).
+			WithServiceBinding("flipt", fliptToTest.AsService()).
 			WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
 			File("/tmp/output.yaml").
 			Contents(ctx)
@@ -412,20 +580,120 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			flags = append(flags, "--flipt-namespace", conf.namespace)
 		}
 
+		if conf.references {
+			flags = append(flags, "--flipt-supports-references")
+		}
+
 		if conf.auth.enabled() {
-			flags = append(flags, "--flipt-token", bootstrapToken)
-			if conf.auth == authNamespaced {
-				flags = append(flags, "--flipt-create-namespaced-token")
+			flags = append(flags, "--flipt-token-type", conf.auth.method())
+
+			switch conf.auth.method() {
+			case "static":
+				flags = append(flags, "--flipt-token", bootstrapToken)
+				if conf.auth == staticAuthNamespaced {
+					flags = append(flags, "--flipt-create-namespaced-token")
+				}
+			case "jwt":
+				var (
+					now        = time.Now()
+					nowUnix    = float64(now.Unix())
+					futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+				)
+
+				token := signJWT(priv, map[string]interface{}{
+					"iss": "https://flipt.io",
+					"iat": nowUnix,
+					"exp": futureUnix,
+				})
+
+				flags = append(flags, "--flipt-token", token)
 			}
 		}
 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt).
+			WithServiceBinding("flipt", flipt.AsService()).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err
 	}
+}
+
+// azurite simulates the Azure blob service
+func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		AsService()
+
+	_, err := base.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithExec([]string{"go", "run", "./build/internal/cmd/azurite/...", "-url", "http://azurite:10000/devstoreaccount1", "-testdata-dir", singleRevisionTestdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "azblob").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_CONTAINER", "testdata").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
+// gcs simulates the Google Cloud Storage service
+func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	gcs := client.Container().
+		From("fsouza/fake-gcs-server").
+		WithExposedPort(4443).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		AsService()
+
+	_, err := base.
+		WithServiceBinding("gcs", gcs).
+		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
+		WithExec([]string{"go", "run", "./build/internal/cmd/gcs/...", "-testdata-dir", singleRevisionTestdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("gcs", gcs).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "googlecloud").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_GOOGLECLOUD_BUCKET", "testdata").
+		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
+func signJWT(key crypto.PrivateKey, claims interface{}) string {
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.SignatureAlgorithm(string(jwt.RS256)), Key: key},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
+
+	raw, err := jjwt.Signed(sig).
+		Claims(claims).
+		CompactSerialize()
+	if err != nil {
+		panic(err)
+	}
+
+	return raw
 }

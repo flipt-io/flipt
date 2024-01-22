@@ -238,8 +238,8 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated tracing jaeger enabled",
-			path: "./testdata/deprecated/tracing_jaeger_enabled.yml",
+			name: "deprecated tracing jaeger",
+			path: "./testdata/deprecated/tracing_jaeger.yml",
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Tracing.Enabled = true
@@ -247,14 +247,8 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 			warnings: []string{
-				"\"tracing.jaeger.enabled\" is deprecated. Please use 'tracing.enabled' and 'tracing.exporter' instead.",
+				"\"tracing.exporter.jaeger\" is deprecated and will be removed in a future release.",
 			},
-		},
-		{
-			name:     "deprecated experimental filesystem_storage",
-			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
-			expected: Default,
-			warnings: []string{"\"experimental.filesystem_storage\" is deprecated. The experimental filesystem storage backend has graduated to a stable feature. Please use 'storage' instead."},
 		},
 		{
 			name: "cache no backend set",
@@ -444,6 +438,61 @@ func TestLoad(t *testing.T) {
 				}
 				return cfg
 			},
+		},
+		{
+			name:    "authentication github requires read:org scope when allowing orgs",
+			path:    "./testdata/authentication/github_missing_org_scope.yml",
+			wantErr: errors.New("provider \"github\": field \"scopes\": must contain read:org when allowed_organizations is not empty"),
+		},
+		{
+			name:    "authentication github missing client id",
+			path:    "./testdata/authentication/github_missing_client_id.yml",
+			wantErr: errors.New("provider \"github\": field \"client_id\": non-empty value is required"),
+		},
+		{
+			name:    "authentication github missing client secret",
+			path:    "./testdata/authentication/github_missing_client_secret.yml",
+			wantErr: errors.New("provider \"github\": field \"client_secret\": non-empty value is required"),
+		},
+		{
+			name:    "authentication github missing client id",
+			path:    "./testdata/authentication/github_missing_redirect_address.yml",
+			wantErr: errors.New("provider \"github\": field \"redirect_address\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client id",
+			path:    "./testdata/authentication/oidc_missing_client_id.yml",
+			wantErr: errors.New("provider \"foo\": field \"client_id\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client secret",
+			path:    "./testdata/authentication/oidc_missing_client_secret.yml",
+			wantErr: errors.New("provider \"foo\": field \"client_secret\": non-empty value is required"),
+		},
+		{
+			name:    "authentication oidc missing client id",
+			path:    "./testdata/authentication/oidc_missing_redirect_address.yml",
+			wantErr: errors.New("provider \"foo\": field \"redirect_address\": non-empty value is required"),
+		},
+		{
+			name:    "authentication jwt public key file or jwks url required",
+			path:    "./testdata/authentication/jwt_missing_key_file_and_jwks_url.yml",
+			wantErr: errors.New("one of jwks_url or public_key_file is required"),
+		},
+		{
+			name:    "authentication jwt public key file and jwks url mutually exclusive",
+			path:    "./testdata/authentication/jwt_key_file_and_jwks_url.yml",
+			wantErr: errors.New("only one of jwks_url or public_key_file can be set"),
+		},
+		{
+			name:    "authentication jwks invalid url",
+			path:    "./testdata/authentication/jwt_invalid_jwks_url.yml",
+			wantErr: errors.New(`field "jwks_url": parse " http://localhost:8080/.well-known/jwks.json": first path segment in URL cannot contain colon`),
+		},
+		{
+			name:    "authentication jwt public key file not found",
+			path:    "./testdata/authentication/jwt_key_file_not_found.yml",
+			wantErr: errors.New(`field "public_key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
 		},
 		{
 			name: "advanced",
@@ -790,6 +839,65 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/invalid_object_storage_type_not_specified.yml",
 			wantErr: errors.New("object storage type must be specified"),
 		},
+		{
+			name:    "azblob config invalid",
+			path:    "./testdata/storage/azblob_invalid.yml",
+			wantErr: errors.New("azblob container must be specified"),
+		},
+		{
+			name: "azblob full config provided",
+			path: "./testdata/storage/azblob_full.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: AZBlobObjectSubStorageType,
+						AZBlob: &AZBlob{
+							Container:    "testdata",
+							Endpoint:     "https//devaccount.blob.core.windows.net",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "gs config invalid",
+			path:    "./testdata/storage/gs_invalid.yml",
+			wantErr: errors.New("googlecloud bucket must be specified"),
+		},
+		{
+			name: "gs full config provided",
+			path: "./testdata/storage/gs_full.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: GSBlobObjectSubStorageType,
+						GS: &GS{
+							Bucket:       "testdata",
+							Prefix:       "prefix",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "grpc keepalive config provided",
+			path: "./testdata/server/grpc_keepalive.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Server.GRPCConnectionMaxIdleTime = 1 * time.Hour
+				cfg.Server.GRPCConnectionMaxAge = 30 * time.Second
+				cfg.Server.GRPCConnectionMaxAgeGrace = 10 * time.Second
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -880,7 +988,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					return
 				}
-				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
+				require.Fail(t, "expected error", "expected %q, found %q", wantErr, err)
 			}
 
 			require.NoError(t, err)

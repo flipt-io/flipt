@@ -379,6 +379,51 @@ func TestPing(t *testing.T) {
 				"experimental": map[string]any{},
 			},
 		},
+		{
+			name: "with tracing not enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Tracing: config.TracingConfig{
+					Enabled:  false,
+					Exporter: config.TracingOTLP,
+				},
+			},
+			want: map[string]any{
+				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
+				"storage": map[string]any{
+					"database": "sqlite",
+				},
+				"experimental": map[string]any{},
+			},
+		},
+		{
+			name: "with tracing enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Tracing: config.TracingConfig{
+					Enabled:  true,
+					Exporter: config.TracingOTLP,
+				},
+			},
+			want: map[string]any{
+				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
+				"storage": map[string]any{
+					"database": "sqlite",
+				},
+				"tracing": map[string]any{
+					"exporter": "otlp",
+				},
+				"experimental": map[string]any{},
+			},
+		},
 	}
 
 	for _, tt := range test {
@@ -419,7 +464,7 @@ func TestPing(t *testing.T) {
 			assert.Equal(t, "flipt.ping", msg.Event)
 			assert.NotEmpty(t, msg.AnonymousId)
 			assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
-			assert.Equal(t, "1.3", msg.Properties["version"])
+			assert.Equal(t, "1.4", msg.Properties["version"])
 			assert.Equal(t, tt.want, msg.Properties["flipt"])
 
 			assert.NotEmpty(t, out.String())
@@ -464,7 +509,7 @@ func TestPing_Existing(t *testing.T) {
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.AnonymousId)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.Properties["uuid"])
-	assert.Equal(t, "1.3", msg.Properties["version"])
+	assert.Equal(t, "1.4", msg.Properties["version"])
 	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
 	assert.NotEmpty(t, out.String())
@@ -532,7 +577,7 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.NotEmpty(t, msg.AnonymousId)
 	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
-	assert.Equal(t, "1.3", msg.Properties["version"])
+	assert.Equal(t, "1.4", msg.Properties["version"])
 	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
 	b, _ := os.ReadFile(path)

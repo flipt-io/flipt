@@ -377,7 +377,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 		s        = server.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Flag{
 		NamespaceKey: flipt.DefaultNamespace,
 		Key:          "foo",
 		Enabled:      true,
@@ -634,12 +634,12 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 		s        = server.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Flag{
 		Key:     "foo",
 		Enabled: true,
 	}, nil)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -671,7 +671,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -790,12 +790,12 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 		s        = servereval.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Flag{
 		Key:     "foo",
 		Enabled: true,
 	}, nil)
 
-	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:      "1",
@@ -827,7 +827,7 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
 		[]*storage.EvaluationDistribution{
 			{
 				ID:                "4",
@@ -943,13 +943,13 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 		s        = servereval.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource("", "foo")).Return(&flipt.Flag{
 		Key:     "foo",
 		Enabled: false,
 		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything, "foo").Return(
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource("", "foo")).Return(
 		[]*storage.EvaluationRollout{
 			{
 				RolloutType: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
@@ -2079,11 +2079,11 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 		}
 	)
 
-	store.On("GetNamespace", mock.Anything, req.Key).Return(&flipt.Namespace{
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace(req.Key)).Return(&flipt.Namespace{
 		Key: req.Key,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, req.Key).Return(uint64(0), nil)
+	store.On("CountFlags", mock.Anything, storage.NewNamespace(req.Key)).Return(uint64(0), nil)
 
 	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
 

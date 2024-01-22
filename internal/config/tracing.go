@@ -24,9 +24,8 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 		"enabled":  false,
 		"exporter": TracingJaeger,
 		"jaeger": map[string]any{
-			"enabled": false, // deprecated (see below)
-			"host":    "localhost",
-			"port":    6831,
+			"host": "localhost",
+			"port": 6831,
 		},
 		"zipkin": map[string]any{
 			"endpoint": "http://localhost:9411/api/v2/spans",
@@ -36,20 +35,14 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 		},
 	})
 
-	if v.GetBool("tracing.jaeger.enabled") {
-		// forcibly set top-level `enabled` to true
-		v.Set("tracing.enabled", true)
-		v.Set("tracing.exporter", TracingJaeger)
-	}
-
 	return nil
 }
 
 func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
 	var deprecations []deprecated
 
-	if v.InConfig("tracing.jaeger.enabled") {
-		deprecations = append(deprecations, "tracing.jaeger.enabled")
+	if v.GetString("tracing.exporter") == TracingJaeger.String() && v.GetBool("tracing.enabled") {
+		deprecations = append(deprecations, "tracing.exporter.jaeger")
 	}
 
 	return deprecations

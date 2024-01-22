@@ -10,16 +10,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	otelHook "github.com/open-feature/go-sdk-contrib/hooks/open-telemetry/pkg"
-	"github.com/open-feature/go-sdk/pkg/openfeature"
+	"github.com/open-feature/go-sdk/openfeature"
 	"go.flipt.io/flipt-openfeature-provider/pkg/provider/flipt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -52,7 +54,7 @@ const (
 
 func init() {
 	flag.StringVar(&fliptServer, "server", "flipt:9000", "address of Flipt backend server")
-	flag.StringVar(&jaegerServer, "jaeger", "http://jaeger:14268/api/traces", "address of Jaeger server")
+	flag.StringVar(&jaegerServer, "jaeger", "jaeger:4317", "address of Jaeger server")
 }
 
 // tracerProvider returns an OpenTelemetry TracerProvider configured to use
@@ -61,12 +63,16 @@ func init() {
 // about the application.
 func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 	// Create the Jaeger exporter
-	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
+	exp, err := otlptrace.New(context.Background(), otlptracegrpc.NewClient(
+		otlptracegrpc.WithEndpoint(url),
+		otlptracegrpc.WithInsecure(),
+	))
 	if err != nil {
 		return nil, err
 	}
+
 	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithBatcher(exp),
+		tracesdk.WithBatcher(exp, tracesdk.WithBatchTimeout(1000*time.Millisecond)),
 		// record information about this application in a Resource.
 		tracesdk.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
@@ -94,7 +100,7 @@ func main() {
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	// add the opentelemetry hook
-	openfeature.AddHooks(otelHook.NewHook())
+	openfeature.AddHooks(otelHook.NewTracesHook())
 
 	// setup Flipt OpenFeature provider
 	provider := flipt.NewProvider(flipt.WithAddress(fliptServer))

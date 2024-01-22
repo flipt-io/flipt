@@ -12,9 +12,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
@@ -25,26 +25,14 @@ import (
 )
 
 const (
-	indexFile = ".flipt.yml"
 	defaultNs = "default"
 )
 
-var (
-	_                 storage.Store = (*StoreSnapshot)(nil)
-	ErrNotImplemented               = errors.New("not implemented")
-)
+var _ storage.ReadOnlyStore = (*Snapshot)(nil)
 
-// FliptIndex represents the structure of a well-known file ".flipt.yml"
-// at the root of an FS.
-type FliptIndex struct {
-	Version string   `yaml:"version,omitempty"`
-	Include []string `yaml:"include,omitempty"`
-	Exclude []string `yaml:"exclude,omitempty"`
-}
-
-// StoreSnapshot contains the structures necessary for serving
+// Snapshot contains the structures necessary for serving
 // flag state to a client.
-type StoreSnapshot struct {
+type Snapshot struct {
 	ns        map[string]*namespace
 	evalDists map[string][]*storage.EvaluationDistribution
 	now       *timestamppb.Timestamp
@@ -77,23 +65,33 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 	}
 }
 
+type SnapshotOption struct {
+	validatorOption []cue.FeaturesValidatorOption
+}
+
+func WithValidatorOption(opts ...cue.FeaturesValidatorOption) containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.validatorOption = opts
+	}
+}
+
 // SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*StoreSnapshot, error) {
-	files, err := listStateFiles(logger, fs)
+func SnapshotFromFS(logger *zap.Logger, src fs.FS, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+	paths, err := listStateFiles(logger, src)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("opening state files", zap.Strings("paths", files))
-
-	return SnapshotFromPaths(logger, fs, files...)
+	return SnapshotFromPaths(logger, src, paths, opts...)
 }
 
 // SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
-func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*StoreSnapshot, error) {
+func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+	logger.Debug("opening state files", zap.Strings("paths", paths))
+
 	var files []fs.File
 	for _, file := range paths {
 		fi, err := ffs.Open(file)
@@ -104,14 +102,14 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*StoreSn
 		files = append(files, fi)
 	}
 
-	return SnapshotFromFiles(logger, files...)
+	return SnapshotFromFiles(logger, files, opts...)
 }
 
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
-func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*StoreSnapshot, error) {
-	now := timestamppb.Now()
-	s := StoreSnapshot{
+func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+	now := flipt.Now()
+	s := Snapshot{
 		ns: map[string]*namespace{
 			defaultNs: newNamespace("default", "Default", now),
 		},
@@ -119,10 +117,19 @@ func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*StoreSnapshot, er
 		now:       now,
 	}
 
+	var so SnapshotOption
+	containers.ApplyAll(&so, opts...)
+
 	for _, fi := range files {
 		defer fi.Close()
+		info, err := fi.Stat()
+		if err != nil {
+			return nil, err
+		}
 
-		docs, err := documentsFromFile(fi)
+		logger.Debug("opening state file", zap.String("path", info.Name()))
+
+		docs, err := documentsFromFile(fi, so)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +161,7 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		docs, err := documentsFromFile(fi)
+		docs, err := documentsFromFile(fi, SnapshotOption{})
 		if err != nil {
 			return err
 		}
@@ -170,8 +177,8 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 }
 
 // documentsFromFile parses and validates a document from a single fs.File instance
-func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
-	validator, err := cue.NewFeaturesValidator()
+func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error) {
+	validator, err := cue.NewFeaturesValidator(opts.validatorOption...)
 	if err != nil {
 		return nil, err
 	}
@@ -226,44 +233,14 @@ func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
 }
 
 // listStateFiles lists all the file paths in a provided fs.FS containing Flipt feature state
-func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
-	// This is the default variable + value for the FliptIndex. It will preserve its value if
-	// a .flipt.yml can not be read for whatever reason.
-	idx := FliptIndex{
-		Version: "1.0",
-		Include: []string{
-			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
-		},
-	}
-
-	// Read index file
-	inFile, err := source.Open(indexFile)
-	if err == nil {
-		if derr := yaml.NewDecoder(inFile).Decode(&idx); derr != nil {
-			return nil, fmt.Errorf("yaml: %w", derr)
-		}
-	}
-
+func listStateFiles(logger *zap.Logger, src fs.FS) ([]string, error) {
+	idx, err := OpenFliptIndex(logger, src)
 	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return nil, err
-		} else {
-			logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
-		}
+		return nil, err
 	}
 
-	var includes []glob.Glob
-	for _, g := range idx.Include {
-		glob, err := glob.Compile(g)
-		if err != nil {
-			return nil, fmt.Errorf("compiling include glob: %w", err)
-		}
-
-		includes = append(includes, glob)
-	}
-
-	filenames := make([]string, 0)
-	if err := fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+	var paths []string
+	if err := fs.WalkDir(src, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -272,11 +249,8 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 			return nil
 		}
 
-		for _, glob := range includes {
-			if glob.Match(path) {
-				filenames = append(filenames, path)
-				return nil
-			}
+		if idx.Match(path) {
+			paths = append(paths, path)
 		}
 
 		return nil
@@ -284,32 +258,10 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 		return nil, err
 	}
 
-	if len(idx.Exclude) > 0 {
-		var excludes []glob.Glob
-		for _, g := range idx.Exclude {
-			glob, err := glob.Compile(g)
-			if err != nil {
-				return nil, fmt.Errorf("compiling include glob: %w", err)
-			}
-
-			excludes = append(excludes, glob)
-		}
-
-	OUTER:
-		for i := len(filenames) - 1; i >= 0; i-- {
-			for _, glob := range excludes {
-				if glob.Match(filenames[i]) {
-					filenames = append(filenames[:i], filenames[i+1:]...)
-					continue OUTER
-				}
-			}
-		}
-	}
-
-	return filenames, nil
+	return paths, nil
 }
 
-func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
+func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	ns := ss.ns[doc.Namespace]
 	if ns == nil {
 		ns = newNamespace(doc.Namespace, doc.Namespace, ss.now)
@@ -593,12 +545,12 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 	return nil
 }
 
-func (ss StoreSnapshot) String() string {
+func (ss Snapshot) String() string {
 	return "snapshot"
 }
 
-func (ss *StoreSnapshot) GetRule(ctx context.Context, namespaceKey string, id string) (rule *flipt.Rule, _ error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetRule(ctx context.Context, p storage.NamespaceRequest, id string) (rule *flipt.Rule, _ error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
@@ -606,39 +558,39 @@ func (ss *StoreSnapshot) GetRule(ctx context.Context, namespaceKey string, id st
 	var ok bool
 	rule, ok = ns.rules[id]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
+		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, p.Namespace(), id)
 	}
 
 	return rule, nil
 }
 
-func (ss *StoreSnapshot) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rule], _ error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rule], _ error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
 
 	rules := make([]*flipt.Rule, 0, len(ns.rules))
 	for _, rule := range ns.rules {
-		if rule.FlagKey == flagKey {
+		if rule.FlagKey == req.Predicate.Key {
 			rules = append(rules, rule)
 		}
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return rules[i].Rank < rules[j].Rank
 	}, rules...)
 }
 
-func (ss *StoreSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountRules(ctx context.Context, req storage.ResourceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return 0, err
 	}
 
 	var count uint64 = 0
 	for _, rule := range ns.rules {
-		if rule.FlagKey == flagKey {
+		if rule.FlagKey == req.Key {
 			count += 1
 		}
 	}
@@ -646,50 +598,22 @@ func (ss *StoreSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey s
 	return count, nil
 }
 
-func (ss *StoreSnapshot) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetSegment(ctx context.Context, req storage.ResourceRequest) (*flipt.Segment, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
-	segment, ok := ns.segments[key]
+	segment, ok := ns.segments[req.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf("segment %q", req)
 	}
 
 	return segment, nil
 }
 
-func (ss *StoreSnapshot) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Segment], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Segment], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
@@ -699,13 +623,13 @@ func (ss *StoreSnapshot) ListSegments(ctx context.Context, namespaceKey string, 
 		segments = append(segments, segment)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return segments[i].Key < segments[j].Key
 	}, segments...)
 }
 
-func (ss *StoreSnapshot) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountSegments(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return 0, err
 	}
@@ -713,32 +637,8 @@ func (ss *StoreSnapshot) CountSegments(ctx context.Context, namespaceKey string)
 	return uint64(len(ns.segments)), nil
 }
 
-func (ss *StoreSnapshot) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
-	ns, err := ss.getNamespace(key)
+func (ss *Snapshot) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (*flipt.Namespace, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
@@ -746,49 +646,37 @@ func (ss *StoreSnapshot) GetNamespace(ctx context.Context, key string) (*flipt.N
 	return ns.resource, nil
 }
 
-func (ss *StoreSnapshot) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
+func (ss *Snapshot) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (set storage.ResultSet[*flipt.Namespace], err error) {
 	ns := make([]*flipt.Namespace, 0, len(ss.ns))
 	for _, n := range ss.ns {
 		ns = append(ns, n.resource)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return ns[i].Key < ns[j].Key
 	}, ns...)
 }
 
-func (ss *StoreSnapshot) CountNamespaces(ctx context.Context) (uint64, error) {
+func (ss *Snapshot) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest) (uint64, error) {
 	return uint64(len(ss.ns)), nil
 }
 
-func (ss *StoreSnapshot) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) GetFlag(ctx context.Context, namespaceKey string, key string) (*flipt.Flag, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*flipt.Flag, error) {
+	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
-	flag, ok := ns.flags[key]
+	flag, ok := ns.flags[req.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf("flag %q", req)
 	}
 
 	return flag, nil
 }
 
-func (ss *StoreSnapshot) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Flag], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Flag], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
@@ -798,13 +686,13 @@ func (ss *StoreSnapshot) ListFlags(ctx context.Context, namespaceKey string, opt
 		flags = append(flags, flag)
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return flags[i].Key < flags[j].Key
 	}, flags...)
 }
 
-func (ss *StoreSnapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return 0, err
 	}
@@ -812,129 +700,89 @@ func (ss *StoreSnapshot) CountFlags(ctx context.Context, namespaceKey string) (u
 	return uint64(len(ns.flags)), nil
 }
 
-func (ss *StoreSnapshot) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
-	ns, ok := ss.ns[namespaceKey]
+func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
+	ns, ok := ss.ns[flag.Namespace()]
 	if !ok {
-		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
 
-	rules, ok := ns.evalRules[flagKey]
+	rules, ok := ns.evalRules[flag.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf("flag %q", flag)
 	}
 
 	return rules, nil
 }
 
-func (ss *StoreSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	dists, ok := ss.evalDists[ruleID]
+func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
-		return nil, errs.ErrNotFoundf("rule %q", ruleID)
+		return nil, errs.ErrNotFoundf("rule %q", rule.ID)
 	}
 
 	return dists, nil
 }
 
-func (ss *StoreSnapshot) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	ns, ok := ss.ns[namespaceKey]
+func (ss *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
+	ns, ok := ss.ns[flag.Namespace()]
 	if !ok {
-		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
 
-	rollouts, ok := ns.evalRollouts[flagKey]
+	rollouts, ok := ns.evalRollouts[flag.Key]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf("flag %q", flag)
 	}
 
 	return rollouts, nil
 }
 
-func (ss *StoreSnapshot) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) GetRollout(ctx context.Context, p storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
+	ns, err := ss.getNamespace(p.Namespace())
 	if err != nil {
 		return nil, err
 	}
 
 	rollout, ok := ns.rollouts[id]
 	if !ok {
-		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, namespaceKey, id)
+		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, p.Namespace(), id)
 	}
 
 	return rollout, nil
 }
 
-func (ss *StoreSnapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rollout], err error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rollout], err error) {
+	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
 
 	rollouts := make([]*flipt.Rollout, 0)
 	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == flagKey {
+		if rollout.FlagKey == req.Predicate.Key {
 			rollouts = append(rollouts, rollout)
 		}
 	}
 
-	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(req.QueryParams, func(i, j int) bool {
 		return rollouts[i].Rank < rollouts[j].Rank
 	}, rollouts...)
 }
 
-func (ss *StoreSnapshot) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	ns, err := ss.getNamespace(namespaceKey)
+func (ss *Snapshot) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
+	ns, err := ss.getNamespace(flag.Namespace())
 	if err != nil {
 		return 0, err
 	}
 
 	var count uint64 = 0
 	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == flagKey {
+		if rollout.FlagKey == flag.Key {
 			count += 1
 		}
 	}
 
 	return count, nil
-}
-
-func (ss *StoreSnapshot) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
-	return ErrNotImplemented
-}
-
-func (ss *StoreSnapshot) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
-	return ErrNotImplemented
 }
 
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
@@ -1003,7 +851,7 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	return set, nil
 }
 
-func (ss *StoreSnapshot) getNamespace(key string) (namespace, error) {
+func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 	ns, ok := ss.ns[key]
 	if !ok {
 		return namespace{}, errs.ErrNotFoundf("namespace %q", key)

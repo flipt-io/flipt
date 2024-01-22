@@ -12,6 +12,8 @@ type PageProps = {
   onPageChange: (page: number) => void;
 };
 
+const pageSizes = [20, 50, 100];
+
 function Page(props: PageProps) {
   const { page, currentPage, onPageChange } = props;
   const isCurrentPage = useMemo(
@@ -55,7 +57,7 @@ export type PaginationProps = {
   currentPage: number;
   totalCount: number;
   pageSize: number;
-  onPageChange: (page: number) => void;
+  onPageChange: (page: number, size: number) => void;
 };
 
 export default function Pagination(props: PaginationProps) {
@@ -75,14 +77,18 @@ export default function Pagination(props: PaginationProps) {
   });
 
   const onNextPage = () => {
-    onPageChange(currentPage + 1);
+    onPageChange(currentPage + 1, pageSize);
   };
 
   const onPreviousPage = () => {
-    onPageChange(currentPage - 1);
+    onPageChange(currentPage - 1, pageSize);
   };
 
   const lastPage = paginationRange[paginationRange.length - 1];
+
+  if (totalCount <= pageSizes[0]) {
+    return null;
+  }
 
   return (
     <nav
@@ -106,15 +112,36 @@ export default function Pagination(props: PaginationProps) {
           </a>
         )}
       </div>
+      {paginationRange.length > 1 && (
+        <div className="hidden md:-mt-px md:flex">
+          {paginationRange.map((page, i) => (
+            <Page
+              key={i}
+              page={page}
+              currentPage={currentPage}
+              onPageChange={(page) => onPageChange(page, pageSize)}
+            />
+          ))}
+        </div>
+      )}
       <div className="hidden md:-mt-px md:flex">
-        {paginationRange.map((page, i) => (
-          <Page
-            key={i}
-            page={page}
-            currentPage={currentPage}
-            onPageChange={onPageChange}
-          />
-        ))}
+        <select
+          className="text-gray-500 bg-gray-50 mt-4 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
+          value={pageSize}
+          onChange={(e) => {
+            onPageChange(currentPage, Number(e.target.value));
+          }}
+        >
+          {pageSizes.map((pageSize) => (
+            <option
+              key={pageSize}
+              value={pageSize}
+              className="text-gray-500 inline-flex items-center border-transparent text-sm font-medium focus:border-transparent focus:ring-0"
+            >
+              Show {pageSize}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="-mt-px flex w-0 flex-1 justify-end">
         {currentPage < lastPage && (

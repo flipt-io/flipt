@@ -51,13 +51,12 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 			if err := survey.AskOne(prompt, &ack); err != nil {
 				return err
 			}
+			if !ack {
+				return nil
+			}
 		} else if !os.IsNotExist(err) {
 			return err
 		}
-	}
-
-	if !ack {
-		return nil
 	}
 
 	// get path to file, create directory if not exists

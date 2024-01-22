@@ -32,6 +32,11 @@ const segmentMatchTypes = [
   }
 ];
 
+const segmentValidationSchema = Yup.object({
+  key: keyValidation,
+  name: requiredValidation
+});
+
 type SegmentFormProps = {
   segment?: ISegment;
   segmentChanged?: () => void;
@@ -98,10 +103,7 @@ export default function SegmentForm(props: SegmentFormProps) {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        key: keyValidation,
-        name: requiredValidation
-      })}
+      validationSchema={segmentValidationSchema}
     >
       {(formik) => (
         <Form className="px-1 sm:overflow-hidden sm:rounded-md">

@@ -3,6 +3,7 @@ package testing
 import (
 	"context"
 	"encoding/json"
+	"os"
 
 	"dagger.io/dagger"
 )
@@ -10,7 +11,7 @@ import (
 func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
 	// create Redis service container
 	redisSrv := client.Container().
-		From("redis").
+		From("redis:alpine").
 		WithExposedPort(6379).
 		WithExec(nil)
 
@@ -20,7 +21,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec(nil)
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
+		WithServiceBinding("gitea", gitea.AsService()).
 		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", "./internal/storage/fs/git/testdata"})
 
 	out, err := flipt.Stdout(ctx)
@@ -38,20 +39,52 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-		WithExec([]string{"server", "/data", "--address", ":9009"})
+		WithEnvVariable("MINIO_BROWSER", "off").
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
+
+	azurite := client.Container().
+		From("mcr.microsoft.com/azure-storage/azurite").
+		WithExposedPort(10000).
+		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		AsService()
+
+	gcs := client.Container().
+		From("fsouza/fake-gcs-server").
+		WithExposedPort(4443).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		AsService()
+
+		// S3 unit testing
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio).
+		WithServiceBinding("minio", minio.AsService()).
+		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
-		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", "./internal/storage/fs/s3/testdata"})
+		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password")
+
+		// GCS unit testing
+
+	flipt = flipt.
+		WithServiceBinding("gcs", gcs).
+		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443")
+
+		// Azure unit testing
+
+	flipt = flipt.
+		WithServiceBinding("azurite", azurite).
+		WithEnvVariable("TEST_AZURE_ENDPOINT", "http://azurite:10000/devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
+		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
+
+	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
+		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
+	}
 
 	flipt, err = flipt.
-		WithServiceBinding("redis", redisSrv).
+		WithServiceBinding("redis", redisSrv.AsService()).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
-		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
 		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {
@@ -62,59 +95,4 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 	_, _ = flipt.File("coverage.txt").Export(ctx, "coverage.txt")
 
 	return nil
-}
-
-var All = map[string]Wrapper{
-	"sqlite":      WithSQLite,
-	"libsql":      WithLibSQL,
-	"postgres":    WithPostgres,
-	"mysql":       WithMySQL,
-	"cockroachdb": WithCockroach,
-}
-
-type Wrapper func(context.Context, *dagger.Client, *dagger.Container) (context.Context, *dagger.Client, *dagger.Container)
-
-func WithSQLite(ctx context.Context, client *dagger.Client, container *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
-	return ctx, client, container
-}
-
-func WithLibSQL(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
-	return ctx, client, flipt.WithEnvVariable("FLIPT_TEST_DATABASE_PROTOCOL", "libsql")
-}
-
-func WithPostgres(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
-	return ctx, client, flipt.
-		WithEnvVariable("FLIPT_TEST_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
-		WithServiceBinding("postgres", client.Container().
-			From("postgres").
-			WithEnvVariable("POSTGRES_PASSWORD", "password").
-			WithExposedPort(5432).
-			WithExec(nil))
-}
-
-func WithMySQL(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
-	return ctx, client, flipt.
-		WithEnvVariable(
-			"FLIPT_TEST_DB_URL",
-			"mysql://flipt:password@mysql:3306/flipt_test?multiStatements=true",
-		).
-		WithServiceBinding("mysql", client.Container().
-			From("mysql:8").
-			WithEnvVariable("MYSQL_USER", "flipt").
-			WithEnvVariable("MYSQL_PASSWORD", "password").
-			WithEnvVariable("MYSQL_DATABASE", "flipt_test").
-			WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
-			WithExposedPort(3306).
-			WithExec(nil))
-}
-
-func WithCockroach(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
-	return ctx, client, flipt.
-		WithEnvVariable("FLIPT_TEST_DB_URL", "cockroachdb://root@cockroach:26257/defaultdb?sslmode=disable").
-		WithServiceBinding("cockroach", client.Container().
-			From("cockroachdb/cockroach:latest-v21.2").
-			WithEnvVariable("COCKROACH_USER", "root").
-			WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
-			WithExposedPort(26257).
-			WithExec([]string{"start-single-node", "--insecure"}))
 }

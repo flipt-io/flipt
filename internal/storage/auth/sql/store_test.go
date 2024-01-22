@@ -235,7 +235,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 
 	t.Run("method == none", func(t *testing.T) {
 		// list predicated with none auth method
-		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_METHOD_NONE))
+		req := storage.ListWithOptions(storageauth.ListMethod(rpcauth.Method_METHOD_NONE))
 		noneMethod, err := storeFn().ListAuthentications(ctx, req)
 
 		require.NoError(t, err)
@@ -280,7 +280,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 
 	t.Run("method == token", func(t *testing.T) {
 		// list predicated with token auth method
-		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_METHOD_TOKEN))
+		req := storage.ListWithOptions(storageauth.ListMethod(rpcauth.Method_METHOD_TOKEN))
 		tokenMethod, err := storeFn().ListAuthentications(ctx, req)
 		require.NoError(t, err)
 		assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{

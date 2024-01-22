@@ -8,12 +8,12 @@ import (
 )
 
 type Flipt struct {
-	transport     flipt.FliptClient
-	tokenProvider ClientTokenProvider
+	transport              flipt.FliptClient
+	authenticationProvider ClientAuthenticationProvider
 }
 
 func (x *Flipt) Evaluate(ctx context.Context, v *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func (x *Flipt) Evaluate(ctx context.Context, v *flipt.EvaluationRequest) (*flip
 }
 
 func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationReque
 }
 
 func (x *Flipt) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (x *Flipt) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest) 
 }
 
 func (x *Flipt) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (x *Flipt) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceReques
 }
 
 func (x *Flipt) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (x *Flipt) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceReq
 }
 
 func (x *Flipt) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (x *Flipt) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceReq
 }
 
 func (x *Flipt) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (x *Flipt) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceReq
 }
 
 func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Fl
 }
 
 func (x *Flipt) ListFlags(ctx context.Context, v *flipt.ListFlagRequest) (*flipt.FlagList, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (x *Flipt) ListFlags(ctx context.Context, v *flipt.ListFlagRequest) (*flipt
 }
 
 func (x *Flipt) CreateFlag(ctx context.Context, v *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (x *Flipt) CreateFlag(ctx context.Context, v *flipt.CreateFlagRequest) (*fl
 }
 
 func (x *Flipt) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (x *Flipt) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest) (*fl
 }
 
 func (x *Flipt) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (x *Flipt) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest) erro
 }
 
 func (x *Flipt) CreateVariant(ctx context.Context, v *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (x *Flipt) CreateVariant(ctx context.Context, v *flipt.CreateVariantRequest
 }
 
 func (x *Flipt) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (x *Flipt) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantRequest
 }
 
 func (x *Flipt) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (x *Flipt) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantRequest
 }
 
 func (x *Flipt) GetRule(ctx context.Context, v *flipt.GetRuleRequest) (*flipt.Rule, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (x *Flipt) GetRule(ctx context.Context, v *flipt.GetRuleRequest) (*flipt.Ru
 }
 
 func (x *Flipt) ListRules(ctx context.Context, v *flipt.ListRuleRequest) (*flipt.RuleList, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (x *Flipt) ListRules(ctx context.Context, v *flipt.ListRuleRequest) (*flipt
 }
 
 func (x *Flipt) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (x *Flipt) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest) (*fl
 }
 
 func (x *Flipt) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (x *Flipt) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest) (*fl
 }
 
 func (x *Flipt) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (x *Flipt) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest) erro
 }
 
 func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) erro
 }
 
 func (x *Flipt) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest) (*flipt.Rollout, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (x *Flipt) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest) (*fl
 }
 
 func (x *Flipt) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (x *Flipt) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest) (
 }
 
 func (x *Flipt) CreateRollout(ctx context.Context, v *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (x *Flipt) CreateRollout(ctx context.Context, v *flipt.CreateRolloutRequest
 }
 
 func (x *Flipt) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (x *Flipt) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutRequest
 }
 
 func (x *Flipt) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func (x *Flipt) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest
 }
 
 func (x *Flipt) OrderRollouts(ctx context.Context, v *flipt.OrderRolloutsRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func (x *Flipt) OrderRollouts(ctx context.Context, v *flipt.OrderRolloutsRequest
 }
 
 func (x *Flipt) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (x *Flipt) CreateDistribution(ctx context.Context, v *flipt.CreateDistribut
 }
 
 func (x *Flipt) UpdateDistribution(ctx context.Context, v *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +252,7 @@ func (x *Flipt) UpdateDistribution(ctx context.Context, v *flipt.UpdateDistribut
 }
 
 func (x *Flipt) DeleteDistribution(ctx context.Context, v *flipt.DeleteDistributionRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -261,7 +261,7 @@ func (x *Flipt) DeleteDistribution(ctx context.Context, v *flipt.DeleteDistribut
 }
 
 func (x *Flipt) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func (x *Flipt) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest) (*fl
 }
 
 func (x *Flipt) ListSegments(ctx context.Context, v *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func (x *Flipt) ListSegments(ctx context.Context, v *flipt.ListSegmentRequest) (
 }
 
 func (x *Flipt) CreateSegment(ctx context.Context, v *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (x *Flipt) CreateSegment(ctx context.Context, v *flipt.CreateSegmentRequest
 }
 
 func (x *Flipt) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (x *Flipt) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentRequest
 }
 
 func (x *Flipt) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}
@@ -302,7 +302,7 @@ func (x *Flipt) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest
 }
 
 func (x *Flipt) CreateConstraint(ctx context.Context, v *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func (x *Flipt) CreateConstraint(ctx context.Context, v *flipt.CreateConstraintR
 }
 
 func (x *Flipt) UpdateConstraint(ctx context.Context, v *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func (x *Flipt) UpdateConstraint(ctx context.Context, v *flipt.UpdateConstraintR
 }
 
 func (x *Flipt) DeleteConstraint(ctx context.Context, v *flipt.DeleteConstraintRequest) error {
-	ctx, err := authenticate(ctx, x.tokenProvider)
+	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
 		return err
 	}

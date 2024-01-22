@@ -3,6 +3,71 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.35.0](https://github.com/flipt-io/flipt/releases/tag/v1.35.0) - 2024-01-09
+
+### Added
+
+- JWT auth (#2620)
+- `grpc`: grpc keepalive configuration (#2621)
+- `storage/gcs`: add support for Google Cloud Storage (#2589)
+- cache evaluation rollouts at storage layer (#2610)
+
+### Changed
+
+- `cleanup`: parallelize cleanup method tests (#2612)
+
+### Fixed
+
+- `ui`: searchbox has a black text color in dark mode so it's very hard (#2619)
+- config init does not work correctly (#2616)
+- close oidc providers per lib recommendation (#2598)
+
+## [v1.34.0](https://github.com/flipt-io/flipt/releases/tag/v1.34.0) - 2023-12-28
+
+### Added
+
+- validate common auth config settings (#2579)
+- `fs/azure`: add support for Azure Blob Storage (FS Object Backend) (#2538)
+- `rpc/flipt`: add Now timestamp with microsecond precision function
+- `ui`: show time/date format on settings/preferences page (#2537)
+
+### Changed
+
+- use rpc/flipt.Now everywhere instead of timestamppb.Now
+- `ui`: move listAuthMethods to Redux RTK (#2529)
+
+### Fixed
+
+- `config`: always use forward-slash as separator for DB URL (#2578)
+- close the indexFile after reading it (#2561)
+- resolved issues with go-git 5.11.0 (#2543)
+- `mysql`: increase timestamp precision from seconds to microseconds
+- `cfg`: default config outputs first INFO log regardless of FLIPT_LOG_LEVEL (#2536)
+
+## [v1.33.0](https://github.com/flipt-io/flipt/releases/tag/v1.33.0) - 2023-12-11
+
+### Added
+
+- `auth/github`: add organization membership check to GitHub (#2508)
+- `ui`: allow setting page size for tables (#2503)
+- use default config even on linux if no config found (#2496)
+- `ui/console`: add copy as curl button (#2474)
+
+### Changed
+
+- `cli`: silence usage on error (#2512)
+- `ui`: cleanup header; show user name and opt login in user dropdown (#2480)
+- `ui`: replace classNames with clsx library (#2482)
+- `ui`: use rtk for flags (#2478)
+- `ui`: move namespaces to use redux rtk (#2472)
+- rework tests for TLS options for git sources with self-signed certificates
+
+### Fixed
+
+- `ui`: remove h-screen from default for Loading component (#2527)
+- `ui`: page api call could finish earlier that Layout api calls (#2506)
+- dont show name/login section if only email (#2495)
+
 ## [v1.32.0](https://github.com/flipt-io/flipt/releases/tag/v1.32.0) - 2023-11-29
 
 ### Added

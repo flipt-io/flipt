@@ -1,13 +1,14 @@
+import { json } from '@codemirror/lang-json';
 import { ArrowPathIcon } from '@heroicons/react/20/solid';
+import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
+import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
-import hljs from 'highlight.js';
-import javascript from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/tomorrow-night-bright.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
@@ -15,15 +16,15 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import { evaluateURL, evaluateV2, listAuthMethods } from '~/data/api';
+import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
-  jsonValidation,
+  contextValidation,
   keyValidation,
   requiredValidation
 } from '~/data/validations';
-import { IAuthMethod, IAuthMethodList } from '~/types/Auth';
+import { IAuthMethod } from '~/types/Auth';
 import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import {
@@ -31,8 +32,6 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-
-hljs.registerLanguage('json', javascript);
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -44,6 +43,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   return null;
 }
 
+const consoleValidationSchema = Yup.object({
+  flagKey: keyValidation,
+  entityId: requiredValidation,
+  context: contextValidation
+});
+
 interface ConsoleFormValues {
   flagKey: string;
   entityId: string;
@@ -54,15 +59,12 @@ export default function Console() {
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
-  const [isAuthRequired, setIsAuthRequired] = useState<boolean>(false);
 
   const { setError, clearError } = useError();
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-
-  const codeRef = useRef<HTMLElement>(null);
 
   const { data, error } = useListFlagsQuery(namespace.key);
 
@@ -88,19 +90,14 @@ export default function Console() {
     });
   }, [data]);
 
-  const checkIsAuthRequired = useCallback(() => {
-    listAuthMethods()
-      .then((resp: IAuthMethodList) => {
-        const enabledAuthMethods = resp.methods.filter(
-          (m: IAuthMethod) => m.enabled
-        );
-        setIsAuthRequired(enabledAuthMethods.length != 0);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [setError, clearError]);
+  const { data: listAuthProviders } = useListAuthProvidersQuery();
+
+  const isAuthRequired = useMemo(() => {
+    return (
+      (listAuthProviders?.methods || []).filter((m: IAuthMethod) => m.enabled)
+        .length > 0
+    );
+  }, [listAuthProviders]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
     const { entityId, context } = values;
@@ -173,19 +170,6 @@ export default function Console() {
     setSuccess('Command copied to clipboard');
   };
 
-  useEffect(() => {
-    if (codeRef.current) {
-      // must unset property 'highlighted' so that it can be highlighted again
-      // otherwise it gets highlighted the first time only
-      delete codeRef.current.dataset.highlighted;
-    }
-    hljs.highlightAll();
-  }, [response, codeRef]);
-
-  useEffect(() => {
-    checkIsAuthRequired();
-  }, [checkIsAuthRequired]);
-
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
     entityId: uuidv4(),
@@ -208,11 +192,7 @@ export default function Console() {
             <div className="mt-8 w-full overflow-hidden md:w-1/2">
               <Formik
                 initialValues={initialvalues}
-                validationSchema={Yup.object({
-                  flagKey: keyValidation,
-                  entityId: requiredValidation,
-                  context: jsonValidation
-                })}
+                validationSchema={consoleValidationSchema}
                 onSubmit={(values) => {
                   handleSubmit(selectedFlag, values);
                 }}
@@ -272,7 +252,7 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <div className="nightwind-prevent mt-1">
+                          <div className="nightwind-prevent mt-1 text-sm">
                             <ContextEditor
                               id="context"
                               setValue={(v) => {
@@ -310,16 +290,22 @@ export default function Console() {
             </div>
             <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
-                <pre className="p-2 text-sm md:h-full">
+                <pre className="nightwind-prevent bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
-                    <p className="border-red-400 border-4">{response}</p>
+                    <p className="text-red-400">{response}</p>
                   ) : (
-                    <code
-                      className="hljs json rounded-sm md:h-full"
-                      ref={codeRef}
-                    >
-                      {response as React.ReactNode}
-                    </code>
+                    <CodeMirror
+                      value={response}
+                      height="100%"
+                      extensions={[json()]}
+                      basicSetup={{
+                        lineNumbers: false,
+                        foldGutter: false,
+                        highlightActiveLine: false
+                      }}
+                      editable={false}
+                      theme={tokyoNight}
+                    />
                   )}
                 </pre>
               )}

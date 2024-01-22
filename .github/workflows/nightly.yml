@@ -27,13 +27,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
           cache: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: _tools/
           key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
@@ -64,6 +64,10 @@ jobs:
       - name: Prep Build
         run: mage prep
 
+      - name: Git Tag
+        run: |
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v5
         with:
@@ -71,13 +75,14 @@ jobs:
           version: latest
           args: release --clean --nightly -f .goreleaser.${{ matrix.name }}.yml
         env:
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
           QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: flipt-nightly-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
@@ -90,7 +95,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -113,12 +118,12 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: flipt-nightly-linux
           path: tmp/dist
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: flipt-nightly-darwin
           path: tmp/dist
@@ -127,6 +132,10 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
+      - name: Git Tag
+        run: |
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+
       - name: GoReleaser (Nightly) Release
         uses: goreleaser/goreleaser-action@v5
         with:
@@ -134,6 +143,7 @@ jobs:
           version: latest
           args: release --nightly -f .goreleaser.nightly.yml
         env:
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

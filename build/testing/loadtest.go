@@ -9,7 +9,7 @@ import (
 )
 
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
-	seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
+	seed := base.File("build/testing/integration/readonly/testdata/main/default.yaml")
 	importCmd := []string{"/flipt", "import", "import.yaml"}
 
 	flipt = flipt.
@@ -21,7 +21,8 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 			From("postgres").
 			WithEnvVariable("POSTGRES_PASSWORD", "password").
 			WithExposedPort(5432).
-			WithExec(nil))
+			WithExec(nil).
+			AsService())
 
 	// import some test data
 	flipt, err := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -51,9 +52,10 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 			WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
 			WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").
 			WithServiceBinding("redis", client.Container().
-				From("redis").
+				From("redis:alpine").
 				WithExposedPort(6379).
-				WithExec(nil))
+				WithExec(nil).
+				AsService())
 	}
 
 	flipt = flipt.WithExec(nil)
@@ -77,7 +79,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 	_, err = client.Container().
 		From("pyroscope/pyroscope:latest").
 		WithFile("loadtest", loadtest).
-		WithServiceBinding("flipt", flipt).
+		WithServiceBinding("flipt", flipt.AsService()).
 		WithExec(append([]string{"adhoc", "--log-level", "info", "--url", "flipt:8080"}, cmd...)).
 		Directory("/home/pyroscope/.local/share/pyroscope").
 		Export(ctx, "build/internal/out/profiles")

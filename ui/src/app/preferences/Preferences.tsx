@@ -3,6 +3,7 @@ import { Formik } from 'formik';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Select from '~/components/forms/Select';
+import { useTimezone } from '~/data/hooks/timezone';
 import { Theme, Timezone } from '~/types/Preferences';
 import { cls } from '~/utils/helpers';
 import {
@@ -22,7 +23,7 @@ export default function Preferences() {
     timezone: timezone,
     theme: theme
   };
-
+  const { inTimezone } = useTimezone();
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
   return (
@@ -70,6 +71,9 @@ export default function Preferences() {
                 UTC Timezone
                 <p className="text-gray-400 mt-2 text-sm">
                   Display dates and times in UTC timezone
+                </p>
+                <p className="text-gray-400 mt-2 text-sm">
+                  {inTimezone(new Date().toISOString())}
                 </p>
               </Switch.Label>
               <dd className="text-gray-900 mt-1 flex text-sm sm:col-span-2 sm:mt-0">

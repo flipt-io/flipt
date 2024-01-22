@@ -1,4 +1,4 @@
-const { capture } = require('../../screenshot.js');
+import { capture } from '../../screenshot.js';
 
 (async () => {
   await capture('concepts', 'namespaces_production', async (page) => {

@@ -1,0 +1,8 @@
+storage:
+  type: object
+  object:
+    type: googlecloud
+    googlecloud:
+      bucket: testdata
+      prefix: prefix
+      poll_interval: "5m"

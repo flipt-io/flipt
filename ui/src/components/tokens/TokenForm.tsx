@@ -17,6 +17,10 @@ import { requiredValidation } from '~/data/validations';
 import { IAuthTokenBase, IAuthTokenSecret } from '~/types/auth/Token';
 import { INamespace } from '~/types/Namespace';
 
+const tokenValidationSchema = Yup.object({
+  name: requiredValidation
+});
+
 type TokenFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: (token: IAuthTokenSecret) => void;
@@ -55,9 +59,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
   return (
     <Formik
       initialValues={initialValues}
-      validationSchema={Yup.object({
-        name: requiredValidation
-      })}
+      validationSchema={tokenValidationSchema}
       onSubmit={(values, { setSubmitting }) => {
         let token: IAuthTokenBase = {
           name: values.name,
