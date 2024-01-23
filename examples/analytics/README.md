@@ -1,6 +1,6 @@
 # Analytics
 
-The examples contained within this directory show different ways to gain useful analytical data concerning Flipt.
+The examples contained within this directory show different ways to gather useful analytical data concerning Flipt.
 
 ## Clickhouse
 
@@ -12,9 +12,9 @@ The configuration for the OpenTelemetry collector should look familiar if you ha
 
 ### Data
 
-Once you run the `docker-compose`, you can start creating flags, making evaluations, etc. After data is collected in the Clickhouse server, you can connect to the server via web UI at `http://localhost:8123/play`. From here you can glean powerful analytical data such as average and quantile measurements from the flag evaluations.
-
 !['Clickhouse Example'](../../images/clickhouse.png)
+
+Once you run the `docker-compose`, you can start creating flags, making evaluations, etc. After data is collected in the Clickhouse server, you can connect to the server via web UI at `http://localhost:8123/play`. From here you can glean powerful analytical data such as average and quantile measurements from the flag evaluations.
 
 ```sql
 SELECT SpanName, avg(Duration), quantile(0.9)(Duration) AS p90, quantile(0.95)(Duration) AS p95, quantile(0.99)(Duration) AS p99 FROM otel.otel_traces WHERE SpanName='flipt.evaluation.EvaluationService/Variant' OR SpanName='flipt.evaluation.EvaluationService/Boolean' GROUP BY SpanName;
@@ -22,7 +22,7 @@ SELECT SpanName, avg(Duration), quantile(0.9)(Duration) AS p90, quantile(0.95)(D
 
 This query will return average and quantile results (p90, p95, p99) for `Variant` and `Boolean` evaluations.
 
-Queries against metrics tables could provide additional information about evaluations over time. For example,
+Queries against metrics tables could provide additional information about evaluations over time. For example:
 
 ```sql
 SELECT Attributes['namespace'] as namespaceKey, Attributes['flag'] as flagKey, toStartOfHour(TimeUnix) as StartOfHour, avg(Value) as Value
