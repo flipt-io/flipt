@@ -154,14 +154,20 @@ func WithKubernetesExpiryLeeway(d time.Duration) KubernetesAuthenticationProvide
 	}
 }
 
-// NewKuberntesClientTokenProvider cosntructs and configures a new KubernetesAuthenticationProvider
+// NewKuberntesAuthenticationProvider constructs and configures a new KubernetesAuthenticationProvider
 // using the provided transport.
-func NewKuberntesClientTokenProvider(transport Transport) *KubernetesAuthenticationProvider {
-	return &KubernetesAuthenticationProvider{
+func NewKuberntesAuthenticationProvider(transport Transport, opts ...KubernetesAuthenticationProviderOption) *KubernetesAuthenticationProvider {
+	k := &KubernetesAuthenticationProvider{
 		transport:               transport,
 		serviceAccountTokenPath: defaultServiceAccountTokenPath,
 		leeway:                  defaultKubernetesExpiryLeeway,
 	}
+
+	for _, opt := range opts {
+		opt(k)
+	}
+
+	return k
 }
 
 // Authentication returns the authentication header string to be used for a request
