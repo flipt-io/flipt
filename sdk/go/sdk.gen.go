@@ -4,15 +4,14 @@ package sdk
 
 import (
 	context "context"
-	os "os"
-	sync "sync"
-	time "time"
-
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	metadata "google.golang.org/grpc/metadata"
+	os "os"
+	sync "sync"
+	time "time"
 )
 
 var _ *time.Time
@@ -119,13 +118,13 @@ func (p JWTAuthenticationProvider) Authentication(context.Context) (string, erro
 	return "JWT " + string(p), nil
 }
 
-// KubernetesClientTokenProvider is an implementation of ClientAuthenticationProvider
+// KubernetesAuthenticationProvider is an implementation of ClientAuthenticationProvider
 // which automatically uses the service account token from the environment and exchanges
 // it with Flipt for a client token.
 // This provider keeps the client token up to date and refreshes it for a new client
 // token before expiry. It re-reads the service account token as Kubernetes can and will refresh
 // this token, as it also has its own expiry.
-type KubernetesClientTokenProvider struct {
+type KubernetesAuthenticationProvider struct {
 	transport               Transport
 	serviceAccountTokenPath string
 	leeway                  time.Duration
@@ -134,14 +133,14 @@ type KubernetesClientTokenProvider struct {
 	resp *auth.VerifyServiceAccountResponse
 }
 
-// KubernetesClientTokenProviderOption is a functional option for configuring KubernetesClientTokenProvider.
-type KubernetesClientTokenProviderOption func(*KubernetesClientTokenProvider)
+// KubernetesAuthenticationProviderOption is a functional option for configuring KubernetesAuthenticationProvider.
+type KubernetesAuthenticationProviderOption func(*KubernetesAuthenticationProvider)
 
 // WithKubernetesServiceAccountTokenPath sets the path on the host to locate the kubernetes service account.
-// The KubernetesClientTokenProvider uses the default location set by Kubernetes.
+// The KubernetesAuthenticationProvider uses the default location set by Kubernetes.
 // This option lets you override that if your path happens to differ.
-func WithKubernetesServiceAccountTokenPath(p string) KubernetesClientTokenProviderOption {
-	return func(kctp *KubernetesClientTokenProvider) {
+func WithKubernetesServiceAccountTokenPath(p string) KubernetesAuthenticationProviderOption {
+	return func(kctp *KubernetesAuthenticationProvider) {
 		kctp.serviceAccountTokenPath = p
 	}
 }
@@ -149,16 +148,16 @@ func WithKubernetesServiceAccountTokenPath(p string) KubernetesClientTokenProvid
 // WithKubernetesExpiryLeeway configures the duration leeway for deciding when to refresh
 // the client token. The default is 10 seconds, which ensures that tokens are automatically refreshed
 // when their is less that 10 seconds of lifetime left on the previously fetched client token.
-func WithKubernetesExpiryLeeway(d time.Duration) KubernetesClientTokenProviderOption {
-	return func(kctp *KubernetesClientTokenProvider) {
+func WithKubernetesExpiryLeeway(d time.Duration) KubernetesAuthenticationProviderOption {
+	return func(kctp *KubernetesAuthenticationProvider) {
 		kctp.leeway = d
 	}
 }
 
-// NewKuberntesClientTokenProvider cosntructs and configures a new KubernetesClientTokenProvider
+// NewKuberntesClientTokenProvider cosntructs and configures a new KubernetesAuthenticationProvider
 // using the provided transport.
-func NewKuberntesClientTokenProvider(transport Transport) *KubernetesClientTokenProvider {
-	return &KubernetesClientTokenProvider{
+func NewKuberntesClientTokenProvider(transport Transport) *KubernetesAuthenticationProvider {
+	return &KubernetesAuthenticationProvider{
 		transport:               transport,
 		serviceAccountTokenPath: defaultServiceAccountTokenPath,
 		leeway:                  defaultKubernetesExpiryLeeway,
@@ -169,7 +168,7 @@ func NewKuberntesClientTokenProvider(transport Transport) *KubernetesClientToken
 // by the client SDK. It is generated via exchanging the local service account token
 // with Flipt for a client token. The token is then formatted appropriately for use
 // in the Authentication header as a bearer token.
-func (k *KubernetesClientTokenProvider) Authentication(ctx context.Context) (string, error) {
+func (k *KubernetesAuthenticationProvider) Authentication(ctx context.Context) (string, error) {
 	k.mu.RLock()
 	resp := k.resp
 	k.mu.RUnlock()
