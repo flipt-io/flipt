@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0) - 2024-01-22
+## [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0) - 2024-01-23
 
 ### Added
 
@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ui`: boolean constraint type asks for value when you edit it (#2671)
 - Combobox not showing options upon input click (#2642)
 - `fs/object`: close reader after using it (#2648)
+- `validate(cue):` get correct error line position (#2701)
 
 ## [v1.35.0](https://github.com/flipt-io/flipt/releases/tag/v1.35.0) - 2024-01-09
 
