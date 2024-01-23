@@ -139,7 +139,7 @@ OUTER:
 
 		// next we walk the selector back from the deapest path until
 		// we select something that exists in the document
-		for i := len(selectors) - 1; i > -1; i-- {
+		for i := len(selectors); i > 0; i-- {
 			selectors = selectors[:i]
 			val := yv.LookupPath(cue.MakePath(selectors...))
 

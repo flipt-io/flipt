@@ -127,5 +127,7 @@ func TestValidate_Extended(t *testing.T) {
 
 	assert.Equal(t, `flags.1.description: incomplete value =~"^.+$"`, ferr.Message)
 	assert.Equal(t, "testdata/valid.yaml", ferr.Location.File)
-	assert.Equal(t, 2, ferr.Location.Line) // TODO: why 2?
+	// location of the start of the boolean flag
+	// which lacks a description
+	assert.Equal(t, 30, ferr.Location.Line)
 }
