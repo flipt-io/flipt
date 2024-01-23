@@ -122,16 +122,12 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 }
 
 func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	rollouts, err := s.store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		resp = &rpcevaluation.BooleanEvaluationResponse{
 			RequestId: r.RequestId,
 		}
 		lastRank int32
+		err      error
 	)
 
 	var (
@@ -170,6 +166,17 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			),
 		)
 	}()
+
+	if !flag.Enabled {
+		resp.Enabled = false
+		resp.Reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+		return resp, nil
+	}
+
+	rollouts, err := s.store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
+	if err != nil {
+		return nil, err
+	}
 
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {

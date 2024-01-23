@@ -641,6 +641,37 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	assert.EqualError(t, err, "rollout rank: 0 detected out of order")
 }
 
+func TestBoolean_FlagDisabled(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
+		NamespaceKey: namespaceKey,
+		Key:          flagKey,
+		Enabled:      false,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+
+	assert.False(t, res.Enabled)
+	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, res.Reason)
+}
+
 func TestBatch_UnknownFlagType(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
