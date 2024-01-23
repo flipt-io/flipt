@@ -23,7 +23,7 @@ func newDocCommand() *cobra.Command {
 				return fmt.Errorf("failed to create docs directory: %w", err)
 			}
 
-			if err := doc.GenMarkdownTree(cmd.Root(), "./tmp/docs"); err != nil {
+			if err := doc.GenMarkdownTree(cmd.Root(), path); err != nil {
 				return fmt.Errorf("failed to generate docs: %w", err)
 			}
 
