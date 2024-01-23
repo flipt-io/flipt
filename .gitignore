@@ -54,3 +54,4 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
+build/mage_output_file.go

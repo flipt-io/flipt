@@ -3,6 +3,34 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0) - 2024-01-23
+
+### Added
+
+- `cmd`: flipt evaluate CLI subcommand (#2678)
+- `validate`: add ability to further constrain schema (#2677)
+- `ui`: show configured Git ref in UI (#2673)
+- `storage/fs/git`: add initial support for multiple snapshots (#2609)
+
+### Changed
+
+- `examples`: update openfeature example to use jaeger with otlp endpoint (#2676)
+- `ui`: improve index (#2669)
+- `ui`: improve Yup usage (#2647)
+- `ui/console`: replace monaco with codemirror (#2646)
+- `ui`: drop highlight.js (#2645)
+- `ui`: drop moment.js (#2644)
+- `ui`: drop lodash as deps (#2640)
+- deprecate Jaeger tracing (#2675)
+
+### Fixed
+
+- `cfg`: json schema missing storage type oci (#2674)
+- `ui`: boolean constraint type asks for value when you edit it (#2671)
+- Combobox not showing options upon input click (#2642)
+- `fs/object`: close reader after using it (#2648)
+- `validate(cue):` get correct error line position (#2701)
+
 ## [v1.35.0](https://github.com/flipt-io/flipt/releases/tag/v1.35.0) - 2024-01-09
 
 ### Added
