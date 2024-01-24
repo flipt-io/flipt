@@ -1,15 +1,18 @@
 package testing
 
 import (
+	"bytes"
 	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"path"
 	"strings"
@@ -99,6 +102,7 @@ const (
 	staticAuth
 	staticAuthNamespaced
 	jwtAuth
+	k8sAuth
 )
 
 func (a authConfig) enabled() bool {
@@ -111,6 +115,8 @@ func (a authConfig) method() string {
 		return "static"
 	case jwtAuth:
 		return "jwt"
+	case k8sAuth:
+		return "k8s"
 	default:
 		return ""
 	}
@@ -135,7 +141,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced, jwtAuth} {
+			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced, jwtAuth, k8sAuth} {
 				auth := auth
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
@@ -154,6 +160,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					config.name = fmt.Sprintf("%s with static auth namespaced token", config.name)
 				case jwtAuth:
 					config.name = fmt.Sprintf("%s with jwt auth", config.name)
+				case k8sAuth:
+					config.name = fmt.Sprintf("%s with k8s auth", config.name)
 				}
 
 				configs = append(configs, config)
@@ -168,39 +176,62 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			var (
 				fn     = fn
 				config = config
+				flipt  = flipt
+				base   = base
 			)
 
-			flipt := flipt
-			if config.auth.enabled() {
-				bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
-				if err != nil {
-					return err
+			g.Go(take(func() error {
+				if config.auth.enabled() {
+					flipt = flipt.
+						WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
+
+					switch config.auth {
+					case k8sAuth:
+						flipt = flipt.
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
+
+						var saToken string
+						// run an OIDC server which exposes a JWKS url using a private key we own
+						// and generate a JWT to act as our SA token
+						flipt, saToken, err = serveOIDC(ctx, client, base, flipt)
+						if err != nil {
+							return err
+						}
+
+						// mount service account token into base on expected k8s sa token path
+						base = base.WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token", dagger.ContainerWithNewFileOpts{
+							Contents: saToken,
+						})
+					case jwtAuth:
+						bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+						if err != nil {
+							return err
+						}
+
+						bytes = pem.EncodeToMemory(&pem.Block{
+							Type:  "public key",
+							Bytes: bytes,
+						})
+
+						flipt = flipt.
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+							WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
+					}
 				}
 
-				bytes = pem.EncodeToMemory(&pem.Block{
-					Type:  "public key",
-					Bytes: bytes,
-				})
-
+				name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
 				flipt = flipt.
-					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
-					WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
-			}
-
-			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
-			flipt = flipt.
-				WithEnvVariable("CI", os.Getenv("CI")).
-				WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
-				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-				WithMountedCache("/var/opt/flipt/logs", logs).
-				WithExposedPort(config.port)
-
-			g.Go(take(fn(ctx, client, base.Pipeline(name), flipt, config)))
+					WithEnvVariable("CI", os.Getenv("CI")).
+					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
+					WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
+					WithMountedCache("/var/opt/flipt/logs", logs).
+					WithExposedPort(config.port)
+				return fn(ctx, client, base.Pipeline(name), flipt, config)()
+			}))
 		}
 	}
 
@@ -396,14 +427,16 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	minio := client.Container().
 		From("quay.io/minio/minio:latest").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+		AsService()
 
 	_, err := base.
-		WithServiceBinding("minio", minio.AsService()).
+		WithServiceBinding("minio", minio).
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
 		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", singleRevisionTestdataDir}).
@@ -413,7 +446,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	}
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio.AsService()).
+		WithServiceBinding("minio", minio).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
@@ -625,6 +658,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	azurite := client.Container().
 		From("mcr.microsoft.com/azure-storage/azurite").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(10000).
 		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
 		AsService()
@@ -657,6 +691,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gcs := client.Container().
 		From("fsouza/fake-gcs-server").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(4443).
 		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
 		AsService()
@@ -696,4 +731,129 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 	}
 
 	return raw
+}
+
+// serveOIDC runs a mini OIDC-style key provider and mounts it as a service onto Flipt.
+// This provider is designed to mimic how kubernetes exposes JWKS endpoints for its service account tokens.
+// The function creates signing keys and TLS CA certificates which is shares with the provider and
+// with Flipt itself. This is to facilitate Flipt using the custom CA to authenticate the provider.
+// The function generates two JWTs, one for Flipt to identify itself and one which is returned to the caller.
+// The caller can use this as the service account token identity to be mounted into the container with the
+// client used for running the test and authenticating with Flipt.
+func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, string, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return nil, "", err
+	}
+
+	rsaSigningKey := &bytes.Buffer{}
+	if err := pem.Encode(rsaSigningKey, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(priv),
+	}); err != nil {
+		return nil, "", err
+	}
+
+	// generate a SA style JWT for identifying the Flipt service
+	fliptSAToken := signJWT(priv, map[string]any{
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iss": "https://discover.srv",
+		"kubernetes.io": map[string]any{
+			"namespace": "flipt",
+			"pod": map[string]any{
+				"name": "flipt-7d26f049-kdurb",
+				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+			},
+			"serviceaccount": map[string]any{
+				"name": "flipt",
+				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+			},
+		},
+	})
+
+	// generate a CA certificate to share between Flipt and the mini OIDC server
+	ca := &x509.Certificate{
+		SerialNumber: big.NewInt(2019),
+		Subject: pkix.Name{
+			Organization:  []string{"Flipt, INC."},
+			Country:       []string{"US"},
+			Province:      []string{""},
+			Locality:      []string{"North Carolina"},
+			StreetAddress: []string{""},
+			PostalCode:    []string{""},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+		DNSNames:              []string{"discover.svc"},
+	}
+
+	caPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return nil, "", err
+	}
+
+	caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, &caPrivKey.PublicKey, caPrivKey)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var caCert bytes.Buffer
+	if err := pem.Encode(&caCert, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caBytes,
+	}); err != nil {
+		return nil, "", err
+	}
+
+	var caPrivKeyPEM bytes.Buffer
+	pem.Encode(&caPrivKeyPEM, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
+	})
+
+	return flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_DISCOVERY_URL", "https://discover.svc").
+			WithServiceBinding("discover.svc", base.
+				WithNewFile("/server.crt", dagger.ContainerWithNewFileOpts{
+					Contents: caCert.String(),
+				}).
+				WithNewFile("/server.key", dagger.ContainerWithNewFileOpts{
+					Contents: caPrivKeyPEM.String(),
+				}).
+				WithNewFile("/priv.pem", dagger.ContainerWithNewFileOpts{
+					Contents: rsaSigningKey.String(),
+				}).
+				WithExposedPort(443).
+				WithExec([]string{
+					"sh",
+					"-c",
+					"go run ./build/internal/cmd/discover/... --private-key /priv.pem",
+				}).
+				AsService()).
+			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token",
+				dagger.ContainerWithNewFileOpts{Contents: fliptSAToken}).
+			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
+				dagger.ContainerWithNewFileOpts{Contents: caCert.String()}),
+		// generate a JWT to used to identify the workload communicating with Flipt
+		// using the private key components of the key pair served by the OIDC server
+		signJWT(priv, map[string]any{
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
+			"iss": "https://discover.svc",
+			"kubernetes.io": map[string]any{
+				"namespace": "integration",
+				"pod": map[string]any{
+					"name": "integration-test-7d26f049-kdurb",
+					"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+				},
+				"serviceaccount": map[string]any{
+					"name": "integration-test",
+					"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+				},
+			},
+		}), nil
 }
