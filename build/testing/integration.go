@@ -732,6 +732,13 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 	return raw
 }
 
+// serveOIDC runs a mini OIDC-style key provider and mounts it as a service onto Flipt.
+// This provider is designed to mimic how kubernetes exposes JWKS endpoints for its service account tokens.
+// The function creates signing keys and TLS CA certificates which is shares with the provider and
+// with Flipt itself. This is to facilitate Flipt using the custom CA to authenticate the provider.
+// The function generates two JWTs, one for Flipt to identify itself and one which is returned to the caller.
+// The caller can use this as the service account token identity to be mounted into the container with the
+// client used for running the test and authenticating with Flipt.
 func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, string, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
@@ -746,6 +753,7 @@ func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return nil, "", err
 	}
 
+	// generate a SA style JWT for identifying the Flipt service
 	fliptSAToken := signJWT(priv, map[string]any{
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
 		"iss": "https://discover.srv",
@@ -762,6 +770,7 @@ func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		},
 	})
 
+	// generate a CA certificate to share between Flipt and the mini OIDC server
 	ca := &x509.Certificate{
 		SerialNumber: big.NewInt(2019),
 		Subject: pkix.Name{
@@ -829,6 +838,8 @@ func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 				dagger.ContainerWithNewFileOpts{Contents: fliptSAToken}).
 			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 				dagger.ContainerWithNewFileOpts{Contents: caCert.String()}),
+		// generate a JWT to used to identify the workload communicating with Flipt
+		// using the private key components of the key pair served by the OIDC server
 		signJWT(priv, map[string]any{
 			"exp": time.Now().Add(24 * time.Hour).Unix(),
 			"iss": "https://discover.svc",
