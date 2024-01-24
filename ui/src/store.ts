@@ -10,14 +10,14 @@ import {
   namespacesSlice
 } from '~/app/namespaces/namespacesSlice';
 import { flagsApi } from './app/flags/flagsApi';
-import { rolloutsApi } from './app/flags/rolloutsApi';
-import { rulesApi } from './app/flags/rulesApi';
+import { rolloutTag, rolloutsApi } from './app/flags/rolloutsApi';
+import { ruleTag, rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
 import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
-import { segmentsApi } from './app/segments/segmentsApi';
+import { segmentTag, segmentsApi } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 
@@ -60,6 +60,28 @@ listenerMiddleware.startListening({
   matcher: namespaceApi.endpoints.listNamespaces.matchFulfilled,
   effect: (action, api) => {
     api.dispatch(namespacesSlice.actions.namespacesChanged(action.payload));
+  }
+});
+
+// clean segments cache for deleted namespace
+listenerMiddleware.startListening({
+  matcher: namespaceApi.endpoints.deleteNamespace.matchFulfilled,
+  effect: (action, api) => {
+    api.dispatch(
+      segmentsApi.util.invalidateTags([
+        segmentTag(action.meta.arg.originalArgs)
+      ])
+    );
+  }
+});
+
+// clean rollouts and rules cache for deleted flag
+listenerMiddleware.startListening({
+  matcher: flagsApi.endpoints.deleteFlag.matchFulfilled,
+  effect: (action, api) => {
+    const arg = action.meta.arg.originalArgs;
+    api.dispatch(rolloutsApi.util.invalidateTags([rolloutTag(arg)]));
+    api.dispatch(rulesApi.util.invalidateTags([ruleTag(arg)]));
   }
 });
 
