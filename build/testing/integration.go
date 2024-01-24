@@ -180,57 +180,58 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				base   = base
 			)
 
-			if config.auth.enabled() {
-				flipt = flipt.
-					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
-
-				switch config.auth {
-				case k8sAuth:
+			g.Go(take(func() error {
+				if config.auth.enabled() {
 					flipt = flipt.
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
+						WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 
-					var saToken string
-					// run an OIDC server which exposes a JWKS url using a private key we own
-					// and generate a JWT to act as our SA token
-					flipt, saToken, err = serveOIDC(ctx, client, base, flipt)
-					if err != nil {
-						return err
+					switch config.auth {
+					case k8sAuth:
+						flipt = flipt.
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
+
+						var saToken string
+						// run an OIDC server which exposes a JWKS url using a private key we own
+						// and generate a JWT to act as our SA token
+						flipt, saToken, err = serveOIDC(ctx, client, base, flipt)
+						if err != nil {
+							return err
+						}
+
+						// mount service account token into base on expected k8s sa token path
+						base = base.WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token", dagger.ContainerWithNewFileOpts{
+							Contents: saToken,
+						})
+					case jwtAuth:
+						bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+						if err != nil {
+							return err
+						}
+
+						bytes = pem.EncodeToMemory(&pem.Block{
+							Type:  "public key",
+							Bytes: bytes,
+						})
+
+						flipt = flipt.
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+							WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
+							WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
 					}
-
-					// mount service account token into base on expected k8s sa token path
-					base = base.WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token", dagger.ContainerWithNewFileOpts{
-						Contents: saToken,
-					})
-				case jwtAuth:
-					bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
-					if err != nil {
-						return err
-					}
-
-					bytes = pem.EncodeToMemory(&pem.Block{
-						Type:  "public key",
-						Bytes: bytes,
-					})
-
-					flipt = flipt.
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
-						WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
 				}
-			}
 
-			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
-			flipt = flipt.
-				WithEnvVariable("CI", os.Getenv("CI")).
-				WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
-				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-				WithMountedCache("/var/opt/flipt/logs", logs).
-				WithExposedPort(config.port)
-
-			g.Go(take(fn(ctx, client, base.Pipeline(name), flipt, config)))
+				name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
+				flipt = flipt.
+					WithEnvVariable("CI", os.Getenv("CI")).
+					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
+					WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
+					WithMountedCache("/var/opt/flipt/logs", logs).
+					WithExposedPort(config.port)
+				return fn(ctx, client, base.Pipeline(name), flipt, config)()
+			}))
 		}
 	}
 
