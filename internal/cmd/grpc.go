@@ -232,7 +232,6 @@ func NewGRPCServer(
 	)
 
 	skipAuthIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
-	skipAuthIfExcluded(metasrv, cfg.Authentication.Exclude.Metadata)
 	skipAuthIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 
 	var checker *audit.Checker
