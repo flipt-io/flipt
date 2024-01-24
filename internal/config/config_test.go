@@ -251,6 +251,19 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "deprecated autentication excluding metadata",
+			path: "./testdata/deprecated/authentication_excluding_metadata.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Authentication.Required = true
+				cfg.Authentication.Exclude.Metadata = true
+				return cfg
+			},
+			warnings: []string{
+				"\"authentication.exclude.metadata\" is deprecated and will be removed in a future release. This feature never worked as intended. Metadata can no longer be excluded from authentication (when required).",
+			},
+		},
+		{
 			name: "cache no backend set",
 			path: "./testdata/cache/default.yml",
 			expected: func() *Config {

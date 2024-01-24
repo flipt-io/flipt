@@ -1,0 +1,4 @@
+authentication:
+  required: true
+  exclude:
+    metadata: true
