@@ -142,7 +142,7 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 	case "k8s":
 		authConfig = K8sAuth
 		opts = append(opts, sdk.WithAuthenticationProvider(
-			sdk.NewKuberntesAuthenticationProvider(transport),
+			sdk.NewKubernetesAuthenticationProvider(transport),
 		))
 	}
 
