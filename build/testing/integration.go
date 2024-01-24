@@ -183,12 +183,10 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			if config.auth.enabled() {
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true")
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 
 				switch config.auth {
-				case staticAuth, staticAuthNamespaced:
-					flipt = flipt.
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 				case k8sAuth:
 					flipt = flipt.
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
