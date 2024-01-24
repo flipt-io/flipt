@@ -182,12 +182,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			if config.auth.enabled() {
 				flipt = flipt.
-					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true")
+					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true")
 
 				switch config.auth {
 				case staticAuth, staticAuthNamespaced:
 					flipt = flipt.
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 				case k8sAuth:
 					flipt = flipt.
@@ -428,6 +428,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	minio := client.Container().
 		From("quay.io/minio/minio:latest").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(9009).
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
@@ -657,6 +658,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	azurite := client.Container().
 		From("mcr.microsoft.com/azure-storage/azurite").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(10000).
 		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
 		AsService()
@@ -689,6 +691,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gcs := client.Container().
 		From("fsouza/fake-gcs-server").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(4443).
 		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
 		AsService()
