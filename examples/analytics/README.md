@@ -12,7 +12,7 @@ The configuration for the OpenTelemetry collector should look familiar if you ha
 
 ### Data
 
-!['Clickhouse Example'](../../images/clickhouse.png)
+!['Clickhouse Example'](../images/clickhouse.png)
 
 Once you run the `docker-compose`, you can start creating flags, making evaluations, etc. After data is collected in the Clickhouse server, you can connect to the server via web UI at `http://localhost:8123/play`. From here you can glean powerful analytical data such as average and quantile measurements from the flag evaluations.
 
