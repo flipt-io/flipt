@@ -37,7 +37,7 @@ Note that each of these methods will only work if the target Flipt server instan
 
 Currently, there are three implementations:
 
-- [StaticTokenAuthenticationProvider]:
+- [StaticTokenAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#static-token):
 
 This provider sets a static Flipt client token via the Authentication header with the Bearer scheme.
 
@@ -46,7 +46,7 @@ This provider sets a static Flipt client token via the Authentication header wit
 		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
-- [JWTAuthenticationProvider]:
+- [JWTAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#json-web-tokens):
 
 This provider sets a pre-generated JSON web-token via the Authentication header with the JWT scheme.
 
@@ -55,7 +55,7 @@ This provider sets a pre-generated JSON web-token via the Authentication header 
 		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
-- [KubernetesAuthenticationProvider]:
+- [KubernetesAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#kubernetes):
 
 This automatically uses the service account token on the host and exchanges it with Flipt for a Flipt client token credential. The credential is then used to authenticate requests, again via the Authentication header and the Bearer scheme. It ensures that the client token is not-expired and requests fresh tokens automatically without intervention. Use this method to automatically authenticate your application with a Flipt deployed into the same Kubernetes cluster.
 
