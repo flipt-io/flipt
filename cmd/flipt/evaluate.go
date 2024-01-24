@@ -145,7 +145,7 @@ func (c *evaluateCommand) run(cmd *cobra.Command, args []string) error {
 
 type booleanEvaluateResponse struct {
 	FlagKey               string    `json:"flag_key,omitempty"`
-	Enabled               bool      `json:"enabled,omitempty"`
+	Enabled               bool      `json:"enabled"`
 	Reason                string    `json:"reason,omitempty"`
 	RequestID             string    `json:"request_id,omitempty"`
 	RequestDurationMillis float64   `json:"request_duration_millis,omitempty"`
@@ -154,7 +154,7 @@ type booleanEvaluateResponse struct {
 
 type variantEvaluationResponse struct {
 	FlagKey               string    `json:"flag_key,omitempty"`
-	Match                 bool      `json:"match,omitempty"`
+	Match                 bool      `json:"match"`
 	Reason                string    `json:"reason,omitempty"`
 	VariantKey            string    `json:"variant_key,omitempty"`
 	VariantAttachment     string    `json:"variant_attachment,omitempty"`
