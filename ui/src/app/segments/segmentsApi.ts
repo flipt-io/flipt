@@ -1,7 +1,14 @@
+import { FullTagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 import { baseQuery } from '~/utils/redux-rtk';
+
+export const segmentTag = (
+  namespaceKey: string
+): FullTagDescription<'Segment'> => {
+  return { type: 'Segment', id: namespaceKey };
+};
 
 export const segmentsApi = createApi({
   reducerPath: 'segments',
@@ -18,9 +25,9 @@ export const segmentsApi = createApi({
                 type: 'Segment' as const,
                 id: namespaceKey + '/' + key
               })),
-              { type: 'Segment', id: namespaceKey }
+              segmentTag(namespaceKey)
             ]
-          : [{ type: 'Segment', id: namespaceKey }]
+          : [segmentTag(namespaceKey)]
     }),
     // get segment in this namespace
     getSegment: builder.query<
@@ -46,7 +53,7 @@ export const segmentsApi = createApi({
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey, values }) => [
-        { type: 'Segment', id: namespaceKey },
+        segmentTag(namespaceKey),
         { type: 'Segment', id: namespaceKey + '/' + values.key }
       ]
     }),
@@ -62,7 +69,7 @@ export const segmentsApi = createApi({
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey }) => [
-        { type: 'Segment', id: namespaceKey }
+        segmentTag(namespaceKey)
       ]
     }),
     // update the segment in the namespace
@@ -78,7 +85,7 @@ export const segmentsApi = createApi({
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey },
+        segmentTag(namespaceKey),
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
     }),
@@ -128,7 +135,7 @@ export const segmentsApi = createApi({
         return { data: undefined };
       },
       invalidatesTags: (_result, _error, { to }) => [
-        { type: 'Segment', id: to.namespaceKey }
+        segmentTag(to.namespaceKey)
       ]
     }),
 

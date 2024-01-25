@@ -1,8 +1,16 @@
+import { FullTagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { IDistributionBase } from '~/types/Distribution';
 import { IRule, IRuleBase, IRuleList } from '~/types/Rule';
 
 import { baseQuery } from '~/utils/redux-rtk';
+
+export const ruleTag = (arg: {
+  namespaceKey: string;
+  flagKey: string;
+}): FullTagDescription<'Rule'> => {
+  return { type: 'Rule', id: arg.namespaceKey + '/' + arg.flagKey };
+};
 
 export const rulesApi = createApi({
   reducerPath: 'rules',
@@ -16,9 +24,7 @@ export const rulesApi = createApi({
     >({
       query: ({ namespaceKey, flagKey }) =>
         `/namespaces/${namespaceKey}/flags/${flagKey}/rules`,
-      providesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      providesTags: (_result, _error, arg) => [ruleTag(arg)]
     }),
     // create a new rule
     createRule: builder.mutation<
@@ -59,9 +65,7 @@ export const rulesApi = createApi({
         }
         return { data: rule };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [ruleTag(arg)]
     }),
     // delete the rule
     deleteRule: builder.mutation<
@@ -74,9 +78,7 @@ export const rulesApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [ruleTag(arg)]
     }),
     // update the rule
     updateRule: builder.mutation<
@@ -95,9 +97,7 @@ export const rulesApi = createApi({
           body: values
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [ruleTag(arg)]
     }),
     // reorder the rules
     orderRules: builder.mutation<
@@ -149,9 +149,7 @@ export const rulesApi = createApi({
           patchResult.undo();
         }
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [ruleTag(arg)]
     }),
     // update the dustribution
     updateDistribution: builder.mutation<
@@ -171,9 +169,7 @@ export const rulesApi = createApi({
           body: values
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rule', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [ruleTag(arg)]
     })
   })
 });
