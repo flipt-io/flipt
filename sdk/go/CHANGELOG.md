@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.10.0](https://github.com/flipt-io/flipt/releases/tag/sdk/go/v0.10.0) - 2024-01-26
+
+### Added
+
+- Add Kubernetes authentication provider (#2703)
+
+## [v0.9.0](https://github.com/flipt-io/flipt/releases/tag/sdk/go/v0.9.0) - 2024-01-09
+
+### Added
+
+- Add JWT authentication provider (#2620)
+- `rpc/flipt`: add reference to read request protocols (#2570)
+
 ## [v0.8.0](https://github.com/flipt-io/flipt/releases/tag/sdk/go/v0.8.0) - 2023-11-15
 
 - `sdk/go`: update rpc/flipt to 1.31.0
