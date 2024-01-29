@@ -1822,6 +1822,44 @@ func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
 	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
+func TestAuditUnaryInterceptor_OrderRollout(t *testing.T) {
+	var (
+		store       = &common.StoreMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.OrderRolloutsRequest{
+			NamespaceKey: "default",
+			FlagKey:      "flagkey",
+			RolloutIds:   []string{"1", "2"},
+		}
+	)
+
+	store.On("OrderRollouts", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.OrderRollouts(ctx, r.(*flipt.OrderRolloutsRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "OrderRollouts",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
 func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
 	var (
 		store       = &common.StoreMock{}
@@ -1930,6 +1968,44 @@ func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 
 	info := &grpc.UnaryServerInfo{
 		FullMethod: "UpdateRule",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
+func TestAuditUnaryInterceptor_OrderRule(t *testing.T) {
+	var (
+		store       = &common.StoreMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.OrderRulesRequest{
+			FlagKey: "flagkey",
+			RuleIds: []string{"1", "2"},
+		}
+	)
+
+	store.On("OrderRules", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.OrderRules(ctx, r.(*flipt.OrderRulesRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "OrderRules",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
