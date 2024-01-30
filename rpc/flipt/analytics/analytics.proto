@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package flipt.analytics;
 
-import "google/protobuf/empty.proto";
 option go_package = "go.flipt.io/flipt/rpc/flipt/analytics";
 
 message GetFlagEvaluationsCountRequest {
