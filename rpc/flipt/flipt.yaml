@@ -315,3 +315,9 @@ http:
   # internal routes
   - selector: flipt.evaluation.DataService.EvaluationSnapshotNamespace
     get: /internal/v1/evaluation/snapshot/namespace/{key}
+
+  # analytics methods
+  #
+  # method: evaluation count
+  - selector: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount
+    get: /internal/analytics/v1/{flag_key}

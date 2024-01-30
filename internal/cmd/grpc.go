@@ -20,6 +20,8 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
+	analytics "go.flipt.io/flipt/internal/server/analytics"
+	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
@@ -270,6 +272,20 @@ func NewGRPCServer(
 	register.Add(metasrv)
 	register.Add(evalsrv)
 	register.Add(evalDataSrv)
+
+	if cfg.Analytics.Enabled {
+		var analyticsClient analytics.Client
+
+		if cfg.Analytics.Clickhouse.Enabled {
+			analyticsClient, err = clickhouse.New(logger, cfg.Analytics.Clickhouse.ConnectionString)
+			if err != nil {
+				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
+			}
+		}
+
+		metricssrv := analytics.New(logger, analyticsClient)
+		register.Add(metricssrv)
+	}
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)

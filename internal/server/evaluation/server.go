@@ -18,20 +18,42 @@ type Storer interface {
 	GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error)
 }
 
+type MetricsStoreMutator interface {
+	IncrementFlagEvaluation(ctx context.Context, flagKey string) error
+}
+
+// Option defines a function acting as a functional option to modify server properties.
+type Option func(*Server)
+
 // Server serves the Flipt evaluate v2 gRPC Server.
 type Server struct {
-	logger    *zap.Logger
-	store     Storer
-	evaluator *Evaluator
+	logger       *zap.Logger
+	store        Storer
+	evaluator    *Evaluator
+	metricsStore MetricsStoreMutator
 	evaluation.UnimplementedEvaluationServiceServer
 }
 
 // New is constructs a new Server.
-func New(logger *zap.Logger, store Storer) *Server {
-	return &Server{
+func New(logger *zap.Logger, store Storer, opts ...Option) *Server {
+	s := &Server{
 		logger:    logger,
 		store:     store,
 		evaluator: NewEvaluator(logger, store),
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
+}
+
+// WithMetricsStoreMutator configures a metrics store for the Server for
+// storing metrics into a pre-configured store.
+func WithMetricsStoreMutator(ms MetricsStoreMutator) Option {
+	return func(s *Server) {
+		s.metricsStore = ms
 	}
 }
 

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package flipt.analytics;
+
+import "google/protobuf/empty.proto";
+option go_package = "go.flipt.io/flipt/rpc/flipt/analytics";
+
+message GetFlagEvaluationsCountRequest {
+    string flag_key = 1;
+    string from = 2;
+}
+
+message GetFlagEvaluationsCountResponse {
+    repeated string timestamps = 1;
+    repeated float values = 2;
+}
+
+service AnalyticsService {
+    rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {}
+}
