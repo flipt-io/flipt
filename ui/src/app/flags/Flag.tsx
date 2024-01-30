@@ -30,8 +30,6 @@ import {
   useGetFlagQuery
 } from './flagsApi';
 import Rollouts from './rollouts/Rollouts';
-import { selectCurrentRef } from '~/app/refs/refsSlice';
-
 const tabs = [
   { name: 'Variants', to: '' },
   { name: 'Rules', to: 'rules' }
@@ -51,7 +49,6 @@ export default function Flag() {
 
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
-  const ref = useSelector(selectCurrentRef);
   const readOnly = useSelector(selectReadonly);
 
   const {
@@ -61,8 +58,7 @@ export default function Flag() {
     isError
   } = useGetFlagQuery({
     namespaceKey: namespace.key,
-    flagKey: flagKey || '',
-    ref: ref
+    flagKey: flagKey || ''
   });
 
   const [deleteFlag] = useDeleteFlagMutation();

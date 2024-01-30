@@ -58,6 +58,13 @@ listenerMiddleware.startListening({
       refsKey,
       (api.getState() as RootState).refs.currentRef || ''
     );
+
+    // reset internal cache
+    api.dispatch(namespaceApi.util.resetApiState());
+    api.dispatch(flagsApi.util.resetApiState());
+    api.dispatch(segmentsApi.util.resetApiState());
+    api.dispatch(rolloutsApi.util.resetApiState());
+    api.dispatch(rulesApi.util.resetApiState());
   }
 });
 
