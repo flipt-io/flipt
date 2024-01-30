@@ -3,11 +3,14 @@ package clickhouse
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/golang-migrate/migrate/v4"
+	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	"go.uber.org/zap"
 )
 
@@ -33,31 +36,63 @@ type Client struct {
 // New constructs a new clickhouse client that conforms to the analytics.Client contract.
 func New(logger *zap.Logger, connectionString string) (*Client, error) {
 	var (
-		conn       *sql.DB
-		connectErr error
+		conn          *sql.DB
+		clickhouseErr error
 	)
 
 	dbOnce.Do(func() {
+		err := runMigrations(logger, connectionString)
+		if err != nil {
+			clickhouseErr = err
+			return
+		}
+
 		connection, err := connect(connectionString)
 		if err != nil {
-			connectErr = err
+			clickhouseErr = err
 			return
 		}
 
 		conn = connection
 	})
 
-	if connectErr != nil {
-		return nil, connectErr
+	if clickhouseErr != nil {
+		return nil, clickhouseErr
 	}
 
 	return &Client{conn: conn}, nil
 }
 
+func runMigrations(logger *zap.Logger, connectionString string) error {
+	db := clickhouse.OpenDB(&clickhouse.Options{
+		Addr: []string{connectionString},
+	})
+
+	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
+		MigrationsTableEngine: "MergeTree",
+	})
+	if err != nil {
+		logger.Error("error creating driver for clickhouse migrations", zap.Error(err))
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance("file://sql", "clickhouse", driver)
+	if err != nil {
+		logger.Error("error creating clickhouse DB instance for migrations", zap.Error(err))
+		return err
+	}
+
+	if err := m.Up(); err != nil && errors.Is(err, migrate.ErrNoChange) {
+		logger.Error("error running migrations on clickhouse", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 func connect(connectionString string) (*sql.DB, error) {
 	conn := clickhouse.OpenDB(&clickhouse.Options{
-		Addr:     []string{connectionString},
-		Protocol: clickhouse.HTTP,
+		Addr: []string{connectionString},
 	})
 
 	if err := conn.Ping(); err != nil {
@@ -136,8 +171,8 @@ func getStepFromDuration(from time.Duration) *Step {
 
 // IncrementFlagEvaluation inserts a row into Clickhouse that corresponds to a time when a flag was evaluated.
 // This acts as a "prometheus-like" counter metric.
-func (c *Client) IncrementFlagEvaluation(ctx context.Context, flagKey string) error {
-	_, err := c.conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?)", counterAnalyticsTable), time.Now().Format(timeFormat), counterAnalyticsName, flagKey, 1)
+func (c *Client) IncrementFlagEvaluation(ctx context.Context, namespaceKey, flagKey string) error {
+	_, err := c.conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?,?)", counterAnalyticsTable), time.Now().Format(timeFormat), counterAnalyticsName, namespaceKey, flagKey, 1)
 
 	return err
 }
