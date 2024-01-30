@@ -267,25 +267,32 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
+	if cfg.Analytics.Enabled {
+		var (
+			analyticsClient       analytics.Client
+			analyticsStoreMutator evaluation.AnalyticsStoreMutator
+		)
+
+		if cfg.Analytics.Clickhouse.Enabled {
+			client, err := clickhouse.New(logger, cfg.Analytics.Clickhouse.ConnectionString)
+			if err != nil {
+				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
+			}
+			analyticsClient = client
+			analyticsStoreMutator = client
+		}
+
+		evaluation.WithAnalyticsStoreMutator(analyticsStoreMutator)(evalsrv)
+
+		analyticssrv := analytics.New(logger, analyticsClient)
+		register.Add(analyticssrv)
+	}
+
 	// initialize servers
 	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
 	register.Add(evalDataSrv)
-
-	if cfg.Analytics.Enabled {
-		var analyticsClient analytics.Client
-
-		if cfg.Analytics.Clickhouse.Enabled {
-			analyticsClient, err = clickhouse.New(logger, cfg.Analytics.Clickhouse.ConnectionString)
-			if err != nil {
-				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
-			}
-		}
-
-		analyticssrv := analytics.New(logger, analyticsClient)
-		register.Add(analyticssrv)
-	}
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)

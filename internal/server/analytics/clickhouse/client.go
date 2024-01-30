@@ -70,8 +70,8 @@ func connect(connectionString string) (*sql.DB, error) {
 func (c *Client) GetFlagEvaluationsCount(ctx context.Context, namespaceKey, flagKey string, from time.Duration) ([]string, []float32, error) {
 	step := getStepFromDuration(from)
 
-	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`SELECT sum(value) AS value, toStartOfInterval(time, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND time >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
+	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`SELECT sum(value) AS value, toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
+		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND timestamp >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
