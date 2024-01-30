@@ -320,4 +320,4 @@ http:
   #
   # method: evaluation count
   - selector: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount
-    get: /internal/analytics/v1/{flag_key}
+    get: /internal/v1/analytics/{flag_key}

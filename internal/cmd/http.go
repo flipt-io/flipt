@@ -151,8 +151,8 @@ func NewHTTPServer(
 
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
+		r.Mount("/internal/v1/analytics", analyticsAPI)
 		r.Mount("/internal/v1", evaluateDataAPI)
-		r.Mount("/internal/analytics/v1", analyticsAPI)
 
 		// mount all authentication related HTTP components
 		// to the chi router.

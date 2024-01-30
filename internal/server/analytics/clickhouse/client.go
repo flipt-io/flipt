@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -17,6 +18,8 @@ type Step struct {
 	intervalStep  string
 }
 
+var dbOnce sync.Once
+
 const (
 	counterAnalyticsTable = "flipt_counter_analytics"
 	counterAnalyticsName  = "flag_evaluation_count"
@@ -29,9 +32,23 @@ type Client struct {
 
 // New constructs a new clickhouse client that conforms to the analytics.Client contract.
 func New(logger *zap.Logger, connectionString string) (*Client, error) {
-	conn, err := connect(connectionString)
-	if err != nil {
-		return nil, err
+	var (
+		conn       *sql.DB
+		connectErr error
+	)
+
+	dbOnce.Do(func() {
+		connection, err := connect(connectionString)
+		if err != nil {
+			connectErr = err
+			return
+		}
+
+		conn = connection
+	})
+
+	if connectErr != nil {
+		return nil, connectErr
 	}
 
 	return &Client{conn: conn}, nil
@@ -50,15 +67,16 @@ func connect(connectionString string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (c *Client) GetFlagEvaluationsCount(ctx context.Context, flagKey string, from time.Duration) ([]string, []float32, error) {
+func (c *Client) GetFlagEvaluationsCount(ctx context.Context, namespaceKey, flagKey string, from time.Duration) ([]string, []float32, error) {
 	step := getStepFromDuration(from)
 
 	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`SELECT sum(value) AS value, toStartOfInterval(time, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE flag_key = ? AND time >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
+		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND time >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
 		from.Seconds()),
+		namespaceKey,
 		flagKey,
 	)
 	if err != nil {
@@ -84,6 +102,10 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, flagKey string, fr
 
 		timestamps = append(timestamps, timestamp)
 		values = append(values, float32(value))
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, nil, err
 	}
 
 	return timestamps, values, nil

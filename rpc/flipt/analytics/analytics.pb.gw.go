@@ -115,7 +115,7 @@ func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/analytics/v1/{flag_key}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -179,7 +179,7 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/analytics/v1/{flag_key}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -199,7 +199,7 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 }
 
 var (
-	pattern_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"internal", "analytics", "v1", "flag_key"}, ""))
+	pattern_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"internal", "v1", "analytics", "flag_key"}, ""))
 )
 
 var (

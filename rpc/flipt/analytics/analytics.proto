@@ -5,8 +5,9 @@ package flipt.analytics;
 option go_package = "go.flipt.io/flipt/rpc/flipt/analytics";
 
 message GetFlagEvaluationsCountRequest {
-    string flag_key = 1;
-    string from = 2;
+    string namespace_key = 1;
+    string flag_key = 2;
+    string from = 3;
 }
 
 message GetFlagEvaluationsCountResponse {

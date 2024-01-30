@@ -14,7 +14,7 @@ func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		return nil, err
 	}
 
-	timestamps, values, err := s.client.GetFlagEvaluationsCount(ctx, req.FlagKey, duration)
+	timestamps, values, err := s.client.GetFlagEvaluationsCount(ctx, req.NamespaceKey, req.FlagKey, duration)
 	if err != nil {
 		return nil, err
 	}
