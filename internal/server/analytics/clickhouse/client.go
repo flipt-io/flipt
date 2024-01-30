@@ -18,9 +18,9 @@ type Step struct {
 }
 
 const (
-	counterMetricTable = "flipt_counter_metrics"
-	counterMetricName  = "flag_evaluation_count"
-	timeFormat         = "2006-01-02 15:04:05"
+	counterAnalyticsTable = "flipt_counter_analytics"
+	counterAnalyticsName  = "flag_evaluation_count"
+	timeFormat            = "2006-01-02 15:04:05"
 )
 
 type Client struct {
@@ -57,7 +57,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, flagKey string, fr
 		FROM %s WHERE flag_key = ? AND time >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
 		step.intervalValue,
 		step.intervalStep,
-		counterMetricTable,
+		counterAnalyticsTable,
 		from.Seconds()),
 		flagKey,
 	)
@@ -115,7 +115,7 @@ func getStepFromDuration(from time.Duration) *Step {
 // IncrementFlagEvaluation inserts a row into Clickhouse that corresponds to a time when a flag was evaluated.
 // This acts as a "prometheus-like" counter metric.
 func (c *Client) IncrementFlagEvaluation(ctx context.Context, flagKey string) error {
-	_, err := c.conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?)", counterMetricTable), time.Now().Format(timeFormat), counterMetricName, flagKey, 1)
+	_, err := c.conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?)", counterAnalyticsTable), time.Now().Format(timeFormat), counterAnalyticsName, flagKey, 1)
 
 	return err
 }

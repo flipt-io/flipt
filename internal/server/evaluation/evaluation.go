@@ -34,13 +34,6 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	if s.metricsStore != nil {
-		err := s.metricsStore.IncrementFlagEvaluation(ctx, r.FlagKey)
-		if err != nil {
-			s.logger.Warn(fmt.Sprintf("failure to insert evaluation count for flag: %s", r.FlagKey), zap.Error(err))
-		}
-	}
-
 	spanAttrs := []attribute.KeyValue{
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),

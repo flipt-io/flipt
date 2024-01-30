@@ -283,8 +283,8 @@ func NewGRPCServer(
 			}
 		}
 
-		metricssrv := analytics.New(logger, analyticsClient)
-		register.Add(metricssrv)
+		analyticssrv := analytics.New(logger, analyticsClient)
+		register.Add(analyticssrv)
 	}
 
 	// forward internal gRPC logging to zap

@@ -20,8 +20,8 @@ type ClickhouseConfig struct {
 }
 
 func (m *AnalyticsConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("metrics.clickhouse.enabled", "false")
-	v.SetDefault("metrics.clickhouse.connection_string", "")
+	v.SetDefault("analytics.clickhouse.enabled", "false")
+	v.SetDefault("analytics.clickhouse.connection_string", "")
 
 	return nil
 }
