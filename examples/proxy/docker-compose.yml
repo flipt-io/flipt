@@ -11,7 +11,7 @@ services:
     networks:
       - flipt_network
     volumes:
-      - ./features.yml:/opt/features.yml
+      - ./features.yml:/opt/features.yml:ro
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
@@ -22,7 +22,7 @@ services:
     networks:
       - flipt_network
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:z,ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       flipt:
         condition: service_healthy
