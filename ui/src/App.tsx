@@ -21,6 +21,7 @@ const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));
 const Login = loadable(() => import('./app/auth/Login'));
 const Settings = loadable(() => import('./app/Settings'));
+const Onboarding = loadable(() => import('./app/Onboarding'));
 const Support = loadable(() => import('./app/Support'));
 const Preferences = loadable(() => import('./app/preferences/Preferences'));
 const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
@@ -115,6 +116,10 @@ const router = createHashRouter([
             element: <Tokens />
           }
         ]
+      },
+      {
+        path: 'onboarding',
+        element: <Onboarding />
       },
       {
         path: 'support',
