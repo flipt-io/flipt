@@ -114,13 +114,17 @@ export async function evaluate(
 //
 // evaluateV2
 export async function evaluateV2(
+  ref: string | undefined,
   namespaceKey: string,
   flagKey: string,
   flagType: FlagType,
   values: any
 ) {
-  const route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
-
+  let route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
+  if (ref) {
+    const q = new URLSearchParams({ reference: ref }).toString();
+    route += '?' + q;
+  }
   const body = {
     namespaceKey,
     flagKey: flagKey,
