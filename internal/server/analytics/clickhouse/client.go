@@ -3,14 +3,14 @@ package clickhouse
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/golang-migrate/migrate/v4"
-	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
+	"go.flipt.io/flipt/internal/config"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.uber.org/zap"
 )
 
@@ -30,24 +30,25 @@ const (
 )
 
 type Client struct {
-	conn *sql.DB
+	conn         *sql.DB
+	forceMigrate bool
 }
 
 // New constructs a new clickhouse client that conforms to the analytics.Client contract.
-func New(logger *zap.Logger, connectionString string) (*Client, error) {
+func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, error) {
 	var (
 		conn          *sql.DB
 		clickhouseErr error
 	)
 
 	dbOnce.Do(func() {
-		err := runMigrations(logger, connectionString)
+		err := runMigrations(logger, cfg, forceMigrate)
 		if err != nil {
 			clickhouseErr = err
 			return
 		}
 
-		connection, err := connect(connectionString)
+		connection, err := connect(cfg.Analytics.Clickhouse.URL)
 		if err != nil {
 			clickhouseErr = err
 			return
@@ -60,30 +61,17 @@ func New(logger *zap.Logger, connectionString string) (*Client, error) {
 		return nil, clickhouseErr
 	}
 
-	return &Client{conn: conn}, nil
+	return &Client{conn: conn, forceMigrate: forceMigrate}, nil
 }
 
-func runMigrations(logger *zap.Logger, connectionString string) error {
-	db := clickhouse.OpenDB(&clickhouse.Options{
-		Addr: []string{connectionString},
-	})
-
-	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
-		MigrationsTableEngine: "MergeTree",
-	})
+// runMigrations will run migrations for clickhouse if enabled from the client.
+func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) error {
+	m, err := fliptsql.NewMigrator(*cfg, logger, true)
 	if err != nil {
-		logger.Error("error creating driver for clickhouse migrations", zap.Error(err))
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://sql", "clickhouse", driver)
-	if err != nil {
-		logger.Error("error creating clickhouse DB instance for migrations", zap.Error(err))
-		return err
-	}
-
-	if err := m.Up(); err != nil && errors.Is(err, migrate.ErrNoChange) {
-		logger.Error("error running migrations on clickhouse", zap.Error(err))
+	if err := m.Up(forceMigrate); err != nil {
 		return err
 	}
 
@@ -102,17 +90,30 @@ func connect(connectionString string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (c *Client) GetFlagEvaluationsCount(ctx context.Context, namespaceKey, flagKey string, from time.Duration) ([]string, []float32, error) {
-	step := getStepFromDuration(from)
+func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error) {
+	fromTime, err := time.Parse(timeFormat, req.From)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	toTime, err := time.Parse(timeFormat, req.To)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	duration := toTime.Sub(fromTime)
+
+	step := getStepFromDuration(duration)
 
 	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`SELECT sum(value) AS value, toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND timestamp >= now() - toIntervalMinute(%f) GROUP BY timestamp ORDER BY timestamp`,
+		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND timestamp >= %s AND timestamp < %s GROUP BY timestamp ORDER BY timestamp`,
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
-		from.Seconds()),
-		namespaceKey,
-		flagKey,
+		fromTime.String(),
+		toTime.String()),
+		req.NamespaceKey,
+		req.FlagKey,
 	)
 	if err != nil {
 		return nil, nil, err

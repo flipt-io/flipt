@@ -8,6 +8,7 @@ message GetFlagEvaluationsCountRequest {
     string namespace_key = 1;
     string flag_key = 2;
     string from = 3;
+    string to = 4;
 }
 
 message GetFlagEvaluationsCountResponse {

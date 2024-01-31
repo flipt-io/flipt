@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/url"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
@@ -172,6 +173,20 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	return db, d, nil
 }
 
+// openAnalytics is a convenience function of providing a database.sql instance for
+// an analytics database.
+func openAnalytics(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
+	if cfg.Analytics.Clickhouse.Enabled {
+		db := clickhouse.OpenDB(&clickhouse.Options{
+			Addr: []string{cfg.Analytics.Clickhouse.URL},
+		})
+
+		return db, Clickhouse, nil
+	}
+
+	return nil, 0, errors.New("no analytics db provided")
+}
+
 var (
 	driverToString = map[Driver]string{
 		SQLite:      "sqlite3",
@@ -179,6 +194,7 @@ var (
 		Postgres:    "postgres",
 		MySQL:       "mysql",
 		CockroachDB: "cockroachdb",
+		Clickhouse:  "clickhouse",
 	}
 
 	stringToDriver = map[string]Driver{
@@ -187,6 +203,7 @@ var (
 		"postgres":    Postgres,
 		"mysql":       MySQL,
 		"cockroachdb": CockroachDB,
+		"clickhouse":  Clickhouse,
 	}
 )
 
@@ -214,8 +231,10 @@ const (
 	MySQL
 	// CockroachDB ...
 	CockroachDB
-	// LibSQL...
+	// LibSQL ...
 	LibSQL
+	// Clickhouse ...
+	Clickhouse
 )
 
 func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {

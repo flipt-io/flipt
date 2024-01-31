@@ -114,7 +114,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	// drop tables if specified
 	if c.dropBeforeImport {
 
-		migrator, err := sql.NewMigrator(*cfg, logger)
+		migrator, err := sql.NewMigrator(*cfg, logger, false)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	migrator, err := sql.NewMigrator(*cfg, logger)
+	migrator, err := sql.NewMigrator(*cfg, logger, false)
 	if err != nil {
 		return err
 	}

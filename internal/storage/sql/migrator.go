@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
+	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -25,7 +26,7 @@ var expectedVersions = map[Driver]uint{
 	CockroachDB: 9,
 }
 
-// Migrator is responsible for migrating the database schema
+// rdbmsMigrator is responsible for migrating the relational database schema
 type Migrator struct {
 	db       *sql.DB
 	driver   Driver
@@ -34,13 +35,34 @@ type Migrator struct {
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := open(cfg, Options{migrate: true})
-	if err != nil {
-		return nil, fmt.Errorf("opening db: %w", err)
+func NewMigrator(cfg config.Config, logger *zap.Logger, analytics bool) (*Migrator, error) {
+	var (
+		sql    *sql.DB
+		driver Driver
+	)
+
+	if analytics {
+		asql, adriver, err := openAnalytics(cfg, Options{migrate: true})
+		if err != nil {
+			return nil, fmt.Errorf("opening db: %w", err)
+		}
+
+		sql = asql
+		driver = adriver
+	} else {
+		tsql, tdriver, err := open(cfg, Options{migrate: true})
+		if err != nil {
+			return nil, fmt.Errorf("opening db: %w", err)
+		}
+
+		sql = tsql
+		driver = tdriver
 	}
 
-	var dr database.Driver
+	var (
+		dr  database.Driver
+		err error
+	)
 
 	switch driver {
 	case SQLite, LibSQL:
@@ -51,6 +73,11 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
 	case MySQL:
 		dr, err = mysql.WithInstance(sql, &mysql.Config{})
+	case Clickhouse:
+		dr, err = clickhouseMigrate.WithInstance(sql, &clickhouseMigrate.Config{
+			DatabaseName:          "flipt_analytics",
+			MigrationsTableEngine: "MergeTree",
+		})
 	}
 
 	if err != nil {

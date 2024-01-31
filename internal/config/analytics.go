@@ -15,8 +15,8 @@ type AnalyticsConfig struct {
 
 // ClickhouseConfig defines the connection details for connecting Flipt to Clickhouse.
 type ClickhouseConfig struct {
-	Enabled          bool   `json:"enabled.omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	ConnectionString string `json:"connectionString,omitempty" mapstructure:"connection_string" yaml:"connection_string,omitempty"`
+	Enabled bool   `json:"enabled.omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL     string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
 }
 
 func (m *AnalyticsConfig) setDefaults(v *viper.Viper) error {
@@ -27,7 +27,7 @@ func (m *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 }
 
 func (m *AnalyticsConfig) validate() error {
-	if m.Clickhouse.Enabled && m.Clickhouse.ConnectionString == "" {
+	if m.Clickhouse.Enabled && m.Clickhouse.URL == "" {
 		return errors.New("clickhouse connection string not provided")
 	}
 

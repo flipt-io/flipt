@@ -274,7 +274,7 @@ func NewGRPCServer(
 		)
 
 		if cfg.Analytics.Clickhouse.Enabled {
-			client, err := clickhouse.New(logger, cfg.Analytics.Clickhouse.ConnectionString)
+			client, err := clickhouse.New(logger, cfg, forceMigrate)
 			if err != nil {
 				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
 			}
@@ -580,7 +580,7 @@ var (
 
 func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, sq.StatementBuilderType, fliptsql.Driver, errFunc, error) {
 	dbOnce.Do(func() {
-		migrator, err := fliptsql.NewMigrator(*cfg, logger)
+		migrator, err := fliptsql.NewMigrator(*cfg, logger, false)
 		if err != nil {
 			dbErr = err
 			return

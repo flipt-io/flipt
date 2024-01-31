@@ -23,6 +23,7 @@ func (x *AnalyticsServiceClient) GetFlagEvaluationsCount(ctx context.Context, v 
 	values := url.Values{}
 	values.Set("namespaceKey", v.NamespaceKey)
 	values.Set("from", v.From)
+	values.Set("to", v.To)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/internal/v1/analytics/%v", v.FlagKey), body)
 	if err != nil {
 		return nil, err
