@@ -74,9 +74,8 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
 
 ## Managed Services
 
-Don't want to manage your own Flipt instance? We've got you covered! Check out our in-progress [managed offerings](https://www.flipt.io/docs/managed/overview).
+Need more? We've got you covered! Check out our in-progress [managed offering](https://www.flipt.io/docs/managed/overview).
 
-- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your cloud account, managed by us
 - [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
 
 Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
