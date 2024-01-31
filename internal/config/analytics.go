@@ -21,14 +21,14 @@ type ClickhouseConfig struct {
 
 func (m *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("analytics.clickhouse.enabled", "false")
-	v.SetDefault("analytics.clickhouse.connection_string", "")
+	v.SetDefault("analytics.clickhouse.url", "")
 
 	return nil
 }
 
 func (m *AnalyticsConfig) validate() error {
 	if m.Clickhouse.Enabled && m.Clickhouse.URL == "" {
-		return errors.New("clickhouse connection string not provided")
+		return errors.New("clickhouse url not provided")
 	}
 
 	return nil
