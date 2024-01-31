@@ -94,7 +94,7 @@ Flipt supports use cases such as:
 
 ## Values
 
-- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box.
+- 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box.
 - 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
