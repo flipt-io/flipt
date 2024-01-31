@@ -18,7 +18,7 @@ import (
 
 var (
 	fliptAddr                  = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
-	fliptTokenType             = flag.String("flipt-token-type", "static", "Type of token to be used during test suite (static, jwt)")
+	fliptTokenType             = flag.String("flipt-token-type", "static", "Type of token to be used during test suite (static, jwt, k8s)")
 	fliptToken                 = flag.String("flipt-token", "", "Authentication token to be used during test suite")
 	fliptCreateNamespacedToken = flag.Bool("flipt-create-namespaced-token", false, "Create a namespaced token for the test suite")
 	fliptNamespace             = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
@@ -32,6 +32,7 @@ const (
 	StaticTokenAuth
 	StaticTokenAuthNamespaced
 	JWTAuth
+	K8sAuth
 )
 
 func (a AuthConfig) String() string {
@@ -44,6 +45,8 @@ func (a AuthConfig) String() string {
 		return "StaticTokenAuthNamespaced"
 	case JWTAuth:
 		return "JWTAuth"
+	case K8sAuth:
+		return "K8sAuth"
 	default:
 		return "Unknown"
 	}
@@ -55,6 +58,10 @@ func (a AuthConfig) StaticToken() bool {
 
 func (a AuthConfig) Required() bool {
 	return a != NoAuth
+}
+
+func (a AuthConfig) NamespaceScoped() bool {
+	return a == StaticTokenAuthNamespaced
 }
 
 type TestOpts struct {
@@ -92,7 +99,8 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		namespace = *fliptNamespace
 	}
 
-	if *fliptTokenType == "static" {
+	switch *fliptTokenType {
+	case "static":
 		if *fliptToken != "" {
 			authConfig = StaticTokenAuth
 
@@ -124,13 +132,18 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 				))
 			}
 		}
-	} else if *fliptTokenType == "jwt" {
+	case "jwt":
 		if authentication := *fliptToken != ""; authentication {
 			authConfig = JWTAuth
 			opts = append(opts, sdk.WithAuthenticationProvider(
 				sdk.JWTAuthenticationProvider(*fliptToken),
 			))
 		}
+	case "k8s":
+		authConfig = K8sAuth
+		opts = append(opts, sdk.WithAuthenticationProvider(
+			sdk.NewKubernetesAuthenticationProvider(transport),
+		))
 	}
 
 	client = sdk.New(transport, opts...)

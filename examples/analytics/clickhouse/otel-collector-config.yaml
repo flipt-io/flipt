@@ -1,0 +1,37 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: :4317
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'flipt'
+          scrape_interval: 5s
+          static_configs:
+            - targets: ['flipt:8080']
+exporters:
+  clickhouse:
+    endpoint: clickhouse://clickhouse:9000?dial_timeout=10s&compress=lz4
+    username: default
+    ttl: 72h
+    database: otel
+    logs_table_name: otel_logs
+    traces_table_name: otel_traces
+    metrics_table_name: otel_metrics
+    timeout: 5s
+
+processors:
+  batch:
+    timeout: 5s
+
+service:
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ clickhouse ]
+    metrics:
+      receivers: [ prometheus ]
+      processors: [ batch ]
+      exporters: [ clickhouse ]

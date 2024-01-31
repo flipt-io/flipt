@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.21"
-  DAGGER_VERSION: "0.9.4"
+  DAGGER_VERSION: "0.9.5"
 
 jobs:
   cli:
@@ -70,6 +70,8 @@ jobs:
           check-latest: true
           cache: true
 
+      - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
+
       - name: Install Dagger
         run: |
           cd /usr/local
@@ -82,8 +84,6 @@ jobs:
 
       - name: Run Integration Tests
         run: mage dagger:run "test:integration ${{ matrix.test }}"
-
-      - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4

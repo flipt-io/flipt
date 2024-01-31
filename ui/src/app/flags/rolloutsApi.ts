@@ -1,7 +1,15 @@
+import { FullTagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { IRollout, IRolloutBase, IRolloutList } from '~/types/Rollout';
 
 import { baseQuery } from '~/utils/redux-rtk';
+
+export const rolloutTag = (arg: {
+  namespaceKey: string;
+  flagKey: string;
+}): FullTagDescription<'Rollout'> => {
+  return { type: 'Rollout', id: arg.namespaceKey + '/' + arg.flagKey };
+};
 
 export const rolloutsApi = createApi({
   reducerPath: 'rollouts',
@@ -15,9 +23,7 @@ export const rolloutsApi = createApi({
     >({
       query: ({ namespaceKey, flagKey }) =>
         `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`,
-      providesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rollout', id: namespaceKey + '/' + flagKey }
-      ]
+      providesTags: (_result, _error, arg) => [rolloutTag(arg)]
     }),
     // delete the rollout
     deleteRollout: builder.mutation<
@@ -30,9 +36,7 @@ export const rolloutsApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rollout', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [rolloutTag(arg)]
     }),
     // create the rollout
     createRollout: builder.mutation<
@@ -50,9 +54,7 @@ export const rolloutsApi = createApi({
           body: values
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rollout', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [rolloutTag(arg)]
     }),
     // update the rollout
     updateRollout: builder.mutation<
@@ -71,9 +73,7 @@ export const rolloutsApi = createApi({
           body: values
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rollout', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [rolloutTag(arg)]
     }),
     // reorder the rollouts
     orderRollouts: builder.mutation<
@@ -125,9 +125,7 @@ export const rolloutsApi = createApi({
           patchResult.undo();
         }
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Rollout', id: namespaceKey + '/' + flagKey }
-      ]
+      invalidatesTags: (_result, _error, arg) => [rolloutTag(arg)]
     })
   })
 });

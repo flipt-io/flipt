@@ -74,9 +74,8 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
 
 ## Managed Services
 
-Don't want to manage your own Flipt instance? We've got you covered! Check out our in-progress [managed offerings](https://www.flipt.io/docs/managed/overview).
+Need more? We've got you covered! Check out our in-progress [managed offering](https://www.flipt.io/docs/managed/overview).
 
-- [Bring Your Own Cloud](https://www.flipt.io/docs/managed/byoc) - Run Flipt in your cloud account, managed by us
 - [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
 
 Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
@@ -95,7 +94,7 @@ Flipt supports use cases such as:
 
 ## Values
 
-- 🔒 **Security** - No [SSO Tax](https://sso.tax/). HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box.
+- 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box.
 - 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
@@ -167,6 +166,9 @@ Try the latest version of Flipt for yourself.
     </a>&nbsp;
     <a href="https://railway.app/template/dz-JCO" alt="Deploy to Railway">
       <img width="150" alt="Deploy to Railway" src="https://railway.app/button.svg" />
+    </a>
+    <a href="https://app.koyeb.com/deploy?type=docker&image=docker.flipt.io/flipt/flipt&ports=8080;http;/&name=flipt-demo" alt="Deploy to Koyeb">
+      <img width="150" alt="Deploy to Koyeb" src="https://www.koyeb.com/static/images/deploy/button.svg" />
     </a>
 </div>
 
@@ -249,8 +251,6 @@ Flipt exposes two different APIs for performing server-side evaluation:
 
 Flipt is equipped with a fully functional GRPC API. GRPC is a high-performance, low-latency, binary protocol that is used by many large-scale companies such as Google, Netflix, and more.
 
-#### GRPC SDKs
-
 See our [GRPC Server SDK documentation](https://www.flipt.io/docs/integration/server/grpc) for the latest information.
 
 #### REST
@@ -259,20 +259,11 @@ Flipt is equipped with a fully functional REST API. The Flipt UI is completely b
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
-#### REST SDKs
-
-> [!NOTE]
-> We will be revamping our current REST SDKs in the coming weeks to simplify the API and make them easier to use. If you have any feedback on the current REST SDKs, please open an issue in the respective repository.
-
 See our [REST Server SDK documentation](https://www.flipt.io/docs/integration/server/rest) for the latest information.
 
 ### Client Side Evaluation
 
 Client-side evaluation is a great way to reduce the number of requests that your application needs to make to Flipt. This is done by retrieving all of the feature flags that your application needs to evaluate and then evaluating them locally.
-
-For more information on client-side evaluation, check out our [client-side evaluation documentation](https://www.flipt.io/docs/integration/client).
-
-#### Client Side SDKs
 
 See our [Client SDK documentation](https://www.flipt.io/docs/integration/client) for the latest information.
 

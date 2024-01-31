@@ -33,21 +33,35 @@ The following is an example of creating an instance of the SDK using the HTTP tr
 
 The remote procedure calls mades by this SDK are authenticated via a [ClientAuthenticationProvider] implementation.
 This can be supplied to [New] via the [WithAuthenticationProvider] option.
+Note that each of these methods will only work if the target Flipt server instance has the authentication method enabled.
 
-Currently, there are two implementations:
+Currently, there are three implementations:
 
-- [StaticTokenAuthenticationProvider]:
+- [StaticTokenAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#static-token):
+
+This provider sets a static Flipt client token via the Authentication header with the Bearer scheme.
 
 	func main() {
 		provider := sdk.StaticTokenAuthenticationProvider("some-flipt-token")
 		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
-- [JWTAuthenticationProvider]:
+- [JWTAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#json-web-tokens):
+
+This provider sets a pre-generated JSON web-token via the Authentication header with the JWT scheme.
 
 	func main() {
 		provider := sdk.JWTAuthenticationProvider("some-flipt-jwt")
 		client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
+	}
+
+- [KubernetesAuthenticationProvider](https://www.flipt.io/docs/authentication/methods#kubernetes):
+
+This automatically uses the service account token on the host and exchanges it with Flipt for a Flipt client token credential. The credential is then used to authenticate requests, again via the Authentication header and the Bearer scheme. It ensures that the client token is not-expired and requests fresh tokens automatically without intervention. Use this method to automatically authenticate your application with a Flipt deployed into the same Kubernetes cluster.
+
+	func main() {
+	    provider := sdk.NewKuberntesAuthenticationProvider(transport)
+	    client := sdk.New(transport, sdk.WithAuthenticationProvider(provider))
 	}
 
 # SDK Services
