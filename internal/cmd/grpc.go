@@ -268,24 +268,17 @@ func NewGRPCServer(
 	server.onShutdown(authShutdown)
 
 	if cfg.Analytics.Enabled {
-		var (
-			analyticsClient       analytics.Client
-			analyticsStoreMutator evaluation.AnalyticsStoreMutator
-		)
-
 		if cfg.Analytics.Clickhouse.Enabled {
 			client, err := clickhouse.New(logger, cfg, forceMigrate)
 			if err != nil {
 				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
 			}
-			analyticsClient = client
-			analyticsStoreMutator = client
+
+			evaluation.WithAnalyticsStoreMutator(client)(evalsrv)
+
+			analyticssrv := analytics.New(logger, client)
+			register.Add(analyticssrv)
 		}
-
-		evaluation.WithAnalyticsStoreMutator(analyticsStoreMutator)(evalsrv)
-
-		analyticssrv := analytics.New(logger, analyticsClient)
-		register.Add(analyticssrv)
 	}
 
 	// initialize servers
