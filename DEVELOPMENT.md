@@ -145,7 +145,7 @@ To use [Gitpod](https://www.gitpod.io/), simply open Flipt in Gitpod by clicking
 
 ## devenv
 
-[devenv](devenv.sh) is a solution that creates fast, declarative, reproducible, and composable developer environments using Nix.
+[devenv](https://devenv.sh) is a solution that creates fast, declarative, reproducible, and composable developer environments using Nix.
 
 To use it for developing Flipt, you'll first need to install it. See the devenv [getting started](https://devenv.sh/getting-started/) guide for more information.
 
