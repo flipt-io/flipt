@@ -1,13 +1,28 @@
 import {
   ArrowUpRightIcon,
+  BookOpenIcon,
   ChatBubbleBottomCenterIcon,
   EnvelopeIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Icon } from '~/types/Icon';
 
 const supportItems: SupportItemProps[] = [
+  {
+    title: 'Onboarding',
+    description: 'Get started with Flipt',
+    children: (
+      <Link
+        to="/onboarding"
+        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+      >
+        <span className="text-gray-700 text-sm">Let&apos;s Go</span>
+      </Link>
+    ),
+    icon: BookOpenIcon
+  },
   {
     title: 'File an Issue',
     description: 'Get support from the community',

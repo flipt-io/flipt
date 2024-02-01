@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   CloudArrowUpIcon,
   Cog6ToothIcon,
+  CommandLineIcon,
   LockClosedIcon,
   PuzzlePieceIcon,
   StarIcon
@@ -20,9 +21,10 @@ const onboardingTiles = [
     href: 'https://www.flipt.io/docs/introduction'
   },
   {
-    icon: Cog6ToothIcon,
-    name: 'Configure Flipt',
-    description: 'Setup Flipt to fit your needs'
+    icon: CommandLineIcon,
+    name: 'Try the CLI',
+    description: 'Use the Flipt CLI to manage your feature flags and more',
+    href: 'https://www.flipt.io/docs/cli/overview'
   },
   {
     icon: LockClosedIcon,
@@ -99,8 +101,8 @@ function OnboardingTile(props: OnboardingTileProps) {
         {Icon && (
           <Icon className="text-gray-700 h-6 w-6 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-50" />
         )}
-        <h3 className="text-gray-700 text-xl font-semibold">{name}</h3>
-        <p className="text-gray-400 max-w-lg">{description}</p>
+        <h3 className="text-gray-700 text-lg font-semibold">{name}</h3>
+        <p className="text-gray-500 max-w-lg">{description}</p>
       </div>
       <div
         className={cls(
