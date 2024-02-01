@@ -27,7 +27,7 @@ var expectedVersions = map[Driver]uint{
 	Clickhouse:  0,
 }
 
-// Migrator is responsible for migrating the relational database schema
+// Migrator is responsible for migrating the database schema
 type Migrator struct {
 	db       *sql.DB
 	driver   Driver
@@ -36,33 +36,14 @@ type Migrator struct {
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg config.Config, logger *zap.Logger, analytics bool) (*Migrator, error) {
-	var (
-		sql    *sql.DB
-		driver Driver
-	)
-
-	if analytics {
-		asql, adriver, err := openAnalytics(cfg, Options{migrate: true})
-		if err != nil {
-			return nil, fmt.Errorf("opening db: %w", err)
-		}
-
-		sql = asql
-		driver = adriver
-	} else {
-		tsql, tdriver, err := open(cfg, Options{migrate: true})
-		if err != nil {
-			return nil, fmt.Errorf("opening db: %w", err)
-		}
-
-		sql = tsql
-		driver = tdriver
+func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
+	sql, driver, err := open(cfg, Options{migrate: true})
+	if err != nil {
+		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
 	var (
-		dr  database.Driver
-		err error
+		dr database.Driver
 	)
 
 	switch driver {
@@ -74,6 +55,50 @@ func NewMigrator(cfg config.Config, logger *zap.Logger, analytics bool) (*Migrat
 		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
 	case MySQL:
 		dr, err = mysql.WithInstance(sql, &mysql.Config{})
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
+	}
+
+	logger.Debug("using driver", zap.String("driver", driver.String()))
+
+	return migratorHelper(logger, sql, driver, dr)
+}
+
+func migratorHelper(logger *zap.Logger, db *sql.DB, driver Driver, databaseDriver database.Driver) (*Migrator, error) {
+	// source migrations from embedded config/migrations package
+	// relative to the specific driver
+	sourceDriver, err := iofs.New(migrations.FS, driver.Migrations())
+	if err != nil {
+		return nil, err
+	}
+
+	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), databaseDriver)
+	if err != nil {
+		return nil, fmt.Errorf("creating migrate instance: %w", err)
+	}
+
+	return &Migrator{
+		db:       db,
+		migrator: mm,
+		logger:   logger,
+		driver:   driver,
+	}, nil
+}
+
+// NewAnalyticsMigrator returns a migrator for analytics databases
+func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
+	sql, driver, err := openAnalytics(cfg, Options{migrate: true})
+	if err != nil {
+		return nil, fmt.Errorf("opening db: %w", err)
+	}
+
+	var (
+		dr database.Driver
+	)
+
+	switch driver {
 	case Clickhouse:
 		dr, err = clickhouseMigrate.WithInstance(sql, &clickhouseMigrate.Config{
 			DatabaseName:          "flipt_analytics",
@@ -87,24 +112,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger, analytics bool) (*Migrat
 
 	logger.Debug("using driver", zap.String("driver", driver.String()))
 
-	// source migrations from embedded config/migrations package
-	// relative to the specific driver
-	sourceDriver, err := iofs.New(migrations.FS, driver.Migrations())
-	if err != nil {
-		return nil, err
-	}
-
-	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), dr)
-	if err != nil {
-		return nil, fmt.Errorf("creating migrate instance: %w", err)
-	}
-
-	return &Migrator{
-		db:       sql,
-		migrator: mm,
-		logger:   logger,
-		driver:   driver,
-	}, nil
+	return migratorHelper(logger, sql, driver, dr)
 }
 
 // Close closes the source and db

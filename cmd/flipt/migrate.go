@@ -14,9 +14,21 @@ var (
 )
 
 func runMigrations(cfg *config.Config, logger *zap.Logger, analytics bool) error {
-	migrator, err := sql.NewMigrator(*cfg, logger, analytics)
-	if err != nil {
-		return fmt.Errorf("initializing migrator %w", err)
+	var (
+		migrator *sql.Migrator
+		err      error
+	)
+
+	if analytics {
+		migrator, err = sql.NewAnalyticsMigrator(*cfg, logger)
+		if err != nil {
+			return err
+		}
+	} else {
+		migrator, err = sql.NewMigrator(*cfg, logger)
+		if err != nil {
+			return err
+		}
 	}
 
 	defer migrator.Close()

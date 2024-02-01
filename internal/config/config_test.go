@@ -911,6 +911,11 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name:    "clickhouse enabled but no URL set",
+			path:    "./testdata/analytics/invalid_clickhouse_configuration_url.yml",
+			wantErr: errors.New("clickhouse url not provided"),
+		},
 	}
 
 	for _, tt := range tests {

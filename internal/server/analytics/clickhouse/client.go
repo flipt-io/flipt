@@ -26,12 +26,10 @@ var dbOnce sync.Once
 const (
 	counterAnalyticsTable = "flipt_counter_analytics"
 	counterAnalyticsName  = "flag_evaluation_count"
-	timeFormat            = "2006-01-02 15:04:05"
 )
 
 type Client struct {
-	conn         *sql.DB
-	forceMigrate bool
+	Conn *sql.DB
 }
 
 // New constructs a new clickhouse client that conforms to the analytics.Client contract.
@@ -61,12 +59,12 @@ func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, er
 		return nil, clickhouseErr
 	}
 
-	return &Client{conn: conn, forceMigrate: forceMigrate}, nil
+	return &Client{Conn: conn}, nil
 }
 
 // runMigrations will run migrations for clickhouse if enabled from the client.
 func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) error {
-	m, err := fliptsql.NewMigrator(*cfg, logger, true)
+	m, err := fliptsql.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -94,12 +92,12 @@ func connect(connectionString string) (*sql.DB, error) {
 }
 
 func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error) {
-	fromTime, err := time.Parse(timeFormat, req.From)
+	fromTime, err := time.Parse(time.DateTime, req.From)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	toTime, err := time.Parse(timeFormat, req.To)
+	toTime, err := time.Parse(time.DateTime, req.To)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -108,7 +106,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 
 	step := getStepFromDuration(duration)
 
-	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`
+	rows, err := c.Conn.QueryContext(ctx, fmt.Sprintf(`
 		SELECT
 			sum(value) AS value,
 			toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
@@ -119,8 +117,8 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
-		fromTime.Format(timeFormat),
-		toTime.Format(timeFormat),
+		fromTime.Format(time.DateTime),
+		toTime.Format(time.DateTime),
 	),
 		req.NamespaceKey,
 		req.FlagKey,
@@ -184,7 +182,7 @@ func getStepFromDuration(from time.Duration) *Step {
 // IncrementFlagEvaluation inserts a row into Clickhouse that corresponds to a time when a flag was evaluated.
 // This acts as a "prometheus-like" counter metric.
 func (c *Client) IncrementFlagEvaluation(ctx context.Context, namespaceKey, flagKey string) error {
-	_, err := c.conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?,?)", counterAnalyticsTable), time.Now().Format(timeFormat), counterAnalyticsName, namespaceKey, flagKey, 1)
+	_, err := c.Conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?,?)", counterAnalyticsTable), time.Now().Format(time.DateTime), counterAnalyticsName, namespaceKey, flagKey, 1)
 
 	return err
 }

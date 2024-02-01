@@ -573,7 +573,7 @@ var (
 
 func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, sq.StatementBuilderType, fliptsql.Driver, errFunc, error) {
 	dbOnce.Do(func() {
-		migrator, err := fliptsql.NewMigrator(*cfg, logger, false)
+		migrator, err := fliptsql.NewMigrator(*cfg, logger)
 		if err != nil {
 			dbErr = err
 			return
