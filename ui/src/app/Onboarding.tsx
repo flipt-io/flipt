@@ -1,3 +1,4 @@
+import { ArrowRightIcon, ArrowUpRightIcon } from '@heroicons/react/20/solid';
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -12,61 +13,81 @@ import { cls } from '~/utils/helpers';
 
 const onboardingTiles = [
   {
-    Icon: AcademicCapIcon,
+    icon: AcademicCapIcon,
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
-    className: 'sm:col-span-2'
+    className: 'sm:col-span-2',
+    href: 'https://www.flipt.io/docs/introduction'
   },
   {
-    Icon: Cog6ToothIcon,
+    icon: Cog6ToothIcon,
     name: 'Configure Flipt',
     description: 'Setup Flipt to fit your needs'
   },
   {
-    Icon: LockClosedIcon,
+    icon: LockClosedIcon,
     name: 'Setup Authentication',
-    description: 'Learn how to manage users and service accounts'
+    description: 'Learn how to manage users and service accounts',
+    href: 'https://www.flipt.io/docs/authentication/overview'
   },
   {
-    Icon: PuzzlePieceIcon,
+    icon: PuzzlePieceIcon,
     name: 'Integrate Your Application',
-    description: 'Use our SDKs to integrate your apps',
-    className: 'sm:col-span-2'
+    description: 'Use our SDKs to integrate your applications in your language',
+    className: 'sm:col-span-2',
+    href: 'https://www.flipt.io/docs/integration/overview'
   },
   {
-    Icon: CloudArrowUpIcon,
+    icon: CloudArrowUpIcon,
     name: 'Deploy Flipt',
-    description: 'Learn how to deploy Flipt in your environment'
+    description: 'Learn how to deploy Flipt in your environment',
+    href: 'https://www.flipt.io/docs/operations/deployment'
   },
   {
-    Icon: BookOpenIcon,
+    icon: BookOpenIcon,
     name: 'Checkout a Guide',
     description:
-      'Use Flipt to its full potential. Read our guides including using Flipt with GitOps'
+      'Use Flipt to its full potential. Read our guides including using Flipt with GitOps',
+    href: 'https://www.flipt.io/docs/guides'
   },
   {
-    Icon: StarIcon,
+    icon: StarIcon,
     name: 'Support Us',
-    description: 'Show your support by starring us on GitHub'
+    description: 'Show your support by starring us on GitHub',
+    cta: 'Star Flipt on GitHub',
+    ctaIcon: ArrowUpRightIcon,
+    href: 'https://github.com/flipt-io/flipt',
+    external: true
   }
 ];
 
 interface OnboardingTileProps {
   className?: string;
-  Icon?: Icon;
+  icon?: Icon;
   name?: string;
   description?: string;
   cta?: string;
+  ctaIcon?: Icon;
   href?: string;
+  external?: boolean;
 }
 
 function OnboardingTile(props: OnboardingTileProps) {
-  const { className, Icon, name, description, cta, href } = props;
+  const {
+    className,
+    icon: Icon,
+    ctaIcon: CTAIcon = ArrowRightIcon,
+    name,
+    description,
+    cta,
+    href,
+    external
+  } = props;
 
   return (
     <div
       className={cls(
-        'group relative flex flex-col justify-between overflow-hidden rounded-xl hover:border-gray-300 hover:shadow-md hover:shadow-violet-300',
+        'group  relative flex flex-col justify-between overflow-hidden rounded-xl hover:border-gray-300 hover:shadow-md hover:shadow-violet-300',
         // light styles
         'bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]',
         // dark styles
@@ -78,9 +99,7 @@ function OnboardingTile(props: OnboardingTileProps) {
         {Icon && (
           <Icon className="text-gray-700 h-6 w-6 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-50" />
         )}
-        <h3 className="text-gray-700 text-xl font-semibold dark:text-gray-300">
-          {name}
-        </h3>
+        <h3 className="text-gray-700 text-xl font-semibold">{name}</h3>
         <p className="text-gray-400 max-w-lg">{description}</p>
       </div>
       <div
@@ -88,12 +107,26 @@ function OnboardingTile(props: OnboardingTileProps) {
           'absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100'
         )}
       >
-        <a
-          href={href || '#'}
-          className="text-gray-500 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
-        >
-          {cta || 'Learn More'}
-        </a>
+        {external && (
+          <a
+            href={href || '/#/onboarding'}
+            target="_blank"
+            rel="noreferrer"
+            className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
+          >
+            <span className="flex">{cta || 'Learn More'}</span>
+            <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
+          </a>
+        )}
+        {!external && (
+          <a
+            href={href || '/#/onboarding'}
+            className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
+          >
+            <span className="flex">{cta || 'Learn More'}</span>
+            <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
+          </a>
+        )}
       </div>
       <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-gray-800/10" />
     </div>
@@ -109,7 +142,7 @@ export default function Onboarding() {
             Onboarding Guide
           </h1>
           <p className="text-gray-500 mt-2 text-sm">
-            Welcome to Flipt! Here are some things to help you get started
+            Here are some things to help you get started
           </p>
         </div>
       </div>
