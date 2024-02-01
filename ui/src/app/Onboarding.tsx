@@ -139,15 +139,15 @@ export default function Onboarding() {
       <div className="flex flex-row justify-between pb-5 sm:items-center">
         <div className="flex flex-col">
           <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
-            Onboarding Guide
+            Onboarding
           </h1>
           <p className="text-gray-500 mt-2 text-sm">
-            Here are some things to help you get started
+            Here are some things to help you get started with Flipt
           </p>
         </div>
       </div>
       <div className="my-8">
-        <div className="grid w-full auto-rows-[14rem] grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">
           {onboardingTiles.map((tile, i) => (
             <OnboardingTile key={i} {...tile} />
           ))}
