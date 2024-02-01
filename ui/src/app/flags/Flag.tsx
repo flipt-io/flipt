@@ -32,7 +32,8 @@ import {
 import Rollouts from './rollouts/Rollouts';
 const tabs = [
   { name: 'Variants', to: '' },
-  { name: 'Rules', to: 'rules' }
+  { name: 'Rules', to: 'rules' },
+  { name: 'Analytics', to: 'analytics' }
 ];
 
 export default function Flag() {

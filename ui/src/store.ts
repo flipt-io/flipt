@@ -9,6 +9,7 @@ import {
   namespaceApi,
   namespacesSlice
 } from '~/app/namespaces/namespacesSlice';
+import { analyticsApi } from './app/flags/analyticsApi';
 import { flagsApi } from './app/flags/flagsApi';
 import { rolloutTag, rolloutsApi } from './app/flags/rolloutsApi';
 import { ruleTag, rulesApi } from './app/flags/rulesApi';
@@ -111,7 +112,8 @@ export const store = configureStore({
     [rulesApi.reducerPath]: rulesApi.reducer,
     [rolloutsApi.reducerPath]: rolloutsApi.reducer,
     [tokensApi.reducerPath]: tokensApi.reducer,
-    [authProvidersApi.reducerPath]: authProvidersApi.reducer
+    [authProvidersApi.reducerPath]: authProvidersApi.reducer,
+    [analyticsApi.reducerPath]: analyticsApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -123,7 +125,8 @@ export const store = configureStore({
         rulesApi.middleware,
         rolloutsApi.middleware,
         tokensApi.middleware,
-        authProvidersApi.middleware
+        authProvidersApi.middleware,
+        analyticsApi.middleware,
       )
 });
 

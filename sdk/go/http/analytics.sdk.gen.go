@@ -21,10 +21,9 @@ type AnalyticsServiceClient struct {
 func (x *AnalyticsServiceClient) GetFlagEvaluationsCount(ctx context.Context, v *analytics.GetFlagEvaluationsCountRequest, _ ...grpc.CallOption) (*analytics.GetFlagEvaluationsCountResponse, error) {
 	var body io.Reader
 	values := url.Values{}
-	values.Set("namespaceKey", v.NamespaceKey)
 	values.Set("from", v.From)
 	values.Set("to", v.To)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/internal/v1/analytics/%v", v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/internal/v1/analytics/namespaces/%v/flags/%v", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}

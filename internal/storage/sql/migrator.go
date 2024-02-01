@@ -24,6 +24,7 @@ var expectedVersions = map[Driver]uint{
 	Postgres:    12,
 	MySQL:       11,
 	CockroachDB: 9,
+	Clickhouse:  0,
 }
 
 // rdbmsMigrator is responsible for migrating the relational database schema

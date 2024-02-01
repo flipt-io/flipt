@@ -108,13 +108,20 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 
 	step := getStepFromDuration(duration)
 
-	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`SELECT sum(value) AS value, toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespaceKey = ? AND flag_key = ? AND timestamp >= %s AND timestamp < %s GROUP BY timestamp ORDER BY timestamp`,
+	rows, err := c.conn.QueryContext(ctx, fmt.Sprintf(`
+		SELECT
+			sum(value) AS value,
+			toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
+		FROM %s WHERE namespace_key = $1 AND flag_key = $2 AND timestamp >= '%s' AND timestamp < '%s'
+		GROUP BY timestamp
+		ORDER BY timestamp ASC
+		`,
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
-		fromTime.String(),
-		toTime.String()),
+		fromTime.Format(timeFormat),
+		toTime.Format(timeFormat),
+	),
 		req.NamespaceKey,
 		req.FlagKey,
 	)
@@ -135,6 +142,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 			timestamp string
 			value     int
 		)
+
 		if err := rows.Scan(&value, &timestamp); err != nil {
 			return nil, nil, err
 		}
