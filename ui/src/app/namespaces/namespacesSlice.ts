@@ -5,7 +5,8 @@ import { RootState } from '~/store';
 import { LoadingStatus } from '~/types/Meta';
 import { INamespace, INamespaceBase, INamespaceList } from '~/types/Namespace';
 import { baseQuery } from '~/utils/redux-rtk';
-const namespaceKey = 'namespace';
+
+export const namespaceKey = 'namespace';
 
 interface INamespacesState {
   namespaces: { [key: string]: INamespace };
@@ -112,4 +113,5 @@ export const {
   useDeleteNamespaceMutation,
   useUpdateNamespaceMutation
 } = namespaceApi;
+
 export default namespacesSlice.reducer;
