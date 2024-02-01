@@ -27,7 +27,7 @@ var expectedVersions = map[Driver]uint{
 	Clickhouse:  0,
 }
 
-// rdbmsMigrator is responsible for migrating the relational database schema
+// Migrator is responsible for migrating the relational database schema
 type Migrator struct {
 	db       *sql.DB
 	driver   Driver
