@@ -1,17 +1,17 @@
-import { ArrowRightIcon, ArrowUpRightIcon } from '@heroicons/react/20/solid';
+import { ArrowUpRightIcon } from '@heroicons/react/20/solid';
 import {
   AcademicCapIcon,
   BookOpenIcon,
-  CloudArrowUpIcon,
+  ChatBubbleLeftIcon,
+  CodeBracketIcon,
   CommandLineIcon,
-  LockClosedIcon,
   PuzzlePieceIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
 
-const onboardingTiles = [
+const gettingStartedTiles = [
   {
     icon: AcademicCapIcon,
     name: 'Get Started',
@@ -26,25 +26,6 @@ const onboardingTiles = [
     href: 'https://www.flipt.io/docs/cli/overview'
   },
   {
-    icon: LockClosedIcon,
-    name: 'Setup Authentication',
-    description: 'Learn how to manage users and service accounts',
-    href: 'https://www.flipt.io/docs/authentication/overview'
-  },
-  {
-    icon: PuzzlePieceIcon,
-    name: 'Integrate Your Application',
-    description: 'Use our SDKs to integrate your applications in your language',
-    className: 'sm:col-span-2',
-    href: 'https://www.flipt.io/docs/integration/overview'
-  },
-  {
-    icon: CloudArrowUpIcon,
-    name: 'Deploy Flipt',
-    description: 'Learn how to deploy Flipt in your environment',
-    href: 'https://www.flipt.io/docs/operations/deployment'
-  },
-  {
     icon: BookOpenIcon,
     name: 'Checkout a Guide',
     description:
@@ -52,13 +33,34 @@ const onboardingTiles = [
     href: 'https://www.flipt.io/docs/guides'
   },
   {
+    icon: PuzzlePieceIcon,
+    name: 'Integrate Your Application',
+    description: 'Use our SDKs to integrate your applications in your language',
+    className: 'sm:col-span-2',
+    href: 'https://www.flipt.io/docs/integration/overview'
+  }
+];
+
+const moreTiles = [
+  {
+    icon: ChatBubbleLeftIcon,
+    name: 'Join the Community',
+    description: 'Join our Discord community to ask questions and get help',
+    cta: 'Join Discord',
+    href: 'https://flipt.io/discord'
+  },
+  {
+    icon: CodeBracketIcon,
+    name: 'View API Reference',
+    description: 'Learn how to use the Flipt REST API',
+    href: 'https://www.flipt.io/docs/reference/overview'
+  },
+  {
     icon: StarIcon,
     name: 'Support Us',
     description: 'Show your support by starring us on GitHub',
     cta: 'Star Flipt on GitHub',
-    ctaIcon: ArrowUpRightIcon,
-    href: 'https://github.com/flipt-io/flipt',
-    external: true
+    href: 'https://github.com/flipt-io/flipt'
   }
 ];
 
@@ -70,19 +72,17 @@ interface OnboardingTileProps {
   cta?: string;
   ctaIcon?: Icon;
   href?: string;
-  external?: boolean;
 }
 
 function OnboardingTile(props: OnboardingTileProps) {
   const {
     className,
     icon: Icon,
-    ctaIcon: CTAIcon = ArrowRightIcon,
+    ctaIcon: CTAIcon = ArrowUpRightIcon,
     name,
     description,
     cta,
-    href,
-    external
+    href
   } = props;
 
   return (
@@ -108,26 +108,15 @@ function OnboardingTile(props: OnboardingTileProps) {
           'absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100'
         )}
       >
-        {external && (
-          <a
-            href={href || '/#/onboarding'}
-            target="_blank"
-            rel="noreferrer"
-            className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
-          >
-            <span className="flex">{cta || 'Learn More'}</span>
-            <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
-          </a>
-        )}
-        {!external && (
-          <a
-            href={href || '/#/onboarding'}
-            className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
-          >
-            <span className="flex">{cta || 'Learn More'}</span>
-            <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
-          </a>
-        )}
+        <a
+          href={href || '/#/onboarding'}
+          target="_blank"
+          rel="noreferrer"
+          className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
+        >
+          <span className="flex">{cta || 'Learn More'}</span>
+          <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
+        </a>
       </div>
       <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-gray-800/10" />
     </div>
@@ -149,7 +138,24 @@ export default function Onboarding() {
       </div>
       <div className="my-8">
         <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">
-          {onboardingTiles.map((tile, i) => (
+          {gettingStartedTiles.map((tile, i) => (
+            <OnboardingTile key={i} {...tile} />
+          ))}
+        </div>
+      </div>
+      <div className="mt-12 flex flex-row justify-between pb-5 sm:mt-16 sm:items-center">
+        <div className="flex flex-col">
+          <h2 className="text-gray-900 text-xl font-bold leading-7 sm:truncate sm:text-2xl">
+            More Resources
+          </h2>
+          <p className="text-gray-500 mt-2 text-sm">
+            Once you&apos;re up and running, here are a few more resources
+          </p>
+        </div>
+      </div>
+      <div className="my-8">
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">
+          {moreTiles.map((tile, i) => (
             <OnboardingTile key={i} {...tile} />
           ))}
         </div>

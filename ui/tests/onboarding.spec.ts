@@ -12,14 +12,16 @@ test.describe('Onboarding', () => {
     await expect(page.getByText('Get Started', { exact: true })).toBeVisible();
     await expect(page.getByText('Try the CLI', { exact: true })).toBeVisible();
     await expect(
-      page.getByText('Setup Authentication', { exact: true })
+      page.getByText('Checkout a Guide', { exact: true })
     ).toBeVisible();
     await expect(
       page.getByText('Integrate Your Application', { exact: true })
     ).toBeVisible();
-    await expect(page.getByText('Deploy Flipt', { exact: true })).toBeVisible();
     await expect(
-      page.getByText('Checkout a Guide', { exact: true })
+      page.getByText('Join the Community', { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByText('View API Reference', { exact: true })
     ).toBeVisible();
     await expect(page.getByText('Support Us', { exact: true })).toBeVisible();
   });
