@@ -35,7 +35,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	if s.analyticsStore != nil {
-		err := s.analyticsStore.IncrementFlagEvaluation(ctx, r.NamespaceKey, r.FlagKey)
+		err := s.analyticsStore.IncrementVariantFlagEvaluation(ctx, r.NamespaceKey, resp)
 		if err != nil {
 			s.logger.Info("failure to add metric", zap.String("namespace_key", r.NamespaceKey), zap.String("flag_key", r.FlagKey), zap.Error(err))
 		}

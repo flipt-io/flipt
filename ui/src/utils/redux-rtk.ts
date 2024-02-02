@@ -24,5 +24,5 @@ export const baseQuery = fetchBaseQuery({
 
 export const internalQuery = fetchBaseQuery({
   baseUrl: internalURL,
-  fetchFn: customFetchFn,
+  fetchFn: customFetchFn
 });

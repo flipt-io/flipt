@@ -2,4 +2,3 @@ analytics:
   enabled: true
   clickhouse:
     enabled: true
-    

@@ -126,7 +126,7 @@ export const store = configureStore({
         rolloutsApi.middleware,
         tokensApi.middleware,
         authProvidersApi.middleware,
-        analyticsApi.middleware,
+        analyticsApi.middleware
       )
 });
 

@@ -110,7 +110,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		SELECT
 			sum(value) AS value,
 			toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespace_key = $1 AND flag_key = $2 AND timestamp >= '%s' AND timestamp < '%s'
+		FROM %s WHERE namespace_key = ? AND flag_key = ? AND timestamp >= '%s' AND timestamp < '%s'
 		GROUP BY timestamp
 		ORDER BY timestamp ASC
 		`,
@@ -177,12 +177,4 @@ func getStepFromDuration(from time.Duration) *Step {
 		intervalValue: 15,
 		intervalStep:  "MINUTE",
 	}
-}
-
-// IncrementFlagEvaluation inserts a row into Clickhouse that corresponds to a time when a flag was evaluated.
-// This acts as a "prometheus-like" counter metric.
-func (c *Client) IncrementFlagEvaluation(ctx context.Context, namespaceKey, flagKey string) error {
-	_, err := c.Conn.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s VALUES (toDateTime(?),?,?,?,?)", counterAnalyticsTable), time.Now().Format(time.DateTime), counterAnalyticsName, namespaceKey, flagKey, 1)
-
-	return err
 }

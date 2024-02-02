@@ -19,7 +19,8 @@ type Storer interface {
 }
 
 type AnalyticsStoreMutator interface {
-	IncrementFlagEvaluation(ctx context.Context, namespaceKey, flagKey string) error
+	IncrementBooleanFlagEvaluation(ctx context.Context, namespaceKey string, resp *evaluation.BooleanEvaluationResponse) error
+	IncrementVariantFlagEvaluation(ctx context.Context, namspaceKey string, resp *evaluation.VariantEvaluationResponse) error
 }
 
 // Option defines a function acting as a functional option to modify server properties.

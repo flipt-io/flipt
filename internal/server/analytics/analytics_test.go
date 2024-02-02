@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	analyticstesting "go.flipt.io/flipt/internal/server/analytics/testing"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
 type AnalyticsDBTestSuite struct {
@@ -45,7 +46,10 @@ func (a *AnalyticsDBTestSuite) TestSomething() {
 	t := a.T()
 
 	for i := 0; i < 5; i++ {
-		err := a.client.IncrementFlagEvaluation(context.TODO(), "default", "flag1")
+		err := a.client.IncrementVariantFlagEvaluation(context.TODO(), "default", &evaluation.VariantEvaluationResponse{
+			Match:   true,
+			FlagKey: "flag1",
+		})
 		require.Nil(t, err)
 	}
 
