@@ -3,7 +3,6 @@ import {
   AcademicCapIcon,
   BookOpenIcon,
   CloudArrowUpIcon,
-  Cog6ToothIcon,
   CommandLineIcon,
   LockClosedIcon,
   PuzzlePieceIcon,
