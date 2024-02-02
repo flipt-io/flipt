@@ -50,8 +50,8 @@ export default function Footer() {
 
   return (
     <footer className="body-font text-gray-700 sticky top-[100vh]">
-      <div className="container mx-auto mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
-        <div className="container mx-auto flex flex-col items-center space-x-2 sm:flex-row">
+      <div className="mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
+        <div className="container mx-auto flex flex-col items-center space-x-4 sm:flex-row">
           <p className="text-gray-500 mt-4 text-xs sm:mt-0">
             <span className="hidden sm:inline">
               {ref() && (
@@ -66,6 +66,18 @@ export default function Footer() {
             <span className="block sm:inline">
               &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
               reserved.
+            </span>
+          </p>
+          <p className="text-gray-500 mt-4 text-xs sm:mt-0">
+            <span className="hidden sm:inline">
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="https://features.flipt.io/changelog"
+                className="text-violet-500"
+              >
+                Changelog
+              </a>
             </span>
           </p>
           <p className="text-gray-500 mt-4 text-xs sm:mt-0">
