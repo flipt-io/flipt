@@ -351,8 +351,12 @@ func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker
 			event = audit.NewEvent(audit.ConstraintType, audit.Delete, actor, r)
 		case *flipt.DeleteNamespaceRequest:
 			event = audit.NewEvent(audit.NamespaceType, audit.Delete, actor, r)
+		case *flipt.OrderRulesRequest:
+			event = audit.NewEvent(audit.RuleType, audit.Update, actor, r)
 		case *flipt.DeleteRuleRequest:
 			event = audit.NewEvent(audit.RuleType, audit.Delete, actor, r)
+		case *flipt.OrderRolloutsRequest:
+			event = audit.NewEvent(audit.RolloutType, audit.Update, actor, r)
 		case *flipt.DeleteRolloutRequest:
 			event = audit.NewEvent(audit.RolloutType, audit.Delete, actor, r)
 		}
