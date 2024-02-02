@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var errorNotFound = errors.New("event not found")
+var errNotTransformable = errors.New("event not transformable into evaluation response")
 
 type AnalyticsStoreMutator interface {
 	IncrementFlagEvaluationCounts(ctx context.Context, responses []*EvaluationResponse) error
@@ -54,7 +54,7 @@ func transformSpanEventToEvaluationResponse(event sdktrace.Event) (*EvaluationRe
 		}
 	}
 
-	return nil, errorNotFound
+	return nil, errNotTransformable
 }
 
 // ExportSpans transforms the spans into []*EvaluationResponse which the mutator takes to store into an analytics store.
@@ -64,7 +64,7 @@ func (a *AnalyticsSinkSpanExporter) ExportSpans(ctx context.Context, spans []sdk
 	for _, span := range spans {
 		for _, event := range span.Events() {
 			evaluationResponse, err := transformSpanEventToEvaluationResponse(event)
-			if err != nil && !errors.Is(err, errorNotFound) {
+			if err != nil && !errors.Is(err, errNotTransformable) {
 				a.logger.Error("event not decodable into evaluation response", zap.Error(err))
 				continue
 			}

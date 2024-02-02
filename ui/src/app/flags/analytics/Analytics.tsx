@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
-import { add, addMinutes, format, parseISO } from 'date-fns';
+import { addMinutes, format, parseISO } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { BarGraph } from '~/components/graphs';

@@ -17,8 +17,8 @@ func TestGetStepFromDuration(t *testing.T) {
 			name:     "1 hour duration",
 			duration: time.Hour,
 			want: &Step{
-				intervalValue: 15,
-				intervalStep:  "SECOND",
+				intervalValue: 1,
+				intervalStep:  "MINUTE",
 			},
 		},
 		{

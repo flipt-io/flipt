@@ -18,9 +18,6 @@ type Storer interface {
 	GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error)
 }
 
-// Option defines a function acting as a functional option to modify server properties.
-type Option func(*Server)
-
 // Server serves the Flipt evaluate v2 gRPC Server.
 type Server struct {
 	logger    *zap.Logger
@@ -30,18 +27,12 @@ type Server struct {
 }
 
 // New is constructs a new Server.
-func New(logger *zap.Logger, store Storer, opts ...Option) *Server {
-	s := &Server{
+func New(logger *zap.Logger, store Storer) *Server {
+	return &Server{
 		logger:    logger,
 		store:     store,
 		evaluator: NewEvaluator(logger, store),
 	}
-
-	for _, opt := range opts {
-		opt(s)
-	}
-
-	return s
 }
 
 // RegisterGRPC registers the EvaluateServer onto the provided gRPC Server.

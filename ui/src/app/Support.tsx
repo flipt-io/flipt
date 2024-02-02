@@ -1,9 +1,91 @@
 import {
   ArrowUpRightIcon,
+  BookOpenIcon,
   ChatBubbleBottomCenterIcon,
   EnvelopeIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Icon } from '~/types/Icon';
+
+const supportItems: SupportItemProps[] = [
+  {
+    title: 'Onboarding',
+    description: 'Get started with Flipt',
+    children: (
+      <Link
+        to="/onboarding"
+        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+      >
+        <span className="text-gray-700 text-sm">Let&apos;s Go</span>
+      </Link>
+    ),
+    icon: BookOpenIcon
+  },
+  {
+    title: 'File an Issue',
+    description: 'Get support from the community',
+    children: (
+      <a
+        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        href="https://github.com/flipt-io/flipt/issues/new/choose"
+      >
+        <span className="text-gray-700 text-sm">Create GitHub Issue</span>
+      </a>
+    ),
+    icon: ExclamationCircleIcon
+  },
+  {
+    title: 'Chat in Discord',
+    description: 'Ask a question in our Discord community',
+    children: (
+      <a
+        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        href="https://www.flipt.io/discord"
+      >
+        <span className="text-gray-700 text-sm">Join Discord Server</span>
+      </a>
+    ),
+    icon: ChatBubbleBottomCenterIcon
+  },
+  {
+    title: 'Email',
+    description: 'Send an email to our shared inbox',
+    children: (
+      <a
+        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        href="mailto:dev@flipt.io?subject=Support Inquiry"
+      >
+        <span className="text-gray-700 text-sm">Send Email</span>
+      </a>
+    ),
+    icon: EnvelopeIcon
+  }
+];
+
+interface SupportItemProps {
+  title: string;
+  icon: Icon;
+  description: string;
+  children?: React.ReactNode;
+}
+
+function SupportItem(props: SupportItemProps) {
+  const { title, description, children, icon: Icon } = props;
+  return (
+    <div className="border-gray-200 flex h-full w-full flex-col items-stretch space-y-4 rounded-md border p-6">
+      <div className="sm:shrink-0">
+        <div className="flex items-center space-x-2">
+          <Icon className="text-gray-400 h-6 w-6" />
+          <h3 className="text-gray-900 text-base font-semibold">{title}</h3>
+        </div>
+        <p className="text-gray-500 pt-1 text-sm leading-5">{description}</p>
+      </div>
+      <div className="mt-4 flex grow items-end sm:mt-0">{children}</div>
+    </div>
+  );
+}
 
 export default function Support() {
   return (
@@ -33,78 +115,10 @@ export default function Support() {
         </div>
       </div>
       <div className="my-8">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <div className="flex h-72 flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 lg:h-48">
-              <div className="border-gray-200 flex h-full w-full flex-col items-stretch rounded-md border p-6 sm:w-1/3">
-                <div className="sm:shrink-0">
-                  <div className="flex items-center space-x-2">
-                    <ExclamationCircleIcon className="text-gray-400 h-6 w-6" />
-                    <h3 className="text-gray-900 text-base font-semibold">
-                      File an Issue
-                    </h3>
-                  </div>
-                  <p className="text-gray-500 pt-1 text-sm leading-5">
-                    Get support from the entire community
-                  </p>
-                </div>
-                <div className="mt-4 flex grow items-end sm:mt-0">
-                  <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
-                    href="https://github.com/flipt-io/flipt/issues/new/choose"
-                  >
-                    <span className="text-gray-700 text-sm">
-                      Create GitHub Issue
-                    </span>
-                  </a>
-                </div>
-              </div>
-              <div className="border-gray-200 flex h-full w-full flex-col items-stretch rounded-md border p-6 sm:w-1/3">
-                <div className="sm:shrink-0">
-                  <div className="flex items-center space-x-2">
-                    <ChatBubbleBottomCenterIcon className="text-gray-400 h-6 w-6" />
-                    <h3 className="text-gray-900 text-base font-semibold">
-                      Chat in Discord
-                    </h3>
-                  </div>
-                  <p className="text-gray-500 pt-1 text-sm leading-5">
-                    Ask a question in our Discord community
-                  </p>
-                </div>
-                <div className="mt-4 flex grow items-end sm:mt-0">
-                  <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
-                    href="https://www.flipt.io/discord"
-                  >
-                    <span className="text-gray-700 text-sm">
-                      Join Discord Server
-                    </span>
-                  </a>
-                </div>
-              </div>
-              <div className="border-gray-200 flex h-full w-full flex-col items-stretch rounded-md border p-6 sm:w-1/3">
-                <div className="sm:shrink-0">
-                  <div className="flex items-center space-x-2">
-                    <EnvelopeIcon className="text-gray-400 h-6 w-6" />
-                    <h3 className="text-gray-900 text-base font-semibold">
-                      Email
-                    </h3>
-                  </div>
-                  <p className="text-gray-500 pt-1 text-sm leading-5">
-                    Send an email to our shared inbox
-                  </p>
-                </div>
-                <div className="mt-4 flex grow items-end sm:mt-0">
-                  <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
-                    href="mailto:info@flipt.io?subject=Support Inquiry"
-                  >
-                    <span className="text-gray-700 text-sm">Send Email</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="container m-auto grid grid-cols-2 gap-4 md:grid-cols-3">
+          {supportItems.map((item, index) => (
+            <SupportItem key={index} {...item} />
+          ))}
         </div>
       </div>
     </>

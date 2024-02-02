@@ -23,10 +23,17 @@ type ClickhouseConfig struct {
 
 //nolint:unparam
 func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("analytics.clickhouse.enabled", "false")
-	v.SetDefault("analytics.clickhouse.url", "")
-	v.SetDefault("analytics.buffer.capacity", 10)
-	v.SetDefault("analytics.buffer.flush_period", "10s")
+	v.SetDefault("analytics", map[string]any{
+		"enabled": "false",
+		"clickhouse": map[string]any{
+			"enabled": "false",
+			"url":     "",
+		},
+		"buffer": map[string]any{
+			"capacity":     10,
+			"flush_period": "10s",
+		},
+	})
 
 	return nil
 }

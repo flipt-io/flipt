@@ -25,6 +25,7 @@ func (c *Client) IncrementFlagEvaluationCounts(ctx context.Context, responses []
 		valueArgs = append(valueArgs, 1)
 	}
 
+	//nolint:gosec
 	stmt := fmt.Sprintf("INSERT INTO %s VALUES %s", counterAnalyticsTable, strings.Join(valuePlaceHolders, ","))
 	_, err := c.Conn.ExecContext(ctx, stmt, valueArgs...)
 
