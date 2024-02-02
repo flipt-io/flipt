@@ -32,6 +32,7 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
+import { selectCurrentRef } from '~/app/refs/refsSlice';
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -65,7 +66,7 @@ export default function Console() {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-
+  const ref = useSelector(selectCurrentRef);
   const { data, error } = useListFlagsQuery(namespace.key);
 
   useEffect(() => {
@@ -121,7 +122,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluateV2(namespace.key, flag.key, flag.type, rest)
+    evaluateV2(ref, namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
