@@ -5,6 +5,7 @@ import {
   LinearScale,
   ArcElement,
   TimeScale,
+  TimeSeriesScale,
   Title,
   Tooltip,
   Legend
@@ -17,6 +18,7 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   TimeScale,
+  TimeSeriesScale,
   Title,
   Tooltip,
   Legend
@@ -35,7 +37,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
     <>
       <Bar
         data={{
-          labels: timestamps,
+          labels: timestamps, // (timestamps && timestamps.length > 0) ? [timestamps[0], timestamps[timestamps.length / 2], timestamps[timestamps.length - 1]] : [],
           datasets: [
             {
               label: flagKey,
@@ -49,12 +51,15 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
         options={{
           scales: {
             x: {
-              type: 'time',
+              type: 'timeseries',
               time: {
-                unit: 'minute',
                 displayFormats: {
                   minute: timeFormat
                 }
+              },
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 7
               },
               title: {
                 display: true,

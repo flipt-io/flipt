@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
-import { add, format } from 'date-fns';
+import { add, addMinutes, format, parseISO } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { BarGraph } from '~/components/graphs';
@@ -24,6 +24,12 @@ interface IDuration {
 type FilterableDurations = IDuration & IFilterable;
 
 const durations: FilterableDurations[] = [
+  {
+    value: 30,
+    key: '30 minutes',
+    displayValue: '30 minutes',
+    filterValue: '30 minutes'
+  },
   {
     value: 60,
     key: '1 hour',
@@ -50,17 +56,22 @@ export default function Analytics() {
   const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
-  const now = Date.now();
+  const nowISO = parseISO(new Date().toISOString());
+
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery({
     namespaceKey: namespace.key,
     flagKey: flag.key,
     from: format(
-      add(now, {
-        minutes: selectedDuration?.value ? selectedDuration.value * -1 : -60
-      }),
+      addMinutes(
+        addMinutes(
+          nowISO,
+          selectedDuration?.value ? selectedDuration.value * -1 : -60
+        ),
+        nowISO.getTimezoneOffset()
+      ),
       timeFormat
     ),
-    to: format(now, timeFormat)
+    to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
   });
 
   const flagEvaluationCount = useMemo(() => {

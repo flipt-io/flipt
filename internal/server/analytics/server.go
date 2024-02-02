@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"context"
+	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 // getting analytics from the implemented store.
 type Client interface {
 	GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error)
+	fmt.Stringer
 }
 
 // Server is a grpc server for Flipt analytics.

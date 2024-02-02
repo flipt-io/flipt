@@ -34,13 +34,6 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	if s.analyticsStore != nil {
-		err := s.analyticsStore.IncrementVariantFlagEvaluation(ctx, r.NamespaceKey, resp)
-		if err != nil {
-			s.logger.Info("failure to add metric", zap.String("namespace_key", r.NamespaceKey), zap.String("flag_key", r.FlagKey), zap.Error(err))
-		}
-	}
-
 	spanAttrs := []attribute.KeyValue{
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),

@@ -3,8 +3,9 @@ import {
   DocumentDuplicateIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useState } from 'react';
+import 'chartjs-adapter-date-fns';
+import { add, formatDistanceToNowStrict, format, parseISO } from 'date-fns';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -14,6 +15,7 @@ import {
 } from '~/app/namespaces/namespacesSlice';
 import FlagForm from '~/components/flags/FlagForm';
 import Dropdown from '~/components/forms/Dropdown';
+import { BarGraph } from '~/components/graphs';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
@@ -24,6 +26,7 @@ import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType } from '~/types/Flag';
 import { cls } from '~/utils/helpers';
+import { useGetFlagEvaluationCountQuery } from './analyticsApi';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
@@ -35,6 +38,8 @@ const tabs = [
   { name: 'Rules', to: 'rules' },
   { name: 'Analytics', to: 'analytics' }
 ];
+
+const timeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 export default function Flag() {
   let { flagKey } = useParams();

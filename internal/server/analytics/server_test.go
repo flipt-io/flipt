@@ -16,6 +16,10 @@ func (t *testClient) GetFlagEvaluationsCount(ctx context.Context, req *analytics
 	return []string{"2000-01-01 00:00:00", "2000-01-01 00:01:00", "2000-01-01 00:02:00"}, []float32{20.0, 30.0, 40.0}, nil
 }
 
+func (t *testClient) String() string {
+	return "test_client"
+}
+
 func TestServer(t *testing.T) {
 	server := New(zap.NewNop(), &testClient{})
 

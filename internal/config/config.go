@@ -555,5 +555,12 @@ func Default() *Config {
 			},
 			Events: []string{"*:*"},
 		},
+
+		Analytics: AnalyticsConfig{
+			Buffer: BufferConfig{
+				Capacity:    10,
+				FlushPeriod: 10 * time.Second,
+			},
+		},
 	}
 }

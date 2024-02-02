@@ -267,18 +267,22 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
-	if cfg.Analytics.Enabled {
-		if cfg.Analytics.Clickhouse.Enabled {
-			client, err := clickhouse.New(logger, cfg, forceMigrate)
-			if err != nil {
-				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
-			}
-
-			evaluation.WithAnalyticsStoreMutator(client)(evalsrv)
-
-			analyticssrv := analytics.New(logger, client)
-			register.Add(analyticssrv)
+	if cfg.Analytics.Enabled && cfg.Analytics.Clickhouse.Enabled {
+		client, err := clickhouse.New(logger, cfg, forceMigrate)
+		if err != nil {
+			return nil, fmt.Errorf("connecting to clickhouse: %w", err)
 		}
+
+		analyticssrv := analytics.New(logger, client)
+		register.Add(analyticssrv)
+
+		tracingProvider.RegisterSpanProcessor(
+			tracesdk.NewBatchSpanProcessor(
+				analytics.NewAnalyticsSinkSpanExporter(logger, client),
+				tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Analytics.Buffer.Capacity)),
+		)
+
+		logger.Debug("analytics enabled", zap.String("database", client.String()))
 	}
 
 	// initialize servers
@@ -300,7 +304,7 @@ func NewGRPCServer(
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.EvaluationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled),
 		)...,
 	)
 

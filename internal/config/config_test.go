@@ -916,6 +916,16 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/analytics/invalid_clickhouse_configuration_url.yml",
 			wantErr: errors.New("clickhouse url not provided"),
 		},
+		{
+			name:    "analytics buffer capacity too low",
+			path:    "./testdata/analytics/invalid_buffer_configuration_capacity.yml",
+			wantErr: errors.New("capacity below 10"),
+		},
+		{
+			name:    "analytics flush period too low",
+			path:    "./testdata/analytics/invalid_buffer_configuration_flush_period.yml",
+			wantErr: errors.New("flush period below 10 seconds"),
+		},
 	}
 
 	for _, tt := range tests {

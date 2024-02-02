@@ -110,15 +110,19 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		SELECT
 			sum(value) AS value,
 			toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespace_key = ? AND flag_key = ? AND timestamp >= '%s' AND timestamp < '%s'
+		FROM %s WHERE namespace_key = ? AND flag_key = ? AND timestamp >= toDateTime('%s', 'UTC') AND timestamp < toDateTime('%s', 'UTC')
 		GROUP BY timestamp
-		ORDER BY timestamp ASC
+		ORDER BY timestamp ASC WITH FILL FROM toDateTime('%s', 'UTC') TO toDateTime('%s', 'UTC') STEP INTERVAL %d %s
 		`,
 		step.intervalValue,
 		step.intervalStep,
 		counterAnalyticsTable,
-		fromTime.Format(time.DateTime),
-		toTime.Format(time.DateTime),
+		fromTime.UTC().Format(time.DateTime),
+		toTime.UTC().Format(time.DateTime),
+		fromTime.UTC().Format(time.DateTime),
+		time.Now().UTC().Format(time.DateTime),
+		step.intervalValue,
+		step.intervalStep,
 	),
 		req.NamespaceKey,
 		req.FlagKey,
@@ -156,17 +160,15 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 	return timestamps, values, nil
 }
 
+// Close will close the DB connection.
+func (c *Client) Close() error {
+	return c.Conn.Close()
+}
+
 // getStepFromDuration is a utility function that translates the duration passed in from the client
 // to determine the interval steps we should use for the Clickhouse query.
 func getStepFromDuration(from time.Duration) *Step {
-	if from <= time.Hour {
-		return &Step{
-			intervalValue: 15,
-			intervalStep:  "SECOND",
-		}
-	}
-
-	if from > time.Hour && from <= 4*time.Hour {
+	if from <= 4*time.Hour {
 		return &Step{
 			intervalValue: 1,
 			intervalStep:  "MINUTE",
@@ -177,4 +179,8 @@ func getStepFromDuration(from time.Duration) *Step {
 		intervalValue: 15,
 		intervalStep:  "MINUTE",
 	}
+}
+
+func (c *Client) String() string {
+	return "clickhouse"
 }
