@@ -270,7 +270,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                 Cancel
               </Button>
               <Button
-                primary
+                variant="primary"
                 className="ml-3 min-w-[80px]"
                 type="submit"
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}

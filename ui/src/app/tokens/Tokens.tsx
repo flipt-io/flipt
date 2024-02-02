@@ -143,7 +143,7 @@ export default function Tokens() {
           </div>
           {tokenAuthEnabled && tokens?.length > 0 && (
             <div className="mt-4">
-              <Button primary onClick={() => setShowTokenForm(true)}>
+              <Button variant="primary" onClick={() => setShowTokenForm(true)}>
                 <PlusIcon
                   className="text-white -ml-1.5 mr-1 h-5 w-5"
                   aria-hidden="true"

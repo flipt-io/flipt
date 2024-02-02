@@ -3,7 +3,7 @@ import nightwind from 'nightwind/helper';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
-import { createHashRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, redirect, RouterProvider } from 'react-router-dom';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
@@ -27,11 +27,12 @@ const Preferences = loadable(() => import('./app/preferences/Preferences'));
 const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
 const Tokens = loadable(() => import('./app/tokens/Tokens'));
 
-const namespacesRoutes = [
+const namespacedRoutes = [
   {
-    element: <Flags />,
-    handle: {
-      namespaced: true
+    loader: async () => {
+      if (true) {
+        return redirect('/flags');
+      }
     },
     index: true
   },
@@ -97,7 +98,7 @@ const router = createHashRouter([
     children: [
       {
         path: 'namespaces/:namespaceKey',
-        children: namespacesRoutes
+        children: namespacedRoutes
       },
       {
         path: 'settings',
@@ -125,7 +126,7 @@ const router = createHashRouter([
         path: 'support',
         element: <Support />
       },
-      ...namespacesRoutes
+      ...namespacedRoutes
     ]
   },
   {

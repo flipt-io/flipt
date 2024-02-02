@@ -8,6 +8,7 @@ import {
   PuzzlePieceIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import Button from '~/components/forms/buttons/Button';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
 
@@ -134,6 +135,11 @@ export default function Onboarding() {
           <p className="text-gray-500 mt-2 text-sm">
             Here are some things to help you get started with Flipt
           </p>
+        </div>
+        <div className="mt-4">
+          <Button variant="soft" title="Finished Onboarding">
+            Continue to Dashboard
+          </Button>
         </div>
       </div>
       <div className="my-8">
