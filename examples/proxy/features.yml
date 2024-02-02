@@ -1,0 +1,5 @@
+namespace: default
+flags:
+  - key: example
+    name: Example
+    description: An example flag
