@@ -12,12 +12,8 @@ import { useDispatch } from 'react-redux';
 import Button from '~/components/forms/buttons/Button';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
-import {
-  onboardingCompleted,
-  selectCompletedOnboarding
-} from './user/userSlice';
+import { onboardingCompleted } from './user/userSlice';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 
 const gettingStartedTiles = [
   {
@@ -131,9 +127,11 @@ function OnboardingTile(props: OnboardingTileProps) {
   );
 }
 
-export default function Onboarding() {
-  const completedOnboarding = useSelector(selectCompletedOnboarding);
+interface OnboardingProps {
+  firstTime?: boolean;
+}
 
+export default function Onboarding({ firstTime = false }: OnboardingProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -148,7 +146,7 @@ export default function Onboarding() {
             Here are some things to help you get started with Flipt
           </p>
         </div>
-        {!completedOnboarding && (
+        {firstTime && (
           <div className="mt-4">
             <Button
               variant="soft"

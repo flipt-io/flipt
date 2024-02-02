@@ -23,8 +23,8 @@ export const userSlice = createSlice({
 export const { onboardingCompleted } = userSlice.actions;
 
 export const selectCompletedOnboarding = createSelector(
-  [(state: RootState) => state.user.completedOnboarding],
-  (completedOnboarding) => completedOnboarding
+  [(state: RootState) => state.user],
+  (user) => user.completedOnboarding
 );
 
 export default userSlice.reducer;

@@ -3,7 +3,7 @@ import nightwind from 'nightwind/helper';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
-import { createHashRouter, redirect, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
@@ -22,6 +22,7 @@ const Console = loadable(() => import('./app/console/Console'));
 const Login = loadable(() => import('./app/auth/Login'));
 const Settings = loadable(() => import('./app/Settings'));
 const Onboarding = loadable(() => import('./app/Onboarding'));
+const FirstTimeOnboarding = loadable(() => import('./app/FirstTimeOnboarding'));
 const Support = loadable(() => import('./app/Support'));
 const Preferences = loadable(() => import('./app/preferences/Preferences'));
 const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
@@ -29,11 +30,7 @@ const Tokens = loadable(() => import('./app/tokens/Tokens'));
 
 const namespacedRoutes = [
   {
-    loader: async () => {
-      if (true) {
-        return redirect('/flags');
-      }
-    },
+    element: <FirstTimeOnboarding />,
     index: true
   },
   {
