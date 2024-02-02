@@ -2,36 +2,14 @@ import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import Combobox from '~/components/forms/Combobox';
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  TimeScale,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { add, format } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { useGetFlagEvaluationCountQuery } from '../analyticsApi';
-import { BarGraph } from '~/components/graphs/BarGraph';
+import { BarGraph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import { Formik } from 'formik';
-
-ChartJS.register(
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Title,
-  Tooltip,
-  Legend
-);
 
 type AnalyticsProps = {
   flag: IFlag;
@@ -100,7 +78,7 @@ export default function Analytics() {
     <div className="mx-12 my-12">
       <>
         <Formik initialValues={initialValues} onSubmit={async function () {}}>
-          {(formik) => (
+          {() => (
             <Combobox<FilterableDurations>
               id="durationValue"
               name="durationValue"
