@@ -8,9 +8,16 @@ import {
   PuzzlePieceIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import { useDispatch } from 'react-redux';
 import Button from '~/components/forms/buttons/Button';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
+import {
+  onboardingCompleted,
+  selectCompletedOnboarding
+} from './user/userSlice';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const gettingStartedTiles = [
   {
@@ -125,6 +132,11 @@ function OnboardingTile(props: OnboardingTileProps) {
 }
 
 export default function Onboarding() {
+  const completedOnboarding = useSelector(selectCompletedOnboarding);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   return (
     <>
       <div className="flex flex-row justify-between pb-5 sm:items-center">
@@ -136,11 +148,20 @@ export default function Onboarding() {
             Here are some things to help you get started with Flipt
           </p>
         </div>
-        <div className="mt-4">
-          <Button variant="soft" title="Finished Onboarding">
-            Continue to Dashboard
-          </Button>
-        </div>
+        {!completedOnboarding && (
+          <div className="mt-4">
+            <Button
+              variant="soft"
+              title="Complete Onboarding"
+              onClick={() => {
+                dispatch(onboardingCompleted());
+                navigate('/flags');
+              }}
+            >
+              Continue to Dashboard
+            </Button>
+          </div>
+        )}
       </div>
       <div className="my-8">
         <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">

@@ -23,6 +23,7 @@ export default function Preferences() {
     timezone: timezone,
     theme: theme
   };
+
   const { inTimezone } = useTimezone();
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
