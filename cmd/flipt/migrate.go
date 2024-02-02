@@ -9,9 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	analytics bool
-)
+var analytics bool
 
 func runMigrations(cfg *config.Config, logger *zap.Logger, analytics bool) error {
 	var (

@@ -94,20 +94,16 @@ func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, err
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	var (
-		dr database.Driver
-	)
+	var dr database.Driver
 
-	switch driver {
-	case Clickhouse:
+	if driver == Clickhouse {
 		dr, err = clickhouseMigrate.WithInstance(sql, &clickhouseMigrate.Config{
 			DatabaseName:          "flipt_analytics",
 			MigrationsTableEngine: "MergeTree",
 		})
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
+		if err != nil {
+			return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
+		}
 	}
 
 	logger.Debug("using driver", zap.String("driver", driver.String()))
