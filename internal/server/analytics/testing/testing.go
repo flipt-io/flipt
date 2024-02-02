@@ -69,7 +69,7 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 
 	sourceDriver, err := iofs.New(migrations.FS, fliptsql.Clickhouse.Migrations())
 	if err != nil {
-		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", fliptsql.Clickhouse.Migrations(), err)
+		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", driver.Migrations(), err)
 	}
 
 	mm, err := migrate.NewWithInstance("iofs", sourceDriver, fliptsql.Clickhouse.Migrations(), dr)

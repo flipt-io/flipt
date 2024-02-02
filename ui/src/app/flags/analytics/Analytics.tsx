@@ -6,10 +6,10 @@ import 'chartjs-adapter-date-fns';
 import { add, format } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
-import { useGetFlagEvaluationCountQuery } from '../analyticsApi';
 import { BarGraph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import { Formik } from 'formik';
+import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 
 type AnalyticsProps = {
   flag: IFlag;
@@ -68,7 +68,7 @@ export default function Analytics() {
       timestamps: getFlagEvaluationCount.data?.timestamps,
       values: getFlagEvaluationCount.data?.values
     };
-  }, [getFlagEvaluationCount, selectedDuration]);
+  }, [getFlagEvaluationCount]);
 
   const initialValues = {
     durationValue: selectedDuration?.key
@@ -77,7 +77,12 @@ export default function Analytics() {
   return (
     <div className="mx-12 my-12">
       <>
-        <Formik initialValues={initialValues} onSubmit={async function () {}}>
+        <Formik
+          initialValues={initialValues}
+          onSubmit={async function () {
+            throw new Error('not implemented');
+          }}
+        >
           {() => (
             <Combobox<FilterableDurations>
               id="durationValue"

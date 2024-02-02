@@ -175,7 +175,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 
 // openAnalytics is a convenience function of providing a database.sql instance for
 // an analytics database.
-func openAnalytics(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
+func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 	if cfg.Analytics.Clickhouse.Enabled {
 		db := clickhouse.OpenDB(&clickhouse.Options{
 			Addr: []string{cfg.Analytics.Clickhouse.URL},

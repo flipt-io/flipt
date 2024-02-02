@@ -89,7 +89,7 @@ func migratorHelper(logger *zap.Logger, db *sql.DB, driver Driver, databaseDrive
 
 // NewAnalyticsMigrator returns a migrator for analytics databases
 func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := openAnalytics(cfg, Options{migrate: true})
+	sql, driver, err := openAnalytics(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}

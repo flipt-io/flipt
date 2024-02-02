@@ -19,6 +19,7 @@ type ClickhouseConfig struct {
 	URL     string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
 }
 
+//nolint:unparam
 func (m *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("analytics.clickhouse.enabled", "false")
 	v.SetDefault("analytics.clickhouse.url", "")
