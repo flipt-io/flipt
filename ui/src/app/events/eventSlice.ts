@@ -1,17 +1,17 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '~/store';
 
-export const userKey = 'user';
-interface IUserState {
+export const eventKey = 'event';
+interface IEventState {
   completedOnboarding: boolean;
 }
 
-const initialState: IUserState = {
+const initialState: IEventState = {
   completedOnboarding: false
 };
 
-export const userSlice = createSlice({
-  name: 'user',
+export const eventSlice = createSlice({
+  name: 'event',
   initialState,
   reducers: {
     onboardingCompleted: (state) => {
@@ -20,11 +20,11 @@ export const userSlice = createSlice({
   }
 });
 
-export const { onboardingCompleted } = userSlice.actions;
+export const { onboardingCompleted } = eventSlice.actions;
 
 export const selectCompletedOnboarding = createSelector(
   [(state: RootState) => state.user],
   (user) => user.completedOnboarding
 );
 
-export default userSlice.reducer;
+export default eventSlice.reducer;

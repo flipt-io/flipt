@@ -22,16 +22,16 @@ import { segmentTag, segmentsApi } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { refsKey, refsSlice } from './app/refs/refsSlice';
-import { userSlice, userKey } from './app/user/userSlice';
+import { eventSlice, eventKey } from './app/events/eventSlice';
 
 const listenerMiddleware = createListenerMiddleware();
 
 listenerMiddleware.startListening({
-  matcher: isAnyOf(userSlice.actions.onboardingCompleted),
+  matcher: isAnyOf(eventSlice.actions.onboardingCompleted),
   effect: (_action, api) => {
     // save to local storage
     localStorage.setItem(
-      userKey,
+      eventKey,
       JSON.stringify((api.getState() as RootState).user)
     );
   }
@@ -116,7 +116,7 @@ listenerMiddleware.startListening({
   }
 });
 
-const userState = JSON.parse(localStorage.getItem(userKey) || '{}');
+const userState = JSON.parse(localStorage.getItem(eventKey) || '{}');
 
 const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
@@ -142,7 +142,7 @@ export const store = configureStore({
   },
   reducer: {
     refs: refsSlice.reducer,
-    user: userSlice.reducer,
+    user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,
     namespaces: namespacesSlice.reducer,
     meta: metaSlice.reducer,

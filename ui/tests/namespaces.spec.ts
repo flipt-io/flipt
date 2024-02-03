@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Namespaces', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.reload();
+    await page.getByRole('button', { name: 'Continue to Dashboard' }).click();
   });
 
   test('can create namespace', async ({ page }) => {

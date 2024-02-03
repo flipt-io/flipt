@@ -12,8 +12,8 @@ import { useDispatch } from 'react-redux';
 import Button from '~/components/forms/buttons/Button';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
-import { onboardingCompleted } from './user/userSlice';
 import { useNavigate } from 'react-router-dom';
+import { onboardingCompleted } from './events/eventSlice';
 
 const gettingStartedTiles = [
   {
