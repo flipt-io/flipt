@@ -6,6 +6,7 @@ const fliptAddr = process.env.FLIPT_ADDRESS ?? 'http://localhost:8080';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '',
   plugins: [react()],
   resolve: {
     alias: {

@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { authURL } from '~/data/api';
 import {
   IAuthTokenBase,
   IAuthTokenInternalList,
@@ -10,7 +11,7 @@ import { customFetchFn } from '~/utils/redux-rtk';
 export const tokensApi = createApi({
   reducerPath: 'tokens',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/auth/v1',
+    baseUrl: authURL,
     fetchFn: customFetchFn
   }),
   tagTypes: ['Token'],
