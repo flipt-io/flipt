@@ -90,7 +90,7 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
       <div className="mt-5 sm:mt-6">
         <Button
           className="inline-flex justify-center sm:w-full"
-          primary
+          variant="primary"
           onClick={() => setOpen(false)}
         >
           Close

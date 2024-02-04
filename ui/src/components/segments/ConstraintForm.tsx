@@ -461,7 +461,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 Cancel
               </Button>
               <Button
-                primary
+                variant="primary"
                 type="submit"
                 className="min-w-[80px]"
                 disabled={

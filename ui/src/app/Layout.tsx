@@ -74,7 +74,6 @@ function InnerLayout() {
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="bg-white flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
-
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
