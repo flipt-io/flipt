@@ -115,24 +115,28 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 			}
 
 			if analyticsEnabled {
+				span := trace.SpanFromContext(ctx)
+
 				switch r := resp.(type) {
 				case *evaluation.VariantEvaluationResponse:
 					// This "should" always be an evalution request under these circumstances.
 					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
-						span := trace.SpanFromContext(ctx)
-						evaluationResponse := &analytics.EvaluationResponse{
-							NamespaceKey: evaluationRequest.GetNamespaceKey(),
-							FlagKey:      r.GetFlagKey(),
-							Match:        r.GetMatch(),
-							Reason:       r.GetReason().String(),
-							Timestamp:    r.GetTimestamp().AsTime(),
+						evaluationResponses := []*analytics.EvaluationResponse{
+							{
+								NamespaceKey: evaluationRequest.GetNamespaceKey(),
+								FlagKey:      r.GetFlagKey(),
+								FlagType:     evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
+								Match:        r.GetMatch(),
+								Reason:       r.GetReason().String(),
+								Timestamp:    r.GetTimestamp().AsTime(),
+							},
 						}
 
-						if evaluationResponseBytes, err := json.Marshal(evaluationResponse); err == nil {
+						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
 							keyValue := []attribute.KeyValue{
 								{
 									Key:   "flipt.evaluation.response",
-									Value: attribute.StringValue(string(evaluationResponseBytes)),
+									Value: attribute.StringValue(string(evaluationResponsesBytes)),
 								},
 							}
 							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))
@@ -140,20 +144,60 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 					}
 				case *evaluation.BooleanEvaluationResponse:
 					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
-						span := trace.SpanFromContext(ctx)
-						evaluationResponse := &analytics.EvaluationResponse{
-							NamespaceKey: evaluationRequest.GetNamespaceKey(),
-							FlagKey:      r.GetFlagKey(),
-							Match:        r.GetEnabled(),
-							Reason:       r.GetReason().String(),
-							Timestamp:    r.GetTimestamp().AsTime(),
+						evaluationResponses := []*analytics.EvaluationResponse{
+							{
+								NamespaceKey: evaluationRequest.GetNamespaceKey(),
+								FlagKey:      r.GetFlagKey(),
+								FlagType:     evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
+								Match:        r.GetEnabled(),
+								Reason:       r.GetReason().String(),
+								Timestamp:    r.GetTimestamp().AsTime(),
+							},
 						}
 
-						if evaluationResponseBytes, err := json.Marshal(evaluationResponse); err == nil {
+						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
 							keyValue := []attribute.KeyValue{
 								{
 									Key:   "flipt.evaluation.response",
-									Value: attribute.StringValue(string(evaluationResponseBytes)),
+									Value: attribute.StringValue(string(evaluationResponsesBytes)),
+								},
+							}
+							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))
+						}
+					}
+				case *evaluation.BatchEvaluationResponse:
+					if batchEvaluationRequest, ok := req.(*evaluation.BatchEvaluationRequest); ok {
+						evaluationResponses := make([]*analytics.EvaluationResponse, 0, len(r.GetResponses()))
+						for idx, response := range r.GetResponses() {
+							switch response.GetType() {
+							case evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE:
+								variantResponse := response.GetVariantResponse()
+								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
+									NamespaceKey: batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									FlagKey:      variantResponse.GetFlagKey(),
+									FlagType:     evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
+									Match:        variantResponse.GetMatch(),
+									Reason:       variantResponse.GetReason().String(),
+									Timestamp:    variantResponse.Timestamp.AsTime(),
+								})
+							case evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE:
+								booleanResponse := response.GetBooleanResponse()
+								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
+									NamespaceKey: batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									FlagKey:      booleanResponse.GetFlagKey(),
+									FlagType:     evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
+									Match:        booleanResponse.GetEnabled(),
+									Reason:       booleanResponse.GetReason().String(),
+									Timestamp:    booleanResponse.Timestamp.AsTime(),
+								})
+							}
+						}
+
+						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
+							keyValue := []attribute.KeyValue{
+								{
+									Key:   "flipt.evaluation.response",
+									Value: attribute.StringValue(string(evaluationResponsesBytes)),
 								},
 							}
 							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))

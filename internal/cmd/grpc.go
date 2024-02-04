@@ -276,13 +276,18 @@ func NewGRPCServer(
 		analyticssrv := analytics.New(logger, client)
 		register.Add(analyticssrv)
 
+		analyticsExporter := analytics.NewAnalyticsSinkSpanExporter(logger, client)
 		tracingProvider.RegisterSpanProcessor(
 			tracesdk.NewBatchSpanProcessor(
-				analytics.NewAnalyticsSinkSpanExporter(logger, client),
-				tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Analytics.Buffer.Capacity)),
+				analyticsExporter,
+				tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Analytics.Buffer.Capacity)),
 		)
 
-		logger.Debug("analytics enabled", zap.String("database", client.String()))
+		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.Int("capacity", cfg.Analytics.Buffer.Capacity), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
+
+		server.onShutdown(func(ctx context.Context) error {
+			return analyticsExporter.Shutdown(ctx)
+		})
 	}
 
 	// initialize servers

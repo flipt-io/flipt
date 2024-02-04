@@ -19,6 +19,7 @@ type AnalyticsStoreMutator interface {
 
 type EvaluationResponse struct {
 	FlagKey      string    `json:"flagKey,omitempty"`
+	FlagType     string    `json:"flagType,omitempty"`
 	NamespaceKey string    `json:"namespaceKey,omitempty"`
 	Reason       string    `json:"reason,omitempty"`
 	Match        bool      `json:"match,omitempty"`
@@ -39,12 +40,12 @@ func NewAnalyticsSinkSpanExporter(logger *zap.Logger, analyticsStoreMutator Anal
 	}
 }
 
-// transformSpanEventToEvaluationResponse is a convenience function to transform a span event into an EvaluationResponse.
-func transformSpanEventToEvaluationResponse(event sdktrace.Event) (*EvaluationResponse, error) {
+// transformSpanEventToEvaluationResponses is a convenience function to transform a span event into an []*EvaluationResponse.
+func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*EvaluationResponse, error) {
 	for _, attr := range event.Attributes {
 		if string(attr.Key) == "flipt.evaluation.response" {
 			evaluationResponseBytes := []byte(attr.Value.AsString())
-			var evaluationResponse *EvaluationResponse
+			var evaluationResponse []*EvaluationResponse
 
 			if err := json.Unmarshal(evaluationResponseBytes, &evaluationResponse); err != nil {
 				return nil, err
@@ -63,13 +64,13 @@ func (a *AnalyticsSinkSpanExporter) ExportSpans(ctx context.Context, spans []sdk
 
 	for _, span := range spans {
 		for _, event := range span.Events() {
-			evaluationResponse, err := transformSpanEventToEvaluationResponse(event)
+			evaluationResponsesFromSpan, err := transformSpanEventToEvaluationResponses(event)
 			if err != nil && !errors.Is(err, errNotTransformable) {
 				a.logger.Error("event not decodable into evaluation response", zap.Error(err))
 				continue
 			}
 
-			evaluationResponses = append(evaluationResponses, evaluationResponse)
+			evaluationResponses = append(evaluationResponses, evaluationResponsesFromSpan...)
 		}
 	}
 
