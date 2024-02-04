@@ -24,8 +24,8 @@ export const refsSlice = createSlice({
 export const { currentRefChanged } = refsSlice.actions;
 
 export const selectCurrentRef = createSelector(
-  [(state: RootState) => state.refs.currentRef],
-  (ref) => ref
+  [(state: RootState) => state.refs],
+  (refs) => refs.currentRef
 );
 
 export default refsSlice.reducer;

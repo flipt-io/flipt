@@ -79,7 +79,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
       </div>
       <div className="mt-5 flex flex-row-reverse space-x-2 space-x-reverse sm:mt-4">
         <Button
-          primary
+          variant="primary"
           type="button"
           onClick={() => {
             handleSubmit()

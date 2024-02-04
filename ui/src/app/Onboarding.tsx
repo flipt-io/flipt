@@ -8,8 +8,12 @@ import {
   PuzzlePieceIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import { useDispatch } from 'react-redux';
+import Button from '~/components/forms/buttons/Button';
 import { Icon } from '~/types/Icon';
 import { cls } from '~/utils/helpers';
+import { useNavigate } from 'react-router-dom';
+import { onboardingCompleted } from './events/eventSlice';
 
 const gettingStartedTiles = [
   {
@@ -123,7 +127,14 @@ function OnboardingTile(props: OnboardingTileProps) {
   );
 }
 
-export default function Onboarding() {
+interface OnboardingProps {
+  firstTime?: boolean;
+}
+
+export default function Onboarding({ firstTime = false }: OnboardingProps) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   return (
     <>
       <div className="flex flex-row justify-between pb-5 sm:items-center">
@@ -135,6 +146,20 @@ export default function Onboarding() {
             Here are some things to help you get started with Flipt
           </p>
         </div>
+        {firstTime && (
+          <div className="mt-4">
+            <Button
+              variant="soft"
+              title="Complete Onboarding"
+              onClick={() => {
+                dispatch(onboardingCompleted());
+                navigate('/flags');
+              }}
+            >
+              Continue to Dashboard
+            </Button>
+          </div>
+        )}
       </div>
       <div className="my-8">
         <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">

@@ -275,7 +275,7 @@ export default function Console() {
                           Copy as curl
                         </Button>
                         <Button
-                          primary
+                          variant="primary"
                           className="ml-3"
                           type="submit"
                           disabled={!(formik.dirty && formik.isValid)}

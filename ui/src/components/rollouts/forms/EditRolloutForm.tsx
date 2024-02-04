@@ -404,7 +404,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
             <div className="flex justify-end space-x-3">
               <Button onClick={() => setOpen(false)}>Cancel</Button>
               <Button
-                primary
+                variant="primary"
                 type="submit"
                 className="min-w-[80px]"
                 disabled={!formik.isValid || formik.isSubmitting}

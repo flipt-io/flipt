@@ -89,7 +89,7 @@ export default function Namespaces() {
           </div>
           <div className="mt-4">
             <Button
-              primary
+              variant="primary"
               disabled={readOnly}
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               onClick={() => {
