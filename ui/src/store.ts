@@ -23,8 +23,20 @@ import { segmentTag, segmentsApi } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { refsKey, refsSlice } from './app/refs/refsSlice';
+import { eventSlice, eventKey } from './app/events/eventSlice';
 
 const listenerMiddleware = createListenerMiddleware();
+
+listenerMiddleware.startListening({
+  matcher: isAnyOf(eventSlice.actions.onboardingCompleted),
+  effect: (_action, api) => {
+    // save to local storage
+    localStorage.setItem(
+      eventKey,
+      JSON.stringify((api.getState() as RootState).user)
+    );
+  }
+});
 
 listenerMiddleware.startListening({
   matcher: isAnyOf(
@@ -105,6 +117,8 @@ listenerMiddleware.startListening({
   }
 });
 
+const userState = JSON.parse(localStorage.getItem(eventKey) || '{}');
+
 const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
 );
@@ -118,6 +132,7 @@ export const store = configureStore({
     refs: {
       currentRef
     },
+    user: userState,
     preferences: preferencesState,
     namespaces: {
       namespaces: {},
@@ -128,8 +143,9 @@ export const store = configureStore({
   },
   reducer: {
     refs: refsSlice.reducer,
-    namespaces: namespacesSlice.reducer,
+    user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,
+    namespaces: namespacesSlice.reducer,
     meta: metaSlice.reducer,
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,

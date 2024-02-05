@@ -228,7 +228,7 @@ export default function Console() {
                           </label>
                           <div className="flex items-center justify-between">
                             <Input
-                              className="mr-2 mt-1"
+                              className="mt-1 md:mr-2"
                               name="entityId"
                               id="entityId"
                               type="text"
@@ -275,7 +275,7 @@ export default function Console() {
                           Copy as curl
                         </Button>
                         <Button
-                          primary
+                          variant="primary"
                           className="ml-3"
                           type="submit"
                           disabled={!(formik.dirty && formik.isValid)}

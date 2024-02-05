@@ -300,7 +300,7 @@ export default function Segment() {
               {segment.constraints && segment.constraints.length > 0 && (
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                   <Button
-                    primary
+                    variant="primary"
                     type="button"
                     disabled={readOnly}
                     title={

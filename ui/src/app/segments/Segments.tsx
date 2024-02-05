@@ -44,7 +44,7 @@ export default function Segments() {
         <div className="mt-4">
           <Link to={`${path}/new`}>
             <Button
-              primary
+              variant="primary"
               disabled={readOnly}
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
             >

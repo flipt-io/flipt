@@ -251,7 +251,7 @@ export default function Rules() {
           {rules && rules.length > 0 && (
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
               <Button
-                primary
+                variant="primary"
                 type="button"
                 onClick={() => setShowRuleForm(true)}
                 disabled={readOnly}

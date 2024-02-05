@@ -88,7 +88,7 @@ export default function Variants() {
           {flag.variants && flag.variants.length > 0 && (
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
               <Button
-                primary
+                variant="primary"
                 type="button"
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
