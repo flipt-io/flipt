@@ -179,9 +179,7 @@ func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 	if cfg.Analytics.Clickhouse.Enabled {
 		db := clickhouse.OpenDB(&clickhouse.Options{
 			Addr: []string{cfg.Analytics.Clickhouse.URL},
-			Auth: clickhouse.Auth{
-				Database: "flipt_analytics",
-			},
+			Auth: cfg.Analytics.Clickhouse.Auth(),
 		})
 
 		return db, Clickhouse, nil

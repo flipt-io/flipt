@@ -1,4 +1,0 @@
-analytics:
-  enabled: true
-  buffer:
-    capacity: 9

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/spf13/viper"
 )
 
@@ -17,8 +18,18 @@ type AnalyticsConfig struct {
 
 // ClickhouseConfig defines the connection details for connecting Flipt to Clickhouse.
 type ClickhouseConfig struct {
-	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	URL     string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL      string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
+	Username string `json:"username,omitempty" mapstructure:"username" yaml:"username,omitempty"`
+	Password string `json:"password,omitempty" mapstructure:"password" yaml:"password,omitempty"`
+}
+
+func (c *ClickhouseConfig) Auth() clickhouse.Auth {
+	return clickhouse.Auth{
+		Username: c.Username,
+		Password: c.Password,
+		Database: "flipt_analytics",
+	}
 }
 
 //nolint:unparam
@@ -30,7 +41,6 @@ func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 			"url":     "",
 		},
 		"buffer": map[string]any{
-			"capacity":     10,
 			"flush_period": "10s",
 		},
 	})
@@ -41,10 +51,6 @@ func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 func (a *AnalyticsConfig) validate() error {
 	if a.Clickhouse.Enabled && a.Clickhouse.URL == "" {
 		return errors.New("clickhouse url not provided")
-	}
-
-	if a.Buffer.Capacity < 10 {
-		return errors.New("capacity below 10")
 	}
 
 	if a.Buffer.FlushPeriod < time.Second*10 {

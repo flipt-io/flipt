@@ -280,10 +280,10 @@ func NewGRPCServer(
 		tracingProvider.RegisterSpanProcessor(
 			tracesdk.NewBatchSpanProcessor(
 				analyticsExporter,
-				tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Analytics.Buffer.Capacity)),
+				tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
 		)
 
-		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.Int("capacity", cfg.Analytics.Buffer.Capacity), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
+		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 
 		server.onShutdown(func(ctx context.Context) error {
 			return analyticsExporter.Shutdown(ctx)

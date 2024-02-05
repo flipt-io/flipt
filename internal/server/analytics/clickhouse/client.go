@@ -46,7 +46,7 @@ func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, er
 			return
 		}
 
-		connection, err := connect(cfg.Analytics.Clickhouse.URL)
+		connection, err := connect(cfg.Analytics.Clickhouse)
 		if err != nil {
 			clickhouseErr = err
 			return
@@ -76,12 +76,10 @@ func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) er
 	return nil
 }
 
-func connect(connectionString string) (*sql.DB, error) {
+func connect(clickhouseConfig config.ClickhouseConfig) (*sql.DB, error) {
 	conn := clickhouse.OpenDB(&clickhouse.Options{
-		Addr: []string{connectionString},
-		Auth: clickhouse.Auth{
-			Database: "flipt_analytics",
-		},
+		Addr: []string{clickhouseConfig.URL},
+		Auth: clickhouseConfig.Auth(),
 	})
 
 	if err := conn.Ping(); err != nil {
