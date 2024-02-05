@@ -9,15 +9,20 @@ import (
 	"go.uber.org/zap"
 )
 
-var analytics bool
+const (
+	regular   = "regular"
+	analytics = "analytics"
+)
 
-func runMigrations(cfg *config.Config, logger *zap.Logger, analytics bool) error {
+var database string
+
+func runMigrations(cfg *config.Config, logger *zap.Logger, database string) error {
 	var (
 		migrator *sql.Migrator
 		err      error
 	)
 
-	if analytics {
+	if database == analytics {
 		migrator, err = sql.NewAnalyticsMigrator(*cfg, logger)
 		if err != nil {
 			return err
@@ -54,12 +59,12 @@ func newMigrateCommand() *cobra.Command {
 
 			// Run the OLTP and OLAP database migrations sequentially because of
 			// potential danger in DB migrations in general.
-			if err := runMigrations(cfg, logger, false); err != nil {
+			if err := runMigrations(cfg, logger, regular); err != nil {
 				return err
 			}
 
-			if analytics {
-				if err := runMigrations(cfg, logger, true); err != nil {
+			if database == analytics {
+				if err := runMigrations(cfg, logger, analytics); err != nil {
 					return err
 				}
 			}
@@ -69,6 +74,6 @@ func newMigrateCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	cmd.Flags().BoolVar(&analytics, "analytics", false, "migrate analytics database")
+	cmd.Flags().StringVar(&database, "database", "regular", "string to denote which database type to migrate")
 	return cmd
 }
