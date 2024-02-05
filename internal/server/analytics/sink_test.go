@@ -40,21 +40,23 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
-	evaluationResponse := &EvaluationResponse{
-		FlagKey:      "hello",
-		NamespaceKey: "default",
-		Reason:       "MATCH_EVALUATION_REASON",
-		Match:        true,
-		Timestamp:    time.Now().UTC(),
+	evaluationResponses := []*EvaluationResponse{
+		{
+			FlagKey:      "hello",
+			NamespaceKey: "default",
+			Reason:       "MATCH_EVALUATION_REASON",
+			Match:        true,
+			Timestamp:    time.Now().UTC(),
+		},
 	}
 
-	evaluationResponseBytes, err := json.Marshal(evaluationResponse)
+	evaluationResponsesBytes, err := json.Marshal(evaluationResponses)
 	require.NoError(t, err)
 
 	attrs := []attribute.KeyValue{
 		{
 			Key:   "flipt.evaluation.response",
-			Value: attribute.StringValue(string(evaluationResponseBytes)),
+			Value: attribute.StringValue(string(evaluationResponsesBytes)),
 		},
 	}
 	span.AddEvent("evaluation_response", trace.WithAttributes(attrs...))
@@ -67,11 +69,11 @@ func TestSinkSpanExporter(t *testing.T) {
 	case e := <-ss.ch:
 		assert.Len(t, e, 1)
 		evaluationResponseActual := e[0]
-		assert.Equal(t, evaluationResponse.FlagKey, evaluationResponseActual.FlagKey)
-		assert.Equal(t, evaluationResponse.NamespaceKey, evaluationResponseActual.NamespaceKey)
-		assert.Equal(t, evaluationResponse.Reason, evaluationResponseActual.Reason)
-		assert.Equal(t, evaluationResponse.Match, evaluationResponseActual.Match)
-		assert.Equal(t, evaluationResponse.Timestamp, evaluationResponseActual.Timestamp)
+		assert.Equal(t, evaluationResponses[0].FlagKey, evaluationResponseActual.FlagKey)
+		assert.Equal(t, evaluationResponses[0].NamespaceKey, evaluationResponseActual.NamespaceKey)
+		assert.Equal(t, evaluationResponses[0].Reason, evaluationResponseActual.Reason)
+		assert.Equal(t, evaluationResponses[0].Match, evaluationResponseActual.Match)
+		assert.Equal(t, evaluationResponses[0].Timestamp, evaluationResponseActual.Timestamp)
 	case <-timeoutCtx.Done():
 		require.Fail(t, "message should have been sent on the channel")
 	}
