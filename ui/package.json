@@ -46,7 +46,7 @@
     "@babel/preset-typescript": "^7.23.3",
     "@playwright/test": "^1.41.1",
     "@tailwindcss/forms": "^0.5.7",
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^29.5.12",
     "@types/loadable__component": "^5.13.8",
     "@types/node": "^18.19.10",
     "@types/react": "^18.2.48",
