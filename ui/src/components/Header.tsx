@@ -19,7 +19,7 @@ export default function Header(props: HeaderProps) {
   const { session } = useSession();
 
   return (
-    <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-gray-950 dark:border-b dark:border-b-white/20">
+    <div className="sticky top-0 z-20 flex h-16 flex-shrink-0 bg-gray-950 dark:border-b dark:border-b-white/20">
       <button
         type="button"
         className="without-ring nightwind-prevent text-white px-4 md:hidden"

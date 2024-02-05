@@ -64,7 +64,7 @@ func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, er
 
 // runMigrations will run migrations for clickhouse if enabled from the client.
 func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) error {
-	m, err := fliptsql.NewMigrator(*cfg, logger)
+	m, err := fliptsql.NewAnalyticsMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}

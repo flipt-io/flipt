@@ -91,7 +91,7 @@ export default function Analytics() {
         <Formik
           initialValues={initialValues}
           onSubmit={async function () {
-            throw new Error('not implemented');
+            console.error('not implemented');
           }}
         >
           {() => (
@@ -99,7 +99,7 @@ export default function Analytics() {
               id="durationValue"
               name="durationValue"
               placeholder="Select duration"
-              className="absolute right-24 z-20"
+              className="absolute right-28 z-10"
               values={durations}
               selected={selectedDuration}
               setSelected={setSelectedDuration}
@@ -107,7 +107,7 @@ export default function Analytics() {
           )}
         </Formik>
       </>
-      <div className="relative top-8">
+      <div className="relative top-12">
         <BarGraph
           timestamps={flagEvaluationCount.timestamps || []}
           values={flagEvaluationCount.values || []}

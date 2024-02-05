@@ -2,6 +2,7 @@ package analytics_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -20,6 +21,9 @@ type AnalyticsDBTestSuite struct {
 }
 
 func TestAnalyticsDBTestSuite(t *testing.T) {
+	if os.Getenv("FLIPT_ANALYTICS_DATABASE_PROTOCOL") == "" {
+		t.Skip("please provide an analytics database protocol to run tests")
+	}
 	suite.Run(t, new(AnalyticsDBTestSuite))
 }
 
