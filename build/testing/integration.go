@@ -322,7 +322,7 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
-				WithExec([]string{"start-single-node", "--insecure"}).
+				WithExec([]string{"start-single-node", "--insecure", "--log-dir="}).
 				AsService()),
 			conf,
 		)
