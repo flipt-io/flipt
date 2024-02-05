@@ -1098,6 +1098,14 @@
             "url": {
               "type": "string",
               "default": ""
+            },
+            "username": {
+              "type": "string",
+              "default": ""
+            },
+            "password": {
+              "type": "string",
+              "default": ""
             }
           }
         },
@@ -1106,8 +1114,7 @@
           "additionalProperties": false,
           "properties": {
             "capacity": {
-              "type": "integer",
-              "default": 10
+              "type": "integer"
             },
             "flush_period": {
               "type": "string",

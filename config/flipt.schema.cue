@@ -316,11 +316,13 @@ import "strings"
 	#analytics: {
 		enabled?: bool | *false
 		clickhouse?: {
-			enabled?: bool | *false
-			url?:     string | *""
+			enabled?:  bool | *false
+			url?:      string | *""
+			username?: string | *""
+			password?: string | *""
 		}
 		buffer?: {
-			capacity?:     int | *2
+			capacity?:     int
 			flush_period?: string | *"2m"
 		}
 	}
