@@ -1,4 +1,4 @@
 analytics:
-  enabled: true
-  clickhouse:
-    enabled: true
+  storage:
+    clickhouse:
+      enabled: true

@@ -11,8 +11,13 @@ import (
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
+	Storage AnalyticsStorageConfig `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Buffer  BufferConfig           `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
+}
+
+// AnalyticsStorageConfig is a collection of configuration option for storage backends.
+type AnalyticsStorageConfig struct {
 	Clickhouse ClickhouseConfig `json:"clickhouse,omitempty" mapstructure:"clickhouse" yaml:"clickhouse,omitempty"`
-	Buffer     BufferConfig     `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
 }
 
 // ClickhouseConfig defines the connection details for connecting Flipt to Clickhouse.
@@ -24,7 +29,7 @@ type ClickhouseConfig struct {
 }
 
 func (a *AnalyticsConfig) Enabled() bool {
-	return a.Clickhouse.Enabled
+	return a.Storage.Clickhouse.Enabled
 }
 
 func (c *ClickhouseConfig) Auth() clickhouse.Auth {
@@ -52,7 +57,7 @@ func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 }
 
 func (a *AnalyticsConfig) validate() error {
-	if a.Clickhouse.Enabled && a.Clickhouse.URL == "" {
+	if a.Storage.Clickhouse.Enabled && a.Storage.Clickhouse.URL == "" {
 		return errors.New("clickhouse url not provided")
 	}
 

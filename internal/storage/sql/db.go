@@ -176,10 +176,10 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 // openAnalytics is a convenience function of providing a database.sql instance for
 // an analytics database.
 func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
-	if cfg.Analytics.Clickhouse.Enabled {
+	if cfg.Analytics.Storage.Clickhouse.Enabled {
 		db := clickhouse.OpenDB(&clickhouse.Options{
-			Addr: []string{cfg.Analytics.Clickhouse.URL},
-			Auth: cfg.Analytics.Clickhouse.Auth(),
+			Addr: []string{cfg.Analytics.Storage.Clickhouse.URL},
+			Auth: cfg.Analytics.Storage.Clickhouse.Auth(),
 		})
 
 		return db, Clickhouse, nil

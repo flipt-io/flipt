@@ -314,12 +314,13 @@ import "strings"
 	}
 
 	#analytics: {
-		enabled?: bool | *false
-		clickhouse?: {
-			enabled?:  bool | *false
-			url?:      string | *""
-			username?: string | *""
-			password?: string | *""
+		storage?: {
+			clickhouse?: {
+				enabled?:  bool | *false
+				url?:      string | *""
+				username?: string | *""
+				password?: string | *""
+			}
 		}
 		buffer?: {
 			capacity?:     int

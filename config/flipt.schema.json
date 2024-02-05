@@ -1081,31 +1081,33 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false
-        },
-        "clickhouse": {
+        "storage": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean",
+            "clickhouse": {
+              "type": "object",
               "additionalProperties": false,
-              "default": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "additionalProperties": false,
+                  "default": false
+                },
+                "url": {
+                  "type": "string",
+                  "default": ""
+                },
+                "username": {
+                  "type": "string",
+                  "default": ""
+                },
+                "password": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
               "title": "Clickhouse"
-            },
-            "url": {
-              "type": "string",
-              "default": ""
-            },
-            "username": {
-              "type": "string",
-              "default": ""
-            },
-            "password": {
-              "type": "string",
-              "default": ""
             }
           }
         },

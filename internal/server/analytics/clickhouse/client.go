@@ -46,7 +46,7 @@ func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, er
 			return
 		}
 
-		connection, err := connect(cfg.Analytics.Clickhouse)
+		connection, err := connect(cfg.Analytics.Storage.Clickhouse)
 		if err != nil {
 			clickhouseErr = err
 			return
