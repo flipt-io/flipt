@@ -81,7 +81,7 @@ export default function Analytics() {
     return {
       timestamps: getFlagEvaluationCount.data?.timestamps,
       values: getFlagEvaluationCount.data?.values,
-      notImplemented: fetchError.status === 501
+      notImplemented: fetchError?.status === 501
     };
   }, [getFlagEvaluationCount]);
 
