@@ -7,14 +7,20 @@ services:
       - flipt_network
     ports:
      - "26257:26257"
-    command: start-single-node --insecure
+    command: start-single-node --insecure --accept-sql-without-tls --single-node
     volumes:
      - "${PWD}/data:/cockroach/cockroach-data"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   flipt:
     build: .
     depends_on:
-      - crdb
+      crdb:
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
@@ -23,7 +29,7 @@ services:
       - FLIPT_DB_URL=cockroach://root@crdb:26257/defaultdb?sslmode=disable
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_META_TELEMETRY_ENABLED=false
-    command: ["./tmp/wait-for-it.sh", "crdb:26257", "--", "./flipt", "--force-migrate"]
+    command: ["/flipt", "--force-migrate"]
 
 networks:
   flipt_network:
