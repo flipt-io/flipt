@@ -63,14 +63,14 @@ jobs:
           ]
     steps:
       - run: |
-          du -d 1 /
+          sudo du -d 1 /
 
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-          du -d 1 /
+          sudo du -d 1 /
 
       - uses: actions/checkout@v4
 
