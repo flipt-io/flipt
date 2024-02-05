@@ -273,7 +273,7 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 				}
 			)
 
-			got, err := EvaluationUnaryInterceptor(false)(context.Background(), test.req, info, handler)
+			got, err := EvaluationUnaryInterceptor(true)(context.Background(), test.req, info, handler)
 			require.NoError(t, err)
 
 			assert.NotNil(t, got)

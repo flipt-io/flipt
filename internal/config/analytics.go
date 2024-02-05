@@ -11,7 +11,6 @@ import (
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
-	Enabled    bool             `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 	Clickhouse ClickhouseConfig `json:"clickhouse,omitempty" mapstructure:"clickhouse" yaml:"clickhouse,omitempty"`
 	Buffer     BufferConfig     `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
 }
@@ -20,8 +19,12 @@ type AnalyticsConfig struct {
 type ClickhouseConfig struct {
 	Enabled  bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 	URL      string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
-	Username string `json:"username,omitempty" mapstructure:"username" yaml:"username,omitempty"`
-	Password string `json:"password,omitempty" mapstructure:"password" yaml:"password,omitempty"`
+	Username string `json:"-" mapstructure:"username" yaml:"username,omitempty"`
+	Password string `json:"-" mapstructure:"password" yaml:"password,omitempty"`
+}
+
+func (a *AnalyticsConfig) Enabled() bool {
+	return a.Clickhouse.Enabled
 }
 
 func (c *ClickhouseConfig) Auth() clickhouse.Auth {

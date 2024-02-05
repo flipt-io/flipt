@@ -69,7 +69,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
             y: {
               title: {
                 display: true,
-                text: 'Number of evaluations'
+                text: 'Evaluations'
               }
             }
           }

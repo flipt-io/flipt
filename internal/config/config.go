@@ -557,7 +557,6 @@ func Default() *Config {
 		},
 
 		Analytics: AnalyticsConfig{
-			Enabled: false,
 			Buffer: BufferConfig{
 				FlushPeriod: 10 * time.Second,
 			},

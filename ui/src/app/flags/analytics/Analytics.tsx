@@ -1,3 +1,4 @@
+import { Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
@@ -8,7 +9,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { BarGraph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
-import { Formik } from 'formik';
+import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 
 type AnalyticsProps = {
@@ -77,7 +78,8 @@ export default function Analytics() {
   const flagEvaluationCount = useMemo(() => {
     return {
       timestamps: getFlagEvaluationCount.data?.timestamps,
-      values: getFlagEvaluationCount.data?.values
+      values: getFlagEvaluationCount.data?.values,
+      notImplemented: getFlagEvaluationCount.error?.status === 501
     };
   }, [getFlagEvaluationCount]);
 
@@ -87,33 +89,43 @@ export default function Analytics() {
 
   return (
     <div className="mx-12 my-12">
-      <>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={async function () {
-            console.error('not implemented');
-          }}
-        >
-          {() => (
-            <Combobox<FilterableDurations>
-              id="durationValue"
-              name="durationValue"
-              placeholder="Select duration"
-              className="absolute right-28 z-10"
-              values={durations}
-              selected={selectedDuration}
-              setSelected={setSelectedDuration}
+      {!flagEvaluationCount.notImplemented ? (
+        <>
+          <>
+            <Formik
+              initialValues={initialValues}
+              onSubmit={async function () {
+                console.error('not implemented');
+              }}
+            >
+              {() => (
+                <Combobox<FilterableDurations>
+                  id="durationValue"
+                  name="durationValue"
+                  placeholder="Select duration"
+                  className="absolute right-28 z-10"
+                  values={durations}
+                  selected={selectedDuration}
+                  setSelected={setSelectedDuration}
+                />
+              )}
+            </Formik>
+          </>
+          <div className="relative top-12">
+            <BarGraph
+              timestamps={flagEvaluationCount.timestamps || []}
+              values={flagEvaluationCount.values || []}
+              flagKey={flag.key}
             />
-          )}
-        </Formik>
-      </>
-      <div className="relative top-12">
-        <BarGraph
-          timestamps={flagEvaluationCount.timestamps || []}
-          values={flagEvaluationCount.values || []}
-          flagKey={flag.key}
-        />
-      </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <Well>
+            <p className="text-gray-600 text-sm">Analytics disabled</p>
+          </Well>
+        </>
+      )}
     </div>
   );
 }

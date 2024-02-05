@@ -267,7 +267,7 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
-	if cfg.Analytics.Enabled && cfg.Analytics.Clickhouse.Enabled {
+	if cfg.Analytics.Enabled() {
 		client, err := clickhouse.New(logger, cfg, forceMigrate)
 		if err != nil {
 			return nil, fmt.Errorf("connecting to clickhouse: %w", err)
@@ -309,7 +309,7 @@ func NewGRPCServer(
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled),
+			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)
 

@@ -235,7 +235,7 @@ export default function Rollouts(props: RolloutsProps) {
       )}
 
       {/* rollouts */}
-      <div className="mt-10">
+      <div className="mt-10 w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h3 className="text-gray-900 font-medium leading-6">Rollouts</h3>

@@ -1,7 +1,6 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
 import { useDeleteVariantMutation } from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -18,9 +17,7 @@ type VariantsProps = {
   flag: IFlag;
 };
 
-export default function Variants() {
-  const { flag } = useOutletContext<VariantsProps>();
-
+export default function Variants({ flag }: VariantsProps) {
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
   const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
   const [showDeleteVariantModal, setShowDeleteVariantModal] =
