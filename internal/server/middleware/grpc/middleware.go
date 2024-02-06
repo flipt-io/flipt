@@ -121,14 +121,20 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 				case *evaluation.VariantEvaluationResponse:
 					// This "should" always be an evalution request under these circumstances.
 					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
+						var variantKey *string = nil
+						if r.GetVariantKey() != "" {
+							variantKey = &r.VariantKey
+						}
+
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
-								NamespaceKey: evaluationRequest.GetNamespaceKey(),
-								FlagKey:      r.GetFlagKey(),
-								FlagType:     evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
-								Match:        r.GetMatch(),
-								Reason:       r.GetReason().String(),
-								Timestamp:    r.GetTimestamp().AsTime(),
+								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
+								FlagKey:         r.GetFlagKey(),
+								FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
+								Match:           &r.Match,
+								Reason:          r.GetReason().String(),
+								Timestamp:       r.GetTimestamp().AsTime(),
+								EvaluationValue: variantKey,
 							},
 						}
 
@@ -144,14 +150,16 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 					}
 				case *evaluation.BooleanEvaluationResponse:
 					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
+						evaluationValue := fmt.Sprint(r.GetEnabled())
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
-								NamespaceKey: evaluationRequest.GetNamespaceKey(),
-								FlagKey:      r.GetFlagKey(),
-								FlagType:     evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
-								Match:        r.GetEnabled(),
-								Reason:       r.GetReason().String(),
-								Timestamp:    r.GetTimestamp().AsTime(),
+								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
+								FlagKey:         r.GetFlagKey(),
+								FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
+								Reason:          r.GetReason().String(),
+								Timestamp:       r.GetTimestamp().AsTime(),
+								Match:           nil,
+								EvaluationValue: &evaluationValue,
 							},
 						}
 
@@ -172,23 +180,31 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 							switch response.GetType() {
 							case evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE:
 								variantResponse := response.GetVariantResponse()
+								var variantKey *string = nil
+								if variantResponse.GetVariantKey() != "" {
+									variantKey = &variantResponse.VariantKey
+								}
+
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									NamespaceKey: batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
-									FlagKey:      variantResponse.GetFlagKey(),
-									FlagType:     evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
-									Match:        variantResponse.GetMatch(),
-									Reason:       variantResponse.GetReason().String(),
-									Timestamp:    variantResponse.Timestamp.AsTime(),
+									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									FlagKey:         variantResponse.GetFlagKey(),
+									FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
+									Match:           &variantResponse.Match,
+									Reason:          variantResponse.GetReason().String(),
+									Timestamp:       variantResponse.Timestamp.AsTime(),
+									EvaluationValue: variantKey,
 								})
 							case evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE:
 								booleanResponse := response.GetBooleanResponse()
+								evaluationValue := fmt.Sprint(booleanResponse.GetEnabled())
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									NamespaceKey: batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
-									FlagKey:      booleanResponse.GetFlagKey(),
-									FlagType:     evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
-									Match:        booleanResponse.GetEnabled(),
-									Reason:       booleanResponse.GetReason().String(),
-									Timestamp:    booleanResponse.Timestamp.AsTime(),
+									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
+									FlagKey:         booleanResponse.GetFlagKey(),
+									FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
+									Reason:          booleanResponse.GetReason().String(),
+									Timestamp:       booleanResponse.Timestamp.AsTime(),
+									Match:           nil,
+									EvaluationValue: &evaluationValue,
 								})
 							}
 						}

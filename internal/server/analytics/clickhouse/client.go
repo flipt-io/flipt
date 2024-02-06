@@ -77,10 +77,12 @@ func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) er
 }
 
 func connect(clickhouseConfig config.ClickhouseConfig) (*sql.DB, error) {
-	conn := clickhouse.OpenDB(&clickhouse.Options{
-		Addr: []string{clickhouseConfig.URL},
-		Auth: clickhouseConfig.Auth(),
-	})
+	options, err := clickhouseConfig.Options()
+	if err != nil {
+		return nil, err
+	}
+
+	conn := clickhouse.OpenDB(options)
 
 	if err := conn.Ping(); err != nil {
 		return nil, err

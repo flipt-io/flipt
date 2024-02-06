@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var ErrWrongDatabase error = errors.New("database should be flipt_analytics")
+
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
@@ -22,22 +24,25 @@ type AnalyticsStorageConfig struct {
 
 // ClickhouseConfig defines the connection details for connecting Flipt to Clickhouse.
 type ClickhouseConfig struct {
-	Enabled  bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	URL      string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
-	Username string `json:"-" mapstructure:"username" yaml:"username,omitempty"`
-	Password string `json:"-" mapstructure:"password" yaml:"password,omitempty"`
+	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL     string `json:"-" mapstructure:"url" yaml:"url,omitempty"`
 }
 
 func (a *AnalyticsConfig) Enabled() bool {
 	return a.Storage.Clickhouse.Enabled
 }
 
-func (c *ClickhouseConfig) Auth() clickhouse.Auth {
-	return clickhouse.Auth{
-		Username: c.Username,
-		Password: c.Password,
-		Database: "flipt_analytics",
+// Options returns the connection option details for Clickhouse.
+func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
+	options, err := clickhouse.ParseDSN(c.URL)
+	if err != nil {
+		return nil, err
 	}
+	if options.Auth.Database != "flipt_analytics" {
+		return nil, ErrWrongDatabase
+	}
+
+	return options, nil
 }
 
 //nolint:unparam

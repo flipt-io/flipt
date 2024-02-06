@@ -1097,14 +1097,6 @@
                 "url": {
                   "type": "string",
                   "default": ""
-                },
-                "username": {
-                  "type": "string",
-                  "default": ""
-                },
-                "password": {
-                  "type": "string",
-                  "default": ""
                 }
               },
               "title": "Clickhouse"

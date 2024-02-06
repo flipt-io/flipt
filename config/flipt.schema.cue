@@ -316,10 +316,8 @@ import "strings"
 	#analytics: {
 		storage?: {
 			clickhouse?: {
-				enabled?:  bool | *false
-				url?:      string | *""
-				username?: string | *""
-				password?: string | *""
+				enabled?: bool | *false
+				url?:     string | *""
 			}
 		}
 		buffer?: {

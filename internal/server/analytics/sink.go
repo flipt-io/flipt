@@ -18,12 +18,13 @@ type AnalyticsStoreMutator interface {
 }
 
 type EvaluationResponse struct {
-	FlagKey      string    `json:"flagKey,omitempty"`
-	FlagType     string    `json:"flagType,omitempty"`
-	NamespaceKey string    `json:"namespaceKey,omitempty"`
-	Reason       string    `json:"reason,omitempty"`
-	Match        bool      `json:"match,omitempty"`
-	Timestamp    time.Time `json:"timestamp,omitempty"`
+	FlagKey         string    `json:"flagKey,omitempty"`
+	FlagType        string    `json:"flagType,omitempty"`
+	NamespaceKey    string    `json:"namespaceKey,omitempty"`
+	Reason          string    `json:"reason,omitempty"`
+	Match           *bool     `json:"match,omitempty"`
+	EvaluationValue *string   `json:"evaluationValue,omitempty"`
+	Timestamp       time.Time `json:"timestamp,omitempty"`
 }
 
 // AnalyticsSinkSpanExporter implements SpanExporter.

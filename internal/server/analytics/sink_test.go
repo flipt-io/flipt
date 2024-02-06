@@ -19,9 +19,7 @@ type sampleSink struct {
 }
 
 func (s *sampleSink) IncrementFlagEvaluationCounts(ctx context.Context, responses []*EvaluationResponse) error {
-	go func() {
-		s.ch <- responses
-	}()
+	s.ch <- responses
 	return nil
 }
 
@@ -29,7 +27,7 @@ func (s *sampleSink) Close() error { return nil }
 
 func TestSinkSpanExporter(t *testing.T) {
 	ss := &sampleSink{
-		ch: make(chan []*EvaluationResponse),
+		ch: make(chan []*EvaluationResponse, 1),
 	}
 	analyticsSinkSpanExporter := NewAnalyticsSinkSpanExporter(zap.NewNop(), ss)
 
@@ -40,12 +38,13 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
+	b := true
 	evaluationResponses := []*EvaluationResponse{
 		{
 			FlagKey:      "hello",
 			NamespaceKey: "default",
 			Reason:       "MATCH_EVALUATION_REASON",
-			Match:        true,
+			Match:        &b,
 			Timestamp:    time.Now().UTC(),
 		},
 	}
@@ -72,7 +71,7 @@ func TestSinkSpanExporter(t *testing.T) {
 		assert.Equal(t, evaluationResponses[0].FlagKey, evaluationResponseActual.FlagKey)
 		assert.Equal(t, evaluationResponses[0].NamespaceKey, evaluationResponseActual.NamespaceKey)
 		assert.Equal(t, evaluationResponses[0].Reason, evaluationResponseActual.Reason)
-		assert.Equal(t, evaluationResponses[0].Match, evaluationResponseActual.Match)
+		assert.Equal(t, *evaluationResponses[0].Match, *evaluationResponseActual.Match)
 		assert.Equal(t, evaluationResponses[0].Timestamp, evaluationResponseActual.Timestamp)
 	case <-timeoutCtx.Done():
 		require.Fail(t, "message should have been sent on the channel")

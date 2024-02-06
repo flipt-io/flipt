@@ -177,10 +177,12 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 // an analytics database.
 func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 	if cfg.Analytics.Storage.Clickhouse.Enabled {
-		db := clickhouse.OpenDB(&clickhouse.Options{
-			Addr: []string{cfg.Analytics.Storage.Clickhouse.URL},
-			Auth: cfg.Analytics.Storage.Clickhouse.Auth(),
-		})
+		clickhouseOptions, err := cfg.Analytics.Storage.Clickhouse.Options()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		db := clickhouse.OpenDB(clickhouseOptions)
 
 		return db, Clickhouse, nil
 	}

@@ -913,7 +913,7 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name:    "clickhouse enabled but no URL set",
-			path:    "./testdata/analytics/invalid_clickhouse_configuration_url.yml",
+			path:    "./testdata/analytics/invalid_clickhouse_configuration_empty_url.yml",
 			wantErr: errors.New("clickhouse url not provided"),
 		},
 		{
