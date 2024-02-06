@@ -10,6 +10,10 @@ env:
   GO_VERSION: "1.21"
   DAGGER_VERSION: "0.9.5"
 
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
 jobs:
   test:
     name: "Tests (Go)"
@@ -37,7 +41,7 @@ jobs:
         run: mage dagger:run "test:unit"
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.5
+        uses: codecov/codecov-action@v4.0.1
 
   test-darwin:
     name: "Tests (Go - Darwin)"
