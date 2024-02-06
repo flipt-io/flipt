@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	regular   = "regular"
-	analytics = "analytics"
+	defaultConfig = "default"
+	analytics     = "analytics"
 )
 
 var database string
@@ -59,7 +59,7 @@ func newMigrateCommand() *cobra.Command {
 
 			// Run the OLTP and OLAP database migrations sequentially because of
 			// potential danger in DB migrations in general.
-			if err := runMigrations(cfg, logger, regular); err != nil {
+			if err := runMigrations(cfg, logger, defaultConfig); err != nil {
 				return err
 			}
 
@@ -74,6 +74,6 @@ func newMigrateCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	cmd.Flags().StringVar(&database, "database", "regular", "string to denote which database type to migrate")
+	cmd.Flags().StringVar(&database, "database", "default", "string to denote which database type to migrate")
 	return cmd
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var ErrWrongDatabase error = errors.New("database should be flipt_analytics")
-
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
@@ -38,9 +36,6 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 	if err != nil {
 		return nil, err
 	}
-	if options.Auth.Database != "flipt_analytics" {
-		return nil, ErrWrongDatabase
-	}
 
 	return options, nil
 }
@@ -48,7 +43,6 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 //nolint:unparam
 func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("analytics", map[string]any{
-		"enabled": "false",
 		"clickhouse": map[string]any{
 			"enabled": "false",
 			"url":     "",

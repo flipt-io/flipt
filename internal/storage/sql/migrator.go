@@ -97,8 +97,13 @@ func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, err
 	var dr database.Driver
 
 	if driver == Clickhouse {
+		options, err := cfg.Analytics.Storage.Clickhouse.Options()
+		if err != nil {
+			return nil, err
+		}
+
 		dr, err = clickhouseMigrate.WithInstance(sql, &clickhouseMigrate.Config{
-			DatabaseName:          "flipt_analytics",
+			DatabaseName:          options.Auth.Database,
 			MigrationsTableEngine: "MergeTree",
 		})
 		if err != nil {
