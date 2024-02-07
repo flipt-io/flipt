@@ -43,9 +43,11 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 //nolint:unparam
 func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("analytics", map[string]any{
-		"clickhouse": map[string]any{
-			"enabled": "false",
-			"url":     "",
+		"storage": map[string]any{
+			"clickhouse": map[string]any{
+				"enabled": "false",
+				"url":     "",
+			},
 		},
 		"buffer": map[string]any{
 			"flush_period": "10s",

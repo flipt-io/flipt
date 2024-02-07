@@ -87,7 +87,7 @@ export default function Analytics() {
     return {
       timestamps: getFlagEvaluationCount.data?.timestamps,
       values: getFlagEvaluationCount.data?.values,
-      notImplemented: fetchError?.status === 501
+      unavailable: fetchError?.status === 501
     };
   }, [getFlagEvaluationCount]);
 
@@ -97,7 +97,7 @@ export default function Analytics() {
 
   return (
     <div className="mx-12 my-12">
-      {!flagEvaluationCount.notImplemented ? (
+      {!flagEvaluationCount.unavailable ? (
         <>
           <>
             <Formik
@@ -128,11 +128,18 @@ export default function Analytics() {
           </div>
         </>
       ) : (
-        <>
+        <div className="flex flex-col text-center">
           <Well>
-            <p className="text-gray-600 text-sm">Analytics disabled</p>
+            <p className="text-gray-600 text-sm">Analytics Unavailable</p>
+            <p className="text-gray-500 mt-4 text-sm">
+              See the configuration{' '}
+              <a className="text-violet-500" href="#">
+                documentation
+              </a>{' '}
+              for more information.
+            </p>
           </Well>
-        </>
+        </div>
       )}
     </div>
   );
