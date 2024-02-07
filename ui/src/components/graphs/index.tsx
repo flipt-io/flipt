@@ -45,7 +45,6 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
   );
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
-  console.log(formattedTimestamps);
 
   const xLabel = isUTC ? 'Time (UTC)' : 'Time (Local)';
 
