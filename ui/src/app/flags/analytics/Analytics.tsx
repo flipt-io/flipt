@@ -49,6 +49,12 @@ const durations: FilterableDurations[] = [
     key: '12 hours',
     displayValue: '12 hours',
     filterValue: '12 hours'
+  },
+  {
+    value: 60 * 24,
+    key: '1 day',
+    displayValue: '1 day',
+    filterValue: '1 day'
   }
 ];
 

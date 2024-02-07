@@ -10,7 +10,12 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
+import { useSelector } from 'react-redux';
+import { selectTimezone } from '~/app/preferences/preferencesSlice';
+import { useTimezone } from '~/data/hooks/timezone';
+import { Timezone } from '~/types/Preferences';
 
 ChartJS.register(
   ArcElement,
@@ -33,11 +38,22 @@ type BarGraphProps = {
 };
 
 export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
+  const timezone = useSelector(selectTimezone);
+  const { inTimezone } = useTimezone();
+  const formattedTimestamps = timestamps.map((timestamp) =>
+    inTimezone(timestamp).slice(0, -4)
+  );
+  const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
+
+  console.log(formattedTimestamps);
+
+  const xLabel = isUTC ? 'Time (UTC)' : 'Time (Local)';
+
   return (
     <>
       <Bar
         data={{
-          labels: timestamps, // (timestamps && timestamps.length > 0) ? [timestamps[0], timestamps[timestamps.length / 2], timestamps[timestamps.length - 1]] : [],
+          labels: formattedTimestamps,
           datasets: [
             {
               label: flagKey,
@@ -63,7 +79,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
               },
               title: {
                 display: true,
-                text: 'Time'
+                text: xLabel
               }
             },
             y: {
