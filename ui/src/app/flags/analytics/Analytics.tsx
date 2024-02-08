@@ -130,10 +130,13 @@ export default function Analytics() {
       ) : (
         <div className="flex flex-col text-center">
           <Well>
-            <p className="text-gray-600 text-sm">Analytics Unavailable</p>
+            <p className="text-gray-600 text-sm">Analytics Disabled</p>
             <p className="text-gray-500 mt-4 text-sm">
               See the configuration{' '}
-              <a className="text-violet-500" href="#">
+              <a
+                className="text-violet-500"
+                href="https://www.flipt.io/docs/configuration/analytics"
+              >
                 documentation
               </a>{' '}
               for more information.
