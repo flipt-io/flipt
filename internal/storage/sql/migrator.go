@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
+	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -23,6 +24,7 @@ var expectedVersions = map[Driver]uint{
 	Postgres:    12,
 	MySQL:       11,
 	CockroachDB: 9,
+	Clickhouse:  0,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -40,7 +42,9 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	var dr database.Driver
+	var (
+		dr database.Driver
+	)
 
 	switch driver {
 	case SQLite, LibSQL:
@@ -59,6 +63,10 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 
 	logger.Debug("using driver", zap.String("driver", driver.String()))
 
+	return migratorHelper(logger, sql, driver, dr)
+}
+
+func migratorHelper(logger *zap.Logger, db *sql.DB, driver Driver, databaseDriver database.Driver) (*Migrator, error) {
 	// source migrations from embedded config/migrations package
 	// relative to the specific driver
 	sourceDriver, err := iofs.New(migrations.FS, driver.Migrations())
@@ -66,17 +74,46 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		return nil, err
 	}
 
-	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), dr)
+	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), databaseDriver)
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}
 
 	return &Migrator{
-		db:       sql,
+		db:       db,
 		migrator: mm,
 		logger:   logger,
 		driver:   driver,
 	}, nil
+}
+
+// NewAnalyticsMigrator returns a migrator for analytics databases
+func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
+	sql, driver, err := openAnalytics(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("opening db: %w", err)
+	}
+
+	var dr database.Driver
+
+	if driver == Clickhouse {
+		options, err := cfg.Analytics.Storage.Clickhouse.Options()
+		if err != nil {
+			return nil, err
+		}
+
+		dr, err = clickhouseMigrate.WithInstance(sql, &clickhouseMigrate.Config{
+			DatabaseName:          options.Auth.Database,
+			MigrationsTableEngine: "MergeTree",
+		})
+		if err != nil {
+			return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
+		}
+	}
+
+	logger.Debug("using driver", zap.String("driver", driver.String()))
+
+	return migratorHelper(logger, sql, driver, dr)
 }
 
 // Close closes the source and db

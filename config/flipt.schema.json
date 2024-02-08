@@ -1076,6 +1076,48 @@
         }
       },
       "title": "Audit"
+    },
+    "analytics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "clickhouse": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "additionalProperties": false,
+                  "default": false
+                },
+                "url": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "title": "Clickhouse"
+            }
+          }
+        },
+        "buffer": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "capacity": {
+              "type": "integer"
+            },
+            "flush_period": {
+              "type": "string",
+              "default": "10s"
+            }
+          }
+        }
+      },
+      "title": "Analytics"
     }
   }
 }

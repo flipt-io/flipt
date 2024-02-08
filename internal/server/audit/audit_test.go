@@ -80,7 +80,7 @@ func TestSinkSpanExporter(t *testing.T) {
 					Enabled:     false,
 				})
 
-			span.AddEvent("auditEvent", trace.WithAttributes(e.DecodeToAttributes()...))
+			span.AddEvent("event", trace.WithAttributes(e.DecodeToAttributes()...))
 			span.End()
 
 			timeoutCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

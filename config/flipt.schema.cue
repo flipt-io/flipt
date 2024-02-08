@@ -10,6 +10,7 @@ import "strings"
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
 	version?:        "1.0" | *"1.0"
 	experimental?:   #experimental
+	analytics:       #analytics
 	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
@@ -82,7 +83,7 @@ import "strings"
 					issuer?: string
 					audiences?: [...string]
 				}
-				jwks_url?: string
+				jwks_url?:        string
 				public_key_file?: string
 			}
 		}
@@ -129,16 +130,16 @@ import "strings"
 	}
 
 	#cors: {
-		enabled?: bool | *false
+		enabled?:         bool | *false
 		allowed_origins?: [...] | string | *["*"]
 		allowed_headers?: [...string] | string | *[
-			"Accept",
-			"Authorization",
-			"Content-Type",
-			"X-CSRF-Token",
-			"X-Fern-Language",
-			"X-Fern-SDK-Name",
-			"X-Fern-SDK-Version",
+					"Accept",
+					"Authorization",
+					"Content-Type",
+					"X-CSRF-Token",
+					"X-Fern-Language",
+					"X-Fern-SDK-Name",
+					"X-Fern-SDK-Version",
 		]
 	}
 
@@ -228,7 +229,7 @@ import "strings"
 	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
-	_#all: _#lower + [for x in _#lower {strings.ToUpper(x)}]
+	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
 		encoding?:   *"console" | "json"
@@ -250,15 +251,15 @@ import "strings"
 	}
 
 	#server: {
-		protocol?:   *"http" | "https"
-		host?:       string | *"0.0.0.0"
-		https_port?: int | *443
-		http_port?:  int | *8080
-		grpc_port?:  int | *9000
-		cert_file?:  string
-		cert_key?:   string
+		protocol?:                *"http" | "https"
+		host?:                    string | *"0.0.0.0"
+		https_port?:              int | *443
+		http_port?:               int | *8080
+		grpc_port?:               int | *9000
+		cert_file?:               string
+		cert_key?:                string
 		grpc_conn_max_idle_time?: =~#duration
-		grpc_conn_max_age?: =~#duration
+		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
 	}
 
@@ -310,6 +311,19 @@ import "strings"
 			flush_period?: string | *"2m"
 		}
 		events?: [...string] | *["*:*"]
+	}
+
+	#analytics: {
+		storage?: {
+			clickhouse?: {
+				enabled?: bool | *false
+				url?:     string | *""
+			}
+		}
+		buffer?: {
+			capacity?:     int
+			flush_period?: string | *"2m"
+		}
 	}
 
 	#experimental: {}

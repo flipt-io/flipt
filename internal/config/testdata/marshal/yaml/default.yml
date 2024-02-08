@@ -4,6 +4,9 @@ log:
   grpc_level: ERROR
 ui:
   default_theme: system
+analytics:
+  buffer:
+    flush_period: "10s"
 cors:
   enabled: false
   allowed_origins:

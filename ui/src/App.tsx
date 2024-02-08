@@ -16,8 +16,11 @@ import SessionProvider from './components/SessionProvider';
 import { Theme } from './types/Preferences';
 import { store } from './store';
 const Flags = loadable(() => import('./app/flags/Flags'));
-const Variants = loadable(() => import('./app/flags/variants/Variants'));
+const ConditionalFlagRouter = loadable(
+  () => import('./app/flags/ConditionalFlagRouter')
+);
 const Rules = loadable(() => import('./app/flags/rules/Rules'));
+const Analytics = loadable(() => import('./app/flags/analytics/Analytics'));
 const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));
 const Login = loadable(() => import('./app/auth/Login'));
@@ -57,11 +60,15 @@ const namespacedRoutes = [
     children: [
       {
         path: '',
-        element: <Variants />
+        element: <ConditionalFlagRouter />
       },
       {
         path: 'rules',
         element: <Rules />
+      },
+      {
+        path: 'analytics',
+        element: <Analytics />
       }
     ]
   },

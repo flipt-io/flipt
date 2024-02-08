@@ -911,6 +911,16 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name:    "clickhouse enabled but no URL set",
+			path:    "./testdata/analytics/invalid_clickhouse_configuration_empty_url.yml",
+			wantErr: errors.New("clickhouse url not provided"),
+		},
+		{
+			name:    "analytics flush period too low",
+			path:    "./testdata/analytics/invalid_buffer_configuration_flush_period.yml",
+			wantErr: errors.New("flush period below 10 seconds"),
+		},
 	}
 
 	for _, tt := range tests {

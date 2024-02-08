@@ -20,6 +20,8 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
+	analytics "go.flipt.io/flipt/internal/server/analytics"
+	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
@@ -265,6 +267,29 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
+	if cfg.Analytics.Enabled() {
+		client, err := clickhouse.New(logger, cfg, forceMigrate)
+		if err != nil {
+			return nil, fmt.Errorf("connecting to clickhouse: %w", err)
+		}
+
+		analyticssrv := analytics.New(logger, client)
+		register.Add(analyticssrv)
+
+		analyticsExporter := analytics.NewAnalyticsSinkSpanExporter(logger, client)
+		tracingProvider.RegisterSpanProcessor(
+			tracesdk.NewBatchSpanProcessor(
+				analyticsExporter,
+				tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
+		)
+
+		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
+
+		server.onShutdown(func(ctx context.Context) error {
+			return analyticsExporter.Shutdown(ctx)
+		})
+	}
+
 	// initialize servers
 	register.Add(fliptsrv)
 	register.Add(metasrv)
@@ -284,7 +309,7 @@ func NewGRPCServer(
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.EvaluationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)
 

@@ -1,0 +1,3 @@
+analytics:
+  buffer:
+    flush_period: "5s"

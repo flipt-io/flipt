@@ -4,7 +4,7 @@ import {
   FetchBaseQueryError,
   fetchBaseQuery
 } from '@reduxjs/toolkit/query/react';
-import { apiURL, checkResponse, defaultHeaders } from '~/data/api';
+import { apiURL, checkResponse, defaultHeaders, internalURL } from '~/data/api';
 type CustomFetchFn = (
   url: RequestInfo,
   options: RequestInit | undefined
@@ -20,6 +20,11 @@ export const customFetchFn: CustomFetchFn = async (url, options) => {
   checkResponse(response);
   return response;
 };
+
+export const internalQuery = fetchBaseQuery({
+  baseUrl: internalURL,
+  fetchFn: customFetchFn
+});
 
 export const baseQuery: BaseQueryFn<
   string | FetchArgs,

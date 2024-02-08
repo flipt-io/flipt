@@ -211,8 +211,7 @@ func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []sdktrace.Rea
 	es := make([]Event, 0)
 
 	for _, span := range spans {
-		events := span.Events()
-		for _, e := range events {
+		for _, e := range span.Events() {
 			e, err := decodeToEvent(e.Attributes)
 			if err != nil {
 				if !errors.Is(err, errEventNotValid) {

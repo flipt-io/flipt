@@ -3,6 +3,7 @@ import {
   DocumentDuplicateIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
+import 'chartjs-adapter-date-fns';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -29,10 +30,16 @@ import {
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
-import Rollouts from './rollouts/Rollouts';
-const tabs = [
+
+const variantFlagTabs = [
   { name: 'Variants', to: '' },
-  { name: 'Rules', to: 'rules' }
+  { name: 'Rules', to: 'rules' },
+  { name: 'Analytics', to: 'analytics' }
+];
+
+const booleanFlagTabs = [
+  { name: 'Rollouts', to: '' },
+  { name: 'Analytics', to: 'analytics' }
 ];
 
 export default function Flag() {
@@ -193,38 +200,60 @@ export default function Flag() {
             </div>
           </div>
         </div>
-
-        {flag.type === FlagType.VARIANT && (
-          <>
-            <div className="mt-3 flex flex-row sm:mt-5">
-              <div className="border-gray-200 border-b-2">
-                <nav className="-mb-px flex space-x-8">
-                  {tabs.map((tab) => (
-                    <NavLink
-                      end
-                      key={tab.name}
-                      to={tab.to}
-                      className={({ isActive }) =>
-                        cls(
-                          'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                          {
-                            'text-violet-600 border-violet-500': isActive,
-                            'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
-                              !isActive
-                          }
-                        )
-                      }
-                    >
-                      {tab.name}
-                    </NavLink>
-                  ))}
-                </nav>
-              </div>
+        <>
+          <div className="mt-3 flex flex-row sm:mt-5">
+            <div className="border-gray-200 border-b-2">
+              <nav className="-mb-px flex space-x-8">
+                {flag.type === FlagType.VARIANT ? (
+                  <>
+                    {variantFlagTabs.map((tab) => (
+                      <NavLink
+                        end
+                        key={tab.name}
+                        to={tab.to}
+                        className={({ isActive }) =>
+                          cls(
+                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
+                            {
+                              'text-violet-600 border-violet-500': isActive,
+                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                                !isActive
+                            }
+                          )
+                        }
+                      >
+                        {tab.name}
+                      </NavLink>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {booleanFlagTabs.map((tab) => (
+                      <NavLink
+                        end
+                        key={tab.name}
+                        to={tab.to}
+                        className={({ isActive }) =>
+                          cls(
+                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
+                            {
+                              'text-violet-600 border-violet-500': isActive,
+                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                                !isActive
+                            }
+                          )
+                        }
+                      >
+                        {tab.name}
+                      </NavLink>
+                    ))}
+                  </>
+                )}
+              </nav>
             </div>
-            <Outlet context={{ flag }} />
-          </>
-        )}
-        {flag.type === FlagType.BOOLEAN && <Rollouts flag={flag} />}
+          </div>
+          <Outlet context={{ flag }} />
+        </>
       </div>
     </>
   );

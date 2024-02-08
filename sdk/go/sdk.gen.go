@@ -5,6 +5,7 @@ package sdk
 import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	analytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
@@ -25,6 +26,7 @@ const (
 )
 
 type Transport interface {
+	AnalyticsClient() analytics.AnalyticsServiceClient
 	AuthClient() AuthClient
 	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient
@@ -214,6 +216,13 @@ func New(t Transport, opts ...Option) SDK {
 	}
 
 	return sdk
+}
+
+func (s SDK) Analytics() *Analytics {
+	return &Analytics{
+		transport:              s.transport.AnalyticsClient(),
+		authenticationProvider: s.authenticationProvider,
+	}
 }
 
 func (s SDK) Auth() *Auth {
