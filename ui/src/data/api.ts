@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { FlagType } from '~/types/Flag';
 
-export const apiURL = '/api/v1';
-export const authURL = '/auth/v1';
-export const evaluateURL = '/evaluate/v1';
-export const metaURL = '/meta';
-export const internalURL = '/internal/v1';
+export const apiURL = 'api/v1';
+export const authURL = 'auth/v1';
+export const evaluateURL = 'evaluate/v1';
+export const metaURL = 'meta';
+export const internalURL = 'internal/v1';
 
 const csrfTokenHeaderKey = 'x-csrf-token';
 const sessionKey = 'session';
