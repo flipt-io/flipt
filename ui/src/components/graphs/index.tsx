@@ -48,7 +48,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
   const xLabel = isUTC ? 'Time (UTC)' : 'Time (Local)';
 
   return (
-    <>
+    <div className="h-[90vh]">
       <Bar
         data={{
           labels: formattedTimestamps,
@@ -89,6 +89,6 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
           }
         }}
       />
-    </>
+    </div>
   );
 }
