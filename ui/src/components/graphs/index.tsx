@@ -40,10 +40,14 @@ type BarGraphProps = {
 export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
   const timezone = useSelector(selectTimezone);
   const { inTimezone } = useTimezone();
-  const formattedTimestamps = timestamps.map((timestamp) =>
-    inTimezone(timestamp).slice(0, -4)
-  );
+
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
+  const formattedTimestamps = timestamps.map((timestamp) => {
+    if (isUTC) {
+      return inTimezone(timestamp).slice(0, -4);
+    }
+    return inTimezone(timestamp);
+  });
 
   const xLabel = isUTC ? 'Time (UTC)' : 'Time (Local)';
 
@@ -63,6 +67,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
           ]
         }}
         options={{
+          maintainAspectRatio: false,
           scales: {
             x: {
               type: 'timeseries',
