@@ -103,7 +103,7 @@ export default function Analytics() {
     durationValue: selectedDuration?.key
   };
 
-  // Set the polling interval to 0 every time we chanage
+  // Set the polling interval to 0 every time we change
   // durations.
   useEffect(() => {
     setPollingInterval(0);
