@@ -1,5 +1,6 @@
 import loadable from '@loadable/component';
 import nightwind from 'nightwind/helper';
+import formbricks from '@formbricks/js';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
@@ -30,6 +31,14 @@ const Support = loadable(() => import('./app/Support'));
 const Preferences = loadable(() => import('./app/preferences/Preferences'));
 const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
 const Tokens = loadable(() => import('./app/tokens/Tokens'));
+
+if (typeof window !== 'undefined') {
+  formbricks.init({
+    environmentId: import.meta.env.FLIPT_FORMBRICKS_ENVIRONMENT_ID || '',
+    apiHost: 'https://app.formbricks.com',
+    debug: process.env.NODE_ENV === 'development'
+  });
+}
 
 const namespacedRoutes = [
   {

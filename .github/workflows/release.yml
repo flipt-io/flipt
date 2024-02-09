@@ -63,6 +63,8 @@ jobs:
 
       - name: Prep Build
         run: mage prep
+        env:
+          FLIPT_FORMBRICKS_ENVIRONMENT_ID: ${{ secrets.FLIPT_FORMBRICKS_ENVIRONMENT_ID }}
 
       - name: GoReleaser Build
         uses: goreleaser/goreleaser-action@v5
