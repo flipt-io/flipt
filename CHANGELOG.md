@@ -3,6 +3,30 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.37.0](https://github.com/flipt-io/flipt/releases/tag/v1.37.0) - 2024-02-09
+
+### Added
+
+- add inapp survey (#2753)
+- first time onboarding experience (#2732)
+- `analytics`: analytics support with Clickhouse (#2725)
+- `sdk/go`: add kubernetes authentication provider (#2703)
+- `examples`: add examples section for otlp -> clickhouse
+
+### Changed
+
+- fix link to devenv.sh (#2731)
+- `examples`: added example how to run flipt behind nginx (#2726)
+- `config`: mark authentication.exclude.metadata as deprecated (#2707)
+- `cmd`: dont omit 'enabled' in evaluate cli if false (#2705)
+
+### Fixed
+
+- running Flipt under reverse proxy with subpath (#2734)
+- `ui`: fix input alignment on small screens (#2733)
+- `audit`: reordering rules or rollouts is not captured by audit logs (#2721)
+- `ui`: clean redux cache when namespace or flag is deleted (#2708)
+
 ## [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0) - 2024-01-23
 
 ### Added
