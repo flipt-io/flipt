@@ -20,3 +20,10 @@ func FS() (fs.FS, error) {
 
 	return u, nil
 }
+
+func AdditionalHeaders() map[string]string {
+	return map[string]string{
+		"X-Content-Type-Options":  "nosniff",
+		"Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src * data:; frame-ancestors 'none'; connect-src 'self' https://app.formbricks.com; script-src-elem 'self' https://unpkg.com;",
+	}
+}
