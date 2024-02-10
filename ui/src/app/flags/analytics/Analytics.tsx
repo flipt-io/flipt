@@ -67,7 +67,10 @@ export default function Analytics() {
   const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
-  const nowISO = parseISO(new Date().toISOString());
+  const d = new Date();
+  d.setSeconds(0);
+
+  const nowISO = parseISO(d.toISOString());
 
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
     {
