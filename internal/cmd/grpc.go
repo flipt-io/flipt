@@ -157,14 +157,20 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("store", store))
 
+	traceResource, err := resource.New(ctx, resource.WithSchemaURL(semconv.SchemaURL), resource.WithAttributes(
+		semconv.ServiceNameKey.String("flipt"),
+		semconv.ServiceVersionKey.String(info.Version),
+	),
+		resource.WithFromEnv(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
 	var tracingProvider = tracesdk.NewTracerProvider(
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("flipt"),
-			semconv.ServiceVersionKey.String(info.Version),
-		)),
+		tracesdk.WithResource(traceResource),
 		tracesdk.WithSampler(tracesdk.AlwaysSample()),
 	)
 
