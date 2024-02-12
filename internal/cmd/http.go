@@ -99,10 +99,10 @@ func NewHTTPServer(
 		logger.Debug("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
-	// TODO: replace with more robust 'mode' detection
-	if !info.IsDevelopment() {
-		r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
-		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src * data:; frame-ancestors 'none';"))
+	// set additional headers enabling the UI to be served securely
+	// ie: Content-Security-Policy, X-Content-Type-Options, etc.
+	for k, v := range ui.AdditionalHeaders() {
+		r.Use(middleware.SetHeader(k, v))
 	}
 
 	r.Use(middleware.RequestID)
