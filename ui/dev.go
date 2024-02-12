@@ -21,3 +21,7 @@ func FS() (fs.FS, error) {
 		},
 	}, nil
 }
+
+func AdditionalHeaders() map[string]string {
+	return map[string]string{}
+}
