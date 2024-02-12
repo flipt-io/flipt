@@ -14,7 +14,7 @@ const SlideOver = forwardRef((props: SlideOverProps, ref: any) => {
     <Transition.Root show={open} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-10"
+        className="relative z-20"
         onClose={setOpen}
         initialFocus={ref}
       >
