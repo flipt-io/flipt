@@ -109,18 +109,19 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 	rows, err := c.Conn.QueryContext(ctx, fmt.Sprintf(`
 		SELECT
 			sum(value) AS value,
-			toStartOfInterval(timestamp, INTERVAL %d %s) AS timestamp
-		FROM %s WHERE namespace_key = ? AND flag_key = ? AND timestamp >= toDateTime('%s', 'UTC') AND timestamp < toDateTime('%s', 'UTC')
+			toStartOfInterval(timestamp, INTERVAL %[4]d %[5]s) AS timestamp
+		FROM %[1]s
+		WHERE
+			namespace_key = ? AND flag_key = ? AND
+			timestamp >= toStartOfInterval(toDateTime('%[2]s', 'UTC'),  INTERVAL %[4]d %[5]s) AND
+			timestamp < timestamp_add(toStartOfInterval(toDateTime('%[3]s', 'UTC'), INTERVAL %[4]d %[5]s), INTERVAL %[4]d %[5]s)
 		GROUP BY timestamp
-		ORDER BY timestamp ASC WITH FILL FROM toDateTime('%s', 'UTC') TO toDateTime('%s', 'UTC') STEP INTERVAL %d %s
-		`,
-		step.intervalValue,
-		step.intervalStep,
+		ORDER BY timestamp ASC
+		WITH FILL FROM toStartOfInterval(toDateTime('%[2]s', 'UTC'),  INTERVAL %[4]d %[5]s) TO timestamp_add(toStartOfInterval(toDateTime('%[3]s', 'UTC'), INTERVAL %[4]d %[5]s), INTERVAL %[4]d %[5]s) STEP INTERVAL %[4]d %[5]s
+	`,
 		counterAnalyticsTable,
 		fromTime.UTC().Format(time.DateTime),
 		toTime.UTC().Format(time.DateTime),
-		fromTime.UTC().Format(time.DateTime),
-		time.Now().UTC().Format(time.DateTime),
 		step.intervalValue,
 		step.intervalStep,
 	),

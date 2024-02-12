@@ -68,7 +68,6 @@ export default function Analytics() {
   const namespace = useSelector(selectCurrentNamespace);
 
   const d = new Date();
-  d.setSeconds(0);
 
   const nowISO = parseISO(d.toISOString());
 
