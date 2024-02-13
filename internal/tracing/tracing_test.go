@@ -44,7 +44,7 @@ func TestNewResourceDefault(t *testing.T) {
 			for k, v := range tt.envs {
 				t.Setenv(k, v)
 			}
-			r, err := newResourse(context.Background(), "test")
+			r, err := newResource(context.Background(), "test")
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, r.Attributes())
 		})

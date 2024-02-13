@@ -18,7 +18,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-// newResourse constructs a trace resource with Flipt-specific attributes.
+// newResource constructs a trace resource with Flipt-specific attributes.
 // It incorporates schema URL, service name, service version, and OTLP environment data
 func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
 	return resource.New(ctx, resource.WithSchemaURL(semconv.SchemaURL), resource.WithAttributes(
@@ -31,7 +31,7 @@ func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, 
 
 // NewProvider creates a new TracerProvider configured for Flipt tracing.
 func NewProvider(ctx context.Context, fliptVersion string) (*tracesdk.TracerProvider, error) {
-	traceResource, err := newResourse(ctx, fliptVersion)
+	traceResource, err := newResource(ctx, fliptVersion)
 	if err != nil {
 		return nil, err
 	}
