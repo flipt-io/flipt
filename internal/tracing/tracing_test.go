@@ -12,7 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-func TestNewResourseDefault(t *testing.T) {
+func TestNewResourceDefault(t *testing.T) {
 	tests := []struct {
 		name string
 		envs map[string]string

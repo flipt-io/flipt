@@ -19,8 +19,8 @@ import (
 )
 
 // newResourse constructs a trace resource with Flipt-specific attributes.
-// It incorporates schema URL, service name, service version, and OTPL environment data
-func newResourse(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
+// It incorporates schema URL, service name, service version, and OTLP environment data
+func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
 	return resource.New(ctx, resource.WithSchemaURL(semconv.SchemaURL), resource.WithAttributes(
 		semconv.ServiceNameKey.String("flipt"),
 		semconv.ServiceVersionKey.String(fliptVersion),
