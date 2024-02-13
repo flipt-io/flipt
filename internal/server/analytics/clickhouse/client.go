@@ -24,8 +24,9 @@ type Step struct {
 var dbOnce sync.Once
 
 const (
-	counterAnalyticsTable = "flipt_counter_analytics"
-	counterAnalyticsName  = "flag_evaluation_count"
+	counterAnalyticsTable           = "flipt_counter_analytics"
+	counterAggregatedAnalyticsTable = "flipt_counter_aggregated_analytics"
+	counterAnalyticsName            = "flag_evaluation_count"
 )
 
 type Client struct {
@@ -119,7 +120,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		ORDER BY timestamp ASC
 		WITH FILL FROM toStartOfInterval(toDateTime('%[2]s', 'UTC'),  INTERVAL %[4]d %[5]s) TO timestamp_add(toStartOfInterval(toDateTime('%[3]s', 'UTC'), INTERVAL %[4]d %[5]s), INTERVAL %[4]d %[5]s) STEP INTERVAL %[4]d %[5]s
 	`,
-		counterAnalyticsTable,
+		counterAggregatedAnalyticsTable,
 		fromTime.UTC().Format(time.DateTime),
 		toTime.UTC().Format(time.DateTime),
 		step.intervalValue,
