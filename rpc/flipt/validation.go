@@ -10,7 +10,10 @@ import (
 	"go.flipt.io/flipt/errors"
 )
 
-const maxVariantAttachmentSize = 10000
+const (
+	maxVariantAttachmentSize = 10000
+	entityPropertyKey        = "entity"
+)
 
 // Validator validates types
 type Validator interface {
@@ -374,7 +377,7 @@ const MAX_JSON_ARRAY_ITEMS = 100
 func validateArrayValue(valueType ComparisonType, value string, property string) error {
 	switch valueType {
 	case ComparisonType_STRING_COMPARISON_TYPE:
-		values := []string{};
+		values := []string{}
 		if err := json.Unmarshal([]byte(value), &values); err != nil {
 			return errors.ErrInvalidf("invalid value provided for property %q of type string", property)
 		}
@@ -383,7 +386,7 @@ func validateArrayValue(valueType ComparisonType, value string, property string)
 		}
 		return nil
 	case ComparisonType_NUMBER_COMPARISON_TYPE:
-		values := []float64{};
+		values := []float64{}
 		if err := json.Unmarshal([]byte(value), &values); err != nil {
 			return errors.ErrInvalidf("invalid value provided for property %q of type number", property)
 		}
@@ -391,6 +394,14 @@ func validateArrayValue(valueType ComparisonType, value string, property string)
 			return errors.ErrInvalidf("too many values provided for property %q of type number (maximum %d)", property, MAX_JSON_ARRAY_ITEMS)
 		}
 		return nil
+	case ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+		values := []string{}
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return errors.ErrInvalidf("invalid value provided for property %q of type entityId", property)
+		}
+		if len(values) > MAX_JSON_ARRAY_ITEMS {
+			return errors.ErrInvalidf("too many values provided for property %q of type entityId (maximum %d)", property, MAX_JSON_ARRAY_ITEMS)
+		}
 	}
 
 	return nil
@@ -427,6 +438,13 @@ func (req *CreateConstraintRequest) Validate() error {
 	case ComparisonType_DATETIME_COMPARISON_TYPE:
 		if _, ok := NumberOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type datetime", req.Operator)
+		}
+	case ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+		if req.Property != entityPropertyKey {
+			return errors.ErrInvalidf("property is %s instead of \"entity\"", req.Property)
+		}
+		if _, ok := EntityIdOperators[operator]; !ok {
+			return errors.ErrInvalidf("constraint operator %q is not valid for type entityId", req.Operator)
 		}
 	default:
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
@@ -491,6 +509,13 @@ func (req *UpdateConstraintRequest) Validate() error {
 	case ComparisonType_DATETIME_COMPARISON_TYPE:
 		if _, ok := NumberOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type datetime", req.Operator)
+		}
+	case ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+		if req.Property != entityPropertyKey {
+			return errors.ErrInvalidf("property is %s instead of \"entity\"", req.Property)
+		}
+		if _, ok := EntityIdOperators[operator]; !ok {
+			return errors.ErrInvalidf("constraint operator %q is not valid for type entityId", req.Operator)
 		}
 	default:
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())

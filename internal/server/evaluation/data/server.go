@@ -75,6 +75,8 @@ func toEvaluationConstraintComparisonType(c flipt.ComparisonType) evaluation.Eva
 		return evaluation.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE
 	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE
+	case flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
 	}
 	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 }

@@ -503,6 +503,63 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	assert.Equal(t, flagKey, res.FlagKey)
 }
 
+func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
+		{
+			NamespaceKey: namespaceKey,
+			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			Rank:         1,
+			Segment: &storage.RolloutSegment{
+				Value:           true,
+				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+								Property: "entity",
+								Operator: flipt.OpEQ,
+								Value:    "user@flipt.io",
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "user@flipt.io",
+		NamespaceKey: namespaceKey,
+		Context:      map[string]string{},
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, true, res.Enabled)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, flagKey, res.FlagKey)
+}
+
 func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	var (
 		flagKey      = "test-flag"

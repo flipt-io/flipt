@@ -1354,6 +1354,28 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 			wantErr: errors.ErrInvalid("too many values provided for property \"foo\" of type number (maximum 100)"),
 		},
+		{
+			name: "invalid property for entity comparison type",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "user@flipt.io",
+			},
+			wantErr: errors.ErrInvalid("property is foo instead of \"entity\""),
+		},
+		{
+			name: "invalid operator type for entity comparison type",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+				Property:   entityPropertyKey,
+				Operator:   "true",
+				Value:      "user@flipt.io",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"true\" is not valid for type entityId"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -1616,6 +1638,30 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Value:      "[\"100foo\"]",
 			},
 			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type number"),
+		},
+		{
+			name: "invalid property for entity comparison type",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "user@flipt.io",
+			},
+			wantErr: errors.ErrInvalid("property is foo instead of \"entity\""),
+		},
+		{
+			name: "invalid operator type for entity comparison type",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+				Property:   entityPropertyKey,
+				Operator:   "true",
+				Value:      "user@flipt.io",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"true\" is not valid for type entityId"),
 		},
 	}
 
