@@ -51,8 +51,6 @@ export const ConstraintStringOperators: Record<string, string> = {
 export const ConstraintEntityIdOperators: Record<string, string> = {
   eq: '==',
   neq: '!=',
-  empty: 'IS EMPTY',
-  notempty: 'IS NOT EMPTY',
   isoneof: 'IS ONE OF',
   isnotoneof: 'IS NOT ONE OF'
 };

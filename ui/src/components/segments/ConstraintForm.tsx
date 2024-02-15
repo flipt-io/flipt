@@ -399,6 +399,8 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     value={formik.values.type}
                     options={constraintComparisonTypes()}
                     onChange={(e) => {
+                      const previousType = formik.values.type;
+
                       const type = e.target.value as ConstraintType;
                       formik.setFieldValue('type', type);
 
@@ -412,7 +414,10 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
                       if (e.target.value === ConstraintType.ENTITY_ID) {
                         formik.setFieldValue('property', 'entity');
-                      } else {
+                      } else if (
+                        previousType === ConstraintType.ENTITY_ID &&
+                        e.target.value !== ConstraintType.ENTITY_ID
+                      ) {
                         formik.setFieldValue('property', '');
                       }
                     }}
