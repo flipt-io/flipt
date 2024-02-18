@@ -2,45 +2,41 @@ version: "3.7"
 
 services:
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
+    image: clickhouse/clickhouse-server
     ports:
       - "8123:8123"
       - "9000:9000"
     ulimits:
       nofile:
-        soft: "262144"
-        hard: "262144"
+        soft: 262144
+        hard: 262144
     networks:
       - flipt_network
-
-  otel:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    depends_on:
-      - clickhouse
-    restart: on-failure
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "4317:4317"
-    networks:
-      - flipt_network
+    environment:
+      - CLICKHOUSE_DB=flipt_analytics
 
   flipt:
-    image: flipt/flipt:latest
-    command: ["./flipt", "--force-migrate"]
+    build: .
     depends_on:
-      - otel
+      - clickhouse
     ports:
       - "8080:8080"
     networks:
       - flipt_network
+    restart: always
     environment:
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_TRACING_ENABLED=true
-      - FLIPT_TRACING_EXPORTER=otlp
-      - FLIPT_TRACING_OTLP_ENDPOINT=otel:4317
+      - FLIPT_ANALYTICS_STORAGE_CLICKHOUSE_ENABLED=true
+      - FLIPT_ANALYTICS_STORAGE_CLICKHOUSE_URL=clickhouse://clickhouse:9000/flipt_analytics
       - FLIPT_META_TELEMETRY_ENABLED=false
+    command:
+      [
+        "./tmp/wait-for-it.sh",
+        "clickhouse:9000",
+        "--",
+        "./flipt",
+        "--force-migrate",
+      ]
 
 networks:
   flipt_network:
