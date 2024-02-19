@@ -28,6 +28,7 @@ import {
 import {
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
+  ConstraintEntityIdOperators,
   ConstraintNumberOperators,
   ConstraintStringOperators,
   ConstraintType,
@@ -60,6 +61,9 @@ const constraintOperators = (c: string) => {
       break;
     case ConstraintType.DATETIME:
       opts = ConstraintDateTimeOperators;
+      break;
+    case ConstraintType.ENTITY_ID:
+      opts = ConstraintEntityIdOperators;
       break;
   }
   return Object.entries(opts).map(([k, v]) => ({
@@ -355,19 +359,6 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label
-                    htmlFor="property"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
-                  >
-                    Property
-                  </label>
-                </div>
-                <div className="sm:col-span-2">
-                  <Input name="property" id="property" forwardRef={ref} />
-                </div>
-              </div>
-              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-                <div>
-                  <label
                     htmlFor="type"
                     className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
@@ -382,6 +373,8 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     value={formik.values.type}
                     options={constraintComparisonTypes()}
                     onChange={(e) => {
+                      const previousType = formik.values.type;
+
                       const type = e.target.value as ConstraintType;
                       formik.setFieldValue('type', type);
 
@@ -392,10 +385,36 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                         formik.setFieldValue('operator', 'eq');
                         setHasValue(true);
                       }
+
+                      if (e.target.value === ConstraintType.ENTITY_ID) {
+                        formik.setFieldValue('property', 'entityId');
+                      } else if (
+                        previousType === ConstraintType.ENTITY_ID &&
+                        e.target.value !== ConstraintType.ENTITY_ID
+                      ) {
+                        formik.setFieldValue('property', '');
+                      }
                     }}
                   />
                 </div>
               </div>
+              {formik.values.type !== ConstraintType.ENTITY_ID && (
+                <>
+                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                    <div>
+                      <label
+                        htmlFor="property"
+                        className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                      >
+                        Property
+                      </label>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Input name="property" id="property" forwardRef={ref} />
+                    </div>
+                  </div>
+                </>
+              )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label

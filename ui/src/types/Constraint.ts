@@ -16,7 +16,8 @@ export enum ConstraintType {
   STRING = 'STRING_COMPARISON_TYPE',
   NUMBER = 'NUMBER_COMPARISON_TYPE',
   BOOLEAN = 'BOOLEAN_COMPARISON_TYPE',
-  DATETIME = 'DATETIME_COMPARISON_TYPE'
+  DATETIME = 'DATETIME_COMPARISON_TYPE',
+  ENTITY_ID = 'ENTITY_ID_COMPARISON_TYPE'
 }
 
 export function constraintTypeToLabel(c: ConstraintType): string {
@@ -29,6 +30,8 @@ export function constraintTypeToLabel(c: ConstraintType): string {
       return 'Boolean';
     case ConstraintType.DATETIME:
       return 'DateTime';
+    case ConstraintType.ENTITY_ID:
+      return 'Entity';
     default:
       return 'Unknown';
   }
@@ -41,6 +44,13 @@ export const ConstraintStringOperators: Record<string, string> = {
   notempty: 'IS NOT EMPTY',
   prefix: 'HAS PREFIX',
   suffix: 'HAS SUFFIX',
+  isoneof: 'IS ONE OF',
+  isnotoneof: 'IS NOT ONE OF'
+};
+
+export const ConstraintEntityIdOperators: Record<string, string> = {
+  eq: '==',
+  neq: '!=',
   isoneof: 'IS ONE OF',
   isnotoneof: 'IS NOT ONE OF'
 };
@@ -89,5 +99,6 @@ export const ConstraintOperators: Record<string, string> = {
   ...ConstraintStringOperators,
   ...ConstraintNumberOperators,
   ...ConstraintBooleanOperators,
-  ...ConstraintDateTimeOperators
+  ...ConstraintDateTimeOperators,
+  ...ConstraintEntityIdOperators
 };

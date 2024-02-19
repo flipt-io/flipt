@@ -123,7 +123,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		segmentMatches := 0
 
 		for k, v := range rule.Segments {
-			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
+			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 			if err != nil {
 				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, err
@@ -222,7 +222,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, string, error) {
+func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType, entityId string) (bool, string, error) {
 	constraintMatches := 0
 
 	var reason string
@@ -244,6 +244,8 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 			match, err = matchesBool(c, v)
 		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
 			match, err = matchesDateTime(c, v)
+		case flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+			match = matchesString(c, entityId)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}

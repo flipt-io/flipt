@@ -2309,6 +2309,71 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 
+func TestEvaluator_MatchEntityId(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"subscribers": {
+						SegmentKey: "subscribers",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+								Property: "entity",
+								Operator: flipt.OpEQ,
+								Value:    "user@flipt.io",
+							},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "released",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "unreleased",
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: "user@flipt.io",
+		Context:  map[string]string{},
+	})
+
+	assert.NoError(t, err)
+
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Match)
+	assert.Equal(t, "subscribers", resp.SegmentKey)
+	assert.Equal(t, "foo", resp.FlagKey)
+	assert.NotEmpty(t, resp.Value)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+}
+
 func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
