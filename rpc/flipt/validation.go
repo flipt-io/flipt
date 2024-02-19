@@ -12,7 +12,7 @@ import (
 
 const (
 	maxVariantAttachmentSize = 10000
-	entityPropertyKey        = "entity"
+	entityPropertyKey        = "entityId"
 )
 
 // Validator validates types
@@ -441,7 +441,7 @@ func (req *CreateConstraintRequest) Validate() error {
 		}
 	case ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 		if req.Property != entityPropertyKey {
-			return errors.ErrInvalidf("property is %s instead of \"entity\"", req.Property)
+			return errors.ErrInvalidf("property is %s instead of \"entityId\"", req.Property)
 		}
 		if _, ok := EntityIdOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type entityId", req.Operator)
@@ -512,7 +512,7 @@ func (req *UpdateConstraintRequest) Validate() error {
 		}
 	case ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 		if req.Property != entityPropertyKey {
-			return errors.ErrInvalidf("property is %s instead of \"entity\"", req.Property)
+			return errors.ErrInvalidf("property is %s instead of \"entityId\"", req.Property)
 		}
 		if _, ok := EntityIdOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type entityId", req.Operator)

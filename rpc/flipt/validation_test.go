@@ -1363,7 +1363,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 				Operator:   "eq",
 				Value:      "user@flipt.io",
 			},
-			wantErr: errors.ErrInvalid("property is foo instead of \"entity\""),
+			wantErr: errors.ErrInvalid("property is foo instead of \"entityId\""),
 		},
 		{
 			name: "invalid operator type for entity comparison type",
@@ -1649,7 +1649,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Operator:   "eq",
 				Value:      "user@flipt.io",
 			},
-			wantErr: errors.ErrInvalid("property is foo instead of \"entity\""),
+			wantErr: errors.ErrInvalid("property is foo instead of \"entityId\""),
 		},
 		{
 			name: "invalid operator type for entity comparison type",
