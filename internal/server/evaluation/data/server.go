@@ -93,7 +93,7 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 	return evaluation.EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
 }
 
-var supportsEntityIdMinVersion = semver.MustParse("1.38.0")
+var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
@@ -168,8 +168,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								typ := toEvaluationConstraintComparisonType(c.Type)
 								// TODO: can we clean this up somehow?
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdMinVersion) {
-										srv.logger.Warn("skipping entity_id constraint type to support older clients", zap.String("flag", f.Key))
+									if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
+										srv.logger.Warn("skipping entity_id constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}
@@ -249,8 +249,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 									typ := toEvaluationConstraintComparisonType(c.Type)
 									// TODO: can we clean this up somehow?
 									if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-										if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdMinVersion) {
-											srv.logger.Warn("skipping entity_id constraint type to support older clients", zap.String("flag", f.Key))
+										if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
+											srv.logger.Warn("skipping entity_id constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("flag", f.Key))
 											typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 										}
 									}
