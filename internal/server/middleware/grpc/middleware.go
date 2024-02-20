@@ -574,8 +574,8 @@ const fliptServerVersionHeaderKey = "x-flipt-server-version"
 
 type fliptServerVersionContextKey struct{}
 
-// WithServerFliptVersion sets the flipt version in the context.
-func WithServerFliptVersion(ctx context.Context, version semver.Version) context.Context {
+// WithFliptServerVersion sets the flipt version in the context.
+func WithFliptServerVersion(ctx context.Context, version semver.Version) context.Context {
 	return context.WithValue(ctx, fliptServerVersionContextKey{}, version)
 }
 
@@ -603,7 +603,7 @@ func FliptVersionUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 				}
 
 				logger.Debug("flipt server version header", zap.String("version", version))
-				ctx = WithServerFliptVersion(ctx, cv)
+				ctx = WithFliptServerVersion(ctx, cv)
 			}
 		}
 
