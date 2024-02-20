@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/blang/semver/v4"
+	grpc_middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -91,6 +93,8 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 	return evaluation.EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
 }
 
+var supportsEntityIdMinVersion = semver.MustParse("1.38.0")
+
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
@@ -101,9 +105,10 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			},
 			Flags: make([]*evaluation.EvaluationFlag, 0),
 		}
-		remaining = true
-		nextPage  string
-		segments  = make(map[string]*evaluation.EvaluationSegment)
+		remaining                                         = true
+		nextPage                                          string
+		segments                                          = make(map[string]*evaluation.EvaluationSegment)
+		supportedServerVersion, hasSupportedServerVersion = grpc_middleware.FliptServerVersionFromContext(ctx)
 	)
 
 	//  flags/variants in batches
@@ -160,9 +165,18 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 							}
 
 							for _, c := range s.Constraints {
+								typ := toEvaluationConstraintComparisonType(c.Type)
+								// TODO: can we clean this up somehow?
+								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
+									if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdMinVersion) {
+										srv.logger.Warn("skipping entity_id constraint type to support older clients", zap.String("flag", f.Key))
+										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+									}
+								}
+
 								ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 									Id:       c.ID,
-									Type:     toEvaluationConstraintComparisonType(c.Type),
+									Type:     typ,
 									Property: c.Property,
 									Operator: c.Operator,
 									Value:    c.Value,
@@ -232,9 +246,18 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								}
 
 								for _, c := range s.Constraints {
+									typ := toEvaluationConstraintComparisonType(c.Type)
+									// TODO: can we clean this up somehow?
+									if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
+										if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdMinVersion) {
+											srv.logger.Warn("skipping entity_id constraint type to support older clients", zap.String("flag", f.Key))
+											typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+										}
+									}
+
 									ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 										Id:       c.ID,
-										Type:     toEvaluationConstraintComparisonType(c.Type),
+										Type:     typ,
 										Property: c.Property,
 										Operator: c.Operator,
 										Value:    c.Value,
