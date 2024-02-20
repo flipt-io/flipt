@@ -24,7 +24,7 @@ export function titleCase(str: string) {
 }
 
 export function stringAsKey(str: string) {
-  return str.toLowerCase().split(/\s+/).join('-');
+  return str.split(/\s+/).join('-');
 
   // // Auto generated keys  should not begin or end in a hyphen
   // if (temp.charAt(0) == "-") {
