@@ -300,6 +300,7 @@ func NewGRPCServer(
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
+			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)

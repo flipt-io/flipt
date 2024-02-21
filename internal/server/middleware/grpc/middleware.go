@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/cache"
@@ -22,6 +23,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
@@ -565,4 +567,52 @@ func (e evaluationCacheKey[T]) Key(r T) (string, error) {
 	}
 
 	return fmt.Sprintf("%s:%s:%s:%s", string(e), r.GetFlagKey(), r.GetEntityId(), out), nil
+}
+
+// x-flipt-accept-server-version represents the maximum version of the flipt server that the client can handle.
+const fliptAcceptServerVersionHeaderKey = "x-flipt-accept-server-version"
+
+type fliptServerVersionContextKey struct{}
+
+// WithFliptAcceptServerVersion sets the flipt version in the context.
+func WithFliptAcceptServerVersion(ctx context.Context, version semver.Version) context.Context {
+	return context.WithValue(ctx, fliptServerVersionContextKey{}, version)
+}
+
+// The last version that does not support the x-flipt-accept-server-version header.
+var preFliptAcceptServerVersion = semver.MustParse("1.37.1")
+
+// FliptAcceptServerVersionFromContext returns the flipt-accept-server-version from the context if it exists or the default version.
+func FliptAcceptServerVersionFromContext(ctx context.Context) semver.Version {
+	v, ok := ctx.Value(fliptServerVersionContextKey{}).(semver.Version)
+	if !ok {
+		return preFliptAcceptServerVersion
+	}
+	return v
+}
+
+// FliptAcceptServerVersionUnaryInterceptor is a grpc client interceptor that sets the flipt-accept-server-version in the context if provided in the metadata/header.
+func FliptAcceptServerVersionUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return handler(ctx, req)
+		}
+
+		if fliptVersionHeader := md.Get(fliptAcceptServerVersionHeaderKey); len(fliptVersionHeader) > 0 {
+			version := fliptVersionHeader[0]
+			if version != "" {
+				cv, err := semver.ParseTolerant(version)
+				if err != nil {
+					logger.Warn("parsing x-flipt-accept-server-version header", zap.String("version", version), zap.Error(err))
+					return handler(ctx, req)
+				}
+
+				logger.Debug("x-flipt-accept-server-version header", zap.String("version", version))
+				ctx = WithFliptAcceptServerVersion(ctx, cv)
+			}
+		}
+
+		return handler(ctx, req)
+	}
 }
