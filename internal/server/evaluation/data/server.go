@@ -105,10 +105,10 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			},
 			Flags: make([]*evaluation.EvaluationFlag, 0),
 		}
-		remaining                                         = true
-		nextPage                                          string
-		segments                                          = make(map[string]*evaluation.EvaluationSegment)
-		supportedServerVersion, hasSupportedServerVersion = grpc_middleware.FliptServerVersionFromContext(ctx)
+		remaining              = true
+		nextPage               string
+		segments               = make(map[string]*evaluation.EvaluationSegment)
+		supportedServerVersion = grpc_middleware.FliptAcceptServerVersionFromContext(ctx)
 	)
 
 	//  flags/variants in batches
@@ -166,10 +166,10 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 							for _, c := range s.Constraints {
 								typ := toEvaluationConstraintComparisonType(c.Type)
-								// TODO: can we clean this up somehow?
+								// see: https://github.com/flipt-io/flipt/pull/2791
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("flag", f.Key))
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
+										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}
@@ -247,10 +247,10 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 								for _, c := range s.Constraints {
 									typ := toEvaluationConstraintComparisonType(c.Type)
-									// TODO: can we clean this up somehow?
+									// see: https://github.com/flipt-io/flipt/pull/2791
 									if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-										if !hasSupportedServerVersion || supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-											srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("flag", f.Key))
+										if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
+											srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 											typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 										}
 									}

@@ -2286,34 +2286,34 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
-func TestFliptVersionUnaryInterceptor(t *testing.T) {
+func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name          string
 		metadata      metadata.MD
 		expectVersion string
 	}{
 		{
-			name:     "does not contain flipt version header",
+			name:     "does not contain x-flipt-accept-server-version header",
 			metadata: metadata.MD{},
 		},
 		{
-			name: "contains valid flipt version header with v prefix",
+			name: "contains valid x-flipt-accept-server-version header with v prefix",
 			metadata: metadata.MD{
-				"x-flipt-server-version": []string{"v1.0.0"},
+				"x-flipt-accept-server-version": []string{"v1.0.0"},
 			},
 			expectVersion: "1.0.0",
 		},
 		{
-			name: "contains valid flipt version header no prefix",
+			name: "contains valid x-flipt-accept-server-version header no prefix",
 			metadata: metadata.MD{
-				"x-flipt-server-version": []string{"1.0.0"},
+				"x-flipt-accept-server-version": []string{"1.0.0"},
 			},
 			expectVersion: "1.0.0",
 		},
 		{
-			name: "contains invalid flipt version header",
+			name: "contains invalid x-flipt-accept-server-version header",
 			metadata: metadata.MD{
-				"x-flipt-server-version": []string{"invalid"},
+				"x-flipt-accept-server-version": []string{"invalid"},
 			},
 		},
 	}
@@ -2333,7 +2333,7 @@ func TestFliptVersionUnaryInterceptor(t *testing.T) {
 					return nil, nil
 				})
 				logger      = zaptest.NewLogger(t)
-				interceptor = FliptVersionUnaryInterceptor(logger)
+				interceptor = FliptAcceptServerVersionUnaryInterceptor(logger)
 			)
 
 			if tt.metadata != nil {
@@ -2343,10 +2343,13 @@ func TestFliptVersionUnaryInterceptor(t *testing.T) {
 			_, _ = interceptor(ctx, nil, nil, spyHandler)
 			assert.Equal(t, 1, called)
 
+			v := FliptAcceptServerVersionFromContext(retrievedCtx)
+			require.NotNil(t, v)
+
 			if tt.expectVersion != "" {
-				v, ok := FliptServerVersionFromContext(retrievedCtx)
-				assert.True(t, ok)
 				assert.Equal(t, semver.MustParse(tt.expectVersion), v)
+			} else {
+				assert.Equal(t, preFliptAcceptServerVersion, v)
 			}
 		})
 	}
