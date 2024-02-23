@@ -16301,7 +16301,7 @@ segments:
   description: Some Segment Description
   constraints:
   - type: ENTITY_ID_COMPARISON_TYPE
-    property: entity
+    property: entityId
     operator: eq
     value: user@flipt.io
   match_type: ALL_MATCH_TYPE

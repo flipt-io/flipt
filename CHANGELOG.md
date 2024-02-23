@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.38.0](https://github.com/flipt-io/flipt/releases/tag/v1.38.0) - 2024-02-23
+
+### Added
+
+- add ability to check known flipt server verison (#2791)
+- add integration test case for entity id adding
+- `flipt`: add entityId as a constraint type and operator
+- `otlp`: account for service name in environment variable (#2775)
+
+### Changed
+
+- `tracing`: move tracing setup into own package and extra tests added (#2776)
+
+### Fixed
+
+- `ui`: stop removing upper case letters in keys (#2790)
+- `analytics`: aggregate data to run queries faster (#2778)
+- `ui`: prevent multiple analytics requests at once with polling (#2777)
+
 ## [v1.37.1](https://github.com/flipt-io/flipt/releases/tag/v1.37.1) - 2024-02-12
 
 ### Added
