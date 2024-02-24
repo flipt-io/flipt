@@ -294,7 +294,8 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     if (['isoneof', 'isnotoneof'].includes(operator)) {
       const placeholder = {
         [ConstraintType.STRING]: 'Eg: ["value1", "value2"]',
-        [ConstraintType.NUMBER]: 'Eg: [1, 2, 3]'
+        [ConstraintType.NUMBER]: 'Eg: [1, 2, 3]',
+        [ConstraintType.ENTITY_ID]: 'Eg: ["value1", "value2"]'
       }[type as string];
       return placeholder ?? '';
     }
