@@ -60,7 +60,6 @@ func (c *initConfigCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	cfg := config.Default()
-	cfg.Version = config.Version // write version for backward compatibility
 	return writeConfig(cfg, file)
 }
 
@@ -143,9 +142,7 @@ func (c *getConfigCommand) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("reading config file: %w", err)
 	}
 
-	content := string(b)
-
-	fmt.Println(content)
+	fmt.Println(string(b))
 	return nil
 }
 
@@ -165,16 +162,21 @@ func (c *cloudConfigCommand) run(cmd *cobra.Command, args []string) error {
 		setupWebhooks     = false
 		organizationID    string
 		apiKey            string
+		cfg               *config.Config
 	)
 
-	b, err := os.ReadFile(file)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("reading config file: %w", err)
-	}
+	if !hasExistingConfig {
+		cfg = config.Default()
+	} else {
+		b, err := os.ReadFile(file)
+		if err != nil {
+			return fmt.Errorf("reading config file: %w", err)
+		}
 
-	cfg := &config.Config{}
-	if err := yaml.Unmarshal(b, cfg); err != nil {
-		return fmt.Errorf("unmarshalling config: %w", err)
+		cfg = &config.Config{}
+		if err := yaml.Unmarshal(b, cfg); err != nil {
+			return fmt.Errorf("unmarshalling config: %w", err)
+		}
 	}
 
 	required := survey.WithValidator(survey.Required)
@@ -322,7 +324,6 @@ func newConfigCommand() *cobra.Command {
 }
 
 func hasConfig() bool {
-	// TODO: check if no TTY
 	file := providedConfigFile
 
 	if file == "" {
@@ -338,6 +339,10 @@ func hasConfig() bool {
 }
 
 func writeConfig(cfg *config.Config, file string) error {
+	if cfg.Version == "" {
+		cfg.Version = config.Version
+	}
+
 	out, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
