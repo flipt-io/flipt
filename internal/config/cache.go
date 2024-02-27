@@ -64,6 +64,26 @@ func (c CacheBackend) MarshalYAML() (interface{}, error) {
 	return c.String(), nil
 }
 
+func (c *CacheBackend) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	*c = stringToCacheBackend[s]
+	return nil
+}
+
+func (c *CacheBackend) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	*c = stringToCacheBackend[s]
+	return nil
+}
+
 const (
 	_ CacheBackend = iota
 	// CacheMemory ...

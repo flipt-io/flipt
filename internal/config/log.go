@@ -73,3 +73,23 @@ func (e LogEncoding) MarshalJSON() ([]byte, error) {
 func (e LogEncoding) MarshalYAML() (interface{}, error) {
 	return e.String(), nil
 }
+
+func (e *LogEncoding) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	*e = stringToLogEncoding[s]
+	return nil
+}
+
+func (e *LogEncoding) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	*e = stringToLogEncoding[s]
+	return nil
+}

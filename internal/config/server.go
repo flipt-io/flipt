@@ -77,6 +77,26 @@ func (s Scheme) MarshalYAML() (interface{}, error) {
 	return s.String(), nil
 }
 
+func (s *Scheme) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+
+	*s = stringToScheme[str]
+	return nil
+}
+
+func (s *Scheme) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var str string
+	if err := unmarshal(&str); err != nil {
+		return err
+	}
+
+	*s = stringToScheme[str]
+	return nil
+}
+
 const (
 	HTTP Scheme = iota
 	HTTPS

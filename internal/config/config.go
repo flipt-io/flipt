@@ -15,8 +15,10 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-const Version = "1.0"
-const EnvPrefix = "FLIPT"
+const (
+	Version   = "1.0"
+	EnvPrefix = "FLIPT"
+)
 
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),

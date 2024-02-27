@@ -541,14 +541,17 @@ func (a AuthenticationMethodGithubConfig) validate() error {
 	return nil
 }
 
+type AuthenticationMethodJWTValidateClaims struct {
+	// Issuer is the issuer of the JWT token.
+	Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
+	// Audiences is the audience of the JWT token.
+	Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
+}
+
 type AuthenticationMethodJWTConfig struct {
 	// ValidateClaims is used to validate the claims of the JWT token.
-	ValidateClaims struct {
-		// Issuer is the issuer of the JWT token.
-		Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
-		// Audiences is the audience of the JWT token.
-		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
-	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
+	ValidateClaims AuthenticationMethodJWTValidateClaims `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`
+
 	// JWKsURL is the URL to the JWKS endpoint.
 	// This is used to fetch the public keys used to validate the JWT token.
 	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`

@@ -70,6 +70,26 @@ func (e TracingExporter) MarshalYAML() (interface{}, error) {
 	return e.String(), nil
 }
 
+func (e *TracingExporter) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	*e = stringToTracingExporter[s]
+	return nil
+}
+
+func (e *TracingExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	*e = stringToTracingExporter[s]
+	return nil
+}
+
 const (
 	_ TracingExporter = iota
 	// TracingJaeger ...

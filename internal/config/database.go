@@ -99,6 +99,30 @@ func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
+func (d DatabaseProtocol) MarshalYAML() (interface{}, error) {
+	return d.String(), nil
+}
+
+func (d *DatabaseProtocol) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	*d = stringToDatabaseProtocol[s]
+	return nil
+}
+
+func (d *DatabaseProtocol) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	*d = stringToDatabaseProtocol[s]
+	return nil
+}
+
 var (
 	databaseProtocolToString = map[DatabaseProtocol]string{
 		DatabaseSQLite:      "sqlite",
