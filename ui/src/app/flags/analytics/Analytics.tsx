@@ -1,7 +1,8 @@
 import { Formik } from 'formik';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
+import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
@@ -61,26 +62,35 @@ const durations: FilterableDurations[] = [
 export default function Analytics() {
   const [selectedDuration, setSelectedDuration] =
     useState<FilterableDurations | null>(durations[0]);
+  const [pollingInterval, setPollingInterval] = useState<number>(0);
+
   const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
-  const nowISO = parseISO(new Date().toISOString());
+  const d = new Date();
+  d.setSeconds(0);
+  const nowISO = parseISO(d.toISOString());
 
-  const getFlagEvaluationCount = useGetFlagEvaluationCountQuery({
-    namespaceKey: namespace.key,
-    flagKey: flag.key,
-    from: format(
-      addMinutes(
+  const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
+    {
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      from: format(
         addMinutes(
-          nowISO,
-          selectedDuration?.value ? selectedDuration.value * -1 : -60
+          addMinutes(
+            nowISO,
+            selectedDuration?.value ? selectedDuration.value * -1 : -60
+          ),
+          nowISO.getTimezoneOffset()
         ),
-        nowISO.getTimezoneOffset()
+        timeFormat
       ),
-      timeFormat
-    ),
-    to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
-  });
+      to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
+    },
+    {
+      pollingInterval
+    }
+  );
 
   const flagEvaluationCount = useMemo(() => {
     const fetchError = getFlagEvaluationCount.error as FetchBaseQueryError;
@@ -95,6 +105,12 @@ export default function Analytics() {
     durationValue: selectedDuration?.key
   };
 
+  // Set the polling interval to 0 every time we change
+  // durations.
+  useEffect(() => {
+    setPollingInterval(0);
+  }, [selectedDuration]);
+
   return (
     <div className="mx-12 my-12">
       {!flagEvaluationCount.unavailable ? (
@@ -107,19 +123,37 @@ export default function Analytics() {
               }}
             >
               {() => (
-                <Combobox<FilterableDurations>
-                  id="durationValue"
-                  name="durationValue"
-                  placeholder="Select duration"
-                  className="absolute right-28 z-10"
-                  values={durations}
-                  selected={selectedDuration}
-                  setSelected={setSelectedDuration}
-                />
+                <div className="z-10 flex justify-center space-x-2 md:absolute md:right-24 md:justify-end">
+                  <Combobox<FilterableDurations>
+                    id="durationValue"
+                    name="durationValue"
+                    placeholder="Select duration"
+                    values={durations}
+                    selected={selectedDuration}
+                    setSelected={setSelectedDuration}
+                  />
+                  <div className="mt-2">
+                    {pollingInterval !== 0 ? (
+                      <>
+                        <PauseIcon
+                          className="h-5 w-5"
+                          onClick={() => setPollingInterval(0)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <PlayIcon
+                          className="h-5 w-5"
+                          onClick={() => setPollingInterval(3000)}
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
               )}
             </Formik>
           </>
-          <div className="relative top-12">
+          <div className="md:relative md:top-12">
             <BarGraph
               timestamps={flagEvaluationCount.timestamps || []}
               values={flagEvaluationCount.values || []}

@@ -117,7 +117,7 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-			require.Len(t, flags.Flags, 55)
+			require.Len(t, flags.Flags, 56)
 
 			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
@@ -145,7 +145,7 @@ func TestReadOnly(t *testing.T) {
 
 					if flags.NextPageToken == "" {
 						// ensure last page contains 3 entries (boolean and disabled)
-						assert.Len(t, flags.Flags, 5)
+						assert.Len(t, flags.Flags, 6)
 
 						found = append(found, flags.Flags...)
 
@@ -160,7 +160,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = flags.NextPageToken
 				}
 
-				require.Len(t, found, 55)
+				require.Len(t, found, 56)
 			})
 		})
 
@@ -205,7 +205,7 @@ func TestReadOnly(t *testing.T) {
 			})
 
 			require.NoError(t, err)
-			require.Len(t, segments.Segments, 52)
+			require.Len(t, segments.Segments, 53)
 
 			t.Run("Paginated (page size 10)", func(t *testing.T) {
 				var (
@@ -225,7 +225,7 @@ func TestReadOnly(t *testing.T) {
 					found = append(found, segments.Segments...)
 
 					if segments.NextPageToken == "" {
-						assert.Len(t, segments.Segments, 2)
+						assert.Len(t, segments.Segments, 3)
 						break
 					}
 
@@ -234,7 +234,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = segments.NextPageToken
 				}
 
-				require.Len(t, found, 52)
+				require.Len(t, found, 53)
 			})
 		})
 
@@ -496,6 +496,22 @@ func TestReadOnly(t *testing.T) {
 					assert.Equal(t, false, response.Match)
 					assert.Empty(t, response.VariantKey)
 					assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, response.Reason)
+				})
+
+				t.Run("entity id matching", func(t *testing.T) {
+					response, err := sdk.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_using_entity_id",
+						EntityId:     "user@flipt.io",
+						Context:      map[string]string{},
+					})
+					require.NoError(t, err)
+
+					assert.Equal(t, true, response.Match)
+					assert.Equal(t, "variant_001", response.VariantKey)
+					assert.Equal(t, "flag_using_entity_id", response.FlagKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+					assert.Contains(t, response.SegmentKeys, "segment_entity_id")
 				})
 
 				t.Run("flag disabled", func(t *testing.T) {

@@ -15623,6 +15623,19 @@ flags:
     segment:
       key: segment_no_constraints
       value: true
+- key: flag_using_entity_id
+  name: FLAG_USING_ENTITY_ID
+  type: VARIANT_FLAG_TYPE
+  description: Flag using entity id
+  enabled: true
+  variants:
+  - key: variant_001
+    name: VARIANT_001
+  rules:
+  - segment: segment_entity_id
+    distributions:
+    - variant: variant_001
+      rollout: 100
 segments:
 - key: segment_001
   name: SEGMENT_001
@@ -16282,4 +16295,13 @@ segments:
     property: anding
     operator: eq
     value: segment
+  match_type: ALL_MATCH_TYPE
+- key: segment_entity_id
+  name: SEGMENT_ENTITY_ID
+  description: Some Segment Description
+  constraints:
+  - type: ENTITY_ID_COMPARISON_TYPE
+    property: entityId
+    operator: eq
+    value: user@flipt.io
   match_type: ALL_MATCH_TYPE

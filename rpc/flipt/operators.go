@@ -74,4 +74,10 @@ var (
 		OpPresent:    {},
 		OpNotPresent: {},
 	}
+	EntityIdOperators = map[string]struct{}{
+		OpEQ:         {},
+		OpNEQ:        {},
+		OpIsOneOf:    {},
+		OpIsNotOneOf: {},
+	}
 )

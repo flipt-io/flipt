@@ -98,4 +98,10 @@ close({
 	value?:       string
 	description?: string
 	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+} | {
+	type:         "ENTITY_ID_COMPARISON_TYPE"
+	property:     string & =~"^.+$"
+	value?:       string
+	description?: string
+	operator:     "eq" | "neq" | "isoneof" | "isnotoneof"
 })
