@@ -151,11 +151,11 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
 		case eventMetadataActorKey:
-			var actor *Actor
+			var actor Actor
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &actor); err != nil {
 				return nil, err
 			}
-			e.Metadata.Actor = actor
+			e.Metadata.Actor = &actor
 		case eventPayloadKey:
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {

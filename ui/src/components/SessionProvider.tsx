@@ -44,7 +44,7 @@ export default function SessionProvider({
       }
 
       try {
-        const self: IAuthOIDCInternal | IAuthOIDCInternal | IAuthJWTInternal =
+        const self: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal =
           await getAuthSelf();
         session = {
           authenticated: true,
