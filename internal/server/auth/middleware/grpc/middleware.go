@@ -2,6 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"regexp"
@@ -150,6 +151,14 @@ func JWTInterceptorSelector() selector.Matcher {
 	})
 }
 
+// UserClaims are extra claims sent in from JWT authentication.
+type UserClaims struct {
+	Sub   string `json:"sub,omitempty"`
+	Email string `json:"email,omitempty"`
+	Image string `json:"image,omitempty"`
+	Name  string `json:"name,omitempty"`
+}
+
 func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
@@ -177,7 +186,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		}
 
 		// TODO: map claims to auth metadata?
-		_, err = validator.Validate(ctx, token, expected)
+		jwtClaims, err := validator.Validate(ctx, token, expected)
 		if err != nil {
 			logger.Error("unauthenticated",
 				zap.String("reason", "error validating jwt"),
@@ -196,9 +205,32 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			return ctx, ErrUnauthenticated
 		}
 
+		metadata := map[string]string{}
+
+		userClaimsRaw, ok := jwtClaims["user"]
+		if ok {
+			userClaimsJSON, err := json.Marshal(userClaimsRaw)
+			if err != nil {
+				return ctx, ErrUnauthenticated
+			}
+
+			userClaims := UserClaims{}
+
+			if err := json.Unmarshal(userClaimsJSON, &userClaims); err != nil {
+				return ctx, ErrUnauthenticated
+			}
+
+			metadata = map[string]string{
+				"io.flipt.auth.jwt.email":   userClaims.Email,
+				"io.flipt.auth.jwt.sub":     userClaims.Sub,
+				"io.flipt.auth.jwt.picture": userClaims.Image,
+				"io.flipt.auth.jwt.name":    userClaims.Name,
+			}
+		}
+
 		auth := &authrpc.Authentication{
 			Method:   authrpc.Method_METHOD_JWT,
-			Metadata: map[string]string{},
+			Metadata: metadata,
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
