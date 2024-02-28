@@ -2,12 +2,13 @@ import { createContext, useEffect, useMemo } from 'react';
 import { getAuthSelf, getInfo } from '~/data/api';
 import { useLocalStorage } from '~/data/hooks/storage';
 import { IAuthGithubInternal } from '~/types/auth/Github';
+import { IAuthJWTInternal } from '~/types/auth/JWT';
 import { IAuthOIDCInternal } from '~/types/auth/OIDC';
 
 type Session = {
   required: boolean;
   authenticated: boolean;
-  self?: IAuthOIDCInternal | IAuthGithubInternal;
+  self?: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal;
 };
 
 interface SessionContextType {
@@ -43,7 +44,8 @@ export default function SessionProvider({
       }
 
       try {
-        const self: IAuthOIDCInternal | IAuthOIDCInternal = await getAuthSelf();
+        const self: IAuthOIDCInternal | IAuthOIDCInternal | IAuthJWTInternal =
+          await getAuthSelf();
         session = {
           authenticated: true,
           required: true,

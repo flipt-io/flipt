@@ -24,30 +24,60 @@ const (
 
 var _ auth.AuthenticationServiceServer = &Server{}
 
-// Actor represents some metadata from the context for the audit event.
-type Actor map[string]string
+func GetActorFromAuthentication(authentication *auth.Authentication, ip string) *audit.Actor {
+	switch authentication.Method {
+	case auth.Method_METHOD_GITHUB:
+		return &audit.Actor{
+			Authentication: "github",
+			Email:          authentication.Metadata["io.flipt.auth.github.email"],
+			Name:           authentication.Metadata["io.flipt.auth.github.name"],
+			Picture:        authentication.Metadata["io.flipt.auth.github.picture"],
+			IP:             ip,
+		}
+	case auth.Method_METHOD_OIDC:
+		return &audit.Actor{
+			Authentication: "oidc",
+			Email:          authentication.Metadata["io.flipt.auth.oidc.email"],
+			Name:           authentication.Metadata["io.flipt.auth.oidc.name"],
+			Picture:        authentication.Metadata["io.flipt.auth.oidc.picture"],
+			IP:             ip,
+		}
+	case auth.Method_METHOD_JWT:
+		return &audit.Actor{
+			Authentication: "jwt",
+			Email:          authentication.Metadata["io.flipt.auth.jwt.email"],
+			Name:           authentication.Metadata["io.flipt.auth.jwt.name"],
+			Picture:        authentication.Metadata["io.flipt.auth.jwt.picture"],
+			IP:             ip,
+		}
+	default:
+		authName := strings.ToLower(strings.TrimPrefix(authentication.Method.String(), "METHOD_"))
+		return &audit.Actor{
+			Authentication: authName,
+			IP:             ip,
+		}
+	}
+}
 
-func ActorFromContext(ctx context.Context) Actor {
+func ActorFromContext(ctx context.Context) *audit.Actor {
 	var (
-		actor          = Actor{}
-		authentication = "none"
+		ipAddress string
 	)
 
 	md, _ := metadata.FromIncomingContext(ctx)
 	if len(md[ipKey]) > 0 {
-		actor["ip"] = md[ipKey][0]
+		ipAddress = md[ipKey][0]
 	}
 
 	auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 	if auth != nil {
-		authentication = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
-		for k, v := range auth.Metadata {
-			actor[k] = v
-		}
+		return GetActorFromAuthentication(auth, ipAddress)
 	}
 
-	actor["authentication"] = authentication
-	return actor
+	return &audit.Actor{
+		Authentication: "none",
+		IP:             ipAddress,
+	}
 }
 
 // Server is the core AuthenticationServiceServer implementations.
