@@ -16,6 +16,16 @@ import (
 
 var _ Executer = (*webhookTemplate)(nil)
 
+var funcMap = template.FuncMap{
+	"toJson": func(v interface{}) (string, error) {
+		jsonData, err := json.Marshal(v)
+		if err != nil {
+			return "", err
+		}
+		return string(jsonData), nil
+	},
+}
+
 // webhookTemplate contains fields that pertain to constructing an HTTP request.
 type webhookTemplate struct {
 	url string
@@ -36,7 +46,7 @@ type Executer interface {
 
 // NewWebhookTemplate is the constructor for a WebhookTemplate.
 func NewWebhookTemplate(logger *zap.Logger, url, body string, headers map[string]string, maxBackoffDuration time.Duration) (Executer, error) {
-	tmpl, err := template.New("").Parse(body)
+	tmpl, err := template.New("").Funcs(funcMap).Parse(body)
 	if err != nil {
 		return nil, err
 	}
