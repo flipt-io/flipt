@@ -60,11 +60,12 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 	)
 
 	for _, tt := range []struct {
-		name         string
-		metadataFunc func() metadata.MD
-		server       any
-		expectedJWT  jwt.Expected
-		expectedErr  error
+		name             string
+		metadataFunc     func() metadata.MD
+		server           any
+		expectedJWT      jwt.Expected
+		expectedErr      error
+		expectedMetadata map[string]string
 	}{
 		{
 			name: "successful authentication",
@@ -84,6 +85,38 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			expectedJWT: jwt.Expected{
 				Issuer:    "https://flipt.io/",
 				Audiences: []string{"flipt"},
+			},
+		},
+		{
+			name: "successful authentication (with custom user claims)",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "https://flipt.io/",
+					"aud": "flipt",
+					"iat": nowUnix,
+					"exp": futureUnix,
+					"user": map[string]string{
+						"sub":   "sub",
+						"email": "email",
+						"image": "image",
+						"name":  "name",
+					},
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:    "https://flipt.io/",
+				Audiences: []string{"flipt"},
+			},
+			expectedMetadata: map[string]string{
+				"io.flipt.auth.jwt.sub":     "sub",
+				"io.flipt.auth.jwt.email":   "email",
+				"io.flipt.auth.jwt.picture": "image",
+				"io.flipt.auth.jwt.name":    "name",
 			},
 		},
 		{
@@ -167,6 +200,13 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 
 				ctx     = context.Background()
 				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					if tt.expectedMetadata != nil {
+						authentication := GetAuthenticationFrom(ctx)
+
+						for k, v := range authentication.Metadata {
+							assert.Equal(t, tt.expectedMetadata[k], v)
+						}
+					}
 					return nil, nil
 				}
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}
@@ -204,6 +244,13 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 
 				ctx     = context.Background()
 				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					if tt.expectedMetadata != nil {
+						authentication := GetAuthenticationFrom(ctx)
+
+						for k, v := range authentication.Metadata {
+							assert.Equal(t, tt.expectedMetadata[k], v)
+						}
+					}
 					return nil, nil
 				}
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}

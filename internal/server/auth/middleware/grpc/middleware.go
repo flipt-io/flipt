@@ -198,14 +198,18 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		}
 
 		metadata := map[string]string{}
-		for _, fields := range [][2]string{
-			{"email", "email"},
-			{"sub", "sub"},
-			{"picture", "image"},
-			{"name", "name"},
-		} {
-			if v, ok := jwtClaims[fields[1]]; ok {
-				metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[0])] = fmt.Sprintf("%v", v)
+
+		userClaims, ok := jwtClaims["user"].(map[string]interface{})
+		if ok {
+			for _, fields := range [][2]string{
+				{"email", "email"},
+				{"sub", "sub"},
+				{"image", "picture"},
+				{"name", "name"},
+			} {
+				if v, ok := userClaims[fields[0]]; ok {
+					metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
+				}
 			}
 		}
 
