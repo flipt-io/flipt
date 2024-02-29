@@ -3,6 +3,7 @@ package grpc_middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -177,7 +178,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		}
 
 		// TODO: map claims to auth metadata?
-		_, err = validator.Validate(ctx, token, expected)
+		jwtClaims, err := validator.Validate(ctx, token, expected)
 		if err != nil {
 			logger.Error("unauthenticated",
 				zap.String("reason", "error validating jwt"),
@@ -196,9 +197,25 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			return ctx, ErrUnauthenticated
 		}
 
+		metadata := map[string]string{}
+
+		userClaims, ok := jwtClaims["user"].(map[string]interface{})
+		if ok {
+			for _, fields := range [][2]string{
+				{"email", "email"},
+				{"sub", "sub"},
+				{"image", "picture"},
+				{"name", "name"},
+			} {
+				if v, ok := userClaims[fields[0]]; ok {
+					metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
+				}
+			}
+		}
+
 		auth := &authrpc.Authentication{
 			Method:   authrpc.Method_METHOD_JWT,
-			Metadata: map[string]string{},
+			Metadata: metadata,
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)

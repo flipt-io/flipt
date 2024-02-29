@@ -151,11 +151,11 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
 		case eventMetadataActorKey:
-			var actor map[string]string
+			var actor Actor
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &actor); err != nil {
 				return nil, err
 			}
-			e.Metadata.Actor = actor
+			e.Metadata.Actor = &actor
 		case eventPayloadKey:
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
@@ -172,9 +172,17 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 	return e, nil
 }
 
+type Actor struct {
+	Authentication string `json:"authentication,omitempty"`
+	IP             string `json:"ip,omitempty"`
+	Email          string `json:"email,omitempty"`
+	Name           string `json:"name,omitempty"`
+	Picture        string `json:"picture,omitempty"`
+}
+
 // Metadata holds information of what metadata an event will contain.
 type Metadata struct {
-	Actor map[string]string `json:"actor,omitempty"`
+	Actor *Actor `json:"actor,omitempty"`
 }
 
 // Sink is the abstraction for various audit sink configurations
@@ -258,7 +266,7 @@ func (s *SinkSpanExporter) SendAudits(ctx context.Context, es []Event) error {
 }
 
 // NewEvent is the constructor for an audit event.
-func NewEvent(eventType Type, action Action, actor map[string]string, payload interface{}) *Event {
+func NewEvent(eventType Type, action Action, actor *Actor, payload interface{}) *Event {
 	return &Event{
 		Version: eventVersion,
 		Action:  action,

@@ -2227,7 +2227,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &authrpc.Authentication{
 		Method: authrpc.Method_METHOD_OIDC,
 		Metadata: map[string]string{
-			"email": "example@flipt.com",
+			"io.flipt.auth.oidc.email": "example@flipt.com",
 		},
 	})
 
@@ -2238,8 +2238,8 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	span.End()
 
 	event := exporterSpy.GetEvents()[0]
-	assert.Equal(t, event.Metadata.Actor["email"], "example@flipt.com")
-	assert.Equal(t, event.Metadata.Actor["authentication"], "oidc")
+	assert.Equal(t, "example@flipt.com", event.Metadata.Actor.Email)
+	assert.Equal(t, "oidc", event.Metadata.Actor.Authentication)
 }
 
 func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {

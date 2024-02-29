@@ -38,8 +38,8 @@ func TestActorFromContext(t *testing.T) {
 
 	actor := auth.ActorFromContext(ctx)
 
-	require.Equal(t, actor["ip"], ipAddress)
-	require.Equal(t, actor["authentication"], authentication)
+	assert.Equal(t, ipAddress, actor.IP)
+	assert.Equal(t, authentication, actor.Authentication)
 }
 
 func TestServer(t *testing.T) {
