@@ -2,8 +2,8 @@ package grpc_middleware
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -151,14 +151,6 @@ func JWTInterceptorSelector() selector.Matcher {
 	})
 }
 
-// UserClaims are extra claims sent in from JWT authentication.
-type UserClaims struct {
-	Sub   string `json:"sub,omitempty"`
-	Email string `json:"email,omitempty"`
-	Image string `json:"image,omitempty"`
-	Name  string `json:"name,omitempty"`
-}
-
 func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
@@ -206,25 +198,14 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		}
 
 		metadata := map[string]string{}
-
-		userClaimsRaw, ok := jwtClaims["user"]
-		if ok {
-			userClaimsJSON, err := json.Marshal(userClaimsRaw)
-			if err != nil {
-				return ctx, ErrUnauthenticated
-			}
-
-			userClaims := UserClaims{}
-
-			if err := json.Unmarshal(userClaimsJSON, &userClaims); err != nil {
-				return ctx, ErrUnauthenticated
-			}
-
-			metadata = map[string]string{
-				"io.flipt.auth.jwt.email":   userClaims.Email,
-				"io.flipt.auth.jwt.sub":     userClaims.Sub,
-				"io.flipt.auth.jwt.picture": userClaims.Image,
-				"io.flipt.auth.jwt.name":    userClaims.Name,
+		for _, fields := range [][2]string{
+			{"email", "email"},
+			{"sub", "sub"},
+			{"picture", "image"},
+			{"name", "name"},
+		} {
+			if v, ok := jwtClaims[fields[1]]; ok {
+				metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[0])] = fmt.Sprintf("%v", v)
 			}
 		}
 
