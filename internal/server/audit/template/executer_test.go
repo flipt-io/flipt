@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -68,6 +69,37 @@ func TestExecuter_Execute(t *testing.T) {
 	err = whTemplate.Execute(context.TODO(), audit.Event{
 		Type:   audit.FlagType,
 		Action: audit.Create,
+	})
+
+	require.NoError(t, err)
+}
+
+func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
+	tmpl, err := template.New("").Funcs(funcMap).Parse(`{
+		"type": "{{ .Type }}",
+		"action": "{{ .Action }}",
+		"payload": {{ toJson .Payload }}
+	}`)
+
+	require.NoError(t, err)
+
+	whTemplate := &webhookTemplate{
+		url:                "https://flipt-webhook.io/webhook",
+		maxBackoffDuration: 15 * time.Second,
+		retryableClient:    &dummyRetrier{},
+		bodyTemplate:       tmpl,
+	}
+
+	err = whTemplate.Execute(context.TODO(), audit.Event{
+		Type:   audit.FlagType,
+		Action: audit.Create,
+		Payload: &flipt.CreateFlagRequest{
+			Key:          "foo",
+			Name:         "foo",
+			NamespaceKey: "default",
+			Description:  "some desc",
+			Enabled:      true,
+		},
 	})
 
 	require.NoError(t, err)
