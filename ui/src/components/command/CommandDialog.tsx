@@ -1,5 +1,4 @@
 import { Dialog } from '@headlessui/react';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -48,19 +47,19 @@ export default function CommandMenu() {
     {
       name: 'Flags',
       description: 'Manage feature flags',
-      route: `/flags`,
+      route: '/flags',
       keywords: ['flags', 'flags', 'feature']
     },
     {
       name: 'Segments',
       description: 'Manage segments',
-      route: `/segments`,
+      route: '/segments',
       keywords: ['segments', 'segment']
     },
     {
       name: 'Console',
       description: 'Debug and test flags and segments',
-      route: `/console`,
+      route: '/console',
       keywords: ['console', 'debug', 'test']
     }
   ];
@@ -128,6 +127,7 @@ export default function CommandMenu() {
 
             {namespacedItems.map((item) => (
               <CommandItem
+                key={item.name}
                 item={{
                   onSelected: () => {
                     setOpen(false);
@@ -142,6 +142,7 @@ export default function CommandMenu() {
             <Command.Separator className="border-gray-200 my-2 border-t" />
             {items.map((item) => (
               <CommandItem
+                key={item.name}
                 item={{
                   onSelected: () => {
                     setOpen(false);
