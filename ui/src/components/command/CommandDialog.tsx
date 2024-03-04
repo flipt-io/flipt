@@ -222,7 +222,7 @@ export default function CommandMenu() {
                   />
                 ))}
 
-                {namespaceNavEnabled && (
+                {namespaceNavEnabled && namespaces.length > 1 && (
                   <CommandItem
                     item={{
                       name: 'Switch Namespaces',
