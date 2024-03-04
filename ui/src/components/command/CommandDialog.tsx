@@ -9,7 +9,9 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
+import { themeChanged } from '~/app/preferences/preferencesSlice';
 import { useAppDispatch } from '~/data/hooks/store';
+import { Theme } from '~/types/Preferences';
 import { RouteMatches } from '~/types/Routes';
 import { addNamespaceToPath } from '~/utils/helpers';
 
@@ -48,7 +50,7 @@ function CommandItem(props: CommandItemProps) {
   );
 }
 
-const namespacedItems = [
+const namespacedRoutes = [
   {
     name: 'Flags',
     description: 'Manage feature flags',
@@ -69,7 +71,7 @@ const namespacedItems = [
   }
 ];
 
-const items = [
+const nonNamespacedRoutes = [
   {
     name: 'Settings: General',
     description: 'General settings',
@@ -125,6 +127,7 @@ export default function CommandMenu() {
         setOpen((open) => !open);
       } else if (e.key === 'Escape') {
         e.preventDefault();
+        setSearch('');
         setOpen(false);
       }
     };
@@ -174,9 +177,9 @@ export default function CommandMenu() {
               <>
                 <Command.Item
                   disabled={true}
-                  className="text-gray-900 px-4 py-2.5 font-semibold"
+                  className="text-gray-600 px-4 py-2.5 font-semibold"
                 >
-                  Switch to Namespace
+                  Switch Namespace
                 </Command.Item>
                 {namespaces.map((namespace) => (
                   <CommandItem
@@ -204,9 +207,56 @@ export default function CommandMenu() {
               </>
             )}
 
+            {page === 'theme' && (
+              <>
+                <Command.Item
+                  disabled={true}
+                  className="text-gray-600 px-4 py-2.5 font-semibold"
+                >
+                  Change Theme
+                </Command.Item>
+                <CommandItem
+                  item={{
+                    name: 'Light',
+                    onSelected: () => {
+                      setOpen(false);
+                      setSearch('');
+                      dispatch(themeChanged(Theme.LIGHT));
+                      setPages((pages) => pages.slice(0, -1));
+                    },
+                    keywords: ['themes', 'light']
+                  }}
+                />
+                <CommandItem
+                  item={{
+                    name: 'Dark',
+                    onSelected: () => {
+                      setOpen(false);
+                      setSearch('');
+                      dispatch(themeChanged(Theme.DARK));
+                      setPages((pages) => pages.slice(0, -1));
+                    },
+                    keywords: ['themes', 'dark']
+                  }}
+                />
+                <CommandItem
+                  item={{
+                    name: 'System',
+                    onSelected: () => {
+                      setOpen(false);
+                      setSearch('');
+                      dispatch(themeChanged(Theme.SYSTEM));
+                      setPages((pages) => pages.slice(0, -1));
+                    },
+                    keywords: ['themes', 'dark']
+                  }}
+                />
+              </>
+            )}
+
             {!page && (
               <>
-                {namespacedItems.map((item) => (
+                {namespacedRoutes.map((item) => (
                   <CommandItem
                     key={item.name}
                     item={{
@@ -237,7 +287,7 @@ export default function CommandMenu() {
                 )}
 
                 <Command.Separator className="border-gray-200 my-2 border-t" />
-                {items.map((item) => (
+                {nonNamespacedRoutes.map((item) => (
                   <CommandItem
                     key={item.name}
                     item={{
@@ -250,6 +300,18 @@ export default function CommandMenu() {
                     }}
                   />
                 ))}
+
+                <CommandItem
+                  item={{
+                    name: 'Preferences: Change Theme',
+                    description: 'Set the application theme',
+                    onSelected: () => {
+                      setSearch('');
+                      setPages([...pages, 'theme'] as string[]);
+                    },
+                    keywords: ['preferences', 'theme']
+                  }}
+                />
               </>
             )}
           </Command.List>
