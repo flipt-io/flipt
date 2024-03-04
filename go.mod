@@ -4,13 +4,13 @@ go 1.21
 
 require (
 	cloud.google.com/go/storage v1.38.0
-	cuelang.org/go v0.7.0
+	cuelang.org/go v0.7.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.2.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.17.1
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/XSAM/otelsql v0.27.0
+	github.com/XSAM/otelsql v0.29.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.1
 	github.com/blang/semver/v4 v4.0.0
@@ -22,7 +22,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/go-jose/go-jose/v3 v3.0.1
+	github.com/go-jose/go-jose/v3 v3.0.2
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gobwas/glob v0.2.3
@@ -48,7 +48,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.18.0
-	github.com/redis/go-redis/v9 v9.4.0
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -66,7 +66,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.24.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.46.0
-	go.opentelemetry.io/otel/exporters/zipkin v1.22.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.24.0
 	go.opentelemetry.io/otel/metric v1.24.0
 	go.opentelemetry.io/otel/sdk v1.24.0
 	go.opentelemetry.io/otel/sdk/metric v1.24.0
