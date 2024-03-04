@@ -27,7 +27,7 @@
     "@heroicons/react": "^2.1.1",
     "@loadable/component": "^5.16.3",
     "@reduxjs/toolkit": "^2.2.1",
-    "@tanstack/react-table": "^8.12.0",
+    "@tanstack/react-table": "^8.13.2",
     "@uiw/codemirror-theme-tokyo-night": "^4.21.21",
     "@uiw/react-codemirror": "^4.21.24",
     "buffer": "^6.0.3",
