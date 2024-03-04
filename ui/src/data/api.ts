@@ -28,6 +28,7 @@ function headerCsrf(): Record<string, string> {
   }
   return {};
 }
+
 // TODO: find a better name for this
 export function checkResponse(response: Response) {
   if (!response.ok) {

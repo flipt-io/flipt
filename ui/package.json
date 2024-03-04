@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest"
@@ -33,6 +34,7 @@
     "chart.js": "^4.4.1",
     "chartjs-adapter-date-fns": "^3.0.0",
     "clsx": "^2.1.0",
+    "cmdk": "^0.2.1",
     "date-fns": "^3.3.1",
     "formik": "^2.4.5",
     "nightwind": "^1.1.13",
