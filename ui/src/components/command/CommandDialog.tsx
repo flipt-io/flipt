@@ -1,7 +1,7 @@
 import { Dialog } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Command } from 'cmdk';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useMatches, useNavigate } from 'react-router-dom';
 import {
