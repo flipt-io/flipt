@@ -248,7 +248,7 @@ export default function CommandMenu() {
                       dispatch(themeChanged(Theme.SYSTEM));
                       setPages((pages) => pages.slice(0, -1));
                     },
-                    keywords: ['themes', 'dark']
+                    keywords: ['themes', 'system']
                   }}
                 />
               </>
