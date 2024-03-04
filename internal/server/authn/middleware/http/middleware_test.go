@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
+	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -10,7 +10,7 @@ import (
 	capoidc "github.com/hashicorp/cap/oidc"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/server/auth/method"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"

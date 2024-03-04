@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	k8stesting "go.flipt.io/flipt/internal/server/auth/method/kubernetes/testing"
+	k8stesting "go.flipt.io/flipt/internal/server/authn/method/kubernetes/testing"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/encoding/protojson"

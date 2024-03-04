@@ -1,4 +1,4 @@
-package auth
+package authn
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/internal/server/audit"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt"

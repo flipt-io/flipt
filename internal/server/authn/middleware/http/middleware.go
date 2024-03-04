@@ -7,7 +7,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.flipt.io/flipt/internal/config"
-	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
+	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

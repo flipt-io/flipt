@@ -8,7 +8,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/server/auth/method/oidc"
+	"go.flipt.io/flipt/internal/server/authn/method/oidc"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"

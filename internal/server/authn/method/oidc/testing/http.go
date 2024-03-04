@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/gateway"
-	"go.flipt.io/flipt/internal/server/auth/method"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 )

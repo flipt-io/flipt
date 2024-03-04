@@ -1,4 +1,4 @@
-package auth_test
+package authn_test
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/server/auth"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authn"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
@@ -36,7 +36,7 @@ func TestActorFromContext(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
 	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &rpcauth.Authentication{Method: rpcauth.Method_METHOD_TOKEN})
 
-	actor := auth.ActorFromContext(ctx)
+	actor := authn.ActorFromContext(ctx)
 
 	assert.Equal(t, ipAddress, actor.IP)
 	assert.Equal(t, authentication, actor.Authentication)
@@ -66,7 +66,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	rpcauth.RegisterAuthenticationServiceServer(server, auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(true)))
+	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(true)))
 
 	go func() {
 		errC <- server.Serve(listener)
@@ -203,7 +203,7 @@ func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
 		store  = memory.NewStore()
-		server = auth.NewServer(logger, store)
+		server = authn.NewServer(logger, store)
 	)
 
 	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))

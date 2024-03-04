@@ -16,15 +16,15 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
-	"go.flipt.io/flipt/internal/server/auth"
-	"go.flipt.io/flipt/internal/server/auth/method"
-	authgithub "go.flipt.io/flipt/internal/server/auth/method/github"
-	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
-	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
-	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
-	authmiddlewarehttp "go.flipt.io/flipt/internal/server/auth/middleware/http"
-	"go.flipt.io/flipt/internal/server/auth/public"
+	"go.flipt.io/flipt/internal/server/authn"
+	"go.flipt.io/flipt/internal/server/authn/method"
+	authgithub "go.flipt.io/flipt/internal/server/authn/method/github"
+	authkubernetes "go.flipt.io/flipt/internal/server/authn/method/kubernetes"
+	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
+	authtoken "go.flipt.io/flipt/internal/server/authn/method/token"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
+	authmiddlewarehttp "go.flipt.io/flipt/internal/server/authn/middleware/http"
+	"go.flipt.io/flipt/internal/server/authn/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storageauthcache "go.flipt.io/flipt/internal/storage/auth/cache"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/auth/memory"
@@ -55,7 +55,7 @@ func authenticationGRPC(
 	if !cfg.Authentication.Enabled() && (cfg.Storage.Type != config.DatabaseStorageType) {
 		return grpcRegisterers{
 			public.NewServer(logger, cfg.Authentication),
-			auth.NewServer(logger, storageauthmemory.NewStore()),
+			authn.NewServer(logger, storageauthmemory.NewStore()),
 		}, nil, shutdown, nil
 	}
 
@@ -79,7 +79,7 @@ func authenticationGRPC(
 		store = storageauthcache.NewStore(store, cacher, logger)
 	}
 
-	authServer := auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled))
+	authServer := authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled))
 
 	var (
 		register = grpcRegisterers{

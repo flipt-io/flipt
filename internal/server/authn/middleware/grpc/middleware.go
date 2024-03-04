@@ -13,7 +13,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/containers"
-	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
+	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
