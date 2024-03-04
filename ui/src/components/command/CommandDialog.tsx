@@ -1,13 +1,21 @@
 import { Dialog } from '@headlessui/react';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Command } from 'cmdk';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { useLocation, useMatches, useNavigate } from 'react-router-dom';
+import {
+  currentNamespaceChanged,
+  selectCurrentNamespace,
+  selectNamespaces
+} from '~/app/namespaces/namespacesSlice';
+import { useAppDispatch } from '~/data/hooks/store';
+import { RouteMatches } from '~/types/Routes';
+import { addNamespaceToPath } from '~/utils/helpers';
 
 interface Item {
   name: string;
-  description: string;
+  description?: string;
   onSelected: () => void;
   keywords: string[];
 }
@@ -30,66 +38,84 @@ function CommandItem(props: CommandItemProps) {
     >
       <div className="flex flex-grow flex-col">
         <span className="font-semibold">{item.name}</span>
-        <span className="text-gray-500 truncate text-xs">
-          {item.description}
-        </span>
+        {item.description && (
+          <span className="text-gray-500 truncate text-xs">
+            {item.description}
+          </span>
+        )}
       </div>
     </Command.Item>
   );
 }
 
+const namespacedItems = [
+  {
+    name: 'Flags',
+    description: 'Manage feature flags',
+    route: '/flags',
+    keywords: ['flags', 'feature']
+  },
+  {
+    name: 'Segments',
+    description: 'Manage segments',
+    route: '/segments',
+    keywords: ['segments']
+  },
+  {
+    name: 'Console',
+    description: 'Debug and test flags and segments',
+    route: '/console',
+    keywords: ['console', 'debug', 'test']
+  }
+];
+
+const items = [
+  {
+    name: 'Settings: General',
+    description: 'General settings',
+    route: '/settings',
+    keywords: ['settings', 'general']
+  },
+  {
+    name: 'Settings: Namespaces',
+    description: 'Manage namespaces',
+    route: '/settings/namespaces',
+    keywords: ['settings', 'namespaces']
+  },
+  {
+    name: 'Settings: API Tokens',
+    description: 'Manage API tokens',
+    route: '/settings/tokens',
+    keywords: ['settings', 'api', 'tokens']
+  },
+  {
+    name: 'Support',
+    description: 'Get help and support',
+    route: '/support',
+    keywords: ['support', 'help']
+  }
+];
+
 export default function CommandMenu() {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const currentNamespace = useSelector(selectCurrentNamespace);
 
-  const namespacedItems = [
-    {
-      name: 'Flags',
-      description: 'Manage feature flags',
-      route: '/flags',
-      keywords: ['flags', 'flags', 'feature']
-    },
-    {
-      name: 'Segments',
-      description: 'Manage segments',
-      route: '/segments',
-      keywords: ['segments', 'segment']
-    },
-    {
-      name: 'Console',
-      description: 'Debug and test flags and segments',
-      route: '/console',
-      keywords: ['console', 'debug', 'test']
-    }
-  ];
+  const dispatch = useAppDispatch();
+  const namespaces = useSelector(selectNamespaces);
 
-  const items = [
-    {
-      name: 'Settings: General',
-      description: 'General settings',
-      route: '/settings',
-      keywords: ['settings', 'general']
-    },
-    {
-      name: 'Settings: Namespaces',
-      description: 'Manage namespaces',
-      route: '/settings/namespaces',
-      keywords: ['settings', 'namespaces']
-    },
-    {
-      name: 'Settings: API Tokens',
-      description: 'Manage API tokens',
-      route: '/settings/tokens',
-      keywords: ['settings', 'api', 'tokens']
-    },
-    {
-      name: 'Support',
-      description: 'Get help and support',
-      route: '/support',
-      keywords: ['support', 'help']
-    }
-  ];
+  const matches = useMatches();
+  // if the current route is namespaced, we want to allow the namespace nav to be selectable
+  const namespaceNavEnabled = matches.some((m) => {
+    let r = m.handle as RouteMatches;
+    return r?.namespaced;
+  });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [pages, setPages] = useState(['']);
+  const page = pages[pages.length - 1];
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
@@ -97,6 +123,9 @@ export default function CommandMenu() {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
       }
     };
 
@@ -108,16 +137,32 @@ export default function CommandMenu() {
     <Dialog
       open={open}
       onClose={setOpen}
-      className="fixed inset-0 z-10 overflow-y-auto p-4 pt-[15vh]"
+      className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]"
     >
-      <Dialog.Overlay className="fixed inset-0 backdrop-blur-[2px]" />
+      <Dialog.Overlay className="bg-gray-500 fixed inset-0 bg-opacity-75" />
       <Dialog.Panel className="bg-white mx-auto max-w-xl transform rounded-xl p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
         <Command
           loop
           className="text-black relative mx-auto flex max-w-2xl flex-col rounded-lg"
+          onKeyDown={(e) => {
+            if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
+              e.preventDefault();
+              setPages((pages) => pages.slice(0, -1));
+            }
+          }}
         >
           <div className="border-slate-500 flex items-center text-lg font-medium">
-            <Command.Input className="text-gray-900 bg-gray-100 w-full rounded-md border-0 px-4 py-2.5 focus:ring-0 sm:text-sm" />
+            <div className="relative w-full">
+              <MagnifyingGlassIcon
+                className="text-gray-400 pointer-events-none absolute left-4 top-3.5 h-5 w-5"
+                aria-hidden="true"
+              />
+              <Command.Input
+                className="text-gray-900 bg-gray-100 h-12 w-full rounded-md border-0 px-4 py-2.5 pl-11 pr-4 focus:ring-0 sm:text-sm"
+                value={search}
+                onValueChange={setSearch}
+              />
+            </div>
           </div>
 
           <Command.List className="flex max-h-96 flex-col overflow-y-auto py-2 text-sm">
@@ -125,33 +170,88 @@ export default function CommandMenu() {
               No results found
             </Command.Empty>
 
-            {namespacedItems.map((item) => (
-              <CommandItem
-                key={item.name}
-                item={{
-                  onSelected: () => {
-                    setOpen(false);
-                    navigate(
-                      `/namespaces/${currentNamespace.key + item.route}`
-                    );
-                  },
-                  ...item
-                }}
-              />
-            ))}
-            <Command.Separator className="border-gray-200 my-2 border-t" />
-            {items.map((item) => (
-              <CommandItem
-                key={item.name}
-                item={{
-                  onSelected: () => {
-                    setOpen(false);
-                    navigate(item.route);
-                  },
-                  ...item
-                }}
-              />
-            ))}
+            {page === 'namespaces' && (
+              <>
+                <Command.Item
+                  disabled={true}
+                  className="text-gray-900 px-4 py-2.5 font-semibold"
+                >
+                  Switch to Namespace
+                </Command.Item>
+                {namespaces.map((namespace) => (
+                  <CommandItem
+                    key={namespace.key}
+                    item={{
+                      name: namespace.key,
+                      description: namespace.description,
+                      onSelected: () => {
+                        setOpen(false);
+                        dispatch(currentNamespaceChanged(namespace));
+                        // navigate to the current location.path with the new namespace prependend
+                        // e.g. /namespaces/default/segments -> /namespaces/namespaceKey/segments
+                        const newPath = addNamespaceToPath(
+                          location.pathname,
+                          namespace.key
+                        );
+                        navigate(newPath);
+                        setSearch('');
+                        setPages((pages) => pages.slice(0, -1));
+                      },
+                      keywords: [namespace.key]
+                    }}
+                  />
+                ))}
+              </>
+            )}
+
+            {!page && (
+              <>
+                {namespacedItems.map((item) => (
+                  <CommandItem
+                    key={item.name}
+                    item={{
+                      onSelected: () => {
+                        setOpen(false);
+                        setSearch('');
+                        navigate(
+                          `/namespaces/${currentNamespace.key + item.route}`
+                        );
+                      },
+                      ...item
+                    }}
+                  />
+                ))}
+
+                {namespaceNavEnabled && (
+                  <CommandItem
+                    item={{
+                      name: 'Switch Namespaces',
+                      description: 'Switch to a different namespace',
+                      onSelected: () => {
+                        setSearch('');
+                        setPages([...pages, 'namespaces'] as string[]);
+                      },
+                      keywords: ['namespaces', 'switch']
+                    }}
+                  />
+                )}
+
+                <Command.Separator className="border-gray-200 my-2 border-t" />
+                {items.map((item) => (
+                  <CommandItem
+                    key={item.name}
+                    item={{
+                      onSelected: () => {
+                        setOpen(false);
+                        setSearch('');
+                        navigate(item.route);
+                      },
+                      ...item
+                    }}
+                  />
+                ))}
+              </>
+            )}
           </Command.List>
         </Command>
       </Dialog.Panel>

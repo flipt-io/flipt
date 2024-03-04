@@ -10,6 +10,7 @@ import { NavLink, useMatches } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { cls } from '~/utils/helpers';
 import NamespaceListbox from './namespaces/NamespaceListbox';
+import { RouteMatches } from '~/types/Routes';
 
 type Icon = (
   props: React.PropsWithoutRef<React.SVGProps<SVGSVGElement>>
@@ -57,22 +58,17 @@ type NavProps = {
   setSidebarOpen?: (open: boolean) => void;
 };
 
-// allows us to add custom properties to the route object
-interface RouteMatches {
-  namespaced: boolean;
-}
-
 export default function Nav(props: NavProps) {
   const { className, sidebarOpen, setSidebarOpen } = props;
 
-  let matches = useMatches();
+  const matches = useMatches();
   let path = '';
 
   const namespace = useSelector(selectCurrentNamespace);
   path = `/namespaces/${namespace?.key}`;
 
   // if the current route is namespaced, we want to allow the namespace nav to be selectable
-  let namespaceNavEnabled = matches.some((m) => {
+  const namespaceNavEnabled = matches.some((m) => {
     let r = m.handle as RouteMatches;
     return r?.namespaced;
   });
