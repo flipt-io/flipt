@@ -10,7 +10,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"go.flipt.io/flipt/internal/storage"
-	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"

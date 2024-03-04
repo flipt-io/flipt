@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
-	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

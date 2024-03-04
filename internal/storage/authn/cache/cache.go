@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"go.flipt.io/flipt/internal/cache"
-	"go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/internal/storage/authn"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
@@ -13,7 +13,7 @@ import (
 )
 
 type Store struct {
-	auth.Store
+	authn.Store
 	cacher cache.Cacher
 	logger *zap.Logger
 }
@@ -26,7 +26,7 @@ const (
 	authIDCacheKeyFmt = "s:a:i:%s"
 )
 
-func NewStore(store auth.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
+func NewStore(store authn.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
 	return &Store{
 		Store:  store,
 		cacher: cacher,

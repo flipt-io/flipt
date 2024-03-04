@@ -10,7 +10,7 @@ import (
 	"github.com/gofrs/uuid"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/internal/storage/authn"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -43,7 +43,7 @@ func NewStore(opts ...Option) *Store {
 		generateID: func() string {
 			return uuid.Must(uuid.NewV4()).String()
 		},
-		generateToken: auth.GenerateRandomToken,
+		generateToken: authn.GenerateRandomToken,
 	}
 
 	for _, opt := range opts {
@@ -83,7 +83,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 
 // CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
 // string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
-func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+func (s *Store) CreateAuthentication(_ context.Context, r *authn.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	if r.ExpiresAt != nil && !r.ExpiresAt.IsValid() {
 		return "", nil, errors.ErrInvalidf("invalid expiry time: %v", r.ExpiresAt)
 	}
@@ -106,7 +106,7 @@ func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthentica
 		clientToken = s.generateToken()
 	}
 
-	hashedToken, err := auth.HashClientToken(clientToken)
+	hashedToken, err := authn.HashClientToken(clientToken)
 	if err != nil {
 		return "", nil, fmt.Errorf("creating authentication: %w", err)
 	}
@@ -122,7 +122,7 @@ func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthentica
 // GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
 // store using the provided clientToken string as the key.
 func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*rpcauth.Authentication, error) {
-	hashedToken, err := auth.HashClientToken(clientToken)
+	hashedToken, err := authn.HashClientToken(clientToken)
 	if err != nil {
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
 	}
@@ -150,7 +150,7 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.
 	return authentication, nil
 }
 
-func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[auth.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[authn.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
 	var set storage.ResultSet[*rpcauth.Authentication]
 
 	// adjust the query parameters within normal bounds
@@ -195,7 +195,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	return set, nil
 }
 
-func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthenticationsRequest) error {
+func (s *Store) DeleteAuthentications(_ context.Context, req *authn.DeleteAuthenticationsRequest) error {
 	if err := req.Valid(); err != nil {
 		return fmt.Errorf("deleting authentications: %w", err)
 	}

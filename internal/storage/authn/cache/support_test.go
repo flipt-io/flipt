@@ -6,7 +6,7 @@ import (
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/internal/storage/authn"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -66,7 +66,7 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
-var _ auth.Store = &storeMock{}
+var _ authn.Store = &storeMock{}
 
 type storeMock struct {
 	*common.StoreMock
@@ -76,7 +76,7 @@ func (m *storeMock) String() string {
 	return "mock"
 }
 
-func (m *storeMock) CreateAuthentication(ctx context.Context, r *auth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+func (m *storeMock) CreateAuthentication(ctx context.Context, r *authn.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	args := m.Called(ctx, r)
 	return args.String(0), args.Get(1).(*rpcauth.Authentication), args.Error(2)
 }
@@ -91,13 +91,13 @@ func (m *storeMock) GetAuthenticationByID(ctx context.Context, id string) (*rpca
 	return args.Get(0).(*rpcauth.Authentication), args.Error(1)
 }
 
-func (m *storeMock) ListAuthentications(ctx context.Context, r *storage.ListRequest[auth.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
+func (m *storeMock) ListAuthentications(ctx context.Context, r *storage.ListRequest[authn.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
 	args := m.Called(ctx, r)
 	return args.Get(0).(storage.ResultSet[*rpcauth.Authentication]), args.Error(1)
 
 }
 
-func (m *storeMock) DeleteAuthentications(ctx context.Context, r *auth.DeleteAuthenticationsRequest) error {
+func (m *storeMock) DeleteAuthentications(ctx context.Context, r *authn.DeleteAuthenticationsRequest) error {
 	args := m.Called(ctx, r)
 	return args.Error(0)
 }
