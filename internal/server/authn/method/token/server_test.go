@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/storage/auth/memory"
+	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"

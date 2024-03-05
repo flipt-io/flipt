@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/storage/auth/memory"
+	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/oauth2"
