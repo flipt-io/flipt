@@ -27,6 +27,7 @@ import {
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesSlice';
+import CommandDialog from '~/components/command/CommandDialog';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -80,6 +81,7 @@ function InnerLayout() {
           </div>
         </main>
         <Footer />
+        <CommandDialog />
       </div>
     </>
   );
