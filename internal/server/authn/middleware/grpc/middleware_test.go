@@ -113,10 +113,10 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				Audiences: []string{"flipt"},
 			},
 			expectedMetadata: map[string]string{
-				"io.flipt.authn.jwt.sub":     "sub",
-				"io.flipt.authn.jwt.email":   "email",
-				"io.flipt.authn.jwt.picture": "image",
-				"io.flipt.authn.jwt.name":    "name",
+				"io.flipt.auth.jwt.sub":     "sub",
+				"io.flipt.auth.jwt.email":   "email",
+				"io.flipt.auth.jwt.picture": "image",
+				"io.flipt.auth.jwt.name":    "name",
 			},
 		},
 		{
@@ -432,7 +432,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 		&authn.CreateAuthenticationRequest{
 			Method: authrpc.Method_METHOD_OIDC,
 			Metadata: map[string]string{
-				"io.flipt.authn.oidc.email": "foo@flipt.io",
+				"io.flipt.auth.oidc.email": "foo@flipt.io",
 			},
 		},
 	)
@@ -597,7 +597,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req: &evaluation.EvaluationRequest{
@@ -610,7 +610,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req: &evaluation.BatchEvaluationRequest{
@@ -630,7 +630,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "default",
+					"io.flipt.auth.token.namespace": "default",
 				},
 			},
 			req: &evaluation.BatchEvaluationRequest{
@@ -646,7 +646,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req: &struct{}{},
@@ -660,7 +660,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_OIDC,
 				Metadata: map[string]string{
-					"io.flipt.authn.github.sub": "foo",
+					"io.flipt.auth.github.sub": "foo",
 				},
 			},
 			req: &evaluation.EvaluationRequest{
@@ -673,7 +673,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "bar",
+					"io.flipt.auth.token.namespace": "bar",
 				},
 			},
 			req: &evaluation.EvaluationRequest{
@@ -696,7 +696,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "",
+					"io.flipt.auth.token.namespace": "",
 				},
 			},
 			req: &evaluation.EvaluationRequest{
@@ -709,7 +709,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req:         &evaluation.EvaluationRequest{},
@@ -720,7 +720,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req:         &evaluation.BatchEvaluationRequest{},
@@ -731,7 +731,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req: &evaluation.BatchEvaluationRequest{
@@ -751,7 +751,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req:         &struct{}{},
@@ -762,7 +762,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			authReq: &authn.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
-					"io.flipt.authn.token.namespace": "foo",
+					"io.flipt.auth.token.namespace": "foo",
 				},
 			},
 			req: &evaluation.EvaluationRequest{
