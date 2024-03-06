@@ -8,7 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
-	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"

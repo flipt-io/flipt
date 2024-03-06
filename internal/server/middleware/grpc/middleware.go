@@ -13,7 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/authn"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	fauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -432,7 +432,7 @@ func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker
 			return resp, err
 		}
 
-		actor := auth.ActorFromContext(ctx)
+		actor := authn.ActorFromContext(ctx)
 
 		var event *audit.Event
 
