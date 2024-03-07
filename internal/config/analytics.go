@@ -20,6 +20,14 @@ type AnalyticsStorageConfig struct {
 	Clickhouse ClickhouseConfig `json:"clickhouse,omitempty" mapstructure:"clickhouse" yaml:"clickhouse,omitempty"`
 }
 
+func (a *AnalyticsStorageConfig) String() string {
+	// TODO: make this more dynamic if we add more storage options
+	if a.Clickhouse.Enabled {
+		return "clickhouse"
+	}
+	return ""
+}
+
 // ClickhouseConfig defines the connection details for connecting Flipt to Clickhouse.
 type ClickhouseConfig struct {
 	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
