@@ -5,11 +5,15 @@ import { expireAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethodGithubMetadata } from '~/types/auth/Github';
+import { IAuthMethodJWTMetadata } from '~/types/auth/JWT';
 import { IAuthMethodOIDCMetadata } from '~/types/auth/OIDC';
 import { cls } from '~/utils/helpers';
 
 type UserProfileProps = {
-  metadata?: IAuthMethodOIDCMetadata | IAuthMethodGithubMetadata;
+  metadata?:
+    | IAuthMethodOIDCMetadata
+    | IAuthMethodGithubMetadata
+    | IAuthMethodJWTMetadata;
 };
 
 export default function UserProfile(props: UserProfileProps) {
@@ -39,6 +43,11 @@ export default function UserProfile(props: UserProfileProps) {
       }
       if (metadata['io.flipt.auth.oidc.preferred_username']) {
         login = metadata['io.flipt.auth.oidc.preferred_username'];
+      }
+    } else if ('io.flipt.auth.jwt.name' in metadata) {
+      name = metadata['io.flipt.auth.jwt.name'] ?? 'User';
+      if (metadata['io.flipt.auth.jwt.picture']) {
+        imgURL = metadata['io.flipt.auth.jwt.picture'];
       }
     }
   }

@@ -11,8 +11,8 @@ import (
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
-	"go.flipt.io/flipt/internal/server/auth/method/token"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authn/method/token"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	servereval "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
@@ -2227,7 +2227,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &authrpc.Authentication{
 		Method: authrpc.Method_METHOD_OIDC,
 		Metadata: map[string]string{
-			"email": "example@flipt.com",
+			"io.flipt.auth.oidc.email": "example@flipt.com",
 		},
 	})
 
@@ -2238,8 +2238,8 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	span.End()
 
 	event := exporterSpy.GetEvents()[0]
-	assert.Equal(t, event.Metadata.Actor["email"], "example@flipt.com")
-	assert.Equal(t, event.Metadata.Actor["authentication"], "oidc")
+	assert.Equal(t, "example@flipt.com", event.Metadata.Actor.Email)
+	assert.Equal(t, "oidc", event.Metadata.Actor.Authentication)
 }
 
 func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {

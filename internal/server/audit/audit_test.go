@@ -70,9 +70,9 @@ func TestSinkSpanExporter(t *testing.T) {
 			e := NewEvent(
 				c.fType,
 				c.action,
-				map[string]string{
-					"authentication": "token",
-					"ip":             "127.0.0.1",
+				&Actor{
+					Authentication: "token",
+					IP:             "127.0.0.1",
 				}, &Flag{
 					Key:         "this-flag",
 					Name:        "this-flag",

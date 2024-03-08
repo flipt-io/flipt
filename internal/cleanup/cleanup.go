@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
-	authstorage "go.flipt.io/flipt/internal/storage/auth"
+	authstorage "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/oplock"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
