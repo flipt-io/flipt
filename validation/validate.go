@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"strconv"
 
 	"cuelang.org/go/cue"
@@ -12,7 +13,14 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	cueerrors "cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/yaml"
+	"github.com/gobwas/glob"
 	goyaml "gopkg.in/yaml.v3"
+)
+
+const (
+	// IndexFileName is the name of the index file on disk
+	IndexFileName = ".flipt.yml"
+	indexVersion  = "1.0"
 )
 
 //go:embed flipt.cue
@@ -202,4 +210,148 @@ func (v FeaturesValidator) Validate(file string, reader io.Reader) error {
 	}
 
 	return nil
+}
+
+// ValidateFilesFromDir will walk an FS and find relevant files to
+// validate from the cue validation standpoint.
+func (v FeaturesValidator) ValidateFilesFromDir(src fs.FS) error {
+	idx, err := openFliptIndex(src)
+	if err != nil {
+		return err
+	}
+
+	if err := fs.WalkDir(src, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		if idx.match(path) {
+			fi, err := src.Open(path)
+			if err != nil {
+				return err
+			}
+
+			err = v.Validate(path, fi)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// fliptIndex is a set of glob include and exclude patterns
+// which can be used to filter a set of provided paths.
+type fliptIndex struct {
+	includes []glob.Glob
+	excludes []glob.Glob
+}
+
+// fliptIndexSource represents the structure of a well-known file ".flipt.yml"
+// at the root of an FS.
+type fliptIndexSource struct {
+	Version string   `yaml:"version,omitempty"`
+	Include []string `yaml:"include,omitempty"`
+	Exclude []string `yaml:"exclude,omitempty"`
+}
+
+// openFliptIndex attempts to retrieve a FliptIndex from the provided source
+// fs.FS implementation. If the index cannot be found then it returns the
+// instance returned by defaultFliptIndex().
+func openFliptIndex(src fs.FS) (*fliptIndex, error) {
+	// Read index file
+	fi, err := src.Open(IndexFileName)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return nil, err
+		}
+
+		return newFliptIndex(defaultFliptIndex())
+	}
+	defer fi.Close()
+
+	idx, err := parseFliptIndex(fi)
+	if err != nil {
+		return nil, err
+	}
+
+	return newFliptIndex(idx)
+}
+
+func defaultFliptIndex() fliptIndexSource {
+	return fliptIndexSource{
+		Version: indexVersion,
+		Include: []string{
+			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
+		},
+	}
+}
+
+// parseFliptIndex parses the provided Reader into a FliptIndex.
+// It sets the version to the default version if not explicitly set
+// in the reader contents.
+func parseFliptIndex(r io.Reader) (fliptIndexSource, error) {
+	idx := fliptIndexSource{Version: indexVersion}
+	if derr := goyaml.NewDecoder(r).Decode(&idx); derr != nil {
+		return idx, derr
+	}
+
+	return idx, nil
+}
+
+// Match returns true if the path should be kept because it matches
+// the underlying index filter
+func (i *fliptIndex) match(path string) bool {
+	for _, include := range i.includes {
+		if include.Match(path) {
+			var excluded bool
+			for _, exclude := range i.excludes {
+				if excluded = exclude.Match(path); excluded {
+					break
+				}
+			}
+
+			if !excluded {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// newFliptIndex takes an index definition, parses the defined globs
+// and returns an instance of FliptIndex.
+// It returns err != nil if any of the defined globs cannot be parsed.
+func newFliptIndex(index fliptIndexSource) (*fliptIndex, error) {
+	filter := &fliptIndex{}
+
+	for _, g := range index.Include {
+		glob, err := glob.Compile(g)
+		if err != nil {
+			return nil, fmt.Errorf("compiling include glob: %w", err)
+		}
+
+		filter.includes = append(filter.includes, glob)
+	}
+
+	for _, g := range index.Exclude {
+		glob, err := glob.Compile(g)
+		if err != nil {
+			return nil, fmt.Errorf("compiling exclude glob: %w", err)
+		}
+
+		filter.excludes = append(filter.excludes, glob)
+	}
+
+	return filter, nil
 }
