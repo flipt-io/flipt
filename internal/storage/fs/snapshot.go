@@ -15,7 +15,7 @@ import (
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/cue"
+	"go.flipt.io/flipt/validation"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -66,10 +66,10 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 }
 
 type SnapshotOption struct {
-	validatorOption []cue.FeaturesValidatorOption
+	validatorOption []validation.FeaturesValidatorOption
 }
 
-func WithValidatorOption(opts ...cue.FeaturesValidatorOption) containers.Option[SnapshotOption] {
+func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
 		so.validatorOption = opts
 	}
@@ -178,7 +178,7 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 
 // documentsFromFile parses and validates a document from a single fs.File instance
 func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error) {
-	validator, err := cue.NewFeaturesValidator(opts.validatorOption...)
+	validator, err := validation.NewFeaturesValidator(opts.validatorOption...)
 	if err != nil {
 		return nil, err
 	}

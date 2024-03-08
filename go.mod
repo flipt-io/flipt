@@ -257,6 +257,7 @@ replace (
 )
 
 replace (
+  go.flipt.io/flipt/validation => ./validation/
 	go.flipt.io/flipt/errors => ./errors/
 	go.flipt.io/flipt/rpc/flipt => ./rpc/flipt/
 	go.flipt.io/flipt/sdk/go => ./sdk/go/

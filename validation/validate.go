@@ -1,4 +1,4 @@
-package cue
+package validation
 
 import (
 	_ "embed"
