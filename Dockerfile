@@ -13,6 +13,7 @@ COPY go.sum .
 COPY ./errors ./errors
 COPY ./rpc/flipt ./rpc/flipt
 COPY ./sdk ./sdk
+COPY ./validation ./validation
 
 RUN go mod download
 
