@@ -13,6 +13,8 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	cueerrors "cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/yaml"
+	"github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/util"
 	"github.com/gobwas/glob"
 	goyaml "gopkg.in/yaml.v3"
 )
@@ -212,9 +214,64 @@ func (v FeaturesValidator) Validate(file string, reader io.Reader) error {
 	return nil
 }
 
-// ValidateFilesFromDir will walk an FS and find relevant files to
-// validate from the cue validation standpoint.
-func (v FeaturesValidator) ValidateFilesFromDir(src fs.FS) error {
+// ValidateFilesFromBillyFS will walk an billy.Filesystem and find relevant files to
+// validate.
+func (v FeaturesValidator) ValidateFilesFromBillyFS(src billy.Filesystem) error {
+	idx, err := newFliptIndex(defaultFliptIndex())
+	if err != nil {
+		return err
+	}
+
+	fi, err := src.Open(IndexFileName)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+	} else {
+		parsed, err := parseFliptIndex(fi)
+		if err != nil {
+			return err
+		}
+
+		idx, err = newFliptIndex(parsed)
+		if err != nil {
+			return err
+		}
+		defer fi.Close()
+	}
+
+	if err := util.Walk(src, ".", func(path string, fi fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if fi.IsDir() {
+			return nil
+		}
+
+		if idx.match(path) {
+			fi, err := src.Open(path)
+			if err != nil {
+				return err
+			}
+
+			err = v.Validate(path, fi)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidateFilesFromFS will walk an FS and find relevant files to
+// validate.
+func (v FeaturesValidator) ValidateFilesFromFS(src fs.FS) error {
 	idx, err := openFliptIndex(src)
 	if err != nil {
 		return err
@@ -308,7 +365,7 @@ func parseFliptIndex(r io.Reader) (fliptIndexSource, error) {
 	return idx, nil
 }
 
-// Match returns true if the path should be kept because it matches
+// match returns true if the path should be kept because it matches
 // the underlying index filter
 func (i *fliptIndex) match(path string) bool {
 	for _, include := range i.includes {
