@@ -13,6 +13,7 @@ import { BarGraph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
+import { selectConfig } from '~/app/meta/metaSlice';
 
 type AnalyticsProps = {
   flag: IFlag;
@@ -67,6 +68,8 @@ export default function Analytics() {
   const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
+  const config = useSelector(selectConfig);
+
   const d = new Date();
   d.setSeconds(0);
   const nowISO = parseISO(d.toISOString());
@@ -88,7 +91,8 @@ export default function Analytics() {
       to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
     },
     {
-      pollingInterval
+      pollingInterval,
+      skip: !config.analyticsEnabled
     }
   );
 
@@ -96,8 +100,7 @@ export default function Analytics() {
     const fetchError = getFlagEvaluationCount.error as FetchBaseQueryError;
     return {
       timestamps: getFlagEvaluationCount.data?.timestamps,
-      values: getFlagEvaluationCount.data?.values,
-      unavailable: fetchError?.status === 501
+      values: getFlagEvaluationCount.data?.values
     };
   }, [getFlagEvaluationCount]);
 
@@ -113,7 +116,7 @@ export default function Analytics() {
 
   return (
     <div className="mx-12 my-12">
-      {!flagEvaluationCount.unavailable ? (
+      {config.analyticsEnabled ? (
         <>
           <>
             <Formik
