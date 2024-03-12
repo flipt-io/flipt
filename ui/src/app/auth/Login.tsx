@@ -6,7 +6,7 @@ import {
   IconDefinition
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
@@ -75,9 +75,12 @@ function InnerLoginButtons() {
     isLoading,
     error
   } = useListAuthProvidersQuery();
-  if (error) {
-    setError(error);
-  }
+
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
 
   const providers = useMemo(() => {
     return (listAuthProviders?.methods || [])
