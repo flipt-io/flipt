@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
-import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
 import { addMinutes, format, parseISO } from 'date-fns';
@@ -97,7 +96,6 @@ export default function Analytics() {
   );
 
   const flagEvaluationCount = useMemo(() => {
-    const fetchError = getFlagEvaluationCount.error as FetchBaseQueryError;
     return {
       timestamps: getFlagEvaluationCount.data?.timestamps,
       values: getFlagEvaluationCount.data?.values
