@@ -4,7 +4,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -111,9 +111,11 @@ export default function Segment() {
 
   const constraintFormRef = useRef(null);
 
-  if (isError) {
-    setError(error);
-  }
+  useEffect(() => {
+    if (isError) {
+      setError(error);
+    }
+  }, [error, isError, setError]);
 
   if (isLoading || !segment) {
     return <Loading />;
