@@ -30,15 +30,13 @@ export default function SessionProvider({
     const clearSessionIfNecessary = async () => {
       const config = await getConfig();
       if (session && session.required === false) {
-        let authEnabled = false;
-        if (
-          config.authentication.methods.oidc.enabled ||
-          config.authentication.methods.github.enabled ||
-          config.authentication.methods.jwt.enabled
-        ) {
-          authEnabled = true;
+        if (config.authentication.required) {
+          clearSession();
         }
-        if (config.authentication.required === true || authEnabled) {
+      }
+
+      if (session && session.required === true) {
+        if (!config.authentication.required) {
           clearSession();
         }
       }
