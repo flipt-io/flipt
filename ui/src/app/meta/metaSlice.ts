@@ -28,7 +28,8 @@ const initialState: IMetaSlice = {
     },
     ui: {
       defaultTheme: Theme.SYSTEM
-    }
+    },
+    analyticsEnabled: false
   }
 };
 
@@ -47,6 +48,8 @@ export const metaSlice = createSlice({
       .addCase(fetchConfigAsync.fulfilled, (state, action) => {
         state.config = action.payload;
         state.config.status = LoadingStatus.SUCCEEDED;
+        state.config.analyticsEnabled =
+          action.payload.analytics.storage.clickhouse.enabled ?? false;
         if (action.payload.storage?.readOnly === undefined) {
           state.config.storage.readOnly =
             action.payload.storage?.type &&
