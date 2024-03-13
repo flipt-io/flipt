@@ -29,16 +29,8 @@ export default function SessionProvider({
   useEffect(() => {
     const clearSessionIfNecessary = async () => {
       const config = await getConfig();
-      if (session && session.required === false) {
-        if (config.authentication.required) {
-          clearSession();
-        }
-      }
-
-      if (session && session.required === true) {
-        if (!config.authentication.required) {
-          clearSession();
-        }
+      if (session && session.required !== config.authentication.required) {
+        clearSession();
       }
     };
 
