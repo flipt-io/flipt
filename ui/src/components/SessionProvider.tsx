@@ -1,5 +1,5 @@
 import { createContext, useEffect, useMemo } from 'react';
-import { getAuthSelf, getInfo } from '~/data/api';
+import { getAuthSelf, getConfig, getInfo } from '~/data/api';
 import { useLocalStorage } from '~/data/hooks/storage';
 import { IAuthGithubInternal } from '~/types/auth/Github';
 import { IAuthJWTInternal } from '~/types/auth/JWT';
@@ -27,8 +27,22 @@ export default function SessionProvider({
   const [session, setSession, clearSession] = useLocalStorage('session', null);
 
   useEffect(() => {
+    const clearSessionIfNecessary = async () => {
+      const config = await getConfig();
+      if (session && session.required !== config.authentication.required) {
+        clearSession();
+      }
+    };
+
     const loadSession = async () => {
-      let session = {
+      if (session) {
+        clearSessionIfNecessary();
+        if (session) {
+          return;
+        }
+      }
+
+      let newSession = {
         required: true,
         authenticated: false
       } as Session;
@@ -46,7 +60,7 @@ export default function SessionProvider({
       try {
         const self: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal =
           await getAuthSelf();
-        session = {
+        newSession = {
           authenticated: true,
           required: true,
           self: self
@@ -54,17 +68,18 @@ export default function SessionProvider({
       } catch (err) {
         // if we can't get the self info and we got here then auth is likely not enabled
         // so we can just return
-        session = {
+        newSession = {
           authenticated: false,
           required: false
         };
       } finally {
-        if (session) {
-          setSession(session);
+        if (newSession) {
+          setSession(newSession);
         }
       }
     };
-    if (!session) loadSession();
+
+    loadSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
