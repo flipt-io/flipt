@@ -239,34 +239,36 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 						for _, s := range r.Segment.Segments {
 							// optimization: reuse segment if already seen
 							ss, ok := segments[s.SegmentKey]
-							if !ok {
-								ss := &evaluation.EvaluationSegment{
-									Key:       s.SegmentKey,
-									MatchType: toEvaluationSegmentMatchType(s.MatchType),
-								}
-
-								for _, c := range s.Constraints {
-									typ := toEvaluationConstraintComparisonType(c.Type)
-									// see: https://github.com/flipt-io/flipt/pull/2791
-									if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-										if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-											srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
-											typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
-										}
-									}
-
-									ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
-										Id:       c.ID,
-										Type:     typ,
-										Property: c.Property,
-										Operator: c.Operator,
-										Value:    c.Value,
-									})
-								}
-
-								segments[s.SegmentKey] = ss
+							if ok {
+								segment.Segments = append(segment.Segments, ss)
+								continue
 							}
 
+							ss = &evaluation.EvaluationSegment{
+								Key:       s.SegmentKey,
+								MatchType: toEvaluationSegmentMatchType(s.MatchType),
+							}
+
+							for _, c := range s.Constraints {
+								typ := toEvaluationConstraintComparisonType(c.Type)
+								// see: https://github.com/flipt-io/flipt/pull/2791
+								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
+										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+									}
+								}
+
+								ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
+									Id:       c.ID,
+									Type:     typ,
+									Property: c.Property,
+									Operator: c.Operator,
+									Value:    c.Value,
+								})
+							}
+
+							segments[s.SegmentKey] = ss
 							segment.Segments = append(segment.Segments, ss)
 						}
 
