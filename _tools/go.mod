@@ -9,7 +9,7 @@ require (
 	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.18.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
