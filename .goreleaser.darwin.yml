@@ -20,6 +20,7 @@ builds:
     goos:
       - darwin
     goarch:
+      - amd64
       - arm64
     flags:
       - -tags=assets,netgo
