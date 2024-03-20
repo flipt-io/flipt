@@ -145,6 +145,7 @@ export default function Console() {
     }
     const uri =
       window.location.origin +
+      '/' +
       evaluateURL +
       (selectedFlag?.type === FlagType.BOOLEAN ? '/boolean' : '/variant');
 
