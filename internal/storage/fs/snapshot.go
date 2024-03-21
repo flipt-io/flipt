@@ -13,12 +13,12 @@ import (
 	"strconv"
 
 	"github.com/gofrs/uuid"
+	"go.flipt.io/flipt/core/validation"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/validation"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v3"

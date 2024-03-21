@@ -1,9 +1,11 @@
-module go.flipt.io/flipt/validation
+module go.flipt.io/flipt/core
 
 go 1.21
 
 require (
 	cuelang.org/go v0.7.1
+	github.com/go-git/go-billy/v5 v5.5.0
+	github.com/gobwas/glob v0.2.3
 	github.com/stretchr/testify v1.9.0
 	gopkg.in/yaml.v3 v3.0.1
 )

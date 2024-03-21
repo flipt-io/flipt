@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/validation"
 	"go.flipt.io/flipt/internal/storage/fs"
 )
 
