@@ -30,6 +30,7 @@ export interface IConfig {
   status: LoadingStatus;
   storage: IStorage;
   ui: IUI;
+  analyticsEnabled: boolean;
 }
 
 export enum StorageType {

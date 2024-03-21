@@ -5,7 +5,7 @@ import {
 } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -71,9 +71,11 @@ export default function Flag() {
   const [deleteFlag] = useDeleteFlagMutation();
   const [copyFlag] = useCopyFlagMutation();
 
-  if (isError) {
-    setError(error);
-  }
+  useEffect(() => {
+    if (isError) {
+      setError(error);
+    }
+  }, [error, isError, setError]);
 
   if (isLoading || !flag) {
     return <Loading />;
