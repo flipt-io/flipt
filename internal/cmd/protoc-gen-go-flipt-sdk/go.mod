@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.33.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
