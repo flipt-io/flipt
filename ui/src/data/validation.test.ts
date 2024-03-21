@@ -19,7 +19,6 @@ describe('contextValidation', () => {
   });
 });
 
-
 describe('keyWithDotValidation', () => {
   it('should accept key with dot', () => {
     const result = keyWithDotValidation.isValidSync('2.0');

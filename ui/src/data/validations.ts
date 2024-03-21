@@ -10,7 +10,7 @@ export const keyValidation = Yup.string()
 export const keyWithDotValidation = Yup.string()
   .required('Required')
   .matches(
-    /^[-_,A-Za-z0-9\.]+$/,
+    /^[-_,A-Za-z0-9.]+$/,
     'Only letters, numbers, hypens, dots and underscores allowed'
   );
 
