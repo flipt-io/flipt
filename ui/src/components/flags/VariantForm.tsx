@@ -16,11 +16,11 @@ import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { jsonValidation, keyValidation } from '~/data/validations';
+import { jsonValidation, keyWithDotValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
 
 const variantValidationSchema = Yup.object({
-  key: keyValidation,
+  key: keyWithDotValidation,
   attachment: jsonValidation
 });
 
