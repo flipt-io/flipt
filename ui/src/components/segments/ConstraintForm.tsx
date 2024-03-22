@@ -16,6 +16,7 @@ import {
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
+import Tags from '~/components/forms/Tags';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
@@ -125,6 +126,32 @@ function ConstraintValueInput(props: ConstraintInputProps) {
       </div>
       <div className="sm:col-span-2">
         <Input {...props} {...field} />
+      </div>
+    </div>
+  );
+}
+
+function ConstraintValueArrayInput(props: ConstraintInputProps) {
+  const [field] = useField({
+    ...props,
+    validate: (value) => {
+      // value is required only if shown
+      return value.length > 0 ? undefined : 'Value is required';
+    }
+  });
+
+  return (
+    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+      <div>
+        <label
+          htmlFor="value"
+          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+        >
+          Values
+        </label>
+      </div>
+      <div className="sm:col-span-2">
+        <Tags {...props} {...field} />
       </div>
     </div>
   );
@@ -293,9 +320,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const getValuePlaceholder = (type: ConstraintType, operator: string) => {
     if (['isoneof', 'isnotoneof'].includes(operator)) {
       const placeholder = {
-        [ConstraintType.STRING]: 'Eg: ["value1", "value2"]',
-        [ConstraintType.NUMBER]: 'Eg: [1, 2, 3]',
-        [ConstraintType.ENTITY_ID]: 'Eg: ["value1", "value2"]'
+        [ConstraintType.STRING]: 'Eg: Any text',
+        [ConstraintType.NUMBER]: 'Eg: 200',
+        [ConstraintType.ENTITY_ID]: 'Eg: Any text'
       }[type as string];
       return placeholder ?? '';
     }
@@ -306,6 +333,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     }[type as string];
     return placeholder ?? '';
   };
+
+  const getConstraintTypeDataFormat = (type: ConstraintType): string =>
+    type == ConstraintType.NUMBER ? 'number' : 'text';
 
   return (
     <Formik
@@ -440,6 +470,17 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               {hasValue &&
                 (formik.values.type === ConstraintType.DATETIME ? (
                   <ConstraintValueDateTimeInput name="value" id="value" />
+                ) : formik.values.operator == 'isoneof' ||
+                  formik.values.operator == 'isnotoneof' ? (
+                  <ConstraintValueArrayInput
+                    name="value"
+                    id="value"
+                    type={getConstraintTypeDataFormat(formik.values.type)}
+                    placeholder={getValuePlaceholder(
+                      formik.values.type,
+                      formik.values.operator
+                    )}
+                  />
                 ) : (
                   <ConstraintValueInput
                     name="value"
