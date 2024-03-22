@@ -74,7 +74,7 @@ export default function Tags(props: TagsProps) {
             {tags.map((tag, i) => (
               <li
                 key={tag}
-                className="text-gray-600 bg-gray-100 flex flex-row items-center justify-center rounded px-2 py-1 align-text-top text-sm font-medium"
+                className="text-gray-900 bg-gray-200 flex flex-row items-center justify-center rounded px-2 py-0.5 text-sm"
               >
                 <span className="max-w-32 truncate" title={String(tag)}>
                   {tag}
