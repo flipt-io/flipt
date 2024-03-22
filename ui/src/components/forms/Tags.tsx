@@ -109,7 +109,7 @@ export default function Tags(props: TagsProps) {
             }}
           />
           <button
-            className="z-1 border-1 bg-white text-gray-500 border-violet-300 !absolute right-1 top-1 select-none rounded border px-4 py-2 text-center align-middle text-xs font-bold"
+            className="z-1 border-1 bg-white text-gray-500 border-violet-300 !absolute right-1 top-1 select-none rounded border px-4 py-1.5 text-center align-middle text-xs font-bold"
             type="button"
             onClick={addTag}
           >
