@@ -79,6 +79,8 @@ type ConstraintInputProps = {
   placeholder?: string;
 };
 
+type ConstraintArrayInputProps = ConstraintInputProps & { type?: string };
+
 type ConstraintOperatorSelectProps = ConstraintInputProps & {
   onChange: (e: React.ChangeEvent<any>) => void;
   type: string;
@@ -131,12 +133,12 @@ function ConstraintValueInput(props: ConstraintInputProps) {
   );
 }
 
-function ConstraintValueArrayInput(props: ConstraintInputProps) {
+function ConstraintValueArrayInput(props: ConstraintArrayInputProps) {
   const [field] = useField({
     ...props,
     validate: (value) => {
       // value is required only if shown
-      return value.length > 0 ? undefined : 'Value is required';
+      return value ? undefined : 'Value is required';
     }
   });
 

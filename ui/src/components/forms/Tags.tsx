@@ -1,4 +1,4 @@
-import { useField, useFormikContext } from 'formik';
+import { useField } from 'formik';
 import { cls } from '~/utils/helpers';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import React, { KeyboardEvent } from 'react';
@@ -14,13 +14,14 @@ type TagsProps = {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
+type Item = string | number;
+
 export default function Tags(props: TagsProps) {
   const { id, type = 'text', forwardRef, placeholder } = props;
-  const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(props);
   const hasError = !!(meta.touched && meta.error);
 
-  let tags: string[] | number[] = [];
+  let tags: Item[] = [];
   try {
     const v = JSON.parse(field.value);
     if (Array.isArray(v)) {
@@ -30,17 +31,22 @@ export default function Tags(props: TagsProps) {
     // todo - what could be done?
   }
 
-  const removeTag = (i) => {
+  const setValue = (newTags: Item[]) => {
+    let v = '';
+    if (newTags.length != 0) {
+      v = JSON.stringify(newTags);
+    }
+    const e = { target: { value: v, id } };
+    field.onBlur(e);
+    field.onChange(e);
+  };
+  const removeTag = (i: number) => {
     const newTags = [...tags];
     newTags.splice(i, 1);
-    if (newTags.length == 0) {
-      setFieldValue(field.name, '');
-    } else {
-      setFieldValue(field.name, JSON.stringify(newTags));
-    }
+    setValue(newTags);
   };
 
-  const toValue = (val: any): string | number => {
+  const toValue = (val: any): Item => {
     if (type == 'number') {
       return Number(val);
     }
@@ -54,11 +60,11 @@ export default function Tags(props: TagsProps) {
       if (tags.indexOf(val) != -1) {
         return;
       }
-      setFieldValue(field.name, JSON.stringify([...tags, val]));
+      setValue([...tags, val]);
       e.currentTarget.value = '';
     }
   };
-
+  console.log(hasError, meta);
   return (
     <>
       <div ref={forwardRef} id={id}>
