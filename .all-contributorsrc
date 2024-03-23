@@ -366,6 +366,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "thepabloaguilar",
+      "name": "Pablo Aguilar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25423500?v=4",
+      "profile": "https://thepabloaguilar.dev/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

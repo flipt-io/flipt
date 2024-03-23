@@ -473,6 +473,11 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("provider \"github\": field \"redirect_address\": non-empty value is required"),
 		},
 		{
+			name:    "authentication github has non declared org in allowed_teams",
+			path:    "./testdata/authentication/github_missing_org_when_declaring_allowed_teams.yml",
+			wantErr: errors.New("provider \"github\": field \"allowed_teams\": the organization 'my-other-org' was not declared in 'allowed_organizations' field"),
+		},
+		{
 			name:    "authentication oidc missing client id",
 			path:    "./testdata/authentication/oidc_missing_client_id.yml",
 			wantErr: errors.New("provider \"foo\": field \"client_id\": non-empty value is required"),
