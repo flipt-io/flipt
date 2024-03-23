@@ -172,17 +172,16 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 				return false
 			}
 
-			teamOk := true
-			if userTeamsByOrg != nil {
-				allowedTeams := s.config.Methods.Github.Method.AllowedTeams[org]
-				userTeams := userTeamsByOrg[org]
-
-				teamOk = slices.ContainsFunc(allowedTeams, func(team string) bool {
-					return userTeams[team]
-				})
+			if userTeamsByOrg == nil {
+				return true
 			}
 
-			return teamOk
+			allowedTeams := s.config.Methods.Github.Method.AllowedTeams[org]
+			userTeams := userTeamsByOrg[org]
+
+			return slices.ContainsFunc(allowedTeams, func(team string) bool {
+				return userTeams[team]
+			})
 		}) {
 			return nil, authmiddlewaregrpc.ErrUnauthenticated
 		}
