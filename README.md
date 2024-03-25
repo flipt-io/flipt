@@ -78,8 +78,6 @@ Need more? We've got you covered! Check out our in-progress [managed offering](h
 
 - [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
 
-Interested? Let us know by filling out this [form](https://1ld82idjvlr.typeform.com/to/s7YfGviE) and help us build the future of Flipt!
-
 ## Usecases
 
 Flipt supports use cases such as:
@@ -98,7 +96,7 @@ Flipt supports use cases such as:
 - 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
+- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis, ClickHouse... Flipt supports it all.
 
 <br clear="both"/>
 
@@ -153,7 +151,13 @@ For help and discussion around Flipt, feature flag best practices, and more, joi
 
 ## Try It
 
-Try the latest version of Flipt for yourself.
+Get started in seconds. Try the latest version of Flipt for yourself.
+
+### Local
+
+```shell
+curl -fsSL https://get.flipt.io/install | sh
+```
 
 ### Deploy 
 
