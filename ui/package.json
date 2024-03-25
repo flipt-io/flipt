@@ -26,7 +26,7 @@
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@loadable/component": "^5.16.3",
-    "@reduxjs/toolkit": "^2.2.1",
+    "@reduxjs/toolkit": "^2.2.2",
     "@tanstack/react-table": "^8.13.2",
     "@uiw/codemirror-theme-tokyo-night": "^4.21.25",
     "@uiw/react-codemirror": "^4.21.24",
@@ -92,7 +92,7 @@
     "prettier-plugin-tailwindcss": "^0.5.12",
     "tailwindcss": "^3.4.1",
     "tailwindcss-bg-patterns": "^0.3.0",
-    "ts-jest": "^29.1.1",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5",
     "vite": "^5.1.4"
