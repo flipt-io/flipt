@@ -71,6 +71,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 
 	case string(OCIStorageType):
 		v.SetDefault("storage.oci.poll_interval", "30s")
+		v.SetDefault("storage.oci.manifest_version", "1.1")
 
 		dir, err := DefaultBundleDir()
 		if err != nil {
