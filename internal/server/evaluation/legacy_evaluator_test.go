@@ -447,7 +447,8 @@ func Test_matchesNumber(t *testing.T) {
 				Operator: "isnotoneof",
 				Value:    "[5, 3.14159, 4]",
 			},
-			value: "3",
+			value:     "3",
+			wantMatch: true,
 		},
 		{
 			name: "negative is not one of",
@@ -457,7 +458,7 @@ func Test_matchesNumber(t *testing.T) {
 				Value:    "[5, 3.14159, 4]",
 			},
 			value:     "3.14159",
-			wantMatch: true,
+			wantMatch: false,
 		},
 		{
 			name: "negative is not one of (invalid json)",
