@@ -119,6 +119,10 @@ func (c *StorageConfig) validate() error {
 			return errors.New("oci storage repository must be specified")
 		}
 
+		if c.OCI.ManifestVersion != OCIManifestVersion10 && c.OCI.ManifestVersion != OCIManifestVersion11 {
+			return errors.New("wrong manifest version, it should be 1.0 or 1.1")
+		}
+
 		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
 			return fmt.Errorf("validating OCI configuration: %w", err)
 		}
@@ -290,6 +294,13 @@ func (a SSHAuth) validate() (err error) {
 	return nil
 }
 
+type OCIManifestVersion string
+
+const (
+	OCIManifestVersion10 OCIManifestVersion = "1.0"
+	OCIManifestVersion11 OCIManifestVersion = "1.1"
+)
+
 // OCI provides configuration support for OCI target registries as a backend store for Flipt.
 type OCI struct {
 	// Repository is the target repository and reference to track.
@@ -302,6 +313,8 @@ type OCI struct {
 	// Authentication configures authentication credentials for accessing the target registry
 	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
 	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	// ManifestVersion defines which OCI Manifest version to use.
+	ManifestVersion OCIManifestVersion `json:"manifestVersion,omitempty" mapstructure:"manifest_version" yaml:"manifest_version,omitempty"`
 }
 
 // OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
