@@ -48,8 +48,9 @@ type Store struct {
 // This shouldn't be handled directory, instead use one of the function options
 // e.g. WithBundleDir or WithCredentials
 type StoreOptions struct {
-	bundleDir string
-	auth      *struct {
+	bundleDir       string
+	manifestVersion oras.PackManifestVersion
+	auth            *struct {
 		username string
 		password string
 	}
@@ -69,11 +70,19 @@ func WithCredentials(user, pass string) containers.Option[StoreOptions] {
 	}
 }
 
+// WithManifestVersion configures what OCI Manifest version to build the bundle.
+func WithManifestVersion(version oras.PackManifestVersion) containers.Option[StoreOptions] {
+	return func(s *StoreOptions) {
+		s.manifestVersion = version
+	}
+}
+
 // NewStore constructs and configures an instance of *Store for the provided config
 func NewStore(logger *zap.Logger, dir string, opts ...containers.Option[StoreOptions]) (*Store, error) {
 	store := &Store{
 		opts: StoreOptions{
-			bundleDir: dir,
+			bundleDir:       dir,
+			manifestVersion: oras.PackManifestVersion1_1,
 		},
 		logger: logger,
 		local:  memory.New(),
@@ -365,7 +374,7 @@ func (s *Store) Build(ctx context.Context, src fs.FS, ref Reference) (Bundle, er
 		return Bundle{}, err
 	}
 
-	desc, err := oras.PackManifest(ctx, store, oras.PackManifestVersion1_1_RC4, MediaTypeFliptFeatures, oras.PackManifestOptions{
+	desc, err := oras.PackManifest(ctx, store, s.opts.manifestVersion, MediaTypeFliptFeatures, oras.PackManifestOptions{
 		ManifestAnnotations: map[string]string{},
 		Layers:              layers,
 	})
