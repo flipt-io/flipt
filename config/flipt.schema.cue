@@ -210,7 +210,7 @@ import "strings"
 				password: string
 			}
 			poll_interval?: =~#duration | *"30s"
-			manifest_version?: "1.0" | "1.1"
+			manifest_version?: "1.0" | *"1.1"
 		}
 	}
 
