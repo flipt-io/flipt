@@ -5,6 +5,8 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"oras.land/oras-go/v2"
+
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -164,6 +166,11 @@ func (c *bundleCommand) getStore() (*oci.Store, error) {
 				cfg.Authentication.Username,
 				cfg.Authentication.Password,
 			))
+		}
+
+		// The default is the 1.1 version, this is why we don't need to check it in here.
+		if cfg.ManifestVersion == config.OCIManifestVersion10 {
+			opts = append(opts, oci.WithManifestVersion(oras.PackManifestVersion1_0))
 		}
 
 		if cfg.BundlesDirectory != "" {
