@@ -383,7 +383,7 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
 			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
 		}
-		return slices.Contains(values, n), nil
+		return !slices.Contains(values, n), nil
 	}
 
 	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
