@@ -65,7 +65,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceReq
 		c.value AS constraint_value
 	`).
 		From("rule_segments AS rs").
-		Join(`segments AS s ON rs.segment_key = s."key"`).
+		Join(`segments AS s ON (rs.segment_key = s."key" AND rs.namespace_key = s.namespace_key)`).
 		LeftJoin(`constraints AS c ON (s."key" = c.segment_key AND s.namespace_key = c.namespace_key)`).
 		Where(sq.Eq{"rs.rule_id": ruleIDs}).
 		QueryContext(ctx)
@@ -282,8 +282,8 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flag storage.Resource
 			c.value AS constraint_value
 		FROM rollout_segments AS rs
 		JOIN rollout_segment_references AS rsr ON (rs.id = rsr.rollout_segment_id)
-		JOIN segments AS s ON (rsr.segment_key = s."key")
-		LEFT JOIN constraints AS c ON (rsr.segment_key = c.segment_key)
+		JOIN segments AS s ON (rsr.segment_key = s."key" AND rsr.namespace_key = s.namespace_key)
+		LEFT JOIN constraints AS c ON (rsr.segment_key = c.segment_key AND rsr.namespace_key = c.namespace_key)
 	) rss ON (r.id = rss.rollout_id)
 	`).
 		Where(sq.Eq{"r.namespace_key": flag.Namespace(), "r.flag_key": flag.Key}).
