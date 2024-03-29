@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.39.2](https://github.com/flipt-io/flipt/releases/tag/v1.39.2) - 2024-03-29
+
+### Fixed
+
+- isnotoneof operator using incorrect logic (#2912)
+- issue with segment constraints if belonging to same segment key in different namespaces (#2920)
+
+## [v1.39.1](https://github.com/flipt-io/flipt/releases/tag/v1.39.1) - 2024-03-27
+
+### Added
+
+- make oci manifest version configurable (#2908)
+
 ## [v1.39.0](https://github.com/flipt-io/flipt/releases/tag/v1.39.0) - 2024-03-25
 
 ### Added
@@ -24,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ui`: prevent react warning (#2845)
 - `ui`: show placeholder for entity id oneof* constraint (#2799)
 
+>>>>>>> main
 ## [v1.38.2](https://github.com/flipt-io/flipt/releases/tag/v1.38.2) - 2024-03-15
 
 ### Fixed

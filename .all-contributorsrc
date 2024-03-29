@@ -375,6 +375,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "proxeter",
+      "name": "Muliar Nikolai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1473996?v=4",
+      "profile": "https://github.com/proxeter",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tegorov",
+      "name": "Taras Egorov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42921436?v=4",
+      "profile": "https://github.com/tegorov",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
