@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- add thepabloaguilar as a contributor for code (#2893)
 - `ui`: assistance for arrays data in constraints (#2889)
 
 ### Fixed
@@ -37,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ui`: prevent react warning (#2845)
 - `ui`: show placeholder for entity id oneof* constraint (#2799)
 
->>>>>>> main
 ## [v1.38.2](https://github.com/flipt-io/flipt/releases/tag/v1.38.2) - 2024-03-15
 
 ### Fixed
