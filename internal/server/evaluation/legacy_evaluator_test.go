@@ -480,14 +480,13 @@ func Test_matchesNumber(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesNumber(constraint, value)
+			match := matchesNumber(constraint, value)
 
 			if failedParse {
-				assert.Nil(t, err)
+				assert.False(t, match)
 				return
 			}
 
-			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -602,14 +601,13 @@ func Test_matchesBool(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesBool(constraint, value)
+			match := matchesBool(constraint, value)
 
 			if failedParse {
-				assert.Nil(t, err)
+				assert.False(t, match)
 				return
 			}
 
-			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -836,14 +834,13 @@ func Test_matchesDateTime(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesDateTime(constraint, value)
+			match := matchesDateTime(constraint, value)
 
 			if failedParse {
-				assert.Nil(t, err)
+				assert.False(t, match)
 				return
 			}
 
-			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}

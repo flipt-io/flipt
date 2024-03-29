@@ -239,11 +239,11 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
 			match = matchesString(c, v)
 		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-			match, err = matchesNumber(c, v)
+			match = matchesNumber(c, v)
 		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-			match, err = matchesBool(c, v)
+			match = matchesBool(c, v)
 		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
-			match, err = matchesDateTime(c, v)
+			match = matchesDateTime(c, v)
 		case flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 			match = matchesString(c, entityId)
 		default:
@@ -354,129 +354,129 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 	return false
 }
 
-func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesNumber(c storage.EvaluationConstraint, v string) bool {
 	switch c.Operator {
 	case flipt.OpNotPresent:
-		return len(strings.TrimSpace(v)) == 0, nil
+		return len(strings.TrimSpace(v)) == 0
 	case flipt.OpPresent:
-		return len(strings.TrimSpace(v)) != 0, nil
+		return len(strings.TrimSpace(v)) != 0
 	}
 
 	// can't parse an empty string
 	if v == "" {
-		return false, nil
+		return false
 	}
 
 	n, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		return false, nil
+		return false
 	}
 
 	if c.Operator == flipt.OpIsOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, nil
+			return false
 		}
-		return slices.Contains(values, n), nil
+		return slices.Contains(values, n)
 	} else if c.Operator == flipt.OpIsNotOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, nil
+			return false
 		}
-		return !slices.Contains(values, n), nil
+		return !slices.Contains(values, n)
 	}
 
 	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
 	value, err := strconv.ParseFloat(c.Value, 64)
 	if err != nil {
-		return false, nil
+		return false
 	}
 
 	switch c.Operator {
 	case flipt.OpEQ:
-		return value == n, nil
+		return value == n
 	case flipt.OpNEQ:
-		return value != n, nil
+		return value != n
 	case flipt.OpLT:
-		return n < value, nil
+		return n < value
 	case flipt.OpLTE:
-		return n <= value, nil
+		return n <= value
 	case flipt.OpGT:
-		return n > value, nil
+		return n > value
 	case flipt.OpGTE:
-		return n >= value, nil
+		return n >= value
 	}
 
-	return false, nil
+	return false
 }
 
-func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesBool(c storage.EvaluationConstraint, v string) bool {
 	switch c.Operator {
 	case flipt.OpNotPresent:
-		return len(strings.TrimSpace(v)) == 0, nil
+		return len(strings.TrimSpace(v)) == 0
 	case flipt.OpPresent:
-		return len(strings.TrimSpace(v)) != 0, nil
+		return len(strings.TrimSpace(v)) != 0
 	}
 
 	// can't parse an empty string
 	if v == "" {
-		return false, nil
+		return false
 	}
 
 	value, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, nil
+		return false
 	}
 
 	switch c.Operator {
 	case flipt.OpTrue:
-		return value, nil
+		return value
 	case flipt.OpFalse:
-		return !value, nil
+		return !value
 	}
 
-	return false, nil
+	return false
 }
 
-func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
+func matchesDateTime(c storage.EvaluationConstraint, v string) bool {
 	switch c.Operator {
 	case flipt.OpNotPresent:
-		return len(strings.TrimSpace(v)) == 0, nil
+		return len(strings.TrimSpace(v)) == 0
 	case flipt.OpPresent:
-		return len(strings.TrimSpace(v)) != 0, nil
+		return len(strings.TrimSpace(v)) != 0
 	}
 
 	// can't parse an empty string
 	if v == "" {
-		return false, nil
+		return false
 	}
 
 	d, err := tryParseDateTime(v)
 	if err != nil {
-		return false, nil
+		return false
 	}
 
 	value, err := tryParseDateTime(c.Value)
 	if err != nil {
-		return false, nil
+		return false
 	}
 
 	switch c.Operator {
 	case flipt.OpEQ:
-		return value.Equal(d), nil
+		return value.Equal(d)
 	case flipt.OpNEQ:
-		return !value.Equal(d), nil
+		return !value.Equal(d)
 	case flipt.OpLT:
-		return d.Before(value), nil
+		return d.Before(value)
 	case flipt.OpLTE:
-		return d.Before(value) || value.Equal(d), nil
+		return d.Before(value) || value.Equal(d)
 	case flipt.OpGT:
-		return d.After(value), nil
+		return d.After(value)
 	case flipt.OpGTE:
-		return d.After(value) || value.Equal(d), nil
+		return d.After(value) || value.Equal(d)
 	}
 
-	return false, nil
+	return false
 }
 
 func tryParseDateTime(v string) (time.Time, error) {
