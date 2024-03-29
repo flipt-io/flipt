@@ -123,7 +123,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		segmentMatches := 0
 
 		for k, v := range rule.Segments {
-			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+			matched, reason, err := e.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 			if err != nil {
 				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, err
@@ -222,7 +222,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType, entityId string) (bool, string, error) {
+func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType, entityId string) (bool, string, error) {
 	constraintMatches := 0
 
 	var reason string
@@ -251,7 +251,8 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 		}
 
 		if err != nil {
-			return false, reason, err
+			e.logger.Info("error matching constraint", zap.String("property", c.Property), zap.Error(err))
+			// don't return here because we want to continue to evaluate the other constraints
 		}
 
 		if match {
