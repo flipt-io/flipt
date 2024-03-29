@@ -3,6 +3,33 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.39.1](https://github.com/flipt-io/flipt/releases/tag/v1.39.1) - 2024-03-27
+
+### Added
+
+- make oci manifest version configurable (#2908)
+
+## [v1.39.0](https://github.com/flipt-io/flipt/releases/tag/v1.39.0) - 2024-03-25
+
+### Added
+
+- add team membership check to GitHub authentication method (#2891)
+- clear session if authentication methods change
+- add command bar (#2815)
+- add JWT aware UI and revise metadata for audit events
+
+### Changed
+
+- add thepabloaguilar as a contributor for code (#2893)
+- `ui`: assistance for arrays data in constraints (#2889)
+
+### Fixed
+
+- `ui`: allow dot in the key of variant (#2887)
+- missing slash in copy as curl (#2875)
+- `ui`: prevent react warning (#2845)
+- `ui`: show placeholder for entity id oneof* constraint (#2799)
+
 ## [v1.38.2](https://github.com/flipt-io/flipt/releases/tag/v1.38.2) - 2024-03-15
 
 ### Fixed
