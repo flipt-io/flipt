@@ -8,7 +8,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -214,11 +213,11 @@ func Test_matchesString(t *testing.T) {
 
 func Test_matchesNumber(t *testing.T) {
 	tests := []struct {
-		name       string
-		constraint storage.EvaluationConstraint
-		value      string
-		wantMatch  bool
-		wantErr    bool
+		name        string
+		constraint  storage.EvaluationConstraint
+		value       string
+		wantMatch   bool
+		failedParse bool
 	}{
 		{
 			name: "present",
@@ -259,8 +258,8 @@ func Test_matchesNumber(t *testing.T) {
 				Operator: "eq",
 				Value:    "bar",
 			},
-			value:   "5",
-			wantErr: true,
+			value:       "5",
+			failedParse: true,
 		},
 		{
 			name: "NAN context value",
@@ -269,8 +268,8 @@ func Test_matchesNumber(t *testing.T) {
 				Operator: "eq",
 				Value:    "5",
 			},
-			value:   "foo",
-			wantErr: true,
+			value:       "foo",
+			failedParse: true,
 		},
 		{
 			name: "eq",
@@ -437,8 +436,8 @@ func Test_matchesNumber(t *testing.T) {
 				Operator: "isoneof",
 				Value:    "[5, \"str\"]",
 			},
-			value:   "5",
-			wantErr: true,
+			value:       "5",
+			failedParse: true,
 		},
 		{
 			name: "is not one of",
@@ -467,26 +466,24 @@ func Test_matchesNumber(t *testing.T) {
 				Operator: "isnotoneof",
 				Value:    "[5, 6",
 			},
-			value:   "5",
-			wantErr: true,
+			value:       "5",
+			failedParse: true,
 		},
 	}
 
 	for _, tt := range tests {
 		var (
-			constraint = tt.constraint
-			value      = tt.value
-			wantMatch  = tt.wantMatch
-			wantErr    = tt.wantErr
+			constraint  = tt.constraint
+			value       = tt.value
+			wantMatch   = tt.wantMatch
+			failedParse = tt.failedParse
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
 			match, err := matchesNumber(constraint, value)
 
-			if wantErr {
-				assert.Error(t, err)
-				var ierr ferrors.ErrInvalid
-				assert.ErrorAs(t, err, &ierr)
+			if failedParse {
+				assert.Nil(t, err)
 				return
 			}
 
@@ -498,11 +495,11 @@ func Test_matchesNumber(t *testing.T) {
 
 func Test_matchesBool(t *testing.T) {
 	tests := []struct {
-		name       string
-		constraint storage.EvaluationConstraint
-		value      string
-		wantMatch  bool
-		wantErr    bool
+		name        string
+		constraint  storage.EvaluationConstraint
+		value       string
+		wantMatch   bool
+		failedParse bool
 	}{
 		{
 			name: "present",
@@ -542,8 +539,8 @@ func Test_matchesBool(t *testing.T) {
 				Property: "foo",
 				Operator: "true",
 			},
-			value:   "foo",
-			wantErr: true,
+			value:       "foo",
+			failedParse: true,
 		},
 		{
 			name: "is true",
@@ -598,19 +595,17 @@ func Test_matchesBool(t *testing.T) {
 
 	for _, tt := range tests {
 		var (
-			constraint = tt.constraint
-			value      = tt.value
-			wantMatch  = tt.wantMatch
-			wantErr    = tt.wantErr
+			constraint  = tt.constraint
+			value       = tt.value
+			wantMatch   = tt.wantMatch
+			failedParse = tt.failedParse
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
 			match, err := matchesBool(constraint, value)
 
-			if wantErr {
-				assert.Error(t, err)
-				var ierr ferrors.ErrInvalid
-				assert.ErrorAs(t, err, &ierr)
+			if failedParse {
+				assert.Nil(t, err)
 				return
 			}
 
@@ -622,11 +617,11 @@ func Test_matchesBool(t *testing.T) {
 
 func Test_matchesDateTime(t *testing.T) {
 	tests := []struct {
-		name       string
-		constraint storage.EvaluationConstraint
-		value      string
-		wantMatch  bool
-		wantErr    bool
+		name        string
+		constraint  storage.EvaluationConstraint
+		value       string
+		wantMatch   bool
+		failedParse bool
 	}{
 		{
 			name: "present",
@@ -667,8 +662,8 @@ func Test_matchesDateTime(t *testing.T) {
 				Operator: "eq",
 				Value:    "bar",
 			},
-			value:   "2006-01-02T15:04:05Z",
-			wantErr: true,
+			value:       "2006-01-02T15:04:05Z",
+			failedParse: true,
 		},
 		{
 			name: "not a datetime context value",
@@ -677,8 +672,8 @@ func Test_matchesDateTime(t *testing.T) {
 				Operator: "eq",
 				Value:    "2006-01-02T15:04:05Z",
 			},
-			value:   "foo",
-			wantErr: true,
+			value:       "foo",
+			failedParse: true,
 		},
 		{
 			name: "eq",
@@ -834,19 +829,17 @@ func Test_matchesDateTime(t *testing.T) {
 
 	for _, tt := range tests {
 		var (
-			constraint = tt.constraint
-			value      = tt.value
-			wantMatch  = tt.wantMatch
-			wantErr    = tt.wantErr
+			constraint  = tt.constraint
+			value       = tt.value
+			wantMatch   = tt.wantMatch
+			failedParse = tt.failedParse
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
 			match, err := matchesDateTime(constraint, value)
 
-			if wantErr {
-				assert.Error(t, err)
-				var ierr ferrors.ErrInvalid
-				assert.ErrorAs(t, err, &ierr)
+			if failedParse {
+				assert.Nil(t, err)
 				return
 			}
 
@@ -1059,10 +1052,9 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "parsing number from \"baz\"")
+	assert.NoError(t, err)
 	assert.False(t, resp.Match)
-	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
 func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	var (
@@ -1103,10 +1095,9 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "parsing datetime from \"baz\"")
+	assert.NoError(t, err)
 	assert.False(t, resp.Match)
-	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluator_ErrorGettingDistributions(t *testing.T) {

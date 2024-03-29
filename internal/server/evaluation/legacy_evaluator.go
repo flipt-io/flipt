@@ -369,19 +369,19 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	n, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing number from %q", v)
+		return false, nil
 	}
 
 	if c.Operator == flipt.OpIsOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+			return false, nil
 		}
 		return slices.Contains(values, n), nil
 	} else if c.Operator == flipt.OpIsNotOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+			return false, nil
 		}
 		return !slices.Contains(values, n), nil
 	}
@@ -389,7 +389,7 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
 	value, err := strconv.ParseFloat(c.Value, 64)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
+		return false, nil
 	}
 
 	switch c.Operator {
@@ -425,7 +425,7 @@ func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	value, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing boolean from %q", v)
+		return false, nil
 	}
 
 	switch c.Operator {
@@ -453,12 +453,12 @@ func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	d, err := tryParseDateTime(v)
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	value, err := tryParseDateTime(c.Value)
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 
 	switch c.Operator {
