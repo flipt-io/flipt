@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.flipt.io/flipt/core/validation"
 	flipterrors "go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -46,9 +46,9 @@ func TestSnapshotFromFS_Invalid(t *testing.T) {
 		{
 			path: "testdata/invalid/namespace",
 			err: errors.Join(
-				cue.Error{Message: "namespace: 2 errors in empty disjunction:", Location: cue.Location{File: "features.json", Line: 1}},
-				cue.Error{Message: "namespace: conflicting values 1 and \"default\" (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 1}},
-				cue.Error{Message: "namespace: conflicting values 1 and string (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 1}},
+				validation.Error{Message: "namespace: 2 errors in empty disjunction:", Location: validation.Location{File: "features.json", Line: 1}},
+				validation.Error{Message: "namespace: conflicting values 1 and \"default\" (mismatched types int and string)", Location: validation.Location{File: "features.json", Line: 1}},
+				validation.Error{Message: "namespace: conflicting values 1 and string (mismatched types int and string)", Location: validation.Location{File: "features.json", Line: 1}},
 			),
 		},
 	} {
