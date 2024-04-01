@@ -388,6 +388,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://thepabloaguilar.dev/"><img src="https://avatars.githubusercontent.com/u/25423500?v=4?s=100" width="100px;" alt="Pablo Aguilar"/><br /><sub><b>Pablo Aguilar</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=thepabloaguilar" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/proxeter"><img src="https://avatars.githubusercontent.com/u/1473996?v=4?s=100" width="100px;" alt="Muliar Nikolai"/><br /><sub><b>Muliar Nikolai</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=proxeter" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tegorov"><img src="https://avatars.githubusercontent.com/u/42921436?v=4?s=100" width="100px;" alt="Taras Egorov"/><br /><sub><b>Taras Egorov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=tegorov" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
