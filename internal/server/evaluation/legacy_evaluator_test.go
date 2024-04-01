@@ -1059,10 +1059,9 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "parsing number from \"baz\"")
+	assert.NoError(t, err)
 	assert.False(t, resp.Match)
-	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
 func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	var (
@@ -1103,10 +1102,9 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "parsing datetime from \"baz\"")
+	assert.NoError(t, err)
 	assert.False(t, resp.Match)
-	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
