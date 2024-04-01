@@ -55,7 +55,7 @@
     "@types/jest": "^29.5.12",
     "@types/loadable__component": "^5.13.9",
     "@types/node": "^18.19.28",
-    "@types/react": "^18.2.64",
+    "@types/react": "^18.2.73",
     "@types/react-dom": "^18.2.19",
     "@types/react-helmet": "^6.1.11",
     "@types/react-redux": "^7.1.33",
