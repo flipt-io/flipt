@@ -251,7 +251,7 @@ func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []st
 		}
 
 		if err != nil {
-			e.logger.Info("error matching constraint", zap.String("property", c.Property), zap.Error(err))
+			e.logger.Debug("error matching constraint", zap.String("property", c.Property), zap.Error(err))
 			// don't return here because we want to continue to evaluate the other constraints
 		}
 
