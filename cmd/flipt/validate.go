@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/storage/fs"
 )
 
@@ -73,7 +73,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		}
 
 		opts = append(opts, fs.WithValidatorOption(
-			cue.WithSchemaExtension(schema),
+			validation.WithSchemaExtension(schema),
 		))
 	}
 
@@ -87,7 +87,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		_, err = fs.SnapshotFromPaths(logger, os.DirFS(v.workDirectory), args, opts...)
 	}
 
-	errs, ok := cue.Unwrap(err)
+	errs, ok := validation.Unwrap(err)
 	if !ok {
 		return err
 	}

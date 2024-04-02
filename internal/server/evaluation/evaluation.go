@@ -201,7 +201,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 			for k, v := range rollout.Segment.Segments {
 				segmentKeys = append(segmentKeys, k)
-				matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+				matched, reason, err := s.evaluator.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
 				}

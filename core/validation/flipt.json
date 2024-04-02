@@ -1,0 +1,460 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "rollout": {
+      "type": "object",
+      "properties": {
+        "segment": {
+          "$ref": "#/$defs/rolloutSegment"
+        },
+        "threshold": {
+          "$ref": "#/$defs/rolloutThreshold"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "segment"
+          ]
+        },
+        {
+          "required": [
+            "threshold"
+          ]
+        }
+      ]
+    },
+    "rolloutSegment": {
+      "type": "object",
+      "properties": {
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "enum": [
+            "AND_SEGMENT_OPERATOR",
+            "OR_SEGMENT_OPERATOR"
+          ]
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "keys",
+        "value"
+      ]
+    },
+    "rolloutThreshold": {
+      "type": "object",
+      "properties": {
+        "percentage": {
+          "type": "number"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "percentage",
+        "value"
+      ]
+    },
+    "rule": {
+      "required": [
+        "segment"
+      ],
+      "properties": {
+        "segment": {
+          "type": "string",
+          "pattern": "^[-_,A-Za-z0-9]+$"
+        },
+        "distributions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "required": [
+              "variant",
+              "rollout"
+            ],
+            "properties": {
+              "variant": {
+                "type": "string"
+              },
+              "rollout": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          }
+        }
+      }
+    },
+    "variant": {
+      "required": [
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "attachment": {
+          "oneOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            }
+          ]
+        }
+      }
+    },
+    "stringComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "STRING_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "eq",
+              "neq",
+              "empty",
+              "notempty",
+              "prefix",
+              "suffix",
+              "isoneof",
+              "isnotoneof"
+            ]
+          }
+        }
+      }
+    },
+    "numberComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "NUMBER_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "eq",
+              "neq",
+              "present",
+              "notpresent",
+              "le",
+              "lte",
+              "gt",
+              "gte",
+              "isoneof",
+              "isnotoneof"
+            ]
+          }
+        }
+      }
+    },
+    "booleanComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "BOOLEAN_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "true",
+              "false",
+              "present",
+              "notpresent"
+            ]
+          }
+        }
+      }
+    },
+    "datetimeComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "DATETIME_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "eq",
+              "neq",
+              "present",
+              "notpresent",
+              "le",
+              "lte",
+              "gt",
+              "gte"
+            ]
+          }
+        }
+      }
+    },
+    "entityIdComparisonOperator": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "ENTITY_ID_COMPARISON_TYPE"
+          }
+        },
+        "required": [
+          "operator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "eq",
+              "neq",
+              "isoneof",
+              "isnotoneof"
+            ]
+          }
+        }
+      }
+    },
+    "constraint": {
+      "required": [
+        "type",
+        "property",
+        "operator"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "STRING_COMPARISON_TYPE",
+            "NUMBER_COMPARISON_TYPE",
+            "BOOLEAN_COMPARISON_TYPE",
+            "DATETIME_COMPARISON_TYPE",
+            "ENTITY_ID_COMPARISON_TYPE"
+          ]
+        },
+        "property": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/stringComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/numberComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/booleanComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/datetimeComparisonOperator"
+        },
+        {
+          "$ref": "#/$defs/entityIdComparisonOperator"
+        }
+      ]
+    }
+  },
+  "description": "",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[-_,A-Za-z0-9]+$"
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "required": [
+          "key",
+          "name",
+          "type",
+          "enabled"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[-_,A-Za-z0-9]+$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^.+$"
+          },
+          "type": {
+            "enum": [
+              "VARIANT_FLAG_TYPE",
+              "BOOLEAN_FLAG_TYPE"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "rollouts": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/rollout"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/variant"
+            }
+          },
+          "rules": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/rule"
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "VARIANT_FLAG_TYPE"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "rollouts"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "BOOLEAN_FLAG_TYPE"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "rules"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "BOOLEAN_FLAG_TYPE"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "variants"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "segments": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "required": [
+          "key",
+          "name",
+          "match_type"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[-_,A-Za-z0-9]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/constraint"
+            }
+          },
+          "match_type": {
+            "enum": [
+              "ALL_MATCH_TYPE",
+              "ANY_MATCH_TYPE"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "version",
+    "namespace",
+    "flags",
+    "segments"
+  ]
+}
