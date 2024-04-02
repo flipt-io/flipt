@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,6 +16,7 @@ type validateCommand struct {
 	issueExitCode int
 	format        string
 	extraPath     string
+	workDirectory string
 }
 
 const (
@@ -31,7 +33,7 @@ func newValidateCommand() *cobra.Command {
 		RunE:  v.run,
 	}
 
-	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "Exit code to use when issues are found")
+	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "exit code to use when issues are found")
 
 	cmd.Flags().StringVarP(
 		&v.format,
@@ -45,6 +47,13 @@ func newValidateCommand() *cobra.Command {
 		"extra-schema", "e",
 		"",
 		"path to extra schema constraints",
+	)
+
+	cmd.Flags().StringVarP(
+		&v.workDirectory,
+		"work-dir", "d",
+		".",
+		"set the working directory",
 	)
 
 	return cmd
@@ -68,10 +77,14 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		))
 	}
 
+	if v.workDirectory == "" {
+		return errors.New("non-empty working directory expected")
+	}
+
 	if len(args) == 0 {
-		_, err = fs.SnapshotFromFS(logger, os.DirFS("."), opts...)
+		_, err = fs.SnapshotFromFS(logger, os.DirFS(v.workDirectory), opts...)
 	} else {
-		_, err = fs.SnapshotFromPaths(logger, os.DirFS("."), args, opts...)
+		_, err = fs.SnapshotFromPaths(logger, os.DirFS(v.workDirectory), args, opts...)
 	}
 
 	errs, ok := validation.Unwrap(err)
