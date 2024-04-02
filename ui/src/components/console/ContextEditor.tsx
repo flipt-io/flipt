@@ -1,8 +1,9 @@
-import { json, jsonParseLinter } from '@codemirror/lang-json';
-import { linter } from '@codemirror/lint';
+import { json } from '@codemirror/lang-json';
+import { linter, lintGutter } from '@codemirror/lint';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
+import { parseLinter } from './lint';
 
 type ContextEditorProps = {
   id: string;
@@ -23,7 +24,7 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
     <CodeMirror
       value="{}"
       height="50vh"
-      extensions={[json(), linter(jsonParseLinter())]}
+      extensions={[json(), lintGutter(), linter(parseLinter())]}
       onChange={onChange}
       basicSetup={{
         lineNumbers: false,
