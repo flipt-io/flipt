@@ -43,7 +43,7 @@ func Test_Store_Subscribe_Hash(t *testing.T) {
 	testStore(t, gitRepoURL, WithRef(head))
 }
 
-func Test_Store_Subscribe(t *testing.T) {
+func Test_Store_View(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
@@ -121,7 +121,7 @@ flags:
 	}))
 }
 
-func Test_Store_Subscribe_WithRevision(t *testing.T) {
+func Test_Store_View_WithRevision(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
@@ -213,6 +213,49 @@ flags:
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.NoError(t, err, "flag should be present on new-branch")
 		return nil
+	}))
+}
+
+func Test_Store_View_WithDirectory(t *testing.T) {
+	ch := make(chan struct{})
+	store, skip := testStore(t, gitRepoURL, WithPollOptions(
+		fs.WithInterval(time.Second),
+		fs.WithNotify(t, func(modified bool) {
+			if modified {
+				close(ch)
+			}
+		}),
+	),
+		// scope flag state discovery to sub-directory
+		WithDirectory("subdir"),
+	)
+	if skip {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	// pull repo
+	workdir := memfs.New()
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
+	require.NoError(t, err)
+
+	tree, err := repo.Worktree()
+	require.NoError(t, err)
+
+	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
+		Branch: "refs/heads/main",
+	}))
+
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
+		_, err = s.GetFlag(ctx, storage.NewResource("alternative", "otherflag"))
+		return err
 	}))
 }
 

@@ -558,6 +558,9 @@
               "type": "string",
               "default": "main"
             },
+            "directory": {
+              "type": "string"
+            },
             "ca_cert_path": {
               "type": "string"
             },
