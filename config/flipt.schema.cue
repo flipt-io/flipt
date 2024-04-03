@@ -131,16 +131,16 @@ import "strings"
 	}
 
 	#cors: {
-		enabled?:         bool | *false
+		enabled?: bool | *false
 		allowed_origins?: [...] | string | *["*"]
 		allowed_headers?: [...string] | string | *[
-					"Accept",
-					"Authorization",
-					"Content-Type",
-					"X-CSRF-Token",
-					"X-Fern-Language",
-					"X-Fern-SDK-Name",
-					"X-Fern-SDK-Version",
+			"Accept",
+			"Authorization",
+			"Content-Type",
+			"X-CSRF-Token",
+			"X-Fern-Language",
+			"X-Fern-SDK-Name",
+			"X-Fern-SDK-Version",
 		]
 	}
 
@@ -157,6 +157,7 @@ import "strings"
 		git?: {
 			repository:         string
 			ref?:               string | *"main"
+			directory?:         string
 			poll_interval?:     =~#duration | *"30s"
 			ca_cert_path?:      string
 			ca_cert_bytes?:     string
@@ -209,7 +210,7 @@ import "strings"
 				username: string
 				password: string
 			}
-			poll_interval?: =~#duration | *"30s"
+			poll_interval?:    =~#duration | *"30s"
 			manifest_version?: "1.0" | *"1.1"
 		}
 	}
@@ -231,7 +232,7 @@ import "strings"
 	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
-	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
+	_#all: _#lower + [for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
 		encoding?:   *"console" | "json"
