@@ -727,6 +727,23 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "git config provided with directory",
+			path: "./testdata/storage/git_provided_with_directory.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: &Git{
+						Ref:          "main",
+						Repository:   "git@github.com:foo/bar.git",
+						Directory:    "baz",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name:    "git repository not provided",
 			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
 			wantErr: errors.New("git repository must be specified"),

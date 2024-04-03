@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"sync"
 
 	"github.com/go-git/go-git/v5"
@@ -34,6 +35,7 @@ type SnapshotStore struct {
 	logger          *zap.Logger
 	url             string
 	baseRef         string
+	directory       string
 	auth            transport.AuthMethod
 	insecureSkipTLS bool
 	caBundle        []byte
@@ -85,6 +87,14 @@ func WithCABundle(caCertBytes []byte) containers.Option[SnapshotStore] {
 		if caCertBytes != nil {
 			s.caBundle = caCertBytes
 		}
+	}
+}
+
+// WithDirectory sets a root directory which the store will walk from
+// to discover feature flag state files.
+func WithDirectory(directory string) containers.Option[SnapshotStore] {
+	return func(ss *SnapshotStore) {
+		ss.directory = directory
 	}
 }
 
@@ -256,10 +266,18 @@ func (s *SnapshotStore) resolve(ref string) (plumbing.Hash, error) {
 
 // buildSnapshot builds a new store snapshot based on the provided hash.
 func (s *SnapshotStore) buildSnapshot(ctx context.Context, hash plumbing.Hash) (*storagefs.Snapshot, error) {
-	fs, err := gitfs.NewFromRepoHash(s.logger, s.repo, hash)
+	var gfs fs.FS
+	gfs, err := gitfs.NewFromRepoHash(s.logger, s.repo, hash)
 	if err != nil {
 		return nil, err
 	}
 
-	return storagefs.SnapshotFromFS(s.logger, fs)
+	if s.directory != "" {
+		gfs, err = fs.Sub(gfs, s.directory)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return storagefs.SnapshotFromFS(s.logger, gfs)
 }

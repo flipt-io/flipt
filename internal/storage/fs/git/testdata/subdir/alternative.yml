@@ -1,0 +1,5 @@
+namespace: "alternative"
+flags:
+- key: otherflag
+  name: Other Flag
+

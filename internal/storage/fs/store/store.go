@@ -38,6 +38,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 				storagefs.WithInterval(cfg.Storage.Git.PollInterval),
 			),
 			git.WithInsecureTLS(cfg.Storage.Git.InsecureSkipTLS),
+			git.WithDirectory(cfg.Storage.Git.Directory),
 		}
 
 		if cfg.Storage.Git.CaCertBytes != "" {

@@ -146,6 +146,7 @@ type Local struct {
 type Git struct {
 	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
+	Directory       string         `json:"directory,omitempty" mapstructure:"directory" yaml:"directory,omitempty"`
 	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-" `
 	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-" `
 	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
