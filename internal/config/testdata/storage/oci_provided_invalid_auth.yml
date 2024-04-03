@@ -1,0 +1,8 @@
+storage:
+  type: oci
+  oci:
+    repository: some.target/repository/abundle:latest
+    bundles_directory: /tmp/bundles
+    poll_interval: 5m
+    authentication:
+      type: invalid

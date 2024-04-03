@@ -28,6 +28,7 @@ import (
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/retry"
 )
 
 const (
@@ -36,45 +37,14 @@ const (
 	SchemeFlipt = "flipt"
 )
 
+type credentialFunc func(registry string) auth.CredentialFunc
+
 // Store is a type which can retrieve Flipt feature files from a target repository and reference
 // Repositories can be local (OCI layout directories on the filesystem) or a remote registry
 type Store struct {
 	opts   StoreOptions
 	logger *zap.Logger
 	local  oras.Target
-}
-
-// StoreOptions are used to configure call to NewStore
-// This shouldn't be handled directory, instead use one of the function options
-// e.g. WithBundleDir or WithCredentials
-type StoreOptions struct {
-	bundleDir       string
-	manifestVersion oras.PackManifestVersion
-	auth            *struct {
-		username string
-		password string
-	}
-}
-
-// WithCredentials configures username and password credentials used for authenticating
-// with remote registries
-func WithCredentials(user, pass string) containers.Option[StoreOptions] {
-	return func(so *StoreOptions) {
-		so.auth = &struct {
-			username string
-			password string
-		}{
-			username: user,
-			password: pass,
-		}
-	}
-}
-
-// WithManifestVersion configures what OCI Manifest version to build the bundle.
-func WithManifestVersion(version oras.PackManifestVersion) containers.Option[StoreOptions] {
-	return func(s *StoreOptions) {
-		s.manifestVersion = version
-	}
 }
 
 // NewStore constructs and configures an instance of *Store for the provided config
@@ -144,10 +114,9 @@ func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 
 		if s.opts.auth != nil {
 			remote.Client = &auth.Client{
-				Credential: auth.StaticCredential(ref.Registry, auth.Credential{
-					Username: s.opts.auth.username,
-					Password: s.opts.auth.password,
-				}),
+				Credential: s.opts.auth(ref.Registry),
+				Cache:      auth.DefaultCache,
+				Client:     retry.DefaultClient,
 			}
 		}
 

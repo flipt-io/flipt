@@ -756,6 +756,11 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
+                "type":  {
+                  "type": "string",
+                  "enum": ["static", "aws-ecr"],
+                  "default": "static"
+                },
                 "username": { "type": "string" },
                 "password": { "type": "string" }
               }

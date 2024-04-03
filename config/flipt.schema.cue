@@ -207,6 +207,7 @@ import "strings"
 			repository:         string
 			bundles_directory?: string
 			authentication?: {
+				type: "aws-ecr" | *"static"
 				username: string
 				password: string
 			}

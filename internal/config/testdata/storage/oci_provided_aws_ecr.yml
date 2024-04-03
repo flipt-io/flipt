@@ -1,0 +1,8 @@
+storage:
+  type: oci
+  oci:
+    repository: some.target/repository/abundle:latest
+    bundles_directory: /tmp/bundles
+    authentication:
+      type: aws-ecr
+    poll_interval: 5m

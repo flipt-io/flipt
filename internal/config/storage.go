@@ -79,6 +79,12 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		}
 
 		v.SetDefault("storage.oci.bundles_directory", dir)
+
+		if v.GetString("storage.oci.authentication.username") != "" ||
+			v.GetString("storage.oci.authentication.password") != "" {
+			v.SetDefault("storage.oci.authentication.type", oci.AuthenticationTypeStatic)
+		}
+
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -126,6 +132,10 @@ func (c *StorageConfig) validate() error {
 
 		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
 			return fmt.Errorf("validating OCI configuration: %w", err)
+		}
+
+		if c.OCI.Authentication != nil && !c.OCI.Authentication.Type.IsValid() {
+			return errors.New("oci authentication type is not supported")
 		}
 	}
 
@@ -321,8 +331,9 @@ type OCI struct {
 
 // OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
 type OCIAuthentication struct {
-	Username string `json:"-" mapstructure:"username" yaml:"-"`
-	Password string `json:"-" mapstructure:"password" yaml:"-"`
+	Type     oci.AuthenticationType `json:"-" mapstructure:"type" yaml:"-"`
+	Username string                 `json:"-" mapstructure:"username" yaml:"-"`
+	Password string                 `json:"-" mapstructure:"password" yaml:"-"`
 }
 
 func DefaultBundleDir() (string, error) {
