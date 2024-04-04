@@ -4,7 +4,7 @@ import { FliptApiClient } from "@flipt-io/flipt";
 import { v4 as uuidv4 } from "uuid";
 
 const client = new FliptApiClient({
-  environment: process.env.FLIPT_ADDR ?? "http://localhost:8080",
+  environment: process.env.FLIPT_ADDR ?? "http://flipt:8080",
 });
 
 type Data = {

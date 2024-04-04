@@ -4,38 +4,26 @@ This is an example of how to use Flipt with a NextJS application.
 
 **Note:** This example is not meant to be used in production, it is only meant to demonstrate how to use Flipt with NextJS.
 
-It uses the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node) to evalute feature flags from the Flipt API in two different ways:
+It uses both the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node)  and [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evalute feature flags from the Flipt API in two different ways:
 
-1. Using the `useFlipt` hook to evalute the flag in the browser/client side (using the `useEffect` hook)
 1. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page 
+1. Using the Flipt Browser SDK to evaluate the flags in the browser/client side
 
 We also included [some code](./pages/api/hello.ts) showing how you could use Flipt with [NextJS API routes](https://nextjs.org/docs/api-routes/introduction), but we are not hitting the API it in this example.
 
 ## Example
 
-In this example, we are leveraging Flipt to prototype some personalization for our NextJS application. We want to show a different greeting message to the user at random, but we aren't sure if we should use client-side data fetching or server-side data fetching, so we are going to try both ways. We will use the Flipt TypeScript SDK to integrate with Flipt.
+In this example, we are leveraging Flipt to prototype some personalization for our NextJS application. We want to show a different greeting message to the user at random, but we aren't sure if we should use client-side data fetching or server-side data fetching, so we are going to try both ways. We will use both the Flipt TypeScript SDK (server-side) and Flipt Browser SDK (client-side) to integrate with Flipt.
 
 ## Architecture
 
 ### Client Side
 
-<p align="center">
-    <img src="../images/nextjs-client-side.png" alt="Client Side Architecture" height=200 />
-</p>
-
-For the client-side example, we are using the `useFlipt` hook to evaluate the flag in the browser/client side (using the `useEffect` hook). The `useFlipt` hook returns an instance of our `FliptApiClient` object which is used to evalute the `language` flag, we can then use this value to render the greeting message.
-
-Because we don't want to potentially expose any sensitive information, such as a Flipt API key, we are actually proxying the request to [`/evaluate/v1/variant`](https://www.flipt.io/docs/reference/evaluation/variant-evaluation) through a reverse proxy via Caddy. This allows us to use the `FliptApiClient` directly in the NextJS application without exposing the API key. This has the additional benefit of not requiring us to publicly expose the Flipt server, and also allows us to only allow the `evaluate` API requests to be routed to Flipt. The Caddy configuration is defined in the `Caddyfile` file.
+For the client-side example, we are using the [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evaluate the flag in the browser/client side. The `FliptEvaluationClient` object pulls flag state from the Flipt server and performs evaluation client-side in the browser to evalute the `language` flag.
 
 ### Server Side
 
-<p align="center">
-    <img src="../images/nextjs-server-side.png" alt="Server Side Architecture" height=200 />
-</p>
-
 For the server-side example, we are using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page. This uses the `FliptApiClient` directly to evalute the `language` flag to then render the greeting message.
-
-Since we are using server side rendering, we don't need to proxy the `evaluate` API request through Caddy, we can just use the `FliptApiClient` directly in the NextJS application.
 
 ## Requirements
 

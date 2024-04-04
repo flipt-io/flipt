@@ -1,23 +1,21 @@
 import { useState, useEffect } from "react";
-import { useFlipt } from "../hooks/flipt";
 import { v4 as uuidv4 } from "uuid";
+import { FliptEvaluationClient } from "@flipt-io/flipt-client-browser";
 
 export default function Greeting() {
   const [data, setData] = useState<any | null>(null);
 
-  const flipt = useFlipt();
-
   useEffect(() => {
     async function fetchData() {
       try {
-        const evaluation = await flipt.evaluation.variant({
-          namespaceKey: "default",
-          flagKey: "language",
-          entityId: uuidv4(),
-          context: {},
+        const client = await FliptEvaluationClient.init("default", {
+          url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://flipt:8080",
         });
 
-        let language = evaluation.variantKey;
+        const evaluation = client.evaluateVariant("language", uuidv4(), {});
+        console.log(evaluation);
+
+        let language = evaluation.result?.variant_key;
 
         const greeting =
           language == "es"
@@ -31,7 +29,7 @@ export default function Greeting() {
     }
 
     fetchData();
-  }, [flipt.evaluation]);
+  });
 
   if (!data)
     return <p className="text-xl font-bold align-middle"> Loading... </p>;
