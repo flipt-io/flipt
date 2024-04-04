@@ -231,7 +231,7 @@ import "strings"
 		user?:     string
 	})
 
-	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
+	_#lower: ["debug", "error", "fatal", "info", "panic", "warn"]
 	_#all: _#lower + [for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string

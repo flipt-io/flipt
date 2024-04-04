@@ -825,8 +825,6 @@
             "INFO",
             "PANIC",
             "panic",
-            "trace",
-            "TRACE",
             "warn",
             "WARN"
           ]
