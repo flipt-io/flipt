@@ -27,10 +27,15 @@
     "rolloutSegment": {
       "type": "object",
       "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[-_,A-Za-z0-9]+$"
+        },
         "keys": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[-_,A-Za-z0-9]+$"
           }
         },
         "operator": {
@@ -44,8 +49,29 @@
         }
       },
       "required": [
-        "keys",
         "value"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "key"
+          ],
+          "not": {
+            "required": [
+              "keys"
+            ]
+          }
+        },
+        {
+          "required": [
+            "keys"
+          ],
+          "not": {
+            "required": [
+              "key"
+            ]
+          }
+        }
       ]
     },
     "rolloutThreshold": {
