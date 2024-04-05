@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.40.0](https://github.com/flipt-io/flipt/releases/tag/v1.40.0) - 2024-04-05
+
+### Added
+
+- `oci`: better integration OCI storage with AWS ECR (#2941)
+- `fs/git`: add support for a directory scope (#2939)
+- `cmd`: allow passing a working directory for flipt validate command (#2936)
+
+### Changed
+
+- moved validation into its separate package (#2831)
+
+### Fixed
+
+- invalid trace log level schema (#2946)
+- jsonschema to correctly validate key|keys in rollout segment (#2947)
+- `ui`: evaluation console provides the warning for user about context values (#2937)
+- dont error on parsing in evaluator (#2918)
+
 ## [v1.39.2](https://github.com/flipt-io/flipt/releases/tag/v1.39.2) - 2024-03-29
 
 ### Fixed
