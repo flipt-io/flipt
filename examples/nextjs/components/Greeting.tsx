@@ -9,7 +9,7 @@ export default function Greeting() {
     async function fetchData() {
       try {
         const client = await FliptEvaluationClient.init("default", {
-          url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://flipt:8080",
+          url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://localhost:8080",
         });
 
         const evaluation = client.evaluateVariant("language", uuidv4(), {});
