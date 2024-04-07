@@ -25,6 +25,7 @@ type EvaluationResponse struct {
 	Match           *bool     `json:"match,omitempty"`
 	EvaluationValue *string   `json:"evaluationValue,omitempty"`
 	Timestamp       time.Time `json:"timestamp,omitempty"`
+	EntityId        string    `json:"entityId,omitempty"`
 }
 
 // AnalyticsSinkSpanExporter implements SpanExporter.
