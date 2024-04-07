@@ -345,6 +345,9 @@
               "type": "integer",
               "default": 0
             },
+            "username": {
+              "type": "string"
+            },
             "password": {
               "type": "string"
             },

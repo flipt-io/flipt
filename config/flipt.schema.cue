@@ -116,6 +116,7 @@ import "strings"
 			port?:               int | *6379
 			require_tls?:        bool | *false
 			db?:                 int | *0
+			username?:           string
 			password?:           string
 			pool_size?:          int | *0
 			min_idle_conn?:      int | *0
