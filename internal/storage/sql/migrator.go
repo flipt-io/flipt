@@ -24,7 +24,7 @@ var expectedVersions = map[Driver]uint{
 	Postgres:    12,
 	MySQL:       11,
 	CockroachDB: 9,
-	Clickhouse:  2,
+	Clickhouse:  3,
 }
 
 // Migrator is responsible for migrating the database schema

@@ -16,10 +16,10 @@ func (c *Client) IncrementFlagEvaluationCounts(ctx context.Context, responses []
 	}
 
 	valuePlaceHolders := make([]string, 0, len(responses))
-	valueArgs := make([]interface{}, 0, len(responses)*9)
+	valueArgs := make([]interface{}, 0, len(responses)*10)
 
 	for _, response := range responses {
-		valuePlaceHolders = append(valuePlaceHolders, "(toDateTime(?, 'UTC'),?,?,?,?,?,?,?,?)")
+		valuePlaceHolders = append(valuePlaceHolders, "(toDateTime(?, 'UTC'),?,?,?,?,?,?,?,?,?)")
 		valueArgs = append(valueArgs, response.Timestamp.Format(time.DateTime))
 		valueArgs = append(valueArgs, counterAnalyticsName)
 		valueArgs = append(valueArgs, response.NamespaceKey)
@@ -28,6 +28,7 @@ func (c *Client) IncrementFlagEvaluationCounts(ctx context.Context, responses []
 		valueArgs = append(valueArgs, response.Reason)
 		valueArgs = append(valueArgs, response.Match)
 		valueArgs = append(valueArgs, response.EvaluationValue)
+		valueArgs = append(valueArgs, response.EntityId)
 		valueArgs = append(valueArgs, 1)
 	}
 
