@@ -1,0 +1,7 @@
+cache:
+  enabled: true
+  backend: redis
+  ttl: 60s
+  redis:
+    username: app
+    password: "s3cr3t!"

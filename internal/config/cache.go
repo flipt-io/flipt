@@ -95,6 +95,7 @@ type RedisCacheConfig struct {
 	Host            string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
 	Port            int           `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
 	RequireTLS      bool          `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	Username        string        `json:"-" mapstructure:"username" yaml:"-"`
 	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
 	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
 	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`

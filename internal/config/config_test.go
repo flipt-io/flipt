@@ -308,6 +308,18 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "cache redis with username",
+			path: "./testdata/cache/redis-username.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.Username = "app"
+				cfg.Cache.Redis.Password = "s3cr3t!"
+				return cfg
+			},
+		},
+		{
 			name: "tracing zipkin",
 			path: "./testdata/tracing/zipkin.yml",
 			expected: func() *Config {

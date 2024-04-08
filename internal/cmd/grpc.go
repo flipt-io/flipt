@@ -465,6 +465,7 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 			rdb := goredis.NewClient(&goredis.Options{
 				Addr:            fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
 				TLSConfig:       tlsConfig,
+				Username:        cfg.Cache.Redis.Username,
 				Password:        cfg.Cache.Redis.Password,
 				DB:              cfg.Cache.Redis.DB,
 				PoolSize:        cfg.Cache.Redis.PoolSize,
