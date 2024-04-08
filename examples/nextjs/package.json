@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@flipt-io/flipt": "^0.2.17",
+    "@flipt-io/flipt-client-browser": "^0.0.15",
     "@next/font": "13.0.7",
     "@types/node": "18.11.17",
     "@types/react": "18.0.26",

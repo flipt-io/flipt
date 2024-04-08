@@ -1,7 +1,6 @@
 import { FliptApiClient } from "@flipt-io/flipt";
 import Head from "next/head";
 import Greeting from "../components/Greeting";
-import { FliptProvider } from "../hooks/flipt";
 import { v4 as uuidv4 } from "uuid";
 
 type HomeProps = {
@@ -21,9 +20,7 @@ export default function Home(data: HomeProps) {
             <h1 className="text-3xl font-bold align-middle">{data.greeting}</h1>
           </div>
           <div className="w-1/2 flex items-center justify-center">
-            <FliptProvider>
-              <Greeting />
-            </FliptProvider>
+            <Greeting />
           </div>
         </div>
       </main>
@@ -32,7 +29,7 @@ export default function Home(data: HomeProps) {
 }
 
 const client = new FliptApiClient({
-  environment: process.env.FLIPT_ADDR ?? "http://localhost:8080",
+  environment: process.env.FLIPT_ADDR ?? "http://flipt:8080",
 });
 
 export async function getServerSideProps() {
