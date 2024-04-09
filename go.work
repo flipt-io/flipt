@@ -4,9 +4,9 @@ use (
 	.
 	./_tools
 	./build
+	./core
 	./errors
 	./internal/cmd/protoc-gen-go-flipt-sdk
 	./rpc/flipt
 	./sdk/go
-	./core
 )
