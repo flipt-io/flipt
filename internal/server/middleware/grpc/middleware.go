@@ -137,6 +137,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								Reason:          r.GetReason().String(),
 								Timestamp:       r.GetTimestamp().AsTime(),
 								EvaluationValue: variantKey,
+								EntityId:        evaluationRequest.EntityId,
 							},
 						}
 
@@ -162,6 +163,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								Timestamp:       r.GetTimestamp().AsTime(),
 								Match:           nil,
 								EvaluationValue: &evaluationValue,
+								EntityId:        evaluationRequest.EntityId,
 							},
 						}
 
@@ -195,6 +197,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 									Reason:          variantResponse.GetReason().String(),
 									Timestamp:       variantResponse.Timestamp.AsTime(),
 									EvaluationValue: variantKey,
+									EntityId:        batchEvaluationRequest.Requests[idx].EntityId,
 								})
 							case evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE:
 								booleanResponse := response.GetBooleanResponse()
@@ -207,6 +210,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 									Timestamp:       booleanResponse.Timestamp.AsTime(),
 									Match:           nil,
 									EvaluationValue: &evaluationValue,
+									EntityId:        batchEvaluationRequest.Requests[idx].EntityId,
 								})
 							}
 						}

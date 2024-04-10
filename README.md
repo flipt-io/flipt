@@ -390,6 +390,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tegorov"><img src="https://avatars.githubusercontent.com/u/42921436?v=4?s=100" width="100px;" alt="Taras Egorov"/><br /><sub><b>Taras Egorov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=tegorov" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://about.me/elliotpahl"><img src="https://avatars.githubusercontent.com/u/113981?v=4?s=100" width="100px;" alt="Elliot Pahl"/><br /><sub><b>Elliot Pahl</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=halcyonCorsair" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
