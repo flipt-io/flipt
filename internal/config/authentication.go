@@ -73,6 +73,18 @@ func (c AuthenticationConfig) Enabled() bool {
 	return false
 }
 
+// RequiresDatabase returns true if any of the enabled authentication
+// methods requires a database connection
+func (c AuthenticationConfig) RequiresDatabase() bool {
+	for _, info := range c.Methods.AllMethods() {
+		if info.Enabled && info.RequiresDatabase {
+			return true
+		}
+	}
+
+	return false
+}
+
 // IsZero returns true if the authentication config is not enabled.
 // This is used for marshalling to YAML for `config init`.
 func (c AuthenticationConfig) IsZero() bool {
@@ -84,7 +96,7 @@ func (c AuthenticationConfig) IsZero() bool {
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	for _, info := range c.Methods.AllMethods() {
-		shouldCleanup = shouldCleanup || (info.Enabled && info.Cleanup != nil)
+		shouldCleanup = shouldCleanup || (info.Enabled && info.RequiresDatabase && info.Cleanup != nil)
 	}
 
 	return
@@ -291,6 +303,7 @@ func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c Authenticatio
 type AuthenticationMethodInfo struct {
 	Method            auth.Method
 	SessionCompatible bool
+	RequiresDatabase  bool
 	Metadata          *structpb.Struct
 }
 
@@ -364,6 +377,7 @@ func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
+		RequiresDatabase:  true,
 	}
 }
 
@@ -390,6 +404,7 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
+		RequiresDatabase:  true,
 	}
 
 	var (
@@ -482,6 +497,7 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_KUBERNETES,
 		SessionCompatible: false,
+		RequiresDatabase:  true,
 	}
 }
 
@@ -505,6 +521,7 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_GITHUB,
 		SessionCompatible: true,
+		RequiresDatabase:  true,
 	}
 
 	var metadata = make(map[string]any)
@@ -576,6 +593,7 @@ func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_JWT,
 		SessionCompatible: false,
+		RequiresDatabase:  false,
 	}
 }
 

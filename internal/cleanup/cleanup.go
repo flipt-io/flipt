@@ -51,6 +51,14 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 			continue
 		}
 
+		if !info.RequiresDatabase {
+			if info.Enabled {
+				logger.Debug("cleanup for auth method not required (skipping)")
+			}
+
+			continue
+		}
+
 		var (
 			method    = info.Method
 			schedule  = info.Cleanup
