@@ -393,6 +393,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "halcyonCorsair",
+      "name": "Elliot Pahl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/113981?v=4",
+      "profile": "https://about.me/elliotpahl",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
