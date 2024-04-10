@@ -12,8 +12,8 @@ cloud.google.com/go/storage v1.39.1 h1:MvraqHKhogCOTXTlct/9C3K3+Uy2jBmFYb3/Sp6dV
 cloud.google.com/go/storage v1.39.1/go.mod h1:xK6xZmxZmo+fyP7+DEF6FhNc24/JAe95OLyOHCXFH1o=
 cuelabs.dev/go/oci/ociregistry v0.0.0-20240314152124-224736b49f2e h1:GwCVItFUPxwdsEYnlUcJ6PJxOjTeFFCKOh6QWg4oAzQ=
 cuelabs.dev/go/oci/ociregistry v0.0.0-20240314152124-224736b49f2e/go.mod h1:ApHceQLLwcOkCEXM1+DyCXTHEJhNGDpJ2kmV6axsx24=
-cuelang.org/go v0.8.0 h1:fO1XPe/SUGtc7dhnGnTPbpIDoQm/XxhDtoSF7jzO01c=
-cuelang.org/go v0.8.0/go.mod h1:CoDbYolfMms4BhWUlhD+t5ORnihR7wvjcfgyO9lL5FI=
+cuelang.org/go v0.8.1 h1:VFYsxIFSPY5KgSaH1jQ2GxHOrbu6Ga3kEI70yCZwnOg=
+cuelang.org/go v0.8.1/go.mod h1:CoDbYolfMms4BhWUlhD+t5ORnihR7wvjcfgyO9lL5FI=
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
