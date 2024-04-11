@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,9 @@ import (
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/proto"
 )
+
+//nolint:gosec
+const hashedToken = "LCa0a2j_xo_5m0U8HTBBNBNCLXBkg7-g-YpeiGJm564="
 
 func TestGetAuthenticationByClientToken(t *testing.T) {
 	var (
@@ -35,11 +39,11 @@ func TestGetAuthenticationByClientToken(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
-	assert.Equal(t, "s:a:t:foo", cacher.getCacheKeys[0])      // assert we looked up the key first
-	assert.Equal(t, "s:a:t:foo", cacher.setCacheKeys[0])      // assert we cached the key
-	assert.Equal(t, "s:a:i:123", cacher.setCacheKeys[1])      // assert we cached the id
-	assert.Equal(t, []byte("foo"), cacher.cache["s:a:i:123"]) // assert we cached the token
-	assert.NotNil(t, cacher.cache["s:a:t:foo"])               // assert we cached the auth
+	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.getCacheKeys[0]) // assert we looked up the key first
+	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.setCacheKeys[0]) // assert we cached the key
+	assert.Equal(t, "s:a:i:123", cacher.setCacheKeys[1])                          // assert we cached the id
+	assert.Equal(t, []byte(hashedToken), cacher.cache["s:a:i:123"])               // assert we cached the token
+	assert.NotNil(t, cacher.cache[fmt.Sprintf("s:a:t:%s", hashedToken)])          // assert we cached the auth
 }
 
 func TestGetAuthenticationByClientTokenCached(t *testing.T) {
@@ -58,7 +62,7 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	var (
 		cacher = &cacheSpy{
 			cache: map[string][]byte{
-				"s:a:t:foo": b,
+				fmt.Sprintf("s:a:t:%s", hashedToken): b,
 			},
 		}
 
@@ -70,7 +74,7 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
-	assert.Equal(t, "s:a:t:foo", cacher.getCacheKeys[0]) // assert we looked up the key
+	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.getCacheKeys[0]) // assert we looked up the key
 }
 
 func TestExpireAuthenticationByID(t *testing.T) {
@@ -85,8 +89,8 @@ func TestExpireAuthenticationByID(t *testing.T) {
 	var (
 		cacher = &cacheSpy{
 			cache: map[string][]byte{
-				"s:a:i:123": []byte("foo"),
-				"s:a:t:foo": []byte("deleteme"),
+				"s:a:i:123":                          []byte(hashedToken),
+				fmt.Sprintf("s:a:t:%s", hashedToken): []byte("deleteme"),
 			},
 		}
 
@@ -97,7 +101,7 @@ func TestExpireAuthenticationByID(t *testing.T) {
 	err := cachedStore.ExpireAuthenticationByID(context.TODO(), "123", nil)
 	assert.Nil(t, err)
 
-	assert.Equal(t, "s:a:i:123", cacher.getCacheKeys[0])    // assert we looked up the key by id
-	assert.Equal(t, "s:a:t:foo", cacher.deleteCacheKeys[0]) // assert we cached the key
-	assert.Equal(t, "s:a:i:123", cacher.deleteCacheKeys[1]) // assert we cached the id
+	assert.Equal(t, "s:a:i:123", cacher.getCacheKeys[0])                             // assert we looked up the key by id
+	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.deleteCacheKeys[0]) // assert we cached the key
+	assert.Equal(t, "s:a:i:123", cacher.deleteCacheKeys[1])                          // assert we cached the id
 }

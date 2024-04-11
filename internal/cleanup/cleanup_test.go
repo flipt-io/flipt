@@ -66,6 +66,10 @@ func TestCleanup(t *testing.T) {
 
 	for _, info := range authConfig.Methods.AllMethods() {
 		info := info
+		if !info.RequiresDatabase {
+			continue
+		}
+
 		t.Run(fmt.Sprintf("Authentication Method %q", info.Method), func(t *testing.T) {
 			t.Parallel()
 
