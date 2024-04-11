@@ -19,7 +19,7 @@ type Store struct {
 }
 
 const (
-	// storage:auth:token:<token>
+	// storage:auth:tokenhash:<tokenhash>
 	// nolint:gosec
 	authTokenCacheKeyFmt = "s:a:t:%s"
 	// storage:auth:id:<id>
@@ -65,9 +65,14 @@ func (s *Store) get(ctx context.Context, key string, value proto.Message) bool {
 	return true
 }
 
-func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string) (*authrpc.Authentication, error) {
+func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*authrpc.Authentication, error) {
+	hashedToken, err := authn.HashClientToken(clientToken)
+	if err != nil {
+		return nil, fmt.Errorf("getting authentication by token: %w", err)
+	}
+
 	var (
-		tokenCacheKey = fmt.Sprintf(authTokenCacheKeyFmt, token)
+		tokenCacheKey = fmt.Sprintf(authTokenCacheKeyFmt, hashedToken)
 		auth          = &authrpc.Authentication{}
 	)
 
@@ -76,7 +81,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 		return auth, nil
 	}
 
-	auth, err := s.Store.GetAuthenticationByClientToken(ctx, token)
+	auth, err = s.Store.GetAuthenticationByClientToken(ctx, clientToken)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +90,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 
 	// set token by id in cache for expiration
 	idCacheKey := fmt.Sprintf(authIDCacheKeyFmt, auth.Id)
-	if err := s.cacher.Set(ctx, idCacheKey, []byte(token)); err != nil {
+	if err := s.cacher.Set(ctx, idCacheKey, []byte(hashedToken)); err != nil {
 		s.logger.Error("setting in storage cache", zap.Error(err))
 	}
 
