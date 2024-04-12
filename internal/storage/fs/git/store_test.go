@@ -245,10 +245,12 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 		return
 	}
 
+	// Test if we resolve the semver constraint to the same hash from the actual HEAD
 	hash, err := store.resolve("v0.1.*")
 	require.NoError(t, err)
 	require.Equal(t, head, hash.String())
 
+	// Test if we resolve the semver tag to the same hash from the actual HEAD
 	hash, err = store.resolve(tag)
 	require.NoError(t, err)
 	require.Equal(t, head, hash.String())
@@ -316,10 +318,6 @@ flags:
 		},
 	}))
 
-	hash, err = store.resolve("v0.1.*")
-	require.NoError(t, err)
-	require.Equal(t, commit.String(), hash.String())
-
 	// wait until the snapshot is updated or
 	// we timeout
 	select {
@@ -331,6 +329,11 @@ flags:
 	require.NoError(t, err)
 
 	t.Log("received new snapshot")
+
+	// Test if we can resolve to the new tag
+	hash, err = store.resolve("v0.1.*")
+	require.NoError(t, err)
+	require.Equal(t, commit.String(), hash.String())
 
 	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("semver", "bar"))
