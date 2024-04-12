@@ -271,7 +271,7 @@ func (s *SnapshotStore) resolve(ref string) (plumbing.Hash, error) {
 			version, err := semver.NewVersion(reference.Name().Short())
 			if err != nil {
 				// We are bypassing the error as the repository can have tags noncompliant with semver
-				return nil
+				return nil //nolint:nilerr
 			}
 
 			if constraint.Check(version) && version.GreaterThan(maxVersion) {
