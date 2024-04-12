@@ -136,7 +136,7 @@ func main() {
 	})
 	fmt.Fprintln(os.Stderr, "Pushed")
 
-	if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"HEAD": commit.String(), "TAG": tag.String()}); err != nil {
+	if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"HEAD": commit.String(), "TAG": tag.Name().Short()}); err != nil {
 		log.Fatal(err)
 	}
 }
