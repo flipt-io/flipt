@@ -223,7 +223,8 @@ func (s *SnapshotStore) fetch(ctx context.Context) (bool, error) {
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
 		Auth: s.auth,
 		RefSpecs: []config.RefSpec{
-			"+refs/heads/*:refs/heads/*:+refs/tags/*:refs/tags/*",
+			"+refs/heads/*:refs/heads/*",
+			"+refs/tags/*:refs/tags/*",
 		},
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
