@@ -11,14 +11,15 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	"go.uber.org/zap"
+
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
-	"go.uber.org/zap"
 )
 
 // Evaluator is an evaluator for legacy flag evaluations.
@@ -202,7 +203,8 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 		// if index is outside of our existing buckets then it does not match any distribution
 		if index == len(validDistributions) {
-			resp.Match = false
+			resp.Match = true
+			resp.Reason = flipt.EvaluationReason_MATCH_EVALUATION_REASON
 			e.logger.Debug("did not match any distributions")
 			return resp, nil
 		}
