@@ -216,6 +216,129 @@ flags:
 	}))
 }
 
+func Test_Store_View_WithSemverRevision(t *testing.T) {
+	tag := os.Getenv("TEST_GIT_REPO_TAG")
+	if tag == "" {
+		t.Skip("Set non-empty TEST_GIT_REPO_TAG env var to run this test.")
+		return
+	}
+
+	head := os.Getenv("TEST_GIT_REPO_HEAD")
+	if head == "" {
+		t.Skip("Set non-empty TEST_GIT_REPO_HEAD env var to run this test.")
+		return
+	}
+
+	ch := make(chan struct{})
+	store, skip := testStore(t, gitRepoURL,
+		WithRef("v0.1.*"),
+		WithPollOptions(
+			fs.WithInterval(time.Second),
+			fs.WithNotify(t, func(modified bool) {
+				if modified {
+					close(ch)
+				}
+			}),
+		),
+	)
+	if skip {
+		return
+	}
+
+	hash, err := store.resolve("v0.1.*")
+	require.NoError(t, err)
+	require.Equal(t, head, hash.String())
+
+	hash, err = store.resolve(tag)
+	require.NoError(t, err)
+	require.Equal(t, head, hash.String())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	// pull repo
+	workdir := memfs.New()
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
+	require.NoError(t, err)
+
+	tree, err := repo.Worktree()
+	require.NoError(t, err)
+
+	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
+		Branch: "refs/heads/semver-branch",
+		Create: true,
+	}))
+
+	// update features.yml
+	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	require.NoError(t, err)
+
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("semver", "bar"))
+		require.Error(t, err, "flag should not be found in default revision")
+		return nil
+	}))
+
+	updated := []byte(`namespace: semver
+flags:
+  - key: foo
+    name: Foo
+  - key: bar
+    name: Bar`)
+
+	_, err = fi.Write(updated)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	// commit changes
+	commit, err := tree.Commit("chore: update features.yml", &git.CommitOptions{
+		All:    true,
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
+	require.NoError(t, err)
+
+	// create a new tag respecting the semver constraint
+	_, err = repo.CreateTag("v0.1.4", commit, nil)
+	require.NoError(t, err)
+
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
+		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
+		RemoteName: "origin",
+		RefSpecs: []config.RefSpec{
+			"refs/heads/semver-branch:refs/heads/semver-branch",
+			"refs/tags/v0.1.4:refs/tags/v0.1.4",
+		},
+	}))
+
+	hash, err = store.resolve("v0.1.*")
+	require.NoError(t, err)
+	require.Equal(t, commit.String(), hash.String())
+
+	// wait until the snapshot is updated or
+	// we timeout
+	select {
+	case <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for snapshot")
+	}
+
+	require.NoError(t, err)
+
+	t.Log("received new snapshot")
+
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("semver", "bar"))
+		require.NoError(t, err, "flag should be present on semver v0.1.*")
+		return nil
+	}))
+}
+
 func Test_Store_View_WithDirectory(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(

@@ -122,15 +122,21 @@ func main() {
 	})
 	fatalOnError(err)
 
+	tag, err := repo.CreateTag("v0.1.2", commit, nil)
+	fatalOnError(err)
+
 	fmt.Fprintln(os.Stderr, "Pushing to", origin.CloneURL)
 	repo.Push(&git.PushOptions{
 		Auth:       &githttp.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
-		RefSpecs:   []config.RefSpec{"refs/heads/main:refs/heads/main"},
+		RefSpecs: []config.RefSpec{
+			"refs/heads/main:refs/heads/main",
+			"refs/tags/v0.1.2:refs/tags/v0.1.2",
+		},
 	})
 	fmt.Fprintln(os.Stderr, "Pushed")
 
-	if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"HEAD": commit.String()}); err != nil {
+	if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"HEAD": commit.String(), "TAG": tag.String()}); err != nil {
 		log.Fatal(err)
 	}
 }

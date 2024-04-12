@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"sync"
 
+	"github.com/Masterminds/semver/v3"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -221,7 +223,7 @@ func (s *SnapshotStore) fetch(ctx context.Context) (bool, error) {
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
 		Auth: s.auth,
 		RefSpecs: []config.RefSpec{
-			"+refs/heads/*:refs/heads/*",
+			"+refs/heads/*:refs/heads/*:+refs/tags/*:refs/tags/*",
 		},
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
@@ -254,6 +256,40 @@ func (s *SnapshotStore) resolve(ref string) (plumbing.Hash, error) {
 
 	if plumbing.IsHash(ref) {
 		return plumbing.NewHash(ref), nil
+	}
+
+	constraint, err := semver.NewConstraint(ref)
+	if err == nil { // If there are no errors it's a valid semver constraint
+		tags, err := s.repo.Tags()
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+
+		maxVersion := semver.New(0, 0, 0, "", "")
+		maxVersionHash := plumbing.ZeroHash
+		err = tags.ForEach(func(reference *plumbing.Reference) error {
+			version, err := semver.NewVersion(reference.Name().Short())
+			if err != nil {
+				// We are bypassing the error as the repository can have tags noncompliant with semver
+				return nil
+			}
+
+			if constraint.Check(version) && version.GreaterThan(maxVersion) {
+				maxVersion = version
+				maxVersionHash = reference.Hash()
+			}
+
+			return nil
+		})
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+
+		if maxVersionHash == plumbing.ZeroHash {
+			return plumbing.ZeroHash, errors.New("could not find the specified tag reference")
+		}
+
+		return maxVersionHash, nil
 	}
 
 	reference, err := s.repo.Reference(plumbing.NewBranchReferenceName(ref), true)

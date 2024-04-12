@@ -54,7 +54,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
 		AsService()
 
-		// S3 unit testing
+	// S3 unit testing
 
 	flipt = flipt.
 		WithServiceBinding("minio", minio.AsService()).
@@ -62,13 +62,13 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password")
 
-		// GCS unit testing
+	// GCS unit testing
 
 	flipt = flipt.
 		WithServiceBinding("gcs", gcs).
 		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443")
 
-		// Azure unit testing
+	// Azure unit testing
 
 	flipt = flipt.
 		WithServiceBinding("azurite", azurite).
@@ -85,6 +85,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
+		WithEnvVariable("TEST_GIT_REPO_TAG", push["TAG"]).
 		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {
