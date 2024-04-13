@@ -199,7 +199,7 @@ func buildConfig() (*zap.Logger, *config.Config, error) {
 	// otherwise, use defaults
 	res, err := config.Load(path)
 	if err != nil {
-		return nil, nil, fmt.Errorf("loading configuration %w", err)
+		return nil, nil, fmt.Errorf("loading configuration: %w", err)
 	}
 
 	if !found {
