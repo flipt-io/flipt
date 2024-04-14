@@ -3,47 +3,21 @@ package object
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
 
-	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
-	gcaws "gocloud.dev/aws"
 	gcblob "gocloud.dev/blob"
-	"gocloud.dev/blob/s3blob"
 	"gocloud.dev/gcerrors"
 )
 
 var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
-
-// S3Schema is a custom scheme for gocloud blob which works with
-// how we interact with s3 (supports interfacing with minio)
-const S3Schema = "s3i"
-
-func init() {
-	gcblob.DefaultURLMux().RegisterBucket(S3Schema, new(urlSessionOpener))
-}
-
-type urlSessionOpener struct{}
-
-func (o *urlSessionOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*gcblob.Bucket, error) {
-	cfg, err := gcaws.V2ConfigFromURLParams(ctx, u.Query())
-	if err != nil {
-		return nil, fmt.Errorf("open bucket %v: %w", u, err)
-	}
-	clientV2 := s3v2.NewFromConfig(cfg, func(o *s3v2.Options) {
-		o.UsePathStyle = true
-	})
-	return s3blob.OpenBucketV2(ctx, clientV2, u.Host, &s3blob.Options{})
-}
 
 type SnapshotStore struct {
 	*storagefs.Poller
