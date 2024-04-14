@@ -938,6 +938,12 @@
           "enum": ["jaeger", "zipkin", "otlp"],
           "default": "jaeger"
         },
+        "samplingRatio": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1
+        },
         "jaeger": {
           "type": "object",
           "additionalProperties": false,

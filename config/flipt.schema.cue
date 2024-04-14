@@ -271,6 +271,7 @@ import "strings"
 	#tracing: {
 		enabled?:  bool | *false
 		exporter?: *"jaeger" | "zipkin" | "otlp"
+		samplingRatio?: float & >= 0 & <= 1 | *1
 
 		jaeger?: {
 			enabled?: bool | *false
