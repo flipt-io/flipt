@@ -20,3 +20,11 @@ func TestRemapScheme(t *testing.T) {
 		})
 	}
 }
+
+func TestSupportedSchemes(t *testing.T) {
+	for _, tt := range []string{"s3", "s3i", "azblob", "googlecloud", "gs"} {
+		t.Run(tt, func(t *testing.T) {
+			assert.Contains(t, SupportedSchemes(), tt)
+		})
+	}
+}

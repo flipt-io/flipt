@@ -1368,7 +1368,7 @@ func (c *mockURLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bu
 	return c.bucket, nil
 }
 
-func TestRemoveConfig(t *testing.T) {
+func TestGetConfigFile(t *testing.T) {
 	blob.DefaultURLMux().RegisterBucket("mock", &mockURLOpener{
 		bucket: memblob.OpenBucket(nil),
 	})
