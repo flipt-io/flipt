@@ -272,6 +272,9 @@ import "strings"
 		enabled?:  bool | *false
 		exporter?: *"jaeger" | "zipkin" | "otlp"
 		samplingRatio?: float & >= 0 & <= 1 | *1
+		propagators?: [
+		    ..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none"
+        ] | *["tracecontext", "baggage"]
 
 		jaeger?: {
 			enabled?: bool | *false
