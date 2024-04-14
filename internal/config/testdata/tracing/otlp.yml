@@ -1,6 +1,7 @@
 tracing:
   enabled: true
   exporter: otlp
+  samplingRatio: 0.5
   otlp:
     endpoint: http://localhost:9999
     headers:

@@ -331,10 +331,16 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name:    "tracing with wrong sampling ration",
+			path:    "./testdata/tracing/wrong_sampling_ratio.yml",
+			wantErr: errors.New("sampling ratio should be a number between 0 and 1"),
+		},
+		{
 			name: "tracing otlp",
 			path: "./testdata/tracing/otlp.yml",
 			expected: func() *Config {
 				cfg := Default()
+				cfg.Tracing.SamplingRatio = 0.5
 				cfg.Tracing.Enabled = true
 				cfg.Tracing.Exporter = TracingOTLP
 				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
@@ -577,8 +583,9 @@ func TestLoad(t *testing.T) {
 					CertKey:   "./testdata/ssl_key.pem",
 				}
 				cfg.Tracing = TracingConfig{
-					Enabled:  true,
-					Exporter: TracingOTLP,
+					Enabled:       true,
+					Exporter:      TracingOTLP,
+					SamplingRatio: 1,
 					Jaeger: JaegerTracingConfig{
 						Host: "localhost",
 						Port: 6831,

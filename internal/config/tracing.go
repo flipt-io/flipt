@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/spf13/viper"
 )
@@ -12,17 +13,19 @@ var _ defaulter = (*TracingConfig)(nil)
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.
 type TracingConfig struct {
-	Enabled  bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
-	Exporter TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
-	Jaeger   JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
-	Zipkin   ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
-	OTLP     OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
+	Enabled       bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	Exporter      TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
+	SamplingRatio float64             `json:"samplingRatio,omitempty" mapstructure:"samplingRatio" yaml:"samplingRatio,omitempty"`
+	Jaeger        JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
+	Zipkin        ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
+	OTLP          OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
-		"enabled":  false,
-		"exporter": TracingJaeger,
+		"enabled":       false,
+		"exporter":      TracingJaeger,
+		"samplingRatio": 1,
 		"jaeger": map[string]any{
 			"host": "localhost",
 			"port": 6831,
@@ -34,6 +37,14 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 			"endpoint": "localhost:4317",
 		},
 	})
+
+	return nil
+}
+
+func (c *TracingConfig) validate() error {
+	if c.SamplingRatio < 0 || c.SamplingRatio > 1 {
+		return errors.New("sampling ratio should be a number between 0 and 1")
+	}
 
 	return nil
 }
