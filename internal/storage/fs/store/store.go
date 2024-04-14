@@ -21,9 +21,9 @@ import (
 	"go.flipt.io/flipt/internal/storage/fs/object"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	"go.uber.org/zap"
-	"gocloud.dev/blob"
 	"gocloud.dev/blob/azureblob"
 	"gocloud.dev/blob/gcsblob"
+	"gocloud.dev/blob/s3blob"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -164,7 +164,7 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 	// nolint:gocritic
 	switch ocfg.Type {
 	case config.S3ObjectSubStorageType:
-		scheme = "s3i"
+		scheme = s3blob.Scheme
 		bucketName = ocfg.S3.Bucket
 		if ocfg.S3.Endpoint != "" {
 			values.Set("endpoint", ocfg.S3.Endpoint)
@@ -225,7 +225,7 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		RawQuery: values.Encode(),
 	}
 
-	bucket, err := blob.OpenBucket(ctx, u.String())
+	bucket, err := object.OpenBucket(ctx, u)
 	if err != nil {
 		return nil, err
 	}

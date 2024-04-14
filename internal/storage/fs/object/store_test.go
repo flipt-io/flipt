@@ -74,7 +74,7 @@ func Test_Store(t *testing.T) {
 			q.Set("region", "minio")
 			q.Set("endpoint", minioURL)
 			s3 := &url.URL{
-				Scheme:   "s3i",
+				Scheme:   "s3",
 				Host:     bucketName,
 				RawQuery: q.Encode(),
 			}
@@ -153,8 +153,9 @@ func testStore(t *testing.T, fn func(t *testing.T) string) {
 		dest := fn(t)
 
 		t.Log("opening bucket", dest)
-
-		bucket, err := gcblob.OpenBucket(ctx, dest)
+		u, err := url.Parse(dest)
+		require.NoError(t, err)
+		bucket, err := OpenBucket(ctx, u)
 		require.NoError(t, err)
 
 		t.Cleanup(func() { _ = bucket.Close() })
@@ -162,9 +163,6 @@ func testStore(t *testing.T, fn func(t *testing.T) string) {
 		writeTestDataToBucket(t, ctx, bucket)
 
 		t.Log("Creating store to test")
-
-		u, err := url.Parse(dest)
-		require.NoError(t, err)
 
 		store, err := NewSnapshotStore(
 			ctx,
@@ -239,8 +237,9 @@ flags:
 		dest := fn(t)
 
 		t.Log("opening bucket", dest)
-
-		bucket, err := gcblob.OpenBucket(ctx, dest)
+		u, err := url.Parse(dest)
+		require.NoError(t, err)
+		bucket, err := OpenBucket(ctx, u)
 		require.NoError(t, err)
 
 		t.Cleanup(func() { _ = bucket.Close() })
@@ -248,9 +247,6 @@ flags:
 		writeTestDataToBucket(t, ctx, bucket)
 
 		t.Log("Creating store to test")
-
-		u, err := url.Parse(dest)
-		require.NoError(t, err)
 
 		store, err := NewSnapshotStore(
 			ctx,

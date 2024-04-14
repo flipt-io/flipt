@@ -122,6 +122,30 @@ exit $?`,
 	}
 
 	{
+		container := container.Pipeline("flipt (remote config)")
+		minio := container.
+			From("quay.io/minio/minio:latest").
+			WithExposedPort(9009).
+			WithEnvVariable("MINIO_ROOT_USER", "user").
+			WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
+			WithEnvVariable("MINIO_BROWSER", "off").
+			WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+			AsService()
+
+		if _, err := assertExec(ctx,
+			container.WithServiceBinding("minio", minio).
+				WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
+				WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password"),
+			flipt("--config", "s3://mybucket/local.yml?region=minio&endpoint=http://minio:9009"),
+			fails,
+			stderr(contains(`NoSuchBucket`)),
+			stderr(contains(`loading configuration: open local.yml`)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
 		container := container.Pipeline("flipt import/export")
 
 		var err error

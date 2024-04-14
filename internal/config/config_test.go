@@ -1,12 +1,14 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -17,6 +19,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/oci"
+	"gocloud.dev/blob"
+	"gocloud.dev/blob/memblob"
 	"gopkg.in/yaml.v2"
 )
 
@@ -1364,6 +1368,62 @@ func Test_mustBindEnv(t *testing.T) {
 			bindEnvVars(&binder, test.env, []string{}, typ)
 
 			assert.Equal(t, test.bound, []string(binder))
+		})
+	}
+}
+
+type mockURLOpener struct {
+	bucket *blob.Bucket
+}
+
+// OpenBucketURL opens a blob.Bucket based on u.
+func (c *mockURLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+	for param := range u.Query() {
+		return nil, fmt.Errorf("open bucket %v: invalid query parameter %q", u, param)
+	}
+	return c.bucket, nil
+}
+
+func TestGetConfigFile(t *testing.T) {
+	blob.DefaultURLMux().RegisterBucket("mock", &mockURLOpener{
+		bucket: memblob.OpenBucket(nil),
+	})
+	configData := []byte("some config data")
+	ctx := context.Background()
+	b, err := blob.OpenBucket(ctx, "mock://mybucket")
+	require.NoError(t, err)
+	t.Cleanup(func() { b.Close() })
+	w, err := b.NewWriter(ctx, "config/local.yml", nil)
+	require.NoError(t, err)
+	_, err = w.Write(configData)
+	require.NoError(t, err)
+	err = w.Close()
+	require.NoError(t, err)
+	t.Run("successful", func(t *testing.T) {
+		f, err := getConfigFile(ctx, "mock://mybucket/config/local.yml")
+		require.NoError(t, err)
+		s, err := f.Stat()
+		require.NoError(t, err)
+		require.Equal(t, "local.yml", s.Name())
+
+		data, err := io.ReadAll(f)
+		require.NoError(t, err)
+		require.Equal(t, configData, data)
+	})
+
+	for _, tt := range []struct {
+		name string
+		path string
+	}{
+		{"unknown bucket", "mock://otherbucket/config.yml"},
+		{"unknown scheme", "unknown://otherbucket/config.yml"},
+		{"no bucket", "mock://"},
+		{"no key", "mock://mybucket"},
+		{"no data", ""},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err = getConfigFile(ctx, tt.path)
+			require.Error(t, err)
 		})
 	}
 }
