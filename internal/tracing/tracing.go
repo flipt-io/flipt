@@ -15,29 +15,39 @@ import (
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 // newResource constructs a trace resource with Flipt-specific attributes.
 // It incorporates schema URL, service name, service version, and OTLP environment data
 func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, error) {
-	return resource.New(ctx, resource.WithSchemaURL(semconv.SchemaURL), resource.WithAttributes(
-		semconv.ServiceNameKey.String("flipt"),
-		semconv.ServiceVersionKey.String(fliptVersion),
-	),
+	return resource.New(
+		ctx,
+		resource.WithSchemaURL(semconv.SchemaURL),
+		resource.WithAttributes(
+			semconv.ServiceName("flipt"),
+			semconv.ServiceVersion(fliptVersion),
+		),
 		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithContainer(),
+		resource.WithHost(),
+		resource.WithProcessRuntimeVersion(),
+		resource.WithProcessRuntimeName(),
+		resource.WithProcessRuntimeDescription(),
 	)
 }
 
 // NewProvider creates a new TracerProvider configured for Flipt tracing.
-func NewProvider(ctx context.Context, fliptVersion string) (*tracesdk.TracerProvider, error) {
+func NewProvider(ctx context.Context, fliptVersion string, cfg config.TracingConfig) (*tracesdk.TracerProvider, error) {
 	traceResource, err := newResource(ctx, fliptVersion)
 	if err != nil {
 		return nil, err
 	}
+
 	return tracesdk.NewTracerProvider(
 		tracesdk.WithResource(traceResource),
-		tracesdk.WithSampler(tracesdk.AlwaysSample()),
+		tracesdk.WithSampler(tracesdk.TraceIDRatioBased(cfg.SamplingRatio)),
 	), nil
 }
 

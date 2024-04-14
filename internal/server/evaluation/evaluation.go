@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"strconv"
 	"time"
 
 	errs "go.flipt.io/flipt/errors"
@@ -43,6 +44,9 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeValue.String(resp.VariantKey),
 		fliptotel.AttributeReason.String(resp.Reason.String()),
 		fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
+		fliptotel.AttributeFlagKey(resp.FlagKey),
+		fliptotel.AttributeProviderName,
+		fliptotel.AttributeFlagVariant(resp.VariantKey),
 	}
 
 	// add otel attributes to span
@@ -111,6 +115,9 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeRequestID.String(r.RequestId),
 		fliptotel.AttributeValue.Bool(resp.Enabled),
 		fliptotel.AttributeReason.String(resp.Reason.String()),
+		fliptotel.AttributeFlagKey(r.FlagKey),
+		fliptotel.AttributeProviderName,
+		fliptotel.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
 	}
 
 	// add otel attributes to span
