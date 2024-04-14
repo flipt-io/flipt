@@ -508,6 +508,10 @@ func Default() *Config {
 			Enabled:       false,
 			Exporter:      TracingJaeger,
 			SamplingRatio: 1,
+			Propagators: []TracingPropagator{
+				TracingPropagatorTraceContext,
+				TracingPropagatorBaggage,
+			},
 			Jaeger: JaegerTracingConfig{
 				Host: "localhost",
 				Port: 6831,

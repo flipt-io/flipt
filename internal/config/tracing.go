@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/spf13/viper"
 )
@@ -15,6 +16,7 @@ var _ defaulter = (*TracingConfig)(nil)
 type TracingConfig struct {
 	Enabled       bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	Exporter      TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
+	Propagators   []TracingPropagator `json:"propagators,omitempty" mapstructure:"propagators" yaml:"propagators,omitempty"`
 	SamplingRatio float64             `json:"samplingRatio,omitempty" mapstructure:"samplingRatio" yaml:"samplingRatio,omitempty"`
 	Jaeger        JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
 	Zipkin        ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
@@ -26,6 +28,10 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 		"enabled":       false,
 		"exporter":      TracingJaeger,
 		"samplingRatio": 1,
+		"propagators": []TracingPropagator{
+			TracingPropagatorTraceContext,
+			TracingPropagatorBaggage,
+		},
 		"jaeger": map[string]any{
 			"host": "localhost",
 			"port": 6831,
@@ -44,6 +50,12 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 func (c *TracingConfig) validate() error {
 	if c.SamplingRatio < 0 || c.SamplingRatio > 1 {
 		return errors.New("sampling ratio should be a number between 0 and 1")
+	}
+
+	for _, propagator := range c.Propagators {
+		if !propagator.isValid() {
+			return fmt.Errorf("invalid propagator option: %s", propagator)
+		}
 	}
 
 	return nil
@@ -104,6 +116,34 @@ var (
 		"otlp":   TracingOTLP,
 	}
 )
+
+type TracingPropagator string
+
+const (
+	TracingPropagatorTraceContext TracingPropagator = "tracecontext"
+	TracingPropagatorBaggage      TracingPropagator = "baggage"
+	TracingPropagatorB3           TracingPropagator = "b3"
+	TracingPropagatorB3Multi      TracingPropagator = "b3multi"
+	TracingPropagatorJaeger       TracingPropagator = "jaeger"
+	TracingPropagatorXRay         TracingPropagator = "xray"
+	TracingPropagatorOtTrace      TracingPropagator = "ottrace"
+	TracingPropagatorNone         TracingPropagator = "none"
+)
+
+func (t TracingPropagator) isValid() bool {
+	validOptions := map[TracingPropagator]bool{
+		TracingPropagatorTraceContext: true,
+		TracingPropagatorBaggage:      true,
+		TracingPropagatorB3:           true,
+		TracingPropagatorB3Multi:      true,
+		TracingPropagatorJaeger:       true,
+		TracingPropagatorXRay:         true,
+		TracingPropagatorOtTrace:      true,
+		TracingPropagatorNone:         true,
+	}
+
+	return validOptions[t]
+}
 
 // JaegerTracingConfig contains fields, which configure
 // Jaeger span and tracing output destination.

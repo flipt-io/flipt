@@ -336,6 +336,11 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("sampling ratio should be a number between 0 and 1"),
 		},
 		{
+			name:    "tracing with wrong propagator",
+			path:    "./testdata/tracing/wrong_propagator.yml",
+			wantErr: errors.New("invalid propagator option: wrong_propagator"),
+		},
+		{
 			name: "tracing otlp",
 			path: "./testdata/tracing/otlp.yml",
 			expected: func() *Config {
@@ -586,6 +591,10 @@ func TestLoad(t *testing.T) {
 					Enabled:       true,
 					Exporter:      TracingOTLP,
 					SamplingRatio: 1,
+					Propagators: []TracingPropagator{
+						TracingPropagatorTraceContext,
+						TracingPropagatorBaggage,
+					},
 					Jaeger: JaegerTracingConfig{
 						Host: "localhost",
 						Port: 6831,
