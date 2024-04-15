@@ -54,7 +54,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
-	github.com/testcontainers/testcontainers-go v0.29.1
+	github.com/testcontainers/testcontainers-go v0.30.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xo/dburl v0.22.0
 	go.flipt.io/flipt/core v0.0.0-00010101000000-000000000000
