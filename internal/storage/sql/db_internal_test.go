@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 				PreparedStatementsEnabled: true,
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+			dsn:    "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 		},
 		{
 			name: "postgres url",
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 				URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 			},
 			driver: Postgres,
-			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "postgres no disable sslmode",
@@ -57,7 +57,7 @@ func TestParse(t *testing.T) {
 				URL: "postgres://postgres@localhost:5432/flipt",
 			},
 			driver: Postgres,
-			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 user=postgres",
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes",
 		},
 		{
 			name: "postgres disable sslmode via opts",
@@ -70,7 +70,7 @@ func TestParse(t *testing.T) {
 			},
 			options: []Option{WithSSLDisabled},
 			driver:  Postgres,
-			dsn:     "binary_parameters=yes dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+			dsn:     "postgres://postgres@localhost:5432/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "postgres no port",
@@ -81,7 +81,7 @@ func TestParse(t *testing.T) {
 				User:     "postgres",
 			},
 			driver: Postgres,
-			dsn:    "binary_parameters=yes dbname=flipt host=localhost user=postgres",
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes",
 		},
 		{
 			name: "postgres no password",
@@ -93,7 +93,7 @@ func TestParse(t *testing.T) {
 				User:     "postgres",
 			},
 			driver: Postgres,
-			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 user=postgres",
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes",
 		},
 		{
 			name: "postgres with password",
@@ -106,7 +106,7 @@ func TestParse(t *testing.T) {
 				Password: "foo",
 			},
 			driver: Postgres,
-			dsn:    "binary_parameters=yes dbname=flipt host=localhost password=foo port=5432 user=postgres",
+			dsn:    "postgres://postgres:foo@localhost:5432/flipt?binary_parameters=yes",
 		},
 		{
 			name: "mysql url",
@@ -275,6 +275,15 @@ func TestParse(t *testing.T) {
 				URL: "mongo://127.0.0.1",
 			},
 			wantErr: true,
+		},
+		{
+			name: "postgres multi hosts url",
+			cfg: config.DatabaseConfig{
+				URL:                       "postgres://user:pass@host1:5432,host2:2345/flipt?application_name=flipt&target_session_attrs=primary",
+				PreparedStatementsEnabled: false,
+			},
+			driver: Postgres,
+			dsn:    "postgres://user:pass@host1:5432,host2:2345/flipt?application_name=flipt&binary_parameters=yes&target_session_attrs=primary",
 		},
 	}
 

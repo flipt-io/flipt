@@ -12,7 +12,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
-	"github.com/lib/pq"
+
 	"github.com/libsql/libsql-client-go/libsql"
 	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
@@ -49,6 +49,9 @@ func init() {
 		Aliases:   []string{"libsql", "http", "https"},
 		Override:  "file",
 	})
+	// drop references to lib/pq and relay on pgx
+	dburl.Unregister("postgres")
+	dburl.RegisterAlias("pgx", "postgres")
 }
 
 // Open opens a connection to the db
@@ -123,10 +126,10 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 		dr = &libsql.Driver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
 	case Postgres:
-		dr = &pq.Driver{}
+		dr = newAdaptedPostgresDriver(d)
 		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
 	case CockroachDB:
-		dr = &pq.Driver{}
+		dr = newAdaptedPostgresDriver(d)
 		attrs = []attribute.KeyValue{semconv.DBSystemCockroachdb}
 	case MySQL:
 		dr = &mysql.MySQLDriver{}
@@ -203,7 +206,7 @@ var (
 	stringToDriver = map[string]Driver{
 		"sqlite3":     SQLite,
 		"libsql":      LibSQL,
-		"postgres":    Postgres,
+		"pgx":         Postgres,
 		"mysql":       MySQL,
 		"cockroachdb": CockroachDB,
 		"clickhouse":  Clickhouse,
