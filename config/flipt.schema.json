@@ -230,6 +230,9 @@
                     },
                     "issuer": {
                       "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
                     }
                   }
                 },
@@ -759,7 +762,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "type":  {
+                "type": {
                   "type": "string",
                   "enum": ["static", "aws-ecr"],
                   "default": "static"

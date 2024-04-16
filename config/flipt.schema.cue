@@ -82,6 +82,7 @@ import "strings"
 				enabled?: bool | *false
 				validate_claims?: {
 					issuer?: string
+					subject?: string
 					audiences?: [...string]
 				}
 				jwks_url?:        string
