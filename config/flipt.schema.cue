@@ -13,6 +13,7 @@ import "strings"
 	analytics:       #analytics
 	audit?:          #audit
 	authentication?: #authentication
+	authorization?:  #authorization
 	cache?:          #cache
 	cloud?:          #cloud
 	cors?:           #cors
@@ -111,6 +112,10 @@ import "strings"
 			scopes?: [...string]
 			use_pkce?: bool
 		}
+	}
+
+	#authorization: {
+		required?: bool | *false
 	}
 
 	#cache: {

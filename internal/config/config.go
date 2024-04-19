@@ -21,8 +21,14 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-const Version = "1.0"
-const EnvPrefix = "FLIPT"
+const (
+	Version   = "1.0"
+	EnvPrefix = "FLIPT"
+)
+
+var (
+	_ validator = (*Config)(nil)
+)
 
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
@@ -51,6 +57,7 @@ type Config struct {
 	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty" yaml:"version,omitempty"`
 	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
 	Cloud          CloudConfig          `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty" experiment:"cloud"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
@@ -395,6 +402,11 @@ func (c *Config) validate() (err error) {
 			return fmt.Errorf("invalid version: %s", c.Version)
 		}
 	}
+
+	if c.Authorization.Required && !(c.Authentication.Required && c.Authentication.SessionEnabled()) {
+		return fmt.Errorf("authorization requires authentication and a session enabled method")
+	}
+
 	return nil
 }
 

@@ -44,8 +44,8 @@ func TestExecuter_JSON_Failure(t *testing.T) {
 	}
 
 	err = whTemplate.Execute(context.TODO(), audit.Event{
-		Type:   audit.FlagType,
-		Action: audit.Create,
+		Type:   flipt.SubjectFlag,
+		Action: flipt.ActionCreate,
 	})
 
 	assert.EqualError(t, err, "invalid JSON: this is invalid JSON flag, created")
@@ -67,8 +67,8 @@ func TestExecuter_Execute(t *testing.T) {
 	}
 
 	err = whTemplate.Execute(context.TODO(), audit.Event{
-		Type:   audit.FlagType,
-		Action: audit.Create,
+		Type:   flipt.SubjectFlag,
+		Action: flipt.ActionCreate,
 	})
 
 	require.NoError(t, err)
@@ -91,8 +91,8 @@ func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
 	}
 
 	err = whTemplate.Execute(context.TODO(), audit.Event{
-		Type:   audit.FlagType,
-		Action: audit.Create,
+		Type:   flipt.SubjectFlag,
+		Action: flipt.ActionCreate,
 		Payload: &flipt.CreateFlagRequest{
 			Key:          "foo",
 			Name:         "foo",

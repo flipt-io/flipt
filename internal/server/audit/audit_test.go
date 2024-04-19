@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -31,20 +32,20 @@ func (s *sampleSink) Close() error { return nil }
 func TestSinkSpanExporter(t *testing.T) {
 	cases := []struct {
 		name      string
-		fType     Type
-		action    Action
+		fType     flipt.Subject
+		action    flipt.Action
 		expectErr bool
 	}{
 		{
 			name:      "Valid",
-			fType:     FlagType,
-			action:    Create,
+			fType:     flipt.SubjectFlag,
+			action:    flipt.ActionCreate,
 			expectErr: false,
 		},
 		{
 			name:      "Invalid",
-			fType:     Type(""),
-			action:    Action(""),
+			fType:     flipt.Subject(""),
+			action:    flipt.Action(""),
 			expectErr: true,
 		},
 	}
@@ -67,9 +68,9 @@ func TestSinkSpanExporter(t *testing.T) {
 
 			_, span := tr.Start(ctx, "OnStart")
 
+			r := flipt.NewRequest(c.fType, c.action)
 			e := NewEvent(
-				c.fType,
-				c.action,
+				r,
 				&Actor{
 					Authentication: "token",
 					IP:             "127.0.0.1",
@@ -97,14 +98,4 @@ func TestSinkSpanExporter(t *testing.T) {
 			}
 		})
 	}
-}
-func TestGRPCMethodToAction(t *testing.T) {
-	a := GRPCMethodToAction("CreateNamespace")
-	assert.Equal(t, Create, a)
-
-	a = GRPCMethodToAction("UpdateSegment")
-	assert.Equal(t, Update, a)
-
-	a = GRPCMethodToAction("NoMethodMatched")
-	assert.Equal(t, "", string(a))
 }

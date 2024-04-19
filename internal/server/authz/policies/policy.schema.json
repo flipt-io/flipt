@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "flipt.authz.policy.schema.json",
+  "type": "object",
+  "title": "flipt-authz-policy-schema-v0",
+  "description": "Flipt authz policy definition.",
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "rules": {
+            "type": "object",
+            "properties": {
+              "*": {
+                "$ref": "#/definitions/ruleArray"
+              },
+              "create": {
+                "$ref": "#/definitions/ruleArray"
+              },
+              "read": {
+                "$ref": "#/definitions/ruleArray"
+              },
+              "update": {
+                "$ref": "#/definitions/ruleArray"
+              },
+              "delete": {
+                "$ref": "#/definitions/ruleArray"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["name", "rules"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["version", "roles"],
+  "additionalProperties": false,
+  "definitions": {
+    "ruleArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "distribution",
+          "flag",
+          "rollout",
+          "rule",
+          "segment",
+          "token",
+          "variant",
+          "*"
+        ]
+      }
+    }
+  }
+}

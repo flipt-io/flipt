@@ -11,8 +11,10 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*StorageConfig)(nil)
+var (
+	_ defaulter = (*StorageConfig)(nil)
+	_ validator = (*StorageConfig)(nil)
+)
 
 type StorageType string
 

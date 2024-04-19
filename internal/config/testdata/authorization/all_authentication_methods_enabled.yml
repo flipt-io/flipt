@@ -1,0 +1,43 @@
+authentication:
+  required: true
+  session:
+    domain: "auth.flipt.io"
+    secure: true
+    csrf:
+      key: "abcdefghijklmnopqrstuvwxyz1234567890" #gitleaks:allow
+  methods:
+    token:
+      enabled: true
+      cleanup:
+        interval: 2h
+        grace_period: 48h
+    oidc:
+      enabled: true
+      providers:
+        google:
+          issuer_url: "http://accounts.google.com"
+          client_id: "abcdefg"
+          client_secret: "bcdefgh"
+          redirect_address: "http://auth.flipt.io"
+      cleanup:
+        interval: 2h
+        grace_period: 48h
+    kubernetes:
+      enabled: true
+      discovery_url: "https://some-other-k8s.namespace.svc"
+      ca_path: "/path/to/ca/certificate/ca.pem"
+      service_account_token_path: "/path/to/sa/token"
+      cleanup:
+        interval: 2h
+        grace_period: 48h
+    github:
+      enabled: true
+      client_id: "abcdefg"
+      client_secret: "bcdefgh"
+      redirect_address: "http://auth.flipt.io"
+      cleanup:
+        interval: 2h
+        grace_period: 48h
+
+authorization:
+  required: true

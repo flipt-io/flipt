@@ -76,6 +76,10 @@ func NewChecker(eventPairs []string) (*Checker, error) {
 
 // Check checks if an event pair exists in the Checker data structure for event emission.
 func (c *Checker) Check(eventPair string) bool {
+	if c == nil || c.eventActions == nil {
+		return false
+	}
+
 	_, ok := c.eventActions[eventPair]
 	return ok
 }

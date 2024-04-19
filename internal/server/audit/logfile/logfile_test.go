@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -209,8 +210,8 @@ func TestSink_SendAudits(t *testing.T) {
 	assert.NoError(t, sink.SendAudits(context.Background(), []audit.Event{
 		{
 			Version: "1",
-			Type:    audit.FlagType,
-			Action:  audit.Create,
+			Type:    flipt.SubjectFlag,
+			Action:  flipt.ActionCreate,
 		},
 	}))
 

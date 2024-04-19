@@ -9,8 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*DatabaseConfig)(nil)
+var (
+	_ defaulter = (*DatabaseConfig)(nil)
+	_ validator = (*DatabaseConfig)(nil)
+)
 
 const (
 	// database protocol enum

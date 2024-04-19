@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*ServerConfig)(nil)
+var (
+	_ defaulter = (*ServerConfig)(nil)
+	_ validator = (*ServerConfig)(nil)
+)
 
 // ServerConfig contains fields, which configure both HTTP and gRPC
 // API serving.

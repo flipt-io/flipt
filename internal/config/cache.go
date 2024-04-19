@@ -7,8 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*CacheConfig)(nil)
+var (
+	_ defaulter = (*CacheConfig)(nil)
+)
 
 // CacheConfig contains fields, which enable and configure
 // Flipt's various caching mechanisms.

@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0",
+  "roles": [
+    {
+      "name": "admin",
+      "rules": {
+        "*": ["*"]
+      }
+    },
+    {
+      "name": "editor",
+      "rules": {
+        "create": [
+          "flag",
+          "variant",
+          "rollout",
+          "rule",
+          "segment",
+          "distribution"
+        ],
+        "read": ["*"],
+        "update": [
+          "flag",
+          "variant",
+          "rollout",
+          "rule",
+          "segment",
+          "distribution"
+        ],
+        "delete": [
+          "flag",
+          "variant",
+          "rollout",
+          "rule",
+          "segment",
+          "distribution"
+        ]
+      }
+    },
+    {
+      "name": "viewer",
+      "rules": {
+        "read": ["*"]
+      }
+    }
+  ]
+}

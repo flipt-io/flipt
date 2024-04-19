@@ -44,6 +44,10 @@ func (s *Server) GetInfo(ctx context.Context, _ *emptypb.Empty) (*httpbody.HttpB
 	return response(ctx, s.info)
 }
 
+func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
+
 func response(ctx context.Context, v any) (*httpbody.HttpBody, error) {
 	data, err := marshal(ctx, v)
 	if err != nil {

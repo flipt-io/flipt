@@ -10,8 +10,9 @@ const (
 	LightUITheme  = UITheme("light")
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*UIConfig)(nil)
+var (
+	_ defaulter = (*UIConfig)(nil)
+)
 
 // UIConfig contains fields, which control the behaviour
 // of Flipt's user interface.

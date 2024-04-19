@@ -1,0 +1,7 @@
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: false
+authorization:
+  required: true

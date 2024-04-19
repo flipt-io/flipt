@@ -257,7 +257,7 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated autentication excluding metadata",
+			name: "deprecated authentication excluding metadata",
 			path: "./testdata/deprecated/authentication_excluding_metadata.yml",
 			expected: func() *Config {
 				cfg := Default()
@@ -447,7 +447,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Authentication.Methods.Token.Enabled = true
+				cfg.Authentication.Required = true
 				cfg.Authentication.Methods = AuthenticationMethods{
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 						Enabled: true,
@@ -497,6 +497,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/kubernetes.yml",
 			expected: func() *Config {
 				cfg := Default()
+				cfg.Authentication.Required = true
 				cfg.Authentication.Methods = AuthenticationMethods{
 					Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 						Enabled: true,
@@ -594,6 +595,89 @@ func TestLoad(t *testing.T) {
 				cfg.Cloud.Host = "flipt.cloud"
 				cfg.Server.Cloud.Port = 8443
 				cfg.Experimental.Cloud.Enabled = true
+				return cfg
+			},
+		},
+		{
+			name:    "authorization required without authentication",
+			path:    "./testdata/authorization/authentication_not_required.yml",
+			wantErr: errors.New("authorization requires authentication and a session enabled method"),
+		},
+		{
+			name:    "authorization required without session enabled authentication",
+			path:    "./testdata/authorization/authentication_not_session_enabled.yml",
+			wantErr: errors.New("authorization requires authentication and a session enabled method"),
+		},
+		{
+			name: "authorization with all authentication methods enabled",
+			path: "./testdata/authorization/all_authentication_methods_enabled.yml",
+			expected: func() *Config {
+				cfg := Default()
+
+				cfg.Authorization.Required = true
+
+				cfg.Authentication = AuthenticationConfig{
+					Required: true,
+					Session: AuthenticationSession{
+						Domain:        "auth.flipt.io",
+						Secure:        true,
+						TokenLifetime: 24 * time.Hour,
+						StateLifetime: 10 * time.Minute,
+						CSRF: AuthenticationSessionCSRF{
+							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
+						},
+					},
+					Methods: AuthenticationMethods{
+						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
+							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+							Method: AuthenticationMethodOIDCConfig{
+								Providers: map[string]AuthenticationMethodOIDCProvider{
+									"google": {
+										IssuerURL:       "http://accounts.google.com",
+										ClientID:        "abcdefg",
+										ClientSecret:    "bcdefgh",
+										RedirectAddress: "http://auth.flipt.io",
+									},
+								},
+							},
+							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
+							Enabled: true,
+							Method: AuthenticationMethodKubernetesConfig{
+								DiscoveryURL:            "https://some-other-k8s.namespace.svc",
+								CAPath:                  "/path/to/ca/certificate/ca.pem",
+								ServiceAccountTokenPath: "/path/to/sa/token",
+							},
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{
+							Method: AuthenticationMethodGithubConfig{
+								ClientId:        "abcdefg",
+								ClientSecret:    "bcdefgh",
+								RedirectAddress: "http://auth.flipt.io",
+							},
+							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+					},
+				}
 				return cfg
 			},
 		},

@@ -17,6 +17,9 @@
     "authentication": {
       "$ref": "#/definitions/authentication"
     },
+    "authorization": {
+      "$ref": "#/definitions/authorization"
+    },
     "cache": {
       "$ref": "#/definitions/cache"
     },
@@ -312,6 +315,16 @@
             "use_pkce": { "type": "boolean", "default": false }
           },
           "additionalProperties": false
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

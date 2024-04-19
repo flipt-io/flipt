@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -39,8 +40,8 @@ func TestWebhookClient(t *testing.T) {
 	}
 
 	err := whclient.SendAudit(context.TODO(), audit.Event{
-		Type:   audit.FlagType,
-		Action: audit.Create,
+		Type:   flipt.SubjectFlag,
+		Action: flipt.ActionCreate,
 	})
 
 	require.NoError(t, err)
