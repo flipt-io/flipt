@@ -554,6 +554,11 @@ func Default() *Config {
 			HTTPPort:  8080,
 			HTTPSPort: 443,
 			GRPCPort:  9000,
+			Cloud: CloudConfig{
+				Enabled: false,
+				Address: "flipt.cloud",
+				Port:    8443,
+			},
 		},
 
 		Metrics: MetricsConfig{

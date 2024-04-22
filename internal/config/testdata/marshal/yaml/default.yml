@@ -24,6 +24,10 @@ server:
   http_port: 8080
   https_port: 443
   grpc_port: 9000
+  cloud:
+    enabled: false
+    address: "flipt.cloud"
+    port: 8443
 metrics:
   enabled: true
   exporter: prometheus

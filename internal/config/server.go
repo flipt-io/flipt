@@ -24,6 +24,7 @@ type ServerConfig struct {
 	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
 	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
 	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
+	Cloud                     CloudConfig   `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {
@@ -35,10 +36,10 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) error {
 		"grpc_port":  9000,
 	})
 
-	return nil
+	return c.Cloud.setDefaults(v)
 }
 
-func (c *ServerConfig) validate() (err error) {
+func (c *ServerConfig) validate() error {
 	// validate configuration is as expected
 	if c.Protocol == HTTPS {
 		if c.CertFile == "" {
@@ -58,7 +59,7 @@ func (c *ServerConfig) validate() (err error) {
 		}
 	}
 
-	return
+	return c.Cloud.validate()
 }
 
 // Scheme is either HTTP or HTTPS.
@@ -93,3 +94,61 @@ var (
 		"https": HTTPS,
 	}
 )
+
+type CloudConfig struct {
+	Enabled        bool                      `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
+	Authentication CloudAuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Address        string                    `json:"address,omitempty" mapstructure:"address" yaml:"address,omitempty"`
+	Port           int                       `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	Organization   string                    `json:"organization,omitempty" mapstructure:"organization" yaml:"organization,omitempty"`
+	Instance       string                    `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
+}
+
+type CloudAuthenticationConfig struct {
+	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
+}
+
+func (c *CloudAuthenticationConfig) validate() error {
+	if c.ApiKey == "" {
+		return errFieldRequired("server.cloud.authentication.api_key")
+	}
+
+	return nil
+}
+
+func (c *CloudConfig) setDefaults(v *viper.Viper) error {
+	v.SetDefault("server.cloud", map[string]any{
+		"enabled": false,
+		"address": "flipt.cloud",
+		"port":    8443,
+	})
+
+	return nil
+}
+
+func (c *CloudConfig) validate() error {
+	// validate configuration is as expected
+	if c.Enabled {
+		if c.Address == "" {
+			return errFieldRequired("server.cloud.address")
+		}
+
+		if c.Port == 0 {
+			return errFieldRequired("server.cloud.port")
+		}
+
+		if c.Organization == "" {
+			return errFieldRequired("server.cloud.organization")
+		}
+
+		if c.Instance == "" {
+			return errFieldRequired("server.cloud.instance")
+		}
+
+		if c.Authentication.ApiKey == "" {
+			return errFieldRequired("server.cloud.authentication.api_key")
+		}
+	}
+
+	return nil
+}

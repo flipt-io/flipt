@@ -1,0 +1,8 @@
+server:
+  cloud:
+    enabled: true
+    authentication:
+      api_key: foo
+    address: "https://flipt.cloud"
+    port: 8443
+    organization: foo
