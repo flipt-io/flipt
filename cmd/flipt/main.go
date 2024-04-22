@@ -149,6 +149,7 @@ func exec() error {
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newBundleCommand())
 	rootCmd.AddCommand(newEvaluateCommand())
+	rootCmd.AddCommand(newCloudCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
