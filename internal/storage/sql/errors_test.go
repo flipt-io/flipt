@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -97,24 +97,30 @@ func Test_AdaptError(t *testing.T) {
 		{driver: Postgres},
 		{
 			driver:   Postgres,
-			inputErr: &pq.Error{},
+			inputErr: &pgconn.PgError{},
 		},
 		{
 			driver:   Postgres,
-			inputErr: &pq.Error{Code: pq.ErrorCode("01000")},
+			inputErr: &pgconn.PgError{Code: "01000"},
 		},
 		// Adjusted errors
 		{
 			driver: Postgres,
 			// foreign_key_violation
-			inputErr:    &pq.Error{Code: pq.ErrorCode("23503")},
+			inputErr:    &pgconn.PgError{Code: "23503"},
 			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver: Postgres,
 			// unique_violation
-			inputErr:    &pq.Error{Code: pq.ErrorCode("23505")},
+			inputErr:    &pgconn.PgError{Code: "23505"},
 			outputErrAs: errPtr(errors.ErrInvalid("")),
+		},
+		{
+			driver: Postgres,
+			// connection error
+			inputErr:    &pgconn.ConnectError{},
+			outputErrAs: errPtr(errConnectionFailed),
 		},
 		// MySQL
 		// Unchanged errors

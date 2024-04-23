@@ -10,7 +10,7 @@ import (
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"go.flipt.io/flipt/config/migrations"
@@ -50,7 +50,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	case SQLite, LibSQL:
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
-		dr, err = postgres.WithInstance(sql, &postgres.Config{})
+		dr, err = pgx.WithInstance(sql, &pgx.Config{})
 	case CockroachDB:
 		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
 	case MySQL:
