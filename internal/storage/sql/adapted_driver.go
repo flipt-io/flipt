@@ -8,6 +8,8 @@ import (
 	pgx "github.com/jackc/pgx/v5/stdlib"
 )
 
+const adaptedDriverOpenTimeout = 60 * time.Second
+
 // This is the wrapper around sql driver. By default, pgx driver returns connection
 // error with the host, username and password. `adaptedDriver` and `postgresConnector`
 // allow to customize errors and preventing leakage of the credentials to outside.
@@ -24,13 +26,12 @@ type adaptedDriver struct {
 }
 
 func (d *adaptedDriver) Open(name string) (driver.Conn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Ensure eventual timeout
-	defer cancel()
-
 	connector, err := d.OpenConnector(name)
 	if err != nil {
 		return nil, d.adapter.AdaptError(err)
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), adaptedDriverOpenTimeout)
+	defer cancel()
 	return connector.Connect(ctx)
 }
 
