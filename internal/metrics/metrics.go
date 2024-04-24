@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -15,16 +16,13 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-// Meter is the default Flipt-wide otel metric Meter.
-var Meter metric.Meter
-
 func init() {
-	// If the global Meter is nil, create a new noop Meter.
-	// Useful for testing.
-	if Meter == nil {
-		meterProvider := metricnoop.NewMeterProvider()
-		Meter = meterProvider.Meter("github.com/flipt-io/flipt")
-	}
+	otel.SetMeterProvider(metricnoop.NewMeterProvider())
+}
+
+// This is memoized in the OTEL library to avoid creating multiple instances of the same exporter.
+func meter() metric.Meter {
+	return otel.Meter("github.com/flipt-io/flipt")
 }
 
 // MustInt64 returns an instrument provider based on the global Meter.
@@ -55,7 +53,7 @@ type mustInt64Meter struct{}
 
 // Counter creates an instrument for recording increasing values.
 func (m mustInt64Meter) Counter(name string, opts ...metric.Int64CounterOption) metric.Int64Counter {
-	counter, err := Meter.Int64Counter(name, opts...)
+	counter, err := meter().Int64Counter(name, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +63,7 @@ func (m mustInt64Meter) Counter(name string, opts ...metric.Int64CounterOption) 
 
 // UpDownCounter creates an instrument for recording changes of a value.
 func (m mustInt64Meter) UpDownCounter(name string, opts ...metric.Int64UpDownCounterOption) metric.Int64UpDownCounter {
-	counter, err := Meter.Int64UpDownCounter(name, opts...)
+	counter, err := meter().Int64UpDownCounter(name, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +73,7 @@ func (m mustInt64Meter) UpDownCounter(name string, opts ...metric.Int64UpDownCou
 
 // Histogram creates an instrument for recording a distribution of values.
 func (m mustInt64Meter) Histogram(name string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
-	hist, err := Meter.Int64Histogram(name, opts...)
+	hist, err := meter().Int64Histogram(name, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +109,7 @@ type mustFloat64Meter struct{}
 
 // Counter creates an instrument for recording increasing values.
 func (m mustFloat64Meter) Counter(name string, opts ...metric.Float64CounterOption) metric.Float64Counter {
-	counter, err := Meter.Float64Counter(name, opts...)
+	counter, err := meter().Float64Counter(name, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +119,7 @@ func (m mustFloat64Meter) Counter(name string, opts ...metric.Float64CounterOpti
 
 // UpDownCounter creates an instrument for recording changes of a value.
 func (m mustFloat64Meter) UpDownCounter(name string, opts ...metric.Float64UpDownCounterOption) metric.Float64UpDownCounter {
-	counter, err := Meter.Float64UpDownCounter(name, opts...)
+	counter, err := meter().Float64UpDownCounter(name, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +129,7 @@ func (m mustFloat64Meter) UpDownCounter(name string, opts ...metric.Float64UpDow
 
 // Histogram creates an instrument for recording a distribution of values.
 func (m mustFloat64Meter) Histogram(name string, opts ...metric.Float64HistogramOption) metric.Float64Histogram {
-	hist, err := Meter.Float64Histogram(name, opts...)
+	hist, err := meter().Float64Histogram(name, opts...)
 	if err != nil {
 		panic(err)
 	}

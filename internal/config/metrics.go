@@ -18,7 +18,7 @@ const (
 type MetricsConfig struct {
 	Enabled  bool               `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	Exporter MetricsExporter    `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
-	OTLP     *OTLPMetricsConfig `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
+	OTLP     *OTLPMetricsConfig `json:"otlp,omitempty" mapstructure:"otlp,omitempty" yaml:"otlp,omitempty"`
 }
 
 type OTLPMetricsConfig struct {
