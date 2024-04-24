@@ -24,6 +24,9 @@ server:
   http_port: 8080
   https_port: 443
   grpc_port: 9000
+metrics:
+  enabled: true
+  exporter: prometheus
 storage:
   type: database
 diagnostics:
