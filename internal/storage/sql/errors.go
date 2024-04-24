@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mattn/go-sqlite3"
 	errs "go.flipt.io/flipt/errors"
 )
@@ -16,6 +16,7 @@ var (
 	errNotUnique          = errs.ErrInvalid("not unique")
 	errForeignKeyNotFound = errs.ErrNotFound("associated resource not found")
 	errCanceled           = errs.ErrCanceled("query canceled")
+	errConnectionFailed   = errs.ErrCanceled("failed to connect to database")
 )
 
 // AdaptError converts specific known-driver errors into wrapped storage errors.
@@ -61,15 +62,15 @@ func adaptSQLiteError(err error) error {
 
 func adaptPostgresError(err error) error {
 	const (
-		constraintForeignKeyErr = "foreign_key_violation"
-		constraintUniqueErr     = "unique_violation"
-		queryCanceled           = "query_canceled"
+		constraintForeignKeyErr = "23503" // "foreign_key_violation"
+		constraintUniqueErr     = "23505" // "unique_violation"
+		queryCanceled           = "57014" // "query_canceled"
 	)
 
-	var perr *pq.Error
+	var perr *pgconn.PgError
 
 	if errors.As(err, &perr) {
-		switch perr.Code.Name() {
+		switch perr.Code {
 		case constraintUniqueErr:
 			return errNotUnique
 		case constraintForeignKeyErr:
@@ -77,6 +78,11 @@ func adaptPostgresError(err error) error {
 		case queryCanceled:
 			return errCanceled
 		}
+	}
+
+	var cerr *pgconn.ConnectError
+	if errors.As(err, &cerr) {
+		return errConnectionFailed
 	}
 
 	return err
