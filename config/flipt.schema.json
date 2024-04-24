@@ -948,6 +948,10 @@
             "endpoint": {
               "type": "string",
               "default": "localhost:4317"
+            },
+            "headers": {
+              "type": ["object", "null"],
+              "additionalProperties": { "type": "string" }
             }
           },
           "title": "OTLP"

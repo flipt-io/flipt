@@ -276,6 +276,7 @@ import "strings"
 
 		otlp?: {
 			endpoint?: string | *"localhost:4317"
+			headers?: [string]: string
 		}
 	}
 

@@ -169,6 +169,7 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 			case "http", "https":
 				exporter, err = otlpmetrichttp.New(ctx,
 					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
+					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
 				)
 				if err != nil {
 					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
@@ -177,6 +178,7 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 			case "grpc":
 				exporter, err = otlpmetricgrpc.New(ctx,
 					otlpmetricgrpc.WithEndpoint(u.Host+u.Path),
+					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
 					// TODO: support TLS
 					otlpmetricgrpc.WithInsecure(),
 				)
@@ -188,6 +190,7 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 				// because of url parsing ambiguity, we'll assume that the endpoint is a host:port with no scheme
 				exporter, err = otlpmetricgrpc.New(ctx,
 					otlpmetricgrpc.WithEndpoint(cfg.OTLP.Endpoint),
+					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
 					// TODO: support TLS
 					otlpmetricgrpc.WithInsecure(),
 				)
