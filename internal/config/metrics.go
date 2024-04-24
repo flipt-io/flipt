@@ -16,12 +16,12 @@ const (
 )
 
 type MetricsConfig struct {
-	Enabled  bool            `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
-	Exporter MetricsExporter `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
-	OTLP     *OTLPConfig     `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
+	Enabled  bool               `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	Exporter MetricsExporter    `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
+	OTLP     *OTLPMetricsConfig `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
 }
 
-type OTLPConfig struct {
+type OTLPMetricsConfig struct {
 	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 }
 
@@ -29,9 +29,6 @@ func (c *MetricsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("metrics", map[string]interface{}{
 		"enabled":  true,
 		"exporter": MetricsPrometheus,
-		"otlp": map[string]interface{}{
-			"endpoint": "localhost:4317",
-		},
 	})
 
 	return nil

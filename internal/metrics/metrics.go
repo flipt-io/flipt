@@ -11,11 +11,21 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 // Meter is the default Flipt-wide otel metric Meter.
 var Meter metric.Meter
+
+func init() {
+	// If the global Meter is nil, create a new noop Meter.
+	// Useful for testing.
+	if Meter == nil {
+		meterProvider := metricnoop.NewMeterProvider()
+		Meter = meterProvider.Meter("github.com/flipt-io/flipt")
+	}
+}
 
 // MustInt64 returns an instrument provider based on the global Meter.
 // The returns provider panics instead of returning an error when it cannot build

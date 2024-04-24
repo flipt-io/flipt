@@ -556,6 +556,11 @@ func Default() *Config {
 			GRPCPort:  9000,
 		},
 
+		Metrics: MetricsConfig{
+			Enabled:  true,
+			Exporter: MetricsPrometheus,
+		},
+
 		Tracing: TracingConfig{
 			Enabled:       false,
 			Exporter:      TracingJaeger,

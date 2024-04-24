@@ -43,7 +43,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	metric "go.opentelemetry.io/otel/metric"
-	metricsnoop "go.opentelemetry.io/otel/metric/noop"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
@@ -155,7 +155,7 @@ func NewGRPCServer(
 	logger.Debug("store enabled", zap.Stringer("store", store))
 
 	// Default to a no-op OTEL meter provider
-	var meterProvider metric.MeterProvider = metricsnoop.NewMeterProvider()
+	var meterProvider metric.MeterProvider = metricnoop.NewMeterProvider()
 
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {

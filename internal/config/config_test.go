@@ -324,6 +324,15 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "metrics disabled",
+			path: "./testdata/metrics/disabled.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Metrics.Enabled = false
+				return cfg
+			},
+		},
+		{
 			name: "tracing zipkin",
 			path: "./testdata/tracing/zipkin.yml",
 			expected: func() *Config {
