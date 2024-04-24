@@ -17,7 +17,9 @@ import (
 )
 
 func init() {
-	otel.SetMeterProvider(metricnoop.NewMeterProvider())
+	if otel.GetMeterProvider() == nil {
+		otel.SetMeterProvider(metricnoop.NewMeterProvider())
+	}
 }
 
 // This is memoized in the OTEL library to avoid creating multiple instances of the same exporter.
