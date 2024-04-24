@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/metrics"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
@@ -41,6 +42,9 @@ import (
 	"go.flipt.io/flipt/internal/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
+	metric "go.opentelemetry.io/otel/metric"
+	metricsnoop "go.opentelemetry.io/otel/metric/noop"
+	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -149,6 +153,26 @@ func NewGRPCServer(
 	}
 
 	logger.Debug("store enabled", zap.Stringer("store", store))
+
+	// Default to a no-op OTEL meter provider
+	var meterProvider metric.MeterProvider = metricsnoop.NewMeterProvider()
+
+	// Initialize metrics exporter if enabled
+	if cfg.Metrics.Enabled {
+		metricExp, metricExpShutdown, err := metrics.GetExporter(ctx, &cfg.Metrics)
+		if err != nil {
+			return nil, fmt.Errorf("creating metrics exporter: %w", err)
+		}
+
+		server.onShutdown(metricExpShutdown)
+
+		meterProvider = metricsdk.NewMeterProvider(metricsdk.WithReader(metricExp))
+		logger.Debug("otel metrics enabled", zap.String("exporter", string(cfg.Metrics.Exporter)))
+	}
+
+	otel.SetMeterProvider(meterProvider)
+
+	metrics.Meter = meterProvider.Meter("github.com/flipt-io/flipt")
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
