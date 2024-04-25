@@ -79,10 +79,16 @@ func GetExporter(ctx context.Context, cfg *config.TracingConfig) (tracesdk.SpanE
 
 			var client otlptrace.Client
 			switch u.Scheme {
-			case "http", "https":
+			case "https":
 				client = otlptracehttp.NewClient(
 					otlptracehttp.WithEndpoint(u.Host+u.Path),
 					otlptracehttp.WithHeaders(cfg.OTLP.Headers),
+				)
+			case "http":
+				client = otlptracehttp.NewClient(
+					otlptracehttp.WithEndpoint(u.Host+u.Path),
+					otlptracehttp.WithHeaders(cfg.OTLP.Headers),
+					otlptracehttp.WithInsecure(),
 				)
 			case "grpc":
 				// TODO: support additional configuration options
