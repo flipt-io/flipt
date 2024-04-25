@@ -1,6 +1,9 @@
 package otel
 
-import "go.opentelemetry.io/otel/attribute"
+import (
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+)
 
 var (
 	AttributeMatch       = attribute.Key("flipt.match")
@@ -13,4 +16,12 @@ var (
 	AttributeValue       = attribute.Key("flipt.value")
 	AttributeEntityID    = attribute.Key("flipt.entity_id")
 	AttributeRequestID   = attribute.Key("flipt.request_id")
+)
+
+// Specific attributes for Semantic Conventions for Feature Flags in Spans
+// https://opentelemetry.io/docs/specs/semconv/feature-flags/feature-flags-spans/
+var (
+	AttributeFlagKey      = semconv.FeatureFlagKey
+	AttributeProviderName = semconv.FeatureFlagProviderName("Flipt")
+	AttributeFlagVariant  = semconv.FeatureFlagVariant
 )

@@ -1,17 +1,23 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
+	"go.flipt.io/flipt/internal/storage/fs/object"
+	"gocloud.dev/blob"
 	"golang.org/x/exp/constraints"
 )
 
@@ -55,6 +61,7 @@ type Config struct {
 	Analytics      AnalyticsConfig      `json:"analytics,omitempty" mapstructure:"analytics" yaml:"analytics,omitempty"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server" yaml:"server,omitempty"`
 	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Metrics        MetricsConfig        `json:"metrics,omitempty" mapstructure:"metrics" yaml:"metrics,omitempty"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
 }
@@ -86,9 +93,27 @@ func Load(path string) (*Result, error) {
 		cfg = Default()
 	} else {
 		cfg = &Config{}
-		v.SetConfigFile(path)
-		if err := v.ReadInConfig(); err != nil {
-			return nil, fmt.Errorf("loading configuration: %w", err)
+		file, err := getConfigFile(context.Background(), path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		stat, err := file.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		// reimplement logic from v.ReadInConfig()
+		v.SetConfigFile(stat.Name())
+		ext := filepath.Ext(stat.Name())
+		if len(ext) > 1 {
+			ext = ext[1:]
+		}
+		if !slices.Contains(viper.SupportedExts, ext) {
+			return nil, viper.UnsupportedConfigError(ext)
+		}
+		if err := v.ReadConfig(file); err != nil {
+			return nil, err
 		}
 	}
 
@@ -181,6 +206,33 @@ func Load(path string) (*Result, error) {
 	}
 
 	return result, nil
+}
+
+// getConfigFile provides a file from different type of storage.
+func getConfigFile(ctx context.Context, path string) (fs.File, error) {
+	u, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if slices.Contains(object.SupportedSchemes(), u.Scheme) {
+		key := strings.TrimPrefix(u.Path, "/")
+		u.Path = ""
+		bucket, err := object.OpenBucket(ctx, u)
+		if err != nil {
+			return nil, err
+		}
+		defer bucket.Close()
+		bucket.SetIOFSCallback(func() (context.Context, *blob.ReaderOptions) { return ctx, nil })
+		return bucket.Open(key)
+	}
+
+	// assumes that the local file is used
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
 
 type defaulter interface {
@@ -504,9 +556,19 @@ func Default() *Config {
 			GRPCPort:  9000,
 		},
 
+		Metrics: MetricsConfig{
+			Enabled:  true,
+			Exporter: MetricsPrometheus,
+		},
+
 		Tracing: TracingConfig{
-			Enabled:  false,
-			Exporter: TracingJaeger,
+			Enabled:       false,
+			Exporter:      TracingJaeger,
+			SamplingRatio: 1,
+			Propagators: []TracingPropagator{
+				TracingPropagatorTraceContext,
+				TracingPropagatorBaggage,
+			},
 			Jaeger: JaegerTracingConfig{
 				Host: "localhost",
 				Port: 6831,

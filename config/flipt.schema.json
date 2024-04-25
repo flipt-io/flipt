@@ -230,6 +230,9 @@
                     },
                     "issuer": {
                       "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
                     }
                   }
                 },
@@ -759,7 +762,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "type":  {
+                "type": {
                   "type": "string",
                   "enum": ["static", "aws-ecr"],
                   "default": "static"
@@ -925,6 +928,37 @@
       "required": [],
       "title": "Server"
     },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "exporter": {
+          "type": "string",
+          "enum": ["prometheus", "otlp"],
+          "default": "prometheus"
+        },
+        "otlp": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "default": "localhost:4317"
+            },
+            "headers": {
+              "type": ["object", "null"],
+              "additionalProperties": { "type": "string" }
+            }
+          },
+          "title": "OTLP"
+        }
+      },
+      "title": "Metrics"
+    },
     "tracing": {
       "type": "object",
       "additionalProperties": false,
@@ -937,6 +971,29 @@
           "type": "string",
           "enum": ["jaeger", "zipkin", "otlp"],
           "default": "jaeger"
+        },
+        "samplingRatio": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1
+        },
+        "propagators": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "tracecontext",
+              "baggage",
+              "b3",
+              "b3multi",
+              "jaeger",
+              "xray",
+              "ottrace",
+              "none"
+            ]
+          },
+          "default": ["tracecontext", "baggage"]
         },
         "jaeger": {
           "type": "object",

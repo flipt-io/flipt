@@ -524,7 +524,7 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 		RequiresDatabase:  true,
 	}
 
-	var metadata = make(map[string]any)
+	metadata := make(map[string]any)
 
 	metadata["authorize_url"] = "/auth/v1/method/github/authorize"
 	metadata["callback_url"] = "/auth/v1/method/github/callback"
@@ -576,6 +576,8 @@ type AuthenticationMethodJWTConfig struct {
 	ValidateClaims struct {
 		// Issuer is the issuer of the JWT token.
 		Issuer string `json:"-" mapstructure:"issuer" yaml:"issuer,omitempty"`
+		// Subject is the subject of the JWT token.
+		Subject string `json:"-" mapstructure:"subject" yaml:"subject,omitempty"`
 		// Audiences is the audience of the JWT token.
 		Audiences []string `json:"-" mapstructure:"audiences" yaml:"audiences,omitempty"`
 	} `json:"-" mapstructure:"validate_claims" yaml:"validate_claims,omitempty"`

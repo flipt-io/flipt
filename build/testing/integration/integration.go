@@ -64,9 +64,17 @@ func (a AuthConfig) NamespaceScoped() bool {
 	return a == StaticTokenAuthNamespaced
 }
 
+type Protocol string
+
+const (
+	ProtocolHTTP  Protocol = "http"
+	ProtocolHTTPS Protocol = "https"
+	ProtocolGRPC  Protocol = "grpc"
+)
+
 type TestOpts struct {
 	Addr       string
-	Protocol   string
+	Protocol   Protocol
 	Namespace  string
 	AuthConfig AuthConfig
 	References bool
@@ -75,14 +83,16 @@ type TestOpts struct {
 func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 	var transport sdk.Transport
 
-	protocol, host, _ := strings.Cut(*fliptAddr, "://")
+	p, host, _ := strings.Cut(*fliptAddr, "://")
+	protocol := Protocol(p)
+
 	switch protocol {
-	case "grpc":
+	case ProtocolGRPC:
 		conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err)
 
 		transport = sdkgrpc.NewTransport(conn)
-	case "http", "https":
+	case ProtocolHTTP, ProtocolHTTPS:
 		transport = sdkhttp.NewTransport(fmt.Sprintf("%s://%s", protocol, host))
 	default:
 		t.Fatalf("Unexpected flipt address protocol %s://%s", protocol, host)

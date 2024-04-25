@@ -7,7 +7,7 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/sql/common"
@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	constraintForeignKeyErr = "foreign_key_violation"
-	constraintUniqueErr     = "unique_violation"
+	constraintForeignKeyErr = "23503" // "foreign_key_violation"
+	constraintUniqueErr     = "23505" // "unique_violation"
 )
 
 var _ storage.Store = &Store{}
@@ -40,9 +40,9 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 	namespace, err := s.Store.CreateNamespace(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
+		if errors.As(err, &perr) && perr.Code == constraintUniqueErr {
 			return nil, errs.ErrInvalidf(`namespace %q is not unique`, r.Key)
 		}
 
@@ -56,10 +56,10 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
 		if errors.As(err, &perr) {
-			switch perr.Code.Name() {
+			switch perr.Code {
 			case constraintForeignKeyErr:
 				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
 			case constraintUniqueErr:
@@ -77,10 +77,10 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	variant, err := s.Store.CreateVariant(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
 		if errors.As(err, &perr) {
-			switch perr.Code.Name() {
+			switch perr.Code {
 			case constraintForeignKeyErr:
 				return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
 			case constraintUniqueErr:
@@ -98,9 +98,9 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	variant, err := s.Store.UpdateVariant(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
+		if errors.As(err, &perr) && perr.Code == constraintUniqueErr {
 			return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 		}
 
@@ -114,10 +114,10 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	segment, err := s.Store.CreateSegment(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
 		if errors.As(err, &perr) {
-			switch perr.Code.Name() {
+			switch perr.Code {
 			case constraintForeignKeyErr:
 				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
 			case constraintUniqueErr:
@@ -135,9 +135,9 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	constraint, err := s.Store.CreateConstraint(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.SegmentKey)
 		}
 
@@ -151,9 +151,9 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	rollout, err := s.Store.CreateRollout(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
 			if segment := r.GetSegment(); segment != nil {
 				return nil, errs.ErrNotFoundf(`flag "%s/%s or segment %s"`, r.NamespaceKey, r.FlagKey, segment.SegmentKey)
 			}
@@ -170,9 +170,9 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	rule, err := s.Store.CreateRule(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf(`flag "%s/%s" or segment "%s/%s"`, r.NamespaceKey, r.FlagKey, r.NamespaceKey, r.SegmentKey)
 		}
 
@@ -186,9 +186,9 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 	rule, err := s.Store.UpdateRule(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
 		}
 
@@ -202,9 +202,9 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	dist, err := s.Store.CreateDistribution(ctx, r)
 
 	if err != nil {
-		var perr *pq.Error
+		var perr *pgconn.PgError
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
 		}
 

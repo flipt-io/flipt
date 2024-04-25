@@ -21,6 +21,7 @@ import "strings"
 	log?:            #log
 	meta?:           #meta
 	server?:         #server
+	metrics?:        #metrics
 	tracing?:        #tracing
 	ui?:             #ui
 
@@ -81,7 +82,8 @@ import "strings"
 			jwt?: {
 				enabled?: bool | *false
 				validate_claims?: {
-					issuer?: string
+					issuer?:  string
+					subject?: string
 					audiences?: [...string]
 				}
 				jwks_url?:        string
@@ -208,7 +210,7 @@ import "strings"
 			repository:         string
 			bundles_directory?: string
 			authentication?: {
-				type: "aws-ecr" | *"static"
+				type:     "aws-ecr" | *"static"
 				username: string
 				password: string
 			}
@@ -268,9 +270,23 @@ import "strings"
 		grpc_conn_max_age_grace?: =~#duration
 	}
 
+	#metrics: {
+		enabled?:  bool | *true
+		exporter?: *"prometheus" | "otlp"
+
+		otlp?: {
+			endpoint?: string | *"localhost:4317"
+			headers?: [string]: string
+		}
+	}
+
 	#tracing: {
-		enabled?:  bool | *false
-		exporter?: *"jaeger" | "zipkin" | "otlp"
+		enabled?:       bool | *false
+		exporter?:      *"jaeger" | "zipkin" | "otlp"
+		samplingRatio?: float & >=0 & <=1 | *1
+		propagators?: [
+			..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none",
+		] | *["tracecontext", "baggage"]
 
 		jaeger?: {
 			enabled?: bool | *false
