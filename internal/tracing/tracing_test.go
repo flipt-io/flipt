@@ -148,7 +148,6 @@ func TestGetExporter(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, exp)
 			assert.NotNil(t, expFunc)
-
 		})
 	}
 }

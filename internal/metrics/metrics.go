@@ -166,10 +166,20 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 			var exporter sdkmetric.Exporter
 
 			switch u.Scheme {
-			case "http", "https":
+			case "https":
 				exporter, err = otlpmetrichttp.New(ctx,
 					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
 					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
+				)
+				if err != nil {
+					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
+					return
+				}
+			case "http":
+				exporter, err = otlpmetrichttp.New(ctx,
+					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
+					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
+					otlpmetrichttp.WithInsecure(),
 				)
 				if err != nil {
 					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
