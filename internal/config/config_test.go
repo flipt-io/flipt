@@ -636,7 +636,7 @@ func TestLoad(t *testing.T) {
 					Git: &Git{
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
-						RefType:      "static",
+						RefType:      GitRefTypeStatic,
 						PollInterval: 5 * time.Second,
 						Authentication: Authentication{
 							BasicAuth: &BasicAuth{
