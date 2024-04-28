@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/pem"
+	"errors"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -232,6 +233,7 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL,
 		WithRef("v0.1.*"),
+		WithRefResolver(SemverResolver()),
 		WithPollOptions(
 			fs.WithInterval(time.Second),
 			fs.WithNotify(t, func(modified bool) {
@@ -254,6 +256,10 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 	hash, err = store.resolve(tag)
 	require.NoError(t, err)
 	require.Equal(t, head, hash.String())
+
+	// Test if we resolve a non-matching reference it fails
+	_, err = store.resolve("v1.1.*")
+	require.ErrorIs(t, err, errors.New("could not find the specified tag reference"))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
