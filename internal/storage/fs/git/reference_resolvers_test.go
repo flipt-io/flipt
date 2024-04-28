@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-git/go-git/v5/plumbing/object"
+
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -102,7 +104,9 @@ func (g *gitRepoTest) createCommit(t *testing.T) plumbing.Hash {
 	_, err = workTree.Add(fileName)
 	require.NoError(t, err)
 
-	commitHash, err := workTree.Commit(fmt.Sprintf("adding %s", fileName), &git.CommitOptions{})
+	commitHash, err := workTree.Commit(fmt.Sprintf("adding %s", fileName), &git.CommitOptions{
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
 	require.NoError(t, err)
 
 	return commitHash
