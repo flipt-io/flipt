@@ -47,7 +47,7 @@ func TestSemverResolver(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, commitHash, resolvedHash)
 
-		// When commiting again and creating a new tag respecting the constraint should resolve nicely
+		// When committing again and creating a new tag respecting the constraint should resolve nicely
 		commitHash = repo.createCommit(t)
 		repo.createTag(t, "v0.1.4", commitHash)
 
