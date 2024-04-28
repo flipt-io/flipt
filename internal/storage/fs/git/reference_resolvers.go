@@ -3,7 +3,7 @@ package git
 import (
 	"errors"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 )
@@ -40,7 +40,7 @@ func SemverResolver() ReferenceResolver {
 			return plumbing.ZeroHash, err
 		}
 
-		maxVersion := semver.MustParse("0.0.0")
+		maxVersion := semver.New(0, 0, 0, "", "")
 		maxVersionHash := plumbing.ZeroHash
 		err = tags.ForEach(func(reference *plumbing.Reference) error {
 			version, err := semver.NewVersion(reference.Name().Short())
