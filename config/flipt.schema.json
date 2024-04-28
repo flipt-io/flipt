@@ -564,6 +564,11 @@
               "type": "string",
               "default": "main"
             },
+            "ref_type": {
+              "type": "string",
+              "enum": ["static", "semver"],
+              "default": "static"
+            },
             "directory": {
               "type": "string"
             },
