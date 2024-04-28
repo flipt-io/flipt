@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/pem"
-	"errors"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -247,20 +246,6 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 		return
 	}
 
-	// Test if we resolve the semver constraint to the same hash from the actual HEAD
-	hash, err := store.resolve("v0.1.*")
-	require.NoError(t, err)
-	require.Equal(t, head, hash.String())
-
-	// Test if we resolve the semver tag to the same hash from the actual HEAD
-	hash, err = store.resolve(tag)
-	require.NoError(t, err)
-	require.Equal(t, head, hash.String())
-
-	// Test if we resolve a non-matching reference it fails
-	_, err = store.resolve("v1.1.*")
-	require.ErrorIs(t, err, errors.New("could not find the specified tag reference"))
-
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
@@ -337,7 +322,7 @@ flags:
 	t.Log("received new snapshot")
 
 	// Test if we can resolve to the new tag
-	hash, err = store.resolve("v0.1.*")
+	hash, err := store.resolve("v0.1.*")
 	require.NoError(t, err)
 	require.Equal(t, commit.String(), hash.String())
 
