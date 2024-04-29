@@ -928,6 +928,37 @@
       "required": [],
       "title": "Server"
     },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "exporter": {
+          "type": "string",
+          "enum": ["prometheus", "otlp"],
+          "default": "prometheus"
+        },
+        "otlp": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "default": "localhost:4317"
+            },
+            "headers": {
+              "type": ["object", "null"],
+              "additionalProperties": { "type": "string" }
+            }
+          },
+          "title": "OTLP"
+        }
+      },
+      "title": "Metrics"
+    },
     "tracing": {
       "type": "object",
       "additionalProperties": false,

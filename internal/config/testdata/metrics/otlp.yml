@@ -1,0 +1,7 @@
+metrics:
+  enabled: true
+  exporter: otlp
+  otlp:
+    endpoint: http://localhost:9999
+    headers:
+      api-key: test-key

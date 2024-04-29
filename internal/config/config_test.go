@@ -324,6 +324,27 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "metrics disabled",
+			path: "./testdata/metrics/disabled.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Metrics.Enabled = false
+				return cfg
+			},
+		},
+		{
+			name: "metrics OTLP",
+			path: "./testdata/metrics/otlp.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Metrics.Enabled = true
+				cfg.Metrics.Exporter = MetricsOTLP
+				cfg.Metrics.OTLP.Endpoint = "http://localhost:9999"
+				cfg.Metrics.OTLP.Headers = map[string]string{"api-key": "test-key"}
+				return cfg
+			},
+		},
+		{
 			name: "tracing zipkin",
 			path: "./testdata/tracing/zipkin.yml",
 			expected: func() *Config {
@@ -345,7 +366,7 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("invalid propagator option: wrong_propagator"),
 		},
 		{
-			name: "tracing otlp",
+			name: "tracing OTLP",
 			path: "./testdata/tracing/otlp.yml",
 			expected: func() *Config {
 				cfg := Default()
