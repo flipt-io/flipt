@@ -72,6 +72,22 @@ func TestSemverResolver(t *testing.T) {
 		require.Equal(t, commitHash, resolvedHash)
 	})
 
+	t.Run("should resolve semver tags correctly when there is non compliant semver tags", func(t *testing.T) {
+		repo := newGitRepo(t)
+		resolver := SemverResolver()
+
+		commitHash := repo.createCommit(t)
+		repo.createTag(t, "non-semver-tag", commitHash)
+
+		commitHash = repo.createCommit(t)
+		repo.createTag(t, "v0.1.0", commitHash)
+
+		resolvedHash, err := resolver(repo.repo, "v0.1.0")
+
+		require.NoError(t, err)
+		require.Equal(t, commitHash, resolvedHash)
+	})
+
 	t.Run("should return an error when no matching tag was found", func(t *testing.T) {
 		repo := newGitRepo(t)
 		resolver := SemverResolver()
