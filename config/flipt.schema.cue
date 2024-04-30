@@ -160,6 +160,7 @@ import "strings"
 		git?: {
 			repository:         string
 			ref?:               string | *"main"
+			ref_type?:          *"static" | "semver"
 			directory?:         string
 			poll_interval?:     =~#duration | *"30s"
 			ca_cert_path?:      string

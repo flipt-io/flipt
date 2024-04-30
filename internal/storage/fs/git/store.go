@@ -32,14 +32,15 @@ var _ storagefs.ReferencedSnapshotStore = (*SnapshotStore)(nil)
 type SnapshotStore struct {
 	*storagefs.Poller
 
-	logger          *zap.Logger
-	url             string
-	baseRef         string
-	directory       string
-	auth            transport.AuthMethod
-	insecureSkipTLS bool
-	caBundle        []byte
-	pollOpts        []containers.Option[storagefs.Poller]
+	logger            *zap.Logger
+	url               string
+	baseRef           string
+	referenceResolver ReferenceResolver
+	directory         string
+	auth              transport.AuthMethod
+	insecureSkipTLS   bool
+	caBundle          []byte
+	pollOpts          []containers.Option[storagefs.Poller]
 
 	mu   sync.RWMutex
 	repo *git.Repository
@@ -54,6 +55,13 @@ type SnapshotStore struct {
 func WithRef(ref string) containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {
 		s.baseRef = ref
+	}
+}
+
+// WithRefResolver configures how the reference will be resolved for the repository.
+func WithRefResolver(resolver ReferenceResolver) containers.Option[SnapshotStore] {
+	return func(s *SnapshotStore) {
+		s.referenceResolver = resolver
 	}
 }
 
@@ -103,9 +111,10 @@ func WithDirectory(directory string) containers.Option[SnapshotStore] {
 // fs.FS implementations around a target git repository.
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts ...containers.Option[SnapshotStore]) (_ *SnapshotStore, err error) {
 	store := &SnapshotStore{
-		logger:  logger.With(zap.String("repository", url)),
-		url:     url,
-		baseRef: "main",
+		logger:            logger.With(zap.String("repository", url)),
+		url:               url,
+		baseRef:           "main",
+		referenceResolver: StaticResolver(),
 	}
 	containers.ApplyAll(store, opts...)
 
@@ -222,6 +231,7 @@ func (s *SnapshotStore) fetch(ctx context.Context) (bool, error) {
 		Auth: s.auth,
 		RefSpecs: []config.RefSpec{
 			"+refs/heads/*:refs/heads/*",
+			"+refs/tags/*:refs/tags/*",
 		},
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
@@ -252,16 +262,7 @@ func (s *SnapshotStore) resolve(ref string) (plumbing.Hash, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if plumbing.IsHash(ref) {
-		return plumbing.NewHash(ref), nil
-	}
-
-	reference, err := s.repo.Reference(plumbing.NewBranchReferenceName(ref), true)
-	if err != nil {
-		return plumbing.ZeroHash, err
-	}
-
-	return reference.Hash(), nil
+	return s.referenceResolver(s.repo, ref)
 }
 
 // buildSnapshot builds a new store snapshot based on the provided hash.

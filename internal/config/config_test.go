@@ -636,6 +636,7 @@ func TestLoad(t *testing.T) {
 					Git: &Git{
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
+						RefType:      GitRefTypeStatic,
 						PollInterval: 5 * time.Second,
 						Authentication: Authentication{
 							BasicAuth: &BasicAuth{
@@ -773,6 +774,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Ref:          "main",
+						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
 						PollInterval: 30 * time.Second,
 					},
@@ -789,6 +791,25 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Ref:          "main",
+						RefType:      GitRefTypeStatic,
+						Repository:   "git@github.com:foo/bar.git",
+						Directory:    "baz",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided with ref_type",
+			path: "./testdata/storage/git_provided_with_ref_type.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: &Git{
+						Ref:          "main",
+						RefType:      GitRefTypeSemver,
 						Repository:   "git@github.com:foo/bar.git",
 						Directory:    "baz",
 						PollInterval: 30 * time.Second,
@@ -801,6 +822,11 @@ func TestLoad(t *testing.T) {
 			name:    "git repository not provided",
 			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
 			wantErr: errors.New("git repository must be specified"),
+		},
+		{
+			name:    "git invalid ref_type provided",
+			path:    "./testdata/storage/git_invalid_ref_type.yml",
+			wantErr: errors.New("invalid git storage reference type"),
 		},
 		{
 			name:    "git basic auth partially provided",
@@ -831,6 +857,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Ref:          "main",
+						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
 						PollInterval: 30 * time.Second,
 						Authentication: Authentication{
