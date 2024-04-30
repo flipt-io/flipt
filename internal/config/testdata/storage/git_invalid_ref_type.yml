@@ -1,0 +1,6 @@
+storage:
+  type: git
+  git:
+    repository: "git@github.com:foo/bar.git"
+    directory: "baz"
+    ref_type: "wrong"

@@ -49,6 +49,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		v.SetDefault("storage.local.path", ".")
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
+		v.SetDefault("storage.git.ref_type", "static")
 		v.SetDefault("storage.git.poll_interval", "30s")
 		v.SetDefault("storage.git.insecure_skip_tls", false)
 		if v.GetString("storage.git.authentication.ssh.password") != "" ||
@@ -152,10 +153,19 @@ type Local struct {
 	Path string `json:"path,omitempty" mapstructure:"path"`
 }
 
+// GitRefType describes the resolve types for git storages.
+type GitRefType string
+
+const (
+	GitRefTypeStatic GitRefType = "static"
+	GitRefTypeSemver GitRefType = "semver"
+)
+
 // Git contains configuration for referencing a git repository.
 type Git struct {
 	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
+	RefType         GitRefType     `json:"refType,omitempty" mapstructure:"ref_type" yaml:"ref_type,omitempty"`
 	Directory       string         `json:"directory,omitempty" mapstructure:"directory" yaml:"directory,omitempty"`
 	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-" `
 	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-" `
@@ -168,6 +178,11 @@ func (g *Git) validate() error {
 	if g.CaCertPath != "" && g.CaCertBytes != "" {
 		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
 	}
+
+	if g.RefType != GitRefTypeStatic && g.RefType != GitRefTypeSemver {
+		return errors.New("invalid git storage reference type")
+	}
+
 	return nil
 }
 
