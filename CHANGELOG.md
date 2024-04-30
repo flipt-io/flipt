@@ -3,6 +3,30 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v1.41.0](https://github.com/flipt-io/flipt/releases/tag/v1.41.0) - 2024-04-30
+
+### Added
+
+- add semver constraint for git storage (#2977)
+- Oltp metrics exporter (#3021)
+- `authn`: allow validation of jwt subject claim (#2995)
+- improve open telemetry tracing instrumentation (#2984)
+- `config`: support remote blob storage for service configuration (#2983)
+
+### Changed
+
+- //github.com/flipt-io/flipt
+- //github.com/flipt-io/flipt
+- //github.com/flipt-io/flipt
+- `storage`: move from lib/pq to pgx (#2996)
+- //github.com/flipt-io/flipt
+- //github.com/flipt-io/flipt
+
+### Fixed
+
+- `cmd/grpc`: skip eval data service when evaluation API auth excluded (#3018)
+
 ## [v1.40.2](https://github.com/flipt-io/flipt/releases/tag/v1.40.2) - 2024-04-23
 
 ### Fixed
