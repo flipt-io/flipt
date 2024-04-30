@@ -1499,26 +1499,27 @@ func TestStructTags(t *testing.T) {
 }
 
 func validateStructTags(t *testing.T, tags map[string]map[string]string, tType reflect.Type) {
+	tName := tType.Name()
 	for fieldName, fieldTags := range tags {
 		fieldType, ok := tType.FieldByName(fieldName)
-		require.True(t, ok, "field %s not found in type %s", fieldName, tType.Name())
+		require.True(t, ok, "field %s not found in type %s", fieldName, tName)
 
 		// Validate the `json` struct tag.
 		jsonTag, ok := fieldTags["json"]
 		if ok {
-			require.True(t, isCamelCase(jsonTag), "json tag for field %s should be camelCase", fieldName)
+			require.True(t, isCamelCase(jsonTag), "json tag for field %s.%s should be camelCase", tName, fieldName)
 		}
 
 		// Validate the `mapstructure` struct tag.
 		mapstructureTag, ok := fieldTags["mapstructure"]
 		if ok {
-			require.True(t, isSnakeCase(mapstructureTag), "mapstructure tag for field %s should be snake_case", fieldName)
+			require.True(t, isSnakeCase(mapstructureTag), "mapstructure tag for field %s.%s should be snake_case", tName, fieldName)
 		}
 
 		// Validate the `yaml` struct tag.
 		yamlTag, ok := fieldTags["yaml"]
 		if ok {
-			require.True(t, isSnakeCase(yamlTag), "yaml tag for field %s should be snake_case", fieldName)
+			require.True(t, isSnakeCase(yamlTag), "yaml tag for field %s.%s should be snake_case", tName, fieldName)
 		}
 
 		// recursively validate the struct tags for all sub-structs.
