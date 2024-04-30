@@ -17,7 +17,7 @@ type TracingConfig struct {
 	Enabled       bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	Exporter      TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
 	Propagators   []TracingPropagator `json:"propagators,omitempty" mapstructure:"propagators" yaml:"propagators,omitempty"`
-	SamplingRatio float64             `json:"samplingRatio,omitempty" mapstructure:"samplingRatio" yaml:"samplingRatio,omitempty"`
+	SamplingRatio float64             `json:"samplingRatio,omitempty" mapstructure:"samplingRatio" yaml:"sampling_ratio,omitempty"`
 	Jaeger        JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
 	Zipkin        ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
 	OTLP          OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
@@ -25,9 +25,9 @@ type TracingConfig struct {
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
-		"enabled":       false,
-		"exporter":      TracingJaeger,
-		"samplingRatio": 1,
+		"enabled":        false,
+		"exporter":       TracingJaeger,
+		"sampling_ratio": 1,
 		"propagators": []TracingPropagator{
 			TracingPropagatorTraceContext,
 			TracingPropagatorBaggage,
