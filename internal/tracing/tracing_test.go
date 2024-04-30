@@ -61,7 +61,7 @@ func TestNewResourceDefault(t *testing.T) {
 	}
 }
 
-func TestGetTraceExporter(t *testing.T) {
+func TestGetExporter(t *testing.T) {
 	tests := []struct {
 		name    string
 		cfg     *config.TracingConfig
@@ -148,7 +148,6 @@ func TestGetTraceExporter(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, exp)
 			assert.NotNil(t, expFunc)
-
 		})
 	}
 }

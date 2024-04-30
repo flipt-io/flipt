@@ -73,6 +73,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				claims := map[string]interface{}{
 					"iss": "https://flipt.io/",
 					"aud": "flipt",
+					"sub": "sunglasses",
 					"iat": nowUnix,
 					"exp": futureUnix,
 				}
@@ -85,6 +86,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			expectedJWT: jwt.Expected{
 				Issuer:    "https://flipt.io/",
 				Audiences: []string{"flipt"},
+				Subject:   "sunglasses",
 			},
 		},
 		{
@@ -135,6 +137,27 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			},
 			expectedJWT: jwt.Expected{
 				Issuer: "https://flipt.io/",
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "invalid subject",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "https://flipt.io/",
+					"iat": nowUnix,
+					"exp": futureUnix,
+					"sub": "bar",
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:  "https://flipt.io/",
+				Subject: "flipt",
 			},
 			expectedErr: ErrUnauthenticated,
 		},

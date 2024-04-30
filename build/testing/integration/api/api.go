@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 
@@ -1260,6 +1261,38 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 				assert.Equal(t, "flagnotfound", e.ErrorResponse.FlagKey)
 			})
 		})
+	})
+
+	t.Run("Metrics", func(t *testing.T) {
+		if authConfig.Required() {
+			t.Skip("Skipping metrics test for now as it requires authentication")
+		}
+
+		if protocol == integration.ProtocolGRPC {
+			t.Skip("Skipping metrics test for now as it requires HTTP/HTTPS protocol")
+		}
+
+		t.Log(`Ensure /metrics endpoint is reachable.`)
+
+		resp, err := http.Get(fmt.Sprintf("%s/metrics", addr))
+		require.NoError(t, err)
+
+		require.NotNil(t, resp)
+
+		assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+		t.Log(`Ensure /metrics endpoint returns expected content type.`)
+
+		assert.Contains(t, resp.Header.Get("Content-Type"), "text/plain; version=0.0.4")
+
+		t.Log(`Ensure /metrics endpoint returns expected metrics.`)
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		defer resp.Body.Close()
+
+		assert.Contains(t, string(body), "flipt_evaluations_requests_total")
 	})
 
 	t.Run("Delete", func(t *testing.T) {

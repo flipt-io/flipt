@@ -234,6 +234,10 @@ func authenticationGRPC(
 				exp.Issuer = authJWT.Method.ValidateClaims.Issuer
 			}
 
+			if authJWT.Method.ValidateClaims.Subject != "" {
+				exp.Subject = authJWT.Method.ValidateClaims.Subject
+			}
+
 			if len(authJWT.Method.ValidateClaims.Audiences) != 0 {
 				exp.Audiences = authJWT.Method.ValidateClaims.Audiences
 			}
