@@ -145,6 +145,25 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		storageMetadataOIDCProvider: req.Provider,
 	}
 
+	cfg, err := s.configFor(req.Provider)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.RoleAttributePath != "" {
+		rawClaims := make(map[string]interface{})
+		if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
+			return nil, err
+		}
+
+		role, err := method.SearchJSONForAttr[string](cfg.RoleAttributePath, rawClaims)
+		if err != nil {
+			return nil, err
+		}
+
+		metadata[method.StorageMetadataRole] = role
+	}
+
 	// Extract custom claims
 	var claims claims
 	if err := responseToken.IDToken().Claims(&claims); err != nil {
@@ -173,24 +192,32 @@ func callbackURL(host, provider string) string {
 	return host + "/auth/v1/method/oidc/" + provider + "/callback"
 }
 
+func (s *Server) configFor(provider string) (config.AuthenticationMethodOIDCProvider, error) {
+	providerCfg, ok := s.config.Methods.OIDC.Method.Providers[provider]
+	if !ok {
+		return config.AuthenticationMethodOIDCProvider{}, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
+	}
+
+	return providerCfg, nil
+}
+
 func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, *capoidc.Req, error) {
 	var (
 		config   *capoidc.Config
 		callback string
 	)
 
-	pConfig, ok := s.config.Methods.OIDC.Method.Providers[provider]
-	if !ok {
-		return nil, nil, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
+	providerCfg, err := s.configFor(provider)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	callback = callbackURL(pConfig.RedirectAddress, provider)
+	callback = callbackURL(providerCfg.RedirectAddress, provider)
 
-	var err error
 	config, err = capoidc.NewConfig(
-		pConfig.IssuerURL,
-		pConfig.ClientID,
-		capoidc.ClientSecret(pConfig.ClientSecret),
+		providerCfg.IssuerURL,
+		providerCfg.ClientID,
+		capoidc.ClientSecret(providerCfg.ClientSecret),
 		[]capoidc.Alg{oidc.RS256},
 		[]string{callback},
 	)
@@ -205,11 +232,11 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 
 	var oidcOpts = []capoidc.Option{
 		capoidc.WithState(state),
-		capoidc.WithScopes(pConfig.Scopes...),
+		capoidc.WithScopes(providerCfg.Scopes...),
 		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
 	}
 
-	if pConfig.UsePKCE {
+	if providerCfg.UsePKCE {
 		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
 	}
 

@@ -465,27 +465,13 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 
 		// Delete request(s) have to be handled separately because they do not
 		// return the concrete type but rather an *empty.Empty response.
-		switch r := req.(type) {
-		case *flipt.DeleteFlagRequest:
+		if request.Action == flipt.ActionDelete {
 			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteVariantRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteSegmentRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteDistributionRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteConstraintRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteNamespaceRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.OrderRulesRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteRuleRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.OrderRolloutsRequest:
-			event = audit.NewEvent(request, actor, r)
-		case *flipt.DeleteRolloutRequest:
-			event = audit.NewEvent(request, actor, r)
+		} else {
+			switch r := resp.(type) {
+			case *flipt.OrderRulesRequest, *flipt.OrderRolloutsRequest:
+				event = audit.NewEvent(request, actor, r)
+			}
 		}
 
 		// Short circuiting the middleware here since we have a non-nil event from

@@ -313,10 +313,11 @@ func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
 // of a particular authentication method.
 // i.e. the name and whether or not the method is session compatible.
 type AuthenticationMethodInfo struct {
-	Method            auth.Method
-	SessionCompatible bool
-	RequiresDatabase  bool
-	Metadata          *structpb.Struct
+	Method                auth.Method
+	SessionCompatible     bool
+	RequiresDatabase      bool
+	SupportsAuthorization bool
+	Metadata              *structpb.Struct
 }
 
 // Name returns the friendly lower-case name for the authentication method.
@@ -429,9 +430,10 @@ func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
-		Method:            auth.Method_METHOD_OIDC,
-		SessionCompatible: true,
-		RequiresDatabase:  true,
+		Method:                auth.Method_METHOD_OIDC,
+		SessionCompatible:     true,
+		SupportsAuthorization: true,
+		RequiresDatabase:      true,
 	}
 
 	var (
@@ -467,12 +469,13 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
-	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
-	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
-	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+	IssuerURL         string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	ClientID          string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
+	ClientSecret      string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress   string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes            []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	UsePKCE           bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+	RoleAttributePath string   `json:"roleAttributePath,omitempty" mapstructure:"role_attribute_path" yaml:"role_attribute_path,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) validate() error {
