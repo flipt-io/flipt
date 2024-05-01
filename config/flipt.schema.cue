@@ -287,9 +287,9 @@ import "strings"
 	}
 
 	#tracing: {
-		enabled?:       bool | *false
-		exporter?:      *"jaeger" | "zipkin" | "otlp"
-		samplingRatio?: float & >=0 & <=1 | *1
+		enabled?:        bool | *false
+		exporter?:       *"jaeger" | "zipkin" | "otlp"
+		sampling_ratio?: float & >=0 & <=1 | *1
 		propagators?: [
 			..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none",
 		] | *["tracecontext", "baggage"]

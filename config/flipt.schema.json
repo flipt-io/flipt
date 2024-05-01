@@ -995,7 +995,7 @@
           "enum": ["jaeger", "zipkin", "otlp"],
           "default": "jaeger"
         },
-        "samplingRatio": {
+        "sampling_ratio": {
           "type": "number",
           "default": 1,
           "minimum": 0,
