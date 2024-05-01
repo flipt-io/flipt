@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -96,7 +96,7 @@ func (c *cloudCommand) auth(cmd *cobra.Command, args []string) error {
 	})
 
 	g.Go(func() error {
-		if err := flow.StartServer(nil); !errors.Is(err, net.ErrClosed) {
+		if err := flow.StartServer(nil); !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("starting server: %w", err)
 		}
 		close(done)

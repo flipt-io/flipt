@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"time"
 )
 
 // TokenResponse represents the token received by the local server's callback handler.
@@ -32,6 +33,7 @@ type localServer struct {
 	WriteSuccessHTML func(w io.Writer)
 
 	resultChan chan (TokenResponse)
+	server     *http.Server
 	listener   net.Listener
 }
 
@@ -40,11 +42,16 @@ func (s *localServer) Port() int {
 }
 
 func (s *localServer) Close() error {
-	return s.listener.Close()
+	return safeClose(s.server)
 }
 
 func (s *localServer) Serve() error {
-	return http.Serve(s.listener, s)
+	s.server = &http.Server{
+		Handler:           s,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	return s.server.Serve(s.listener)
 }
 
 func (s *localServer) Wait(ctx context.Context) (TokenResponse, error) {
@@ -82,4 +89,11 @@ func (s *localServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func defaultSuccessHTML(w io.Writer) {
 	fmt.Fprintf(w, "<p>You may now close this page and return to the client app.</p>")
+}
+
+func safeClose(c io.Closer) error {
+	if c == nil {
+		return nil
+	}
+	return c.Close()
 }
