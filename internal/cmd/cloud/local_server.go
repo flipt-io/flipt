@@ -68,7 +68,7 @@ func (s *localServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	s.resultChan <- TokenResponse{
-		Token: params.Get("token"),
+		Token: params.Get("id_token"),
 		State: params.Get("state"),
 	}
 
