@@ -171,6 +171,7 @@ func NewGRPCServer(
 			metricsdk.WithReader(metricExp),
 		)
 		otel.SetMeterProvider(meterProvider)
+		server.onShutdown(meterProvider.Shutdown)
 
 		logger.Debug("otel metrics enabled", zap.String("exporter", string(cfg.Metrics.Exporter)))
 	}
