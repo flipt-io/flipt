@@ -119,7 +119,7 @@ func (c *CloudAuthenticationConfig) validate() error {
 func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("server.cloud", map[string]any{
 		"enabled": false,
-		"address": "flipt.cloud",
+		"address": "https://flipt.cloud",
 		"port":    8443,
 	})
 
