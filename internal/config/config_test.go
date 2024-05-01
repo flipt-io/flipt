@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iancoleman/strcase"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1474,4 +1475,96 @@ func TestGetConfigFile(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+}
+
+var (
+	// add any struct tags to match their camelCase equivalents here.
+	camelCaseMatchers = map[string]string{
+		"requireTLS":   "requireTLS",
+		"discoveryURL": "discoveryURL",
+	}
+)
+
+func TestStructTags(t *testing.T) {
+	configType := reflect.TypeOf(Config{})
+	configTags := getStructTags(configType)
+
+	for k, v := range camelCaseMatchers {
+		strcase.ConfigureAcronym(k, v)
+	}
+
+	// Validate the struct tags for the Config struct.
+	// recursively validate the struct tags for all sub-structs.
+	validateStructTags(t, configTags, configType)
+}
+
+func validateStructTags(t *testing.T, tags map[string]map[string]string, tType reflect.Type) {
+	tName := tType.Name()
+	for fieldName, fieldTags := range tags {
+		fieldType, ok := tType.FieldByName(fieldName)
+		require.True(t, ok, "field %s not found in type %s", fieldName, tName)
+
+		// Validate the `json` struct tag.
+		jsonTag, ok := fieldTags["json"]
+		if ok {
+			require.True(t, isCamelCase(jsonTag), "json tag for field '%s.%s' should be camelCase but is '%s'", tName, fieldName, jsonTag)
+		}
+
+		// Validate the `mapstructure` struct tag.
+		mapstructureTag, ok := fieldTags["mapstructure"]
+		if ok {
+			require.True(t, isSnakeCase(mapstructureTag), "mapstructure tag for field '%s.%s' should be snake_case but is '%s'", tName, fieldName, mapstructureTag)
+		}
+
+		// Validate the `yaml` struct tag.
+		yamlTag, ok := fieldTags["yaml"]
+		if ok {
+			require.True(t, isSnakeCase(yamlTag), "yaml tag for field '%s.%s' should be snake_case but is '%s'", tName, fieldName, yamlTag)
+		}
+
+		// recursively validate the struct tags for all sub-structs.
+		if fieldType.Type.Kind() == reflect.Struct {
+			validateStructTags(t, getStructTags(fieldType.Type), fieldType.Type)
+		}
+	}
+}
+
+func isCamelCase(s string) bool {
+	return s == strcase.ToLowerCamel(s)
+}
+
+func isSnakeCase(s string) bool {
+	return s == strcase.ToSnake(s)
+}
+
+func getStructTags(t reflect.Type) map[string]map[string]string {
+	tags := make(map[string]map[string]string)
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		// Get the field name.
+		fieldName := field.Name
+
+		// Get the field tags.
+		fieldTags := make(map[string]string)
+		for _, tag := range []string{"json", "mapstructure", "yaml"} {
+			tagValue := field.Tag.Get(tag)
+			if tagValue == "-" {
+				fieldTags[tag] = "skip"
+				continue
+			}
+			values := strings.Split(tagValue, ",")
+			if len(values) > 1 {
+				tagValue = values[0]
+			}
+			if tagValue != "" {
+				fieldTags[tag] = tagValue
+			}
+		}
+
+		tags[fieldName] = fieldTags
+	}
+
+	return tags
 }
