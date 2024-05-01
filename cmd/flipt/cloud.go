@@ -46,7 +46,6 @@ func newCloudCommand() *cobra.Command {
 
 func (c *cloudCommand) auth(cmd *cobra.Command, args []string) error {
 	done := make(chan struct{})
-	const callbackURL = "http://localhost:8080/cloud/auth/callback"
 
 	ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
 	if err != nil {
@@ -96,7 +95,7 @@ func (c *cloudCommand) auth(cmd *cobra.Command, args []string) error {
 	})
 
 	g.Go(func() error {
-		if err := flow.StartServer(nil); !errors.Is(err, http.ErrServerClosed) {
+		if err := flow.StartServer(nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("starting server: %w", err)
 		}
 		close(done)
@@ -108,19 +107,15 @@ func (c *cloudCommand) auth(cmd *cobra.Command, args []string) error {
 		case <-done:
 			cancel()
 		case <-ctx.Done():
-			if err := flow.Close(); !errors.Is(err, context.Canceled) {
+			if err := flow.Close(); err != nil && !errors.Is(err, context.Canceled) {
 				return err
 			}
 		}
 		return nil
 	})
 
-	browserParams := cloud.BrowserParams{
-		RedirectURL: callbackURL,
-	}
-
 	g.Go(func() error {
-		url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url), browserParams)
+		url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
 		if err != nil {
 			return fmt.Errorf("creating browser URL: %w", err)
 		}

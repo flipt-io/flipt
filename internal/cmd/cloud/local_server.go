@@ -73,17 +73,17 @@ func (s *localServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		_ = s.Close()
 	}()
 
-	params := r.URL.Query()
-	s.resultChan <- TokenResponse{
-		Token: params.Get("id_token"),
-		State: params.Get("state"),
-	}
-
 	w.Header().Add("content-type", "text/html")
 	if s.WriteSuccessHTML != nil {
 		s.WriteSuccessHTML(w)
 	} else {
 		defaultSuccessHTML(w)
+	}
+
+	params := r.URL.Query()
+	s.resultChan <- TokenResponse{
+		Token: params.Get("id_token"),
+		State: params.Get("state"),
 	}
 }
 

@@ -23,7 +23,7 @@ func InitFlow() (*Flow, error) {
 		return nil, err
 	}
 
-	state, _ := randomString(20)
+	state := randomString(20)
 
 	return &Flow{
 		server: server,
@@ -38,8 +38,10 @@ type BrowserParams struct {
 
 // BrowserURL appends GET query parameters to baseURL and returns the url that the user should
 // navigate to in their web browser.
-func (f *Flow) BrowserURL(baseURL string, params BrowserParams) (string, error) {
-	ru, err := url.Parse(params.RedirectURL)
+func (f *Flow) BrowserURL(baseURL string) (string, error) {
+	const callbackURL = "http://localhost:8080/cloud/auth/callback"
+
+	ru, err := url.Parse(callbackURL)
 	if err != nil {
 		return "", err
 	}
@@ -65,12 +67,6 @@ func (f *Flow) Close() error {
 	return f.server.Close()
 }
 
-// WaitOptions specifies parameters to exchange the access token for.
-type WaitOptions struct {
-	// ClientSecret is the app client secret value.
-	ClientSecret string
-}
-
 // Wait blocks until the browser flow has completed and returns the access token.
 func (f *Flow) Wait(ctx context.Context) (string, error) {
 	resp, err := f.server.Wait(ctx)
@@ -84,11 +80,11 @@ func (f *Flow) Wait(ctx context.Context) (string, error) {
 	return resp.Token, nil
 }
 
-func randomString(length int) (string, error) {
+func randomString(length int) string {
 	b := make([]byte, length/2)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return hex.EncodeToString(b), nil
+	return hex.EncodeToString(b)
 }
