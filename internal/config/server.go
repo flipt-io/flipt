@@ -96,15 +96,30 @@ var (
 )
 
 type CloudConfig struct {
-	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
-	Address string `json:"address,omitempty" mapstructure:"address" yaml:"address,omitempty"`
-	Port    int    `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	Enabled        bool                      `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
+	Authentication CloudAuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Address        string                    `json:"address,omitempty" mapstructure:"address" yaml:"address,omitempty"`
+	Port           int                       `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	Organization   string                    `json:"organization,omitempty" mapstructure:"organization" yaml:"organization,omitempty"`
+	Instance       string                    `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
+}
+
+type CloudAuthenticationConfig struct {
+	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
+}
+
+func (c *CloudAuthenticationConfig) validate() error {
+	if c.ApiKey == "" {
+		return errFieldRequired("server.cloud.authentication.api_key")
+	}
+
+	return nil
 }
 
 func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("server.cloud", map[string]any{
 		"enabled": false,
-		"address": "https://flipt.cloud",
+		"address": "flipt.cloud",
 		"port":    8443,
 	})
 
@@ -120,6 +135,18 @@ func (c *CloudConfig) validate() error {
 
 		if c.Port == 0 {
 			return errFieldRequired("server.cloud.port")
+		}
+
+		if c.Organization == "" {
+			return errFieldRequired("server.cloud.organization")
+		}
+
+		if c.Instance == "" {
+			return errFieldRequired("server.cloud.instance")
+		}
+
+		if c.Authentication.ApiKey == "" {
+			return errFieldRequired("server.cloud.authentication.api_key")
 		}
 	}
 

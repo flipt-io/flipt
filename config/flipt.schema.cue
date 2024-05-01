@@ -269,11 +269,6 @@ import "strings"
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
-		cloud?: {
-			enabled?: bool | *false
-			address?: string | *"https://flipt.cloud"
-			port?:    int | *8443
-		}
 	}
 
 	#metrics: {
@@ -287,9 +282,9 @@ import "strings"
 	}
 
 	#tracing: {
-		enabled?:       bool | *false
-		exporter?:      *"jaeger" | "zipkin" | "otlp"
-		samplingRatio?: float & >=0 & <=1 | *1
+		enabled?:        bool | *false
+		exporter?:       *"jaeger" | "zipkin" | "otlp"
+		sampling_ratio?: float & >=0 & <=1 | *1
 		propagators?: [
 			..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none",
 		] | *["tracecontext", "baggage"]

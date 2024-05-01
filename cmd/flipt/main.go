@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -22,6 +24,8 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
+	"go.flipt.io/reverst/client"
+	"go.flipt.io/reverst/pkg/protocol"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -371,26 +375,32 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	if cfg.Server.Cloud.Enabled {
 		// starts QUIC tunnel server to connect to Cloud
+		var (
+			orgHost = fmt.Sprintf("%s.%s", cfg.Server.Cloud.Organization, cfg.Server.Cloud.Address)
+			tunnel  = fmt.Sprintf("%s-%s", cfg.Server.Cloud.Instance, orgHost)
+		)
 
-		// TODO: get organization, instance, and authentication from config
+		g.Go(func() error {
+			tunnelServer := &client.Server{
+				TunnelGroup:   tunnel,
+				Handler:       httpServer.Handler,
+				Authenticator: client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey),
+				TLSConfig: &tls.Config{
+					NextProtos: []string{protocol.Name},
+					ServerName: orgHost,
+				},
+			}
 
-		// g.Go(func() error {
-		// 	tunnelServer := &client.Server{
-		// 		TunnelGroup:   fmt.Sprintf("%s.%s", cfg.Server.Cloud.Organization, cfg.Server.Cloud.Address),
-		// 		Handler:       httpServer.Handler,
-		// 		Authenticator: client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey),
-		// 	}
+			addr := fmt.Sprintf("%s:%d", tunnel, cfg.Server.Cloud.Port)
 
-		// 	tunnel := fmt.Sprintf("%s-%s.%s", cfg.Server.Cloud.Instance, cfg.Server.Cloud.Organization, cfg.Server.Cloud.Address)
+			logger.Info("cloud tunnel established", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
 
-		// 	logger.Info("cloud tunnel available", zap.String("address", tunnel), zap.Int("port", cfg.Server.Cloud.Port))
+			if err := tunnelServer.DialAndServe(ctx, addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				return fmt.Errorf("cloud tunnel server: %w", err)
+			}
 
-		// 	if err := tunnelServer.DialAndServe(ctx, fmt.Sprintf("%s:%d", tunnel, cfg.Server.Cloud.Port)); !errors.Is(err, http.ErrServerClosed) {
-		// 		return fmt.Errorf("cloud tunnel server: %w", err)
-		// 	}
-
-		// 	return nil
-		// })
+			return nil
+		})
 	}
 
 	// block until root context is cancelled
