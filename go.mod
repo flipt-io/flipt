@@ -245,6 +245,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/runtime v0.51.0 // indirect
 	go.opentelemetry.io/contrib/propagators/aws v1.25.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.25.0 // indirect
 	go.opentelemetry.io/contrib/propagators/jaeger v1.25.0 // indirect
