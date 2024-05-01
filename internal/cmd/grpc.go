@@ -154,6 +154,11 @@ func NewGRPCServer(
 
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {
+		metricsResource, err := metrics.GetResources(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("creating metrics resource: %w", err)
+		}
+
 		metricExp, metricExpShutdown, err := metrics.GetExporter(ctx, &cfg.Metrics)
 		if err != nil {
 			return nil, fmt.Errorf("creating metrics exporter: %w", err)
@@ -161,7 +166,10 @@ func NewGRPCServer(
 
 		server.onShutdown(metricExpShutdown)
 
-		meterProvider := metricsdk.NewMeterProvider(metricsdk.WithReader(metricExp))
+		meterProvider := metricsdk.NewMeterProvider(
+			metricsdk.WithResource(metricsResource),
+			metricsdk.WithReader(metricExp),
+		)
 		otel.SetMeterProvider(meterProvider)
 
 		logger.Debug("otel metrics enabled", zap.String("exporter", string(cfg.Metrics.Exporter)))
