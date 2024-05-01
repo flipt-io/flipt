@@ -31,11 +31,6 @@ func InitFlow() (*Flow, error) {
 	}, nil
 }
 
-// BrowserParams are GET query parameters for initiating the web flow.
-type BrowserParams struct {
-	RedirectURL string
-}
-
 // BrowserURL appends GET query parameters to baseURL and returns the url that the user should
 // navigate to in their web browser.
 func (f *Flow) BrowserURL(baseURL string) (string, error) {
