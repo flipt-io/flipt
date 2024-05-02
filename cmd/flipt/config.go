@@ -8,6 +8,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
 	"gopkg.in/yaml.v2"
 )
@@ -45,13 +46,11 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 		// check if file exists
 		if _, err := os.Stat(file); err == nil {
 			// file exists
-			prompt := &survey.Confirm{
-				Message: "File exists. Overwrite?",
-			}
-			if err := survey.AskOne(prompt, &ack); err != nil {
+			overwrite, err := util.PromptConfirm("File exists. Overwrite?", false)
+			if err != nil {
 				return err
 			}
-			if !ack {
+			if !overwrite {
 				return nil
 			}
 		} else if !os.IsNotExist(err) {

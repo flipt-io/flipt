@@ -151,6 +151,7 @@ func exec() error {
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newBundleCommand())
 	rootCmd.AddCommand(newEvaluateCommand())
+	rootCmd.AddCommand(newCloudCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -385,6 +386,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 				Handler:       httpServer.Handler,
 				Authenticator: client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey),
 				TLSConfig: &tls.Config{
+					MinVersion: tls.VersionTLS13,
 					NextProtos: []string{protocol.Name},
 					ServerName: orgHost,
 				},

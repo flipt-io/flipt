@@ -928,6 +928,39 @@
         "grpc_conn_max_age_grace": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+        },
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "address": {
+              "type": "string",
+              "default": "flipt.cloud"
+            },
+            "authentication": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "api_key": {
+                  "type": "string"
+                }
+              }
+            },
+            "port": {
+              "type": "integer",
+              "default": 8443
+            },
+            "organization": {
+              "type": "string"
+            },
+            "instance": {
+              "type": "string"
+            }
+          }
         }
       },
       "required": [],

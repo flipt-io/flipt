@@ -269,6 +269,16 @@ import "strings"
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
+		cloud?: {
+			enabled?: bool | *false
+			address?: string | *"flipt.cloud"
+			authentication?: {
+				api_key?: string
+			}
+			port?:    int | *8443
+			organization?:  string
+			instance?:  string
+		}
 	}
 
 	#metrics: {

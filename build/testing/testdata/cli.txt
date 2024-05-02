@@ -12,6 +12,7 @@ $ flipt --config /path/to/config.yml migrate
 
 Available Commands:
   bundle      Manage Flipt bundles
+  cloud       Interact with Flipt Cloud
   config      Manage Flipt configuration
   evaluate    Evaluate a flag
   export      Export Flipt data to file/stdout
