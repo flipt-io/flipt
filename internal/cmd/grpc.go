@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	otlpRuntime "go.opentelemetry.io/contrib/instrumentation/runtime"
+
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
 	sq "github.com/Masterminds/squirrel"
@@ -154,6 +156,11 @@ func NewGRPCServer(
 
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {
+		metricsResource, err := metrics.GetResources(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("creating metrics resource: %w", err)
+		}
+
 		metricExp, metricExpShutdown, err := metrics.GetExporter(ctx, &cfg.Metrics)
 		if err != nil {
 			return nil, fmt.Errorf("creating metrics exporter: %w", err)
@@ -161,8 +168,21 @@ func NewGRPCServer(
 
 		server.onShutdown(metricExpShutdown)
 
-		meterProvider := metricsdk.NewMeterProvider(metricsdk.WithReader(metricExp))
+		meterProvider := metricsdk.NewMeterProvider(
+			metricsdk.WithResource(metricsResource),
+			metricsdk.WithReader(metricExp),
+		)
 		otel.SetMeterProvider(meterProvider)
+		server.onShutdown(meterProvider.Shutdown)
+
+		// We only want to start the runtime metrics by open telemetry if the user have chosen
+		// to use OTLP because the Prometheus endpoint already exposes those metrics.
+		if cfg.Metrics.Exporter == config.MetricsOTLP {
+			err = otlpRuntime.Start(otlpRuntime.WithMeterProvider(meterProvider))
+			if err != nil {
+				return nil, fmt.Errorf("starting runtime metric exporter: %w", err)
+			}
+		}
 
 		logger.Debug("otel metrics enabled", zap.String("exporter", string(cfg.Metrics.Exporter)))
 	}
