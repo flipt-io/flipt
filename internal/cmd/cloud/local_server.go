@@ -2,11 +2,14 @@ package cloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 )
+
+const callbackPath = "/cloud/auth/callback"
 
 // TokenResponse represents the token received by the local server's callback handler.
 type TokenResponse struct {
@@ -28,7 +31,6 @@ func bindLocalServer() (*localServer, error) {
 }
 
 type localServer struct {
-	CallbackPath     string
 	WriteSuccessHTML func(w io.Writer)
 
 	resultChan chan (TokenResponse)
@@ -51,19 +53,23 @@ func (s *localServer) Wait(ctx context.Context) (TokenResponse, error) {
 	select {
 	case <-ctx.Done():
 		return TokenResponse{}, ctx.Err()
-	case code := <-s.resultChan:
+	case code, ok := <-s.resultChan:
+		if !ok {
+			return TokenResponse{}, errors.New("server shutdown")
+		}
 		return code, nil
 	}
 }
 
 // ServeHTTP implements http.Handler.
 func (s *localServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if s.CallbackPath != "" && r.URL.Path != s.CallbackPath {
+	if r.URL.Path != callbackPath {
 		w.WriteHeader(404)
 		return
 	}
 	defer func() {
 		_ = s.Close()
+		close(s.resultChan)
 	}()
 
 	params := r.URL.Query()

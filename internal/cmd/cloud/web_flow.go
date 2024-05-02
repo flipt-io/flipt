@@ -34,21 +34,17 @@ func InitFlow() (*Flow, error) {
 // BrowserURL appends GET query parameters to baseURL and returns the url that the user should
 // navigate to in their web browser.
 func (f *Flow) BrowserURL(baseURL string) (string, error) {
-	const callbackURL = "http://localhost:8080/cloud/auth/callback"
-
-	ru, err := url.Parse(callbackURL)
+	u, err := url.Parse(baseURL)
 	if err != nil {
 		return "", err
 	}
 
-	ru.Host = fmt.Sprintf("%s:%d", ru.Hostname(), f.server.Port())
-	f.server.CallbackPath = ru.Path
-
-	q := url.Values{}
-	q.Set("redirect_url", ru.String())
+	q := u.Query()
+	q.Set("redirect_url", fmt.Sprintf("http://localhost:%d%s", f.server.Port(), callbackPath))
 	q.Set("state", f.state)
+	u.RawQuery = q.Encode()
 
-	return fmt.Sprintf("%s?%s", baseURL, q.Encode()), nil
+	return u.String(), nil
 }
 
 // StartServer starts the localhost server and blocks until it has received the web redirect. The
@@ -58,6 +54,7 @@ func (f *Flow) StartServer(writeSuccess func(io.Writer)) error {
 	return f.server.Serve()
 }
 
+// Close stops the local server.
 func (f *Flow) Close() error {
 	return f.server.Close()
 }
@@ -75,7 +72,11 @@ func (f *Flow) Wait(ctx context.Context) (string, error) {
 	return resp.Token, nil
 }
 
+// randomString generates a random string of length n.
 func randomString(length int) string {
+	// hex encoding is 2 characters per byte
+	// so we need to generate length/2 bytes
+	// before encoding to hex
 	b := make([]byte, length/2)
 	_, err := rand.Read(b)
 	if err != nil {

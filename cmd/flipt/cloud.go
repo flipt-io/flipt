@@ -33,18 +33,18 @@ func newCloudCommand() *cobra.Command {
 
 	cmd.PersistentFlags().StringVarP(&cloud.url, "url", "u", "https://flipt.cloud", "Flipt Cloud URL")
 
-	authCmd := &cobra.Command{
-		Use:   "auth [flags]",
+	loginCmd := &cobra.Command{
+		Use:   "login [flags]",
 		Short: "Authenticate with Flipt Cloud",
-		RunE:  cloud.auth,
+		RunE:  cloud.login,
 		Args:  cobra.NoArgs,
 	}
 
-	cmd.AddCommand(authCmd)
+	cmd.AddCommand(loginCmd)
 	return cmd
 }
 
-func (c *cloudCommand) auth(cmd *cobra.Command, args []string) error {
+func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 	done := make(chan struct{})
 
 	ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)

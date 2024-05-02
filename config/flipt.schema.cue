@@ -271,7 +271,7 @@ import "strings"
 		grpc_conn_max_age_grace?: =~#duration
 		cloud?: {
 			enabled?: bool | *false
-			address?: string | *"https://flipt.cloud"
+			address?: string | *"flipt.cloud"
 			authentication?: {
 				api_key?: string
 			}
