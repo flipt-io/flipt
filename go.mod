@@ -66,7 +66,7 @@ require (
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.38.0
 	go.flipt.io/flipt/sdk/go v0.11.0
-	go.flipt.io/reverst v0.1.2
+	go.flipt.io/reverst v0.1.3
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.51.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.50.0
@@ -163,13 +163,13 @@ require (
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
+	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/pprof v0.0.0-20240416155748-26353dc0451f // indirect
+	github.com/google/pprof v0.0.0-20240430035430-e4905b036c4e // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/wire v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -209,7 +209,7 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.17.1 // indirect
+	github.com/onsi/ginkgo/v2 v2.17.2 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
@@ -223,7 +223,7 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/quic-go/qpack v0.4.0 // indirect
-	github.com/quic-go/quic-go v0.42.0 // indirect
+	github.com/quic-go/quic-go v0.43.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect

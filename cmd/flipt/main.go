@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -381,10 +382,32 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		)
 
 		g.Go(func() error {
+			var authenticator client.Authenticator
+
+			// prefer API key over local token
+			if cfg.Server.Cloud.Authentication.ApiKey != "" {
+				authenticator = client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey)
+			} else {
+				// read in local token from file
+				cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
+				cloudAuthBytes, err := os.ReadFile(cloudAuthFile)
+				if err != nil {
+					return fmt.Errorf("reading cloud auth token: %w", err)
+				}
+
+				var auth cloudAuth
+
+				if err := json.Unmarshal(cloudAuthBytes, &auth); err != nil {
+					return fmt.Errorf("unmarshalling cloud auth token: %w", err)
+				}
+
+				authenticator = client.BearerAuthenticator(auth.Token, client.WithScheme("JWT"))
+			}
+
 			tunnelServer := &client.Server{
 				TunnelGroup:   tunnel,
 				Handler:       httpServer.Handler,
-				Authenticator: client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey),
+				Authenticator: authenticator,
 				TLSConfig: &tls.Config{
 					MinVersion: tls.VersionTLS13,
 					NextProtos: []string{protocol.Name},
