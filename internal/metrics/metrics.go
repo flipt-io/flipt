@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"sync"
 
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -221,4 +224,19 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 	})
 
 	return metricExp, metricExpFunc, metricExpErr
+}
+
+func GetResources(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(
+		ctx,
+		resource.WithSchemaURL(semconv.SchemaURL),
+		resource.WithAttributes(
+			semconv.ServiceName("flipt"),
+		),
+		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		resource.WithProcessRuntimeVersion(),
+		resource.WithProcessRuntimeName(),
+	)
 }
