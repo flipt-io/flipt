@@ -386,6 +386,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 				Handler:       httpServer.Handler,
 				Authenticator: client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey),
 				TLSConfig: &tls.Config{
+					MinVersion: tls.VersionTLS13,
 					NextProtos: []string{protocol.Name},
 					ServerName: orgHost,
 				},
