@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -27,10 +28,10 @@ type cloudAuth struct {
 }
 
 type cloudInstance struct {
-	ID             string `json:"id"`
-	Slug           string `json:"slug"`
-	OrganizationID string `json:"organizationID"`
-	Status         string `json:"status"`
+	ID           string `json:"id"`
+	Instance     string `json:"instance"`
+	Organization string `json:"organization"`
+	Status       string `json:"status"`
 }
 
 func newCloudCommand() *cobra.Command {
@@ -125,7 +126,7 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("writing cloud auth token: %w", err)
 		}
 
-		fmt.Println("\n✅ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
+		fmt.Println("\n✓ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
 
 		return nil
 	})
@@ -162,6 +163,8 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 }
 
 func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
+	ctx := cmd.Context()
+
 	// first check for existing of auth token/cloud.json
 	// if not found, prompt user to login
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
@@ -181,12 +184,12 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unmarshalling cloud auth payload: %w", err)
 	}
 
-	fmt.Println("\n✅ Found Flipt Cloud authentication.")
+	fmt.Println("\n✓ Found Flipt Cloud authentication.")
 
 	// TODO: check for expiration of token
 	// TODO: check for existing instance
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/instances", c.url), nil)
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/api/instances", c.url), nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -215,41 +218,27 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	_ = resp.Body.Close()
 
-	fmt.Println("✅ Created temporary instance in Flipt Cloud.")
+	fmt.Println("✓ Created temporary instance in Flipt Cloud.")
 	var instance cloudInstance
 	if err := json.Unmarshal(body, &instance); err != nil {
 		return fmt.Errorf("unmarshalling response body: %w", err)
 	}
 
-	// download config file from cloud
-	req, err = http.NewRequest("GET", fmt.Sprintf("%s/api/instances/%s/config", c.url, instance.ID), nil)
+	logger, cfg, err := buildConfig()
 	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
+		return err
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("JWT %s", auth.Token))
-	req.Header.Set("Accept", "text/yaml")
 
-	resp, err = client.Do(req)
+	u, err := url.Parse(c.url)
 	if err != nil {
-		return fmt.Errorf("making request: %w", err)
+		return fmt.Errorf("parsing cloud URL: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
+	cfg.Server.Cloud.Enabled = true
+	cfg.Server.Cloud.Address = u.Host
+	cfg.Server.Cloud.Instance = instance.Instance
+	cfg.Server.Cloud.Organization = instance.Organization
 
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		_ = resp.Body.Close()
-		return fmt.Errorf("reading response body: %w", err)
-	}
-
-	_ = resp.Body.Close()
-
-	fmt.Println("✅ Downloaded configuration file from Flipt Cloud.")
-
-	// write to stdout for now
-
-	fmt.Println(string(body))
-	return nil
+	fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
+	return run(ctx, logger, cfg)
 }
