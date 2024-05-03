@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
@@ -419,11 +420,15 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 			logger.Info("cloud tunnel established", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
 
-			if err := tunnelServer.DialAndServe(ctx, addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				return fmt.Errorf("cloud tunnel server: %w", err)
-			}
+			retrier := backoff.WithMaxRetries(backoff.NewConstantBackOff(5*time.Second), 10)
 
-			return nil
+			return backoff.Retry(func() error {
+				if err := tunnelServer.DialAndServe(ctx, addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					return fmt.Errorf("cloud tunnel server: %w", err)
+				}
+
+				return nil
+			}, retrier)
 		})
 	}
 
