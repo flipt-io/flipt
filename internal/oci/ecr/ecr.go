@@ -26,7 +26,7 @@ func (r *ECR) CredentialFunc(registry string) auth.CredentialFunc {
 }
 
 func (r *ECR) Credential(ctx context.Context, hostport string) (auth.Credential, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background())
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return auth.EmptyCredential, err
 	}

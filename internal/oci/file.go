@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -116,7 +117,9 @@ func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 			remote.Client = &auth.Client{
 				Credential: s.opts.auth(ref.Registry),
 				Cache:      auth.DefaultCache,
-				Client:     retry.DefaultClient,
+				Client: &http.Client{
+					Transport: retry.NewTransport(s.opts.roundTripper),
+				},
 			}
 		}
 
