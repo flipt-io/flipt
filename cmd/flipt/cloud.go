@@ -38,6 +38,10 @@ type cloudInstance struct {
 	ExpiresAt    int64  `json:"expiresAt"`
 }
 
+type cloudError struct {
+	Error string `json:"error"`
+}
+
 func newCloudCommand() *cobra.Command {
 	cloud := &cloudCommand{}
 
@@ -267,7 +271,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("making request: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusForbidden {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
@@ -279,6 +283,15 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 	}
 
 	_ = resp.Body.Close()
+
+	if resp.StatusCode == http.StatusForbidden {
+		var cloudErr cloudError
+		if err := json.Unmarshal(body, &cloudErr); err != nil {
+			return fmt.Errorf("unmarshalling response body: %w", err)
+		}
+
+		return errors.New(cloudErr.Error)
+	}
 
 	fmt.Println("✓ Created temporary instance in Flipt Cloud.")
 	var instance cloudInstance
