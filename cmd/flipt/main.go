@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/briandowns/spinner"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -419,9 +420,15 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 			addr := fmt.Sprintf("%s:%d", tunnel, cfg.Server.Cloud.Port)
 
-			logger.Info("cloud tunnel established", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
+			logger.Info("starting cloud tunnel link", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
 
-			retrier := backoff.WithMaxRetries(backoff.NewConstantBackOff(5*time.Second), 10)
+			retrier := backoff.WithContext(backoff.WithMaxRetries(backoff.NewConstantBackOff(10*time.Second), 10), ctx)
+
+			s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+			s.Suffix = " Waiting for tunnel to be established..."
+			s.Start()
+
+			defer s.Stop()
 
 			return backoff.Retry(func() error {
 				if err := tunnelServer.DialAndServe(ctx, addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
