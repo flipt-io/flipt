@@ -5,50 +5,122 @@ import (
 	"encoding/base64"
 	"errors"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 var ErrNoAWSECRAuthorizationData = errors.New("no ecr authorization data provided")
 
-type Client interface {
+type ECRClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
-
-type ECR struct {
-	client Client
+type ECRPublicClient interface {
+	GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
 }
 
-func (r *ECR) CredentialFunc(registry string) auth.CredentialFunc {
+type Client interface {
+	GetAuthorizationToken(ctx context.Context) (string, time.Time, error)
+}
+
+type ecrPublicClient struct {
+	client ECRPublicClient
+}
+
+func (r *ecrPublicClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
+	client := r.client
+	if client == nil {
+		cfg, err := config.LoadDefaultConfig(context.Background())
+		if err != nil {
+			return "", time.Time{}, err
+		}
+		client = ecrpublic.NewFromConfig(cfg)
+	}
+	response, err := client.GetAuthorizationToken(ctx, &ecrpublic.GetAuthorizationTokenInput{})
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	authData := response.AuthorizationData
+	if authData == nil {
+		return "", time.Time{}, ErrNoAWSECRAuthorizationData
+	}
+	if authData.AuthorizationToken == nil {
+		return "", time.Time{}, auth.ErrBasicCredentialNotFound
+	}
+	return *authData.AuthorizationToken, *authData.ExpiresAt, nil
+}
+
+type ecrPrivateClient struct {
+	client ECRClient
+}
+
+func (r *ecrPrivateClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
+	client := r.client
+	if client == nil {
+		cfg, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			return "", time.Time{}, err
+		}
+		client = ecr.NewFromConfig(cfg)
+	}
+	response, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if len(response.AuthorizationData) == 0 {
+		return "", time.Time{}, ErrNoAWSECRAuthorizationData
+	}
+	authData := response.AuthorizationData[0]
+
+	if authData.AuthorizationToken == nil {
+		return "", time.Time{}, auth.ErrBasicCredentialNotFound
+	}
+	return *authData.AuthorizationToken, *authData.ExpiresAt, nil
+}
+
+func CredentialFunc(registry string) auth.CredentialFunc {
+	r := &svc{}
+	switch {
+	case strings.HasPrefix(registry, "public.ecr.aws"):
+		r.client = &ecrPublicClient{}
+	default:
+		r.client = &ecrPrivateClient{}
+	}
 	return r.Credential
 }
 
-func (r *ECR) Credential(ctx context.Context, hostport string) (auth.Credential, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return auth.EmptyCredential, err
-	}
-	r.client = ecr.NewFromConfig(cfg)
-	return r.fetchCredential(ctx)
+type svc struct {
+	mu               sync.Mutex
+	expiresAt        time.Time
+	cachedCredential auth.Credential
+	client           Client
 }
 
-func (r *ECR) fetchCredential(ctx context.Context) (auth.Credential, error) {
-	response, err := r.client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+func (r *svc) Credential(ctx context.Context, hostport string) (auth.Credential, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if time.Until(r.expiresAt) > 0 {
+		return r.cachedCredential, nil
+	}
+	token, expiresAt, err := r.client.GetAuthorizationToken(ctx)
 	if err != nil {
 		return auth.EmptyCredential, err
 	}
-	if len(response.AuthorizationData) == 0 {
-		return auth.EmptyCredential, ErrNoAWSECRAuthorizationData
+	credential, err := r.extractCredential(token)
+	if err != nil {
+		return auth.EmptyCredential, err
 	}
-	token := response.AuthorizationData[0].AuthorizationToken
+	r.cachedCredential = credential
+	r.expiresAt = expiresAt
+	return credential, nil
+}
 
-	if token == nil {
-		return auth.EmptyCredential, auth.ErrBasicCredentialNotFound
-	}
-
-	output, err := base64.StdEncoding.DecodeString(*token)
+func (r *svc) extractCredential(token string) (auth.Credential, error) {
+	output, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
 		return auth.EmptyCredential, err
 	}

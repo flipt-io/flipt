@@ -2,7 +2,6 @@ package oci
 
 import (
 	"fmt"
-	"net/http"
 
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/oci/ecr"
@@ -33,7 +32,6 @@ type StoreOptions struct {
 	bundleDir       string
 	manifestVersion oras.PackManifestVersion
 	auth            credentialFunc
-	roundTripper    http.RoundTripper
 }
 
 // WithCredentials configures username and password credentials used for authenticating
@@ -66,9 +64,7 @@ func WithStaticCredentials(user, pass string) containers.Option[StoreOptions] {
 // with remote registries
 func WithAWSECRCredentials() containers.Option[StoreOptions] {
 	return func(so *StoreOptions) {
-		svc := &ecr.ECR{}
-		so.auth = svc.CredentialFunc
-		so.roundTripper = ecr.RoundTripperFunc(http.DefaultTransport.RoundTrip)
+		so.auth = ecr.CredentialFunc
 	}
 }
 

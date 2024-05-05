@@ -4,8 +4,8 @@ package ecr
 
 import (
 	context "context"
+	time "time"
 
-	ecr "github.com/aws/aws-sdk-go-v2/service/ecr"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,41 +14,39 @@ type MockClient struct {
 	mock.Mock
 }
 
-// GetAuthorizationToken provides a mock function with given fields: ctx, params, optFns
-func (_m *MockClient) GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
-	_va := make([]interface{}, len(optFns))
-	for _i := range optFns {
-		_va[_i] = optFns[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, params)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// GetAuthorizationToken provides a mock function with given fields: ctx
+func (_m *MockClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
+	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAuthorizationToken")
 	}
 
-	var r0 *ecr.GetAuthorizationTokenOutput
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *ecr.GetAuthorizationTokenInput, ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)); ok {
-		return rf(ctx, params, optFns...)
+	var r0 string
+	var r1 time.Time
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, time.Time, error)); ok {
+		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *ecr.GetAuthorizationTokenInput, ...func(*ecr.Options)) *ecr.GetAuthorizationTokenOutput); ok {
-		r0 = rf(ctx, params, optFns...)
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ecr.GetAuthorizationTokenOutput)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *ecr.GetAuthorizationTokenInput, ...func(*ecr.Options)) error); ok {
-		r1 = rf(ctx, params, optFns...)
+	if rf, ok := ret.Get(1).(func(context.Context) time.Time); ok {
+		r1 = rf(ctx)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(time.Time)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
+		r2 = rf(ctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // NewMockClient creates a new instance of MockClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
