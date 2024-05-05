@@ -81,7 +81,7 @@ func Dir() (string, error) {
 	return filepath.Join(configDir, "flipt"), nil
 }
 
-func Load(path string) (*Result, error) {
+func Load(ctx context.Context, path string) (*Result, error) {
 	v := viper.New()
 	v.SetEnvPrefix(EnvPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -93,7 +93,7 @@ func Load(path string) (*Result, error) {
 		cfg = Default()
 	} else {
 		cfg = &Config{}
-		file, err := getConfigFile(context.Background(), path)
+		file, err := getConfigFile(ctx, path)
 		if err != nil {
 			return nil, err
 		}

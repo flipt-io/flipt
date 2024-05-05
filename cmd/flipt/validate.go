@@ -60,7 +60,8 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
-	logger, _, err := buildConfig()
+	ctx := cmd.Context()
+	logger, _, err := buildConfig(ctx)
 	if err != nil {
 		return err
 	}

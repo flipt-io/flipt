@@ -84,6 +84,7 @@ func newExportCommand() *cobra.Command {
 
 func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	var (
+		ctx = cmd.Context()
 		// default to stdout
 		out io.Writer = os.Stdout
 		enc           = ext.EncodingYML
@@ -114,11 +115,11 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		return c.export(cmd.Context(), enc, out, client)
+		return c.export(ctx, enc, out, client)
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
-	logger, cfg, err := buildConfig()
+	logger, cfg, err := buildConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -134,7 +135,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 	defer cleanup()
 
-	return c.export(cmd.Context(), enc, out, server)
+	return c.export(ctx, enc, out, server)
 }
 
 func (c *exportCommand) export(ctx context.Context, enc ext.Encoding, dst io.Writer, lister ext.Lister) error {
