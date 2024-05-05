@@ -136,18 +136,6 @@ func (c *CloudConfig) validate() error {
 		if c.Port == 0 {
 			return errFieldRequired("server.cloud.port")
 		}
-
-		if c.Organization == "" {
-			return errFieldRequired("server.cloud.organization")
-		}
-
-		if c.Instance == "" {
-			return errFieldRequired("server.cloud.instance")
-		}
-
-		if c.Authentication.ApiKey == "" {
-			return errFieldRequired("server.cloud.authentication.api_key")
-		}
 	}
 
 	return nil
