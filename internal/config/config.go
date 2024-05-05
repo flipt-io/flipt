@@ -208,7 +208,7 @@ func Load(ctx context.Context, path string) (*Result, error) {
 	return result, nil
 }
 
-// getConfigFile provides a file from different type of storage.
+// getConfigFile provides a file from different types of storage.
 func getConfigFile(ctx context.Context, path string) (fs.File, error) {
 	u, err := url.Parse(path)
 	if err != nil {
