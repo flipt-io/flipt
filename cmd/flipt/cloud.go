@@ -208,8 +208,6 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	parsed, err := jwt.Parse(auth.Token, k.Keyfunc, jwt.WithExpirationRequired())
 	if err != nil {
-		// TODO: handle case where token is expired
-		// Error: parsing JWT: token has invalid claims: token is expired
 		return fmt.Errorf("parsing JWT: %w", err)
 	}
 
