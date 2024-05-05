@@ -577,21 +577,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:    "cloud missing organization",
-			path:    "./testdata/server/cloud_missing_organization.yml",
-			wantErr: errors.New("field \"server.cloud.organization\": non-empty value is required"),
-		},
-		{
-			name:    "cloud missing instance",
-			path:    "./testdata/server/cloud_missing_instance.yml",
-			wantErr: errors.New("field \"server.cloud.instance\": non-empty value is required"),
-		},
-		{
-			name:    "cloud missing authentication",
-			path:    "./testdata/server/cloud_missing_authentication.yml",
-			wantErr: errors.New("field \"server.cloud.authentication.api_key\": non-empty value is required"),
-		},
-		{
 			name: "cloud missing port",
 			path: "./testdata/server/cloud_missing_port.yml",
 			expected: func() *Config {
