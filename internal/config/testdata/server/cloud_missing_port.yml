@@ -3,6 +3,3 @@ server:
     authentication:
       api_key: foo
     enabled: true
-    address: "flipt.cloud"
-    organization: foo
-    instance: bar

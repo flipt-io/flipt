@@ -149,6 +149,13 @@ func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
 
 	for _, info := range c.Methods.AllMethods() {
+		if info.Method == auth.Method_METHOD_JWT {
+			// skip validation for JWT as it does not require a database connection
+			// and is only session compatible if using the cloud method and we set
+			// the domain ourselves.
+			continue
+		}
+
 		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
 		if info.Cleanup == nil {
 			continue
@@ -242,6 +249,7 @@ type AuthenticationMethods struct {
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
 	JWT        AuthenticationMethod[AuthenticationMethodJWTConfig]        `json:"jwt,omitempty" mapstructure:"jwt" yaml:"jwt,omitempty"`
+	Cloud      AuthenticationMethod[AuthenticationMethodCloudConfig]      `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -252,6 +260,7 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 		a.OIDC.info(),
 		a.Kubernetes.info(),
 		a.JWT.info(),
+		a.Cloud.info(),
 	}
 }
 
@@ -361,6 +370,22 @@ func (a *AuthenticationMethod[C]) validate() error {
 
 	return a.Method.validate()
 }
+
+type AuthenticationMethodCloudConfig struct {
+}
+
+func (a AuthenticationMethodCloudConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "cloud".
+func (a AuthenticationMethodCloudConfig) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_JWT,
+		SessionCompatible: true,
+		RequiresDatabase:  false,
+	}
+}
+
+func (a AuthenticationMethodCloudConfig) validate() error { return nil }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".

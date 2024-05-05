@@ -14,17 +14,17 @@ var _ defaulter = (*ServerConfig)(nil)
 // ServerConfig contains fields, which configure both HTTP and gRPC
 // API serving.
 type ServerConfig struct {
-	Host                      string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Protocol                  Scheme        `json:"protocol,omitempty" mapstructure:"protocol" yaml:"protocol,omitempty"`
-	HTTPPort                  int           `json:"httpPort,omitempty" mapstructure:"http_port" yaml:"http_port,omitempty"`
-	HTTPSPort                 int           `json:"httpsPort,omitempty" mapstructure:"https_port" yaml:"https_port,omitempty"`
-	GRPCPort                  int           `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
-	CertFile                  string        `json:"-" mapstructure:"cert_file" yaml:"-"`
-	CertKey                   string        `json:"-" mapstructure:"cert_key" yaml:"-"`
-	GRPCConnectionMaxIdleTime time.Duration `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
-	GRPCConnectionMaxAge      time.Duration `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
-	GRPCConnectionMaxAgeGrace time.Duration `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
-	Cloud                     CloudConfig   `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+	Host                      string            `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Protocol                  Scheme            `json:"protocol,omitempty" mapstructure:"protocol" yaml:"protocol,omitempty"`
+	HTTPPort                  int               `json:"httpPort,omitempty" mapstructure:"http_port" yaml:"http_port,omitempty"`
+	HTTPSPort                 int               `json:"httpsPort,omitempty" mapstructure:"https_port" yaml:"https_port,omitempty"`
+	GRPCPort                  int               `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
+	CertFile                  string            `json:"-" mapstructure:"cert_file" yaml:"-"`
+	CertKey                   string            `json:"-" mapstructure:"cert_key" yaml:"-"`
+	GRPCConnectionMaxIdleTime time.Duration     `json:"-" mapstructure:"grpc_conn_max_idle_time" yaml:"-"`
+	GRPCConnectionMaxAge      time.Duration     `json:"-" mapstructure:"grpc_conn_max_age" yaml:"-"`
+	GRPCConnectionMaxAgeGrace time.Duration     `json:"-" mapstructure:"grpc_conn_max_age_grace" yaml:"-"`
+	Cloud                     CloudServerConfig `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {
@@ -95,20 +95,17 @@ var (
 	}
 )
 
-type CloudConfig struct {
-	Enabled        bool                      `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
-	Authentication CloudAuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
-	Address        string                    `json:"address,omitempty" mapstructure:"address" yaml:"address,omitempty"`
-	Port           int                       `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
-	Organization   string                    `json:"organization,omitempty" mapstructure:"organization" yaml:"organization,omitempty"`
-	Instance       string                    `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
+type CloudServerConfig struct {
+	Enabled        bool                            `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
+	Authentication CloudServerAuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Port           int                             `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
 }
 
-type CloudAuthenticationConfig struct {
+type CloudServerAuthenticationConfig struct {
 	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
 }
 
-func (c *CloudAuthenticationConfig) validate() error {
+func (c *CloudServerAuthenticationConfig) validate() error {
 	if c.ApiKey == "" {
 		return errFieldRequired("server.cloud.authentication.api_key")
 	}
@@ -116,23 +113,18 @@ func (c *CloudAuthenticationConfig) validate() error {
 	return nil
 }
 
-func (c *CloudConfig) setDefaults(v *viper.Viper) error {
+func (c *CloudServerConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("server.cloud", map[string]any{
 		"enabled": false,
-		"address": "flipt.cloud",
 		"port":    8443,
 	})
 
 	return nil
 }
 
-func (c *CloudConfig) validate() error {
+func (c *CloudServerConfig) validate() error {
 	// validate configuration is as expected
 	if c.Enabled {
-		if c.Address == "" {
-			return errFieldRequired("server.cloud.address")
-		}
-
 		if c.Port == 0 {
 			return errFieldRequired("server.cloud.port")
 		}

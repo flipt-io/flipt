@@ -7,6 +7,8 @@ ui:
 analytics:
   buffer:
     flush_period: "10s"
+cloud:
+  host: "flipt.cloud"
 cors:
   enabled: false
   allowed_origins:
@@ -26,7 +28,6 @@ server:
   grpc_port: 9000
   cloud:
     enabled: false
-    address: "flipt.cloud"
     port: 8443
 metrics:
   enabled: true
