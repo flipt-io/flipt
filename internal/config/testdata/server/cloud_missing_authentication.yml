@@ -1,7 +1,0 @@
-server:
-  cloud:
-    enabled: true
-    address: "https://flipt.cloud"
-    port: 8443
-    organization: foo
-    instance: bar
