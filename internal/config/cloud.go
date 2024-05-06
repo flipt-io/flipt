@@ -17,14 +17,6 @@ type CloudAuthenticationConfig struct {
 	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
 }
 
-func (c *CloudAuthenticationConfig) validate() error {
-	if c.ApiKey == "" {
-		return errFieldRequired("cloud.authentication.api_key")
-	}
-
-	return nil
-}
-
 //nolint:golint,unparam
 func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cloud", map[string]any{
