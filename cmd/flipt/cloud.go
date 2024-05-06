@@ -228,7 +228,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 			}
 
 			if ok {
-				logger, cfg, err := buildConfig()
+				logger, cfg, err := buildConfig(ctx)
 				if err != nil {
 					return err
 				}
@@ -311,7 +311,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("writing cloud auth token: %w", err)
 	}
 
-	logger, cfg, err := buildConfig()
+	logger, cfg, err := buildConfig(ctx)
 	if err != nil {
 		return err
 	}
