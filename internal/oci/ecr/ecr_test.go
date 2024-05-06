@@ -83,81 +83,98 @@ func TestCredential(t *testing.T) {
 	})
 }
 
-func TestPrivateEcrClient(t *testing.T) {
+func TestPrivateClient(t *testing.T) {
 	t.Run("on error", func(t *testing.T) {
-		m := NewMockECRClient(t)
+		m := NewMockPrivateClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(nil, errors.ErrUnsupported)
-		client := ecrPrivateClient{client: m}
+		client := privateClient{client: m}
 		_, _, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, errors.ErrUnsupported)
 	})
 	t.Run("empty auth", func(t *testing.T) {
-		m := NewMockECRClient(t)
+		m := NewMockPrivateClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(&ecr.GetAuthorizationTokenOutput{
 			AuthorizationData: []types.AuthorizationData{},
 		}, nil)
-		client := ecrPrivateClient{client: m}
+		client := privateClient{client: m}
 		_, _, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, ErrNoAWSECRAuthorizationData)
 	})
 	t.Run("nil auth token", func(t *testing.T) {
-		m := NewMockECRClient(t)
+		m := NewMockPrivateClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(&ecr.GetAuthorizationTokenOutput{
 			AuthorizationData: []types.AuthorizationData{
 				{AuthorizationToken: nil},
 			},
 		}, nil)
-		client := ecrPrivateClient{client: m}
+		client := privateClient{client: m}
 		_, _, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, auth.ErrBasicCredentialNotFound)
 	})
 	t.Run("get auth token", func(t *testing.T) {
 		wantExpiresAt := time.Now()
 		wantToken := "some:token"
-		m := NewMockECRClient(t)
+		m := NewMockPrivateClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(&ecr.GetAuthorizationTokenOutput{
 			AuthorizationData: []types.AuthorizationData{
 				{AuthorizationToken: &wantToken, ExpiresAt: &wantExpiresAt},
 			},
 		}, nil)
-		client := ecrPrivateClient{client: m}
+		client := privateClient{client: m}
 		token, expiresAt, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, nil)
 		require.Equal(t, wantToken, token)
 		require.Equal(t, wantExpiresAt, expiresAt)
 	})
+	t.Run("default client", func(t *testing.T) {
+		client := privateClient{}
+		_, _, err := client.GetAuthorizationToken(context.Background())
+		require.Error(t, err)
+	})
 }
 
-func TestPublicEcrClient(t *testing.T) {
+func TestPublicClient(t *testing.T) {
 	t.Run("on error", func(t *testing.T) {
-		m := NewMockECRPublicClient(t)
+		m := NewMockPublicClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(nil, errors.ErrUnsupported)
-		client := ecrPublicClient{client: m}
+		client := publicClient{client: m}
 		_, _, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, errors.ErrUnsupported)
 	})
 	t.Run("nil auth token", func(t *testing.T) {
-		m := NewMockECRPublicClient(t)
+		m := NewMockPublicClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(&ecrpublic.GetAuthorizationTokenOutput{
 			AuthorizationData: &ptypes.AuthorizationData{AuthorizationToken: nil},
 		}, nil)
-		client := ecrPublicClient{client: m}
+		client := publicClient{client: m}
 		_, _, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, auth.ErrBasicCredentialNotFound)
 	})
 	t.Run("get auth token", func(t *testing.T) {
 		wantExpiresAt := time.Now()
 		wantToken := "some:token"
-		m := NewMockECRPublicClient(t)
+		m := NewMockPublicClient(t)
 		m.On("GetAuthorizationToken", mock.Anything, mock.Anything).Return(&ecrpublic.GetAuthorizationTokenOutput{
 			AuthorizationData: &ptypes.AuthorizationData{
 				AuthorizationToken: &wantToken, ExpiresAt: &wantExpiresAt,
 			},
 		}, nil)
-		client := ecrPublicClient{client: m}
+		client := publicClient{client: m}
 		token, expiresAt, err := client.GetAuthorizationToken(context.Background())
 		require.ErrorIs(t, err, nil)
 		require.Equal(t, wantToken, token)
 		require.Equal(t, wantExpiresAt, expiresAt)
 	})
+	t.Run("default client", func(t *testing.T) {
+		client := publicClient{}
+		_, _, err := client.GetAuthorizationToken(context.Background())
+		require.Error(t, err)
+	})
+}
+
+func TestCredentialFunc(t *testing.T) {
+	require.NotNil(t, CredentialFunc("aws_account_id.dkr.ecr.region.amazonaws.com/team-a/app"))
+	require.NotNil(t, CredentialFunc("public.ecr.aws/team-a/app"))
+	require.IsType(t, &privateClient{}, new("aws_account_id.dkr.ecr.region.amazonaws.com/team-a/app").client)
+	require.IsType(t, &publicClient{}, new("public.ecr.aws/team-a/app").client)
 }

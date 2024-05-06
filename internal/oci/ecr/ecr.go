@@ -16,10 +16,10 @@ import (
 
 var ErrNoAWSECRAuthorizationData = errors.New("no ecr authorization data provided")
 
-type ECRClient interface {
+type PrivateClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
-type ECRPublicClient interface {
+type PublicClient interface {
 	GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
 }
 
@@ -27,11 +27,11 @@ type Client interface {
 	GetAuthorizationToken(ctx context.Context) (string, time.Time, error)
 }
 
-type ecrPublicClient struct {
-	client ECRPublicClient
+type publicClient struct {
+	client PublicClient
 }
 
-func (r *ecrPublicClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
+func (r *publicClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
 	client := r.client
 	if client == nil {
 		cfg, err := config.LoadDefaultConfig(context.Background())
@@ -54,11 +54,11 @@ func (r *ecrPublicClient) GetAuthorizationToken(ctx context.Context) (string, ti
 	return *authData.AuthorizationToken, *authData.ExpiresAt, nil
 }
 
-type ecrPrivateClient struct {
-	client ECRClient
+type privateClient struct {
+	client PrivateClient
 }
 
-func (r *ecrPrivateClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
+func (r *privateClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
 	client := r.client
 	if client == nil {
 		cfg, err := config.LoadDefaultConfig(ctx)
@@ -83,14 +83,18 @@ func (r *ecrPrivateClient) GetAuthorizationToken(ctx context.Context) (string, t
 }
 
 func CredentialFunc(registry string) auth.CredentialFunc {
+	return new(registry).Credential
+}
+
+func new(registry string) *svc {
 	r := &svc{}
 	switch {
 	case strings.HasPrefix(registry, "public.ecr.aws"):
-		r.client = &ecrPublicClient{}
+		r.client = &publicClient{}
 	default:
-		r.client = &ecrPrivateClient{}
+		r.client = &privateClient{}
 	}
-	return r.Credential
+	return r
 }
 
 type svc struct {
@@ -103,7 +107,7 @@ type svc struct {
 func (r *svc) Credential(ctx context.Context, hostport string) (auth.Credential, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if time.Until(r.expiresAt) > 0 {
+	if time.Now().UTC().Before(r.expiresAt) {
 		return r.cachedCredential, nil
 	}
 	token, expiresAt, err := r.client.GetAuthorizationToken(ctx)
