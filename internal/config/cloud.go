@@ -12,6 +12,7 @@ type CloudConfig struct {
 	Instance     string `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
 }
 
+//nolint:golint,unparam
 func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cloud", map[string]any{
 		"host": "flipt.cloud",
@@ -20,6 +21,7 @@ func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 	return nil
 }
 
+//nolint:golint,unparam
 func (c *CloudConfig) validate() error {
 	// strip trailing slash if present
 	c.Host = strings.TrimSuffix(c.Host, "/")

@@ -96,7 +96,7 @@ func (c AuthenticationConfig) IsZero() bool {
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	for _, info := range c.Methods.AllMethods() {
-		shouldCleanup = shouldCleanup || (info.Enabled && info.RequiresDatabase && info.Cleanup != nil)
+		shouldCleanup = shouldCleanup || (info.RequiresCleanup())
 	}
 
 	return
@@ -149,10 +149,7 @@ func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
 
 	for _, info := range c.Methods.AllMethods() {
-		if info.Method == auth.Method_METHOD_JWT {
-			// skip validation for JWT as it does not require a database connection
-			// and is only session compatible if using the cloud method and we set
-			// the domain ourselves.
+		if !info.RequiresCleanup() {
 			continue
 		}
 
@@ -306,6 +303,11 @@ func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c Authenticatio
 	s.setCleanup(c)
 }
 
+// RequiresCleanup returns true if the method is enabled and requires cleanup.
+func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
+	return s.Enabled && s.RequiresDatabase && s.Cleanup != nil
+}
+
 // AuthenticationMethodInfo is a structure which describes properties
 // of a particular authentication method.
 // i.e. the name and whether or not the method is session compatible.
@@ -371,15 +373,14 @@ func (a *AuthenticationMethod[C]) validate() error {
 	return a.Method.validate()
 }
 
-type AuthenticationMethodCloudConfig struct {
-}
+type AuthenticationMethodCloudConfig struct{}
 
 func (a AuthenticationMethodCloudConfig) setDefaults(map[string]any) {}
 
 // info describes properties of the authentication method "cloud".
 func (a AuthenticationMethodCloudConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
-		Method:            auth.Method_METHOD_JWT,
+		Method:            auth.Method_METHOD_CLOUD,
 		SessionCompatible: true,
 		RequiresDatabase:  false,
 	}
