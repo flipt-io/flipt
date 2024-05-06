@@ -62,6 +62,7 @@ func newImportCommand() *cobra.Command {
 
 func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	var (
+		ctx           = cmd.Context()
 		in  io.Reader = os.Stdin
 		enc           = ext.EncodingYML
 	)
@@ -99,10 +100,10 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		return ext.NewImporter(client).Import(cmd.Context(), enc, in)
+		return ext.NewImporter(client).Import(ctx, enc, in)
 	}
 
-	logger, cfg, err := buildConfig()
+	logger, cfg, err := buildConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -151,5 +152,5 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	return ext.NewImporter(
 		server,
-	).Import(cmd.Context(), enc, in)
+	).Import(ctx, enc, in)
 }

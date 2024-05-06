@@ -1126,7 +1126,7 @@ func TestLoad(t *testing.T) {
 				os.Setenv(key, value)
 			}
 
-			res, err := Load(path)
+			res, err := Load(context.Background(), path)
 
 			if wantErr != nil {
 				t.Log(err)
@@ -1174,7 +1174,7 @@ func TestLoad(t *testing.T) {
 			}
 
 			// load default (empty) config
-			res, err := Load("./testdata/default.yml")
+			res, err := Load(context.Background(), "./testdata/default.yml")
 
 			if wantErr != nil {
 				t.Log(err)

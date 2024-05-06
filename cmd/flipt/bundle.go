@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -54,7 +55,8 @@ func newBundleCommand() *cobra.Command {
 }
 
 func (c *bundleCommand) build(cmd *cobra.Command, args []string) error {
-	store, err := c.getStore()
+	ctx := cmd.Context()
+	store, err := c.getStore(ctx)
 	if err != nil {
 		return err
 	}
@@ -75,7 +77,8 @@ func (c *bundleCommand) build(cmd *cobra.Command, args []string) error {
 }
 
 func (c *bundleCommand) list(cmd *cobra.Command, args []string) error {
-	store, err := c.getStore()
+	ctx := cmd.Context()
+	store, err := c.getStore(ctx)
 	if err != nil {
 		return err
 	}
@@ -96,7 +99,8 @@ func (c *bundleCommand) list(cmd *cobra.Command, args []string) error {
 }
 
 func (c *bundleCommand) push(cmd *cobra.Command, args []string) error {
-	store, err := c.getStore()
+	ctx := cmd.Context()
+	store, err := c.getStore(ctx)
 	if err != nil {
 		return err
 	}
@@ -122,7 +126,8 @@ func (c *bundleCommand) push(cmd *cobra.Command, args []string) error {
 }
 
 func (c *bundleCommand) pull(cmd *cobra.Command, args []string) error {
-	store, err := c.getStore()
+	ctx := cmd.Context()
+	store, err := c.getStore(ctx)
 	if err != nil {
 		return err
 	}
@@ -148,8 +153,8 @@ func (c *bundleCommand) pull(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (c *bundleCommand) getStore() (*oci.Store, error) {
-	logger, cfg, err := buildConfig()
+func (c *bundleCommand) getStore(ctx context.Context) (*oci.Store, error) {
+	logger, cfg, err := buildConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
