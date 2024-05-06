@@ -19,7 +19,7 @@ type Sink struct {
 // NewSink is the constructor for a Sink.
 func NewSink(logger *zap.Logger, webhookClient Client) audit.Sink {
 	return &Sink{
-		logger:        logger,
+		logger:        logger.With(zap.String("sink", sinkType)),
 		webhookClient: webhookClient,
 	}
 }

@@ -580,7 +580,6 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Server.Cloud.Enabled = true
-				cfg.Server.Cloud.Authentication.ApiKey = "foo"
 				cfg.Server.Cloud.Port = 8443
 				return cfg
 			},

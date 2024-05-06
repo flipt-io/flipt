@@ -387,8 +387,8 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 			)
 
 			// prefer API key over local token
-			if cfg.Server.Cloud.Authentication.ApiKey != "" {
-				authenticator = client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey)
+			if cfg.Cloud.Authentication.ApiKey != "" {
+				authenticator = client.BearerAuthenticator(cfg.Cloud.Authentication.ApiKey)
 
 				if cfg.Cloud.Organization == "" || cfg.Cloud.Instance == "" {
 					return errors.New("missing cloud.organization or cloud.instance")
