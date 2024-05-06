@@ -96,7 +96,7 @@ func (c AuthenticationConfig) IsZero() bool {
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	for _, info := range c.Methods.AllMethods() {
-		shouldCleanup = shouldCleanup || (info.RequiresCleanup())
+		shouldCleanup = shouldCleanup || info.RequiresCleanup()
 	}
 
 	return

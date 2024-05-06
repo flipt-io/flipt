@@ -447,9 +447,21 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Authentication.Methods.Token.Method.Bootstrap = AuthenticationMethodTokenBootstrapConfig{
-					Token:      "s3cr3t!",
-					Expiration: 24 * time.Hour,
+				cfg.Authentication.Methods.Token.Enabled = true
+				cfg.Authentication.Methods = AuthenticationMethods{
+					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodTokenConfig{
+							Bootstrap: AuthenticationMethodTokenBootstrapConfig{
+								Token:      "s3cr3t!",
+								Expiration: 24 * time.Hour,
+							},
+						},
+						Cleanup: &AuthenticationCleanupSchedule{
+							Interval:    time.Hour,
+							GracePeriod: 30 * time.Minute,
+						},
+					},
 				}
 				return cfg
 			},
