@@ -2,8 +2,6 @@ module go.flipt.io/flipt/sdk/go
 
 go 1.22
 
-toolchain go1.22.2
-
 require (
 	go.flipt.io/flipt/rpc/flipt v1.38.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240325203815-454cdb8f5daa
