@@ -67,7 +67,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
 	}).
-		From("golang:1.21-alpine3.18").
+		From("golang:1.22-alpine3.19").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -179,7 +179,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 // into a thinner alpine distribution.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container, req FliptRequest) (*dagger.Container, error) {
 	// build container with just Flipt + config
-	return client.Container().From("alpine:3.18").
+	return client.Container().From("alpine:3.19").
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
