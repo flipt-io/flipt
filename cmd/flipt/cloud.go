@@ -233,10 +233,11 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 					return err
 				}
 
+				cfg.Cloud.Host = u.Host
+				cfg.Cloud.Instance = auth.Instance.Instance
+				cfg.Cloud.Organization = auth.Instance.Organization
 				cfg.Server.Cloud.Enabled = true
-				cfg.Server.Cloud.Address = u.Host
-				cfg.Server.Cloud.Instance = auth.Instance.Instance
-				cfg.Server.Cloud.Organization = auth.Instance.Organization
+				cfg.Authentication.Session.Domain = u.Host
 
 				fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
 				return run(ctx, logger, cfg)
@@ -315,10 +316,11 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	cfg.Cloud.Host = u.Host
+	cfg.Cloud.Instance = instance.Instance
+	cfg.Cloud.Organization = instance.Organization
 	cfg.Server.Cloud.Enabled = true
-	cfg.Server.Cloud.Address = u.Host
-	cfg.Server.Cloud.Instance = instance.Instance
-	cfg.Server.Cloud.Organization = instance.Organization
+	cfg.Authentication.Session.Domain = u.Host
 
 	fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
 	return run(ctx, logger, cfg)

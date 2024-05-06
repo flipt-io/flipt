@@ -96,7 +96,7 @@ func (c AuthenticationConfig) IsZero() bool {
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	for _, info := range c.Methods.AllMethods() {
-		shouldCleanup = shouldCleanup || (info.Enabled && info.RequiresDatabase && info.Cleanup != nil)
+		shouldCleanup = shouldCleanup || info.RequiresCleanup()
 	}
 
 	return
@@ -149,6 +149,10 @@ func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
 
 	for _, info := range c.Methods.AllMethods() {
+		if !info.RequiresCleanup() {
+			continue
+		}
+
 		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
 		if info.Cleanup == nil {
 			continue
@@ -242,6 +246,7 @@ type AuthenticationMethods struct {
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
 	JWT        AuthenticationMethod[AuthenticationMethodJWTConfig]        `json:"jwt,omitempty" mapstructure:"jwt" yaml:"jwt,omitempty"`
+	Cloud      AuthenticationMethod[AuthenticationMethodCloudConfig]      `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -252,6 +257,7 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 		a.OIDC.info(),
 		a.Kubernetes.info(),
 		a.JWT.info(),
+		a.Cloud.info(),
 	}
 }
 
@@ -295,6 +301,11 @@ func (s StaticAuthenticationMethodInfo) Enable(t *testing.T) {
 // It is used to configure cleanup for a target method without having a concrete reference.
 func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c AuthenticationCleanupSchedule) {
 	s.setCleanup(c)
+}
+
+// RequiresCleanup returns true if the method is enabled and requires cleanup.
+func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
+	return s.Enabled && s.RequiresDatabase && s.Cleanup != nil
 }
 
 // AuthenticationMethodInfo is a structure which describes properties
@@ -361,6 +372,21 @@ func (a *AuthenticationMethod[C]) validate() error {
 
 	return a.Method.validate()
 }
+
+type AuthenticationMethodCloudConfig struct{}
+
+func (a AuthenticationMethodCloudConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "cloud".
+func (a AuthenticationMethodCloudConfig) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_CLOUD,
+		SessionCompatible: true,
+		RequiresDatabase:  false,
+	}
+}
+
+func (a AuthenticationMethodCloudConfig) validate() error { return nil }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".

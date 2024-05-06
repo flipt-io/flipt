@@ -14,6 +14,7 @@ import "strings"
 	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
+	cloud?:          #cloud
 	cors?:           #cors
 	diagnostics?:    #diagnostics
 	storage?:        #storage
@@ -50,6 +51,10 @@ import "strings"
 					token?:     string
 					expiration: =~#duration | int
 				}
+			}
+
+			cloud?: {
+				enabled?: bool | *false
 			}
 
 			oidc?: {
@@ -131,6 +136,12 @@ import "strings"
 			eviction_interval?: =~#duration | int | *"5m"
 			expiration?:        =~#duration | int | *"60s"
 		}
+	}
+
+	#cloud: {
+		host?: string | *"flipt.cloud"
+		organization?:  string
+		instance?:  string
 	}
 
 	#cors: {
@@ -271,13 +282,10 @@ import "strings"
 		grpc_conn_max_age_grace?: =~#duration
 		cloud?: {
 			enabled?: bool | *false
-			address?: string | *"flipt.cloud"
 			authentication?: {
 				api_key?: string
 			}
 			port?:    int | *8443
-			organization?:  string
-			instance?:  string
 		}
 	}
 
