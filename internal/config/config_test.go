@@ -447,9 +447,21 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Authentication.Methods.Token.Method.Bootstrap = AuthenticationMethodTokenBootstrapConfig{
-					Token:      "s3cr3t!",
-					Expiration: 24 * time.Hour,
+				cfg.Authentication.Methods.Token.Enabled = true
+				cfg.Authentication.Methods = AuthenticationMethods{
+					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodTokenConfig{
+							Bootstrap: AuthenticationMethodTokenBootstrapConfig{
+								Token:      "s3cr3t!",
+								Expiration: 24 * time.Hour,
+							},
+						},
+						Cleanup: &AuthenticationCleanupSchedule{
+							Interval:    time.Hour,
+							GracePeriod: 30 * time.Minute,
+						},
+					},
 				}
 				return cfg
 			},
@@ -563,45 +575,22 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New(`field "public_key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
 		},
 		{
-			name: "cloud missing address",
-			path: "./testdata/server/cloud_missing_address.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Server.Cloud.Enabled = true
-				cfg.Server.Cloud.Authentication.ApiKey = "foo"
-				cfg.Server.Cloud.Port = 8443
-				cfg.Server.Cloud.Address = "flipt.cloud"
-				cfg.Server.Cloud.Organization = "foo"
-				cfg.Server.Cloud.Instance = "bar"
-				return cfg
-			},
-		},
-		{
-			name:    "cloud missing organization",
-			path:    "./testdata/server/cloud_missing_organization.yml",
-			wantErr: errors.New("field \"server.cloud.organization\": non-empty value is required"),
-		},
-		{
-			name:    "cloud missing instance",
-			path:    "./testdata/server/cloud_missing_instance.yml",
-			wantErr: errors.New("field \"server.cloud.instance\": non-empty value is required"),
-		},
-		{
-			name:    "cloud missing authentication",
-			path:    "./testdata/server/cloud_missing_authentication.yml",
-			wantErr: errors.New("field \"server.cloud.authentication.api_key\": non-empty value is required"),
-		},
-		{
-			name: "cloud missing port",
+			name: "server cloud missing port",
 			path: "./testdata/server/cloud_missing_port.yml",
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Server.Cloud.Enabled = true
 				cfg.Server.Cloud.Authentication.ApiKey = "foo"
 				cfg.Server.Cloud.Port = 8443
-				cfg.Server.Cloud.Address = "flipt.cloud"
-				cfg.Server.Cloud.Organization = "foo"
-				cfg.Server.Cloud.Instance = "bar"
+				return cfg
+			},
+		},
+		{
+			name: "cloud trailing slash",
+			path: "./testdata/cloud/trim_trailing_slash.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cloud.Host = "flipt.cloud"
 				return cfg
 			},
 		},
@@ -636,17 +625,24 @@ func TestLoad(t *testing.T) {
 						Message: "msg",
 					},
 				}
+
+				cfg.Cloud = CloudConfig{
+					Host: "flipt.cloud",
+				}
+
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
 					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
 				}
+
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = 1 * time.Minute
 				cfg.Cache.Memory = MemoryCacheConfig{
 					EvictionInterval: 5 * time.Minute,
 				}
+
 				cfg.Server = ServerConfig{
 					Host:      "127.0.0.1",
 					Protocol:  HTTPS,
@@ -655,12 +651,12 @@ func TestLoad(t *testing.T) {
 					GRPCPort:  9001,
 					CertFile:  "./testdata/ssl_cert.pem",
 					CertKey:   "./testdata/ssl_key.pem",
-					Cloud: CloudConfig{
+					Cloud: CloudServerConfig{
 						Enabled: false,
-						Address: "flipt.cloud",
 						Port:    8443,
 					},
 				}
+
 				cfg.Tracing = TracingConfig{
 					Enabled:       true,
 					Exporter:      TracingOTLP,
@@ -680,6 +676,7 @@ func TestLoad(t *testing.T) {
 						Endpoint: "localhost:4318",
 					},
 				}
+
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
@@ -695,6 +692,7 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				}
+
 				cfg.Database = DatabaseConfig{
 					URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 					MaxIdleConn:               10,
@@ -702,10 +700,12 @@ func TestLoad(t *testing.T) {
 					ConnMaxLifetime:           30 * time.Minute,
 					PreparedStatementsEnabled: true,
 				}
+
 				cfg.Meta = MetaConfig{
 					CheckForUpdates:  false,
 					TelemetryEnabled: false,
 				}
+
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
 					Session: AuthenticationSession{

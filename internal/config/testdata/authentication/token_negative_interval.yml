@@ -1,5 +1,6 @@
 authentication:
   methods:
     token:
+      enabled: true
       cleanup:
         interval: -1m
