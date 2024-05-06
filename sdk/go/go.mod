@@ -1,8 +1,6 @@
 module go.flipt.io/flipt/sdk/go
 
-go 1.21
-
-toolchain go1.21.3
+go 1.22
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.38.0

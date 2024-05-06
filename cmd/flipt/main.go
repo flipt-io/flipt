@@ -103,7 +103,8 @@ func exec() error {
 			`),
 			Version: version,
 			RunE: func(cmd *cobra.Command, _ []string) error {
-				logger, cfg, err := buildConfig()
+				ctx := cmd.Context()
+				logger, cfg, err := buildConfig(ctx)
 				if err != nil {
 					return err
 				}
@@ -112,7 +113,7 @@ func exec() error {
 					_ = logger.Sync()
 				}()
 
-				return run(cmd.Context(), logger, cfg)
+				return run(ctx, logger, cfg)
 			},
 			CompletionOptions: cobra.CompletionOptions{
 				DisableDefaultCmd: true,
@@ -197,12 +198,12 @@ func determineConfig(configFile string) (string, bool) {
 	return "", false
 }
 
-func buildConfig() (*zap.Logger, *config.Config, error) {
+func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
 	path, found := determineConfig(providedConfigFile)
 
 	// read in config if it exists
 	// otherwise, use defaults
-	res, err := config.Load(path)
+	res, err := config.Load(ctx, path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("loading configuration: %w", err)
 	}
