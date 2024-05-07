@@ -80,7 +80,7 @@ func newCloudCommand() *cobra.Command {
 
 	serveCmd := &cobra.Command{
 		Use:   "serve [flags]",
-		Short: "Serve Flipt Cloud locally",
+		Short: "Serve your local instance via Flipt Cloud",
 		RunE:  cloud.serve,
 		Args:  cobra.NoArgs,
 	}
