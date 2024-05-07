@@ -2,10 +2,7 @@ package ecr
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -88,83 +85,4 @@ func (r *privateClient) GetAuthorizationToken(ctx context.Context) (string, time
 		return "", time.Time{}, auth.ErrBasicCredentialNotFound
 	}
 	return *authData.AuthorizationToken, *authData.ExpiresAt, nil
-}
-
-func CredentialFunc(registry string) auth.CredentialFunc {
-	return defaultVault.CredentialFunc(registry)
-}
-
-var defaultVault = &vault{
-	cache: map[string]*svc{},
-}
-
-type vault struct {
-	mu    sync.Mutex
-	cache map[string]*svc
-}
-
-func (v *vault) CredentialFunc(registry string) auth.CredentialFunc {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-
-	if c, ok := v.cache[registry]; ok {
-		return c.Credential
-	}
-	c := new(registry)
-	v.cache[registry] = c
-	return c.Credential
-}
-
-func new(registry string) *svc {
-	r := &svc{}
-	switch {
-	case strings.HasPrefix(registry, "public.ecr.aws"):
-		r.client = &publicClient{}
-	default:
-		r.client = &privateClient{}
-	}
-	return r
-}
-
-type svc struct {
-	mu               sync.Mutex
-	expiresAt        time.Time
-	cachedCredential auth.Credential
-	client           Client
-}
-
-func (r *svc) Credential(ctx context.Context, hostport string) (auth.Credential, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if time.Now().UTC().Before(r.expiresAt) {
-		return r.cachedCredential, nil
-	}
-	token, expiresAt, err := r.client.GetAuthorizationToken(ctx)
-	if err != nil {
-		return auth.EmptyCredential, err
-	}
-	credential, err := r.extractCredential(token)
-	if err != nil {
-		return auth.EmptyCredential, err
-	}
-	r.cachedCredential = credential
-	r.expiresAt = expiresAt
-	return credential, nil
-}
-
-func (r *svc) extractCredential(token string) (auth.Credential, error) {
-	output, err := base64.StdEncoding.DecodeString(token)
-	if err != nil {
-		return auth.EmptyCredential, err
-	}
-
-	userpass := strings.SplitN(string(output), ":", 2)
-	if len(userpass) != 2 {
-		return auth.EmptyCredential, auth.ErrBasicCredentialNotFound
-	}
-
-	return auth.Credential{
-		Username: userpass[0],
-		Password: userpass[1],
-	}, nil
 }

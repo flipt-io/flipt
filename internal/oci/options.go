@@ -7,6 +7,7 @@ import (
 	"go.flipt.io/flipt/internal/oci/ecr"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 type AuthenticationType string
@@ -65,8 +66,11 @@ func WithStaticCredentials(user, pass string) containers.Option[StoreOptions] {
 // WithAWSECRCredentials configures username and password credentials used for authenticating
 // with remote registries
 func WithAWSECRCredentials() containers.Option[StoreOptions] {
+	fn := credentials.Credential(ecr.NewCredentialsStore())
 	return func(so *StoreOptions) {
-		so.auth = ecr.CredentialFunc
+		so.auth = func(registry string) auth.CredentialFunc {
+			return fn
+		}
 	}
 }
 
