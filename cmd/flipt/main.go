@@ -439,7 +439,9 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 			logger.Info("cloud tunnel established", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
 
-			if err := tunnelServer.DialAndServe(ctx, addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			if err := tunnelServer.DialAndServe(ctx, addr); err != nil &&
+				!errors.Is(err, http.ErrServerClosed) &&
+				!errors.Is(err, context.Canceled) {
 				return fmt.Errorf("creating cloud tunnel server: %w", err)
 			}
 
