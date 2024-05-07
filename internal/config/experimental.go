@@ -1,6 +1,8 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
 // ExperimentalConfig allows for experimental features to be enabled
 // and disabled.
