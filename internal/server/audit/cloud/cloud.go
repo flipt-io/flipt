@@ -21,8 +21,7 @@ type Sink struct {
 
 // NewSink is the constructor for a Sink.
 func NewSink(logger *zap.Logger, apiKey string, url string) (audit.Sink, error) {
-	const body = `
-	{
+	const body = `{
 		"type": "{{ .Type }}",
 		"action": "{{ .Action }}",
 		"actor": {{ toJson .Metadata.Actor }},
