@@ -35,7 +35,7 @@ type cloudInstance struct {
 	Instance     string `json:"instance"`
 	Organization string `json:"organization"`
 	Status       string `json:"status"`
-	ExpiresAt    int64  `json:"expiresAt"`
+	ExpiresAt    int64  `json:"expiresAt,omitempty"`
 }
 
 type cloudError struct {
@@ -218,32 +218,28 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 	fmt.Println("✓ Validated Flipt Cloud authentication.")
 
 	if auth.Instance != nil {
-		// check if instance has not expired
-		if time.Now().Unix() <= auth.Instance.ExpiresAt {
-			fmt.Println("✓ Found existing linked Flipt Cloud instance.")
-			// prompt user to see if they want to use existing instance
-			ok, err := util.PromptConfirm("Use existing instance?", false)
-			if err != nil {
-				return err
-			}
+		// check if instance actually exists
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/api/instances/%s/status", c.url, auth.Instance.ID), nil)
 
-			if ok {
-				logger, cfg, err := buildConfig(ctx)
-				if err != nil {
-					return err
-				}
+		if err != nil {
+			return fmt.Errorf("creating request: %w", err)
+		}
 
-				cfg.Cloud.Host = u.Hostname()
-				cfg.Cloud.Instance = auth.Instance.Instance
-				cfg.Cloud.Organization = auth.Instance.Organization
-				cfg.Server.Cloud.Enabled = true
-				cfg.Authentication.Session.Domain = u.Host
+		req.Header.Set("Authorization", fmt.Sprintf("JWT %s", auth.Token))
+		req.Header.Set("Accept", "application/json")
 
-				fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-				return run(ctx, logger, cfg)
-			}
-		} else {
-			fmt.Println("Existing linked Flipt Cloud instance has expired.")
+		client := &http.Client{
+			Timeout: 30 * time.Second,
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("making request: %w", err)
+		}
+
+		switch resp.StatusCode {
+		case http.StatusNotFound:
+			fmt.Println("Existing linked Flipt Cloud instance not found.")
 			ok, err := util.PromptConfirm("Continue with new instance?", false)
 			if err != nil {
 				return err
@@ -252,6 +248,45 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 			if !ok {
 				return nil
 			}
+
+		case http.StatusOK:
+			// check if instance has not expired
+			if time.Now().Unix() <= auth.Instance.ExpiresAt {
+				fmt.Println("✓ Found existing linked Flipt Cloud instance.")
+				// prompt user to see if they want to use existing instance
+				ok, err := util.PromptConfirm("Use existing instance?", false)
+				if err != nil {
+					return err
+				}
+
+				if ok {
+					logger, cfg, err := buildConfig(ctx)
+					if err != nil {
+						return err
+					}
+
+					cfg.Cloud.Host = u.Hostname()
+					cfg.Cloud.Instance = auth.Instance.Instance
+					cfg.Cloud.Organization = auth.Instance.Organization
+					cfg.Server.Cloud.Enabled = true
+					cfg.Authentication.Session.Domain = u.Host
+
+					fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
+					return run(ctx, logger, cfg)
+				}
+			} else {
+				fmt.Println("Existing linked Flipt Cloud instance has expired.")
+				ok, err := util.PromptConfirm("Continue with new instance?", false)
+				if err != nil {
+					return err
+				}
+
+				if !ok {
+					return nil
+				}
+			}
+		default:
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		}
 	}
 
