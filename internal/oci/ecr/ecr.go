@@ -16,14 +16,22 @@ import (
 
 var ErrNoAWSECRAuthorizationData = errors.New("no ecr authorization data provided")
 
+// PrivateClient interface defines methods for interacting with a private Amazon ECR registry
 type PrivateClient interface {
+	// GetAuthorizationToken retrieves an authorization token for accessing a private ECR registry
 	GetAuthorizationToken(ctx context.Context, params *ecr.GetAuthorizationTokenInput, optFns ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
+
+// PublicClient interface defines methods for interacting with a public Amazon ECR registry
 type PublicClient interface {
+	// GetAuthorizationToken retrieves an authorization token for accessing a public ECR registry
 	GetAuthorizationToken(ctx context.Context, params *ecrpublic.GetAuthorizationTokenInput, optFns ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
 }
 
+// Client interface defines a generic method for getting an authorization token.
+// This interface will be implemented by PrivateClient and PublicClient
 type Client interface {
+	// GetAuthorizationToken retrieves an authorization token for accessing an ECR registry (private or public)
 	GetAuthorizationToken(ctx context.Context) (string, time.Time, error)
 }
 
@@ -83,7 +91,28 @@ func (r *privateClient) GetAuthorizationToken(ctx context.Context) (string, time
 }
 
 func CredentialFunc(registry string) auth.CredentialFunc {
-	return new(registry).Credential
+	return defaultVault.CredentialFunc(registry)
+}
+
+var defaultVault = &vault{
+	cache: map[string]*svc{},
+}
+
+type vault struct {
+	mu    sync.Mutex
+	cache map[string]*svc
+}
+
+func (v *vault) CredentialFunc(registry string) auth.CredentialFunc {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if c, ok := v.cache[registry]; ok {
+		return c.Credential
+	}
+	c := new(registry)
+	v.cache[registry] = c
+	return c.Credential
 }
 
 func new(registry string) *svc {

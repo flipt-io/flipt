@@ -32,6 +32,7 @@ type StoreOptions struct {
 	bundleDir       string
 	manifestVersion oras.PackManifestVersion
 	auth            credentialFunc
+	authCache       auth.Cache
 }
 
 // WithCredentials configures username and password credentials used for authenticating
@@ -57,6 +58,7 @@ func WithStaticCredentials(user, pass string) containers.Option[StoreOptions] {
 				Password: pass,
 			})
 		}
+		so.authCache = auth.DefaultCache
 	}
 }
 
