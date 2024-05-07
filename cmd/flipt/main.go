@@ -376,7 +376,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts REST http(s) server
 	g.Go(httpServer.Run)
 
-	if cfg.Server.Cloud.Enabled {
+	if cfg.Experimental.Cloud.Enabled && cfg.Server.Cloud.Enabled {
 		// starts QUIC tunnel server to connect to Cloud
 
 		g.Go(func() error {

@@ -5,6 +5,7 @@ import "github.com/spf13/viper"
 // ExperimentalConfig allows for experimental features to be enabled
 // and disabled.
 type ExperimentalConfig struct {
+	Cloud ExperimentalFlag `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 func (c *ExperimentalConfig) deprecations(v *viper.Viper) []deprecated {
