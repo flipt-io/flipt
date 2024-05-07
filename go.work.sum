@@ -76,6 +76,7 @@ cloud.google.com/go/language v1.12.3/go.mod h1:evFX9wECX6mksEva8RbRnr/4wi/vKGYnA
 cloud.google.com/go/lifesciences v0.9.5/go.mod h1:OdBm0n7C0Osh5yZB7j9BXyrMnTRGBJIZonUMxo5CzPw=
 cloud.google.com/go/logging v1.9.0/go.mod h1:1Io0vnZv4onoUnsVUQY3HZ3Igb1nBchky0A0y7BBBhE=
 cloud.google.com/go/longrunning v0.5.4/go.mod h1:zqNVncI0BOP8ST6XQD1+VcvuShMmq7+xFSzOL++V0dI=
+cloud.google.com/go/longrunning v0.5.5 h1:GOE6pZFdSrTb4KAiKnXsJBtlE6mEyaW44oKyMILWnOg=
 cloud.google.com/go/longrunning v0.5.5/go.mod h1:WV2LAxD8/rg5Z1cNW6FJ/ZpX4E4VnDnoTk0yawPBB7s=
 cloud.google.com/go/managedidentities v1.6.5/go.mod h1:fkFI2PwwyRQbjLxlm5bQ8SjtObFMW3ChBGNqaMcgZjI=
 cloud.google.com/go/maps v1.7.0/go.mod h1:LqhDUCNSDAH6MvvubxDm7lPfHPhn6MduIaGCZ4iY1Ig=
@@ -111,6 +112,7 @@ cloud.google.com/go/security v1.15.5/go.mod h1:KS6X2eG3ynWjqcIX976fuToN5juVkF6Ra
 cloud.google.com/go/securitycenter v1.27.0/go.mod h1:J8BkC1KQ59pzVwFZ9OiqcKL57JwPNEv8SMxfVztjqD0=
 cloud.google.com/go/servicedirectory v1.11.4/go.mod h1:Bz2T9t+/Ehg6x+Y7Ycq5xiShYLD96NfEsWNHyitj1qM=
 cloud.google.com/go/shell v1.7.5/go.mod h1:hL2++7F47/IfpfTO53KYf1EC+F56k3ThfNEXd4zcuiE=
+cloud.google.com/go/spanner v1.58.0 h1:W0SAtTz50XIZlTCJtHJ7x4Yxux6ZsorBBxjdXfjZ7UQ=
 cloud.google.com/go/spanner v1.58.0/go.mod h1:eSpP+aaT38sdwFs0ovo7Z1VsG9RyM9n7EHpM5DhDEsE=
 cloud.google.com/go/speech v1.22.0/go.mod h1:d7pmrSKyrD12c7dRrjqgA/U0eeyZs0i4VpvOlpJXEBA=
 cloud.google.com/go/storage v1.35.1/go.mod h1:M6M/3V/D3KpzMTJyPOR/HU6n2Si5QdaXYEsng2xgOs8=
