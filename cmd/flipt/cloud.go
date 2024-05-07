@@ -233,7 +233,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 					return err
 				}
 
-				cfg.Cloud.Host = u.Host
+				cfg.Cloud.Host = u.Hostname()
 				cfg.Cloud.Instance = auth.Instance.Instance
 				cfg.Cloud.Organization = auth.Instance.Organization
 				cfg.Server.Cloud.Enabled = true
@@ -316,7 +316,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cfg.Cloud.Host = u.Host
+	cfg.Cloud.Host = u.Hostname()
 	cfg.Cloud.Instance = instance.Instance
 	cfg.Cloud.Organization = instance.Organization
 	cfg.Server.Cloud.Enabled = true
