@@ -237,6 +237,8 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("making request: %w", err)
 		}
 
+		_ = resp.Body.Close()
+
 		switch resp.StatusCode {
 		case http.StatusNotFound:
 			fmt.Println("Existing linked Flipt Cloud instance not found.")
