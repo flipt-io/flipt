@@ -579,8 +579,10 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/server/cloud_missing_port.yml",
 			expected: func() *Config {
 				cfg := Default()
+				cfg.Cloud.Host = "flipt.cloud"
 				cfg.Server.Cloud.Enabled = true
 				cfg.Server.Cloud.Port = 8443
+				cfg.Experimental.Cloud.Enabled = true
 				return cfg
 			},
 		},
@@ -590,6 +592,8 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cloud.Host = "flipt.cloud"
+				cfg.Server.Cloud.Port = 8443
+				cfg.Experimental.Cloud.Enabled = true
 				return cfg
 			},
 		},
@@ -625,10 +629,6 @@ func TestLoad(t *testing.T) {
 					},
 				}
 
-				cfg.Cloud = CloudConfig{
-					Host: "flipt.cloud",
-				}
-
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
@@ -650,10 +650,6 @@ func TestLoad(t *testing.T) {
 					GRPCPort:  9001,
 					CertFile:  "./testdata/ssl_cert.pem",
 					CertKey:   "./testdata/ssl_key.pem",
-					Cloud: CloudServerConfig{
-						Enabled: false,
-						Port:    8443,
-					},
 				}
 
 				cfg.Tracing = TracingConfig{

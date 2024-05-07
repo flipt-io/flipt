@@ -509,10 +509,6 @@ func Default() *Config {
 			DefaultTheme: SystemUITheme,
 		},
 
-		Cloud: CloudConfig{
-			Host: "flipt.cloud",
-		},
-
 		Cors: CorsConfig{
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
@@ -559,10 +555,6 @@ func Default() *Config {
 			HTTPPort:  8080,
 			HTTPSPort: 443,
 			GRPCPort:  9000,
-			Cloud: CloudServerConfig{
-				Enabled: false,
-				Port:    8443,
-			},
 		},
 
 		Metrics: MetricsConfig{

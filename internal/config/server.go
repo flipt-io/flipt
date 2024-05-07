@@ -36,7 +36,10 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) error {
 		"grpc_port":  9000,
 	})
 
-	return c.Cloud.setDefaults(v)
+	if v.IsSet("experimental.cloud.enabled") {
+		return c.Cloud.setDefaults(v)
+	}
+	return nil
 }
 
 func (c *ServerConfig) validate() error {
