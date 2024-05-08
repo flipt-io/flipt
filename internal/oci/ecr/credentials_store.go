@@ -3,13 +3,11 @@ package ecr
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"strings"
 	"sync"
 	"time"
 
 	"oras.land/oras-go/v2/registry/remote/auth"
-	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 func defaultClientFunc(serverAddress string) Client {
@@ -21,7 +19,7 @@ func defaultClientFunc(serverAddress string) Client {
 	}
 }
 
-func NewCredentialsStore() credentials.Store {
+func NewCredentialsStore() *CredentialsStore {
 	return &CredentialsStore{
 		cache:      map[string]cacheItem{},
 		clientFunc: defaultClientFunc,
@@ -57,16 +55,6 @@ func (s *CredentialsStore) Get(ctx context.Context, serverAddress string) (auth.
 	}
 	s.cache[serverAddress] = cacheItem{credential, expiresAt}
 	return credential, nil
-}
-
-// Put saves credentials into the store for the given server address.
-func (s *CredentialsStore) Put(ctx context.Context, serverAddress string, cred auth.Credential) error {
-	return errors.ErrUnsupported
-}
-
-// Delete removes credentials from the store for the given server address.
-func (s *CredentialsStore) Delete(ctx context.Context, serverAddress string) error {
-	return errors.ErrUnsupported
 }
 
 func (s *CredentialsStore) extractCredential(token string) (auth.Credential, error) {

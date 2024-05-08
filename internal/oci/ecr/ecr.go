@@ -13,6 +13,13 @@ import (
 
 var ErrNoAWSECRAuthorizationData = errors.New("no ecr authorization data provided")
 
+// Credential returns a Credential() function that can be used by auth.Client.
+func Credential(store *CredentialsStore) auth.CredentialFunc {
+	return func(ctx context.Context, hostport string) (auth.Credential, error) {
+		return store.Get(ctx, hostport)
+	}
+}
+
 // PrivateClient interface defines methods for interacting with a private Amazon ECR registry
 type PrivateClient interface {
 	// GetAuthorizationToken retrieves an authorization token for accessing a private ECR registry
