@@ -33,7 +33,7 @@ func NewSink(logger *zap.Logger, webhookTemplates []config.WebhookTemplate, maxB
 	}
 
 	return &Sink{
-		logger:    logger,
+		logger:    logger.With(zap.String("sink", sinkType)),
 		executers: executers,
 	}, nil
 }

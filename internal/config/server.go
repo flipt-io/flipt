@@ -36,7 +36,10 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) error {
 		"grpc_port":  9000,
 	})
 
-	return c.Cloud.setDefaults(v)
+	if v.IsSet("experimental.cloud.enabled") {
+		return c.Cloud.setDefaults(v)
+	}
+	return nil
 }
 
 func (c *ServerConfig) validate() error {
@@ -96,21 +99,8 @@ var (
 )
 
 type CloudServerConfig struct {
-	Enabled        bool                            `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
-	Authentication CloudServerAuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
-	Port           int                             `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
-}
-
-type CloudServerAuthenticationConfig struct {
-	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
-}
-
-func (c *CloudServerAuthenticationConfig) validate() error {
-	if c.ApiKey == "" {
-		return errFieldRequired("server.cloud.authentication.api_key")
-	}
-
-	return nil
+	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled"`
+	Port    int  `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
 }
 
 func (c *CloudServerConfig) setDefaults(v *viper.Viper) error {

@@ -7,9 +7,14 @@ import (
 )
 
 type CloudConfig struct {
-	Host         string `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Organization string `json:"organization,omitempty" mapstructure:"organization" yaml:"organization,omitempty"`
-	Instance     string `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
+	Host           string                    `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Authentication CloudAuthenticationConfig `json:"-" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Organization   string                    `json:"organization,omitempty" mapstructure:"organization" yaml:"organization,omitempty"`
+	Instance       string                    `json:"instance,omitempty" mapstructure:"instance" yaml:"instance,omitempty"`
+}
+
+type CloudAuthenticationConfig struct {
+	ApiKey string `json:"-" mapstructure:"api_key" yaml:"api_key,omitempty"`
 }
 
 //nolint:golint,unparam

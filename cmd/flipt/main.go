@@ -376,7 +376,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts REST http(s) server
 	g.Go(httpServer.Run)
 
-	if cfg.Server.Cloud.Enabled {
+	if cfg.Experimental.Cloud.Enabled && cfg.Server.Cloud.Enabled {
 		// starts QUIC tunnel server to connect to Cloud
 
 		g.Go(func() error {
@@ -387,8 +387,8 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 			)
 
 			// prefer API key over local token
-			if cfg.Server.Cloud.Authentication.ApiKey != "" {
-				authenticator = client.BearerAuthenticator(cfg.Server.Cloud.Authentication.ApiKey)
+			if cfg.Cloud.Authentication.ApiKey != "" {
+				authenticator = client.BearerAuthenticator(cfg.Cloud.Authentication.ApiKey)
 
 				if cfg.Cloud.Organization == "" || cfg.Cloud.Instance == "" {
 					return errors.New("missing cloud.organization or cloud.instance")

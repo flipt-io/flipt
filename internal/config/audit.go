@@ -20,7 +20,7 @@ type AuditConfig struct {
 
 // Enabled returns true if any nested sink is enabled
 func (c AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
+	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.Cloud.Enabled
 }
 
 func (c AuditConfig) IsZero() bool {
@@ -35,6 +35,9 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 				"file":    "",
 			},
 			"webhook": map[string]any{
+				"enabled": "false",
+			},
+			"cloud": map[string]any{
 				"enabled": "false",
 			},
 		},
@@ -79,6 +82,11 @@ func (c *AuditConfig) validate() error {
 type SinksConfig struct {
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
 	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
+	Cloud   CloudSinkConfig   `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+}
+
+type CloudSinkConfig struct {
+	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 }
 
 // WebhookSinkConfig contains configuration for sending POST requests to specific

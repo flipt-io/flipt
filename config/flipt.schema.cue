@@ -142,6 +142,9 @@ import "strings"
 		host?: string | *"flipt.cloud"
 		organization?:  string
 		instance?:  string
+		authentication?: {
+			api_key?: string
+		}
 	}
 
 	#cors: {
@@ -282,9 +285,6 @@ import "strings"
 		grpc_conn_max_age_grace?: =~#duration
 		cloud?: {
 			enabled?: bool | *false
-			authentication?: {
-				api_key?: string
-			}
 			port?:    int | *8443
 		}
 	}
@@ -344,6 +344,9 @@ import "strings"
 					body: string
 					headers?: [string]: string
 				}]
+			},
+			cloud?: {
+				enabled?: bool | *false
 			}
 		}
 		buffer?: {
@@ -366,7 +369,11 @@ import "strings"
 		}
 	}
 
-	#experimental: {}
+	#experimental: {
+		cloud?: {
+			enabled?: bool | *false
+		}
+	}
 
 	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
 }

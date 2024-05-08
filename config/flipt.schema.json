@@ -457,6 +457,15 @@
         },
         "instance": {
           "type": "string"
+        },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "api_key": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -965,15 +974,6 @@
               "type": "boolean",
               "default": false
             },
-            "authentication": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "api_key": {
-                  "type": "string"
-                }
-              }
-            },
             "port": {
               "type": "integer",
               "default": 8443
@@ -1189,6 +1189,17 @@
                 }
               },
               "title": "Webhook"
+            },
+            "cloud": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "title": "Cloud"
             }
           }
         },

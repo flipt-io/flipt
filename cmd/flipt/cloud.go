@@ -46,8 +46,9 @@ func newCloudCommand() *cobra.Command {
 	cloud := &cloudCommand{}
 
 	cmd := &cobra.Command{
-		Use:   "cloud",
-		Short: "Interact with Flipt Cloud",
+		Use:    "cloud",
+		Short:  "Interact with Flipt Cloud",
+		Hidden: true,
 	}
 
 	cmd.PersistentFlags().StringVarP(&cloud.url, "url", "u", "https://flipt.cloud", "Flipt Cloud URL")
@@ -79,7 +80,7 @@ func newCloudCommand() *cobra.Command {
 
 	serveCmd := &cobra.Command{
 		Use:   "serve [flags]",
-		Short: "Serve Flipt Cloud locally",
+		Short: "Serve your local instance via Flipt Cloud",
 		RunE:  cloud.serve,
 		Args:  cobra.NoArgs,
 	}
@@ -90,7 +91,25 @@ func newCloudCommand() *cobra.Command {
 }
 
 func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
-	done := make(chan struct{})
+	var (
+		done        = make(chan struct{})
+		ctx, cancel = context.WithCancel(cmd.Context())
+		_, cfg, err = buildConfig(ctx)
+	)
+	defer cancel()
+
+	if err != nil {
+		return err
+	}
+
+	if !cfg.Experimental.Cloud.Enabled {
+		return errors.New("cloud feature is not enabled")
+	}
+
+	_, err = url.Parse(c.url)
+	if err != nil {
+		return fmt.Errorf("parsing cloud URL: %w", err)
+	}
 
 	ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
 	if err != nil {
@@ -106,12 +125,7 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("initializing flow: %w", err)
 	}
 
-	var (
-		g           errgroup.Group
-		ctx, cancel = context.WithCancel(cmd.Context())
-	)
-
-	defer cancel()
+	var g errgroup.Group
 
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
 
@@ -172,6 +186,16 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 
 func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+
+	logger, cfg, err := buildConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !cfg.Experimental.Cloud.Enabled {
+		return errors.New("cloud feature is not enabled")
+	}
+
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return fmt.Errorf("parsing cloud URL: %w", err)
@@ -346,11 +370,6 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
 		return fmt.Errorf("writing cloud auth token: %w", err)
-	}
-
-	logger, cfg, err := buildConfig(ctx)
-	if err != nil {
-		return err
 	}
 
 	cfg.Cloud.Host = u.Hostname()

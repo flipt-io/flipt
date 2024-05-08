@@ -52,7 +52,7 @@ type Config struct {
 	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
-	Cloud          CloudConfig          `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+	Cloud          CloudConfig          `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty" experiment:"cloud"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
 	Diagnostics    DiagnosticConfig     `json:"diagnostics,omitempty" mapstructure:"diagnostics" yaml:"diagnostics,omitempty"`
@@ -509,10 +509,6 @@ func Default() *Config {
 			DefaultTheme: SystemUITheme,
 		},
 
-		Cloud: CloudConfig{
-			Host: "flipt.cloud",
-		},
-
 		Cors: CorsConfig{
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
@@ -559,10 +555,6 @@ func Default() *Config {
 			HTTPPort:  8080,
 			HTTPSPort: 443,
 			GRPCPort:  9000,
-			Cloud: CloudServerConfig{
-				Enabled: false,
-				Port:    8443,
-			},
 		},
 
 		Metrics: MetricsConfig{

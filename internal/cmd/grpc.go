@@ -26,6 +26,7 @@ import (
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/audit/cloud"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
@@ -386,6 +387,21 @@ func NewGRPCServer(
 		}
 
 		sinks = append(sinks, webhookSink)
+	}
+
+	if cfg.Audit.Sinks.Cloud.Enabled {
+		webhookURL := fmt.Sprintf("https://%s/api/audit/event", cfg.Cloud.Host)
+
+		if cfg.Cloud.Authentication.ApiKey == "" {
+			return nil, errors.New("cloud audit sink requires an api key")
+		}
+
+		cloudSink, err := cloud.NewSink(logger, cfg.Cloud.Authentication.ApiKey, webhookURL)
+		if err != nil {
+			return nil, err
+		}
+
+		sinks = append(sinks, cloudSink)
 	}
 
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,

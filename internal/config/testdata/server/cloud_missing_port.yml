@@ -1,5 +1,6 @@
 server:
   cloud:
-    authentication:
-      api_key: foo
+    enabled: true
+experimental:
+  cloud:
     enabled: true
