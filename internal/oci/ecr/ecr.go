@@ -39,8 +39,13 @@ type Client interface {
 	GetAuthorizationToken(ctx context.Context) (string, time.Time, error)
 }
 
+func NewPublicClient(endpoint string) Client {
+	return &publicClient{endpoint: endpoint}
+}
+
 type publicClient struct {
-	client PublicClient
+	client   PublicClient
+	endpoint string
 }
 
 func (r *publicClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
@@ -50,7 +55,11 @@ func (r *publicClient) GetAuthorizationToken(ctx context.Context) (string, time.
 		if err != nil {
 			return "", time.Time{}, err
 		}
-		client = ecrpublic.NewFromConfig(cfg)
+		client = ecrpublic.NewFromConfig(cfg, func(o *ecrpublic.Options) {
+			if r.endpoint != "" {
+				o.BaseEndpoint = &r.endpoint
+			}
+		})
 	}
 	response, err := client.GetAuthorizationToken(ctx, &ecrpublic.GetAuthorizationTokenInput{})
 	if err != nil {
@@ -66,8 +75,13 @@ func (r *publicClient) GetAuthorizationToken(ctx context.Context) (string, time.
 	return *authData.AuthorizationToken, *authData.ExpiresAt, nil
 }
 
+func NewPrivateClient(endpoint string) Client {
+	return &privateClient{endpoint: endpoint}
+}
+
 type privateClient struct {
-	client PrivateClient
+	client   PrivateClient
+	endpoint string
 }
 
 func (r *privateClient) GetAuthorizationToken(ctx context.Context) (string, time.Time, error) {
@@ -77,7 +91,11 @@ func (r *privateClient) GetAuthorizationToken(ctx context.Context) (string, time
 		if err != nil {
 			return "", time.Time{}, err
 		}
-		client = ecr.NewFromConfig(cfg)
+		client = ecr.NewFromConfig(cfg, func(o *ecr.Options) {
+			if r.endpoint != "" {
+				o.BaseEndpoint = &r.endpoint
+			}
+		})
 	}
 	response, err := client.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
 	if err != nil {

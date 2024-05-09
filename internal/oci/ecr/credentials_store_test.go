@@ -14,8 +14,8 @@ import (
 )
 
 func TestDefaultClientFunc(t *testing.T) {
-	require.IsType(t, &privateClient{}, defaultClientFunc("aws_account_id.dkr.ecr.region.amazonaws.com/team-a/app"))
-	require.IsType(t, &publicClient{}, defaultClientFunc("public.ecr.aws/team-a/app"))
+	require.IsType(t, &privateClient{}, defaultClientFunc("")("aws_account_id.dkr.ecr.region.amazonaws.com/team-a/app"))
+	require.IsType(t, &publicClient{}, defaultClientFunc("")("public.ecr.aws/team-a/app"))
 }
 
 func TestECRCredential(t *testing.T) {

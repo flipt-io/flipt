@@ -10,25 +10,27 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func defaultClientFunc(serverAddress string) Client {
-	switch {
-	case strings.HasPrefix(serverAddress, "public.ecr.aws"):
-		return &publicClient{}
-	default:
-		return &privateClient{}
-	}
-}
-
-func NewCredentialsStore() *CredentialsStore {
-	return &CredentialsStore{
-		cache:      map[string]cacheItem{},
-		clientFunc: defaultClientFunc,
+func defaultClientFunc(endpoint string) func(serverAddress string) Client {
+	return func(serverAddress string) Client {
+		switch {
+		case strings.HasPrefix(serverAddress, "public.ecr.aws"):
+			return NewPublicClient(endpoint)
+		default:
+			return NewPrivateClient(endpoint)
+		}
 	}
 }
 
 type cacheItem struct {
 	credential auth.Credential
 	expiresAt  time.Time
+}
+
+func NewCredentialsStore(endpoint string) *CredentialsStore {
+	return &CredentialsStore{
+		cache:      map[string]cacheItem{},
+		clientFunc: defaultClientFunc(endpoint),
+	}
 }
 
 type CredentialsStore struct {
