@@ -92,7 +92,6 @@ func newCloudCommand() *cobra.Command {
 
 func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 	var (
-		done        = make(chan struct{})
 		ctx, cancel = context.WithCancel(cmd.Context())
 		_, cfg, err = buildConfig(ctx)
 	)
@@ -125,61 +124,51 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("initializing flow: %w", err)
 	}
 
+	defer flow.Close()
+
 	var g errgroup.Group
-
-	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
-
-	g.Go(func() error {
-		tok, err := flow.Wait(ctx)
-		if err != nil {
-			return fmt.Errorf("waiting for token: %w", err)
-		}
-
-		cloudAuth := cloudAuth{
-			Token: tok,
-		}
-
-		cloudAuthBytes, err := json.Marshal(cloudAuth)
-		if err != nil {
-			return fmt.Errorf("marshalling cloud auth token: %w", err)
-		}
-
-		if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
-			return fmt.Errorf("writing cloud auth token: %w", err)
-		}
-
-		fmt.Println("\n✓ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
-
-		return nil
-	})
 
 	g.Go(func() error {
 		if err := flow.StartServer(nil); err != nil && !errors.Is(err, net.ErrClosed) {
 			return fmt.Errorf("starting server: %w", err)
 		}
-		close(done)
 		return nil
 	})
 
-	g.Go(func() error {
-		select {
-		case <-done:
-			cancel()
-		case <-ctx.Done():
-			if err := flow.Close(); err != nil && !errors.Is(err, context.Canceled) {
-				return err
-			}
-		}
-		return nil
-	})
+	url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
+	if err != nil {
+		return fmt.Errorf("creating browser URL: %w", err)
+	}
 
-	g.Go(func() error {
-		url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
-		if err != nil {
-			return fmt.Errorf("creating browser URL: %w", err)
-		}
-		return util.OpenBrowser(url)
-	})
+	if err := util.OpenBrowser(url); err != nil {
+		return fmt.Errorf("opening browser: %w", err)
+	}
+
+	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
+
+	tok, err := flow.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for token: %w", err)
+	}
+
+	if err := flow.Close(); err != nil {
+		return fmt.Errorf("closing flow: %w", err)
+	}
+
+	cloudAuth := cloudAuth{
+		Token: tok,
+	}
+
+	cloudAuthBytes, err := json.Marshal(cloudAuth)
+	if err != nil {
+		return fmt.Errorf("marshalling cloud auth token: %w", err)
+	}
+
+	if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
+		return fmt.Errorf("writing cloud auth token: %w", err)
+	}
+
+	fmt.Println("\n✓ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
 
 	return g.Wait()
 }
