@@ -28,11 +28,14 @@ import {
   useListNamespacesQuery
 } from './namespaces/namespacesSlice';
 import CommandDialog from '~/components/command/CommandDialog';
+import Banner from '~/components/Banner';
+import { selectDismissedBanner } from './events/eventSlice';
 
 function InnerLayout() {
   const { session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const dismissedBanner = useSelector(selectDismissedBanner);
   const dispatch = useAppDispatch();
 
   const { namespaceKey } = useParams();
@@ -75,6 +78,13 @@ function InnerLayout() {
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="bg-white flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
+        {!dismissedBanner && (
+          <Banner
+            title="Introducing Flipt Hybrid Cloud"
+            description="Learn about our latest offering that enhances Flipt Open Source with managed security and support"
+            href="https://docs.flipt.io/cloud/overview"
+          />
+        )}
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />

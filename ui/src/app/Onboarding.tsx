@@ -3,6 +3,7 @@ import {
   AcademicCapIcon,
   BookOpenIcon,
   ChatBubbleLeftIcon,
+  CloudIcon,
   CodeBracketIcon,
   CommandLineIcon,
   PuzzlePieceIcon,
@@ -20,8 +21,15 @@ const gettingStartedTiles = [
     icon: AcademicCapIcon,
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
-    className: 'sm:col-span-2',
     href: 'https://www.flipt.io/docs/introduction'
+  },
+  {
+    icon: CloudIcon,
+    name: 'Introducing Flipt Hybrid Cloud',
+    className: 'sm:col-span-2',
+    description:
+      'Learn more about our managed offering with enhanced security and support',
+    href: 'https://www.flipt.io/docs/cloud/overview'
   },
   {
     icon: CommandLineIcon,
@@ -40,7 +48,6 @@ const gettingStartedTiles = [
     icon: PuzzlePieceIcon,
     name: 'Integrate Your Application',
     description: 'Use our SDKs to integrate your applications in your language',
-    className: 'sm:col-span-2',
     href: 'https://www.flipt.io/docs/integration/overview'
   }
 ];
