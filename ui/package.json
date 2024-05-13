@@ -31,7 +31,7 @@
     "@loadable/component": "^5.16.3",
     "@reduxjs/toolkit": "^2.2.3",
     "@tanstack/react-table": "^8.13.2",
-    "@uiw/codemirror-theme-tokyo-night": "^4.21.25",
+    "@uiw/codemirror-theme-tokyo-night": "^4.22.0",
     "@uiw/react-codemirror": "^4.21.25",
     "buffer": "^6.0.3",
     "chart.js": "^4.4.2",
