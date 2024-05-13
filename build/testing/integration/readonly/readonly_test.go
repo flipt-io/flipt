@@ -540,6 +540,23 @@ func TestReadOnly(t *testing.T) {
 
 					require.Nil(t, result)
 				})
+
+				t.Run("match no distributions", func(t *testing.T) {
+					response, err := sdk.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_no_distributions",
+						EntityId:     "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_001",
+						},
+					})
+					require.NoError(t, err)
+
+					assert.Equal(t, true, response.Match)
+					assert.Equal(t, "flag_001", response.FlagKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+					assert.Contains(t, response.SegmentKeys, "segment_001")
+				})
 			})
 
 			t.Run("Boolean", func(t *testing.T) {
