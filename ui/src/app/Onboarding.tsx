@@ -21,34 +21,34 @@ const gettingStartedTiles = [
     icon: AcademicCapIcon,
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
-    href: 'https://www.flipt.io/docs/introduction'
+    href: 'https://docs.flipt.io/introduction'
   },
   {
     icon: CloudIcon,
     name: 'Introducing Flipt Hybrid Cloud',
     className: 'sm:col-span-2',
     description:
-      'Learn more about our managed offering with enhanced security and support',
-    href: 'https://www.flipt.io/docs/cloud/overview'
+      'Learn about our managed offering with enhanced security and support',
+    href: 'https://docs.flipt.io/cloud/overview'
   },
   {
     icon: CommandLineIcon,
     name: 'Try the CLI',
     description: 'Use the Flipt CLI to manage your feature flags and more',
-    href: 'https://www.flipt.io/docs/cli/overview'
+    href: 'https://docs.flipt.io/cli/overview'
   },
   {
     icon: BookOpenIcon,
     name: 'Checkout a Guide',
     description:
       'Use Flipt to its full potential. Read our guides including using Flipt with GitOps',
-    href: 'https://www.flipt.io/docs/guides'
+    href: 'https://docs.flipt.io/guides'
   },
   {
     icon: PuzzlePieceIcon,
     name: 'Integrate Your Application',
     description: 'Use our SDKs to integrate your applications in your language',
-    href: 'https://www.flipt.io/docs/integration/overview'
+    href: 'https://docs.flipt.io/integration/overview'
   }
 ];
 
