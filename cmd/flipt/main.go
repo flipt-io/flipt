@@ -3,9 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -16,20 +20,22 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
+	"go.flipt.io/reverst/client"
+	"go.flipt.io/reverst/pkg/protocol"
 	"go.uber.org/zap"
+	"go.uber.org/zap/exp/zapslog"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 var (
@@ -148,6 +154,7 @@ func exec() error {
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newBundleCommand())
 	rootCmd.AddCommand(newEvaluateCommand())
+	rootCmd.AddCommand(newCloudCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -368,6 +375,79 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// starts REST http(s) server
 	g.Go(httpServer.Run)
+
+	if cfg.Experimental.Cloud.Enabled && cfg.Server.Cloud.Enabled {
+		// starts QUIC tunnel server to connect to Cloud
+
+		g.Go(func() error {
+			var (
+				orgHost       string
+				tunnel        string
+				authenticator client.Authenticator
+			)
+
+			// prefer API key over local token
+			if cfg.Cloud.Authentication.ApiKey != "" {
+				authenticator = client.BearerAuthenticator(cfg.Cloud.Authentication.ApiKey)
+
+				if cfg.Cloud.Organization == "" || cfg.Cloud.Instance == "" {
+					return errors.New("missing cloud.organization or cloud.instance")
+				}
+
+				orgHost = fmt.Sprintf("%s.%s", cfg.Cloud.Organization, cfg.Cloud.Host)
+				tunnel = fmt.Sprintf("%s-%s", cfg.Cloud.Instance, orgHost)
+			} else {
+				// read in local token from file
+				cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
+				cloudAuthBytes, err := os.ReadFile(cloudAuthFile)
+				if err != nil {
+					return fmt.Errorf("reading cloud auth token: %w", err)
+				}
+
+				var auth cloudAuth
+
+				if err := json.Unmarshal(cloudAuthBytes, &auth); err != nil {
+					return fmt.Errorf("unmarshalling cloud auth token: %w", err)
+				}
+
+				authenticator = client.BearerAuthenticator(auth.Token, client.WithScheme("JWT"))
+
+				// use instance and organization from local token
+				if auth.Instance == nil || auth.Instance.Organization == "" || auth.Instance.Instance == "" {
+					return errors.New("missing cloud.organization or cloud.instance")
+				}
+
+				orgHost = fmt.Sprintf("%s.%s", auth.Instance.Organization, cfg.Cloud.Host)
+				tunnel = fmt.Sprintf("%s-%s", auth.Instance.Instance, orgHost)
+			}
+
+			sl := slog.New(zapslog.NewHandler(logger.Core(), nil))
+
+			tunnelServer := &client.Server{
+				TunnelGroup:   tunnel,
+				Handler:       httpServer.Handler,
+				Logger:        sl,
+				Authenticator: authenticator,
+				TLSConfig: &tls.Config{
+					MinVersion: tls.VersionTLS13,
+					NextProtos: []string{protocol.Name},
+					ServerName: orgHost,
+				},
+			}
+
+			addr := fmt.Sprintf("%s:%d", tunnel, cfg.Server.Cloud.Port)
+
+			logger.Info("cloud tunnel established", zap.String("address", fmt.Sprintf("https://%s", tunnel)))
+
+			if err := tunnelServer.DialAndServe(ctx, addr); err != nil &&
+				!errors.Is(err, http.ErrServerClosed) &&
+				!errors.Is(err, context.Canceled) {
+				return fmt.Errorf("creating cloud tunnel server: %w", err)
+			}
+
+			return nil
+		})
+	}
 
 	// block until root context is cancelled
 	// and shutdown has been signalled

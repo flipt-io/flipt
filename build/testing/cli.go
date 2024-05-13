@@ -409,7 +409,7 @@ exit $?`,
 		}
 
 		// now there are four including local copy of remote name
-		container, err = assertExec(ctx, container, flipt("bundle", "list"),
+		_, err = assertExec(ctx, container, flipt("bundle", "list"),
 			stdout(matches(`DIGEST[\s]+REPO[\s]+TAG[\s]+CREATED`)),
 			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
 			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
@@ -418,6 +418,10 @@ exit $?`,
 		if err != nil {
 			return err
 		}
+	}
+
+	{
+		// TODO: add tests for flipt cloud commands
 	}
 
 	return nil

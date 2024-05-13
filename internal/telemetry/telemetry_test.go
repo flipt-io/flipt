@@ -86,6 +86,10 @@ func TestShutdown(t *testing.T) {
 	assert.True(t, mockAnalytics.closed)
 }
 
+var experimental = map[string]any{
+	"cloud": map[string]any{},
+}
+
 func TestPing(t *testing.T) {
 	test := []struct {
 		name string
@@ -106,7 +110,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -123,7 +127,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -140,7 +144,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "unknown",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -161,7 +165,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -183,7 +187,7 @@ func TestPing(t *testing.T) {
 					"database": "sqlite",
 					"cache":    "redis",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -208,7 +212,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -238,7 +242,7 @@ func TestPing(t *testing.T) {
 						"token",
 					},
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -262,7 +266,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -291,7 +295,7 @@ func TestPing(t *testing.T) {
 						"log",
 					},
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -315,7 +319,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -344,7 +348,7 @@ func TestPing(t *testing.T) {
 						"webhook",
 					},
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -376,7 +380,7 @@ func TestPing(t *testing.T) {
 						"log", "webhook",
 					},
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -397,7 +401,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -421,7 +425,7 @@ func TestPing(t *testing.T) {
 				"tracing": map[string]any{
 					"exporter": "otlp",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -446,7 +450,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 		{
@@ -474,7 +478,7 @@ func TestPing(t *testing.T) {
 				"analytics": map[string]any{
 					"storage": "clickhouse",
 				},
-				"experimental": map[string]any{},
+				"experimental": experimental,
 			},
 		},
 	}

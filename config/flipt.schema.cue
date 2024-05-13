@@ -14,6 +14,7 @@ import "strings"
 	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
+	cloud?:          #cloud
 	cors?:           #cors
 	diagnostics?:    #diagnostics
 	storage?:        #storage
@@ -50,6 +51,10 @@ import "strings"
 					token?:     string
 					expiration: =~#duration | int
 				}
+			}
+
+			cloud?: {
+				enabled?: bool | *false
 			}
 
 			oidc?: {
@@ -130,6 +135,15 @@ import "strings"
 			enabled?:           bool | *false
 			eviction_interval?: =~#duration | int | *"5m"
 			expiration?:        =~#duration | int | *"60s"
+		}
+	}
+
+	#cloud: {
+		host?: string | *"flipt.cloud"
+		organization?:  string
+		instance?:  string
+		authentication?: {
+			api_key?: string
 		}
 	}
 
@@ -269,6 +283,10 @@ import "strings"
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
+		cloud?: {
+			enabled?: bool | *false
+			port?:    int | *8443
+		}
 	}
 
 	#metrics: {
@@ -326,6 +344,9 @@ import "strings"
 					body: string
 					headers?: [string]: string
 				}]
+			},
+			cloud?: {
+				enabled?: bool | *false
 			}
 		}
 		buffer?: {
@@ -348,7 +369,11 @@ import "strings"
 		}
 	}
 
-	#experimental: {}
+	#experimental: {
+		cloud?: {
+			enabled?: bool | *false
+		}
+	}
 
 	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
 }
