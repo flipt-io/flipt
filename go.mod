@@ -61,7 +61,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	github.com/xo/dburl v0.23.0
+	github.com/xo/dburl v0.23.1
 	go.flipt.io/flipt/core v0.0.0-00010101000000-000000000000
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.38.0
