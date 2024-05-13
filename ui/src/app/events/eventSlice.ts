@@ -4,10 +4,12 @@ import { RootState } from '~/store';
 export const eventKey = 'event';
 interface IEventState {
   completedOnboarding: boolean;
+  dismissedBanner: boolean;
 }
 
 const initialState: IEventState = {
-  completedOnboarding: false
+  completedOnboarding: false,
+  dismissedBanner: false
 };
 
 export const eventSlice = createSlice({
@@ -16,15 +18,23 @@ export const eventSlice = createSlice({
   reducers: {
     onboardingCompleted: (state) => {
       state.completedOnboarding = true;
+    },
+    bannerDismissed: (state) => {
+      state.dismissedBanner = true;
     }
   }
 });
 
-export const { onboardingCompleted } = eventSlice.actions;
+export const { onboardingCompleted, bannerDismissed } = eventSlice.actions;
 
 export const selectCompletedOnboarding = createSelector(
   [(state: RootState) => state.user],
   (user) => user.completedOnboarding
+);
+
+export const selectDismissedBanner = createSelector(
+  [(state: RootState) => state.user],
+  (user) => user.dismissedBanner
 );
 
 export default eventSlice.reducer;
