@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	cloud.google.com/go/storage v1.40.0
-	cuelang.org/go v0.8.1
+	cuelang.org/go v0.8.2
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
 	github.com/ClickHouse/clickhouse-go/v2 v2.23.2
