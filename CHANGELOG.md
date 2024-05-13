@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in rules evaluation with no distributions for declarative stores (#3076)
+- Make OCI reauthenticate when using AWS ECR (#3044)
 
 ## [v1.41.1](https://github.com/flipt-io/flipt/releases/tag/v1.41.1) - 2024-05-01
 
