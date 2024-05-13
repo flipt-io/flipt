@@ -145,7 +145,7 @@ func TestReadOnly(t *testing.T) {
 
 					if flags.NextPageToken == "" {
 						// ensure last page contains 3 entries (boolean and disabled)
-						assert.Len(t, flags.Flags, 6)
+						assert.Len(t, flags.Flags, 7)
 
 						found = append(found, flags.Flags...)
 
