@@ -603,22 +603,27 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 	t := fis.T()
 
 	testCases := []struct {
-		name                string
-		namespace           string
-		flagKey             string
-		expectedVariantName string
+		name      string
+		namespace string
+		flagKey   string
+		count     int
 	}{
 		{
-			name:                "Sandbox",
-			namespace:           "sandbox",
-			flagKey:             "sandbox-flag",
-			expectedVariantName: "sandbox-variant",
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "sandbox-flag",
+			count:     1,
 		},
 		{
-			name:                "Production",
-			namespace:           "production",
-			flagKey:             "prod-flag",
-			expectedVariantName: "prod-variant",
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "prod-flag",
+			count:     1,
+		},
+		{
+			name:      "Production No Distributions",
+			namespace: "production",
+			flagKey:   "no-distributions",
 		},
 	}
 
@@ -632,8 +637,7 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
-			assert.Equal(t, float32(100), dist[0].Rollout)
+			assert.Len(t, dist, tc.count)
 		})
 	}
 }

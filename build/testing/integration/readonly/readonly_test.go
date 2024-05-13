@@ -117,7 +117,7 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-			require.Len(t, flags.Flags, 56)
+			require.Len(t, flags.Flags, 57)
 
 			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
@@ -145,7 +145,7 @@ func TestReadOnly(t *testing.T) {
 
 					if flags.NextPageToken == "" {
 						// ensure last page contains 3 entries (boolean and disabled)
-						assert.Len(t, flags.Flags, 6)
+						assert.Len(t, flags.Flags, 7)
 
 						found = append(found, flags.Flags...)
 
@@ -160,7 +160,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = flags.NextPageToken
 				}
 
-				require.Len(t, found, 56)
+				require.Len(t, found, 57)
 			})
 		})
 
@@ -539,6 +539,23 @@ func TestReadOnly(t *testing.T) {
 					require.EqualError(t, err, msg)
 
 					require.Nil(t, result)
+				})
+
+				t.Run("match no distributions", func(t *testing.T) {
+					response, err := sdk.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_no_distributions",
+						EntityId:     "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_001",
+						},
+					})
+					require.NoError(t, err)
+
+					assert.Equal(t, true, response.Match)
+					assert.Equal(t, "flag_no_distributions", response.FlagKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+					assert.Contains(t, response.SegmentKeys, "segment_001")
 				})
 			})
 

@@ -42,12 +42,14 @@ flags:
     threshold:
       percentage: 50
       value: true
-- key: redemptory
-  name: redemptory
+- key: no-distributions
+  name: No Distributions
   description: description
   enabled: true
   variants:
   - key: flipt-flag
+  rules:
+  - segment: segment1
 - key: animalculine
   name: animalculine
   description: description
