@@ -10,6 +10,9 @@ test.describe('Onboarding', () => {
         page.getByText('Get Started', { exact: true })
       ).toBeVisible();
       await expect(
+        page.getByText('Introducing Flipt Hybrid Cloud', { exact: true })
+      ).toBeVisible();
+      await expect(
         page.getByText('Try the CLI', { exact: true })
       ).toBeVisible();
       await expect(
@@ -41,7 +44,7 @@ test.describe('Onboarding', () => {
   test.describe('user navigates to the onboarding page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
-      await page.getByRole('link', { name: 'Support' }).click();
+      await page.getByRole('link', { name: 'Support', exact: true }).click();
       await page.getByRole('heading', { name: 'Onboarding' }).click();
       await page.getByRole('link', { name: "Let's Go" }).click();
     });
