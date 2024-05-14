@@ -1,0 +1,6 @@
+server:
+  cloud:
+    enabled: true
+experimental:
+  cloud:
+    enabled: true

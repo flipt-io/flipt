@@ -447,9 +447,21 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Authentication.Methods.Token.Method.Bootstrap = AuthenticationMethodTokenBootstrapConfig{
-					Token:      "s3cr3t!",
-					Expiration: 24 * time.Hour,
+				cfg.Authentication.Methods.Token.Enabled = true
+				cfg.Authentication.Methods = AuthenticationMethods{
+					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodTokenConfig{
+							Bootstrap: AuthenticationMethodTokenBootstrapConfig{
+								Token:      "s3cr3t!",
+								Expiration: 24 * time.Hour,
+							},
+						},
+						Cleanup: &AuthenticationCleanupSchedule{
+							Interval:    time.Hour,
+							GracePeriod: 30 * time.Minute,
+						},
+					},
 				}
 				return cfg
 			},
@@ -563,6 +575,29 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New(`field "public_key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
 		},
 		{
+			name: "server cloud missing port",
+			path: "./testdata/server/cloud_missing_port.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cloud.Host = "flipt.cloud"
+				cfg.Server.Cloud.Enabled = true
+				cfg.Server.Cloud.Port = 8443
+				cfg.Experimental.Cloud.Enabled = true
+				return cfg
+			},
+		},
+		{
+			name: "cloud trailing slash",
+			path: "./testdata/cloud/trim_trailing_slash.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cloud.Host = "flipt.cloud"
+				cfg.Server.Cloud.Port = 8443
+				cfg.Experimental.Cloud.Enabled = true
+				return cfg
+			},
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
@@ -593,17 +628,20 @@ func TestLoad(t *testing.T) {
 						Message: "msg",
 					},
 				}
+
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
 					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
 				}
+
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = 1 * time.Minute
 				cfg.Cache.Memory = MemoryCacheConfig{
 					EvictionInterval: 5 * time.Minute,
 				}
+
 				cfg.Server = ServerConfig{
 					Host:      "127.0.0.1",
 					Protocol:  HTTPS,
@@ -613,6 +651,7 @@ func TestLoad(t *testing.T) {
 					CertFile:  "./testdata/ssl_cert.pem",
 					CertKey:   "./testdata/ssl_key.pem",
 				}
+
 				cfg.Tracing = TracingConfig{
 					Enabled:       true,
 					Exporter:      TracingOTLP,
@@ -632,6 +671,7 @@ func TestLoad(t *testing.T) {
 						Endpoint: "localhost:4318",
 					},
 				}
+
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
@@ -647,6 +687,7 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				}
+
 				cfg.Database = DatabaseConfig{
 					URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 					MaxIdleConn:               10,
@@ -654,10 +695,12 @@ func TestLoad(t *testing.T) {
 					ConnMaxLifetime:           30 * time.Minute,
 					PreparedStatementsEnabled: true,
 				}
+
 				cfg.Meta = MetaConfig{
 					CheckForUpdates:  false,
 					TelemetryEnabled: false,
 				}
+
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
 					Session: AuthenticationSession{

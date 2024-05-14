@@ -1,0 +1,6 @@
+cloud:
+  host: "flipt.cloud/"
+
+experimental:
+  cloud:
+    enabled: true

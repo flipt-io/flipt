@@ -15636,6 +15636,16 @@ flags:
     distributions:
     - variant: variant_001
       rollout: 100
+- key: flag_no_distributions
+  name: FLAG_NO_DISTRIBUTIONS
+  type: VARIANT_FLAG_TYPE
+  description: Flag no distributions
+  enabled: true
+  variants:
+  - key: variant_001
+    name: VARIANT_001
+  rules:
+  - segment: segment_001
 segments:
 - key: segment_001
   name: SEGMENT_001

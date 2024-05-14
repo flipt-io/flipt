@@ -28,7 +28,10 @@ import { eventSlice, eventKey } from './app/events/eventSlice';
 const listenerMiddleware = createListenerMiddleware();
 
 listenerMiddleware.startListening({
-  matcher: isAnyOf(eventSlice.actions.onboardingCompleted),
+  matcher: isAnyOf(
+    eventSlice.actions.onboardingCompleted,
+    eventSlice.actions.bannerDismissed
+  ),
   effect: (_action, api) => {
     // save to local storage
     localStorage.setItem(

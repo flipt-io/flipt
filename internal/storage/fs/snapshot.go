@@ -717,7 +717,7 @@ func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
 	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
-		return nil, errs.ErrNotFoundf("rule %q", rule.ID)
+		return []*storage.EvaluationDistribution{}, nil
 	}
 
 	return dists, nil
