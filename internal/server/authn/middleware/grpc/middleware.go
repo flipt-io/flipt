@@ -212,6 +212,10 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			}
 		}
 
+		if iss, ok := jwtClaims["iss"].(string); ok {
+			metadata["io.flipt.auth.jwt.issuer"] = iss
+		}
+
 		auth := &authrpc.Authentication{
 			Method:   authrpc.Method_METHOD_JWT,
 			Metadata: metadata,

@@ -4,63 +4,65 @@ import { Fragment } from 'react';
 import { expireAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
-import { IAuthMethodGithubMetadata } from '~/types/auth/Github';
-import { IAuthMethodJWTMetadata } from '~/types/auth/JWT';
-import { IAuthMethodOIDCMetadata } from '~/types/auth/OIDC';
+import { IAuthGithubInternal } from '~/types/auth/Github';
+import { IAuthJWTInternal } from '~/types/auth/JWT';
+import { IAuthOIDCInternal } from '~/types/auth/OIDC';
 import { cls } from '~/utils/helpers';
 
 type UserProfileProps = {
-  metadata?:
-    | IAuthMethodOIDCMetadata
-    | IAuthMethodGithubMetadata
-    | IAuthMethodJWTMetadata;
+  session?: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal;
 };
 
 export default function UserProfile(props: UserProfileProps) {
-  const { metadata } = props;
-
+  const { session } = props;
   const { setError } = useError();
   const { clearSession } = useSession();
 
   let name: string | undefined;
   let login: string | undefined;
   let imgURL: string | undefined;
+  let logoutURL = '/';
 
-  if (metadata) {
-    // TODO: dry this up
-    if ('io.flipt.auth.github.name' in metadata) {
-      name = metadata['io.flipt.auth.github.name'] ?? 'User';
-      if (metadata['io.flipt.auth.github.picture']) {
-        imgURL = metadata['io.flipt.auth.github.picture'];
+  if (session) {
+    const authMethods = ['github', 'oidc', 'jwt'];
+    const authMethod = authMethods.find(
+      (method) => `METHOD_${method.toLocaleUpperCase()}` === session.method
+    );
+
+    if (authMethod) {
+      const metadata = session.metadata;
+
+      const authMethodNameKey = `io.flipt.auth.${authMethod}.name`;
+      name = metadata[authMethodNameKey as keyof typeof metadata] ?? 'User';
+
+      const authMethodPictureKey = `io.flipt.auth.${authMethod}.picture`;
+      if (metadata[authMethodPictureKey as keyof typeof metadata]) {
+        imgURL = metadata[authMethodPictureKey as keyof typeof metadata];
       }
-      if (metadata['io.flipt.auth.github.preferred_username']) {
-        login = metadata['io.flipt.auth.github.preferred_username'];
+
+      const authMethodPreferredUsernameKey = `io.flipt.auth.${authMethod}.preferred_username`;
+      if (metadata[authMethodPreferredUsernameKey as keyof typeof metadata]) {
+        login =
+          metadata[authMethodPreferredUsernameKey as keyof typeof metadata];
       }
-    } else if ('io.flipt.auth.oidc.name' in metadata) {
-      name = metadata['io.flipt.auth.oidc.name'] ?? 'User';
-      if (metadata['io.flipt.auth.oidc.picture']) {
-        imgURL = metadata['io.flipt.auth.oidc.picture'];
-      }
-      if (metadata['io.flipt.auth.oidc.preferred_username']) {
-        login = metadata['io.flipt.auth.oidc.preferred_username'];
-      }
-    } else if ('io.flipt.auth.jwt.name' in metadata) {
-      name = metadata['io.flipt.auth.jwt.name'] ?? 'User';
-      if (metadata['io.flipt.auth.jwt.picture']) {
-        imgURL = metadata['io.flipt.auth.jwt.picture'];
+
+      const authMethodIssuerKey = `io.flipt.auth.${authMethod}.issuer`;
+      if (metadata[authMethodIssuerKey as keyof typeof metadata]) {
+        const logoutURI =
+          metadata[authMethodIssuerKey as keyof typeof metadata];
+        logoutURL = `//${logoutURI}`;
       }
     }
   }
 
-  const logout = async () => {
-    expireAuthSelf()
-      .then(() => {
-        clearSession();
-        window.location.href = '/';
-      })
-      .catch((err) => {
-        setError(err);
-      });
+  const logout = () => {
+    try {
+      expireAuthSelf();
+      clearSession();
+      window.location.href = logoutURL;
+    } catch (err) {
+      setError(err);
+    }
   };
 
   return (

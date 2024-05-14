@@ -39,9 +39,7 @@ export default function Header(props: HeaderProps) {
           {info && info.updateAvailable && <Notifications info={info} />}
 
           {/* user profile */}
-          {session && session.self && (
-            <UserProfile metadata={session.self.metadata} />
-          )}
+          {session && session.self && <UserProfile session={session.self} />}
         </div>
       </div>
     </div>
