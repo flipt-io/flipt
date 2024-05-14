@@ -79,7 +79,7 @@ nightly:
   name_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
-  skip: true
+  disable: true
 
 dockers:
   - dockerfile: ./build/Dockerfile
@@ -138,9 +138,9 @@ announce:
 brews:
   - name: flipt
     homepage: https://flipt.io
-    description: An open source, self-hosted feature flag solution
+    description: Enterprise-ready, GitOps enabled, CloudNative feature management solution
     license: GPL-3.0-only
-    folder: Formula
+    directory: Formula
     skip_upload: auto
     install: |
       bin.install "flipt"
