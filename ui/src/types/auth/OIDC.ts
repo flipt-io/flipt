@@ -22,5 +22,6 @@ export interface IAuthMethodOIDCMetadata {
 }
 
 export interface IAuthOIDCInternal extends IAuth {
+  method: 'METHOD_OIDC';
   metadata: IAuthMethodOIDCMetadata;
 }

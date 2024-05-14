@@ -16,5 +16,6 @@ export interface IAuthMethodGithubMetadata {
 }
 
 export interface IAuthGithubInternal extends IAuth {
+  method: 'METHOD_GITHUB';
   metadata: IAuthMethodGithubMetadata;
 }

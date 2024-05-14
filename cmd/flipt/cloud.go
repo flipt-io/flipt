@@ -151,7 +151,7 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("waiting for token: %w", err)
 	}
 
-	if err := flow.Close(); err != nil {
+	if err := flow.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
 		return fmt.Errorf("closing flow: %w", err)
 	}
 
