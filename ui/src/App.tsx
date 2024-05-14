@@ -35,8 +35,7 @@ const Tokens = loadable(() => import('./app/tokens/Tokens'));
 if (typeof window !== 'undefined') {
   formbricks.init({
     environmentId: import.meta.env.FLIPT_FORMBRICKS_ENVIRONMENT_ID || '',
-    apiHost: 'https://app.formbricks.com',
-    debug: process.env.NODE_ENV === 'development'
+    apiHost: 'https://app.formbricks.com'
   });
 }
 
