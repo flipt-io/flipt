@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.42.0](https://github.com/flipt-io/flipt/releases/tag/v1.42.0) - 2024-05-15
+
+### Added
+
+- logout redirect to cloud issuer (#3082)
+- add banner about cloud offering (#3077)
+- Cloud support (#2998)
+
+### Changed
+
+- `integration`: add failing case for rules with no distributions (#3078)
+
+### Fixed
+
+- nightly and snapshot builds (mage) (#3084)
+- `migrations`: change the order of queries for mysql (#3039)
+
 ## [v1.41.2](https://github.com/flipt-io/flipt/releases/tag/v1.41.2) - 2024-05-14
 
 ### Fixed
