@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - nightly and snapshot builds (mage) (#3084)
-- `storage`: make OCI reauthentication with AWS ECR (#3044)
 - `migrations`: change the order of queries for mysql (#3039)
 
 ## [v1.41.2](https://github.com/flipt-io/flipt/releases/tag/v1.41.2) - 2024-05-14
