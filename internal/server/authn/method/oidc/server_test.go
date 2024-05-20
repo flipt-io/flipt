@@ -65,6 +65,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 				CustomClaims: map[string]interface{}{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
 				},
 			},
 			"george": {
@@ -76,6 +77,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 				CustomClaims: map[string]interface{}{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
+					"roles": []string{"editor"},
 				},
 			},
 		},
@@ -107,10 +109,11 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 					Method: config.AuthenticationMethodOIDCConfig{
 						Providers: map[string]config.AuthenticationMethodOIDCProvider{
 							"google": {
-								IssuerURL:       tp.Addr(),
-								ClientID:        id,
-								ClientSecret:    secret,
-								RedirectAddress: clientAddress,
+								IssuerURL:         tp.Addr(),
+								ClientID:          id,
+								ClientSecret:      secret,
+								RedirectAddress:   clientAddress,
+								RoleAttributePath: "contains(roles[*], 'admin') && 'admin' || contains(roles[*], 'editor') && 'editor' || 'viewer'",
 							},
 						},
 					},
@@ -167,6 +170,7 @@ func Test_Server_PKCE(t *testing.T) {
 				CustomClaims: map[string]interface{}{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
 				},
 			},
 			"george": {
@@ -178,6 +182,7 @@ func Test_Server_PKCE(t *testing.T) {
 				CustomClaims: map[string]interface{}{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
+					"roles": []string{"editor"},
 				},
 			},
 		},
@@ -210,11 +215,12 @@ func Test_Server_PKCE(t *testing.T) {
 					Method: config.AuthenticationMethodOIDCConfig{
 						Providers: map[string]config.AuthenticationMethodOIDCProvider{
 							"google": {
-								IssuerURL:       tp.Addr(),
-								ClientID:        id,
-								ClientSecret:    secret,
-								RedirectAddress: clientAddress,
-								UsePKCE:         true,
+								IssuerURL:         tp.Addr(),
+								ClientID:          id,
+								ClientSecret:      secret,
+								RedirectAddress:   clientAddress,
+								UsePKCE:           true,
+								RoleAttributePath: "contains(roles[*], 'admin') && 'admin' || contains(roles[*], 'editor') && 'editor' || 'viewer'",
 							},
 						},
 					},
@@ -345,6 +351,7 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 			"io.flipt.auth.oidc.email":    "mark@flipt.io",
 			"io.flipt.auth.oidc.name":     "Mark Phelps",
 			"io.flipt.auth.oidc.sub":      "mark",
+			"io.flipt.auth.role":          "admin",
 		}, response.Authentication.Metadata)
 
 		// ensure expiry is set

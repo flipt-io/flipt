@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -26,13 +27,13 @@ func TestSink(t *testing.T) {
 	err := s.SendAudits(context.TODO(), []audit.Event{
 		{
 			Version: "0.1",
-			Type:    audit.FlagType,
-			Action:  audit.Create,
+			Type:    flipt.SubjectFlag,
+			Action:  flipt.ActionCreate,
 		},
 		{
 			Version: "0.1",
-			Type:    audit.ConstraintType,
-			Action:  audit.Update,
+			Type:    flipt.SubjectConstraint,
+			Action:  flipt.ActionUpdate,
 		},
 	})
 
