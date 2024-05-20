@@ -27,13 +27,27 @@ type Event struct {
 
 	Type flipt.Subject `json:"type"`
 
-	Action flipt.Action `json:"action"`
+	Action flipt.Action `json:"-"`
 
 	Metadata Metadata `json:"metadata"`
 
 	Payload interface{} `json:"payload"`
 
 	Timestamp string `json:"timestamp"`
+}
+
+func (e Event) MarshalJSON() ([]byte, error) {
+
+	type EventAlias Event
+
+	return json.Marshal(&struct {
+		*EventAlias
+		Action string `json:"action"`
+	}{
+		EventAlias: (*EventAlias)(&e),
+		Action:     e.Action.Past(),
+	})
+
 }
 
 // NewEvent is the constructor for an event.
