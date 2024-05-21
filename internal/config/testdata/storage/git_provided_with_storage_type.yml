@@ -1,0 +1,7 @@
+storage:
+  type: git
+  git:
+    repository: "git@github.com:foo/bar.git"
+    storage:
+      type: "filesystem"
+      path: "/path/to/gitdir"

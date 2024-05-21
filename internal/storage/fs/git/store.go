@@ -8,10 +8,14 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	gitstorage "github.com/go-git/go-git/v5/storage"
+	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gitfs"
@@ -35,6 +39,7 @@ type SnapshotStore struct {
 	*storagefs.Poller
 
 	logger            *zap.Logger
+	storage           gitstorage.Storer
 	url               string
 	baseRef           string
 	refTypeTag        bool
@@ -110,12 +115,23 @@ func WithDirectory(directory string) containers.Option[SnapshotStore] {
 	}
 }
 
+// WithFilesystemStorage configures the Git repository to clone into
+// the local filesystem, instead of the default which is in-memory.
+// The provided path is location for the dotgit folder.
+func WithFilesystemStorage(path string) containers.Option[SnapshotStore] {
+	return func(ss *SnapshotStore) {
+		fs := osfs.New(path)
+		ss.storage = filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
+	}
+}
+
 // NewSnapshotStore constructs and configures a Store.
 // The store uses the connection and credential details provided to build
 // fs.FS implementations around a target git repository.
 func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts ...containers.Option[SnapshotStore]) (_ *SnapshotStore, err error) {
 	store := &SnapshotStore{
 		logger:            logger.With(zap.String("repository", url)),
+		storage:           memory.NewStorage(),
 		url:               url,
 		baseRef:           "main",
 		referenceResolver: staticResolver(),
@@ -147,7 +163,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 			cloneOpts.SingleBranch = true
 		}
 
-		store.repo, err = git.Clone(memory.NewStorage(), nil, cloneOpts)
+		store.repo, err = git.Clone(store.storage, nil, cloneOpts)
 		if err != nil {
 			return nil, fmt.Errorf("performing initial clone: %w", err)
 		}
@@ -158,7 +174,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		}
 	} else {
 		// fetch single reference
-		store.repo, err = git.InitWithOptions(memory.NewStorage(), nil, git.InitOptions{
+		store.repo, err = git.InitWithOptions(store.storage, nil, git.InitOptions{
 			DefaultBranch: plumbing.Main,
 		})
 		if err != nil {

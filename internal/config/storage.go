@@ -48,6 +48,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	case string(LocalStorageType):
 		v.SetDefault("storage.local.path", ".")
 	case string(GitStorageType):
+		v.SetDefault("storage.git.storage.type", "memory")
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.ref_type", "static")
 		v.SetDefault("storage.git.poll_interval", "30s")
@@ -163,15 +164,16 @@ const (
 
 // Git contains configuration for referencing a git repository.
 type Git struct {
-	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
-	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
-	RefType         GitRefType     `json:"refType,omitempty" mapstructure:"ref_type" yaml:"ref_type,omitempty"`
-	Directory       string         `json:"directory,omitempty" mapstructure:"directory" yaml:"directory,omitempty"`
-	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-" `
-	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-" `
-	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
-	PollInterval    time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	Authentication  Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
+	Repository      string           `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
+	Storage         GitStorageConfig `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Ref             string           `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
+	RefType         GitRefType       `json:"refType,omitempty" mapstructure:"ref_type" yaml:"ref_type,omitempty"`
+	Directory       string           `json:"directory,omitempty" mapstructure:"directory" yaml:"directory,omitempty"`
+	CaCertBytes     string           `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string           `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	InsecureSkipTLS bool             `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	PollInterval    time.Duration    `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	Authentication  Authentication   `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
 }
 
 func (g *Git) validate() error {
@@ -184,6 +186,18 @@ func (g *Git) validate() error {
 	}
 
 	return nil
+}
+
+type GitStorage string
+
+const (
+	GitStorageMemory     = GitStorage("memory")
+	GitStorageFilesystem = GitStorage("filesystem")
+)
+
+type GitStorageConfig struct {
+	Type GitStorage `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Path string     `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 }
 
 // Object contains configuration of readonly object storage.
