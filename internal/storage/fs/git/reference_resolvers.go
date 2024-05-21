@@ -8,11 +8,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
-// ReferenceResolver is a function type used to describe reference resolver functions.
-type ReferenceResolver func(repo *git.Repository, ref string) (plumbing.Hash, error)
+// referenceResolver is a function type used to describe reference resolver functions.
+type referenceResolver func(repo *git.Repository, ref string) (plumbing.Hash, error)
 
-// StaticResolver is a resolver which just resolve static references.
-func StaticResolver() ReferenceResolver {
+// staticResolver is a resolver which just resolve static references.
+func staticResolver() referenceResolver {
 	return func(repo *git.Repository, ref string) (plumbing.Hash, error) {
 		if plumbing.IsHash(ref) {
 			return plumbing.NewHash(ref), nil
@@ -27,8 +27,8 @@ func StaticResolver() ReferenceResolver {
 	}
 }
 
-// SemverResolver is a resolver which resolver semantic versioning references for tags.
-func SemverResolver() ReferenceResolver {
+// semverResolver is a resolver which resolver semantic versioning references for tags.
+func semverResolver() referenceResolver {
 	return func(repo *git.Repository, ref string) (plumbing.Hash, error) {
 		constraint, err := semver.NewConstraint(ref)
 		if err != nil {
