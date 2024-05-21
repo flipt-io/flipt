@@ -86,16 +86,16 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return ctx, errUnauthorized
 		}
 
-		sub := request.Subject
-		if sub == "" {
-			logger.Error("unauthorized", zap.String("reason", "request subject required"))
+		scope := request.Scope
+		if scope == "" {
+			logger.Error("unauthorized", zap.String("reason", "request scope required"))
 			return ctx, errUnauthorized
 		}
 
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
-			"role":    role,
-			"action":  action,
-			"subject": sub,
+			"role":   role,
+			"action": action,
+			"scope":  scope,
 		})
 
 		if err != nil {

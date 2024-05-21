@@ -5,5 +5,5 @@ import (
 )
 
 func (req *CreateTokenRequest) Request() flipt.Request {
-	return flipt.NewRequest(flipt.SubjectToken, flipt.ActionCreate)
+	return flipt.NewScopedRequest(flipt.ScopeToken, flipt.SubjectToken, flipt.ActionCreate)
 }

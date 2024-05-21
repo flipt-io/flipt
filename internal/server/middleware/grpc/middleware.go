@@ -451,9 +451,7 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 
 		defer func() {
 			if event != nil {
-				ts := string(event.Type)
-				as := event.Action.Past()
-				eventPair := fmt.Sprintf("%s:%s", ts, as)
+				eventPair := fmt.Sprintf("%s:%s", event.Subject, event.Action)
 
 				exists := eventPairChecker.Check(eventPair)
 				if exists {

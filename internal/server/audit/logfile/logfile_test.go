@@ -210,8 +210,8 @@ func TestSink_SendAudits(t *testing.T) {
 	assert.NoError(t, sink.SendAudits(context.Background(), []audit.Event{
 		{
 			Version: "1",
-			Type:    flipt.SubjectFlag,
-			Action:  flipt.ActionCreate,
+			Subject: string(flipt.SubjectFlag),
+			Action:  string(flipt.ActionCreate),
 		},
 	}))
 

@@ -4,27 +4,21 @@ type Requester interface {
 	Request() Request
 }
 
-// Subject represents what resource is being acted on.
+// Scope represents what resource or parent resource is being acted on.
+type Scope string
+
+// Subject returns the subject of the request.
 type Subject string
 
 // Action represents the action being taken on the resource.
 type Action string
 
-// Past returns the past tense of the action. Required for backwards compatibility with the audit log.
-func (a Action) Past() string {
-	switch a {
-	case ActionCreate:
-		return "created"
-	case ActionUpdate:
-		return "updated"
-	case ActionDelete:
-		return "deleted"
-	default:
-		return "read"
-	}
-}
-
 const (
+	ScopeNamespace Scope = "namespace"
+	ScopeFlag      Scope = "flag"
+	ScopeSegment   Scope = "segment"
+	ScopeToken     Scope = "token"
+
 	SubjectConstraint   Subject = "constraint"
 	SubjectDistribution Subject = "distribution"
 	SubjectFlag         Subject = "flag"
@@ -34,175 +28,195 @@ const (
 	SubjectSegment      Subject = "segment"
 	SubjectToken        Subject = "token"
 	SubjectVariant      Subject = "variant"
-	SubjectAll          Subject = "*"
 
 	ActionCreate Action = "create"
 	ActionDelete Action = "delete"
 	ActionUpdate Action = "update"
 	ActionRead   Action = "read"
-	ActionAll    Action = "*"
 )
 
 type Request struct {
+	Namespaced
+	Scope   Scope   `json:"scope"`
 	Subject Subject `json:"subject"`
 	Action  Action  `json:"action"`
 }
 
-func NewRequest(t Subject, a Action) Request {
+func NewScopedRequest(scope Scope, s Subject, a Action) Request {
 	return Request{
-		Subject: t,
+		Scope:   scope,
+		Subject: s,
 		Action:  a,
 	}
 }
 
+func NewRequest(s Subject, a Action) Request {
+	return Request{
+		Subject: s,
+		Action:  a,
+	}
+}
+
+func newNamespaceScopedRequest(s Subject, a Action) Request {
+	return NewScopedRequest(ScopeNamespace, s, a)
+}
+
+func newFlagScopedRequest(s Subject, a Action) Request {
+	return NewScopedRequest(ScopeFlag, s, a)
+}
+
+func newSegmentScopedRequest(s Subject, a Action) Request {
+	return NewScopedRequest(ScopeSegment, s, a)
+}
+
 // Namespaces
 func (req *GetNamespaceRequest) Request() Request {
-	return NewRequest(SubjectNamespace, ActionRead)
+	return newNamespaceScopedRequest(SubjectNamespace, ActionRead)
 }
 
 func (req *ListNamespaceRequest) Request() Request {
-	return NewRequest(SubjectNamespace, ActionRead)
+	return newNamespaceScopedRequest(SubjectNamespace, ActionRead)
 }
 
 func (req *CreateNamespaceRequest) Request() Request {
-	return NewRequest(SubjectNamespace, ActionCreate)
+	return newNamespaceScopedRequest(SubjectNamespace, ActionCreate)
 }
 
 func (req *UpdateNamespaceRequest) Request() Request {
-	return NewRequest(SubjectNamespace, ActionUpdate)
+	return newNamespaceScopedRequest(SubjectNamespace, ActionUpdate)
 }
 
 func (req *DeleteNamespaceRequest) Request() Request {
-	return NewRequest(SubjectNamespace, ActionDelete)
+	return newNamespaceScopedRequest(SubjectNamespace, ActionDelete)
 }
 
 // Flags
 func (req *GetFlagRequest) Request() Request {
-	return NewRequest(SubjectFlag, ActionRead)
+	return newFlagScopedRequest(SubjectFlag, ActionRead)
 }
 
 func (req *ListFlagRequest) Request() Request {
-	return NewRequest(SubjectFlag, ActionRead)
+	return newFlagScopedRequest(SubjectFlag, ActionRead)
 }
 
 func (req *CreateFlagRequest) Request() Request {
-	return NewRequest(SubjectFlag, ActionCreate)
+	return newFlagScopedRequest(SubjectFlag, ActionCreate)
 }
 
 func (req *UpdateFlagRequest) Request() Request {
-	return NewRequest(SubjectFlag, ActionUpdate)
+	return newFlagScopedRequest(SubjectFlag, ActionUpdate)
 }
 
 func (req *DeleteFlagRequest) Request() Request {
-	return NewRequest(SubjectFlag, ActionDelete)
+	return newFlagScopedRequest(SubjectFlag, ActionDelete)
 }
 
 // Variants
 func (req *CreateVariantRequest) Request() Request {
-	return NewRequest(SubjectVariant, ActionCreate)
+	return newFlagScopedRequest(SubjectVariant, ActionCreate)
 }
 
 func (req *UpdateVariantRequest) Request() Request {
-	return NewRequest(SubjectVariant, ActionUpdate)
+	return newFlagScopedRequest(SubjectVariant, ActionUpdate)
 }
 
 func (req *DeleteVariantRequest) Request() Request {
-	return NewRequest(SubjectVariant, ActionDelete)
+	return newFlagScopedRequest(SubjectVariant, ActionDelete)
 }
 
 // Rules
 func (req *ListRuleRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionRead)
+	return newFlagScopedRequest(SubjectRule, ActionRead)
 }
 
 func (req *GetRuleRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionRead)
+	return newFlagScopedRequest(SubjectRule, ActionRead)
 }
 
 func (req *CreateRuleRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionCreate)
+	return newFlagScopedRequest(SubjectRule, ActionCreate)
 }
 
 func (req *UpdateRuleRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionUpdate)
+	return newFlagScopedRequest(SubjectRule, ActionUpdate)
 }
 
 func (req *OrderRulesRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionUpdate)
+	return newFlagScopedRequest(SubjectRule, ActionUpdate)
 }
 
 func (req *DeleteRuleRequest) Request() Request {
-	return NewRequest(SubjectRule, ActionDelete)
+	return newFlagScopedRequest(SubjectRule, ActionDelete)
 }
 
 // Rollouts
 func (req *ListRolloutRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionRead)
+	return newFlagScopedRequest(SubjectRollout, ActionRead)
 }
 
 func (req *GetRolloutRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionRead)
+	return newFlagScopedRequest(SubjectRollout, ActionRead)
 }
 
 func (req *CreateRolloutRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionCreate)
+	return newFlagScopedRequest(SubjectRollout, ActionCreate)
 }
 
 func (req *UpdateRolloutRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionUpdate)
+	return newFlagScopedRequest(SubjectRollout, ActionUpdate)
 }
 
 func (req *OrderRolloutsRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionUpdate)
+	return newFlagScopedRequest(SubjectRollout, ActionUpdate)
 }
 
 func (req *DeleteRolloutRequest) Request() Request {
-	return NewRequest(SubjectRollout, ActionDelete)
+	return newFlagScopedRequest(SubjectRollout, ActionDelete)
 }
 
 // Segments
 func (req *GetSegmentRequest) Request() Request {
-	return NewRequest(SubjectSegment, ActionRead)
+	return newSegmentScopedRequest(SubjectSegment, ActionRead)
 }
 
 func (req *ListSegmentRequest) Request() Request {
-	return NewRequest(SubjectSegment, ActionRead)
+	return newSegmentScopedRequest(SubjectSegment, ActionRead)
 }
 
 func (req *CreateSegmentRequest) Request() Request {
-	return NewRequest(SubjectSegment, ActionCreate)
+	return newSegmentScopedRequest(SubjectSegment, ActionCreate)
 }
 
 func (req *UpdateSegmentRequest) Request() Request {
-	return NewRequest(SubjectSegment, ActionUpdate)
+	return newSegmentScopedRequest(SubjectSegment, ActionUpdate)
 }
 
 func (req *DeleteSegmentRequest) Request() Request {
-	return NewRequest(SubjectSegment, ActionDelete)
+	return newSegmentScopedRequest(SubjectSegment, ActionDelete)
 }
 
 // Constraints
 func (req *CreateConstraintRequest) Request() Request {
-	return NewRequest(SubjectConstraint, ActionCreate)
+	return newSegmentScopedRequest(SubjectConstraint, ActionCreate)
 }
 
 func (req *UpdateConstraintRequest) Request() Request {
-	return NewRequest(SubjectConstraint, ActionUpdate)
+	return newSegmentScopedRequest(SubjectConstraint, ActionUpdate)
 }
 
 func (req *DeleteConstraintRequest) Request() Request {
-	return NewRequest(SubjectConstraint, ActionDelete)
+	return newSegmentScopedRequest(SubjectConstraint, ActionDelete)
 }
 
 // Distributions
 func (req *CreateDistributionRequest) Request() Request {
-	return NewRequest(SubjectDistribution, ActionCreate)
+	return newSegmentScopedRequest(SubjectDistribution, ActionCreate)
 }
 
 func (req *UpdateDistributionRequest) Request() Request {
-	return NewRequest(SubjectDistribution, ActionUpdate)
+	return newSegmentScopedRequest(SubjectDistribution, ActionUpdate)
 }
 
 func (req *DeleteDistributionRequest) Request() Request {
-	return NewRequest(SubjectDistribution, ActionDelete)
+	return newSegmentScopedRequest(SubjectDistribution, ActionDelete)
 }

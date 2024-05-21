@@ -10,31 +10,10 @@
     {
       "name": "editor",
       "rules": {
-        "create": [
-          "flag",
-          "variant",
-          "rollout",
-          "rule",
-          "segment",
-          "distribution"
-        ],
+        "create": ["flag", "segment"],
         "read": ["*"],
-        "update": [
-          "flag",
-          "variant",
-          "rollout",
-          "rule",
-          "segment",
-          "distribution"
-        ],
-        "delete": [
-          "flag",
-          "variant",
-          "rollout",
-          "rule",
-          "segment",
-          "distribution"
-        ]
+        "update": ["flag", "segment"],
+        "delete": ["flag", "segment"]
       }
     },
     {
