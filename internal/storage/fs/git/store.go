@@ -288,9 +288,8 @@ func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error)
 	}
 
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
-		Auth:      s.auth,
-		RemoteURL: s.url,
-		RefSpecs:  refSpecs,
+		Auth:     s.auth,
+		RefSpecs: refSpecs,
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return false, err
