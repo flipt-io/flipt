@@ -78,14 +78,14 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	if e.Action != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   eventActionKey,
-			Value: attribute.StringValue(string(e.Action)),
+			Value: attribute.StringValue(e.Action),
 		})
 	}
 
 	if e.Subject != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   eventTypeKey,
-			Value: attribute.StringValue(string(e.Subject)),
+			Value: attribute.StringValue(e.Subject),
 		})
 	}
 
