@@ -432,13 +432,13 @@ type EventPairChecker interface {
 func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var request flipt.Request
-		r, ok := req.(flipt.Request)
+		r, ok := req.(flipt.Requester)
 
 		if !ok {
 			return handler(ctx, req)
 		}
 
-		request = r
+		request = r.Request()
 
 		resp, err := handler(ctx, req)
 		if err != nil {
@@ -452,7 +452,7 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 		defer func() {
 			if event != nil {
 				ts := string(event.Type)
-				as := string(event.Action)
+				as := event.Action.Past()
 				eventPair := fmt.Sprintf("%s:%s", ts, as)
 
 				exists := eventPairChecker.Check(eventPair)
@@ -463,12 +463,12 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 			}
 		}()
 
-		// Delete request(s) have to be handled separately because they do not
+		// Delete and Order request(s) have to be handled separately because they do not
 		// return the concrete type but rather an *empty.Empty response.
 		if request.Action == flipt.ActionDelete {
 			event = audit.NewEvent(request, actor, r)
 		} else {
-			switch r := resp.(type) {
+			switch r := req.(type) {
 			case *flipt.OrderRulesRequest, *flipt.OrderRolloutsRequest:
 				event = audit.NewEvent(request, actor, r)
 			}

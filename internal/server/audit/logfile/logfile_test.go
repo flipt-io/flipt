@@ -215,7 +215,7 @@ func TestSink_SendAudits(t *testing.T) {
 		},
 	}))
 
-	assert.Equal(t, `{"version":"1","type":"flag","action":"created","metadata":{},"payload":null,"timestamp":""}
+	assert.JSONEq(t, `{"version":"1","type":"flag","action":"created","metadata":{},"payload":null,"timestamp":""}
 `, f.Buffer.String())
 	assert.NoError(t, sink.Close())
 }

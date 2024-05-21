@@ -9,6 +9,12 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 )
 
+var _ Verifier = &Engine{}
+
+type Verifier interface {
+	IsAllowed(ctx context.Context, input map[string]interface{}) (bool, error)
+}
+
 type Engine struct {
 	query rego.PreparedEvalQuery
 }

@@ -48,7 +48,7 @@ func TestExecuter_JSON_Failure(t *testing.T) {
 		Action: flipt.ActionCreate,
 	})
 
-	assert.EqualError(t, err, "invalid JSON: this is invalid JSON flag, created")
+	assert.EqualError(t, err, "invalid JSON: this is invalid JSON flag, create")
 }
 
 func TestExecuter_Execute(t *testing.T) {

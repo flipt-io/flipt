@@ -10,6 +10,20 @@ type Subject string
 // Action represents the action being taken on the resource.
 type Action string
 
+// Past returns the past tense of the action. Required for backwards compatibility with the audit log.
+func (a Action) Past() string {
+	switch a {
+	case ActionCreate:
+		return "created"
+	case ActionUpdate:
+		return "updated"
+	case ActionDelete:
+		return "deleted"
+	default:
+		return "read"
+	}
+}
+
 const (
 	SubjectConstraint   Subject = "constraint"
 	SubjectDistribution Subject = "distribution"
@@ -20,11 +34,13 @@ const (
 	SubjectSegment      Subject = "segment"
 	SubjectToken        Subject = "token"
 	SubjectVariant      Subject = "variant"
+	SubjectAll          Subject = "*"
 
 	ActionCreate Action = "create"
 	ActionDelete Action = "delete"
 	ActionUpdate Action = "update"
 	ActionRead   Action = "read"
+	ActionAll    Action = "*"
 )
 
 type Request struct {

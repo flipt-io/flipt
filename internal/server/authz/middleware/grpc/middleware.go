@@ -50,7 +50,7 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 	}
 }
 
-func AuthorizationRequiredInterceptor(logger *zap.Logger, policyEngine *authz.Engine, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -92,7 +92,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyEngine *authz.En
 			return ctx, errUnauthorized
 		}
 
-		allowed, err := policyEngine.IsAllowed(ctx, map[string]interface{}{
+		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
 			"role":    role,
 			"action":  action,
 			"subject": sub,
