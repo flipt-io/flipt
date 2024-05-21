@@ -172,7 +172,7 @@ flags:
 	require.NoError(t, fi.Close())
 
 	// commit changes
-	_, err = tree.Commit("chore: update features.yml", &git.CommitOptions{
+	_, err = tree.Commit("chore: update features.yml add foo and bar", &git.CommitOptions{
 		All:    true,
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
@@ -184,18 +184,6 @@ flags:
 		RemoteName: "origin",
 		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
 	}))
-
-	// wait until the snapshot is updated or
-	// we timeout
-	select {
-	case <-ch:
-	case <-time.After(time.Minute):
-		t.Fatal("timed out waiting for snapshot")
-	}
-
-	require.NoError(t, err)
-
-	t.Log("received new snapshot")
 
 	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
@@ -209,8 +197,62 @@ flags:
 		return nil
 	}))
 
+	// should be able to fetch flag from previously unfetched reference
 	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
+		require.NoError(t, err, "flag should be present on new-branch")
+		return nil
+	}))
+
+	// flag bar should not yet be present
+	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "baz"))
+		require.Error(t, err, "flag should not be found in explicitly named new-branch revision")
+		return nil
+	}))
+
+	// update features.yml, now with the bar flag
+	fi, err = workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	require.NoError(t, err)
+
+	updated = []byte(`namespace: production
+flags:
+  - key: foo
+    name: Foo
+  - key: bar
+    name: Bar
+  - key: baz
+    name: Baz`)
+
+	_, err = fi.Write(updated)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	// commit changes
+	_, err = tree.Commit("chore: update features.yml add baz", &git.CommitOptions{
+		All:    true,
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
+	require.NoError(t, err)
+
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
+		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
+		RemoteName: "origin",
+		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
+	}))
+
+	// we should expect to see a modified event now because
+	// the new reference should be tracked
+	select {
+	case <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for fetch")
+	}
+
+	// should be able to fetch flag bar now that it has been pushed
+	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
+		_, err := s.GetFlag(ctx, storage.NewResource("production", "baz"))
 		require.NoError(t, err, "flag should be present on new-branch")
 		return nil
 	}))

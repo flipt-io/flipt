@@ -3,7 +3,9 @@ package git
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
+	"slices"
 	"sync"
 
 	"github.com/go-git/go-git/v5"
@@ -136,7 +138,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 	}
 
 	// do an initial fetch to setup remote tracking branches
-	if _, err := store.fetch(ctx); err != nil {
+	if _, err := store.fetch(ctx, store.snaps.References()); err != nil {
 		return nil, err
 	}
 
@@ -180,8 +182,13 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 		return fn(snap)
 	}
 
+	refs := s.snaps.References()
+	if !slices.Contains(refs, ref) {
+		refs = append(refs, ref)
+	}
+
 	// force attempt a fetch to get the latest references
-	if _, err := s.fetch(ctx); err != nil {
+	if _, err := s.fetch(ctx, refs); err != nil {
 		return err
 	}
 
@@ -202,7 +209,7 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	if updated, err := s.fetch(ctx); !(err == nil && updated) {
+	if updated, err := s.fetch(ctx, s.snaps.References()); !(err == nil && updated) {
 		// either nothing updated or err != nil
 		return updated, err
 	}
@@ -223,16 +230,23 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	return true, errors.Join(errs...)
 }
 
-func (s *SnapshotStore) fetch(ctx context.Context) (bool, error) {
+func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	refSpecs := []config.RefSpec{
+		"+refs/tags/*:refs/tags/*",
+	}
+
+	for _, head := range heads {
+		refSpecs = append(refSpecs,
+			config.RefSpec(fmt.Sprintf("+refs/heads/%[1]s:refs/heads/%[1]s", head)),
+		)
+	}
+
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
-		Auth: s.auth,
-		RefSpecs: []config.RefSpec{
-			"+refs/heads/*:refs/heads/*",
-			"+refs/tags/*:refs/tags/*",
-		},
+		Auth:     s.auth,
+		RefSpecs: refSpecs,
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return false, err
