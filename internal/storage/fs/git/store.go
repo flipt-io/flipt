@@ -149,12 +149,12 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 
 		store.repo, err = git.Clone(memory.NewStorage(), nil, cloneOpts)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("performing initial clone: %w", err)
 		}
 
 		// do an initial fetch to setup remote tracking branches
-		if _, err := store.fetch(ctx, store.snaps.References()); err != nil {
-			return nil, err
+		if _, err := store.fetch(ctx, []string{store.baseRef}); err != nil {
+			return nil, fmt.Errorf("performing initial fetch: %w", err)
 		}
 	} else {
 		// fetch single reference
@@ -173,8 +173,10 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		}
 
 		if err := store.repo.FetchContext(ctx, &git.FetchOptions{
-			Auth:  store.auth,
-			Depth: 1,
+			Auth:            store.auth,
+			CABundle:        store.caBundle,
+			InsecureSkipTLS: store.insecureSkipTLS,
+			Depth:           1,
 			RefSpecs: []config.RefSpec{
 				config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", store.baseRef)),
 			},

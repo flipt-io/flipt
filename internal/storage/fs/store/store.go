@@ -34,7 +34,6 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 	case config.GitStorageType:
 		opts := []containers.Option[git.SnapshotStore]{
 			git.WithRef(cfg.Storage.Git.Ref),
-			git.WithSemverResolver(),
 			git.WithPollOptions(
 				storagefs.WithInterval(cfg.Storage.Git.PollInterval),
 			),
