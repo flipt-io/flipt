@@ -25,12 +25,12 @@ func TestSink(t *testing.T) {
 	err := s.SendAudits(context.TODO(), []audit.Event{
 		{
 			Version: "0.1",
-			Subject: string(flipt.SubjectFlag),
+			Type:    string(flipt.SubjectFlag),
 			Action:  string(flipt.ActionCreate),
 		},
 		{
 			Version: "0.1",
-			Subject: string(flipt.SubjectConstraint),
+			Type:    string(flipt.SubjectConstraint),
 			Action:  string(flipt.ActionUpdate),
 		},
 	})

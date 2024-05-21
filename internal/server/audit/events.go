@@ -25,7 +25,7 @@ const (
 type Event struct {
 	Version string `json:"version"`
 
-	Subject string `json:"type"`
+	Type string `json:"type"`
 
 	Action string `json:"action"`
 
@@ -54,7 +54,7 @@ func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
 	return &Event{
 		Version: eventVersion,
 		Action:  action,
-		Subject: string(r.Subject),
+		Type:    string(r.Subject),
 		Metadata: Metadata{
 			Actor: actor,
 		},
@@ -82,10 +82,10 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		})
 	}
 
-	if e.Subject != "" {
+	if e.Type != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   eventTypeKey,
-			Value: attribute.StringValue(e.Subject),
+			Value: attribute.StringValue(e.Type),
 		})
 	}
 
@@ -123,7 +123,7 @@ func (e *Event) AddToSpan(ctx context.Context) {
 }
 
 func (e *Event) Valid() bool {
-	return e.Version != "" && e.Action != "" && e.Subject != "" && e.Timestamp != "" && e.Payload != nil
+	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
 }
 
 var errEventNotValid = errors.New("event not valid")
@@ -139,7 +139,7 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 		case eventActionKey:
 			e.Action = kv.Value.AsString()
 		case eventTypeKey:
-			e.Subject = kv.Value.AsString()
+			e.Type = kv.Value.AsString()
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
 		case eventMetadataActorKey:
