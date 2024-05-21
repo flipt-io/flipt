@@ -17,7 +17,6 @@ const (
 	ScopeNamespace Scope = "namespace"
 	ScopeFlag      Scope = "flag"
 	ScopeSegment   Scope = "segment"
-	ScopeToken     Scope = "token"
 
 	SubjectConstraint   Subject = "constraint"
 	SubjectDistribution Subject = "distribution"
@@ -57,10 +56,6 @@ func NewRequest(s Subject, a Action) Request {
 	}
 }
 
-func newNamespaceScopedRequest(s Subject, a Action) Request {
-	return NewScopedRequest(ScopeNamespace, s, a)
-}
-
 func newFlagScopedRequest(s Subject, a Action) Request {
 	return NewScopedRequest(ScopeFlag, s, a)
 }
@@ -71,44 +66,44 @@ func newSegmentScopedRequest(s Subject, a Action) Request {
 
 // Namespaces
 func (req *GetNamespaceRequest) Request() Request {
-	return newNamespaceScopedRequest(SubjectNamespace, ActionRead)
+	return NewRequest(SubjectNamespace, ActionRead)
 }
 
 func (req *ListNamespaceRequest) Request() Request {
-	return newNamespaceScopedRequest(SubjectNamespace, ActionRead)
+	return NewRequest(SubjectNamespace, ActionRead)
 }
 
 func (req *CreateNamespaceRequest) Request() Request {
-	return newNamespaceScopedRequest(SubjectNamespace, ActionCreate)
+	return NewRequest(SubjectNamespace, ActionCreate)
 }
 
 func (req *UpdateNamespaceRequest) Request() Request {
-	return newNamespaceScopedRequest(SubjectNamespace, ActionUpdate)
+	return NewRequest(SubjectNamespace, ActionUpdate)
 }
 
 func (req *DeleteNamespaceRequest) Request() Request {
-	return newNamespaceScopedRequest(SubjectNamespace, ActionDelete)
+	return NewRequest(SubjectNamespace, ActionDelete)
 }
 
 // Flags
 func (req *GetFlagRequest) Request() Request {
-	return newFlagScopedRequest(SubjectFlag, ActionRead)
+	return NewRequest(SubjectFlag, ActionRead)
 }
 
 func (req *ListFlagRequest) Request() Request {
-	return newFlagScopedRequest(SubjectFlag, ActionRead)
+	return NewRequest(SubjectFlag, ActionRead)
 }
 
 func (req *CreateFlagRequest) Request() Request {
-	return newFlagScopedRequest(SubjectFlag, ActionCreate)
+	return NewRequest(SubjectFlag, ActionCreate)
 }
 
 func (req *UpdateFlagRequest) Request() Request {
-	return newFlagScopedRequest(SubjectFlag, ActionUpdate)
+	return NewRequest(SubjectFlag, ActionUpdate)
 }
 
 func (req *DeleteFlagRequest) Request() Request {
-	return newFlagScopedRequest(SubjectFlag, ActionDelete)
+	return NewRequest(SubjectFlag, ActionDelete)
 }
 
 // Variants
@@ -176,23 +171,23 @@ func (req *DeleteRolloutRequest) Request() Request {
 
 // Segments
 func (req *GetSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(SubjectSegment, ActionRead)
+	return NewRequest(SubjectSegment, ActionRead)
 }
 
 func (req *ListSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(SubjectSegment, ActionRead)
+	return NewRequest(SubjectSegment, ActionRead)
 }
 
 func (req *CreateSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(SubjectSegment, ActionCreate)
+	return NewRequest(SubjectSegment, ActionCreate)
 }
 
 func (req *UpdateSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(SubjectSegment, ActionUpdate)
+	return NewRequest(SubjectSegment, ActionUpdate)
 }
 
 func (req *DeleteSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(SubjectSegment, ActionDelete)
+	return NewRequest(SubjectSegment, ActionDelete)
 }
 
 // Constraints
