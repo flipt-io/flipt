@@ -37,7 +37,8 @@ type SnapshotStore struct {
 	logger            *zap.Logger
 	url               string
 	baseRef           string
-	referenceResolver ReferenceResolver
+	refTypeTag        bool
+	referenceResolver referenceResolver
 	directory         string
 	auth              transport.AuthMethod
 	insecureSkipTLS   bool
@@ -60,10 +61,11 @@ func WithRef(ref string) containers.Option[SnapshotStore] {
 	}
 }
 
-// WithRefResolver configures how the reference will be resolved for the repository.
-func WithRefResolver(resolver ReferenceResolver) containers.Option[SnapshotStore] {
+// WithSemverResolver configures how the reference will be resolved for the repository.
+func WithSemverResolver() containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {
-		s.referenceResolver = resolver
+		s.refTypeTag = true
+		s.referenceResolver = semverResolver()
 	}
 }
 
@@ -116,7 +118,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		logger:            logger.With(zap.String("repository", url)),
 		url:               url,
 		baseRef:           "main",
-		referenceResolver: StaticResolver(),
+		referenceResolver: staticResolver(),
 	}
 	containers.ApplyAll(store, opts...)
 
@@ -127,19 +129,58 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		return nil, err
 	}
 
-	store.repo, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		Auth:            store.auth,
-		URL:             store.url,
-		CABundle:        store.caBundle,
-		InsecureSkipTLS: store.insecureSkipTLS,
-	})
-	if err != nil {
-		return nil, err
-	}
+	if !plumbing.IsHash(store.baseRef) {
+		// if the base ref is not an explicit SHA then
+		// attempt to clone either the explicit branch
+		// or all references for tag based semver
+		cloneOpts := &git.CloneOptions{
+			Auth:            store.auth,
+			URL:             store.url,
+			CABundle:        store.caBundle,
+			InsecureSkipTLS: store.insecureSkipTLS,
+		}
 
-	// do an initial fetch to setup remote tracking branches
-	if _, err := store.fetch(ctx, store.snaps.References()); err != nil {
-		return nil, err
+		// if our reference is a branch type then we can assume it exists
+		// and attempt to only clone from this branch initially
+		if !store.refTypeTag {
+			cloneOpts.ReferenceName = plumbing.NewBranchReferenceName(store.baseRef)
+			cloneOpts.SingleBranch = true
+		}
+
+		store.repo, err = git.Clone(memory.NewStorage(), nil, cloneOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		// do an initial fetch to setup remote tracking branches
+		if _, err := store.fetch(ctx, store.snaps.References()); err != nil {
+			return nil, err
+		}
+	} else {
+		// fetch single reference
+		store.repo, err = git.InitWithOptions(memory.NewStorage(), nil, git.InitOptions{
+			DefaultBranch: plumbing.Main,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err = store.repo.CreateRemote(&config.RemoteConfig{
+			Name: "origin",
+			URLs: []string{store.url},
+		}); err != nil {
+			return nil, err
+		}
+
+		if err := store.repo.FetchContext(ctx, &git.FetchOptions{
+			Auth:  store.auth,
+			Depth: 1,
+			RefSpecs: []config.RefSpec{
+				config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", store.baseRef)),
+			},
+		}); err != nil {
+			return nil, err
+		}
 	}
 
 	// fetch base ref snapshot at-least once before returning store
@@ -234,8 +275,10 @@ func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	refSpecs := []config.RefSpec{
-		"+refs/tags/*:refs/tags/*",
+	refSpecs := []config.RefSpec{}
+
+	if s.refTypeTag {
+		refSpecs = append(refSpecs, "+refs/tags/*:refs/tags/*")
 	}
 
 	for _, head := range heads {
@@ -245,8 +288,9 @@ func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error)
 	}
 
 	if err := s.repo.FetchContext(ctx, &git.FetchOptions{
-		Auth:     s.auth,
-		RefSpecs: refSpecs,
+		Auth:      s.auth,
+		RemoteURL: s.url,
+		RefSpecs:  refSpecs,
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return false, err

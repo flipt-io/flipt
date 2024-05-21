@@ -274,7 +274,7 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL,
 		WithRef("v0.1.*"),
-		WithRefResolver(SemverResolver()),
+		WithSemverResolver(),
 		WithPollOptions(
 			fs.WithInterval(time.Second),
 			fs.WithNotify(t, func(modified bool) {

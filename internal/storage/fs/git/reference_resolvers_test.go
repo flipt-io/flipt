@@ -17,7 +17,7 @@ import (
 func TestStaticResolver(t *testing.T) {
 	t.Run("should resolve static references correctly", func(t *testing.T) {
 		repo := newGitRepo(t)
-		resolver := StaticResolver()
+		resolver := staticResolver()
 
 		commitHash := repo.createCommit(t)
 		resolvedHash, err := resolver(repo.repo, "main")
@@ -38,7 +38,7 @@ func TestStaticResolver(t *testing.T) {
 func TestSemverResolver(t *testing.T) {
 	t.Run("should resolve semver tags correctly when the reference is a constraint", func(t *testing.T) {
 		repo := newGitRepo(t)
-		resolver := SemverResolver()
+		resolver := semverResolver()
 		constraint := "v0.1.*"
 
 		commitHash := repo.createCommit(t)
@@ -61,7 +61,7 @@ func TestSemverResolver(t *testing.T) {
 
 	t.Run("should resolve semver tags correctly when the reference is not a constraint", func(t *testing.T) {
 		repo := newGitRepo(t)
-		resolver := SemverResolver()
+		resolver := semverResolver()
 
 		commitHash := repo.createCommit(t)
 		repo.createTag(t, "v0.1.0", commitHash)
@@ -74,7 +74,7 @@ func TestSemverResolver(t *testing.T) {
 
 	t.Run("should resolve semver tags correctly when there is non compliant semver tags", func(t *testing.T) {
 		repo := newGitRepo(t)
-		resolver := SemverResolver()
+		resolver := semverResolver()
 
 		commitHash := repo.createCommit(t)
 		repo.createTag(t, "non-semver-tag", commitHash)
@@ -90,7 +90,7 @@ func TestSemverResolver(t *testing.T) {
 
 	t.Run("should return an error when no matching tag was found", func(t *testing.T) {
 		repo := newGitRepo(t)
-		resolver := SemverResolver()
+		resolver := semverResolver()
 
 		commitHash := repo.createCommit(t)
 		repo.createTag(t, "v0.1.0", commitHash)
