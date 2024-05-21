@@ -676,7 +676,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GotBackendMemory,
+							Type: GitBackendMemory,
 						},
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
@@ -821,7 +821,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GotBackendMemory,
+							Type: GitBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
@@ -841,7 +841,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GotBackendMemory,
+							Type: GitBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
@@ -862,7 +862,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GotBackendMemory,
+							Type: GitBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeSemver,
@@ -934,7 +934,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GotBackendMemory,
+							Type: GitBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,

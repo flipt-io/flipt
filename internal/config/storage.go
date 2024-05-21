@@ -191,7 +191,7 @@ func (g *Git) validate() error {
 type GitBackendType string
 
 const (
-	GotBackendMemory     = GitBackendType("memory")
+	GitBackendMemory     = GitBackendType("memory")
 	GitBackendFilesystem = GitBackendType("filesystem")
 )
 

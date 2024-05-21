@@ -58,7 +58,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 
 			opts = append(opts, git.WithFilesystemStorage(path))
 			logger = logger.With(zap.String("git_storage_type", "filesystem"), zap.String("git_storage_path", path))
-		case config.GotBackendMemory:
+		case config.GitBackendMemory:
 			logger = logger.With(zap.String("git_storage_type", "memory"))
 		}
 
