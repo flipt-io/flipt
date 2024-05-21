@@ -46,9 +46,9 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			opts = append(opts, git.WithSemverResolver())
 		}
 
-		switch storage.Storage.Type {
-		case config.GitStorageFilesystem:
-			path := storage.Storage.Path
+		switch storage.Backend.Type {
+		case config.GitBackendFilesystem:
+			path := storage.Backend.Path
 			if path == "" {
 				path, err = os.MkdirTemp(os.TempDir(), "flipt-git-*")
 				if err != nil {
@@ -58,7 +58,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 
 			opts = append(opts, git.WithFilesystemStorage(path))
 			logger = logger.With(zap.String("git_storage_type", "filesystem"), zap.String("git_storage_path", path))
-		case config.GitStorageMemory:
+		case config.GotBackendMemory:
 			logger = logger.With(zap.String("git_storage_type", "memory"))
 		}
 

@@ -675,8 +675,8 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageMemory,
+						Backend: GitBackend{
+							Type: GotBackendMemory,
 						},
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
@@ -820,8 +820,8 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageMemory,
+						Backend: GitBackend{
+							Type: GotBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
@@ -840,8 +840,8 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageMemory,
+						Backend: GitBackend{
+							Type: GotBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
@@ -861,8 +861,8 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageMemory,
+						Backend: GitBackend{
+							Type: GotBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeSemver,
@@ -876,14 +876,14 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "git config provided with ref_type",
-			path: "./testdata/storage/git_provided_with_storage_type.yml",
+			path: "./testdata/storage/git_provided_with_backend_type.yml",
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageFilesystem,
+						Backend: GitBackend{
+							Type: GitBackendFilesystem,
 							Path: "/path/to/gitdir",
 						},
 						Ref:          "main",
@@ -933,8 +933,8 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
-						Storage: GitStorageConfig{
-							Type: GitStorageMemory,
+						Backend: GitBackend{
+							Type: GotBackendMemory,
 						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,

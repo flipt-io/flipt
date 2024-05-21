@@ -2,6 +2,6 @@ storage:
   type: git
   git:
     repository: "git@github.com:foo/bar.git"
-    storage:
+    backend:
       type: "filesystem"
       path: "/path/to/gitdir"
