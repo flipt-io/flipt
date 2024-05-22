@@ -32,6 +32,7 @@ import (
 func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ storage.Store, err error) {
 	switch cfg.Storage.Type {
 	case config.GitStorageType:
+		storage := cfg.Storage.Git
 		opts := []containers.Option[git.SnapshotStore]{
 			git.WithRef(cfg.Storage.Git.Ref),
 			git.WithPollOptions(
@@ -41,21 +42,37 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			git.WithDirectory(cfg.Storage.Git.Directory),
 		}
 
-		if cfg.Storage.Git.RefType == config.GitRefTypeSemver {
+		if storage.RefType == config.GitRefTypeSemver {
 			opts = append(opts, git.WithSemverResolver())
 		}
 
-		if cfg.Storage.Git.CaCertBytes != "" {
-			opts = append(opts, git.WithCABundle([]byte(cfg.Storage.Git.CaCertBytes)))
-		} else if cfg.Storage.Git.CaCertPath != "" {
-			if bytes, err := os.ReadFile(cfg.Storage.Git.CaCertPath); err == nil {
+		switch storage.Backend.Type {
+		case config.GitBackendFilesystem:
+			path := storage.Backend.Path
+			if path == "" {
+				path, err = os.MkdirTemp(os.TempDir(), "flipt-git-*")
+				if err != nil {
+					return nil, fmt.Errorf("making tempory directory for git storage: %w", err)
+				}
+			}
+
+			opts = append(opts, git.WithFilesystemStorage(path))
+			logger = logger.With(zap.String("git_storage_type", "filesystem"), zap.String("git_storage_path", path))
+		case config.GitBackendMemory:
+			logger = logger.With(zap.String("git_storage_type", "memory"))
+		}
+
+		if storage.CaCertBytes != "" {
+			opts = append(opts, git.WithCABundle([]byte(storage.CaCertBytes)))
+		} else if storage.CaCertPath != "" {
+			if bytes, err := os.ReadFile(storage.CaCertPath); err == nil {
 				opts = append(opts, git.WithCABundle(bytes))
 			} else {
 				return nil, err
 			}
 		}
 
-		auth := cfg.Storage.Git.Authentication
+		auth := storage.Authentication
 		switch {
 		case auth.BasicAuth != nil:
 			opts = append(opts, git.WithAuth(&http.BasicAuth{
@@ -95,7 +112,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 			opts = append(opts, git.WithAuth(method))
 		}
 
-		snapStore, err := git.NewSnapshotStore(ctx, logger, cfg.Storage.Git.Repository, opts...)
+		snapStore, err := git.NewSnapshotStore(ctx, logger, storage.Repository, opts...)
 		if err != nil {
 			return nil, err
 		}

@@ -121,6 +121,86 @@ flags:
 	}))
 }
 
+func Test_Store_View_WithFilesystemStorage(t *testing.T) {
+	ch := make(chan struct{})
+	store, skip := testStore(t, gitRepoURL,
+		WithFilesystemStorage(t.TempDir()),
+		WithPollOptions(
+			fs.WithInterval(time.Second),
+			fs.WithNotify(t, func(modified bool) {
+				if modified {
+					close(ch)
+				}
+			}),
+		))
+	if skip {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	// pull repo
+	workdir := memfs.New()
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
+	require.NoError(t, err)
+
+	tree, err := repo.Worktree()
+	require.NoError(t, err)
+
+	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
+		Branch: "refs/heads/main",
+	}))
+
+	// update features.yml
+	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	require.NoError(t, err)
+
+	updated := []byte(`namespace: production
+flags:
+    - key: foo
+      name: Foo`)
+
+	_, err = fi.Write(updated)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	// commit changes
+	_, err = tree.Commit("chore: update features.yml", &git.CommitOptions{
+		All:    true,
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
+	require.NoError(t, err)
+
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
+		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
+		RemoteName: "origin",
+	}))
+
+	// wait until the snapshot is updated or
+	// we timeout
+	select {
+	case <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for snapshot")
+	}
+
+	require.NoError(t, err)
+
+	t.Log("received new snapshot")
+
+	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
+		_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
+		return err
+	}))
+}
+
 func Test_Store_View_WithRevision(t *testing.T) {
 	ch := make(chan struct{})
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(

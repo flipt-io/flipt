@@ -675,6 +675,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
 						RefType:      GitRefTypeStatic,
@@ -817,6 +820,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
@@ -834,6 +840,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
@@ -852,10 +861,34 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeSemver,
 						Repository:   "git@github.com:foo/bar.git",
 						Directory:    "baz",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided with ref_type",
+			path: "./testdata/storage/git_provided_with_backend_type.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendFilesystem,
+							Path: "/path/to/gitdir",
+						},
+						Ref:          "main",
+						RefType:      GitRefTypeStatic,
+						Repository:   "git@github.com:foo/bar.git",
 						PollInterval: 30 * time.Second,
 					},
 				}
@@ -900,6 +933,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
