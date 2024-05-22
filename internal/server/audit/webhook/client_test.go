@@ -40,8 +40,8 @@ func TestWebhookClient(t *testing.T) {
 	}
 
 	err := whclient.SendAudit(context.TODO(), audit.Event{
-		Type:   flipt.SubjectFlag,
-		Action: flipt.ActionCreate,
+		Type:   string(flipt.SubjectFlag),
+		Action: string(flipt.ActionCreate),
 	})
 
 	require.NoError(t, err)

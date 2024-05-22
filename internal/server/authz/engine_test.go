@@ -26,7 +26,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "admin",
 				"action": "create",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: true,
 		},
@@ -35,7 +35,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "admin",
 				"action": "read",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: true,
 		},
@@ -44,7 +44,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "editor",
 				"action": "create",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: true,
 		},
@@ -53,7 +53,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "editor",
 				"action": "read",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: true,
 		},
@@ -62,7 +62,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "editor",
 				"action": "create",
-				"subject": "namespace"
+				"scope": "namespace"
 			}`,
 			expected: false,
 		},
@@ -71,7 +71,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "viewer",
 				"action": "read",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: true,
 		},
@@ -80,7 +80,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 			input: `{
 				"role": "viewer",
 				"action": "create",
-				"subject": "flag"
+				"scope": "flag"
 			}`,
 			expected: false,
 		},

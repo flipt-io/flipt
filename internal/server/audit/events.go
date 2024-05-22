@@ -25,9 +25,9 @@ const (
 type Event struct {
 	Version string `json:"version"`
 
-	Type flipt.Subject `json:"type"`
+	Type string `json:"type"`
 
-	Action flipt.Action `json:"-"`
+	Action string `json:"action"`
 
 	Metadata Metadata `json:"metadata"`
 
@@ -36,26 +36,25 @@ type Event struct {
 	Timestamp string `json:"timestamp"`
 }
 
-func (e Event) MarshalJSON() ([]byte, error) {
-
-	type EventAlias Event
-
-	return json.Marshal(&struct {
-		*EventAlias
-		Action string `json:"action"`
-	}{
-		EventAlias: (*EventAlias)(&e),
-		Action:     e.Action.Past(),
-	})
-
-}
-
 // NewEvent is the constructor for an event.
 func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
+	var action string
+
+	switch r.Action {
+	case flipt.ActionCreate:
+		action = "created"
+	case flipt.ActionUpdate:
+		action = "updated"
+	case flipt.ActionDelete:
+		action = "deleted"
+	default:
+		action = "read"
+	}
+
 	return &Event{
 		Version: eventVersion,
-		Action:  r.Action,
-		Type:    r.Subject,
+		Action:  action,
+		Type:    string(r.Subject),
 		Metadata: Metadata{
 			Actor: actor,
 		},
@@ -79,14 +78,14 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	if e.Action != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   eventActionKey,
-			Value: attribute.StringValue(string(e.Action)),
+			Value: attribute.StringValue(e.Action),
 		})
 	}
 
 	if e.Type != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   eventTypeKey,
-			Value: attribute.StringValue(string(e.Type)),
+			Value: attribute.StringValue(e.Type),
 		})
 	}
 
@@ -138,9 +137,9 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 		case eventVersionKey:
 			e.Version = kv.Value.AsString()
 		case eventActionKey:
-			e.Action = flipt.Action(kv.Value.AsString())
+			e.Action = kv.Value.AsString()
 		case eventTypeKey:
-			e.Type = flipt.Subject(kv.Value.AsString())
+			e.Type = kv.Value.AsString()
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
 		case eventMetadataActorKey:

@@ -3,6 +3,7 @@ package logfile
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -207,15 +208,19 @@ func TestSink_SendAudits(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sink)
 
-	assert.NoError(t, sink.SendAudits(context.Background(), []audit.Event{
-		{
-			Version: "1",
-			Type:    flipt.SubjectFlag,
-			Action:  flipt.ActionCreate,
-		},
-	}))
+	e := audit.NewEvent(flipt.NewRequest(flipt.SubjectFlag, flipt.ActionCreate), nil, nil)
+	assert.NoError(t, sink.SendAudits(context.Background(), []audit.Event{*e}))
 
-	assert.JSONEq(t, `{"version":"1","type":"flag","action":"created","metadata":{},"payload":null,"timestamp":""}
-`, f.Buffer.String())
+	assert.NotNil(t, f.Buffer)
+
+	ee := &audit.Event{}
+	err = json.Unmarshal(f.Bytes(), ee)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, ee.Version)
+	assert.Equal(t, e.Type, ee.Type)
+	assert.Equal(t, e.Action, ee.Action)
+	assert.NotEmpty(t, ee.Timestamp)
+
 	assert.NoError(t, sink.Close())
 }

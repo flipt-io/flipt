@@ -27,10 +27,10 @@ default allow = false
 allow {
     input.role != ""
     input.action != ""
-    input.subject != ""
+    input.scope != ""
 
     permissions := get_permissions(input.role)
-    allowed(permissions, input.action, input.subject)
+    allowed(permissions, input.action, input.scope)
 }
 
 get_permissions(role) = result {
@@ -39,28 +39,28 @@ get_permissions(role) = result {
     result = data.roles[idx].rules
 }
 
-allowed(permissions, action, subject) {
+allowed(permissions, action, scope) {
     permissions[action]  # First, ensure the action key exists
-    subject_in_list(permissions[action], subject)  # Check if the subject is in the list
+    scope_in_list(permissions[action], scope)  # Check if the scope is in the list
 }
 
-allowed(permissions, action, subject) {
-    permissions[action]["*"]  # Checks if all subjects are allowed for the action
+allowed(permissions, action, scope) {
+    permissions[action]["*"]  # Checks if all scopes are allowed for the action
 }
 
 # Handles cases where "*" is provided for all actions
-allowed(permissions, action, subject) {
+allowed(permissions, action, scope) {
     permissions["*"] != null  # Check if wildcard for all actions exists
-    subject_in_list(permissions["*"], subject)  # Check if subject is universally allowed or specific to an action
+    scope_in_list(permissions["*"], scope)  # Check if scope is universally allowed or specific to an action
 }
 
 # Helper to handle array membership or wildcard
-subject_in_list(list, subject) {
-    list[_] = subject  # Subject is explicitly listed in the permissions
+scope_in_list(list, scope) {
+    list[_] = scope  # Scope is explicitly listed in the permissions
 }
 
-subject_in_list(list, subject) {
-    list[_] = "*"  # Wildcard entry that permits all subjects
+scope_in_list(list, scope) {
+    list[_] = "*"  # Wildcard entry that permits all scopes
 }
 `
 
