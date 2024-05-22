@@ -272,6 +272,9 @@ func (c claims) addToMetadata(m map[string]string) {
 	set(storageMetadataOIDCProfile, c.Profile)
 	set(storageMetadataOIDCPicture, c.Picture)
 	set(storageMetadataOIDCSub, c.Sub)
+	// consolidate common fields
+	set(method.StorageMetadataEmail, c.Email)
+	set(method.StorageMetadataName, c.Name)
 
 	if c.Verified != nil {
 		m[storageMetadataOIDCEmailVerified] = fmt.Sprintf("%v", *c.Verified)
