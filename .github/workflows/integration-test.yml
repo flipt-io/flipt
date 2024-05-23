@@ -57,6 +57,7 @@ jobs:
             "api/mysql",
             "api/cockroach",
             "api/cache",
+            "api/cachetls",
             "fs/git",
             "fs/local",
             "fs/s3",
