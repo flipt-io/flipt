@@ -325,6 +325,38 @@
         "required": {
           "type": "boolean",
           "default": false
+        },
+        "policy": {
+          "type": ["object", "null"],
+          "$ref": "#/definitions/authorization/$defs/authorization_source"
+        },
+        "data": {
+          "type": ["object", "null"],
+          "$ref": "#/definitions/authorization/$defs/authorization_source"
+        },
+        "poll_duration": {
+          "type": "string",
+          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+          "default": "30s"
+        }
+      },
+      "$defs": {
+        "authorization_source": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": ["filesystem"]
+            },
+            "filesystem": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "path": {"type": "string"}
+              }
+            }
+          }
         }
       }
     },

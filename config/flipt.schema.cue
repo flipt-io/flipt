@@ -115,7 +115,15 @@ import "strings"
 	}
 
 	#authorization: {
-		required?: bool | *false
+		#authorizationSource: {
+			backend: "filesystem"
+			filesystem: path: string
+		}
+
+		required?:      bool | *false
+		policy?:        #authorizationSource
+		data?:          #authorizationSource
+		poll_duration?: =~#duration | "30s"
 	}
 
 	#cache: {
@@ -144,9 +152,9 @@ import "strings"
 	}
 
 	#cloud: {
-		host?: string | *"flipt.cloud"
-		organization?:  string
-		instance?:  string
+		host?:         string | *"flipt.cloud"
+		organization?: string
+		instance?:     string
 		authentication?: {
 			api_key?: string
 		}
@@ -349,7 +357,7 @@ import "strings"
 					body: string
 					headers?: [string]: string
 				}]
-			},
+			}
 			cloud?: {
 				enabled?: bool | *false
 			}

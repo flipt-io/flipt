@@ -17,8 +17,8 @@ type AuthorizationConfig struct {
 	// Required designates whether authorization credentials are validated.
 	// If required == true, then authorization is required for all API endpoints.
 	Required     bool                       `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
-	Policy       *AuthorizationSourceConfig `json:"policy,omitempty" mapstructure:"policy" yaml:"policy,omitempty"`
-	Data         *AuthorizationSourceConfig `json:"data,omitempty" mapstructure:"data" yaml:"data,omitempty"`
+	Policy       *AuthorizationSourceConfig `json:"policy,omitempty" mapstructure:"policy,omitempty" yaml:"policy,omitempty"`
+	Data         *AuthorizationSourceConfig `json:"data,omitempty" mapstructure:"data,omitempty" yaml:"data,omitempty"`
 	PollDuration time.Duration              `json:"pollDuration,omitempty" mapstructure:"poll_duration" yaml:"poll_duration,omitempty"`
 }
 
