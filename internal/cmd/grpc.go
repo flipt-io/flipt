@@ -33,6 +33,7 @@ import (
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authz/source/filesystem"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -357,7 +358,30 @@ func NewGRPCServer(
 			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
 		}
 
-		policyEngine, err := authz.NewEngine(ctx)
+		engineOpts := []containers.Option[authz.Engine]{
+			authz.WithPollDuration(cfg.Authorization.PollDuration),
+		}
+
+		if cfg.Authorization.Data != nil {
+			switch cfg.Authorization.Data.Backend {
+			case config.AuthorizationBackendFilesystem:
+				engineOpts = append(engineOpts, authz.WithDataSource(
+					filesystem.DataSourceFromPath(cfg.Authorization.Data.Filesystem.Path),
+				))
+			default:
+				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
+			}
+		}
+
+		var source authz.PolicySource
+		switch cfg.Authorization.Policy.Backend {
+		case config.AuthorizationBackendFilesystem:
+			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Filesystem.Path)
+		default:
+			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
+		}
+
+		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
 		}
