@@ -59,14 +59,14 @@ func (d *DataSource) Get(_ context.Context, seen []byte) (map[string]any, []byte
 	return data, mod, json.Unmarshal(b, &data)
 }
 
-func read(path string, seen []byte) (data, mod []byte, _ error) {
+func read(path string, seen []byte) (data, mod []byte, err error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	mod = []byte(info.ModTime().Format(time.RFC3339))
-	if seen != nil && bytes.Compare(seen, mod) == 0 {
+	if seen != nil && bytes.Equal(seen, mod) {
 		return nil, nil, authz.ErrNotModified
 	}
 
