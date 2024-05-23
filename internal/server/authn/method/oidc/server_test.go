@@ -349,7 +349,9 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		assert.Equal(t, map[string]string{
 			"io.flipt.auth.oidc.provider": "google",
 			"io.flipt.auth.oidc.email":    "mark@flipt.io",
+			"io.flipt.auth.email":         "mark@flipt.io",
 			"io.flipt.auth.oidc.name":     "Mark Phelps",
+			"io.flipt.auth.name":          "Mark Phelps",
 			"io.flipt.auth.oidc.sub":      "mark",
 			"io.flipt.auth.role":          "admin",
 		}, response.Authentication.Metadata)
