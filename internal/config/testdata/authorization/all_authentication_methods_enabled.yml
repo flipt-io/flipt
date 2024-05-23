@@ -41,3 +41,7 @@ authentication:
 
 authorization:
   required: true
+  policy:
+    backend: filesystem
+    filesystem:
+      path: "/path/to/policy.rego"

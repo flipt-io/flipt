@@ -106,3 +106,14 @@ authentication:
       cleanup:
         interval: 2h
         grace_period: 48h
+
+authorization:
+  required: true
+  policy:
+    backend: filesystem
+    filesystem:
+      path: "/path/to/policy.rego"
+  data:
+    backend: filesystem
+    filesystem:
+      path: "/path/to/policy/data.json"

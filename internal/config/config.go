@@ -636,5 +636,9 @@ func Default() *Config {
 				FlushPeriod: 10 * time.Second,
 			},
 		},
+
+		Authorization: AuthorizationConfig{
+			PollDuration: 30 * time.Second,
+		},
 	}
 }
