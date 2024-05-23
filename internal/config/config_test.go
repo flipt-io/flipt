@@ -325,6 +325,29 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "cache redis with insecure skip verify tls",
+			path: "./testdata/cache/redis-tls-insecure.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.InsecureSkipTLS = true
+				return cfg
+			},
+		},
+		{
+			name: "cache redis with ca bundle",
+			path: "./testdata/cache/redis-ca.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.CaCertBytes = "pemblock\n"
+				cfg.Cache.Redis.CaCertPath = "internal/config/testdata/ca.pem"
+				return cfg
+			},
+		},
+		{
 			name: "metrics disabled",
 			path: "./testdata/metrics/disabled.yml",
 			expected: func() *Config {

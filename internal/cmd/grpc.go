@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -64,7 +63,6 @@ import (
 	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 
 	goredis_cache "github.com/go-redis/cache/v9"
-	goredis "github.com/redis/go-redis/v9"
 )
 
 type grpcRegister interface {
@@ -230,7 +228,6 @@ func NewGRPCServer(
 			err           error
 		)
 		cacher, cacheShutdown, err = getCache(ctx, cfg)
-
 		if err != nil {
 			return nil, err
 		}
@@ -517,26 +514,11 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 		case config.CacheMemory:
 			cacher = memory.NewCache(cfg.Cache)
 		case config.CacheRedis:
-			var tlsConfig *tls.Config
-			if cfg.Cache.Redis.RequireTLS {
-				tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+			rdb, err := redis.NewClient(cfg.Cache.Redis)
+			if err != nil {
+				cacheErr = err
+				return
 			}
-
-			rdb := goredis.NewClient(&goredis.Options{
-				Addr:            fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
-				TLSConfig:       tlsConfig,
-				Username:        cfg.Cache.Redis.Username,
-				Password:        cfg.Cache.Redis.Password,
-				DB:              cfg.Cache.Redis.DB,
-				PoolSize:        cfg.Cache.Redis.PoolSize,
-				MinIdleConns:    cfg.Cache.Redis.MinIdleConn,
-				ConnMaxIdleTime: cfg.Cache.Redis.ConnMaxIdleTime,
-				DialTimeout:     cfg.Cache.Redis.NetTimeout,
-				ReadTimeout:     cfg.Cache.Redis.NetTimeout * 2,
-				WriteTimeout:    cfg.Cache.Redis.NetTimeout * 2,
-				PoolTimeout:     cfg.Cache.Redis.NetTimeout * 2,
-			})
-
 			cacheFunc = func(ctx context.Context) error {
 				return rdb.Shutdown(ctx).Err()
 			}
