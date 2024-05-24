@@ -16,17 +16,28 @@ var (
 type AuthorizationConfig struct {
 	// Required designates whether authorization credentials are validated.
 	// If required == true, then authorization is required for all API endpoints.
-	Required     bool                       `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
-	Policy       *AuthorizationSourceConfig `json:"policy,omitempty" mapstructure:"policy,omitempty" yaml:"policy,omitempty"`
-	Data         *AuthorizationSourceConfig `json:"data,omitempty" mapstructure:"data,omitempty" yaml:"data,omitempty"`
-	PollDuration time.Duration              `json:"pollDuration,omitempty" mapstructure:"poll_duration" yaml:"poll_duration,omitempty"`
+	Required bool                       `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
+	Policy   *AuthorizationSourceConfig `json:"policy,omitempty" mapstructure:"policy,omitempty" yaml:"policy,omitempty"`
+	Data     *AuthorizationSourceConfig `json:"data,omitempty" mapstructure:"data,omitempty" yaml:"data,omitempty"`
 }
 
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("authorization", map[string]interface{}{
-		"required":      false,
-		"poll_duration": "30s",
-	})
+	auth := map[string]any{"required": false}
+	if v.GetBool("authorization.required") {
+		auth["policy"] = map[string]any{
+			"backend":       "local",
+			"poll_duration": "5m",
+		}
+
+		if v.GetString("authorization.data.local.path") != "" {
+			auth["data"] = map[string]any{
+				"backend":       "local",
+				"poll_duration": "30s",
+			}
+		}
+
+		v.SetDefault("authorization", auth)
+	}
 
 	return nil
 }
@@ -50,8 +61,9 @@ func (c *AuthorizationConfig) validate() error {
 }
 
 type AuthorizationSourceConfig struct {
-	Backend    AuthorizationBackend          `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
-	Filesystem AuthorizationFilesystemConfig `json:"filesystem,omitempty" mapstructure:"filesystem" yaml:"filesystem,omitempty"`
+	Backend      AuthorizationBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Local        *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	PollDuration time.Duration             `json:"pollDuration,omitempty" mapstructure:"poll_duration" yaml:"poll_duration,omitempty"`
 }
 
 func (a *AuthorizationSourceConfig) validate() (err error) {
@@ -65,12 +77,12 @@ func (a *AuthorizationSourceConfig) validate() (err error) {
 		return nil
 	}
 
-	if a.Backend != AuthorizationBackendFilesystem {
-		return errors.New("backend must be one of [filesystem]")
+	if a.Backend != AuthorizationBackendLocal {
+		return errors.New("backend must be one of [local]")
 	}
 
-	if a.Filesystem.Path == "" {
-		return errors.New("filesystem: path must be non-empty string")
+	if a.Local == nil || a.Local.Path == "" {
+		return errors.New("local: path must be non-empty string")
 	}
 
 	return nil
@@ -81,11 +93,11 @@ func (a *AuthorizationSourceConfig) validate() (err error) {
 type AuthorizationBackend string
 
 const (
-	AuthorizationBackendFilesystem = "filesystem"
+	AuthorizationBackendLocal = "local"
 )
 
-// AuthorizationFilesystemConfig configures the filesystem backend source
+// AuthorizationLocalConfig configures the local backend source
 // for the authorization evaluation engines policies and data
-type AuthorizationFilesystemConfig struct {
+type AuthorizationLocalConfig struct {
 	Path string `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 }

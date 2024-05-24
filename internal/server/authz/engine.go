@@ -17,7 +17,7 @@ import (
 var (
 	_ Verifier = &Engine{}
 
-	defaultPollDuration = 30 * time.Second
+	defaultPolicyPollDuration = 5 * time.Minute
 
 	// ErrNotModified is returned from a source when the data has not
 	// been modified, identified based on the provided hash value
@@ -49,12 +49,14 @@ type Engine struct {
 	dataSource DataSource
 	dataHash   []byte
 
-	pollDuration time.Duration
+	pollDuration           time.Duration
+	dataSourcePollDuration time.Duration
 }
 
-func WithDataSource(source DataSource) containers.Option[Engine] {
+func WithDataSource(source DataSource, pollDuration time.Duration) containers.Option[Engine] {
 	return func(e *Engine) {
 		e.dataSource = source
+		e.dataSourcePollDuration = pollDuration
 	}
 }
 
@@ -69,17 +71,36 @@ func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opt
 		logger:       logger,
 		policySource: source,
 		store:        inmem.New(),
-		pollDuration: defaultPollDuration,
+		pollDuration: defaultPolicyPollDuration,
 	}
 
 	containers.ApplyAll(engine, opts...)
 
-	err := engine.update(ctx, storage.AddOp)
-	if err != nil {
+	// update data store with initial data if source is configured
+	if err := engine.updateData(ctx, storage.AddOp); err != nil {
 		return nil, err
 	}
 
-	go engine.pollData(ctx)
+	// fetch policy and then compile and set query engine
+	if err := engine.updatePolicy(ctx); err != nil {
+		return nil, err
+	}
+
+	// begin polling for updates for policy
+	go poll(ctx, engine.pollDuration, func() {
+		if err := engine.updatePolicy(ctx); err != nil {
+			engine.logger.Error("updating policy", zap.Error(err))
+		}
+	})
+
+	// being polling for updates to data if source configured
+	if engine.dataSource != nil {
+		go poll(ctx, engine.pollDuration, func() {
+			if err := engine.updateData(ctx, storage.ReplaceOp); err != nil {
+				engine.logger.Error("updating data", zap.Error(err))
+			}
+		})
+	}
 
 	return engine, nil
 }
@@ -100,26 +121,16 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	return results[0].Expressions[0].Value.(bool), nil
 }
 
-func (e *Engine) pollData(ctx context.Context) {
-	ticker := time.NewTicker(e.pollDuration)
+func poll(ctx context.Context, d time.Duration, fn func()) {
+	ticker := time.NewTicker(d)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := e.update(ctx, storage.ReplaceOp); err != nil {
-				e.logger.Error("updating policy and data", zap.Error(err))
-			}
+			fn()
 		}
 	}
-}
-
-func (e *Engine) update(ctx context.Context, op storage.PatchOp) error {
-	if err := e.updateData(ctx, op); err != nil {
-		return err
-	}
-
-	return e.updatePolicy(ctx)
 }
 
 func (e *Engine) updatePolicy(ctx context.Context) error {

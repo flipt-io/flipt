@@ -116,14 +116,18 @@ import "strings"
 
 	#authorization: {
 		#authorizationSource: {
-			backend: "filesystem"
-			filesystem: path: string
+			backend: "local"
+			local: path: string
+			poll_duration?: =~#duration
 		}
 
-		required?:      bool | *false
-		policy?:        #authorizationSource
-		data?:          #authorizationSource
-		poll_duration?: =~#duration | "30s"
+		required?: bool | *false
+		policy?: #authorizationSource & {
+			poll_duration: =~#duration | *"5m"
+		}
+		data?: #authorizationSource & {
+			poll_duration: =~#duration | *"30s"
+		}
 	}
 
 	#cache: {

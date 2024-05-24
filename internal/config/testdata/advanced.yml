@@ -110,10 +110,11 @@ authentication:
 authorization:
   required: true
   policy:
-    backend: filesystem
-    filesystem:
+    backend: local
+    local:
       path: "/path/to/policy.rego"
+    poll_duration: 1m
   data:
-    backend: filesystem
-    filesystem:
+    backend: local
+    local:
       path: "/path/to/policy/data.json"

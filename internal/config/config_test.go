@@ -617,12 +617,12 @@ func TestLoad(t *testing.T) {
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
 					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendFilesystem,
-						Filesystem: AuthorizationFilesystemConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy.rego",
 						},
+						PollDuration: 30 * time.Second,
 					},
-					PollDuration: 30 * time.Second,
 				}
 
 				cfg.Authentication = AuthenticationConfig{
@@ -860,18 +860,19 @@ func TestLoad(t *testing.T) {
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
 					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendFilesystem,
-						Filesystem: AuthorizationFilesystemConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy.rego",
 						},
+						PollDuration: time.Minute,
 					},
 					Data: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendFilesystem,
-						Filesystem: AuthorizationFilesystemConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy/data.json",
 						},
+						PollDuration: 30 * time.Second,
 					},
-					PollDuration: 30 * time.Second,
 				}
 
 				return cfg

@@ -364,9 +364,9 @@ func NewGRPCServer(
 
 		if cfg.Authorization.Data != nil {
 			switch cfg.Authorization.Data.Backend {
-			case config.AuthorizationBackendFilesystem:
+			case config.AuthorizationBackendLocal:
 				engineOpts = append(engineOpts, authz.WithDataSource(
-					filesystem.DataSourceFromPath(cfg.Authorization.Data.Filesystem.Path),
+					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
 				))
 			default:
 				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
@@ -375,8 +375,8 @@ func NewGRPCServer(
 
 		var source authz.PolicySource
 		switch cfg.Authorization.Policy.Backend {
-		case config.AuthorizationBackendFilesystem:
-			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Filesystem.Path)
+		case config.AuthorizationBackendLocal:
+			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
 		default:
 			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
 		}

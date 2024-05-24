@@ -48,6 +48,3 @@ db:
 meta:
   check_for_updates: true
   telemetry_enabled: true
-
-authorization:
-  poll_duration: 30s

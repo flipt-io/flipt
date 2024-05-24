@@ -637,8 +637,6 @@ func Default() *Config {
 			},
 		},
 
-		Authorization: AuthorizationConfig{
-			PollDuration: 30 * time.Second,
-		},
+		Authorization: AuthorizationConfig{},
 	}
 }

@@ -333,11 +333,6 @@
         "data": {
           "type": ["object", "null"],
           "$ref": "#/definitions/authorization/$defs/authorization_source"
-        },
-        "poll_duration": {
-          "type": "string",
-          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
-          "default": "30s"
         }
       },
       "$defs": {
@@ -347,14 +342,18 @@
           "properties": {
             "backend": {
               "type": "string",
-              "enum": ["filesystem"]
+              "enum": ["local"]
             },
-            "filesystem": {
+            "local": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
                 "path": {"type": "string"}
               }
+            },
+            "poll_duration": {
+              "type": "string",
+              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
             }
           }
         }
