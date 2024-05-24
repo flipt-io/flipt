@@ -359,7 +359,7 @@ func NewGRPCServer(
 		}
 
 		engineOpts := []containers.Option[authz.Engine]{
-			authz.WithPollDuration(cfg.Authorization.PollDuration),
+			authz.WithPollDuration(cfg.Authorization.Policy.PollDuration),
 		}
 
 		if cfg.Authorization.Data != nil {
@@ -367,6 +367,7 @@ func NewGRPCServer(
 			case config.AuthorizationBackendLocal:
 				engineOpts = append(engineOpts, authz.WithDataSource(
 					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
+					cfg.Authorization.Data.PollDuration,
 				))
 			default:
 				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
