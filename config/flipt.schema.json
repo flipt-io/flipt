@@ -607,6 +607,11 @@
             "repository": {
               "type": "string"
             },
+            "backend": {
+              "type": "string",
+              "enum": ["memory", "local"],
+              "default": "local"
+            },
             "ref": {
               "type": "string",
               "default": "main"

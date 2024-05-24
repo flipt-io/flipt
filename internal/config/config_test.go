@@ -921,7 +921,7 @@ func TestLoad(t *testing.T) {
 					Type: GitStorageType,
 					Git: &Git{
 						Backend: GitBackend{
-							Type: GitBackendFilesystem,
+							Type: GitBackendLocal,
 							Path: "/path/to/gitdir",
 						},
 						Ref:          "main",

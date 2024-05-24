@@ -47,7 +47,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 		}
 
 		switch storage.Backend.Type {
-		case config.GitBackendFilesystem:
+		case config.GitBackendLocal:
 			path := storage.Backend.Path
 			if path == "" {
 				path, err = os.MkdirTemp(os.TempDir(), "flipt-git-*")
