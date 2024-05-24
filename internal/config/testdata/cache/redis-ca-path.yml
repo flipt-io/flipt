@@ -1,0 +1,6 @@
+cache:
+  enabled: true
+  backend: redis
+  ttl: 60s
+  redis:
+    ca_cert_path: internal/config/testdata/ca.pem
