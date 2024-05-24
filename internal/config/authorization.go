@@ -85,6 +85,10 @@ func (a *AuthorizationSourceConfig) validate() (err error) {
 		return errors.New("local: path must be non-empty string")
 	}
 
+	if a.PollDuration <= 0 {
+		return errors.New("local: poll_duration must be non-zero")
+	}
+
 	return nil
 }
 
