@@ -4,8 +4,8 @@ type Requester interface {
 	Request() Request
 }
 
-// Scope represents what resource or parent resource is being acted on.
-type Scope string
+// Resource represents what resource or parent resource is being acted on.
+type Resource string
 
 // Subject returns the subject of the request.
 type Subject string
@@ -14,9 +14,9 @@ type Subject string
 type Action string
 
 const (
-	ScopeNamespace Scope = "namespace"
-	ScopeFlag      Scope = "flag"
-	ScopeSegment   Scope = "segment"
+	ResourceNamespace Resource = "namespace"
+	ResourceFlag      Resource = "flag"
+	ResourceSegment   Resource = "segment"
 
 	SubjectConstraint   Subject = "constraint"
 	SubjectDistribution Subject = "distribution"
@@ -36,16 +36,16 @@ const (
 
 type Request struct {
 	Namespaced
-	Scope   Scope   `json:"scope"`
-	Subject Subject `json:"subject"`
-	Action  Action  `json:"action"`
+	Resource Resource `json:"resource"`
+	Subject  Subject  `json:"subject"`
+	Action   Action   `json:"action"`
 }
 
-func NewScopedRequest(scope Scope, s Subject, a Action) Request {
+func NewResourceScopedRequest(r Resource, s Subject, a Action) Request {
 	return Request{
-		Scope:   scope,
-		Subject: s,
-		Action:  a,
+		Resource: r,
+		Subject:  s,
+		Action:   a,
 	}
 }
 
@@ -57,11 +57,11 @@ func NewRequest(s Subject, a Action) Request {
 }
 
 func newFlagScopedRequest(s Subject, a Action) Request {
-	return NewScopedRequest(ScopeFlag, s, a)
+	return NewResourceScopedRequest(ResourceFlag, s, a)
 }
 
 func newSegmentScopedRequest(s Subject, a Action) Request {
-	return NewScopedRequest(ScopeSegment, s, a)
+	return NewResourceScopedRequest(ResourceSegment, s, a)
 }
 
 // Namespaces

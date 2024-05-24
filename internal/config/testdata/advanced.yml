@@ -106,3 +106,15 @@ authentication:
       cleanup:
         interval: 2h
         grace_period: 48h
+
+authorization:
+  required: true
+  policy:
+    backend: local
+    local:
+      path: "/path/to/policy.rego"
+    poll_duration: 1m
+  data:
+    backend: local
+    local:
+      path: "/path/to/policy/data.json"

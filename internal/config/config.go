@@ -636,5 +636,7 @@ func Default() *Config {
 				FlushPeriod: 10 * time.Second,
 			},
 		},
+
+		Authorization: AuthorizationConfig{},
 	}
 }

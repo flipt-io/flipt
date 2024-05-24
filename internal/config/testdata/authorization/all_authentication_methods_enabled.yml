@@ -41,3 +41,8 @@ authentication:
 
 authorization:
   required: true
+  policy:
+    backend: local
+    local:
+      path: "/path/to/policy.rego"
+    poll_duration: 30s

@@ -614,7 +614,16 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 
-				cfg.Authorization.Required = true
+				cfg.Authorization = AuthorizationConfig{
+					Required: true,
+					Policy: &AuthorizationSourceConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
+							Path: "/path/to/policy.rego",
+						},
+						PollDuration: 30 * time.Second,
+					},
+				}
 
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
@@ -847,6 +856,25 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				}
+
+				cfg.Authorization = AuthorizationConfig{
+					Required: true,
+					Policy: &AuthorizationSourceConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
+							Path: "/path/to/policy.rego",
+						},
+						PollDuration: time.Minute,
+					},
+					Data: &AuthorizationSourceConfig{
+						Backend: AuthorizationBackendLocal,
+						Local: &AuthorizationLocalConfig{
+							Path: "/path/to/policy/data.json",
+						},
+						PollDuration: 30 * time.Second,
+					},
+				}
+
 				return cfg
 			},
 		},

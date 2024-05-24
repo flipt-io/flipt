@@ -32,14 +32,14 @@ func (s *mockServer) SkipsAuthorization(ctx context.Context) bool {
 }
 
 type mockRequester struct {
-	action flipt.Action
-	scope  flipt.Scope
+	action   flipt.Action
+	resource flipt.Resource
 }
 
 func (r *mockRequester) Request() flipt.Request {
 	return flipt.Request{
-		Action: r.action,
-		Scope:  r.scope,
+		Action:   r.action,
+		Resource: r.resource,
 	}
 }
 
@@ -114,12 +114,12 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				},
 			},
 			req: &mockRequester{
-				scope: "foo",
+				resource: "foo",
 			},
 			wantAllowed: false,
 		},
 		{
-			name: "missing scope",
+			name: "missing resource",
 			authn: &authrpc.Authentication{
 				Metadata: map[string]string{
 					"io.flipt.auth.role": "admin",
