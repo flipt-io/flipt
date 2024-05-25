@@ -519,8 +519,8 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 				cacheErr = err
 				return
 			}
-			cacheFunc = func(ctx context.Context) error {
-				return rdb.Shutdown(ctx).Err()
+			cacheFunc = func(_ context.Context) error {
+				return rdb.Close()
 			}
 
 			status := rdb.Ping(ctx)
