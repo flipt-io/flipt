@@ -1,4 +1,4 @@
-package logfile
+package log
 
 import (
 	"context"
@@ -42,12 +42,12 @@ func (osFS) MkdirAll(path string, perm os.FileMode) error {
 	return os.MkdirAll(path, perm)
 }
 
-const sinkType = "logfile"
+const sinkType = "log"
 
-// Sink is the structure in charge of sending Audits to a specified file location.
+// Sink is the structure in charge of sending audit events to a specified file location.
 type Sink struct {
 	logger *zap.Logger
-	file   file
+	f      file
 	mtx    sync.Mutex
 	enc    *json.Encoder
 }
@@ -59,26 +59,33 @@ func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 
 // newSink is the constructor for a Sink visible for testing.
 func newSink(logger *zap.Logger, path string, fs filesystem) (audit.Sink, error) {
-	// check if path exists, if not create it
-	dir := filepath.Dir(path)
-	if _, err := fs.Stat(dir); err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("checking log directory: %w", err)
+	var f file
+
+	if path == "" {
+		f = os.Stdout
+	} else {
+		// check if path exists, if not create it
+		dir := filepath.Dir(path)
+		if _, err := fs.Stat(dir); err != nil {
+			if !os.IsNotExist(err) {
+				return nil, fmt.Errorf("checking log directory: %w", err)
+			}
+
+			if err := fs.MkdirAll(dir, 0755); err != nil {
+				return nil, fmt.Errorf("creating log directory: %w", err)
+			}
 		}
 
-		if err := fs.MkdirAll(dir, 0755); err != nil {
-			return nil, fmt.Errorf("creating log directory: %w", err)
+		var err error
+		f, err = fs.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("opening log file: %w", err)
 		}
-	}
-
-	f, err := fs.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		return nil, fmt.Errorf("opening log file: %w", err)
 	}
 
 	return &Sink{
 		logger: logger,
-		file:   f,
+		f:      f,
 		enc:    json.NewEncoder(f),
 	}, nil
 }
@@ -91,7 +98,7 @@ func (l *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 	for _, e := range events {
 		err := l.enc.Encode(e)
 		if err != nil {
-			l.logger.Error("failed to write audit event to file", zap.String("file", l.file.Name()), zap.Error(err))
+			l.logger.Error("failed to write audit event", zap.String("file", l.f.Name()), zap.Error(err))
 			result = multierror.Append(result, err)
 		}
 	}
@@ -102,7 +109,7 @@ func (l *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 func (l *Sink) Close() error {
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
-	return l.file.Close()
+	return l.f.Close()
 }
 
 func (l *Sink) String() string {

@@ -643,7 +643,7 @@ func TestLoad(t *testing.T) {
 
 				cfg.Audit = AuditConfig{
 					Sinks: SinksConfig{
-						LogFile: LogFileSinkConfig{
+						Log: LogSinkConfig{
 							Enabled: true,
 							File:    "/path/to/logs.txt",
 						},
@@ -827,9 +827,13 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
 		},
 		{
-			name:    "file not specified",
-			path:    "./testdata/audit/invalid_enable_without_file.yml",
-			wantErr: errors.New("file not specified"),
+			name: "file not specified",
+			path: "./testdata/audit/enable_without_file.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Audit.Sinks.Log.Enabled = true
+				return cfg
+			},
 		},
 		{
 			name:    "url or template not specified",

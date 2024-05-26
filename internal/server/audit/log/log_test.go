@@ -1,4 +1,4 @@
-package logfile
+package log
 
 import (
 	"bytes"
@@ -29,7 +29,7 @@ func TestNewSink_NewFile(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, sink)
-	assert.Equal(t, "logfile", sink.String())
+	assert.Equal(t, "log", sink.String())
 
 	require.NoError(t, sink.Close())
 }
@@ -51,7 +51,7 @@ func TestNewSink_ExistingFile(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, sink)
-	assert.Equal(t, "logfile", sink.String())
+	assert.Equal(t, "log", sink.String())
 
 	require.NoError(t, sink.Close())
 }
@@ -86,7 +86,7 @@ func TestNewSink_DirNotExists(t *testing.T) {
 			require.NoError(t, err)
 
 			require.NotNil(t, sink)
-			assert.Equal(t, "logfile", sink.String())
+			assert.Equal(t, "log", sink.String())
 
 			require.NoError(t, sink.Close())
 		})

@@ -253,7 +253,7 @@ func TestPing(t *testing.T) {
 				},
 				Audit: config.AuditConfig{
 					Sinks: config.SinksConfig{
-						LogFile: config.LogFileSinkConfig{
+						Log: config.LogSinkConfig{
 							Enabled: false,
 						},
 					},
@@ -277,7 +277,7 @@ func TestPing(t *testing.T) {
 				},
 				Audit: config.AuditConfig{
 					Sinks: config.SinksConfig{
-						LogFile: config.LogFileSinkConfig{
+						Log: config.LogSinkConfig{
 							Enabled: true,
 						},
 					},
@@ -359,7 +359,7 @@ func TestPing(t *testing.T) {
 				},
 				Audit: config.AuditConfig{
 					Sinks: config.SinksConfig{
-						LogFile: config.LogFileSinkConfig{
+						Log: config.LogSinkConfig{
 							Enabled: true,
 						},
 						Webhook: config.WebhookSinkConfig{
