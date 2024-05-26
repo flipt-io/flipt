@@ -22,7 +22,7 @@ type AuditConfig struct {
 
 // Enabled returns true if any nested sink is enabled
 func (c AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.Cloud.Enabled
+	return c.Sinks.Log.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.Cloud.Enabled
 }
 
 func (c AuditConfig) IsZero() bool {
@@ -54,10 +54,6 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 }
 
 func (c *AuditConfig) validate() error {
-	if c.Sinks.LogFile.Enabled && c.Sinks.LogFile.File == "" {
-		return errors.New("file not specified")
-	}
-
 	if c.Sinks.Webhook.Enabled {
 		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
 			return errors.New("url or template(s) not provided")
@@ -82,7 +78,7 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
+	Log     LogSinkConfig     `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
 	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
 	Cloud   CloudSinkConfig   `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
@@ -101,9 +97,9 @@ type WebhookSinkConfig struct {
 	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
 }
 
-// LogFileSinkConfig contains fields that hold configuration for sending audits
-// to a log file.
-type LogFileSinkConfig struct {
+// LogSinkConfig contains fields that hold configuration for sending audits
+// to a log.
+type LogSinkConfig struct {
 	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 	File    string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 }

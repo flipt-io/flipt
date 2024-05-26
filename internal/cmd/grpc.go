@@ -26,7 +26,7 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/cloud"
-	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/audit/log"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
@@ -392,10 +392,10 @@ func NewGRPCServer(
 	// audit sinks configuration
 	sinks := make([]audit.Sink, 0)
 
-	if cfg.Audit.Sinks.LogFile.Enabled {
-		logFileSink, err := logfile.NewSink(logger, cfg.Audit.Sinks.LogFile.File)
+	if cfg.Audit.Sinks.Log.Enabled {
+		logFileSink, err := log.NewSink(logger, cfg.Audit.Sinks.Log.File)
 		if err != nil {
-			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.File)
+			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.Log.File)
 		}
 
 		sinks = append(sinks, logFileSink)

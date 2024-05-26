@@ -619,7 +619,7 @@ func Default() *Config {
 
 		Audit: AuditConfig{
 			Sinks: SinksConfig{
-				LogFile: LogFileSinkConfig{
+				Log: LogSinkConfig{
 					Enabled: false,
 					File:    "",
 				},
