@@ -59,11 +59,9 @@ func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 
 // newSink is the constructor for a Sink visible for testing.
 func newSink(logger *zap.Logger, path string, fs filesystem) (audit.Sink, error) {
-	var f file
+	var f file = os.Stdout
 
-	if path == "" {
-		f = os.Stdout
-	} else {
+	if path != "" {
 		// check if path exists, if not create it
 		dir := filepath.Dir(path)
 		if _, err := fs.Stat(dir); err != nil {
