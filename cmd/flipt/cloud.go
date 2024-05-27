@@ -196,7 +196,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 	f, err := os.ReadFile(cloudAuthFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			fmt.Println("No cloud authentication token found. Please run 'flipt cloud login' to authenticate with Flipt Cloud.")
+			fmt.Println("\n✗ No cloud authentication token found. Please run 'flipt cloud login' to authenticate.")
 			return nil
 		}
 
@@ -221,6 +221,11 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	parsed, err := jwt.Parse(auth.Token, k.Keyfunc, jwt.WithExpirationRequired())
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			fmt.Println("✗ Existing cloud authentication token expired. Please run 'flipt cloud login' to re-authenticate.")
+			return nil
+		}
+
 		return fmt.Errorf("parsing JWT: %w", err)
 	}
 
@@ -364,6 +369,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 	cfg.Cloud.Host = u.Hostname()
 	cfg.Cloud.Instance = instance.Instance
 	cfg.Cloud.Organization = instance.Organization
+	cfg.Cloud.Authentication.ApiKey = "" // clear API key if present to use JWT
 	cfg.Server.Cloud.Enabled = true
 	cfg.Authentication.Session.Domain = u.Host
 
