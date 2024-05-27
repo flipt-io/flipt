@@ -109,11 +109,10 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 					Method: config.AuthenticationMethodOIDCConfig{
 						Providers: map[string]config.AuthenticationMethodOIDCProvider{
 							"google": {
-								IssuerURL:         tp.Addr(),
-								ClientID:          id,
-								ClientSecret:      secret,
-								RedirectAddress:   clientAddress,
-								RoleAttributePath: "contains(roles[*], 'admin') && 'admin' || contains(roles[*], 'editor') && 'editor' || 'viewer'",
+								IssuerURL:       tp.Addr(),
+								ClientID:        id,
+								ClientSecret:    secret,
+								RedirectAddress: clientAddress,
 							},
 						},
 					},
@@ -215,12 +214,11 @@ func Test_Server_PKCE(t *testing.T) {
 					Method: config.AuthenticationMethodOIDCConfig{
 						Providers: map[string]config.AuthenticationMethodOIDCProvider{
 							"google": {
-								IssuerURL:         tp.Addr(),
-								ClientID:          id,
-								ClientSecret:      secret,
-								RedirectAddress:   clientAddress,
-								UsePKCE:           true,
-								RoleAttributePath: "contains(roles[*], 'admin') && 'admin' || contains(roles[*], 'editor') && 'editor' || 'viewer'",
+								IssuerURL:       tp.Addr(),
+								ClientID:        id,
+								ClientSecret:    secret,
+								RedirectAddress: clientAddress,
+								UsePKCE:         true,
 							},
 						},
 					},
