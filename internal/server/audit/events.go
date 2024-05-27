@@ -51,10 +51,15 @@ func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
 		action = "read"
 	}
 
+	typ := string(r.Resource)
+	if r.Subject != "" {
+		typ = string(r.Subject)
+	}
+
 	return &Event{
 		Version: eventVersion,
 		Action:  action,
-		Type:    string(r.Subject),
+		Type:    typ,
 		Metadata: Metadata{
 			Actor: actor,
 		},

@@ -208,7 +208,7 @@ func TestSink_SendAudits(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sink)
 
-	e := audit.NewEvent(flipt.NewRequest(flipt.SubjectFlag, flipt.ActionCreate), nil, nil)
+	e := audit.NewEvent(flipt.NewRequest(flipt.ResourceFlag, flipt.ActionCreate), nil, nil)
 	assert.NoError(t, sink.SendAudits(context.Background(), []audit.Event{*e}))
 
 	assert.NotNil(t, f.Buffer)

@@ -180,7 +180,7 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 			return nil, err
 		}
 		if a.Method == auth.Method_METHOD_TOKEN {
-			request := flipt.NewRequest(flipt.SubjectToken, flipt.ActionDelete)
+			request := flipt.NewRequest(flipt.ResourceAuthentication, flipt.ActionDelete, flipt.WithSubject(flipt.SubjectToken))
 			event := audit.NewEvent(request, actor, a.Metadata)
 			event.AddToSpan(ctx)
 		}
