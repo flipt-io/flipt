@@ -325,6 +325,44 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "cache redis with insecure skip verify tls",
+			path: "./testdata/cache/redis-tls-insecure.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.InsecureSkipTLS = true
+				return cfg
+			},
+		},
+		{
+			name: "cache redis with ca path bundle",
+			path: "./testdata/cache/redis-ca-path.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.CaCertPath = "internal/config/testdata/ca.pem"
+				return cfg
+			},
+		},
+		{
+			name: "cache redis with ca bytes bundle",
+			path: "./testdata/cache/redis-ca-bytes.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Redis.CaCertBytes = "pemblock\n"
+				return cfg
+			},
+		},
+		{
+			name:    "cache redis with ca path and bytes bundle",
+			path:    "./testdata/cache/redis-ca-invalid.yml",
+			wantErr: errors.New("please provide exclusively one of ca_cert_bytes or ca_cert_path"),
+		},
+		{
 			name: "metrics disabled",
 			path: "./testdata/metrics/disabled.yml",
 			expected: func() *Config {
@@ -768,6 +806,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Repository:   "https://github.com/flipt-io/flipt.git",
 						Ref:          "production",
 						RefType:      GitRefTypeStatic,
@@ -929,6 +970,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
@@ -946,6 +990,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",
@@ -964,10 +1011,34 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeSemver,
 						Repository:   "git@github.com:foo/bar.git",
 						Directory:    "baz",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided with ref_type",
+			path: "./testdata/storage/git_provided_with_backend_type.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendLocal,
+							Path: "/path/to/gitdir",
+						},
+						Ref:          "main",
+						RefType:      GitRefTypeStatic,
+						Repository:   "git@github.com:foo/bar.git",
 						PollInterval: 30 * time.Second,
 					},
 				}
@@ -1012,6 +1083,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
+						Backend: GitBackend{
+							Type: GitBackendMemory,
+						},
 						Ref:          "main",
 						RefType:      GitRefTypeStatic,
 						Repository:   "git@github.com:foo/bar.git",

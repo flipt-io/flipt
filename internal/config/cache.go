@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/spf13/viper"
@@ -9,6 +10,7 @@ import (
 
 var (
 	_ defaulter = (*CacheConfig)(nil)
+  _ validator = (*CacheConfig)(nil)
 )
 
 // CacheConfig contains fields, which enable and configure
@@ -40,6 +42,13 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 		},
 	})
 
+	return nil
+}
+
+func (c *CacheConfig) validate() error {
+	if c.Enabled && c.Backend == CacheRedis {
+		return c.Redis.validate()
+	}
 	return nil
 }
 
@@ -90,6 +99,9 @@ type MemoryCacheConfig struct {
 	EvictionInterval time.Duration `json:"evictionInterval,omitempty" mapstructure:"eviction_interval" yaml:"eviction_interval,omitempty"`
 }
 
+// cheers up the unparam linter
+var _ validator = (*RedisCacheConfig)(nil)
+
 // RedisCacheConfig contains fields, which configure the connection
 // credentials for redis backed caching.
 type RedisCacheConfig struct {
@@ -103,4 +115,14 @@ type RedisCacheConfig struct {
 	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
 	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
 	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
+	CaCertBytes     string        `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string        `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	InsecureSkipTLS bool          `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+}
+
+func (cfg *RedisCacheConfig) validate() error {
+	if cfg.CaCertBytes != "" && cfg.CaCertPath != "" {
+		return errors.New("please provide exclusively one of ca_cert_bytes or ca_cert_path")
+	}
+	return nil
 }

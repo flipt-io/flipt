@@ -1,0 +1,6 @@
+cache:
+  enabled: true
+  backend: redis
+  ttl: 60s
+  redis:
+    insecure_skip_tls: true

@@ -146,6 +146,9 @@ import "strings"
 			min_idle_conn?:      int | *0
 			conn_max_idle_time?: =~#duration | int | *0
 			net_timeout?:        =~#duration | int | *0
+			ca_cert_path?:       string
+			ca_cert_bytes?:      string
+			insecure_skip_tls?:  bool | *false
 		}
 
 		memory?: {
@@ -190,6 +193,7 @@ import "strings"
 		local?: path: string | *"."
 		git?: {
 			repository:         string
+			backend?:           *"memory" | "local"
 			ref?:               string | *"main"
 			ref_type?:          *"static" | "semver"
 			directory?:         string

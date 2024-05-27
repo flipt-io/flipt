@@ -57,6 +57,7 @@ var (
 		"api/mysql":     withMySQL(api),
 		"api/cockroach": withCockroach(api),
 		"api/cache":     cache,
+		"api/cachetls":  cacheWithTLS,
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
@@ -335,6 +336,62 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
 
+	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
+}
+
+func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return func() error { return err }
+	}
+	template := &x509.Certificate{
+		SerialNumber: serialNumber,
+		IsCA:         true,
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().Add(time.Hour),
+		DNSNames:     []string{"redis"},
+	}
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return func() error { return err }
+	}
+	bytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	if err != nil {
+		return func() error { return err }
+	}
+	crtBytes := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: bytes,
+	})
+
+	keyBytes := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+
+	redis := client.Container().
+		From("redis:alpine").
+		WithExposedPort(6379).
+		WithNewFile("/opt/tls/key", dagger.ContainerWithNewFileOpts{Contents: string(keyBytes)}).
+		WithNewFile("/opt/tls/crt", dagger.ContainerWithNewFileOpts{Contents: string(crtBytes)}).
+		WithExec([]string{
+			"redis-server", "--tls-port", "6379", "--port", "0",
+			"--tls-key-file", "/opt/tls/key", "--tls-cert-file",
+			"/opt/tls/crt", "--tls-ca-cert-file", "/opt/tls/crt",
+			"--tls-auth-clients", "no"}).
+		AsService()
+
+	flipt = flipt.
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+		WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
+		WithEnvVariable("FLIPT_CACHE_REDIS_REQUIRE_TLS", "true").
+		WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").
+		WithEnvVariable("FLIPT_CACHE_REDIS_CA_CERT_PATH", "/opt/tls/crt").
+		WithNewFile("/opt/tls/crt", dagger.ContainerWithNewFileOpts{Contents: string(crtBytes)}).
+		WithServiceBinding("redis", redis)
 	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
 }
 
