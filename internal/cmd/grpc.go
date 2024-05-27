@@ -475,7 +475,6 @@ func NewGRPCServer(
 // This methods blocks until Shutdown is called.
 func (s *GRPCServer) Run() error {
 	s.logger.Debug("starting grpc server")
-
 	return s.Serve(s.ln)
 }
 

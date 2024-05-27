@@ -257,6 +257,15 @@ func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
 	return logger, cfg, nil
 }
 
+const (
+	dntVar = "DO_NOT_TRACK"
+	ciVar  = "CI"
+)
+
+func isSet(env string) bool {
+	return os.Getenv(env) == "true" || os.Getenv(env) == "1"
+}
+
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
@@ -298,12 +307,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	// see: https://consoledonottrack.com/
-	if (os.Getenv("DO_NOT_TRACK") == "true" || os.Getenv("DO_NOT_TRACK") == "1") && cfg.Meta.TelemetryEnabled {
+	if isSet(dntVar) && cfg.Meta.TelemetryEnabled {
 		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	if (os.Getenv("CI") == "true" || os.Getenv("CI") == "1") && cfg.Meta.TelemetryEnabled {
+	if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
 		logger.Debug("CI detected, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
