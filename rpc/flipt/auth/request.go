@@ -5,5 +5,5 @@ import (
 )
 
 func (req *CreateTokenRequest) Request() flipt.Request {
-	return flipt.NewRequest(flipt.SubjectToken, flipt.ActionCreate)
+	return flipt.NewRequest(flipt.ResourceAuthentication, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectToken))
 }

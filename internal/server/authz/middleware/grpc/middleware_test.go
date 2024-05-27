@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -16,9 +17,11 @@ import (
 type mockPolicyVerifier struct {
 	isAllowed bool
 	wantErr   error
+	input     map[string]any
 }
 
-func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]interface{}) (bool, error) {
+func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
+	v.input = input
 	return v.isAllowed, v.wantErr
 }
 
@@ -31,17 +34,13 @@ func (s *mockServer) SkipsAuthorization(ctx context.Context) bool {
 	return s.skipsAuthz
 }
 
-type mockRequester struct {
-	action   flipt.Action
-	resource flipt.Resource
-}
-
-func (r *mockRequester) Request() flipt.Request {
-	return flipt.Request{
-		Action:   r.action,
-		Resource: r.resource,
+var (
+	adminAuth = &authrpc.Authentication{
+		Metadata: map[string]string{
+			"io.flipt.auth.role": "admin",
+		},
 	}
-}
+)
 
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
 	var tests = []struct {
@@ -52,28 +51,45 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 		validatorAllowed bool
 		validatorErr     error
 		wantAllowed      bool
+		authzInput       map[string]any
 	}{
 		{
-			name: "allowed",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
+			name:  "allowed",
+			authn: adminAuth,
+			req: &flipt.CreateFlagRequest{
+				NamespaceKey: "default",
+				Key:          "some_flag",
 			},
-			req:              &flipt.CreateFlagRequest{},
 			validatorAllowed: true,
 			wantAllowed:      true,
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Namespace: "default",
+					Resource:  flipt.ResourceFlag,
+					Subject:   flipt.SubjectFlag,
+					Action:    flipt.ActionCreate,
+				},
+				"authentication": adminAuth,
+			},
 		},
 		{
-			name: "not allowed",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
+			name:  "not allowed",
+			authn: adminAuth,
+			req: &flipt.CreateFlagRequest{
+				NamespaceKey: "default",
+				Key:          "some_other_flag",
 			},
-			req:              &flipt.CreateFlagRequest{},
 			validatorAllowed: false,
 			wantAllowed:      false,
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Namespace: "default",
+					Resource:  flipt.ResourceFlag,
+					Subject:   flipt.SubjectFlag,
+					Action:    flipt.ActionCreate,
+				},
+				"authentication": adminAuth,
+			},
 		},
 		{
 			name: "skips authz",
@@ -89,54 +105,14 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			wantAllowed: false,
 		},
 		{
-			name: "no role",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{},
-			},
-			req:         &flipt.CreateFlagRequest{},
-			wantAllowed: false,
-		},
-		{
-			name: "invalid request",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
-			},
+			name:        "invalid request",
+			authn:       adminAuth,
 			req:         struct{}{},
 			wantAllowed: false,
 		},
 		{
-			name: "missing action",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
-			},
-			req: &mockRequester{
-				resource: "foo",
-			},
-			wantAllowed: false,
-		},
-		{
-			name: "missing resource",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
-			},
-			req: &mockRequester{
-				action: "action",
-			},
-			wantAllowed: false,
-		},
-		{
-			name: "validator error",
-			authn: &authrpc.Authentication{
-				Metadata: map[string]string{
-					"io.flipt.auth.role": "admin",
-				},
-			},
+			name:         "validator error",
+			authn:        adminAuth,
 			req:          &flipt.CreateFlagRequest{},
 			validatorErr: errors.New("error"),
 			wantAllowed:  false,
@@ -157,7 +133,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				}
 
 				srv           = &grpc.UnaryServerInfo{Server: &mockServer{}}
-				policyVerfier = &mockPolicyVerifier{isAllowed: tt.validatorAllowed, wantErr: tt.validatorErr}
+				policyVerfier = &mockPolicyVerifier{
+					isAllowed: tt.validatorAllowed,
+					wantErr:   tt.validatorErr,
+				}
 			)
 
 			if tt.server != nil {
@@ -170,6 +149,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 
 			if tt.wantAllowed {
 				require.NoError(t, err)
+				assert.Equal(t, tt.authzInput, policyVerfier.input)
 				return
 			}
 

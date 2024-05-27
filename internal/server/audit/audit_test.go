@@ -32,19 +32,28 @@ func (s *sampleSink) Close() error { return nil }
 func TestSinkSpanExporter(t *testing.T) {
 	cases := []struct {
 		name      string
-		fType     flipt.Subject
+		resource  flipt.Resource
+		subject   flipt.Subject
 		action    flipt.Action
 		expectErr bool
 	}{
 		{
 			name:      "Valid",
-			fType:     flipt.SubjectFlag,
+			resource:  flipt.ResourceFlag,
+			subject:   flipt.SubjectFlag,
+			action:    flipt.ActionCreate,
+			expectErr: false,
+		},
+		{
+			name:      "Valid Rule",
+			resource:  flipt.ResourceFlag,
+			subject:   flipt.SubjectRule,
 			action:    flipt.ActionCreate,
 			expectErr: false,
 		},
 		{
 			name:      "Invalid",
-			fType:     flipt.Subject(""),
+			subject:   flipt.Subject(""),
 			action:    flipt.Action(""),
 			expectErr: true,
 		},
@@ -68,7 +77,7 @@ func TestSinkSpanExporter(t *testing.T) {
 
 			_, span := tr.Start(ctx, "OnStart")
 
-			r := flipt.NewRequest(c.fType, c.action)
+			r := flipt.NewRequest(c.resource, c.action, flipt.WithSubject(c.subject))
 			e := NewEvent(
 				r,
 				&Actor{

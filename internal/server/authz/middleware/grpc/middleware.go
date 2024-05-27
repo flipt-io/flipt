@@ -73,34 +73,9 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return ctx, errUnauthorized
 		}
 
-		role, ok := auth.Metadata["io.flipt.auth.role"]
-		if !ok {
-			logger.Error("unauthorized", zap.String("reason", "user role required"))
-			return ctx, errUnauthorized
-		}
-
-		request := requester.Request()
-		action := string(request.Action)
-		if action == "" {
-			logger.Error("unauthorized", zap.String("reason", "request action required"))
-			return ctx, errUnauthorized
-		}
-
-		resource := string(request.Resource)
-		if resource == "" {
-			// fallback to subject if resource is not provided
-			resource = string(request.Subject)
-		}
-
-		if resource == "" {
-			logger.Error("unauthorized", zap.String("reason", "request resource or subject required"))
-			return ctx, errUnauthorized
-		}
-
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
-			"role":     role,
-			"action":   action,
-			"resource": resource,
+			"request":        requester.Request(),
+			"authentication": auth,
 		})
 
 		if err != nil {
