@@ -57,7 +57,7 @@ type Config struct {
 	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty" yaml:"version,omitempty"`
 	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
-	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
+	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty" experiment:"authorization"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
 	Cloud          CloudConfig          `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty" experiment:"cloud"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`

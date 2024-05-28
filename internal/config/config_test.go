@@ -725,6 +725,8 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				}
+
+				cfg.Experimental.Authorization.Enabled = true
 				return cfg
 			},
 		},
@@ -916,6 +918,7 @@ func TestLoad(t *testing.T) {
 					},
 				}
 
+				cfg.Experimental.Authorization.Enabled = true
 				return cfg
 			},
 		},

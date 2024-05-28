@@ -118,3 +118,7 @@ authorization:
     backend: local
     local:
       path: "/path/to/policy/data.json"
+
+experimental:
+  authorization:
+    enabled: true

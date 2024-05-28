@@ -3,5 +3,10 @@ authentication:
   methods:
     token:
       enabled: false
+
 authorization:
   required: true
+
+experimental:
+  authorization:
+    enabled: true
