@@ -111,7 +111,17 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing cloud URL: %w", err)
 	}
 
-	if _, err := c.loginFlow(ctx); err != nil {
+	ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
+	if err != nil {
+		return err
+	}
+
+	// if they didn't attempt login, exit
+	if !ok {
+		return nil
+	}
+
+	if err := c.loginFlow(ctx); err != nil {
 		return err
 	}
 
@@ -158,7 +168,7 @@ AUTH:
 		if errors.Is(err, os.ErrNotExist) {
 			fmt.Println("\n✗ No cloud authentication token found.")
 
-			ok, err := c.loginFlow(ctx)
+			ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
 			if err != nil {
 				return err
 			}
@@ -166,6 +176,10 @@ AUTH:
 			// if they didn't attempt login, exit
 			if !ok {
 				return nil
+			}
+
+			if err := c.loginFlow(ctx); err != nil {
+				return err
 			}
 
 			// otherwise, try reading the file again
@@ -196,7 +210,7 @@ AUTH:
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			fmt.Println("✗ Existing cloud authentication token expired.")
 
-			ok, err := c.loginFlow(ctx)
+			ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
 			if err != nil {
 				return err
 			}
@@ -204,6 +218,10 @@ AUTH:
 			// if they didn't attempt login, exit
 			if !ok {
 				return nil
+			}
+
+			if err := c.loginFlow(ctx); err != nil {
+				return err
 			}
 
 			// otherwise, try reading the file again
@@ -348,19 +366,11 @@ AUTH:
 	return run(ctx, logger, srvConfig(cfg, instance))
 }
 
-func (c *cloudCommand) loginFlow(ctx context.Context) (bool, error) {
-	ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
-	if err != nil {
-		return false, err
-	}
-
-	if !ok {
-		return false, nil
-	}
+func (c *cloudCommand) loginFlow(ctx context.Context) error {
 
 	flow, err := cloud.InitFlow()
 	if err != nil {
-		return true, fmt.Errorf("initializing flow: %w", err)
+		return fmt.Errorf("initializing flow: %w", err)
 	}
 
 	defer flow.Close()
@@ -376,22 +386,22 @@ func (c *cloudCommand) loginFlow(ctx context.Context) (bool, error) {
 
 	url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
 	if err != nil {
-		return true, fmt.Errorf("creating browser URL: %w", err)
+		return fmt.Errorf("creating browser URL: %w", err)
 	}
 
 	if err := util.OpenBrowser(url); err != nil {
-		return true, fmt.Errorf("opening browser: %w", err)
+		return fmt.Errorf("opening browser: %w", err)
 	}
 
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
 
 	tok, err := flow.Wait(ctx)
 	if err != nil {
-		return true, fmt.Errorf("waiting for token: %w", err)
+		return fmt.Errorf("waiting for token: %w", err)
 	}
 
 	if err := flow.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
-		return true, fmt.Errorf("closing flow: %w", err)
+		return fmt.Errorf("closing flow: %w", err)
 	}
 
 	cloudAuth := cloudAuth{
@@ -400,12 +410,12 @@ func (c *cloudCommand) loginFlow(ctx context.Context) (bool, error) {
 
 	cloudAuthBytes, err := json.Marshal(cloudAuth)
 	if err != nil {
-		return true, fmt.Errorf("marshalling cloud auth token: %w", err)
+		return fmt.Errorf("marshalling cloud auth token: %w", err)
 	}
 
 	if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
-		return true, fmt.Errorf("writing cloud auth token: %w", err)
+		return fmt.Errorf("writing cloud auth token: %w", err)
 	}
 
-	return true, g.Wait()
+	return g.Wait()
 }
