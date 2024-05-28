@@ -391,6 +391,9 @@ import "strings"
 	}
 
 	#experimental: {
+		authorization?: {
+			enabled?: bool | *false
+		}
 		cloud?: {
 			enabled?: bool | *false
 		}

@@ -52,6 +52,9 @@
     },
     "ui": {
       "$ref": "#/definitions/ui"
+    },
+    "experimental": {
+      "$ref": "#/definitions/experimental"
     }
   },
 
@@ -348,7 +351,7 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "path": {"type": "string"}
+                "path": { "type": "string" }
               }
             },
             "poll_duration": {
@@ -1324,6 +1327,33 @@
         }
       },
       "title": "Analytics"
+    },
+    "experimental": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      },
+      "title": "Experimental"
     }
   }
 }
