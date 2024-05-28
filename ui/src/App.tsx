@@ -4,6 +4,8 @@ import formbricks from '@formbricks/js';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
+import { selectConfig } from '~/app/meta/metaSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { createHashRouter, redirect, RouterProvider } from 'react-router-dom';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
@@ -174,11 +176,20 @@ export default function App() {
     }
   }, [theme, systemPrefersDark]);
 
+  const { ui } = useSelector(selectConfig);
+
+  const namespace = useSelector(selectCurrentNamespace);
+
+  let title = `Flipt · ${namespace.key}`;
+  if (ui.topbar?.label) {
+    title = `Flipt/${ui.topbar.label} · ${namespace.key}`;
+  }
+
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>Flipt</title>
+        <title>{title}</title>
         <link rel="icon" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script dangerouslySetInnerHTML={{ __html: nightwind.init() }} />

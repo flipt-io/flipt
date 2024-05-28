@@ -349,6 +349,10 @@ import "strings"
 	#ui: {
 		enabled?:       bool | *true
 		default_theme?: "light" | "dark" | *"system"
+		topbar?: {
+			color?: string
+			label?: string
+		}
 	}
 
 	#audit: {

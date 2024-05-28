@@ -1184,6 +1184,18 @@
           "enum": ["light", "dark", "system"],
           "default": "system",
           "deprecated": false
+        },
+        "topbar": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          }
         }
       },
       "title": "UI"

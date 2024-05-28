@@ -22,8 +22,14 @@ export interface IStorage {
   git?: IGit;
 }
 
+export interface ITopbar {
+  color?: string;
+  label?: string;
+}
+
 export interface IUI {
   defaultTheme: Theme;
+  topbar: ITopbar;
 }
 
 export interface IConfig {

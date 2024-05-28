@@ -27,7 +27,8 @@ const initialState: IMetaSlice = {
       readOnly: false
     },
     ui: {
-      defaultTheme: Theme.SYSTEM
+      defaultTheme: Theme.SYSTEM,
+      topbar: { color: '' }
     },
     analyticsEnabled: false
   }

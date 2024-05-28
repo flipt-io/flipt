@@ -1328,6 +1328,16 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/analytics/invalid_buffer_configuration_flush_period.yml",
 			wantErr: errors.New("flush period below 10 seconds"),
 		},
+		{
+			name: "ui topbar with custom color",
+			path: "./testdata/ui/topbar_color.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.UI.Topbar.Color = "#42bda0"
+				cfg.UI.Topbar.Label = "World"
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
