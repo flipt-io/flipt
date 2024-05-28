@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -145,23 +146,19 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		storageMetadataOIDCProvider: req.Provider,
 	}
 
-	cfg, err := s.configFor(req.Provider)
+	rawClaims := make(map[string]interface{})
+	if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
+		return nil, err
+	}
+
+	// marshal raw claims to JSON
+	rawClaimsJSON, err := json.Marshal(rawClaims)
 	if err != nil {
 		return nil, err
 	}
 
-	if cfg.RoleAttributePath != "" {
-		rawClaims := make(map[string]interface{})
-		if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
-			return nil, err
-		}
-
-		role, err := method.SearchJSONForAttr[string](cfg.RoleAttributePath, rawClaims)
-		if err != nil {
-			return nil, err
-		}
-
-		metadata[method.StorageMetadataRole] = role
+	if rawClaimsJSON != nil {
+		metadata[method.StorageMetadataClaims] = string(rawClaimsJSON)
 	}
 
 	// Extract custom claims

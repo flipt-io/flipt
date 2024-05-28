@@ -469,13 +469,12 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL         string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID          string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
-	ClientSecret      string   `json:"-" mapstructure:"client_secret" yaml:"-"`
-	RedirectAddress   string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
-	Scopes            []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
-	UsePKCE           bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
-	RoleAttributePath string   `json:"roleAttributePath,omitempty" mapstructure:"role_attribute_path" yaml:"role_attribute_path,omitempty"`
+	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
+	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCProvider) validate() error {
