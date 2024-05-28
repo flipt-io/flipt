@@ -1,7 +1,7 @@
 package method
 
 const (
-	StorageMetadataRole  = "io.flipt.auth.role"
-	StorageMetadataEmail = "io.flipt.auth.email"
-	StorageMetadataName  = "io.flipt.auth.name"
+	StorageMetadataClaims = "io.flipt.auth.claims"
+	StorageMetadataEmail  = "io.flipt.auth.email"
+	StorageMetadataName   = "io.flipt.auth.name"
 )

@@ -50,7 +50,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v5 v5.5.5
-	github.com/jmespath/go-jmespath v0.4.0
 	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -205,6 +204,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
