@@ -93,20 +93,6 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return ctx, errUnauthorized
 		}
 
-		// unmarshal auth.metadata["io.flipt.auth.claims"] if present to make writing policies easier
-		// if auth.Metadata != nil {
-		// 	if claims, ok := auth.Metadata["io.flipt.auth.claims"]; ok {
-		// 		var claimsMap map[string]interface{}
-
-		// 		if err := json.Unmarshal([]byte(claims), &claimsMap); err != nil {
-		// 			logger.Error("unauthorized", zap.String("reason", "failed to unmarshal claims"))
-		// 			return ctx, errUnauthorized
-		// 		}
-
-		// 		auth.Metadata["io.flipt.auth.claims"] = claimsMap
-		// 	}
-		// }
-
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
 			"request":        requester.Request(),
 			"authentication": auth,
