@@ -79,10 +79,6 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 	return true
 }
 
-func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
-}
-
 // VerifyServiceAccount takes a service account token, configured by a kubernetes environment,
 // validates it's authenticity and (if valid) creates a Flipt client token and returns it.
 // The returned client token is valid for the lifetime of the service account JWT.
