@@ -109,6 +109,8 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
+	e.logger.Debug("evaluating policy", zap.Any("input", input))
+
 	results, err := e.query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, err

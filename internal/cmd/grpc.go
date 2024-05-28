@@ -386,7 +386,7 @@ func NewGRPCServer(
 
 		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
 
-		logger.Info("authentication middleware enabled")
+		logger.Info("authorization middleware enabled")
 	}
 
 	// audit sinks configuration
