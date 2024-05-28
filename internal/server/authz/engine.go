@@ -151,7 +151,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	e.policyHash = hash
 
 	r := rego.New(
-		rego.Query("data.authz.v1.allow"),
+		rego.Query("data.flipt.authz.v1.allow"),
 		rego.Module("policy.rego", string(policy)),
 		rego.Store(e.store),
 	)
