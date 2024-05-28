@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/cloud"
 	"go.flipt.io/flipt/internal/cmd/util"
+	"go.flipt.io/flipt/internal/config"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -190,6 +191,17 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing cloud URL: %w", err)
 	}
 
+	srvConfig := func(cfg *config.Config, instance cloudInstance) *config.Config {
+		cfg.Cloud.Host = u.Hostname()
+		cfg.Cloud.Instance = instance.Instance
+		cfg.Cloud.Organization = instance.Organization
+		cfg.Cloud.Authentication.ApiKey = "" // clear API key if present to use JWT
+		cfg.Server.Cloud.Enabled = true
+		cfg.Authentication.Session.Domain = u.Host
+		cfg.Authentication.Methods.Cloud.Enabled = true
+		return cfg
+	}
+
 	// first check for existing of auth token/cloud.json
 	// if not found, prompt user to login
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
@@ -285,14 +297,8 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 						return err
 					}
 
-					cfg.Cloud.Host = u.Hostname()
-					cfg.Cloud.Instance = auth.Instance.Instance
-					cfg.Cloud.Organization = auth.Instance.Organization
-					cfg.Server.Cloud.Enabled = true
-					cfg.Authentication.Session.Domain = u.Host
-
 					fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-					return run(ctx, logger, cfg)
+					return run(ctx, logger, srvConfig(cfg, *auth.Instance))
 				}
 			} else {
 				fmt.Println("Existing linked Flipt Cloud instance has expired.")
@@ -366,13 +372,6 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("writing cloud auth token: %w", err)
 	}
 
-	cfg.Cloud.Host = u.Hostname()
-	cfg.Cloud.Instance = instance.Instance
-	cfg.Cloud.Organization = instance.Organization
-	cfg.Cloud.Authentication.ApiKey = "" // clear API key if present to use JWT
-	cfg.Server.Cloud.Enabled = true
-	cfg.Authentication.Session.Domain = u.Host
-
 	fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-	return run(ctx, logger, cfg)
+	return run(ctx, logger, srvConfig(cfg, instance))
 }
