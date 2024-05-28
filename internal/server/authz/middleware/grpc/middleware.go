@@ -26,10 +26,10 @@ type InterceptorOptions struct {
 }
 
 var (
-	// methods which should skip authorization
-	skippedMethods = []string{
-		"/flipt.auth.AuthenticationService/GetAuthenticationSelf",
-		"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf",
+	// methods which should always skip authorization
+	skippedMethods = map[string]any{
+		"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
+		"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
 	}
 )
 
@@ -44,10 +44,8 @@ func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptio
 	}
 
 	// skip authz for any preconfigured methods
-	for _, m := range skippedMethods {
-		if m == info.FullMethod {
-			return true
-		}
+	if _, ok := skippedMethods[info.FullMethod]; ok {
+		return true
 	}
 
 	// TODO: refactor to remove this check
