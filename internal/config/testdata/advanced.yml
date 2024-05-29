@@ -113,7 +113,7 @@ authorization:
     backend: local
     local:
       path: "/path/to/policy.rego"
-    poll_duration: 1m
+    poll_interval: 1m
   data:
     backend: local
     local:
