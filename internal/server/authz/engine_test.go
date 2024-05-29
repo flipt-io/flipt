@@ -218,7 +218,7 @@ func (d dataSource) Get(context.Context, []byte) (data map[string]any, _ []byte,
 }
 
 var (
-	testRBACPolicy = policySource(`package authz.v1
+	testRBACPolicy = policySource(`package flipt.authz.v1
 
 import data
 import rego.v1

@@ -25,14 +25,32 @@ type InterceptorOptions struct {
 	skippedServers []any
 }
 
-func skipped(ctx context.Context, server any, o InterceptorOptions) bool {
-	if skipSrv, ok := server.(SkipsAuthorizationServer); ok && skipSrv.SkipsAuthorization(ctx) {
+var (
+	// methods which should always skip authorization
+	skippedMethods = map[string]any{
+		"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
+		"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
+	}
+)
+
+func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
+	// if we skip authentication then we must skip authorization
+	if skipSrv, ok := info.Server.(authmiddlewaregrpc.SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		return true
+	}
+
+	if skipSrv, ok := info.Server.(SkipsAuthorizationServer); ok && skipSrv.SkipsAuthorization(ctx) {
+		return true
+	}
+
+	// skip authz for any preconfigured methods
+	if _, ok := skippedMethods[info.FullMethod]; ok {
 		return true
 	}
 
 	// TODO: refactor to remove this check
 	for _, s := range o.skippedServers {
-		if s == server {
+		if s == info.Server {
 			return true
 		}
 	}
@@ -56,7 +74,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip authz for any preconfigured servers
-		if skipped(ctx, info.Server, opts) {
+		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authorization for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -72,20 +90,6 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			logger.Error("unauthorized", zap.String("reason", "authentication required"))
 			return ctx, errUnauthorized
 		}
-
-		// unmarshal auth.metadata["io.flipt.auth.claims"] if present to make writing policies easier
-		// if auth.Metadata != nil {
-		// 	if claims, ok := auth.Metadata["io.flipt.auth.claims"]; ok {
-		// 		var claimsMap map[string]interface{}
-
-		// 		if err := json.Unmarshal([]byte(claims), &claimsMap); err != nil {
-		// 			logger.Error("unauthorized", zap.String("reason", "failed to unmarshal claims"))
-		// 			return ctx, errUnauthorized
-		// 		}
-
-		// 		auth.Metadata["io.flipt.auth.claims"] = claimsMap
-		// 	}
-		// }
 
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
 			"request":        requester.Request(),

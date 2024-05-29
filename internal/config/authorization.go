@@ -10,6 +10,7 @@ import (
 
 var (
 	_ defaulter = (*AuthorizationConfig)(nil)
+	_ validator = (*AuthorizationConfig)(nil)
 )
 
 // AuthorizationConfig configures Flipts authorization mechanisms

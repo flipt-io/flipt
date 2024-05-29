@@ -85,10 +85,6 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 	return true
 }
 
-func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
-}
-
 func callbackURL(host string) string {
 	// strip trailing slash from host
 	host = strings.TrimSuffix(host, "/")

@@ -49,7 +49,3 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 	return true
 }
-
-func (s *Server) SkipsAuthorization(ctx context.Context) bool {
-	return true
-}
