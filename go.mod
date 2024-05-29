@@ -71,7 +71,7 @@ require (
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.38.0
 	go.flipt.io/flipt/sdk/go v0.11.0
-	go.flipt.io/reverst v0.1.6
+	go.flipt.io/reverst v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.51.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.51.0
@@ -92,7 +92,7 @@ require (
 	go.uber.org/zap/exp v0.2.0
 	gocloud.dev v0.37.0
 	golang.org/x/crypto v0.23.0
-	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
+	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
 	golang.org/x/net v0.25.0
 	golang.org/x/oauth2 v0.20.0
 	golang.org/x/sync v0.7.0
@@ -183,7 +183,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/pprof v0.0.0-20240430035430-e4905b036c4e // indirect
+	github.com/google/pprof v0.0.0-20240509144519-723abb6459b7 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/wire v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -224,7 +224,7 @@ require (
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.17.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.17.3 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
@@ -240,6 +240,7 @@ require (
 	github.com/quic-go/qpack v0.4.0 // indirect
 	github.com/quic-go/quic-go v0.43.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/quic-go/quic-go v0.44.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
