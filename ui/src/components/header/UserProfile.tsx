@@ -55,9 +55,9 @@ export default function UserProfile(props: UserProfileProps) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
     try {
-      expireAuthSelf();
+      await expireAuthSelf();
       clearSession();
       window.location.href = logoutURL;
     } catch (err) {
