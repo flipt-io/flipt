@@ -27,13 +27,13 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	if v.GetBool("authorization.required") {
 		auth["policy"] = map[string]any{
 			"backend":       "local",
-			"poll_duration": "5m",
+			"poll_interval": "5m",
 		}
 
 		if v.GetString("authorization.data.local.path") != "" {
 			auth["data"] = map[string]any{
 				"backend":       "local",
-				"poll_duration": "30s",
+				"poll_interval": "30s",
 			}
 		}
 
@@ -64,7 +64,7 @@ func (c *AuthorizationConfig) validate() error {
 type AuthorizationSourceConfig struct {
 	Backend      AuthorizationBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Local        *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	PollDuration time.Duration             `json:"pollDuration,omitempty" mapstructure:"poll_duration" yaml:"poll_duration,omitempty"`
+	PollInterval time.Duration             `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
 func (a *AuthorizationSourceConfig) validate() (err error) {
@@ -86,8 +86,8 @@ func (a *AuthorizationSourceConfig) validate() (err error) {
 		return errors.New("local: path must be non-empty string")
 	}
 
-	if a.PollDuration <= 0 {
-		return errors.New("local: poll_duration must be non-zero")
+	if a.PollInterval <= 0 {
+		return errors.New("local: poll_interval must be non-zero")
 	}
 
 	return nil

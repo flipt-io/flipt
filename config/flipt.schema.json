@@ -354,7 +354,7 @@
                 "path": { "type": "string" }
               }
             },
-            "poll_duration": {
+            "poll_interval": {
               "type": "string",
               "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
             }

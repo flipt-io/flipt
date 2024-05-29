@@ -659,7 +659,7 @@ func TestLoad(t *testing.T) {
 						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy.rego",
 						},
-						PollDuration: 30 * time.Second,
+						PollInterval: 30 * time.Second,
 					},
 				}
 
@@ -907,14 +907,14 @@ func TestLoad(t *testing.T) {
 						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy.rego",
 						},
-						PollDuration: time.Minute,
+						PollInterval: time.Minute,
 					},
 					Data: &AuthorizationSourceConfig{
 						Backend: AuthorizationBackendLocal,
 						Local: &AuthorizationLocalConfig{
 							Path: "/path/to/policy/data.json",
 						},
-						PollDuration: 30 * time.Second,
+						PollInterval: 30 * time.Second,
 					},
 				}
 

@@ -45,7 +45,7 @@ authorization:
     backend: local
     local:
       path: "/path/to/policy.rego"
-    poll_duration: 30s
+    poll_interval: 30s
 
 experimental:
   authorization:

@@ -118,15 +118,15 @@ import "strings"
 		#authorizationSource: {
 			backend: "local"
 			local: path: string
-			poll_duration?: =~#duration
+			poll_interval?: =~#duration
 		}
 
 		required?: bool | *false
 		policy?: #authorizationSource & {
-			poll_duration: =~#duration | *"5m"
+			poll_interval: =~#duration | *"5m"
 		}
 		data?: #authorizationSource & {
-			poll_duration: =~#duration | *"30s"
+			poll_interval: =~#duration | *"30s"
 		}
 	}
 
