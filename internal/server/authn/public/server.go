@@ -2,20 +2,21 @@ package public
 
 import (
 	"context"
+	"path"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Server struct {
 	logger *zap.Logger
 
-	// response is static for the lifetime of the configuration
-	// so we can compute it upfront and re-use.
-	resp *auth.ListAuthenticationMethodsResponse
+	conf config.AuthenticationConfig
 
 	auth.UnimplementedPublicAuthenticationServiceServer
 }
@@ -23,11 +24,23 @@ type Server struct {
 func NewServer(logger *zap.Logger, conf config.AuthenticationConfig) *Server {
 	server := &Server{
 		logger: logger,
-		resp:   &auth.ListAuthenticationMethodsResponse{},
+		conf:   conf,
 	}
 
-	for _, info := range conf.Methods.AllMethods() {
-		server.resp.Methods = append(server.resp.Methods, &auth.MethodInfo{
+	return server
+}
+
+func (s *Server) ListAuthenticationMethods(ctx context.Context, _ *emptypb.Empty) (*auth.ListAuthenticationMethodsResponse, error) {
+	var prefix string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if forwardPrefix := md.Get(method.ForwardedPrefixKey); len(forwardPrefix) > 0 {
+			prefix = path.Join(forwardPrefix...)
+		}
+	}
+
+	resp := &auth.ListAuthenticationMethodsResponse{}
+	for _, info := range s.conf.Methods.AllMethods(config.WithForwardPrefix(ctx, prefix)) {
+		resp.Methods = append(resp.Methods, &auth.MethodInfo{
 			Method:            info.AuthenticationMethodInfo.Method,
 			Enabled:           info.Enabled,
 			SessionCompatible: info.AuthenticationMethodInfo.SessionCompatible,
@@ -35,11 +48,7 @@ func NewServer(logger *zap.Logger, conf config.AuthenticationConfig) *Server {
 		})
 	}
 
-	return server
-}
-
-func (s *Server) ListAuthenticationMethods(_ context.Context, _ *emptypb.Empty) (*auth.ListAuthenticationMethodsResponse, error) {
-	return s.resp, nil
+	return resp, nil
 }
 
 func (s *Server) RegisterGRPC(server *grpc.Server) {

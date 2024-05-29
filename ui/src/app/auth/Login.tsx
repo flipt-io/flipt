@@ -26,7 +26,6 @@ interface ILoginProvider {
 interface IAuthDisplay {
   name: string;
   authorize_url: string;
-  callback_url: string;
   icon: IconDefinition;
 }
 
@@ -94,7 +93,6 @@ function InnerLoginButtons() {
           return {
             name: 'Github',
             authorize_url: m.metadata.authorize_url,
-            callback_url: m.metadata.callback_url,
             icon: faGithub
           };
         }
@@ -103,12 +101,10 @@ function InnerLoginButtons() {
             k = k.toLowerCase();
             const v = value as {
               authorize_url: string;
-              callback_url: string;
             };
             return {
               name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
               authorize_url: v.authorize_url,
-              callback_url: v.callback_url,
               icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
             };
           });

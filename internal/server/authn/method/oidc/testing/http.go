@@ -36,6 +36,7 @@ func StartHTTPServer(
 		mux            = gateway.NewGatewayServeMux(
 			logger,
 			runtime.WithMetadata(method.ForwardCookies),
+			runtime.WithMetadata(method.ForwardPrefix),
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
 		)
 	)
