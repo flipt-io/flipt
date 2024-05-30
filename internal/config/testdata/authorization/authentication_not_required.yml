@@ -1,0 +1,15 @@
+authentication:
+  required: false
+  methods:
+    token:
+      enabled: true
+      bootstrap:
+        token: "s3cr3t!"
+        expiration: 24h
+
+authorization:
+  required: true
+
+experimental:
+  authorization:
+    enabled: true

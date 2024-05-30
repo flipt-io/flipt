@@ -7,7 +7,8 @@ import (
 // ExperimentalConfig allows for experimental features to be enabled
 // and disabled.
 type ExperimentalConfig struct {
-	Cloud ExperimentalFlag `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+	Cloud         ExperimentalFlag `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+	Authorization ExperimentalFlag `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
 }
 
 func (c *ExperimentalConfig) deprecations(v *viper.Viper) []deprecated {

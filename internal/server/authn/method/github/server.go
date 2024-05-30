@@ -145,26 +145,25 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	}
 
 	metadata := map[string]string{}
-
-	if githubUserResponse.Name != "" {
-		metadata[storageMetadataGithubName] = githubUserResponse.Name
+	set := func(key string, s string) {
+		if s != "" {
+			metadata[key] = s
+		}
 	}
 
-	if githubUserResponse.Email != "" {
-		metadata[storageMetadataGithubEmail] = githubUserResponse.Email
-	}
-
-	if githubUserResponse.AvatarURL != "" {
-		metadata[storageMetadataGithubPicture] = githubUserResponse.AvatarURL
-	}
+	set(storageMetadataGithubName, githubUserResponse.Name)
+	set(storageMetadataGithubEmail, githubUserResponse.Email)
+	set(storageMetadataGithubPicture, githubUserResponse.AvatarURL)
 
 	if githubUserResponse.ID != 0 {
-		metadata[storageMetadataGithubSub] = fmt.Sprintf("%d", githubUserResponse.ID)
+		set(storageMetadataGithubSub, fmt.Sprintf("%d", githubUserResponse.ID))
 	}
 
-	if githubUserResponse.Login != "" {
-		metadata[storageMetadataGitHubPreferredUsername] = githubUserResponse.Login
-	}
+	set(storageMetadataGitHubPreferredUsername, githubUserResponse.Login)
+
+	// consolidate common fields
+	set(method.StorageMetadataEmail, githubUserResponse.Email)
+	set(method.StorageMetadataName, githubUserResponse.Name)
 
 	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
 		userOrgs, err := getUserOrgs(ctx, token, apiURL)

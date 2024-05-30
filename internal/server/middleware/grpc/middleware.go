@@ -16,7 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/authn"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	fauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -428,23 +428,30 @@ type EventPairChecker interface {
 	Check(eventPair string) bool
 }
 
-// AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker) grpc.UnaryServerInterceptor {
+// AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
+func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		var request flipt.Request
+		r, ok := req.(flipt.Requester)
+
+		if !ok {
+			return handler(ctx, req)
+		}
+
+		request = r.Request()
+
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		actor := authn.ActorFromContext(ctx)
-
 		var event *audit.Event
+
+		actor := authn.ActorFromContext(ctx)
 
 		defer func() {
 			if event != nil {
-				ts := string(event.Type)
-				as := string(event.Action)
-				eventPair := fmt.Sprintf("%s:%s", ts, as)
+				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
 
 				exists := eventPairChecker.Check(eventPair)
 				if exists {
@@ -454,29 +461,15 @@ func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker
 			}
 		}()
 
-		// Delete request(s) have to be handled separately because they do not
+		// Delete and Order request(s) have to be handled separately because they do not
 		// return the concrete type but rather an *empty.Empty response.
-		switch r := req.(type) {
-		case *flipt.DeleteFlagRequest:
-			event = audit.NewEvent(audit.FlagType, audit.Delete, actor, r)
-		case *flipt.DeleteVariantRequest:
-			event = audit.NewEvent(audit.VariantType, audit.Delete, actor, r)
-		case *flipt.DeleteSegmentRequest:
-			event = audit.NewEvent(audit.SegmentType, audit.Delete, actor, r)
-		case *flipt.DeleteDistributionRequest:
-			event = audit.NewEvent(audit.DistributionType, audit.Delete, actor, r)
-		case *flipt.DeleteConstraintRequest:
-			event = audit.NewEvent(audit.ConstraintType, audit.Delete, actor, r)
-		case *flipt.DeleteNamespaceRequest:
-			event = audit.NewEvent(audit.NamespaceType, audit.Delete, actor, r)
-		case *flipt.OrderRulesRequest:
-			event = audit.NewEvent(audit.RuleType, audit.Update, actor, r)
-		case *flipt.DeleteRuleRequest:
-			event = audit.NewEvent(audit.RuleType, audit.Delete, actor, r)
-		case *flipt.OrderRolloutsRequest:
-			event = audit.NewEvent(audit.RolloutType, audit.Update, actor, r)
-		case *flipt.DeleteRolloutRequest:
-			event = audit.NewEvent(audit.RolloutType, audit.Delete, actor, r)
+		if request.Action == flipt.ActionDelete {
+			event = audit.NewEvent(request, actor, r)
+		} else {
+			switch r := req.(type) {
+			case *flipt.OrderRulesRequest, *flipt.OrderRolloutsRequest:
+				event = audit.NewEvent(request, actor, r)
+			}
 		}
 
 		// Short circuiting the middleware here since we have a non-nil event from
@@ -485,43 +478,25 @@ func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker
 			return resp, err
 		}
 
-		action := audit.GRPCMethodToAction(info.FullMethod)
-
 		switch r := resp.(type) {
 		case *flipt.Flag:
-			if action != "" {
-				event = audit.NewEvent(audit.FlagType, action, actor, audit.NewFlag(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewFlag(r))
 		case *flipt.Variant:
-			if action != "" {
-				event = audit.NewEvent(audit.VariantType, action, actor, audit.NewVariant(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewVariant(r))
 		case *flipt.Segment:
-			if action != "" {
-				event = audit.NewEvent(audit.SegmentType, action, actor, audit.NewSegment(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewSegment(r))
 		case *flipt.Distribution:
-			if action != "" {
-				event = audit.NewEvent(audit.DistributionType, action, actor, audit.NewDistribution(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewDistribution(r))
 		case *flipt.Constraint:
-			if action != "" {
-				event = audit.NewEvent(audit.ConstraintType, action, actor, audit.NewConstraint(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewConstraint(r))
 		case *flipt.Namespace:
-			if action != "" {
-				event = audit.NewEvent(audit.NamespaceType, action, actor, audit.NewNamespace(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewNamespace(r))
 		case *flipt.Rollout:
-			if action != "" {
-				event = audit.NewEvent(audit.RolloutType, action, actor, audit.NewRollout(r))
-			}
+			event = audit.NewEvent(request, actor, audit.NewRollout(r))
 		case *flipt.Rule:
-			if action != "" {
-				event = audit.NewEvent(audit.RuleType, action, actor, audit.NewRule(r))
-			}
-		case *fauth.CreateTokenResponse:
-			event = audit.NewEvent(audit.TokenType, audit.Create, actor, r.Authentication.Metadata)
+			event = audit.NewEvent(request, actor, audit.NewRule(r))
+		case *auth.CreateTokenResponse:
+			event = audit.NewEvent(request, actor, r.Authentication.Metadata)
 		}
 
 		return resp, err

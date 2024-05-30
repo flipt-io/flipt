@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*TracingConfig)(nil)
+var (
+	_ defaulter = (*TracingConfig)(nil)
+	_ validator = (*TracingConfig)(nil)
+)
 
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.

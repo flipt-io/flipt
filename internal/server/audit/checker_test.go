@@ -121,15 +121,17 @@ func TestChecker(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		checker, err := NewChecker(tc.eventPairs)
-		if tc.expectedError != nil {
-			assert.EqualError(t, err, tc.expectedError.Error())
-			continue
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			checker, err := NewChecker(tc.eventPairs)
+			if tc.expectedError != nil {
+				assert.EqualError(t, err, tc.expectedError.Error())
+				return
+			}
 
-		for k, v := range tc.pairs {
-			actual := checker.Check(k)
-			assert.Equal(t, v, actual)
-		}
+			for k, v := range tc.pairs {
+				actual := checker.Check(k)
+				assert.Equal(t, v, actual)
+			}
+		})
 	}
 }

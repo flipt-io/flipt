@@ -13,6 +13,7 @@ import "strings"
 	analytics:       #analytics
 	audit?:          #audit
 	authentication?: #authentication
+	authorization?:  #authorization
 	cache?:          #cache
 	cloud?:          #cloud
 	cors?:           #cors
@@ -112,6 +113,22 @@ import "strings"
 			redirect_address?: string
 			scopes?: [...string]
 			use_pkce?: bool
+		}
+	}
+
+	#authorization: {
+		#authorizationSource: {
+			backend: "local"
+			local: path: string
+			poll_interval?: =~#duration
+		}
+
+		required?: bool | *false
+		policy?: #authorizationSource & {
+			poll_interval: =~#duration | *"5m"
+		}
+		data?: #authorizationSource & {
+			poll_interval: =~#duration | *"30s"
 		}
 	}
 
@@ -376,6 +393,9 @@ import "strings"
 	}
 
 	#experimental: {
+		authorization?: {
+			enabled?: bool | *false
+		}
 		cloud?: {
 			enabled?: bool | *false
 		}

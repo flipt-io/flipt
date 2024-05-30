@@ -2,8 +2,9 @@ package config
 
 import "github.com/spf13/viper"
 
-// cheers up the unparam linter
-var _ defaulter = (*DiagnosticConfig)(nil)
+var (
+	_ defaulter = (*DiagnosticConfig)(nil)
+)
 
 type DiagnosticConfig struct {
 	Profiling ProfilingDiagnosticConfig `json:"profiling,omitempty" mapstructure:"profiling" yaml:"profiling,omitempty"`

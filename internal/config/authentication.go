@@ -16,6 +16,7 @@ import (
 
 var (
 	_                  defaulter = (*AuthenticationConfig)(nil)
+	_                  validator = (*AuthenticationConfig)(nil)
 	stringToAuthMethod           = map[string]auth.Method{}
 )
 

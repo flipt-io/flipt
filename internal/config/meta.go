@@ -2,8 +2,9 @@ package config
 
 import "github.com/spf13/viper"
 
-// cheers up the unparam linter
-var _ defaulter = (*MetaConfig)(nil)
+var (
+	_ defaulter = (*MetaConfig)(nil)
+)
 
 // MetaConfig contains a variety of meta configuration fields.
 type MetaConfig struct {

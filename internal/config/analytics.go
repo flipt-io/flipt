@@ -8,6 +8,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	_ defaulter = (*AnalyticsConfig)(nil)
+	_ validator = (*AnalyticsConfig)(nil)
+)
+
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
