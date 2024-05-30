@@ -163,7 +163,7 @@ import "strings"
 	#cloud: {
 		host?:         string | *"flipt.cloud"
 		organization?: string
-		instance?:     string
+		gateway?:     string
 		authentication?: {
 			api_key?: string
 		}

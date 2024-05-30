@@ -520,7 +520,7 @@
         "organization": {
           "type": "string"
         },
-        "instance": {
+        "gateway": {
           "type": "string"
         },
         "authentication": {

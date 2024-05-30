@@ -22,18 +22,21 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const cloudAuthVersion = "0.1.0"
+
 type cloudCommand struct {
 	url string
 }
 
 type cloudAuth struct {
-	Token    string         `json:"token"`
-	Instance *cloudInstance `json:"instance,omitempty"`
+	Version string       `json:"version,omitempty"`
+	Token   string       `json:"token"`
+	Tunnel  *cloudTunnel `json:"tunnel,omitempty"`
 }
 
-type cloudInstance struct {
+type cloudTunnel struct {
 	ID           string `json:"id"`
-	Instance     string `json:"instance"`
+	Gateway      string `json:"gateway"`
 	Organization string `json:"organization"`
 	Status       string `json:"status"`
 	ExpiresAt    int64  `json:"expiresAt,omitempty"`
@@ -126,7 +129,6 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("\n✓ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
-
 	return nil
 }
 
@@ -147,10 +149,10 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing cloud URL: %w", err)
 	}
 
-	srvConfig := func(cfg *config.Config, instance cloudInstance) *config.Config {
+	srvConfig := func(cfg *config.Config, t cloudTunnel) *config.Config {
 		cfg.Cloud.Host = u.Hostname()
-		cfg.Cloud.Instance = instance.Instance
-		cfg.Cloud.Organization = instance.Organization
+		cfg.Cloud.Gateway = t.Gateway
+		cfg.Cloud.Organization = t.Organization
 		cfg.Cloud.Authentication.ApiKey = "" // clear API key if present to use JWT
 		cfg.Server.Cloud.Enabled = true
 		cfg.Authentication.Session.Domain = u.Host
@@ -160,7 +162,6 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	// first check for existing of auth token/cloud.json
 	// if not found, prompt user to login
-
 AUTH:
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
 	f, err := os.ReadFile(cloudAuthFile)
@@ -237,9 +238,9 @@ AUTH:
 
 	fmt.Println("✓ Validated Flipt Cloud authentication.")
 
-	if auth.Instance != nil {
-		// check if instance actually exists
-		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/api/instances/%s/status", c.url, auth.Instance.ID), nil)
+	if auth.Tunnel != nil {
+		// check if gateway actually exists
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/api/gateways/%s/status", c.url, auth.Tunnel.ID), nil)
 
 		if err != nil {
 			return fmt.Errorf("creating request: %w", err)
@@ -261,8 +262,8 @@ AUTH:
 
 		switch resp.StatusCode {
 		case http.StatusNotFound:
-			fmt.Println("Existing linked Flipt Cloud instance not found.")
-			ok, err := util.PromptConfirm("Continue with new instance?", false)
+			fmt.Println("Existing linked Flipt Cloud gateway not found.")
+			ok, err := util.PromptConfirm("Continue with new gateway?", false)
 			if err != nil {
 				return err
 			}
@@ -272,11 +273,11 @@ AUTH:
 			}
 
 		case http.StatusOK:
-			// check if instance has not expired
-			if time.Now().Unix() <= auth.Instance.ExpiresAt {
-				fmt.Println("✓ Found existing linked Flipt Cloud instance.")
-				// prompt user to see if they want to use existing instance
-				ok, err := util.PromptConfirm("Use existing instance?", false)
+			// check if gateway has not expired
+			if time.Now().Unix() <= auth.Tunnel.ExpiresAt {
+				fmt.Println("✓ Found existing linked Flipt Cloud gateway.")
+				// prompt user to see if they want to use existing gateway
+				ok, err := util.PromptConfirm("Use existing gateway?", false)
 				if err != nil {
 					return err
 				}
@@ -288,11 +289,11 @@ AUTH:
 					}
 
 					fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-					return run(ctx, logger, srvConfig(cfg, *auth.Instance))
+					return run(ctx, logger, srvConfig(cfg, *auth.Tunnel))
 				}
 			} else {
-				fmt.Println("Existing linked Flipt Cloud instance has expired.")
-				ok, err := util.PromptConfirm("Continue with new instance?", false)
+				fmt.Println("Existing linked Flipt Cloud gateway has expired.")
+				ok, err := util.PromptConfirm("Continue with new gateway?", false)
 				if err != nil {
 					return err
 				}
@@ -306,7 +307,7 @@ AUTH:
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/api/instances", c.url), nil)
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/api/gateways", c.url), nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -345,14 +346,13 @@ AUTH:
 		return errors.New(cloudErr.Error)
 	}
 
-	fmt.Println("✓ Created temporary instance in Flipt Cloud.")
-	var instance cloudInstance
-	if err := json.Unmarshal(body, &instance); err != nil {
+	fmt.Println("✓ Created temporary gateway in Flipt Cloud.")
+	var t cloudTunnel
+	if err := json.Unmarshal(body, &t); err != nil {
 		return fmt.Errorf("unmarshalling response body: %w", err)
 	}
 
-	// save instance to auth file
-	auth.Instance = &instance
+	auth.Tunnel = &t
 	cloudAuthBytes, err := json.Marshal(auth)
 	if err != nil {
 		return fmt.Errorf("marshalling cloud auth token: %w", err)
@@ -363,11 +363,10 @@ AUTH:
 	}
 
 	fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-	return run(ctx, logger, srvConfig(cfg, instance))
+	return run(ctx, logger, srvConfig(cfg, t))
 }
 
 func (c *cloudCommand) loginFlow(ctx context.Context) error {
-
 	flow, err := cloud.InitFlow()
 	if err != nil {
 		return fmt.Errorf("initializing flow: %w", err)
@@ -405,7 +404,8 @@ func (c *cloudCommand) loginFlow(ctx context.Context) error {
 	}
 
 	cloudAuth := cloudAuth{
-		Token: tok,
+		Version: cloudAuthVersion,
+		Token:   tok,
 	}
 
 	cloudAuthBytes, err := json.Marshal(cloudAuth)
