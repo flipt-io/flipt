@@ -76,6 +76,8 @@ import "strings"
 
 			github?: {
 				enabled?:          bool | *false
+				server_url?:       string
+				api_url?:          string
 				client_secret?:    string
 				client_id?:        string
 				redirect_address?: string

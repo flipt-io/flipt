@@ -17,7 +17,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
-	oauth2GitHub "golang.org/x/oauth2/github"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -25,6 +24,7 @@ import (
 type endpoint string
 
 const (
+	githubServer                     = "https://github.com"
 	githubAPI                        = "https://api.github.com"
 	githubUser              endpoint = "/user"
 	githubUserOrganizations endpoint = "/user/orgs"
@@ -62,6 +62,11 @@ func NewServer(
 	store storageauth.Store,
 	config config.AuthenticationConfig,
 ) *Server {
+	serverURL := githubServer
+	if config.Methods.Github.Method.ServerURL != "" {
+		serverURL = config.Methods.Github.Method.ServerURL
+	}
+
 	return &Server{
 		logger: logger,
 		store:  store,
@@ -69,9 +74,12 @@ func NewServer(
 		oauth2Config: &oauth2.Config{
 			ClientID:     config.Methods.Github.Method.ClientId,
 			ClientSecret: config.Methods.Github.Method.ClientSecret,
-			Endpoint:     oauth2GitHub.Endpoint,
-			RedirectURL:  callbackURL(config.Methods.Github.Method.RedirectAddress),
-			Scopes:       config.Methods.Github.Method.Scopes,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  serverURL + "/login/oauth/authorize",
+				TokenURL: serverURL + "/login/oauth/access_token",
+			},
+			RedirectURL: callbackURL(config.Methods.Github.Method.RedirectAddress),
+			Scopes:      config.Methods.Github.Method.Scopes,
 		},
 	}
 }
@@ -127,7 +135,12 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		ID        uint64 `json:"id,omitempty"`
 	}
 
-	if err = api(ctx, token, githubUser, &githubUserResponse); err != nil {
+	apiURL := githubAPI
+	if s.config.Methods.Github.Method.ApiURL != "" {
+		apiURL = s.config.Methods.Github.Method.ApiURL
+	}
+
+	if err = api(ctx, token, apiURL, githubUser, &githubUserResponse); err != nil {
 		return nil, err
 	}
 
@@ -154,14 +167,14 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	}
 
 	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
-		userOrgs, err := getUserOrgs(ctx, token)
+		userOrgs, err := getUserOrgs(ctx, token, apiURL)
 		if err != nil {
 			return nil, err
 		}
 
 		var userTeamsByOrg map[string]map[string]bool
 		if len(s.config.Methods.Github.Method.AllowedTeams) != 0 {
-			userTeamsByOrg, err = getUserTeamsByOrg(ctx, token)
+			userTeamsByOrg, err = getUserTeamsByOrg(ctx, token, apiURL)
 			if err != nil {
 				return nil, err
 			}
@@ -212,12 +225,12 @@ type githubSimpleTeam struct {
 }
 
 // api calls Github API, decodes and stores successful response in the value pointed to by v.
-func api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) error {
+func api(ctx context.Context, token *oauth2.Token, apiURL string, endpoint endpoint, v any) error {
 	c := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	userReq, err := http.NewRequestWithContext(ctx, "GET", string(githubAPI+endpoint), nil)
+	userReq, err := http.NewRequestWithContext(ctx, "GET", apiURL+string(endpoint), nil)
 	if err != nil {
 		return err
 	}
@@ -240,9 +253,9 @@ func api(ctx context.Context, token *oauth2.Token, endpoint endpoint, v any) err
 	return json.NewDecoder(resp.Body).Decode(v)
 }
 
-func getUserOrgs(ctx context.Context, token *oauth2.Token) (map[string]bool, error) {
+func getUserOrgs(ctx context.Context, token *oauth2.Token, apiURL string) (map[string]bool, error) {
 	var response []githubSimpleOrganization
-	if err := api(ctx, token, githubUserOrganizations, &response); err != nil {
+	if err := api(ctx, token, apiURL, githubUserOrganizations, &response); err != nil {
 		return nil, err
 	}
 
@@ -254,9 +267,9 @@ func getUserOrgs(ctx context.Context, token *oauth2.Token) (map[string]bool, err
 	return orgs, nil
 }
 
-func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token) (map[string]map[string]bool, error) {
+func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token, apiURL string) (map[string]map[string]bool, error) {
 	var response []githubSimpleTeam
-	if err := api(ctx, token, githubUserTeams, &response); err != nil {
+	if err := api(ctx, token, apiURL, githubUserTeams, &response); err != nil {
 		return nil, err
 	}
 
