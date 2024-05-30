@@ -10,7 +10,7 @@ import (
 
 var (
 	_ defaulter = (*CacheConfig)(nil)
-  _ validator = (*CacheConfig)(nil)
+	_ validator = (*CacheConfig)(nil)
 )
 
 // CacheConfig contains fields, which enable and configure

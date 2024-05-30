@@ -313,11 +313,10 @@ func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
 // of a particular authentication method.
 // i.e. the name and whether or not the method is session compatible.
 type AuthenticationMethodInfo struct {
-	Method                auth.Method
-	SessionCompatible     bool
-	RequiresDatabase      bool
-	SupportsAuthorization bool
-	Metadata              *structpb.Struct
+	Method            auth.Method
+	SessionCompatible bool
+	RequiresDatabase  bool
+	Metadata          *structpb.Struct
 }
 
 // Name returns the friendly lower-case name for the authentication method.
@@ -430,10 +429,9 @@ func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
-		Method:                auth.Method_METHOD_OIDC,
-		SessionCompatible:     true,
-		SupportsAuthorization: true,
-		RequiresDatabase:      true,
+		Method:            auth.Method_METHOD_OIDC,
+		SessionCompatible: true,
+		RequiresDatabase:  true,
 	}
 
 	var (
