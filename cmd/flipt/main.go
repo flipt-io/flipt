@@ -257,6 +257,15 @@ func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
 	return logger, cfg, nil
 }
 
+const (
+	dntVar = "DO_NOT_TRACK"
+	ciVar  = "CI"
+)
+
+func isSet(env string) bool {
+	return os.Getenv(env) == "true" || os.Getenv(env) == "1"
+}
+
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
@@ -298,12 +307,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	// see: https://consoledonottrack.com/
-	if (os.Getenv("DO_NOT_TRACK") == "true" || os.Getenv("DO_NOT_TRACK") == "1") && cfg.Meta.TelemetryEnabled {
+	if isSet(dntVar) && cfg.Meta.TelemetryEnabled {
 		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	if (os.Getenv("CI") == "true" || os.Getenv("CI") == "1") && cfg.Meta.TelemetryEnabled {
+	if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
 		logger.Debug("CI detected, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
@@ -390,12 +399,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 			if cfg.Cloud.Authentication.ApiKey != "" {
 				authenticator = client.BearerAuthenticator(cfg.Cloud.Authentication.ApiKey)
 
-				if cfg.Cloud.Organization == "" || cfg.Cloud.Instance == "" {
-					return errors.New("missing cloud.organization or cloud.instance")
+				if cfg.Cloud.Organization == "" || cfg.Cloud.Gateway == "" {
+					return errors.New("missing cloud.organization or cloud.gateway")
 				}
 
 				orgHost = fmt.Sprintf("%s.%s", cfg.Cloud.Organization, cfg.Cloud.Host)
-				tunnel = fmt.Sprintf("%s-%s", cfg.Cloud.Instance, orgHost)
+				tunnel = fmt.Sprintf("%s-%s", cfg.Cloud.Gateway, orgHost)
 			} else {
 				// read in local token from file
 				cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
@@ -412,13 +421,13 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 				authenticator = client.BearerAuthenticator(auth.Token, client.WithScheme("JWT"))
 
-				// use instance and organization from local token
-				if auth.Instance == nil || auth.Instance.Organization == "" || auth.Instance.Instance == "" {
-					return errors.New("missing cloud.organization or cloud.instance")
+				// use gateway and organization from local token
+				if auth.Tunnel == nil || auth.Tunnel.Organization == "" || auth.Tunnel.Gateway == "" {
+					return errors.New("missing cloud.organization or cloud.gateway")
 				}
 
-				orgHost = fmt.Sprintf("%s.%s", auth.Instance.Organization, cfg.Cloud.Host)
-				tunnel = fmt.Sprintf("%s-%s", auth.Instance.Instance, orgHost)
+				orgHost = fmt.Sprintf("%s.%s", auth.Tunnel.Organization, cfg.Cloud.Host)
+				tunnel = fmt.Sprintf("%s-%s", auth.Tunnel.Gateway, orgHost)
 			}
 
 			sl := slog.New(zapslog.NewHandler(logger.Core(), nil))

@@ -17,6 +17,9 @@
     "authentication": {
       "$ref": "#/definitions/authentication"
     },
+    "authorization": {
+      "$ref": "#/definitions/authorization"
+    },
     "cache": {
       "$ref": "#/definitions/cache"
     },
@@ -49,6 +52,9 @@
     },
     "ui": {
       "$ref": "#/definitions/ui"
+    },
+    "experimental": {
+      "$ref": "#/definitions/experimental"
     }
   },
 
@@ -196,6 +202,14 @@
                   "type": "boolean",
                   "default": false
                 },
+                "server_url": {
+                  "type": "string",
+                  "default": "https://github.com"
+                },
+                "api_url": {
+                  "type": "string",
+                  "default": "https://api.github.com"
+                },
                 "client_secret": {
                   "type": "string"
                 },
@@ -312,6 +326,47 @@
             "use_pkce": { "type": "boolean", "default": false }
           },
           "additionalProperties": false
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "policy": {
+          "type": ["object", "null"],
+          "$ref": "#/definitions/authorization/$defs/authorization_source"
+        },
+        "data": {
+          "type": ["object", "null"],
+          "$ref": "#/definitions/authorization/$defs/authorization_source"
+        }
+      },
+      "$defs": {
+        "authorization_source": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": ["local"]
+            },
+            "local": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string" }
+              }
+            },
+            "poll_interval": {
+              "type": "string",
+              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+            }
+          }
         }
       }
     },
@@ -465,7 +520,7 @@
         "organization": {
           "type": "string"
         },
-        "instance": {
+        "gateway": {
           "type": "string"
         },
         "authentication": {
@@ -1280,6 +1335,33 @@
         }
       },
       "title": "Analytics"
+    },
+    "experimental": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      },
+      "title": "Experimental"
     }
   }
 }

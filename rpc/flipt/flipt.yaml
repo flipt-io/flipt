@@ -313,6 +313,8 @@ http:
     get: /auth/v1/method/github/callback
 
   # internal routes
+  #
+  # evaluation methods
   - selector: flipt.evaluation.DataService.EvaluationSnapshotNamespace
     get: /internal/v1/evaluation/snapshot/namespace/{key}
 

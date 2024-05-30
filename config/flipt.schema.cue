@@ -13,6 +13,7 @@ import "strings"
 	analytics:       #analytics
 	audit?:          #audit
 	authentication?: #authentication
+	authorization?:  #authorization
 	cache?:          #cache
 	cloud?:          #cloud
 	cors?:           #cors
@@ -76,6 +77,8 @@ import "strings"
 
 			github?: {
 				enabled?:          bool | *false
+				server_url?:       string
+				api_url?:          string
 				client_secret?:    string
 				client_id?:        string
 				redirect_address?: string
@@ -113,6 +116,22 @@ import "strings"
 		}
 	}
 
+	#authorization: {
+		#authorizationSource: {
+			backend: "local"
+			local: path: string
+			poll_interval?: =~#duration
+		}
+
+		required?: bool | *false
+		policy?: #authorizationSource & {
+			poll_interval: =~#duration | *"5m"
+		}
+		data?: #authorizationSource & {
+			poll_interval: =~#duration | *"30s"
+		}
+	}
+
 	#cache: {
 		enabled?: bool | *false
 		backend?: *"memory" | "redis"
@@ -144,7 +163,7 @@ import "strings"
 	#cloud: {
 		host?:         string | *"flipt.cloud"
 		organization?: string
-		instance?:     string
+		gateway?:     string
 		authentication?: {
 			api_key?: string
 		}
@@ -374,6 +393,9 @@ import "strings"
 	}
 
 	#experimental: {
+		authorization?: {
+			enabled?: bool | *false
+		}
 		cloud?: {
 			enabled?: bool | *false
 		}

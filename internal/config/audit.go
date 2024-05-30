@@ -7,8 +7,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*AuditConfig)(nil)
+var (
+	_ defaulter = (*AuditConfig)(nil)
+	_ validator = (*AuditConfig)(nil)
+)
 
 // AuditConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.

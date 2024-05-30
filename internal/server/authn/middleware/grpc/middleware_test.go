@@ -25,18 +25,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// mockServer is used to test skipping auth
+// mockServer is used to test skipping authn
 type mockServer struct {
-	skipsAuth           bool
-	allowNamespacedAuth bool
+	skipsAuthn           bool
+	allowNamespacedAuthn bool
 }
 
 func (s *mockServer) SkipsAuthentication(ctx context.Context) bool {
-	return s.skipsAuth
+	return s.skipsAuthn
 }
 
 func (s *mockServer) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
-	return s.allowNamespacedAuth
+	return s.allowNamespacedAuthn
 }
 
 var priv *rsa.PrivateKey
@@ -186,7 +186,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (skipped)",
 			server: &mockServer{
-				skipsAuth: true,
+				skipsAuthn: true,
 			},
 		},
 		{
@@ -345,7 +345,7 @@ func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 			name:     "successful authentication (skipped)",
 			metadata: metadata.MD{},
 			server: &mockServer{
-				skipsAuth: true,
+				skipsAuthn: true,
 			},
 		},
 		{
@@ -675,7 +675,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			},
 			req: &struct{}{},
 			srv: &mockServer{
-				skipsAuth: true,
+				skipsAuthn: true,
 			},
 			wantCalled: true,
 		},
@@ -793,7 +793,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				NamespaceKey: "foo",
 			},
 			srv: &mockServer{
-				allowNamespacedAuth: false,
+				allowNamespacedAuthn: false,
 			},
 			expectedErr: ErrUnauthenticated,
 		},
@@ -820,7 +820,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				}
 
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{
-					allowNamespacedAuth: true,
+					allowNamespacedAuthn: true,
 				}}
 			)
 

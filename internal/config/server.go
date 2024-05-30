@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// cheers up the unparam linter
-var _ defaulter = (*ServerConfig)(nil)
+var (
+	_ defaulter = (*ServerConfig)(nil)
+	_ validator = (*ServerConfig)(nil)
+)
 
 // ServerConfig contains fields, which configure both HTTP and gRPC
 // API serving.
@@ -36,9 +38,10 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) error {
 		"grpc_port":  9000,
 	})
 
-	if v.IsSet("experimental.cloud.enabled") {
+	if v.GetBool("experimental.cloud.enabled") {
 		return c.Cloud.setDefaults(v)
 	}
+
 	return nil
 }
 

@@ -14,9 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	fliptSignatureHeader = "x-flipt-webhook-signature"
-)
+const fliptSignatureHeader = "x-flipt-webhook-signature"
 
 var _ Client = (*webhookClient)(nil)
 

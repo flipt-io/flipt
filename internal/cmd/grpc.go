@@ -29,7 +29,10 @@ import (
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
+	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authz"
+	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
+	"go.flipt.io/flipt/internal/server/authz/source/filesystem"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -243,26 +246,26 @@ func NewGRPCServer(
 		fliptsrv    = fliptserver.New(logger, store)
 		metasrv     = metadata.New(cfg, info)
 		evalsrv     = evaluation.New(logger, store)
-		evalDataSrv = evaluationdata.New(logger, store)
+		evaldatasrv = evaluationdata.New(logger, store)
 		healthsrv   = health.NewServer()
 	)
 
 	var (
-		// authOpts is a slice of options that will be passed to the authentication service.
+		// authnOpts is a slice of options that will be passed to the authentication service.
 		// it's initialized with the default option of skipping authentication for the health service which should never require authentication.
-		authOpts = []containers.Option[authmiddlewaregrpc.InterceptorOptions]{
-			authmiddlewaregrpc.WithServerSkipsAuthentication(healthsrv),
+		authnOpts = []containers.Option[authnmiddlewaregrpc.InterceptorOptions]{
+			authnmiddlewaregrpc.WithServerSkipsAuthentication(healthsrv),
 		}
-		skipAuthIfExcluded = func(server any, excluded bool) {
+		skipAuthnIfExcluded = func(server any, excluded bool) {
 			if excluded {
-				authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(server))
+				authnOpts = append(authnOpts, authnmiddlewaregrpc.WithServerSkipsAuthentication(server))
 			}
 		}
 	)
 
-	skipAuthIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
-	skipAuthIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
-	skipAuthIfExcluded(evalDataSrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
+	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
 	var checker *audit.Checker
 
@@ -287,7 +290,7 @@ func NewGRPCServer(
 		cfg,
 		forceMigrate,
 		tokenDeletedEnabled,
-		authOpts...,
+		authnOpts...,
 	)
 	if err != nil {
 		return nil, err
@@ -322,7 +325,7 @@ func NewGRPCServer(
 	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
-	register.Add(evalDataSrv)
+	register.Add(evaldatasrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -345,6 +348,45 @@ func NewGRPCServer(
 	// cache must come after auth interceptors
 	if cfg.Cache.Enabled && cacher != nil {
 		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+	}
+
+	if cfg.Authorization.Required {
+		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{
+			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
+		}
+
+		engineOpts := []containers.Option[authz.Engine]{
+			authz.WithPollDuration(cfg.Authorization.Policy.PollInterval),
+		}
+
+		if cfg.Authorization.Data != nil {
+			switch cfg.Authorization.Data.Backend {
+			case config.AuthorizationBackendLocal:
+				engineOpts = append(engineOpts, authz.WithDataSource(
+					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
+					cfg.Authorization.Data.PollInterval,
+				))
+			default:
+				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
+			}
+		}
+
+		var source authz.PolicySource
+		switch cfg.Authorization.Policy.Backend {
+		case config.AuthorizationBackendLocal:
+			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
+		default:
+			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
+		}
+
+		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
+		if err != nil {
+			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
+		}
+
+		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
+
+		logger.Info("authorization middleware enabled")
 	}
 
 	// audit sinks configuration
@@ -404,10 +446,12 @@ func NewGRPCServer(
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
-		sse := audit.NewSinkSpanExporter(logger, sinks)
-		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
+		interceptors = append(interceptors, middlewaregrpc.AuditEventUnaryInterceptor(logger, checker))
 
-		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger, checker))
+		spanExporter := audit.NewSinkSpanExporter(logger, sinks)
+
+		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(spanExporter, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
+
 		logger.Debug("audit sinks enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
@@ -416,7 +460,7 @@ func NewGRPCServer(
 		)
 
 		server.onShutdown(func(ctx context.Context) error {
-			return sse.Shutdown(ctx)
+			return spanExporter.Shutdown(ctx)
 		})
 	}
 
@@ -475,7 +519,6 @@ func NewGRPCServer(
 // This methods blocks until Shutdown is called.
 func (s *GRPCServer) Run() error {
 	s.logger.Debug("starting grpc server")
-
 	return s.Serve(s.ln)
 }
 

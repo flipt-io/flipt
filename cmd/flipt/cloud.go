@@ -18,21 +18,25 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/cloud"
 	"go.flipt.io/flipt/internal/cmd/util"
+	"go.flipt.io/flipt/internal/config"
 	"golang.org/x/sync/errgroup"
 )
+
+const cloudAuthVersion = "0.1.0"
 
 type cloudCommand struct {
 	url string
 }
 
 type cloudAuth struct {
-	Token    string         `json:"token"`
-	Instance *cloudInstance `json:"instance,omitempty"`
+	Version string       `json:"version,omitempty"`
+	Token   string       `json:"token"`
+	Tunnel  *cloudTunnel `json:"tunnel,omitempty"`
 }
 
-type cloudInstance struct {
+type cloudTunnel struct {
 	ID           string `json:"id"`
-	Instance     string `json:"instance"`
+	Gateway      string `json:"gateway"`
 	Organization string `json:"organization"`
 	Status       string `json:"status"`
 	ExpiresAt    int64  `json:"expiresAt,omitempty"`
@@ -115,62 +119,17 @@ func (c *cloudCommand) login(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// if they didn't attempt login, exit
 	if !ok {
 		return nil
 	}
 
-	flow, err := cloud.InitFlow()
-	if err != nil {
-		return fmt.Errorf("initializing flow: %w", err)
-	}
-
-	defer flow.Close()
-
-	var g errgroup.Group
-
-	g.Go(func() error {
-		if err := flow.StartServer(nil); err != nil && !errors.Is(err, net.ErrClosed) {
-			return fmt.Errorf("starting server: %w", err)
-		}
-		return nil
-	})
-
-	url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
-	if err != nil {
-		return fmt.Errorf("creating browser URL: %w", err)
-	}
-
-	if err := util.OpenBrowser(url); err != nil {
-		return fmt.Errorf("opening browser: %w", err)
-	}
-
-	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
-
-	tok, err := flow.Wait(ctx)
-	if err != nil {
-		return fmt.Errorf("waiting for token: %w", err)
-	}
-
-	if err := flow.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
-		return fmt.Errorf("closing flow: %w", err)
-	}
-
-	cloudAuth := cloudAuth{
-		Token: tok,
-	}
-
-	cloudAuthBytes, err := json.Marshal(cloudAuth)
-	if err != nil {
-		return fmt.Errorf("marshalling cloud auth token: %w", err)
-	}
-
-	if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
-		return fmt.Errorf("writing cloud auth token: %w", err)
+	if err := c.loginFlow(ctx); err != nil {
+		return err
 	}
 
 	fmt.Println("\n✓ Authenticated with Flipt Cloud!\nYou can now run commands that require cloud authentication.")
-
-	return g.Wait()
+	return nil
 }
 
 func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
@@ -190,14 +149,42 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parsing cloud URL: %w", err)
 	}
 
+	srvConfig := func(cfg *config.Config, t cloudTunnel) *config.Config {
+		cfg.Cloud.Host = u.Hostname()
+		cfg.Cloud.Gateway = t.Gateway
+		cfg.Cloud.Organization = t.Organization
+		cfg.Cloud.Authentication.ApiKey = "" // clear API key if present to use JWT
+		cfg.Server.Cloud.Enabled = true
+		cfg.Authentication.Session.Domain = u.Host
+		cfg.Authentication.Methods.Cloud.Enabled = true
+		return cfg
+	}
+
 	// first check for existing of auth token/cloud.json
 	// if not found, prompt user to login
+AUTH:
 	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
 	f, err := os.ReadFile(cloudAuthFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			fmt.Println("No cloud authentication token found. Please run 'flipt cloud login' to authenticate with Flipt Cloud.")
-			return nil
+			fmt.Println("\n✗ No cloud authentication token found.")
+
+			ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
+			if err != nil {
+				return err
+			}
+
+			// if they didn't attempt login, exit
+			if !ok {
+				return nil
+			}
+
+			if err := c.loginFlow(ctx); err != nil {
+				return err
+			}
+
+			// otherwise, try reading the file again
+			goto AUTH
 		}
 
 		return fmt.Errorf("reading cloud auth payload %w", err)
@@ -221,6 +208,27 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	parsed, err := jwt.Parse(auth.Token, k.Keyfunc, jwt.WithExpirationRequired())
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			fmt.Println("✗ Existing cloud authentication token expired.")
+
+			ok, err := util.PromptConfirm("Open browser to authenticate with Flipt Cloud?", false)
+			if err != nil {
+				return err
+			}
+
+			// if they didn't attempt login, exit
+			if !ok {
+				return nil
+			}
+
+			if err := c.loginFlow(ctx); err != nil {
+				return err
+			}
+
+			// otherwise, try reading the file again
+			goto AUTH
+		}
+
 		return fmt.Errorf("parsing JWT: %w", err)
 	}
 
@@ -230,9 +238,9 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("✓ Validated Flipt Cloud authentication.")
 
-	if auth.Instance != nil {
-		// check if instance actually exists
-		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/api/instances/%s/status", c.url, auth.Instance.ID), nil)
+	if auth.Tunnel != nil {
+		// check if gateway actually exists
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/api/gateways/%s/status", c.url, auth.Tunnel.ID), nil)
 
 		if err != nil {
 			return fmt.Errorf("creating request: %w", err)
@@ -254,8 +262,8 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 
 		switch resp.StatusCode {
 		case http.StatusNotFound:
-			fmt.Println("Existing linked Flipt Cloud instance not found.")
-			ok, err := util.PromptConfirm("Continue with new instance?", false)
+			fmt.Println("Existing linked Flipt Cloud gateway not found.")
+			ok, err := util.PromptConfirm("Continue with new gateway?", false)
 			if err != nil {
 				return err
 			}
@@ -265,11 +273,11 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 			}
 
 		case http.StatusOK:
-			// check if instance has not expired
-			if time.Now().Unix() <= auth.Instance.ExpiresAt {
-				fmt.Println("✓ Found existing linked Flipt Cloud instance.")
-				// prompt user to see if they want to use existing instance
-				ok, err := util.PromptConfirm("Use existing instance?", false)
+			// check if gateway has not expired
+			if time.Now().Unix() <= auth.Tunnel.ExpiresAt {
+				fmt.Println("✓ Found existing linked Flipt Cloud gateway.")
+				// prompt user to see if they want to use existing gateway
+				ok, err := util.PromptConfirm("Use existing gateway?", false)
 				if err != nil {
 					return err
 				}
@@ -280,18 +288,12 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 						return err
 					}
 
-					cfg.Cloud.Host = u.Hostname()
-					cfg.Cloud.Instance = auth.Instance.Instance
-					cfg.Cloud.Organization = auth.Instance.Organization
-					cfg.Server.Cloud.Enabled = true
-					cfg.Authentication.Session.Domain = u.Host
-
 					fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-					return run(ctx, logger, cfg)
+					return run(ctx, logger, srvConfig(cfg, *auth.Tunnel))
 				}
 			} else {
-				fmt.Println("Existing linked Flipt Cloud instance has expired.")
-				ok, err := util.PromptConfirm("Continue with new instance?", false)
+				fmt.Println("Existing linked Flipt Cloud gateway has expired.")
+				ok, err := util.PromptConfirm("Continue with new gateway?", false)
 				if err != nil {
 					return err
 				}
@@ -305,7 +307,7 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/api/instances", c.url), nil)
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/api/gateways", c.url), nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -344,14 +346,13 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return errors.New(cloudErr.Error)
 	}
 
-	fmt.Println("✓ Created temporary instance in Flipt Cloud.")
-	var instance cloudInstance
-	if err := json.Unmarshal(body, &instance); err != nil {
+	fmt.Println("✓ Created temporary gateway in Flipt Cloud.")
+	var t cloudTunnel
+	if err := json.Unmarshal(body, &t); err != nil {
 		return fmt.Errorf("unmarshalling response body: %w", err)
 	}
 
-	// save instance to auth file
-	auth.Instance = &instance
+	auth.Tunnel = &t
 	cloudAuthBytes, err := json.Marshal(auth)
 	if err != nil {
 		return fmt.Errorf("marshalling cloud auth token: %w", err)
@@ -361,12 +362,60 @@ func (c *cloudCommand) serve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("writing cloud auth token: %w", err)
 	}
 
-	cfg.Cloud.Host = u.Hostname()
-	cfg.Cloud.Instance = instance.Instance
-	cfg.Cloud.Organization = instance.Organization
-	cfg.Server.Cloud.Enabled = true
-	cfg.Authentication.Session.Domain = u.Host
-
 	fmt.Println("✓ Starting local instance linked with Flipt Cloud.")
-	return run(ctx, logger, cfg)
+	return run(ctx, logger, srvConfig(cfg, t))
+}
+
+func (c *cloudCommand) loginFlow(ctx context.Context) error {
+	flow, err := cloud.InitFlow()
+	if err != nil {
+		return fmt.Errorf("initializing flow: %w", err)
+	}
+
+	defer flow.Close()
+
+	var g errgroup.Group
+
+	g.Go(func() error {
+		if err := flow.StartServer(nil); err != nil && !errors.Is(err, net.ErrClosed) {
+			return fmt.Errorf("starting server: %w", err)
+		}
+		return nil
+	})
+
+	url, err := flow.BrowserURL(fmt.Sprintf("%s/login/device", c.url))
+	if err != nil {
+		return fmt.Errorf("creating browser URL: %w", err)
+	}
+
+	if err := util.OpenBrowser(url); err != nil {
+		return fmt.Errorf("opening browser: %w", err)
+	}
+
+	cloudAuthFile := filepath.Join(userConfigDir, "cloud.json")
+
+	tok, err := flow.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for token: %w", err)
+	}
+
+	if err := flow.Close(); err != nil && !errors.Is(err, net.ErrClosed) {
+		return fmt.Errorf("closing flow: %w", err)
+	}
+
+	cloudAuth := cloudAuth{
+		Version: cloudAuthVersion,
+		Token:   tok,
+	}
+
+	cloudAuthBytes, err := json.Marshal(cloudAuth)
+	if err != nil {
+		return fmt.Errorf("marshalling cloud auth token: %w", err)
+	}
+
+	if err := os.WriteFile(cloudAuthFile, cloudAuthBytes, 0600); err != nil {
+		return fmt.Errorf("writing cloud auth token: %w", err)
+	}
+
+	return g.Wait()
 }
