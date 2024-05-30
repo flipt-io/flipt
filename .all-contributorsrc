@@ -411,6 +411,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tvcsantos",
+      "name": "Tiago Santos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/112688?v=4",
+      "profile": "http://tiago.santos.com.pt",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
