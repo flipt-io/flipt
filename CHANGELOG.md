@@ -3,6 +3,29 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.43.0](https://github.com/flipt-io/flipt/releases/tag/v1.43.0) - 2024-05-30
+
+### Added
+
+- experimental: Authz (#3008)
+- add support for ghe (#3136)
+- `cache/redis`: support ca certificate and insecure tls options (#3107)
+- `fs/git`: add support for cloning target repository to the local filesystem
+
+### Changed
+
+- add tvcsantos as a contributor for code (#3137)
+- add vk-rv as a contributor for code (#3112)
+- `config`: rename git backend filesystem to local (#3110)
+
+### Fixed
+
+- `ui`: await expiring auth self before redirecting (#3133)
+- issues with cloud config for cloud serve (#3129)
+- use cloud auth token from JWT instead of API key if present for flipt cloud serve (#3114)
+- prevent redis shutdown (#3111)
+- write response for cloud login before server shutdown (#3109)
+
 ## [v1.42.1](https://github.com/flipt-io/flipt/releases/tag/v1.42.1) - 2024-05-21
 
 ### Changed
