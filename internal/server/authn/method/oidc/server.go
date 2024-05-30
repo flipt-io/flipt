@@ -138,7 +138,8 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}
 
 	metadata := map[string]string{
-		storageMetadataOIDCProvider: req.Provider,
+		storageMetadataOIDCProvider:      req.Provider,
+		"io.flipt.auth.redirect_address": s.config.Methods.OIDC.Method.Providers[req.Provider].RedirectAddress,
 	}
 
 	// Extract custom claims

@@ -101,10 +101,11 @@ func Test_Server(t *testing.T) {
 		require.NotEmpty(t, callback.ClientToken)
 		require.Equal(t, auth.Method_METHOD_GITHUB, callback.Authentication.Method)
 		require.Equal(t, map[string]string{
-			storageMetadataGithubEmail:   "user@flipt.io",
-			storageMetadataGithubName:    "fliptuser",
-			storageMetadataGithubPicture: "https://thispicture.com",
-			storageMetadataGithubSub:     "1234567890",
+			storageMetadataGithubEmail:       "user@flipt.io",
+			storageMetadataGithubName:        "fliptuser",
+			storageMetadataGithubPicture:     "https://thispicture.com",
+			storageMetadataGithubSub:         "1234567890",
+			"io.flipt.auth.redirect_address": "test.flipt.io",
 		}, callback.Authentication.Metadata)
 	})
 

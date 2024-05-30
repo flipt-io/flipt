@@ -21,7 +21,7 @@ export default function UserProfile(props: UserProfileProps) {
   let name: string | undefined;
   let login: string | undefined;
   let imgURL: string | undefined;
-  let logoutURL = '/';
+  let logoutURL: string | undefined;
 
   if (session) {
     const authMethods = ['github', 'oidc', 'jwt'];
@@ -52,14 +52,28 @@ export default function UserProfile(props: UserProfileProps) {
           metadata[authMethodIssuerKey as keyof typeof metadata];
         logoutURL = `//${logoutURI}`;
       }
+
+      const redirectAddressKey = 'io.flipt.auth.redirect_address';
+      if (metadata[redirectAddressKey as keyof typeof metadata]) {
+        let redirectAddress = metadata[
+          redirectAddressKey as keyof typeof metadata
+        ] as string;
+        redirectAddress = redirectAddress?.trim();
+        if (redirectAddress && !redirectAddress.endsWith('/')) {
+          redirectAddress += '/';
+        }
+        logoutURL = redirectAddress;
+      }
     }
   }
+
+  const logoutLocation = logoutURL || '/';
 
   const logout = async () => {
     try {
       await expireAuthSelf();
       clearSession();
-      window.location.href = logoutURL;
+      window.location.href = logoutLocation;
     } catch (err) {
       setError(err);
     }

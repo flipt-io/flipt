@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.21
+ARG GO_VERSION=1.22
 
 FROM golang:${GO_VERSION}
 
@@ -31,6 +31,7 @@ WORKDIR /flipt
 
 COPY go.mod go.mod
 COPY go.sum go.sum
+COPY ./core ./core
 COPY ./errors ./errors
 COPY ./rpc/flipt ./rpc/flipt
 COPY ./sdk ./sdk

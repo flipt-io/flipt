@@ -73,12 +73,22 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 			SameSite: http.SameSiteStrictMode,
 		}
 
+		authentication := r.GetAuthentication()
+		var location = "/"
+		if meta := authentication.GetMetadata(); meta != nil {
+			redirectAddress := meta["io.flipt.auth.redirect_address"]
+			redirectAddress = strings.TrimSpace(redirectAddress)
+			if redirectAddress != "" {
+				location = strings.TrimSuffix(redirectAddress, "/") + "/"
+			}
+		}
+
 		http.SetCookie(w, cookie)
 
 		// clear out token now that it is set via cookie
 		r.ClientToken = ""
 
-		w.Header().Set("Location", "/")
+		w.Header().Set("Location", location)
 		w.WriteHeader(http.StatusFound)
 	}
 
@@ -94,6 +104,12 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		prefix, method := path.Split(r.URL.Path)
+		forwardedPrefixValue := r.Header.Get("X-Forwarded-Prefix")
+		forwardedPrefixes := strings.Split(forwardedPrefixValue, ",")
+		for i, prefix := range forwardedPrefixes {
+			forwardedPrefixes[i] = strings.TrimSpace(prefix)
+		}
+		forwardedPrefix := path.Join(forwardedPrefixes...)
 
 		if !((strings.HasPrefix(prefix, oidcPrefix) || strings.HasPrefix(prefix, githubPrefix)) && method == "authorize") {
 			next.ServeHTTP(w, r)
@@ -130,7 +146,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     prefix + "callback",
+				Path:     forwardedPrefix + prefix + "callback",
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,

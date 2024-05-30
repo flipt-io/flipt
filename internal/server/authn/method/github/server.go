@@ -131,7 +131,9 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		return nil, err
 	}
 
-	metadata := map[string]string{}
+	metadata := map[string]string{
+		"io.flipt.auth.redirect_address": s.config.Methods.Github.Method.RedirectAddress,
+	}
 
 	if githubUserResponse.Name != "" {
 		metadata[storageMetadataGithubName] = githubUserResponse.Name

@@ -440,10 +440,10 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 
 	// this ensures we expose the authorize and callback URL endpoint
 	// to the UI via the /auth/v1/method endpoint
-	for provider := range a.Providers {
-		providers[provider] = map[string]any{
-			"authorize_url": fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider),
-			"callback_url":  fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider),
+	for name, provider := range a.Providers {
+		providers[name] = map[string]any{
+			"authorize_url": fmt.Sprintf("%s/auth/v1/method/oidc/%s/authorize", provider.RedirectAddress, name),
+			"callback_url":  fmt.Sprintf("%s/auth/v1/method/oidc/%s/callback", provider.RedirectAddress, name),
 		}
 	}
 
@@ -552,8 +552,8 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 
 	metadata := make(map[string]any)
 
-	metadata["authorize_url"] = "/auth/v1/method/github/authorize"
-	metadata["callback_url"] = "/auth/v1/method/github/callback"
+	metadata["authorize_url"] = fmt.Sprintf("%s/auth/v1/method/github/authorize", a.RedirectAddress)
+	metadata["callback_url"] = fmt.Sprintf("%s/auth/v1/method/github/callback", a.RedirectAddress)
 
 	info.Metadata, _ = structpb.NewStruct(metadata)
 

@@ -19,6 +19,7 @@ export interface IAuthMethodOIDCMetadata {
   'io.flipt.auth.oidc.name'?: string;
   'io.flipt.auth.oidc.picture'?: string;
   'io.flipt.auth.oidc.preferred_username'?: string;
+  'io.flipt.auth.redirect_address'?: string;
 }
 
 export interface IAuthOIDCInternal extends IAuth {

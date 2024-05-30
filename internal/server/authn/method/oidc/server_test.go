@@ -341,10 +341,11 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 		assert.Empty(t, response.ClientToken) // middleware moves it to cookie
 		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
 		assert.Equal(t, map[string]string{
-			"io.flipt.auth.oidc.provider": "google",
-			"io.flipt.auth.oidc.email":    "mark@flipt.io",
-			"io.flipt.auth.oidc.name":     "Mark Phelps",
-			"io.flipt.auth.oidc.sub":      "mark",
+			"io.flipt.auth.oidc.provider":    "google",
+			"io.flipt.auth.oidc.email":       "mark@flipt.io",
+			"io.flipt.auth.oidc.name":        "Mark Phelps",
+			"io.flipt.auth.oidc.sub":         "mark",
+			"io.flipt.auth.redirect_address": clientAddress,
 		}, response.Authentication.Metadata)
 
 		// ensure expiry is set
