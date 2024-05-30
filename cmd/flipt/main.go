@@ -400,7 +400,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 				authenticator = client.BearerAuthenticator(cfg.Cloud.Authentication.ApiKey)
 
 				if cfg.Cloud.Organization == "" || cfg.Cloud.Gateway == "" {
-					return errors.New("missing cloud.organization or cloud.instance")
+					return errors.New("missing cloud.organization or cloud.gateway")
 				}
 
 				orgHost = fmt.Sprintf("%s.%s", cfg.Cloud.Organization, cfg.Cloud.Host)
@@ -421,9 +421,9 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 				authenticator = client.BearerAuthenticator(auth.Token, client.WithScheme("JWT"))
 
-				// use instance and organization from local token
+				// use gateway and organization from local token
 				if auth.Tunnel == nil || auth.Tunnel.Organization == "" || auth.Tunnel.Gateway == "" {
-					return errors.New("missing cloud.organization or cloud.instance")
+					return errors.New("missing cloud.organization or cloud.gateway")
 				}
 
 				orgHost = fmt.Sprintf("%s.%s", auth.Tunnel.Organization, cfg.Cloud.Host)
