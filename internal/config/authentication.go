@@ -532,6 +532,8 @@ func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
+	ServerURL            string              `json:"serverUrl,omitempty" mapstructure:"server_url" yaml:"server_url,omitempty"`
+	ApiURL               string              `json:"apiUrl,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
 	ClientId             string              `json:"-" mapstructure:"client_id" yaml:"-"`
 	ClientSecret         string              `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress      string              `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
