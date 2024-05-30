@@ -202,6 +202,14 @@
                   "type": "boolean",
                   "default": false
                 },
+                "server_url": {
+                  "type": "string",
+                  "default": "https://github.com"
+                },
+                "api_url": {
+                  "type": "string",
+                  "default": "https://api.github.com"
+                },
                 "client_secret": {
                   "type": "string"
                 },
