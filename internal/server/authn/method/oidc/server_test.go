@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
