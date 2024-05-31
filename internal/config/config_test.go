@@ -1329,7 +1329,7 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("flush period below 10 seconds"),
 		},
 		{
-			name: "ui topbar with custom color",
+			name: "ui topbar with correct hex color",
 			path: "./testdata/ui/topbar_color.yml",
 			expected: func() *Config {
 				cfg := Default()
@@ -1337,6 +1337,11 @@ func TestLoad(t *testing.T) {
 				cfg.UI.Topbar.Label = "World"
 				return cfg
 			},
+		},
+		{
+			name:    "ui topbar with invalid hex color",
+			path:    "./testdata/ui/topbar_invalid_color.yml",
+			wantErr: errors.New("expected valid hex color, got invalid"),
 		},
 	}
 
