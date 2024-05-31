@@ -1,6 +1,11 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"regexp"
+
+	"github.com/spf13/viper"
+)
 
 type UITheme string
 
@@ -11,13 +16,28 @@ const (
 )
 
 var (
-	_ defaulter = (*UIConfig)(nil)
+	_          defaulter = (*UIConfig)(nil)
+	hexedColor           = regexp.MustCompile("^#(?:[0-9a-fA-F]{3}){1,2}$")
 )
+
+// UITopbar represents the configuration of a user interface top bar component.
+type UITopbar struct {
+	Color string `json:"color" mapstructure:"color" yaml:"color"`
+	Label string `json:"label" mapstructure:"label" yaml:"label"`
+}
+
+func (u *UITopbar) validate() error {
+	if u.Color != "" && !hexedColor.MatchString(u.Color) {
+		return fmt.Errorf("expected valid hex color, got %s", u.Color)
+	}
+	return nil
+}
 
 // UIConfig contains fields, which control the behaviour
 // of Flipt's user interface.
 type UIConfig struct {
-	DefaultTheme UITheme `json:"defaultTheme" mapstructure:"default_theme" yaml:"default_theme"`
+	DefaultTheme UITheme  `json:"defaultTheme" mapstructure:"default_theme" yaml:"default_theme"`
+	Topbar       UITopbar `json:"topbar,omitempty" mapstructure:"topbar" yaml:"topbar,omitempty"`
 }
 
 func (c *UIConfig) setDefaults(v *viper.Viper) error {
@@ -26,4 +46,8 @@ func (c *UIConfig) setDefaults(v *viper.Viper) error {
 	})
 
 	return nil
+}
+
+func (c *UIConfig) validate() error {
+	return c.Topbar.validate()
 }

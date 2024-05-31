@@ -4,6 +4,8 @@ import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import logoLight from '~/assets/logo-light.png';
 import Nav from './Nav';
+import { useSelector } from 'react-redux';
+import { selectConfig } from '~/app/meta/metaSlice';
 
 type SidebarProps = {
   sidebarOpen: boolean;
@@ -13,6 +15,8 @@ type SidebarProps = {
 export default function Sidebar(props: SidebarProps) {
   const { sidebarOpen, setSidebarOpen } = props;
 
+  const { ui } = useSelector(selectConfig);
+  const topbarStyle = { backgroundColor: ui.topbar?.color };
   return (
     <>
       <Transition.Root show={sidebarOpen} as={Fragment}>
@@ -94,7 +98,10 @@ export default function Sidebar(props: SidebarProps) {
       {/* Static sidebar for desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="bg-gray-200 flex min-h-0 flex-1 flex-col">
-          <div className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pb-1 pt-2 dark:border-b dark:border-b-white/20">
+          <div
+            className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pb-1 pt-2 dark:border-b dark:border-b-white/20"
+            style={topbarStyle}
+          >
             <Link to="/">
               <img
                 src={logoLight}
