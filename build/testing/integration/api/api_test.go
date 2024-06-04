@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"go.flipt.io/flipt/build/testing/integration"
-	"go.flipt.io/flipt/build/testing/integration/api"
+	"go.flipt.io/build/testing/integration"
+	"go.flipt.io/build/testing/integration/api"
 	sdk "go.flipt.io/flipt/sdk/go"
 )
 

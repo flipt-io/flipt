@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"dagger.io/dagger"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {

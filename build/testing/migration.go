@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"dagger.io/dagger"
 	"github.com/google/go-github/v53/github"
 	"github.com/google/uuid"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {

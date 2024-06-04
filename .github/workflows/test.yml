@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.21"
-  DAGGER_VERSION: "0.9.5"
+  GO_VERSION: "1.22"
+  DAGGER_VERSION: "0.11.6"
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
@@ -38,7 +38,7 @@ jobs:
           install-only: true
 
       - name: Unit Test
-        run: mage dagger:run "test:unit"
+        run: dagger call test --source=. unit
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v4.4.1
@@ -100,5 +100,5 @@ jobs:
         with:
           install-only: true
 
-      - name: Run UI Tests
-        run: mage dagger:run test:migration
+      - name: Run Migration Tests
+        run: dagger call test --source=. migration
