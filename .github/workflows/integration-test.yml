@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  DAGGER_VERSION: "0.9.5"
+  DAGGER_VERSION: "0.11.6"
   DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
 concurrency:
@@ -41,7 +41,7 @@ jobs:
           install-only: true
 
       - name: Run CLI Tests
-        run: mage dagger:run test:cli
+        run: dagger call test --source=. cli
 
   test:
     name: Integration Tests
@@ -91,7 +91,7 @@ jobs:
           install-only: true
 
       - name: Run Integration Tests
-        run: mage dagger:run "test:integration ${{ matrix.test }}"
+        run: "dagger call test --source=. integration --cases ${{ matrix.test }}"
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4
@@ -126,4 +126,4 @@ jobs:
           install-only: true
 
       - name: Run UI Tests
-        run: mage dagger:run test:ui
+        run: dagger call test --source=. ui
