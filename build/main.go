@@ -48,6 +48,7 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*Container,
 	return f.BaseContainer, err
 }
 
+// Return container with Flipt binariesin a thinner alpine distribution
 func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*Container, error) {
 	base, err := f.Base(ctx, source)
 	if err != nil {
@@ -64,6 +65,8 @@ type Test struct {
 	FliptContainer *dagger.Container
 }
 
+// Execute test specific by subcommand
+// see all available subcommands with dagger call test --help
 func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, error) {
 	flipt, err := f.Build(ctx, source)
 	if err != nil {
@@ -73,26 +76,32 @@ func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, erro
 	return &Test{source, f.BaseContainer, f.UIContainer, flipt}, nil
 }
 
+// Run all ui tests
 func (t *Test) UI(ctx context.Context) error {
 	return testing.UI(ctx, dag, t.UIContainer, t.FliptContainer)
 }
 
+// Run all unit tests
 func (t *Test) Unit(ctx context.Context) error {
 	return testing.Unit(ctx, dag, t.BaseContainer)
 }
 
+// Run all cli tests
 func (t *Test) CLI(ctx context.Context) error {
 	return testing.CLI(ctx, dag, t.Source, t.FliptContainer)
 }
 
+// Run all migration tests
 func (t *Test) Migration(ctx context.Context) error {
 	return testing.Migration(ctx, dag, t.BaseContainer, t.FliptContainer)
 }
 
+// Run all load tests
 func (t *Test) Load(ctx context.Context) error {
 	return testing.LoadTest(ctx, dag, t.BaseContainer, t.FliptContainer)
 }
 
+// Run all integration tests
 func (t *Test) Integration(
 	ctx context.Context,
 	// +optional
@@ -121,6 +130,8 @@ type Generate struct {
 	FliptContainer *dagger.Container
 }
 
+// Execute generate function with subcommand
+// see all available subcommands with dagger call generate --help
 func (f *Flipt) Generate(ctx context.Context, source *dagger.Directory) (*Generate, error) {
 	flipt, err := f.Build(ctx, source)
 	if err != nil {
