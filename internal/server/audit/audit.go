@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/hashicorp/go-multierror"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -14,7 +15,7 @@ import (
 // that Flipt will support.
 type Sink interface {
 	SendAudits(context.Context, []Event) error
-	Close() error
+	io.Closer
 	fmt.Stringer
 }
 
