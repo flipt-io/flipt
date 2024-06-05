@@ -38,11 +38,10 @@ func NewSink(opts ...Option) (audit.Sink, error) {
 	return newSink(*oo)
 }
 
-// newSink is the constructor for a Sink visible for testing.
-func newSink(opts logOptions) (audit.Sink, error) {
-	encoding := zapcore.EncoderConfig{
+var (
+	consoleEncoderConfig = zapcore.EncoderConfig{
 		TimeKey:        "T",
-		LevelKey:       "",
+		LevelKey:       zapcore.OmitKey,
 		NameKey:        "N",
 		CallerKey:      zapcore.OmitKey,
 		FunctionKey:    zapcore.OmitKey,
@@ -55,17 +54,36 @@ func newSink(opts logOptions) (audit.Sink, error) {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
+	fileEncoderConfig = zapcore.EncoderConfig{
+		TimeKey:        zapcore.OmitKey,
+		LevelKey:       zapcore.OmitKey,
+		NameKey:        zapcore.OmitKey,
+		CallerKey:      zapcore.OmitKey,
+		FunctionKey:    zapcore.OmitKey,
+		MessageKey:     zapcore.OmitKey,
+		StacktraceKey:  zapcore.OmitKey,
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     zapcore.RFC3339TimeEncoder,
+		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}
+)
+
+// newSink is the constructor for a Sink visible for testing.
+func newSink(opts logOptions) (audit.Sink, error) {
 	cfg := zap.Config{
 		Level:            zap.NewAtomicLevelAt(zapcore.InfoLevel),
 		Development:      false,
 		Encoding:         "json",
-		EncoderConfig:    encoding,
+		EncoderConfig:    consoleEncoderConfig,
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
 
 	if opts.Path != "" {
 		cfg.OutputPaths = []string{opts.Path}
+		cfg.EncoderConfig = fileEncoderConfig
 	}
 
 	return &Sink{
