@@ -29,6 +29,8 @@ func TestSink(t *testing.T) {
 	s, err := NewSink(WithPath(file.Name()), WithEncoding(config.LogEncodingJSON))
 	require.NoError(t, err)
 
+	require.Equal(t, "log", s.String())
+
 	err = s.SendAudits(context.TODO(), []audit.Event{
 		{
 			Version: "0.1",

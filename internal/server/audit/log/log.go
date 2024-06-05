@@ -2,6 +2,9 @@ package log
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -97,6 +100,18 @@ func newSink(opts logOptions) (audit.Sink, error) {
 	}
 
 	if opts.path != "" {
+		// check path dir exists, if not create it
+		dir := filepath.Dir(opts.path)
+		if _, err := os.Stat(dir); err != nil {
+			if !os.IsNotExist(err) {
+				return nil, fmt.Errorf("checking log file path: %w", err)
+			}
+
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				return nil, fmt.Errorf("creating log file path: %w", err)
+			}
+		}
+
 		cfg.OutputPaths = []string{opts.path}
 		cfg.EncoderConfig = fileEncoderConfig
 	}
