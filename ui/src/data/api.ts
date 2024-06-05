@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { FlagType } from '~/types/Flag';
 
+import { IAuthGithubInternal } from '~/types/auth/Github';
+import { IAuthJWTInternal } from '~/types/auth/JWT';
+import { IAuthOIDCInternal } from '~/types/auth/OIDC';
+import { getUser } from '~/data/user';
+
 export const apiURL = 'api/v1';
 export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
@@ -8,7 +13,13 @@ export const metaURL = 'meta';
 export const internalURL = 'internal/v1';
 
 const csrfTokenHeaderKey = 'x-csrf-token';
-const sessionKey = 'session';
+export const sessionKey = 'session';
+
+export type Session = {
+  required: boolean;
+  authenticated: boolean;
+  self?: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal;
+};
 
 export class APIError extends Error {
   status: number;
@@ -33,8 +44,20 @@ function headerCsrf(): Record<string, string> {
 export function checkResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 401) {
+      const session = window.localStorage.getItem(sessionKey);
       window.localStorage.removeItem(csrfTokenHeaderKey);
       window.localStorage.removeItem(sessionKey);
+      if (session) {
+        try {
+          const user = getUser(JSON.parse(session));
+          if (user?.issuer) {
+            window.location.href = `//${user.issuer}`;
+            return;
+          }
+        } catch (e) {
+          //
+        }
+      }
       window.location.reload();
     }
   }
