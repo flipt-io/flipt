@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -16,14 +17,21 @@ type Sink struct {
 }
 
 type logOptions struct {
-	Path string
+	path     string
+	encoding config.LogEncoding
 }
 
 type Option func(*logOptions)
 
 func WithPath(path string) Option {
 	return func(o *logOptions) {
-		o.Path = path
+		o.path = path
+	}
+}
+
+func WithEncoding(encoding config.LogEncoding) Option {
+	return func(o *logOptions) {
+		o.encoding = encoding
 	}
 }
 
@@ -75,14 +83,18 @@ func newSink(opts logOptions) (audit.Sink, error) {
 	cfg := zap.Config{
 		Level:            zap.NewAtomicLevelAt(zapcore.InfoLevel),
 		Development:      false,
-		Encoding:         "json",
+		Encoding:         "console",
 		EncoderConfig:    consoleEncoderConfig,
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
 
-	if opts.Path != "" {
-		cfg.OutputPaths = []string{opts.Path}
+	if opts.encoding != "" {
+		cfg.Encoding = string(opts.encoding)
+	}
+
+	if opts.path != "" {
+		cfg.OutputPaths = []string{opts.path}
 		cfg.EncoderConfig = fileEncoderConfig
 	}
 

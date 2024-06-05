@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -34,8 +33,9 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
 			"log": map[string]any{
-				"enabled": "false",
-				"file":    "",
+				"enabled":  "false",
+				"file":     "",
+				"encoding": "console",
 			},
 			"webhook": map[string]any{
 				"enabled": "false",
@@ -98,32 +98,12 @@ type WebhookSinkConfig struct {
 	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
 }
 
-// LogEncoding is either console or JSON.
-type AuditLogEncoding string
-
-const (
-	AuditLogEncodingConsole = AuditLogEncoding("console")
-	AuditLogEncodingJSON    = AuditLogEncoding("json")
-)
-
-func (e AuditLogEncoding) String() string {
-	return string(e)
-}
-
-func (e AuditLogEncoding) MarshalJSON() ([]byte, error) {
-	return json.Marshal(e.String())
-}
-
-func (e AuditLogEncoding) MarshalYAML() (interface{}, error) {
-	return e.String(), nil
-}
-
 // LogSinkConfig contains fields that hold configuration for sending audits
 // to a log.
 type LogSinkConfig struct {
-	Enabled  bool             `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	File     string           `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
-	Encoding AuditLogEncoding `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
+	Enabled  bool        `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	File     string      `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
+	Encoding LogEncoding `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
 }
 
 // BufferConfig holds configuration for the buffering of sending the audit

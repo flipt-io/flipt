@@ -398,6 +398,12 @@ func NewGRPCServer(
 			opts = append(opts, log.WithPath(cfg.Audit.Sinks.Log.File))
 		}
 
+		if cfg.Audit.Sinks.Log.Encoding != "" {
+			opts = append(opts, log.WithEncoding(cfg.Audit.Sinks.Log.Encoding))
+		} else {
+			opts = append(opts, log.WithEncoding(cfg.Log.Encoding))
+		}
+
 		logFileSink, err := log.NewSink(opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.Log.File)
