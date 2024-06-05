@@ -33,7 +33,6 @@ var (
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
-	stringToEnumHookFunc(stringToLogEncoding),
 	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToTracingExporter),
 	stringToEnumHookFunc(stringToScheme),

@@ -41,30 +41,16 @@ func (c *LogConfig) setDefaults(v *viper.Viper) error {
 	return nil
 }
 
-var (
-	logEncodingToString = [...]string{
-		LogEncodingConsole: "console",
-		LogEncodingJSON:    "json",
-	}
-
-	stringToLogEncoding = map[string]LogEncoding{
-		"console": LogEncodingConsole,
-		"json":    LogEncodingJSON,
-	}
-)
-
 // LogEncoding is either console or JSON.
-// TODO: can we use a string instead?
-type LogEncoding uint8
+type LogEncoding string
 
 const (
-	_ LogEncoding = iota
-	LogEncodingConsole
-	LogEncodingJSON
+	LogEncodingConsole = LogEncoding("console")
+	LogEncodingJSON    = LogEncoding("json")
 )
 
 func (e LogEncoding) String() string {
-	return logEncodingToString[e]
+	return string(e)
 }
 
 func (e LogEncoding) MarshalJSON() ([]byte, error) {
