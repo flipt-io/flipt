@@ -420,6 +420,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "levlaz",
+      "name": "Lev Lazinskiy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7981032?v=4",
+      "profile": "http://levlaz.org",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
