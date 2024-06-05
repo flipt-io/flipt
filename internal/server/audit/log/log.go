@@ -9,7 +9,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const sinkType = "log"
+const (
+	sinkType = "log"
+	auditKey = "AUDIT"
+)
 
 // Sink is the structure in charge of sending audit events to a specified file location.
 type Sink struct {
@@ -105,7 +108,7 @@ func newSink(opts logOptions) (audit.Sink, error) {
 
 func (l *Sink) SendAudits(_ context.Context, events []audit.Event) error {
 	for _, e := range events {
-		l.logger.Info("audit", zap.Any("event", e))
+		l.logger.Info(auditKey, zap.Any("event", e))
 	}
 
 	return nil

@@ -1222,8 +1222,7 @@
                 },
                 "encoding": {
                   "type": "string",
-                  "enum": ["json", "console"],
-                  "default": "console"
+                  "enum": ["json", "console", ""]
                 }
               },
               "title": "Log File"

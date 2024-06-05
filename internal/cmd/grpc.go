@@ -401,6 +401,7 @@ func NewGRPCServer(
 		if cfg.Audit.Sinks.Log.Encoding != "" {
 			opts = append(opts, log.WithEncoding(cfg.Audit.Sinks.Log.Encoding))
 		} else {
+			// inherit the global log encoding if not specified
 			opts = append(opts, log.WithEncoding(cfg.Log.Encoding))
 		}
 

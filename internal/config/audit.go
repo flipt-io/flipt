@@ -33,9 +33,7 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
 			"log": map[string]any{
-				"enabled":  "false",
-				"file":     "",
-				"encoding": "console",
+				"enabled": "false",
 			},
 			"webhook": map[string]any{
 				"enabled": "false",
