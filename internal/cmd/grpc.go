@@ -407,7 +407,7 @@ func NewGRPCServer(
 
 		logFileSink, err := log.NewSink(opts...)
 		if err != nil {
-			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.Log.File)
+			return nil, fmt.Errorf("creating audit log sink: %w", err)
 		}
 
 		sinks = append(sinks, logFileSink)
