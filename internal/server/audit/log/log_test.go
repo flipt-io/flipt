@@ -58,7 +58,7 @@ func TestSink(t *testing.T) {
 	assert.NotEmpty(t, lines)
 	assert.NotEmpty(t, lines[0])
 
-	assert.JSONEq(t, `{ "event": { "version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": "" } }`, lines[0])
+	assert.JSONEq(t, `{"version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": ""}`, lines[0])
 }
 
 func TestSink_DirNotExists(t *testing.T) {
@@ -113,7 +113,7 @@ func TestSink_DirNotExists(t *testing.T) {
 			assert.NotEmpty(t, lines)
 			assert.NotEmpty(t, lines[0])
 
-			assert.JSONEq(t, `{ "event": { "version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": "" } }`, lines[0])
+			assert.JSONEq(t, `{"version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": ""}`, lines[0])
 		})
 	}
 }
