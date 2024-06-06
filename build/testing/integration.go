@@ -70,7 +70,6 @@ var (
 
 type testConfig struct {
 	name       string
-	namespace  string
 	address    string
 	auth       authConfig
 	port       int
@@ -101,7 +100,6 @@ type authConfig int
 const (
 	noAuth authConfig = iota
 	staticAuth
-	staticAuthNamespaced
 	jwtAuth
 	k8sAuth
 )
@@ -112,7 +110,7 @@ func (a authConfig) enabled() bool {
 
 func (a authConfig) method() string {
 	switch a {
-	case staticAuth, staticAuthNamespaced:
+	case staticAuth:
 		return "static"
 	case jwtAuth:
 		return "jwt"
@@ -140,33 +138,28 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var configs []testConfig
 
-	for _, namespace := range []string{"", "production"} {
-		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, staticAuth, staticAuthNamespaced, jwtAuth, k8sAuth} {
-				auth := auth
-				config := testConfig{
-					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
-					namespace: namespace,
-					auth:      auth,
-					address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
-					port:      port,
-				}
-
-				switch auth {
-				case noAuth:
-					config.name = fmt.Sprintf("%s without auth", config.name)
-				case staticAuth:
-					config.name = fmt.Sprintf("%s with static auth token", config.name)
-				case staticAuthNamespaced:
-					config.name = fmt.Sprintf("%s with static auth namespaced token", config.name)
-				case jwtAuth:
-					config.name = fmt.Sprintf("%s with jwt auth", config.name)
-				case k8sAuth:
-					config.name = fmt.Sprintf("%s with k8s auth", config.name)
-				}
-
-				configs = append(configs, config)
+	for protocol, port := range protocolPorts {
+		for _, auth := range []authConfig{noAuth, staticAuth, jwtAuth, k8sAuth} {
+			auth := auth
+			config := testConfig{
+				name:    strings.ToUpper(protocol),
+				auth:    auth,
+				address: fmt.Sprintf("%s://flipt:%d", protocol, port),
+				port:    port,
 			}
+
+			switch auth {
+			case noAuth:
+				config.name = fmt.Sprintf("%s without auth", config.name)
+			case staticAuth:
+				config.name = fmt.Sprintf("%s with static auth token", config.name)
+			case jwtAuth:
+				config.name = fmt.Sprintf("%s with jwt auth", config.name)
+			case k8sAuth:
+				config.name = fmt.Sprintf("%s with k8s auth", config.name)
+			}
+
+			configs = append(configs, config)
 		}
 	}
 
@@ -586,35 +579,32 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			flags = append(flags, "--token", bootstrapToken)
 		}
 
-		ns := "default"
-		if conf.namespace != "" {
-			ns = conf.namespace
-		}
-
-		seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
-
-		var (
-			// create unique instance for test case
-			fliptToTest = flipt.
-					WithEnvVariable("UNIQUE", uuid.New().String()).
-					WithExec(nil)
-
-			importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
-		)
-		// use target flipt binary to invoke import
-		_, err := flipt.
+		// create unique instance for test case
+		fliptToTest := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			// copy testdata import yaml from base
-			WithFile("import.yaml", seed).
-			WithServiceBinding("flipt", fliptToTest.AsService()).
-			// it appears it takes a little while for Flipt to come online
-			// For the go tests they have to compile and that seems to be enough
-			// time for the target Flipt to come up.
-			// However, in this case the flipt binary is prebuilt and needs a little sleep.
-			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
-			Sync(ctx)
-		if err != nil {
-			return err
+			WithExec(nil)
+
+		for _, ns := range []string{"default", "production"} {
+			seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
+
+			var (
+				importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
+			)
+			// use target flipt binary to invoke import
+			_, err := flipt.
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				// copy testdata import yaml from base
+				WithFile("import.yaml", seed).
+				WithServiceBinding("flipt", fliptToTest.AsService()).
+				// it appears it takes a little while for Flipt to come online
+				// For the go tests they have to compile and that seems to be enough
+				// time for the target Flipt to come up.
+				// However, in this case the flipt binary is prebuilt and needs a little sleep.
+				WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
+				Sync(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		// run readonly suite against imported Flipt instance
@@ -622,41 +612,42 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			return err
 		}
 
-		expected, err := seed.Contents(ctx)
-		if err != nil {
-			return err
-		}
+		for _, ns := range []string{"default", "production"} {
+			seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
+			expected, err := seed.Contents(ctx)
+			if err != nil {
+				return err
+			}
 
-		namespace := conf.namespace
-		if namespace == "" {
-			namespace = "default"
-			// replace namespace in expected yaml
-			expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", namespace))
-		}
+			if ns == "default" {
+				// replace namespace in expected yaml
+				expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", ns))
+			}
 
-		if namespace != "default" {
-			flags = append(flags, "--namespaces", conf.namespace)
-		}
+			if ns != "default" {
+				flags = append(flags, "--namespaces", ns)
+			}
 
-		// use target flipt binary to invoke import
-		generated, err := flipt.
-			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", fliptToTest.AsService()).
-			WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
-			File("/tmp/output.yaml").
-			Contents(ctx)
-		if err != nil {
-			return err
-		}
+			// use target flipt binary to invoke import
+			generated, err := flipt.
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				WithServiceBinding("flipt", fliptToTest.AsService()).
+				WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
+				File("/tmp/output.yaml").
+				Contents(ctx)
+			if err != nil {
+				return err
+			}
 
-		// remove line that starts with comment character '#' and newline after
-		generated = generated[strings.Index(generated, "\n")+2:]
+			// remove line that starts with comment character '#' and newline after
+			generated = generated[strings.Index(generated, "\n")+2:]
 
-		diff := cmp.Diff(expected, generated)
-		if diff != "" {
-			fmt.Printf("Unexpected difference in %q exported output: \n", conf.name)
-			fmt.Println(diff)
-			return errors.New("exported yaml did not match")
+			diff := cmp.Diff(expected, generated)
+			if diff != "" {
+				fmt.Printf("Unexpected difference in %q exported output: \n", conf.name)
+				fmt.Println(diff)
+				return errors.New("exported yaml did not match")
+			}
 		}
 
 		return nil
@@ -666,10 +657,6 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address}
-		if conf.namespace != "" {
-			flags = append(flags, "--flipt-namespace", conf.namespace)
-		}
-
 		if conf.references {
 			flags = append(flags, "--flipt-supports-references")
 		}
@@ -680,9 +667,6 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			switch conf.auth.method() {
 			case "static":
 				flags = append(flags, "--flipt-token", bootstrapToken)
-				if conf.auth == staticAuthNamespaced {
-					flags = append(flags, "--flipt-create-namespaced-token")
-				}
 			case "jwt":
 				var (
 					now        = time.Now()
@@ -797,7 +781,7 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 // The function generates two JWTs, one for Flipt to identify itself and one which is returned to the caller.
 // The caller can use this as the service account token identity to be mounted into the container with the
 // client used for running the test and authenticating with Flipt.
-func serveOIDC(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, string, error) {
+func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, string, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, "", err
