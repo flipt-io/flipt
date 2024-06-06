@@ -238,7 +238,7 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	auditSinks := []string{}
 
 	if r.cfg.Audit.Enabled() {
-		if r.cfg.Audit.Sinks.LogFile.Enabled {
+		if r.cfg.Audit.Sinks.Log.Enabled {
 			auditSinks = append(auditSinks, "log")
 		}
 		if r.cfg.Audit.Sinks.Webhook.Enabled {
