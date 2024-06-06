@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,65 +36,35 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
 
-			if opts.AuthConfig.NamespaceScoped() {
-				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
-
 			require.NoError(t, err)
 
 			assert.NotEmpty(t, authn.Id)
 		})
 
 		t.Run("Static Token", func(t *testing.T) {
-			t.Log(`Create token.`)
+			for _, namespace := range integration.Namespaces {
+				t.Run(fmt.Sprintf("Create(namespace %q)", namespace.Key), func(t *testing.T) {
+					// namespaced scoped tokens can only create tokens
+					// in the same namespace
+					// this ensures that the scope is appropriate for that condition
+					resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
+						Name:         "Access Token",
+						NamespaceKey: namespace.Key,
+						Description:  "Some Description",
+					})
 
-			t.Run("With name and description", func(t *testing.T) {
-				resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
-					Name:        "Access Token",
-					Description: "Some kind of access token.",
+					require.NoError(t, err)
+
+					assert.NotEmpty(t, resp.ClientToken)
+					assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
+					assert.Equal(t, "Some Description", resp.Authentication.Metadata["io.flipt.auth.token.description"])
+					if namespace.Key != "" {
+						assert.Equal(t, namespace.Expected, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
+					} else {
+						assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
+					}
 				})
-
-				// a namespaced token should not be able to create any other tokens
-				if opts.AuthConfig.NamespaceScoped() {
-					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-					return
-				}
-
-				require.NoError(t, err)
-
-				assert.NotEmpty(t, resp.ClientToken)
-				assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
-				assert.Equal(t, "Some kind of access token.", resp.Authentication.Metadata["io.flipt.auth.token.description"])
-			})
-
-			t.Run("With name and namespaceKey", func(t *testing.T) {
-				// namespaced scoped tokens can only create tokens
-				// in the same namespace
-				// this ensures that the scope is appropriate for that condition
-				namespace := opts.Namespace
-				if namespace == "" {
-					namespace = "some-namespace"
-				}
-
-				resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
-					Name:         "Scoped Access Token",
-					NamespaceKey: namespace,
-				})
-
-				// a namespaced token should not be able to create any other tokens
-				if opts.AuthConfig.NamespaceScoped() {
-					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-					return
-				}
-
-				require.NoError(t, err)
-
-				assert.NotEmpty(t, resp.ClientToken)
-				assert.Equal(t, "Scoped Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
-				assert.Empty(t, resp.Authentication.Metadata["io.flipt.auth.token.description"])
-				assert.Equal(t, namespace, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
-			})
+			}
 		})
 
 		t.Run("Expire Self", func(t *testing.T) {
@@ -104,11 +75,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
 				ExpiresAt: flipt.Now(),
 			})
-
-			if opts.AuthConfig.NamespaceScoped() {
-				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
 
 			require.NoError(t, err)
 
