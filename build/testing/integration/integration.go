@@ -1,11 +1,17 @@
 package integration
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
-	"fmt"
+	"net/url"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/go-jose/go-jose/v3"
+	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/stretchr/testify/require"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
@@ -16,42 +22,9 @@ import (
 
 var (
 	fliptAddr       = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
-	fliptTokenType  = flag.String("flipt-token-type", "static", "Type of token to be used during test suite (static, jwt, k8s)")
-	fliptToken      = flag.String("flipt-token", "", "Authentication token to be used during test suite")
+	fliptToken      = flag.String("flipt-token", "", "Full-Access authentication token to be used during test suite")
 	fliptReferences = flag.Bool("flipt-supports-references", false, "Identifies the backend as supporting references")
 )
-
-type AuthConfig int
-
-const (
-	NoAuth AuthConfig = iota
-	StaticTokenAuth
-	JWTAuth
-	K8sAuth
-)
-
-func (a AuthConfig) String() string {
-	switch a {
-	case NoAuth:
-		return "NoAuth"
-	case StaticTokenAuth:
-		return "StaticTokenAuth"
-	case JWTAuth:
-		return "JWTAuth"
-	case K8sAuth:
-		return "K8sAuth"
-	default:
-		return "Unknown"
-	}
-}
-
-func (a AuthConfig) StaticToken() bool {
-	return a == StaticTokenAuth
-}
-
-func (a AuthConfig) Required() bool {
-	return a != NoAuth
-}
 
 type Protocol string
 
@@ -60,13 +33,6 @@ const (
 	ProtocolHTTPS Protocol = "https"
 	ProtocolGRPC  Protocol = "grpc"
 )
-
-type TestOpts struct {
-	Addr       string
-	Protocol   Protocol
-	AuthConfig AuthConfig
-	References bool
-}
 
 const (
 	DefaultNamespace    = "default"
@@ -82,64 +48,91 @@ var Namespaces = []struct {
 	{Key: ProductionNamespace, Expected: ProductionNamespace},
 }
 
-func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
-	var transport sdk.Transport
+func Harness(t *testing.T, fn func(t *testing.T, opts TestOpts)) {
+	u, err := url.Parse(*fliptAddr)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	p, host, _ := strings.Cut(*fliptAddr, "://")
-	protocol := Protocol(p)
+	fn(t, TestOpts{
+		URL:        u,
+		References: *fliptReferences,
+		Token:      *fliptToken,
+	})
+}
 
-	switch protocol {
+type TestOpts struct {
+	URL        *url.URL
+	References bool
+	Token      string
+}
+
+func (o TestOpts) Protocol() Protocol {
+	if o.URL.Scheme == "" {
+		return ProtocolHTTP
+	}
+
+	return Protocol(strings.TrimSuffix(o.URL.Scheme, ":"))
+}
+
+func (o TestOpts) DefaultClient(t *testing.T) sdk.SDK {
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.StaticTokenAuthenticationProvider(o.Token),
+	))
+}
+
+func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
+	transport := o.newTransport(t)
+	return sdk.New(transport, sdk.WithAuthenticationProvider(
+		sdk.NewKubernetesAuthenticationProvider(transport),
+	))
+}
+
+func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
+	bytes, err := os.ReadFile("/var/run/secrets/flipt/private.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	block, _ := pem.Decode(bytes)
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.RS256, Key: key},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
+
+	raw, err := jwt.Signed(sig).
+		Claims(map[string]any{
+			"iss": "https://flipt.io",
+			"iat": time.Now().Unix(),
+			"exp": time.Now().Add(3 * time.Minute).Unix(),
+		}).
+		CompactSerialize()
+	if err != nil {
+		panic(err)
+	}
+
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.JWTAuthenticationProvider(raw),
+	))
+}
+
+func (o TestOpts) newTransport(t *testing.T) (transport sdk.Transport) {
+	switch o.Protocol() {
 	case ProtocolGRPC:
-		conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(o.URL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err)
 
 		transport = sdkgrpc.NewTransport(conn)
 	case ProtocolHTTP, ProtocolHTTPS:
-		transport = sdkhttp.NewTransport(fmt.Sprintf("%s://%s", protocol, host))
+		transport = sdkhttp.NewTransport(o.URL.String())
 	default:
-		t.Fatalf("Unexpected flipt address protocol %s://%s", protocol, host)
+		t.Fatalf("Unexpected flipt address protocol %s", o.URL)
 	}
 
-	var (
-		opts       []sdk.Option
-		authConfig AuthConfig
-		client     sdk.SDK
-	)
-
-	switch *fliptTokenType {
-	case "static":
-		if *fliptToken != "" {
-			authConfig = StaticTokenAuth
-
-			opts = append(opts, sdk.WithAuthenticationProvider(
-				sdk.StaticTokenAuthenticationProvider(*fliptToken),
-			))
-
-			client = sdk.New(transport, opts...)
-		}
-	case "jwt":
-		if authentication := *fliptToken != ""; authentication {
-			authConfig = JWTAuth
-			opts = append(opts, sdk.WithAuthenticationProvider(
-				sdk.JWTAuthenticationProvider(*fliptToken),
-			))
-		}
-	case "k8s":
-		authConfig = K8sAuth
-		opts = append(opts, sdk.WithAuthenticationProvider(
-			sdk.NewKubernetesAuthenticationProvider(transport),
-		))
-	}
-
-	client = sdk.New(transport, opts...)
-
-	name := fmt.Sprintf("[Protocol %q; Authentication %s]", protocol, authConfig)
-	t.Run(name, func(t *testing.T) {
-		fn(t, client, TestOpts{
-			Protocol:   protocol,
-			Addr:       *fliptAddr,
-			AuthConfig: authConfig,
-			References: *fliptReferences,
-		})
-	})
+	return
 }

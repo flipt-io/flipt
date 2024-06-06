@@ -10,12 +10,13 @@ import (
 	"go.flipt.io/flipt/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
-	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
+func Authenticated(t *testing.T, opts integration.TestOpts) {
+	client := opts.DefaultClient(t)
+
 	t.Run("Authentication Methods", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -30,10 +31,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 		})
 
 		t.Run("Get Self", func(t *testing.T) {
-			if !opts.AuthConfig.StaticToken() {
-				t.Skip("Skipping test for non-static token authentication")
-			}
-
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
 
 			require.NoError(t, err)
@@ -68,10 +65,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 		})
 
 		t.Run("Expire Self", func(t *testing.T) {
-			if !opts.AuthConfig.StaticToken() {
-				t.Skip("Skipping test for non-static token authentication")
-			}
-
 			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
 				ExpiresAt: flipt.Now(),
 			})
