@@ -327,7 +327,8 @@ func withCockroach(fn testCaseFn) testCaseFn {
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
+		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+		WithEnvVariable("FLIPT_CACHE_TTL", "1s")
 
 	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
 }
@@ -379,6 +380,7 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 	flipt = flipt.
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+		WithEnvVariable("FLIPT_CACHE_TTL", "1s").
 		WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
 		WithEnvVariable("FLIPT_CACHE_REDIS_REQUIRE_TLS", "true").
 		WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").

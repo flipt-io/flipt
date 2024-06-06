@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
@@ -101,7 +102,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, "Some kind of description", updated.Description)
 	})
 
-	for _, namespace := range integration.Namespaces {
+	for i, namespace := range integration.Namespaces {
 		t.Run(fmt.Sprintf("namespace %q", namespace.Key), func(t *testing.T) {
 			t.Run("Flags and Variants", func(t *testing.T) {
 				t.Log("Create a new enabled flag with key \"test\".")
@@ -1323,6 +1324,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 				}
 			})
 		})
+
+		if i < len(integration.Namespaces)-1 {
+			// this is lame I know, but its for the cache to attempt to ensure
+			// evictions between each loop iteration so that we don't polute
+			// the state between runs
+			// we could always thread something in to trigger this just
+			// for the cache tests this impacts things too much
+			time.Sleep(time.Second)
+		}
 	}
 
 	t.Run("Metrics", func(t *testing.T) {
