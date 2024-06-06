@@ -20,9 +20,10 @@ const (
 	eventMetadataActorKey = "flipt.event.metadata.actor"
 	eventPayloadKey       = "flipt.event.payload"
 	eventTimestampKey     = "flipt.event.timestamp"
+	eventStatusKey        = "flipt.event.status"
 )
 
-// Event holds information that represents an action that has occurred in the system.
+// Event holds information that represents an action that was attempted in the system.
 type Event struct {
 	Version string `json:"version"`
 
@@ -35,6 +36,8 @@ type Event struct {
 	Payload interface{} `json:"payload"`
 
 	Timestamp string `json:"timestamp"`
+
+	Status string `json:"status"`
 }
 
 // NewEvent is the constructor for an event.
@@ -61,6 +64,7 @@ func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
 		Version: eventVersion,
 		Action:  action,
 		Type:    typ,
+		Status:  string(r.Status),
 		Metadata: Metadata{
 			Actor: actor,
 		},
