@@ -26,7 +26,7 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/cloud"
-	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/audit/log"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
@@ -392,10 +392,22 @@ func NewGRPCServer(
 	// audit sinks configuration
 	sinks := make([]audit.Sink, 0)
 
-	if cfg.Audit.Sinks.LogFile.Enabled {
-		logFileSink, err := logfile.NewSink(logger, cfg.Audit.Sinks.LogFile.File)
+	if cfg.Audit.Sinks.Log.Enabled {
+		opts := []log.Option{}
+		if cfg.Audit.Sinks.Log.File != "" {
+			opts = append(opts, log.WithPath(cfg.Audit.Sinks.Log.File))
+		}
+
+		if cfg.Audit.Sinks.Log.Encoding != "" {
+			opts = append(opts, log.WithEncoding(cfg.Audit.Sinks.Log.Encoding))
+		} else {
+			// inherit the global log encoding if not specified
+			opts = append(opts, log.WithEncoding(cfg.Log.Encoding))
+		}
+
+		logFileSink, err := log.NewSink(opts...)
 		if err != nil {
-			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.File)
+			return nil, fmt.Errorf("creating audit log sink: %w", err)
 		}
 
 		sinks = append(sinks, logFileSink)

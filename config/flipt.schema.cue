@@ -360,6 +360,7 @@ import "strings"
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""
+				encoding?:   *"" | "json" | "console"
 			}
 			webhook?: {
 				enabled?:              bool | *false

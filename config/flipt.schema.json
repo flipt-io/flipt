@@ -1219,6 +1219,10 @@
                 "file": {
                   "type": "string",
                   "default": ""
+                },
+                "encoding": {
+                  "type": "string",
+                  "enum": ["json", "console", ""]
                 }
               },
               "title": "Log File"

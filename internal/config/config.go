@@ -33,7 +33,6 @@ var (
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
-	stringToEnumHookFunc(stringToLogEncoding),
 	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToTracingExporter),
 	stringToEnumHookFunc(stringToScheme),
@@ -619,7 +618,7 @@ func Default() *Config {
 
 		Audit: AuditConfig{
 			Sinks: SinksConfig{
-				LogFile: LogFileSinkConfig{
+				Log: LogSinkConfig{
 					Enabled: false,
 					File:    "",
 				},
