@@ -14,10 +14,6 @@
 
 <br clear="both"/>
 
-🙏 **Please help us make Flipt even better** by filling out this [short survey](https://1ld82idjvlr.typeform.com/to/msI2C6Gc)! Thank you!
-
-<br clear="both"/>
-
 <div align="center">
     <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
