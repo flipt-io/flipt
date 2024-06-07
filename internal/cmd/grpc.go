@@ -267,7 +267,7 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
-	var checker *audit.Checker
+	var checker audit.EventPairChecker = &audit.NoOpChecker{}
 
 	// We have to check if audit logging is enabled here for informing the authentication service that
 	// the user would like to receive token:deleted events.
@@ -384,7 +384,7 @@ func NewGRPCServer(
 			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
 		}
 
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
+		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, checker, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}

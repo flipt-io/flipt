@@ -2,11 +2,15 @@ package grpc_middleware
 
 import (
 	"context"
+	"fmt"
 
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/authn"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -20,7 +24,7 @@ type SkipsAuthorizationServer interface {
 	SkipsAuthorization(ctx context.Context) bool
 }
 
-// InterceptorOptions configure the basic AuthUnaryInterceptors
+// InterceptorOptions configure the basic AuthzUnaryInterceptors
 type InterceptorOptions struct {
 	skippedServers []any
 }
@@ -68,7 +72,7 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 	}
 }
 
-func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, eventPairChecker audit.EventPairChecker, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -91,18 +95,39 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return ctx, errUnauthorized
 		}
 
+		request := requester.Request()
+
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
-			"request":        requester.Request(),
+			"request":        request,
 			"authentication": auth,
 		})
 
+		var event *audit.Event
+
+		actor := authn.ActorFromContext(ctx)
+
+		defer func() {
+			if event != nil {
+				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
+
+				exists := eventPairChecker.Check(eventPair)
+				if exists {
+					span := trace.SpanFromContext(ctx)
+					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+				}
+			}
+		}()
+
 		if err != nil {
 			logger.Error("unauthorized", zap.Error(err))
+			request.Status = flipt.StatusDenied
+			event = audit.NewEvent(request, actor, nil)
 			return ctx, errUnauthorized
 		}
 
 		if !allowed {
 			logger.Error("unauthorized", zap.String("reason", "permission denied"))
+			event = audit.NewEvent(request, actor, nil)
 			return ctx, errUnauthorized
 		}
 

@@ -106,6 +106,13 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		})
 	}
 
+	if e.Status != "" {
+		akv = append(akv, attribute.KeyValue{
+			Key:   eventStatusKey,
+			Value: attribute.StringValue(e.Status),
+		})
+	}
+
 	b, err := json.Marshal(e.Metadata.Actor)
 	if err == nil {
 		akv = append(akv, attribute.KeyValue{

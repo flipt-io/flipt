@@ -1081,6 +1081,10 @@ func (c *checkerDummy) Check(e string) bool {
 	return true
 }
 
+func (c *checkerDummy) Events() []string {
+	return []string{"event"}
+}
+
 func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 	var (
 		store       = &common.StoreMock{}

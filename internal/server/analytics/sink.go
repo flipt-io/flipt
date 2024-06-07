@@ -42,10 +42,12 @@ func NewAnalyticsSinkSpanExporter(logger *zap.Logger, analyticsStoreMutator Anal
 	}
 }
 
+const evaluationResponseKey = "flipt.evaluation.response"
+
 // transformSpanEventToEvaluationResponses is a convenience function to transform a span event into an []*EvaluationResponse.
 func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*EvaluationResponse, error) {
 	for _, attr := range event.Attributes {
-		if string(attr.Key) == "flipt.evaluation.response" {
+		if string(attr.Key) == evaluationResponseKey {
 			evaluationResponseBytes := []byte(attr.Value.AsString())
 			var evaluationResponse []*EvaluationResponse
 
