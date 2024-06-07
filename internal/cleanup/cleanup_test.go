@@ -33,7 +33,7 @@ func TestCleanup(t *testing.T) {
 	)
 
 	// enable all methods and set their cleanup configuration
-	for _, info := range authConfig.Methods.AllMethods() {
+	for _, info := range authConfig.Methods.AllMethods(ctx) {
 		info.Enable(t)
 		info.SetCleanup(t, config.AuthenticationCleanupSchedule{
 			Interval:    time.Second,
@@ -64,7 +64,7 @@ func TestCleanup(t *testing.T) {
 		assert.Equal(t, storedAuth, retrievedAuth)
 	})
 
-	for _, info := range authConfig.Methods.AllMethods() {
+	for _, info := range authConfig.Methods.AllMethods(ctx) {
 		info := info
 		if !info.RequiresDatabase {
 			continue

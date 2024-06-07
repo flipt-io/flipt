@@ -21,7 +21,7 @@ export default function UserProfile(props: UserProfileProps) {
   let name: string | undefined;
   let login: string | undefined;
   let imgURL: string | undefined;
-  let logoutURL = '/';
+  let logoutURL = '';
 
   if (session) {
     const authMethods = ['github', 'oidc', 'jwt'];

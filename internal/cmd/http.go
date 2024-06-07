@@ -20,6 +20,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -176,6 +177,7 @@ func NewHTTPServer(
 					conn,
 					meta.RegisterMetadataServiceHandler,
 				),
+				runtime.WithMetadata(method.ForwardPrefix),
 			))
 		})
 	})

@@ -1,9 +1,11 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"slices"
 	"strings"
 	"testing"
@@ -65,7 +67,7 @@ func (c AuthenticationConfig) Enabled() bool {
 		return true
 	}
 
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		if info.Enabled {
 			return true
 		}
@@ -77,7 +79,7 @@ func (c AuthenticationConfig) Enabled() bool {
 // RequiresDatabase returns true if any of the enabled authentication
 // methods requires a database connection
 func (c AuthenticationConfig) RequiresDatabase() bool {
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		if info.Enabled && info.RequiresDatabase {
 			return true
 		}
@@ -96,7 +98,7 @@ func (c AuthenticationConfig) IsZero() bool {
 // It returns true given at-least 1 method is enabled and it's associated schedule
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		shouldCleanup = shouldCleanup || info.RequiresCleanup()
 	}
 
@@ -107,7 +109,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	methods := map[string]any{}
 
 	// set default for each methods
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		method := map[string]any{"enabled": false}
 		// if the method has been enabled then set the defaults
 		// for its cleanup strategy
@@ -139,7 +141,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 
 func (c *AuthenticationConfig) SessionEnabled() bool {
 	var sessionEnabled bool
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
 	}
 
@@ -149,7 +151,7 @@ func (c *AuthenticationConfig) SessionEnabled() bool {
 func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
 
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		if !info.RequiresCleanup() {
 			continue
 		}
@@ -189,7 +191,7 @@ func (c *AuthenticationConfig) validate() error {
 		c.Session.Domain = host
 	}
 
-	for _, info := range c.Methods.AllMethods() {
+	for _, info := range c.Methods.AllMethods(context.Background()) {
 		if err := info.validate(); err != nil {
 			return err
 		}
@@ -251,21 +253,32 @@ type AuthenticationMethods struct {
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
-func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethods) AllMethods(ctx context.Context) []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
-		a.Token.info(),
-		a.Github.info(),
-		a.OIDC.info(),
-		a.Kubernetes.info(),
-		a.JWT.info(),
-		a.Cloud.info(),
+		a.Token.info(ctx),
+		a.Github.info(ctx),
+		a.OIDC.info(ctx),
+		a.Kubernetes.info(ctx),
+		a.JWT.info(ctx),
+		a.Cloud.info(ctx),
 	}
+}
+
+type forwardPrefixContext struct{}
+
+func WithForwardPrefix(ctx context.Context, prefix string) context.Context {
+	return context.WithValue(ctx, forwardPrefixContext{}, prefix)
+}
+
+func getForwardPrefix(ctx context.Context) string {
+	prefix, _ := ctx.Value(forwardPrefixContext{}).(string)
+	return prefix
 }
 
 // EnabledMethods returns all the AuthenticationMethod instances that have been enabled.
 func (a *AuthenticationMethods) EnabledMethods() []StaticAuthenticationMethodInfo {
 	var enabled []StaticAuthenticationMethodInfo
-	for _, info := range a.AllMethods() {
+	for _, info := range a.AllMethods(context.Background()) {
 		if info.Enabled {
 			enabled = append(enabled, info)
 		}
@@ -329,7 +342,7 @@ func (a AuthenticationMethodInfo) Name() string {
 // methods properties.
 type AuthenticationMethodInfoProvider interface {
 	setDefaults(map[string]any)
-	info() AuthenticationMethodInfo
+	info(context.Context) AuthenticationMethodInfo
 	validate() error
 }
 
@@ -349,9 +362,9 @@ func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
 	a.Method.setDefaults(defaults)
 }
 
-func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethod[C]) info(ctx context.Context) StaticAuthenticationMethodInfo {
 	return StaticAuthenticationMethodInfo{
-		AuthenticationMethodInfo: a.Method.info(),
+		AuthenticationMethodInfo: a.Method.info(ctx),
 		Enabled:                  a.Enabled,
 		Cleanup:                  a.Cleanup,
 
@@ -379,7 +392,7 @@ type AuthenticationMethodCloudConfig struct{}
 func (a AuthenticationMethodCloudConfig) setDefaults(map[string]any) {}
 
 // info describes properties of the authentication method "cloud".
-func (a AuthenticationMethodCloudConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodCloudConfig) info(_ context.Context) AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_CLOUD,
 		SessionCompatible: true,
@@ -400,7 +413,7 @@ type AuthenticationMethodTokenConfig struct {
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
 
 // info describes properties of the authentication method "token".
-func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodTokenConfig) info(_ context.Context) AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
@@ -427,7 +440,7 @@ type AuthenticationMethodOIDCConfig struct {
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
 
 // info describes properties of the authentication method "oidc".
-func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodOIDCConfig) info(ctx context.Context) AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
@@ -443,8 +456,14 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	// to the UI via the /auth/v1/method endpoint
 	for provider := range a.Providers {
 		providers[provider] = map[string]any{
-			"authorize_url": fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider),
-			"callback_url":  fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider),
+			"authorize_url": path.Join(
+				getForwardPrefix(ctx),
+				fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider),
+			),
+			"callback_url": path.Join(
+				getForwardPrefix(ctx),
+				fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider),
+			),
 		}
 	}
 
@@ -520,7 +539,7 @@ func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]an
 }
 
 // info describes properties of the authentication method "kubernetes".
-func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodKubernetesConfig) info(_ context.Context) AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_KUBERNETES,
 		SessionCompatible: false,
@@ -546,7 +565,7 @@ type AuthenticationMethodGithubConfig struct {
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}
 
 // info describes properties of the authentication method "github".
-func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodGithubConfig) info(ctx context.Context) AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_GITHUB,
 		SessionCompatible: true,
@@ -555,8 +574,8 @@ func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
 
 	metadata := make(map[string]any)
 
-	metadata["authorize_url"] = "/auth/v1/method/github/authorize"
-	metadata["callback_url"] = "/auth/v1/method/github/callback"
+	metadata["authorize_url"] = path.Join(getForwardPrefix(ctx), "/auth/v1/method/github/authorize")
+	metadata["callback_url"] = path.Join(getForwardPrefix(ctx), "/auth/v1/method/github/callback")
 
 	info.Metadata, _ = structpb.NewStruct(metadata)
 
@@ -620,7 +639,7 @@ type AuthenticationMethodJWTConfig struct {
 func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
 
 // info describes properties of the authentication method "jwt".
-func (a AuthenticationMethodJWTConfig) info() AuthenticationMethodInfo {
+func (a AuthenticationMethodJWTConfig) info(_ context.Context) AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_JWT,
 		SessionCompatible: false,

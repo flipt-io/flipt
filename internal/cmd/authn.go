@@ -333,7 +333,7 @@ func authenticationHTTPMount(
 	}
 
 	if cfg.SessionEnabled() {
-		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies))
+		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies), runtime.WithMetadata(method.ForwardPrefix))
 
 		methodMiddleware := method.NewHTTPMiddleware(cfg.Session)
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
