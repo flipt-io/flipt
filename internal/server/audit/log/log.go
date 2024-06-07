@@ -123,7 +123,7 @@ func newSink(opts logOptions) (audit.Sink, error) {
 
 func (l *Sink) SendAudits(_ context.Context, events []audit.Event) error {
 	for _, e := range events {
-		l.logger.Info(auditKey, zap.Any("event", e))
+		l.logger.Info(auditKey, zap.Inline(e))
 	}
 
 	return nil

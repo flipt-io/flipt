@@ -9,6 +9,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -129,6 +130,20 @@ func (e *Event) AddToSpan(ctx context.Context) {
 
 func (e *Event) Valid() bool {
 	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
+}
+
+func (e Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("version", e.Version)
+	enc.AddString("type", e.Type)
+	enc.AddString("action", e.Action)
+	if err := enc.AddReflected("metadata", e.Metadata); err != nil {
+		return err
+	}
+	if err := enc.AddReflected("payload", e.Payload); err != nil {
+		return err
+	}
+	enc.AddString("timestamp", e.Timestamp)
+	return nil
 }
 
 var errEventNotValid = errors.New("event not valid")
