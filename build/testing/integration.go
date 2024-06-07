@@ -65,6 +65,7 @@ var (
 		"fs/azblob":     azblob,
 		"fs/gcs":        gcs,
 		"import/export": importExport,
+		"auth/sqlite":   auth,
 	}
 )
 
@@ -542,6 +543,33 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
+func importInto(ctx context.Context, base, flipt, fliptToTest *dagger.Container, flags ...string) error {
+	for _, ns := range []string{"default", "production"} {
+		seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
+
+		var (
+			importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
+		)
+		// use target flipt binary to invoke import
+		_, err := flipt.
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			// copy testdata import yaml from base
+			WithFile("import.yaml", seed).
+			WithServiceBinding("flipt", fliptToTest.AsService()).
+			// it appears it takes a little while for Flipt to come online
+			// For the go tests they have to compile and that seems to be enough
+			// time for the target Flipt to come up.
+			// However, in this case the flipt binary is prebuilt and needs a little sleep.
+			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
+			Sync(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
@@ -552,27 +580,8 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithExec(nil)
 
-		for _, ns := range []string{"default", "production"} {
-			seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
-
-			var (
-				importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
-			)
-			// use target flipt binary to invoke import
-			_, err := flipt.
-				WithEnvVariable("UNIQUE", uuid.New().String()).
-				// copy testdata import yaml from base
-				WithFile("import.yaml", seed).
-				WithServiceBinding("flipt", fliptToTest.AsService()).
-				// it appears it takes a little while for Flipt to come online
-				// For the go tests they have to compile and that seems to be enough
-				// time for the target Flipt to come up.
-				// However, in this case the flipt binary is prebuilt and needs a little sleep.
-				WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
-				Sync(ctx)
-			if err != nil {
-				return err
-			}
+		if err := importInto(ctx, base, flipt, fliptToTest, flags...); err != nil {
+			return err
 		}
 
 		// run readonly suite against imported Flipt instance
@@ -620,6 +629,17 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 		return nil
 	}
+}
+
+func auth(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	// create unique instance for test case
+	fliptToTest := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil)
+	// import state into instance before running test
+	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
+		return func() error { return err }
+	}
+
+	return suite(ctx, "auth", base, fliptToTest, conf)
 }
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {

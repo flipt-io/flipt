@@ -39,10 +39,33 @@ const (
 	ProductionNamespace = "production"
 )
 
-var Namespaces = []struct {
+type NamespaceExpectation struct {
 	Key      string
 	Expected string
-}{
+}
+
+type NamespaceExpectations []NamespaceExpectation
+
+// OtherNamespaceFrom returns any other namespace in the set of expected
+// namespaces different from the namespace provided
+func (n NamespaceExpectations) OtherNamespaceFrom(from string) string {
+	ns := map[string]struct{}{}
+	for _, e := range n {
+		if e.Expected == from {
+			continue
+		}
+
+		ns[e.Expected] = struct{}{}
+	}
+
+	for to := range ns {
+		return to
+	}
+
+	panic("we expected to be at-least one alternative")
+}
+
+var Namespaces = NamespaceExpectations{
 	{Key: "", Expected: DefaultNamespace},
 	{Key: DefaultNamespace, Expected: DefaultNamespace},
 	{Key: ProductionNamespace, Expected: ProductionNamespace},
@@ -73,6 +96,10 @@ func (o TestOpts) Protocol() Protocol {
 	}
 
 	return Protocol(strings.TrimSuffix(o.URL.Scheme, ":"))
+}
+
+func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
+	return sdk.New(o.newTransport(t))
 }
 
 func (o TestOpts) DefaultClient(t *testing.T) sdk.SDK {

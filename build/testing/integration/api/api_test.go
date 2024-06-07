@@ -13,8 +13,5 @@ func TestAPI(t *testing.T) {
 		ctx := context.Background()
 
 		api.API(t, ctx, opts)
-
-		// run extra authenticaiton related tests
-		api.Authenticated(t, opts)
 	})
 }
