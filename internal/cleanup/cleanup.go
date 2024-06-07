@@ -41,7 +41,7 @@ func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store aut
 func (s *AuthenticationService) Run(ctx context.Context) {
 	ctx, s.cancel = context.WithCancel(ctx)
 
-	for _, info := range s.config.Methods.AllMethods() {
+	for _, info := range s.config.Methods.AllMethods(ctx) {
 		logger := s.logger.With(zap.Stringer("method", info.Method))
 		if info.Cleanup == nil {
 			if info.Enabled {

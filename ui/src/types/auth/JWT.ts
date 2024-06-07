@@ -2,10 +2,7 @@ import { IAuth, IAuthMethod } from '~/types/Auth';
 
 export interface IAuthMethodJWT extends IAuthMethod {
   method: 'METHOD_JWT';
-  metadata: {
-    authorize_url: string;
-    callback_url: string;
-  };
+  metadata: {};
 }
 
 export interface IAuthMethodJWTMetadata {
