@@ -4,7 +4,6 @@ export interface IAuthMethodGithub extends IAuthMethod {
   method: 'METHOD_GITHUB';
   metadata: {
     authorize_url: string;
-    callback_url: string;
   };
 }
 
