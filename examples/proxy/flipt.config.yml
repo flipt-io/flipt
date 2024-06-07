@@ -1,0 +1,18 @@
+authentication:
+  required: true
+  session:
+    domain: "localhost:8080"
+    secure: false
+  methods:
+    oidc:
+      enabled: true
+      email_matches:
+        - ^.*@example.com$
+      providers:
+        dex:
+          issuer_url: http://localhost:5556/dex
+          client_id: example-app
+          client_secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+          redirect_address: http://localhost:8080/flipt
+          scopes:
+            - email
