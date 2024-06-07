@@ -16,15 +16,13 @@ import (
 	"go.flipt.io/flipt/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
-	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
+func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	var (
-		addr       = opts.Addr
-		protocol   = opts.Protocol
-		authConfig = opts.AuthConfig
+		client   = opts.DefaultClient(t)
+		protocol = opts.Protocol()
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
@@ -1336,17 +1334,13 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	}
 
 	t.Run("Metrics", func(t *testing.T) {
-		if authConfig.Required() {
-			t.Skip("Skipping metrics test for now as it requires authentication")
-		}
-
 		if protocol == integration.ProtocolGRPC {
-			t.Skip("Skipping metrics test for now as it requires HTTP/HTTPS protocol")
+			t.Skip("TODO: we do not support metric test for grpc yet")
 		}
 
 		t.Log(`Ensure /metrics endpoint is reachable.`)
 
-		resp, err := http.Get(fmt.Sprintf("%s/metrics", addr))
+		resp, err := http.Get(fmt.Sprintf("%s/metrics", opts.URL))
 		require.NoError(t, err)
 
 		require.NotNil(t, resp)
@@ -1417,11 +1411,6 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if !authConfig.Required() {
-				assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
-
 			assert.NoError(t, err)
 		})
 		t.Run("Public", func(t *testing.T) {
@@ -1431,11 +1420,12 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	})
 
 	t.Run("Healthcheck", func(t *testing.T) {
-		if protocol == "grpc" {
+		if protocol == integration.ProtocolGRPC {
 			t.Skip("TODO: we do not support healthcheck test for grpc yet")
 		}
+
 		t.Run("HTTP", func(t *testing.T) {
-			resp, err := http.Get(fmt.Sprintf("%s/health", addr))
+			resp, err := http.Get(fmt.Sprintf("%s/health", opts.URL))
 			require.NoError(t, err)
 
 			assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
