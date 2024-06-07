@@ -65,6 +65,7 @@ jobs:
             "fs/azblob",
             "fs/gcs",
             "import/export",
+            "authn/sqlite",
           ]
     steps:
       - uses: actions/checkout@v4

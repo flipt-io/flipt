@@ -10,17 +10,16 @@ import (
 	"go.flipt.io/flipt/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
-	sdk "go.flipt.io/flipt/sdk/go"
 )
 
 // TestReadOnly is a suite of tests which presumes all the data found in the local testdata
 // folder has been loaded into the target instance being tested.
 // It then exercises a bunch of read operations via the provided SDK in the target namespace.
 func TestReadOnly(t *testing.T) {
-	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, opts integration.TestOpts) {
+	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
 		var (
-			ctx        = context.Background()
-			authConfig = opts.AuthConfig
+			ctx = context.Background()
+			sdk = opts.DefaultClient(t)
 		)
 
 		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
@@ -716,12 +715,9 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if !authConfig.Required() {
-					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-					return
-				}
 				assert.NoError(t, err)
 			})
+
 			t.Run("Public", func(t *testing.T) {
 				_, err := sdk.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
 				require.NoError(t, err)
