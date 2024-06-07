@@ -16,11 +16,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	githubPrefix   = "/auth/v1/method/github"
-	oidcPrefix     = "/auth/v1/method/oidc/"
-	stateCookieKey = "flipt_client_state"
-	tokenCookieKey = "flipt_client_token"
+const (
+	githubPrefix       = "/auth/v1/method/github"
+	oidcPrefix         = "/auth/v1/method/oidc/"
+	stateCookieKey     = "flipt_client_state"
+	tokenCookieKey     = "flipt_client_token"
+	ForwardedPrefixKey = "x-forwarded-prefix"
+	xForwardedPrefix   = "X-Forwarded-Prefix"
 )
 
 // Middleware contains various extensions for appropriate integration of the OIDC services
@@ -53,6 +55,17 @@ func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 	return md
 }
 
+// ForwardPrefix extracts the "X-Forwarded-Prefix" header from an HTTP request
+// and forwards them as grpc metadata entries.
+func ForwardPrefix(ctx context.Context, req *http.Request) metadata.MD {
+	md := metadata.MD{}
+	values := req.Header.Values(xForwardedPrefix)
+	if len(values) > 0 {
+		md[ForwardedPrefixKey] = values
+	}
+	return md
+}
+
 // ForwardResponseOption is a grpc gateway forward response option function implementation.
 // The purpose of which is to intercept outgoing Callback operation responses.
 // When intercepted the resulting clientToken is stripped from the response payload and instead
@@ -77,8 +90,11 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 
 		// clear out token now that it is set via cookie
 		r.ClientToken = ""
-
-		w.Header().Set("Location", "/")
+		location := "/"
+		if md, ok := metadata.FromOutgoingContext(ctx); ok {
+			location = path.Join(md.Get(ForwardedPrefixKey)...) + "/"
+		}
+		w.Header().Set("Location", location)
 		w.WriteHeader(http.StatusFound)
 	}
 
@@ -101,6 +117,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 		}
 
 		if method == "authorize" {
+			prefix = path.Join(path.Join(r.Header.Values(xForwardedPrefix)...), prefix)
 			query := r.URL.Query()
 			// create a random security token and bind it to
 			// the state parameter while preserving any provided
@@ -130,7 +147,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     prefix + "callback",
+				Path:     prefix + "/callback",
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,
