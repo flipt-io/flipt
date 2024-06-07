@@ -1,4 +1,4 @@
-package auth
+package authn
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"go.flipt.io/flipt/build/testing/integration"
 )
 
-func TestAuth(t *testing.T) {
+func TestAuthn(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
 		Common(t, opts)
 	})

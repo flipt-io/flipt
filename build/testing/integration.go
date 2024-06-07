@@ -65,7 +65,7 @@ var (
 		"fs/azblob":     azblob,
 		"fs/gcs":        gcs,
 		"import/export": importExport,
-		"auth/sqlite":   auth,
+		"authn/sqlite":  authn,
 	}
 )
 
@@ -631,7 +631,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 	}
 }
 
-func auth(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	// create unique instance for test case
 	fliptToTest := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil)
 	// import state into instance before running test
@@ -639,7 +639,7 @@ func auth(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, 
 		return func() error { return err }
 	}
 
-	return suite(ctx, "auth", base, fliptToTest, conf)
+	return suite(ctx, "authn", base, fliptToTest, conf)
 }
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
