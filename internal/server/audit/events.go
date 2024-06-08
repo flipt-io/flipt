@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	eventVersion          = "0.1"
+	eventVersion          = "0.2"
 	eventVersionKey       = "flipt.event.version"
 	eventActionKey        = "flipt.event.action"
 	eventTypeKey          = "flipt.event.type"
