@@ -14,10 +14,6 @@
 
 <br clear="both"/>
 
-🙏 **Please help us make Flipt even better** by filling out this [short survey](https://1ld82idjvlr.typeform.com/to/msI2C6Gc)! Thank you!
-
-<br clear="both"/>
-
 <div align="center">
     <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
@@ -74,9 +70,13 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
 
 ## Managed Services
 
-Need more? We've got you covered! Check out our in-progress [managed offering](https://www.flipt.io/docs/managed/overview).
+Need more? We've got you covered! Check out our [managed offering](https://www.flipt.io/docs/managed/overview).
 
-- [Flipt Hybrid Cloud](https://www.flipt.io/docs/managed/hybrid) - Combine the benefits of self-hosted and fully-managed Flipt
+<p align="center">
+    <a href="https://flipt.io/cloud" title="Flipt Hybrid Cloud">
+      <img src="./.github/images/flipt-cloud.svg" alt="Flipt Hybrid Cloud" />
+    </a>
+</p>
 
 ## Usecases
 
