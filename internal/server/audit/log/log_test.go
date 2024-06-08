@@ -33,14 +33,16 @@ func TestSink(t *testing.T) {
 
 	err = s.SendAudits(context.TODO(), []audit.Event{
 		{
-			Version: "0.1",
+			Version: "0.2",
 			Type:    string(flipt.SubjectFlag),
 			Action:  string(flipt.ActionCreate),
+			Status:  string(flipt.StatusSuccess),
 		},
 		{
-			Version: "0.1",
+			Version: "0.2",
 			Type:    string(flipt.SubjectConstraint),
 			Action:  string(flipt.ActionUpdate),
+			Status:  string(flipt.StatusSuccess),
 		},
 	})
 
@@ -58,7 +60,7 @@ func TestSink(t *testing.T) {
 	assert.NotEmpty(t, lines)
 	assert.NotEmpty(t, lines[0])
 
-	assert.JSONEq(t, `{"version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": ""}`, lines[0])
+	assert.JSONEq(t, `{"version": "0.2", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": "", "status": "success"}`, lines[0])
 }
 
 func TestSink_DirNotExists(t *testing.T) {
@@ -87,14 +89,16 @@ func TestSink_DirNotExists(t *testing.T) {
 
 			err = s.SendAudits(context.TODO(), []audit.Event{
 				{
-					Version: "0.1",
+					Version: "0.2",
 					Type:    string(flipt.SubjectFlag),
 					Action:  string(flipt.ActionCreate),
+					Status:  string(flipt.StatusSuccess),
 				},
 				{
-					Version: "0.1",
+					Version: "0.2",
 					Type:    string(flipt.SubjectConstraint),
 					Action:  string(flipt.ActionUpdate),
+					Status:  string(flipt.StatusSuccess),
 				},
 			})
 
@@ -113,7 +117,7 @@ func TestSink_DirNotExists(t *testing.T) {
 			assert.NotEmpty(t, lines)
 			assert.NotEmpty(t, lines[0])
 
-			assert.JSONEq(t, `{"version": "0.1", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": ""}`, lines[0])
+			assert.JSONEq(t, `{"version": "0.2", "type": "flag", "action": "create", "metadata": {}, "payload": null, "timestamp": "", "status": "success"}`, lines[0])
 		})
 	}
 }
