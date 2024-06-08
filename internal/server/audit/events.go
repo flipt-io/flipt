@@ -140,13 +140,14 @@ func (e *Event) AddToSpan(ctx context.Context) {
 }
 
 func (e *Event) Valid() bool {
-	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
+	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != ""
 }
 
 func (e Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("version", e.Version)
 	enc.AddString("type", e.Type)
 	enc.AddString("action", e.Action)
+	enc.AddString("status", e.Status)
 	if err := enc.AddReflected("metadata", e.Metadata); err != nil {
 		return err
 	}
@@ -173,6 +174,8 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 			e.Type = kv.Value.AsString()
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
+		case eventStatusKey:
+			e.Status = kv.Value.AsString()
 		case eventMetadataActorKey:
 			var actor Actor
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &actor); err != nil {

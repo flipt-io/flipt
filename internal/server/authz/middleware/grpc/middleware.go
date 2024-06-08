@@ -2,22 +2,15 @@ package grpc_middleware
 
 import (
 	"context"
-	"fmt"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/authn"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
-
-var errUnauthorized = status.Error(codes.PermissionDenied, "request was not authorized")
 
 // SkipsAuthorizationServer is a grpc.Server which should always skip authentication.
 type SkipsAuthorizationServer interface {
@@ -72,7 +65,7 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 	}
 }
 
-func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, eventPairChecker audit.EventPairChecker, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -86,13 +79,13 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 		requester, ok := req.(flipt.Requester)
 		if !ok {
 			logger.Error("request must implement flipt.Requester", zap.String("method", info.FullMethod))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("request not authorized")
 		}
 
 		auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 		if auth == nil {
 			logger.Error("unauthorized", zap.String("reason", "authentication required"))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("authentication required")
 		}
 
 		request := requester.Request()
@@ -102,33 +95,14 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			"authentication": auth,
 		})
 
-		var event *audit.Event
-
-		actor := authn.ActorFromContext(ctx)
-
-		defer func() {
-			if event != nil {
-				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
-
-				exists := eventPairChecker.Check(eventPair)
-				if exists {
-					span := trace.SpanFromContext(ctx)
-					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
-				}
-			}
-		}()
-
 		if err != nil {
 			logger.Error("unauthorized", zap.Error(err))
-			request.Status = flipt.StatusDenied
-			event = audit.NewEvent(request, actor, nil)
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("permission denied")
 		}
 
 		if !allowed {
 			logger.Error("unauthorized", zap.String("reason", "permission denied"))
-			event = audit.NewEvent(request, actor, nil)
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("permission denied")
 		}
 
 		return handler(ctx, req)

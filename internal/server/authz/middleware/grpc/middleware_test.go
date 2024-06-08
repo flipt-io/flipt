@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/server/audit"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
@@ -145,7 +144,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err := AuthorizationRequiredInterceptor(logger, policyVerfier, &audit.NoOpChecker{})(ctx, tt.req, srv, handler)
+			_, err := AuthorizationRequiredInterceptor(logger, policyVerfier)(ctx, tt.req, srv, handler)
 
 			require.Equal(t, tt.wantAllowed, allowed)
 
@@ -155,7 +154,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				return
 			}
 
-			require.EqualError(t, err, errUnauthorized.Error())
+			require.Error(t, err)
 		})
 	}
 }

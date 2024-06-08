@@ -90,6 +90,14 @@ func (e ErrUnauthenticated) Error() string {
 	return string(e)
 }
 
+type ErrUnauthorized string
+
+var ErrUnauthorizedf = NewErrorf[ErrUnauthorized]
+
+func (e ErrUnauthorized) Error() string {
+	return string(e)
+}
+
 // StringError is any error that also happens to have an underlying type of string.
 type StringError interface {
 	error

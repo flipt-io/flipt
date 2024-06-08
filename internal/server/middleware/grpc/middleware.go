@@ -72,6 +72,8 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		code = codes.InvalidArgument
 	case errs.AsMatch[errs.ErrUnauthenticated](err):
 		code = codes.Unauthenticated
+	case errs.AsMatch[errs.ErrUnauthorized](err):
+		code = codes.PermissionDenied
 	}
 
 	err = status.Error(code, err.Error())
@@ -435,11 +437,6 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 
 		request = r.Request()
 
-		resp, err := handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
-
 		var event *audit.Event
 
 		actor := authn.ActorFromContext(ctx)
@@ -455,6 +452,16 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 				}
 			}
 		}()
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			var uerr errs.ErrUnauthorized
+			if errors.As(err, &uerr) {
+				request.Status = flipt.StatusDenied
+				event = audit.NewEvent(request, actor, nil)
+			}
+			return resp, err
+		}
 
 		// Delete and Order request(s) have to be handled separately because they do not
 		// return the concrete type but rather an *empty.Empty response.
