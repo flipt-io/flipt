@@ -17,6 +17,7 @@ func TestMarshalLogObject(t *testing.T) {
 			Action:   "modified",
 			Metadata: Metadata{Actor: &actor},
 			Payload:  "custom payload",
+			Status:   "success",
 		}
 		enc = zapcore.NewMapObjectEncoder()
 		err = e.MarshalLogObject(enc)
@@ -30,5 +31,6 @@ func TestMarshalLogObject(t *testing.T) {
 		"metadata":  Metadata{Actor: &actor},
 		"payload":   "custom payload",
 		"timestamp": "",
+		"status":    "success",
 	}, enc.Fields)
 }
