@@ -13,6 +13,9 @@ type Subject string
 // Action represents the action being taken on the resource.
 type Action string
 
+// Status represents the status of the request.
+type Status string
+
 const (
 	ResourceNamespace      Resource = "namespace"
 	ResourceFlag           Resource = "flag"
@@ -33,6 +36,9 @@ const (
 	ActionDelete Action = "delete"
 	ActionUpdate Action = "update"
 	ActionRead   Action = "read"
+
+	StatusSuccess Status = "success"
+	StatusDenied  Status = "denied"
 )
 
 type Request struct {
@@ -40,11 +46,18 @@ type Request struct {
 	Resource  Resource `json:"resource"`
 	Subject   Subject  `json:"subject"`
 	Action    Action   `json:"action"`
+	Status    Status   `json:"status"`
 }
 
 func WithNamespace(ns string) func(*Request) {
 	return func(r *Request) {
 		r.Namespace = ns
+	}
+}
+
+func WithStatus(s Status) func(*Request) {
+	return func(r *Request) {
+		r.Status = s
 	}
 }
 
@@ -58,6 +71,7 @@ func NewRequest(r Resource, a Action, opts ...func(*Request)) Request {
 	req := Request{
 		Resource: r,
 		Action:   a,
+		Status:   StatusSuccess,
 	}
 
 	for _, opt := range opts {

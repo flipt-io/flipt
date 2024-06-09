@@ -267,7 +267,7 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
-	var checker *audit.Checker
+	var checker audit.EventPairChecker = &audit.NoOpChecker{}
 
 	// We have to check if audit logging is enabled here for informing the authentication service that
 	// the user would like to receive token:deleted events.
@@ -344,50 +344,6 @@ func NewGRPCServer(
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)
-
-	// cache must come after auth interceptors
-	if cfg.Cache.Enabled && cacher != nil {
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
-	}
-
-	if cfg.Authorization.Required {
-		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{
-			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
-		}
-
-		engineOpts := []containers.Option[authz.Engine]{
-			authz.WithPollDuration(cfg.Authorization.Policy.PollInterval),
-		}
-
-		if cfg.Authorization.Data != nil {
-			switch cfg.Authorization.Data.Backend {
-			case config.AuthorizationBackendLocal:
-				engineOpts = append(engineOpts, authz.WithDataSource(
-					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
-					cfg.Authorization.Data.PollInterval,
-				))
-			default:
-				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
-			}
-		}
-
-		var source authz.PolicySource
-		switch cfg.Authorization.Policy.Backend {
-		case config.AuthorizationBackendLocal:
-			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
-		default:
-			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
-		}
-
-		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
-		if err != nil {
-			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
-		}
-
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
-
-		logger.Info("authorization middleware enabled")
-	}
 
 	// audit sinks configuration
 	sinks := make([]audit.Sink, 0)
@@ -487,6 +443,50 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("error constructing tracing text map propagator: %w", err)
 	}
 	otel.SetTextMapPropagator(textMapPropagator)
+
+	if cfg.Authorization.Required {
+		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{
+			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
+		}
+
+		engineOpts := []containers.Option[authz.Engine]{
+			authz.WithPollDuration(cfg.Authorization.Policy.PollInterval),
+		}
+
+		if cfg.Authorization.Data != nil {
+			switch cfg.Authorization.Data.Backend {
+			case config.AuthorizationBackendLocal:
+				engineOpts = append(engineOpts, authz.WithDataSource(
+					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
+					cfg.Authorization.Data.PollInterval,
+				))
+			default:
+				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
+			}
+		}
+
+		var source authz.PolicySource
+		switch cfg.Authorization.Policy.Backend {
+		case config.AuthorizationBackendLocal:
+			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
+		default:
+			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
+		}
+
+		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
+		if err != nil {
+			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
+		}
+
+		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
+
+		logger.Info("authorization middleware enabled")
+	}
+
+	// cache must come after authn and authz interceptors
+	if cfg.Cache.Enabled && cacher != nil {
+		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+	}
 
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),

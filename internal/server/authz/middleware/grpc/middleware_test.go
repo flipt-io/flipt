@@ -68,6 +68,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 					Resource:  flipt.ResourceFlag,
 					Subject:   flipt.SubjectFlag,
 					Action:    flipt.ActionCreate,
+					Status:    flipt.StatusSuccess,
 				},
 				"authentication": adminAuth,
 			},
@@ -153,7 +154,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				return
 			}
 
-			require.EqualError(t, err, errUnauthorized.Error())
+			require.Error(t, err)
 		})
 	}
 }

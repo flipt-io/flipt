@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+// EventPairChecker is the contract for checking if an event pair exists and if it should be emitted to configured sinks.
+type EventPairChecker interface {
+	Check(eventPair string) bool
+	Events() []string
+}
+
 // Checker holds a map that maps event pairs to a dummy struct. It is basically
 // used as a set to check for existence.
 type Checker struct {
@@ -92,4 +98,14 @@ func (c *Checker) Events() []string {
 	}
 
 	return events
+}
+
+type NoOpChecker struct{}
+
+func (n *NoOpChecker) Check(eventPair string) bool {
+	return false
+}
+
+func (n *NoOpChecker) Events() []string {
+	return []string{}
 }

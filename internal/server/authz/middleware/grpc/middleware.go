@@ -3,24 +3,21 @@ package grpc_middleware
 import (
 	"context"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
-
-var errUnauthorized = status.Error(codes.PermissionDenied, "request was not authorized")
 
 // SkipsAuthorizationServer is a grpc.Server which should always skip authentication.
 type SkipsAuthorizationServer interface {
 	SkipsAuthorization(ctx context.Context) bool
 }
 
-// InterceptorOptions configure the basic AuthUnaryInterceptors
+// InterceptorOptions configure the basic AuthzUnaryInterceptors
 type InterceptorOptions struct {
 	skippedServers []any
 }
@@ -82,28 +79,30 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 		requester, ok := req.(flipt.Requester)
 		if !ok {
 			logger.Error("request must implement flipt.Requester", zap.String("method", info.FullMethod))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("request not authorized")
 		}
 
 		auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 		if auth == nil {
 			logger.Error("unauthorized", zap.String("reason", "authentication required"))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("authentication required")
 		}
 
+		request := requester.Request()
+
 		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
-			"request":        requester.Request(),
+			"request":        request,
 			"authentication": auth,
 		})
 
 		if err != nil {
 			logger.Error("unauthorized", zap.Error(err))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("permission denied")
 		}
 
 		if !allowed {
 			logger.Error("unauthorized", zap.String("reason", "permission denied"))
-			return ctx, errUnauthorized
+			return ctx, errors.ErrUnauthorized("permission denied")
 		}
 
 		return handler(ctx, req)

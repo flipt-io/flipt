@@ -72,6 +72,8 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		code = codes.InvalidArgument
 	case errs.AsMatch[errs.ErrUnauthenticated](err):
 		code = codes.Unauthenticated
+	case errs.AsMatch[errs.ErrUnauthorized](err):
+		code = codes.PermissionDenied
 	}
 
 	err = status.Error(code, err.Error())
@@ -423,13 +425,8 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 	}
 }
 
-// EventPairChecker is the middleware side contract for checking if an event pair exists.
-type EventPairChecker interface {
-	Check(eventPair string) bool
-}
-
 // AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
-func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker) grpc.UnaryServerInterceptor {
+func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var request flipt.Request
 		r, ok := req.(flipt.Requester)
@@ -439,11 +436,6 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 		}
 
 		request = r.Request()
-
-		resp, err := handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
 
 		var event *audit.Event
 
@@ -460,6 +452,16 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairCh
 				}
 			}
 		}()
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			var uerr errs.ErrUnauthorized
+			if errors.As(err, &uerr) {
+				request.Status = flipt.StatusDenied
+				event = audit.NewEvent(request, actor, nil)
+			}
+			return resp, err
+		}
 
 		// Delete and Order request(s) have to be handled separately because they do not
 		// return the concrete type but rather an *empty.Empty response.

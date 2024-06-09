@@ -13,16 +13,17 @@ import (
 )
 
 const (
-	eventVersion          = "0.1"
+	eventVersion          = "0.2"
 	eventVersionKey       = "flipt.event.version"
 	eventActionKey        = "flipt.event.action"
 	eventTypeKey          = "flipt.event.type"
 	eventMetadataActorKey = "flipt.event.metadata.actor"
 	eventPayloadKey       = "flipt.event.payload"
 	eventTimestampKey     = "flipt.event.timestamp"
+	eventStatusKey        = "flipt.event.status"
 )
 
-// Event holds information that represents an action that has occurred in the system.
+// Event holds information that represents an action that was attempted in the system.
 type Event struct {
 	Version string `json:"version"`
 
@@ -35,6 +36,8 @@ type Event struct {
 	Payload interface{} `json:"payload"`
 
 	Timestamp string `json:"timestamp"`
+
+	Status string `json:"status"`
 }
 
 // NewEvent is the constructor for an event.
@@ -61,6 +64,7 @@ func NewEvent(r flipt.Request, actor *Actor, payload interface{}) *Event {
 		Version: eventVersion,
 		Action:  action,
 		Type:    typ,
+		Status:  string(r.Status),
 		Metadata: Metadata{
 			Actor: actor,
 		},
@@ -102,6 +106,13 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		})
 	}
 
+	if e.Status != "" {
+		akv = append(akv, attribute.KeyValue{
+			Key:   eventStatusKey,
+			Value: attribute.StringValue(e.Status),
+		})
+	}
+
 	b, err := json.Marshal(e.Metadata.Actor)
 	if err == nil {
 		akv = append(akv, attribute.KeyValue{
@@ -129,13 +140,14 @@ func (e *Event) AddToSpan(ctx context.Context) {
 }
 
 func (e *Event) Valid() bool {
-	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
+	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != ""
 }
 
 func (e Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("version", e.Version)
 	enc.AddString("type", e.Type)
 	enc.AddString("action", e.Action)
+	enc.AddString("status", e.Status)
 	if err := enc.AddReflected("metadata", e.Metadata); err != nil {
 		return err
 	}
@@ -162,6 +174,8 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 			e.Type = kv.Value.AsString()
 		case eventTimestampKey:
 			e.Timestamp = kv.Value.AsString()
+		case eventStatusKey:
+			e.Status = kv.Value.AsString()
 		case eventMetadataActorKey:
 			var actor Actor
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &actor); err != nil {
