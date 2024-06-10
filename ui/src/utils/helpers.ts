@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { defaultHeaders } from '~/data/api';
+import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
 
 export function cls(...args: ClassValue[]) {
@@ -115,4 +116,8 @@ export function generateCurlCommand(curlOptions: ICurlOptions) {
     curlData,
     curlOptions.uri
   ].join(' ');
+}
+
+export function generateCliCommand(command: ICommand): string {
+  return `flipt ${command.commandName} ${command.arguments?.join(' ')} ${command.options?.map(({ key, value }) => `${key} ${value}`).join(' ')}`;
 }
