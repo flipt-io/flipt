@@ -13,6 +13,7 @@ import (
 type bootstrapOpt struct {
 	token      string
 	expiration time.Duration
+	metadata   map[string]string
 }
 
 // BootstrapOption is a type which configures the bootstrap or initial static token.
@@ -32,10 +33,23 @@ func WithExpiration(expiration time.Duration) BootstrapOption {
 	}
 }
 
+// WithMetadataAttribute can be used to add additional metadata k/v pairs
+// to the resulting bootstrap token
+func WithMetadataAttribute(key, value string) BootstrapOption {
+	return func(bo *bootstrapOpt) {
+		bo.metadata[key] = value
+	}
+}
+
 // Bootstrap creates an initial static authentication of type token
 // if one does not already exist.
 func Bootstrap(ctx context.Context, store Store, opts ...BootstrapOption) (string, error) {
-	var o bootstrapOpt
+	o := bootstrapOpt{
+		metadata: map[string]string{
+			"io.flipt.auth.token.name":        "initial_bootstrap_token",
+			"io.flipt.auth.token.description": "Initial token created when bootstrapping authentication",
+		},
+	}
 	for _, opt := range opts {
 		opt(&o)
 	}
@@ -51,11 +65,8 @@ func Bootstrap(ctx context.Context, store Store, opts ...BootstrapOption) (strin
 	}
 
 	req := &CreateAuthenticationRequest{
-		Method: rpcauth.Method_METHOD_TOKEN,
-		Metadata: map[string]string{
-			"io.flipt.auth.token.name":        "initial_bootstrap_token",
-			"io.flipt.auth.token.description": "Initial token created when bootstrapping authentication",
-		},
+		Method:   rpcauth.Method_METHOD_TOKEN,
+		Metadata: o.metadata,
 	}
 
 	// if a client token is provided, use it

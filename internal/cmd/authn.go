@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -147,6 +148,11 @@ func authenticationGRPC(
 		// if a bootstrap expiration is provided, use it
 		if authCfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
 			opts = append(opts, storageauth.WithExpiration(authCfg.Methods.Token.Method.Bootstrap.Expiration))
+		}
+
+		// add any additional metadata if defined
+		for k, v := range authCfg.Methods.Token.Method.Bootstrap.Metadata {
+			opts = append(opts, storageauth.WithMetadataAttribute(strings.ToLower(k), v))
 		}
 
 		// attempt to bootstrap authentication store

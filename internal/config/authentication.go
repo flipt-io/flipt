@@ -426,8 +426,9 @@ func (a AuthenticationMethodTokenConfig) validate() error { return nil }
 // AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
 // bootstrap process for the authentication method "token".
 type AuthenticationMethodTokenBootstrapConfig struct {
-	Token      string        `json:"-" mapstructure:"token" yaml:"token"`
-	Expiration time.Duration `json:"expiration,omitempty" mapstructure:"expiration" yaml:"expiration,omitempty"`
+	Token      string            `json:"-" mapstructure:"token" yaml:"token"`
+	Expiration time.Duration     `json:"expiration,omitempty" mapstructure:"expiration" yaml:"expiration,omitempty"`
+	Metadata   map[string]string `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 }
 
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
