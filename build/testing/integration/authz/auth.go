@@ -1,4 +1,4 @@
-package authn
+package authz
 
 import (
 	"context"
@@ -41,61 +41,42 @@ func Common(t *testing.T, opts integration.TestOpts) {
 
 		for _, namespace := range integration.Namespaces {
 			t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
-				t.Run("NoAuth", func(t *testing.T) {
-					client := opts.NoAuthClient(t)
-					cannotReadAnyIn(t, ctx, client, namespace.Key)
-				})
-
 				t.Run("StaticToken", func(t *testing.T) {
-					// copy options so we can make some more clients with the generated tokens
-					opts := opts
-
-					// ensure we can do resource specific operations across namespaces
-					canReadAllIn(t, ctx, client, namespace.Key)
-
-					t.Run("CreateToken()", func(t *testing.T) {
-						// namespaced scoped tokens can only create tokens
-						// in the same namespace
-						// this ensures that the scope is appropriate for that condition
-						resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
-							Name:         "Access Token",
-							NamespaceKey: namespace.Key,
-							Description:  "Some Description",
-						})
-
-						require.NoError(t, err)
-
-						assert.NotEmpty(t, resp.ClientToken)
-						assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
-						assert.Equal(t, "Some Description", resp.Authentication.Metadata["io.flipt.auth.token.description"])
-						if namespace.Key != "" {
-							assert.Equal(t, namespace.Expected, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
-						} else {
-							assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
-						}
-
-						opts.Token = resp.ClientToken
+					t.Run("NoRole", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						// with the admin token
+						client := opts.TokenClient(t)
+						cannotReadAnyIn(t, ctx, client, namespace.Key)
 					})
 
-					// ensure we can do resource specific operations in scoped namespace
-					canReadAllIn(t, ctx, opts.TokenClient(t), namespace.Key)
+					t.Run("Admin", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						// with the admin token
+						client := opts.TokenClient(t, integration.WithRole("admin"))
+						canReadAllIn(t, ctx, client, namespace.Key)
+					})
 
-					if namespace.Key != "" {
-						// ensure we exclude from reading in another namespace
-						otherNS := integration.Namespaces.OtherNamespaceFrom(namespace.Expected)
-						t.Run(fmt.Sprintf("NamespaceScopedIn(%q)", otherNS), func(t *testing.T) {
-							cannotReadAnyIn(t, ctx, opts.TokenClient(t), otherNS)
-						})
-					}
+					t.Run("Editor", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						// with the admin token
+						client := opts.TokenClient(t, integration.WithRole("editor"))
+						canReadAllIn(t, ctx, client, namespace.Key)
+					})
+
+					t.Run("Viewer", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						// with the admin token
+						client := opts.TokenClient(t, integration.WithRole("viewer"))
+						canReadAllIn(t, ctx, client, namespace.Key)
+					})
+
+					t.Run("NamespacedViewer", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						// with the admin token
+						client := opts.TokenClient(t, integration.WithRole(fmt.Sprintf("%s_viewer", namespace.Expected)))
+						cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
+					})
 				})
-			})
-
-			t.Run("K8sClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
-			})
-
-			t.Run("JWTClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
 			})
 		}
 
@@ -130,29 +111,17 @@ func listFlagIsAllowed(t *testing.T, ctx context.Context, client sdk.SDK, namesp
 	})
 }
 
-func listFlagsIsUnauthorized(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
-	t.Helper()
-
-	t.Run(fmt.Sprintf("ListFlags(namespace: %q)", namespace), func(t *testing.T) {
-		_, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
-		})
-		require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-	})
-}
-
 func canReadAllIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
 	t.Run("CanReadAll", func(t *testing.T) {
 		clientCallSet{
 			can(GetNamespace(&flipt.GetNamespaceRequest{Key: namespace})),
-			can(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace})),
+			can(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace, Key: "flag"})),
 			can(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-			can(CreateVariant(&flipt.CreateVariantRequest{NamespaceKey: namespace})),
-			can(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace})),
-			can(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace})),
-			can(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace})),
-			can(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace})),
-			can(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace})),
+			can(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace, FlagKey: "flag", Id: "id"})),
+			can(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			can(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			can(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			can(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace, Key: "segment"})),
 			can(ListSegments(&flipt.ListSegmentRequest{NamespaceKey: namespace})),
 		}.assert(t, ctx, client)
 	})
@@ -162,14 +131,13 @@ func cannotReadAnyIn(t *testing.T, ctx context.Context, client sdk.SDK, namespac
 	t.Run("CannotReadAny", func(t *testing.T) {
 		clientCallSet{
 			cannot(GetNamespace(&flipt.GetNamespaceRequest{Key: namespace})),
-			cannot(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace})),
+			cannot(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace, Key: "flag"})),
 			cannot(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-			cannot(CreateVariant(&flipt.CreateVariantRequest{NamespaceKey: namespace})),
-			cannot(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace})),
-			cannot(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace})),
-			cannot(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace})),
-			cannot(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace})),
-			cannot(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace})),
+			cannot(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace, FlagKey: "flag", Id: "id"})),
+			cannot(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			cannot(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			cannot(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace, FlagKey: "flag"})),
+			cannot(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace, Key: "segment"})),
 			cannot(ListSegments(&flipt.ListSegmentRequest{NamespaceKey: namespace})),
 		}.assert(t, ctx, client)
 	})
@@ -221,13 +189,6 @@ func ListFlags(in *flipt.ListFlagRequest) clientCall {
 	}
 }
 
-func CreateVariant(in *flipt.CreateVariantRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().CreateVariant(ctx, in)
-		return err
-	}
-}
-
 func GetRule(in *flipt.GetRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
 		_, err := s.Flipt().GetRule(ctx, in)
@@ -272,13 +233,14 @@ func ListSegments(in *flipt.ListSegmentRequest) clientCall {
 
 func assertIsAuthorized(t *testing.T, err error, authorized bool) {
 	t.Helper()
-	expected := "rpc error: code = Unauthenticated desc = request was not authenticated"
-	if authorized {
-		if err != nil {
-			assert.NotEqual(t, err.Error(), expected)
-		}
+	if !authorized {
+		assert.Equal(t, codes.PermissionDenied, status.Code(err), err)
 		return
 	}
 
-	assert.EqualError(t, err, expected)
+	if err != nil {
+		code := status.Code(err)
+		assert.NotEqual(t, codes.Unauthenticated, code, err)
+		assert.NotEqual(t, codes.PermissionDenied, code, err)
+	}
 }

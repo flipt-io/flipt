@@ -66,6 +66,7 @@ var (
 		"fs/gcs":        gcs,
 		"import/export": importExport,
 		"authn/sqlite":  authn,
+		"authz/sqlite":  authz,
 	}
 )
 
@@ -139,7 +140,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					flipt = flipt.
 						WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_METADATA_IS_BOOTSTRAP", "true")
 				}
 				{
 					// K8s auth configuration
@@ -202,9 +204,11 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	err = g.Wait()
 
 	if _, lerr := client.Container().From("alpine:3.16").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithMountedCache("/logs", logs).
 		WithExec([]string{"cp", "-r", "/logs", "/out"}).
-		Directory("/out").Export(ctx, "build/logs"); lerr != nil {
+		Directory("/out").
+		Export(ctx, "build/logs"); lerr != nil {
 		log.Println("Error copying logs", lerr)
 	}
 
@@ -640,6 +644,167 @@ func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 	}
 
 	return suite(ctx, "authn", base, fliptToTest, conf)
+}
+
+func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	var (
+		policyPath = "/etc/flipt/authz/policy.rego"
+		policyData = "/etc/flipt/authz/data.json"
+	)
+
+	// create unique instance for test case
+	fliptToTest := flipt.
+		WithEnvVariable("FLIPT_EXPERIMENTAL_AUTHORIZATION_ENABLED", "true").
+		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
+		WithEnvVariable("FLIPT_AUTHORIZATION_POLICY_LOCAL_PATH", policyPath).
+		WithNewFile(policyPath, dagger.ContainerWithNewFileOpts{
+			Contents: `package flipt.authz.v1
+
+import data
+import rego.v1
+
+default allow = false
+
+allow if {
+    input.authentication.metadata["is_bootstrap"] == "true"
+}
+
+allow if {
+	some rule in has_rules
+
+	permit_string(rule.resource, input.request.resource)
+	permit_slice(rule.actions, input.request.action)
+	permit_string(rule.namespace, input.request.namespace)
+}
+
+allow if {
+	some rule in has_rules
+
+	permit_string(rule.resource, input.request.resource)
+	permit_slice(rule.actions, input.request.action)
+	not rule.namespace
+}
+
+has_rules contains rules if {
+	some role in data.roles
+	role.name == input.authentication.metadata["io.flipt.auth.role"]
+	rules := role.rules[_]
+}
+
+permit_string(allowed, _) if {
+	allowed == "*"
+}
+
+permit_string(allowed, requested) if {
+	allowed == requested
+}
+
+permit_slice(allowed, _) if {
+	allowed[_] = "*"
+}
+
+permit_slice(allowed, requested) if {
+	allowed[_] = requested
+}`,
+		}).
+		WithEnvVariable("FLIPT_AUTHORIZATION_DATA_LOCAL_PATH", policyData).
+		WithNewFile(policyData, dagger.ContainerWithNewFileOpts{
+			Contents: `{
+    "version": "0.1.0",
+    "roles": [
+        {
+            "name": "admin",
+            "rules": [
+                {
+                    "resource": "*",
+                    "actions": [
+                        "*"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "editor",
+            "rules": [
+                {
+                    "resource": "namespace",
+                    "actions": [
+                        "read"
+                    ]
+                },
+                {
+                    "resource": "authentication",
+                    "actions": [
+                        "read"
+                    ]
+                },
+                {
+                    "resource": "flag",
+                    "actions": [
+                        "create",
+                        "read",
+                        "update",
+                        "delete"
+                    ]
+                },
+                {
+                    "resource": "segment",
+                    "actions": [
+                        "create",
+                        "read",
+                        "update",
+                        "delete"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "viewer",
+            "rules": [
+                {
+                    "resource": "*",
+                    "actions": [
+                        "read"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "default_viewer",
+            "rules": [
+                {
+                    "resource": "*",
+                    "actions": [
+                        "read"
+                    ],
+                    "namespace": "default"
+                }
+            ]
+        },
+        {
+            "name": "production_viewer",
+            "rules": [
+                {
+                    "resource": "*",
+                    "actions": [
+                        "read"
+                    ],
+                    "namespace": "production"
+                }
+            ]
+        }
+    ]
+}`,
+		}).
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	// import state into instance before running test
+	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
+		return func() error { return err }
+	}
+
+	return suite(ctx, "authz", base, fliptToTest, conf)
 }
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {

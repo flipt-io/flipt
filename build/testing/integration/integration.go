@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"flag"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
@@ -102,9 +104,46 @@ func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
 	return sdk.New(o.newTransport(t))
 }
 
-func (o TestOpts) DefaultClient(t *testing.T) sdk.SDK {
+func (o TestOpts) bootstrapClient(t *testing.T) sdk.SDK {
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
 		sdk.StaticTokenAuthenticationProvider(o.Token),
+	))
+}
+
+type ClientOpts struct {
+	Metadata map[string]string
+}
+
+type ClientOpt func(*ClientOpts)
+
+func WithRole(role string) ClientOpt {
+	return func(co *ClientOpts) {
+		if co.Metadata == nil {
+			co.Metadata = map[string]string{}
+		}
+
+		co.Metadata["io.flipt.auth.role"] = role
+	}
+}
+
+func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	resp, err := sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.StaticTokenAuthenticationProvider(o.Token),
+	)).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
+		Name:     t.Name(),
+		Metadata: copts.Metadata,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.StaticTokenAuthenticationProvider(resp.ClientToken),
 	))
 }
 
