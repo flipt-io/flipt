@@ -69,7 +69,7 @@ jobs:
           FLIPT_FORMBRICKS_ENVIRONMENT_ID: ${{ secrets.FLIPT_FORMBRICKS_ENVIRONMENT_ID }}
 
       - name: GoReleaser Build
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
           version: latest
@@ -145,7 +145,7 @@ jobs:
           installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
 
       - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
           version: latest

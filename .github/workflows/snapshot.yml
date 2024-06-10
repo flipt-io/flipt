@@ -63,7 +63,7 @@ jobs:
           FLIPT_FORMBRICKS_ENVIRONMENT_ID: ${{ secrets.FLIPT_FORMBRICKS_ENVIRONMENT_ID }}
 
       - name: GoReleaser (Snapshot) Build
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
           version: latest
@@ -113,7 +113,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: GoReleaser (Snapshot) Release
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
           version: latest
