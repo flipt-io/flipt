@@ -55,9 +55,11 @@ var (
 
 	// Attributes used in evaluation metrics
 	//nolint
-	AttributeMatch     = attribute.Key("match")
-	AttributeFlag      = attribute.Key("flag")
+	AttributeMatch = attribute.Key("match")
+	AttributeFlag  = attribute.Key("flag")
+	// deprecated
 	AttributeSegment   = attribute.Key("segment")
+	AttributeSegments  = attribute.Key("segments")
 	AttributeReason    = attribute.Key("reason")
 	AttributeValue     = attribute.Key("value")
 	AttributeNamespace = attribute.Key("namespace")

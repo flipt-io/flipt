@@ -889,6 +889,80 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateKey() {
 	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/%s\"", s.namespace, t.Name()))
 }
 
+func (s *DBTestSuite) TestCreateVariant_MultipleDefaults() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+		Default:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	// try to create another variant with the default set to true
+	_, err = s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "bar",
+		Name:        "bar",
+		Description: "baz",
+		Default:     true,
+	})
+
+	assert.EqualError(t, err, "variant \"bar\" is not unique for flag \"default/TestDBTestSuite/TestCreateVariant_MultipleDefaults\"")
+}
+
+func (s *DBTestSuite) TestCreateVariantNamespace_MultipleDefaults() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
+		Default:      true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	// try to create another variant with the default set to true
+	_, err = s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "bar",
+		Name:         "bar",
+		Description:  "baz",
+		Default:      true,
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("variant \"bar\" is not unique for flag \"%s/%s\"", s.namespace, t.Name()))
+}
 func (s *DBTestSuite) TestCreateVariant_DuplicateKey_DifferentFlag() {
 	t := s.T()
 

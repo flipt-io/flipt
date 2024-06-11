@@ -164,6 +164,7 @@ message Variant {
   google.protobuf.Timestamp updated_at = 7;
   string attachment = 8;
   string namespace_key = 9;
+  bool default = 10;
 }
 
 message CreateVariantRequest {
@@ -173,6 +174,7 @@ message CreateVariantRequest {
   string description = 4;
   string attachment = 5;
   string namespace_key = 6;
+  bool default = 7;
 }
 
 message UpdateVariantRequest {
@@ -183,6 +185,7 @@ message UpdateVariantRequest {
   string description = 5;
   string attachment = 6;
   string namespace_key = 7;
+  bool default = 8;
 }
 
 message DeleteVariantRequest {

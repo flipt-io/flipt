@@ -126,6 +126,7 @@ type optionalVariant struct {
 	FlagKey      sql.NullString
 	Name         sql.NullString
 	Description  sql.NullString
+	Default      sql.NullBool
 	Attachment   sql.NullString
 	CreatedAt    fliptsql.NullableTimestamp
 	UpdatedAt    fliptsql.NullableTimestamp
@@ -240,7 +241,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 		allFlagKeys = append(allFlagKeys, k)
 	}
 
-	query := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, attachment, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, \"default\", attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"namespace_key": namespaceKey, "flag_key": allFlagKeys}).
 		OrderBy("created_at")
@@ -270,6 +271,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 			&variant.FlagKey,
 			&variant.Name,
 			&variant.Description,
+			&variant.Default,
 			&variant.Attachment,
 			&vCreatedAt,
 			&vUpdatedAt); err != nil {
@@ -284,6 +286,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 				FlagKey:      variant.FlagKey.String,
 				Name:         variant.Name.String,
 				Description:  variant.Description.String,
+				Default:      variant.Default.Bool,
 				Attachment:   variant.Attachment.String,
 				CreatedAt:    vCreatedAt.Timestamp,
 				UpdatedAt:    vUpdatedAt.Timestamp,
@@ -412,6 +415,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			Key:          r.Key,
 			Name:         r.Name,
 			Description:  r.Description,
+			Default:      r.Default,
 			Attachment:   r.Attachment,
 			CreatedAt:    now,
 			UpdatedAt:    now,
@@ -420,7 +424,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 
 	attachment := emptyAsNil(r.Attachment)
 	if _, err := s.builder.Insert("variants").
-		Columns("id", "namespace_key", "flag_key", "\"key\"", "name", "description", "attachment", "created_at", "updated_at").
+		Columns("id", "namespace_key", "flag_key", "\"key\"", "name", "description", "\"default\"", "attachment", "created_at", "updated_at").
 		Values(
 			v.Id,
 			v.NamespaceKey,
@@ -428,6 +432,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			v.Key,
 			v.Name,
 			v.Description,
+			v.Default,
 			attachment,
 			&fliptsql.Timestamp{Timestamp: v.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: v.UpdatedAt},
@@ -459,6 +464,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
+		Set("\"default\"", r.Default).
 		Set("attachment", emptyAsNil(r.Attachment)).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(whereClause)
@@ -485,11 +491,11 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		v = &flipt.Variant{}
 	)
 
-	if err := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, attachment, created_at, updated_at").
+	if err := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, \"default\", attachment, created_at, updated_at").
 		From("variants").
 		Where(whereClause).
 		QueryRowContext(ctx).
-		Scan(&v.Id, &v.NamespaceKey, &v.Key, &v.FlagKey, &v.Name, &v.Description, &attachment, &createdAt, &updatedAt); err != nil {
+		Scan(&v.Id, &v.NamespaceKey, &v.Key, &v.FlagKey, &v.Name, &v.Description, &v.Default, &attachment, &createdAt, &updatedAt); err != nil {
 		return nil, err
 	}
 

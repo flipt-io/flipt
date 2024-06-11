@@ -82,7 +82,7 @@ function InnerLayout() {
           <Banner
             title="Introducing Flipt Hybrid Cloud"
             description="Learn about our latest offering that enhances Flipt Open Source with managed security and support"
-            href="https://docs.flipt.io/cloud/overview"
+            href="https://flipt.io/cloud"
           />
         )}
         <main className="flex px-6 py-10">

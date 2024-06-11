@@ -61,6 +61,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 						flagAttr,
 						metrics.AttributeMatch.Bool(resp.Match),
 						metrics.AttributeSegment.String(resp.SegmentKey),
+						metrics.AttributeSegments.String(strings.Join(resp.SegmentKeys, ",")),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeValue.String(resp.Value),
 						metrics.AttributeType.String("variant"),
@@ -186,6 +187,15 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 		// no distributions for rule
 		if len(validDistributions) == 0 {
+			// find default variant
+			// TODO: we may want to try do this elsewhere to avoid this loop
+			for _, v := range flag.Variants {
+				if v.Default {
+					resp.Value = v.Key
+					resp.Attachment = v.Attachment
+					break
+				}
+			}
 			e.logger.Info("no distributions for rule")
 			resp.Match = true
 			resp.Reason = flipt.EvaluationReason_MATCH_EVALUATION_REASON
