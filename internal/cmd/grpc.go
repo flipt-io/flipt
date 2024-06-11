@@ -76,6 +76,7 @@ type grpcRegisterers []grpcRegister
 
 func (g *grpcRegisterers) Add(r grpcRegister) {
 	*g = append(*g, r)
+	//
 }
 
 func (g grpcRegisterers) RegisterGRPC(s *grpc.Server) {
@@ -339,7 +340,6 @@ func NewGRPCServer(
 	interceptors = append(interceptors,
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
-			middlewaregrpc.ValidationUnaryInterceptor,
 			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
@@ -482,6 +482,9 @@ func NewGRPCServer(
 
 		logger.Info("authorization middleware enabled")
 	}
+
+	// we validate requests before cache but after authn and authz
+	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	// cache must come after authn and authz interceptors
 	if cfg.Cache.Enabled && cacher != nil {
