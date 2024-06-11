@@ -12,27 +12,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var _ storage.Store = &Store{}
-
-type Store struct {
-	storage.Store
-	cacher cache.Cacher
-	logger *zap.Logger
-}
-
-const (
-	// storage:flags
-	flagCacheKeyPrefix = "s:f"
-	// storage:evaluationRules
-	evaluationRulesCacheKeyPrefix = "s:er"
-	// storage:evaluationRollouts
-	evaluationRolloutsCacheKeyPrefix = "s:ero"
-)
-
-func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
-	return &Store{Store: store, cacher: cacher, logger: logger}
-}
-
 type marshaller[T any] interface {
 	Marshal(T) ([]byte, error)
 }
@@ -82,6 +61,27 @@ func get[T any](ctx context.Context, s *Store, u unmarshaller[T], key string, va
 	}
 
 	return true
+}
+
+var _ storage.Store = &Store{}
+
+type Store struct {
+	storage.Store
+	cacher cache.Cacher
+	logger *zap.Logger
+}
+
+const (
+	// storage:flags
+	flagCacheKeyPrefix = "s:f"
+	// storage:evaluationRules
+	evaluationRulesCacheKeyPrefix = "s:er"
+	// storage:evaluationRollouts
+	evaluationRolloutsCacheKeyPrefix = "s:ero"
+)
+
+func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
+	return &Store{Store: store, cacher: cacher, logger: logger}
 }
 
 func (s *Store) setJSON(ctx context.Context, key string, value any) {
@@ -221,7 +221,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, r storage.ResourceReques
 }
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, r storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
-
 	var (
 		rollouts []*storage.EvaluationRollout
 		cacheKey = cacheKey(evaluationRolloutsCacheKeyPrefix, r)
@@ -242,6 +241,6 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, r storage.ResourceReq
 }
 
 func cacheKey(prefix string, r storage.ResourceRequest) string {
-	//<prefix>:<namespaceKey>:<flagKey>
+	// <prefix>:<namespaceKey>:<flagKey>
 	return fmt.Sprintf("%s:%s:%s", prefix, r.Namespace(), r.Key)
 }
