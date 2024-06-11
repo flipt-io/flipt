@@ -66,6 +66,7 @@ jobs:
             "fs/gcs",
             "import/export",
             "authn/sqlite",
+            "authz/sqlite",
           ]
     steps:
       - uses: actions/checkout@v4
