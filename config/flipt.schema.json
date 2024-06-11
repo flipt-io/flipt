@@ -123,6 +123,10 @@
                           "type": "integer"
                         }
                       ]
+                    },
+                    "metadata": {
+                      "type": ["object", "null"],
+                      "additionalProperties": true
                     }
                   }
                 }
