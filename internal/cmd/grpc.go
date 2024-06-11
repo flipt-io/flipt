@@ -483,11 +483,6 @@ func NewGRPCServer(
 		logger.Info("authorization middleware enabled")
 	}
 
-	// cache must come after authn and authz interceptors
-	if cfg.Cache.Enabled && cacher != nil {
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
-	}
-
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
 		grpc.KeepaliveParams(keepalive.ServerParameters{

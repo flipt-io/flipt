@@ -12,7 +12,10 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-const postMethod = "POST"
+const (
+	postMethod = "POST"
+	getMethod  = "GET"
+)
 
 type Evaluation struct {
 	EntityId string            `json:"entityId"`
@@ -86,6 +89,16 @@ func main() {
 		return nil
 	}
 
+	flagTargeter := func(t *vegeta.Target) error {
+		t.Header = http.Header{
+			"Authorization": []string{fmt.Sprintf("Bearer %s", fliptAuthToken)},
+		}
+		t.Method = getMethod
+		t.URL = fmt.Sprintf("%s/api/v1/namespaces/default/flags/flag_001", fliptAddr)
+
+		return nil
+	}
+
 	rate := vegeta.Rate{Freq: rate, Per: time.Second}
 	attack := func(name string, t vegeta.Targeter) {
 		name = strings.ToUpper(name)
@@ -114,6 +127,7 @@ func main() {
 		fmt.Printf("Success: %f %%\n\n", metrics.Success*100.0)
 	}
 
+	attack("flag", flagTargeter)
 	attack("variant", variantTargeter)
 	attack("boolean", booleanTargeter)
 }

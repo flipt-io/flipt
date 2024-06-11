@@ -10,7 +10,6 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/authn"
@@ -25,7 +24,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -237,194 +235,6 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 	}
 }
 
-var (
-	legacyEvalCachePrefix evaluationCacheKey[*flipt.EvaluationRequest]      = "ev1"
-	newEvalCachePrefix    evaluationCacheKey[*evaluation.EvaluationRequest] = "ev2"
-)
-
-// CacheUnaryInterceptor caches the response of a request if the request is cacheable.
-// TODO: we could clean this up by using generics in 1.18+ to avoid the type switch/duplicate code.
-func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		if cache == nil {
-			return handler(ctx, req)
-		}
-
-		switch r := req.(type) {
-		case *flipt.EvaluationRequest:
-			key, err := legacyEvalCachePrefix.Key(r)
-			if err != nil {
-				logger.Error("getting cache key", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			cached, ok, err := cache.Get(ctx, key)
-			if err != nil {
-				// if error, log and without cache
-				logger.Error("getting from cache", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			if ok {
-				resp := &flipt.EvaluationResponse{}
-				if err := proto.Unmarshal(cached, resp); err != nil {
-					logger.Error("unmarshalling from cache", zap.Error(err))
-					return handler(ctx, req)
-				}
-
-				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
-				return resp, nil
-			}
-
-			logger.Debug("evaluate cache miss")
-			resp, err := handler(ctx, req)
-			if err != nil {
-				return resp, err
-			}
-
-			// marshal response
-			data, merr := proto.Marshal(resp.(*flipt.EvaluationResponse))
-			if merr != nil {
-				logger.Error("marshalling for cache", zap.Error(err))
-				return resp, err
-			}
-
-			// set in cache
-			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.Error("setting in cache", zap.Error(err))
-			}
-
-			return resp, err
-
-		case *flipt.GetFlagRequest:
-			key := flagCacheKey(r.GetNamespaceKey(), r.GetKey())
-
-			cached, ok, err := cache.Get(ctx, key)
-			if err != nil {
-				// if error, log and continue without cache
-				logger.Error("getting from cache", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			if ok {
-				// if cached, return it
-				flag := &flipt.Flag{}
-				if err := proto.Unmarshal(cached, flag); err != nil {
-					logger.Error("unmarshalling from cache", zap.Error(err))
-					return handler(ctx, req)
-				}
-
-				logger.Debug("flag cache hit", zap.Stringer("flag", flag))
-				return flag, nil
-			}
-
-			logger.Debug("flag cache miss")
-			resp, err := handler(ctx, req)
-			if err != nil {
-				return nil, err
-			}
-
-			// marshal response
-			data, merr := proto.Marshal(resp.(*flipt.Flag))
-			if merr != nil {
-				logger.Error("marshalling for cache", zap.Error(err))
-				return resp, err
-			}
-
-			// set in cache
-			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.Error("setting in cache", zap.Error(err))
-			}
-
-			return resp, err
-
-		case *flipt.UpdateFlagRequest, *flipt.DeleteFlagRequest:
-			// need to do this assertion because the request type is not known in this block
-			keyer := r.(flagKeyer)
-			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetKey())); err != nil {
-				logger.Error("deleting from cache", zap.Error(err))
-			}
-		case *flipt.CreateVariantRequest, *flipt.UpdateVariantRequest, *flipt.DeleteVariantRequest:
-			// need to do this assertion because the request type is not known in this block
-			keyer := r.(variantFlagKeyger)
-			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetFlagKey())); err != nil {
-				logger.Error("deleting from cache", zap.Error(err))
-			}
-		case *evaluation.EvaluationRequest:
-			key, err := newEvalCachePrefix.Key(r)
-			if err != nil {
-				logger.Error("getting cache key", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			cached, ok, err := cache.Get(ctx, key)
-			if err != nil {
-				// if error, log and without cache
-				logger.Error("getting from cache", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			if ok {
-				resp := &evaluation.EvaluationResponse{}
-				if err := proto.Unmarshal(cached, resp); err != nil {
-					logger.Error("unmarshalling from cache", zap.Error(err))
-					return handler(ctx, req)
-				}
-
-				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
-				switch r := resp.Response.(type) {
-				case *evaluation.EvaluationResponse_VariantResponse:
-					return r.VariantResponse, nil
-				case *evaluation.EvaluationResponse_BooleanResponse:
-					return r.BooleanResponse, nil
-				default:
-					logger.Error("unexpected eval cache response type", zap.String("type", fmt.Sprintf("%T", resp.Response)))
-				}
-
-				return handler(ctx, req)
-			}
-
-			logger.Debug("evaluate cache miss")
-			resp, err := handler(ctx, req)
-			if err != nil {
-				return resp, err
-			}
-
-			evalResponse := &evaluation.EvaluationResponse{}
-			switch r := resp.(type) {
-			case *evaluation.VariantEvaluationResponse:
-				evalResponse.Type = evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE
-				evalResponse.Response = &evaluation.EvaluationResponse_VariantResponse{
-					VariantResponse: r,
-				}
-			case *evaluation.BooleanEvaluationResponse:
-				evalResponse.Type = evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE
-				evalResponse.Response = &evaluation.EvaluationResponse_BooleanResponse{
-					BooleanResponse: r,
-				}
-			}
-
-			// marshal response
-			data, merr := proto.Marshal(evalResponse)
-			if merr != nil {
-				logger.Error("marshalling for cache", zap.Error(err))
-				return resp, err
-			}
-
-			// set in cache
-			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.Error("setting in cache", zap.Error(err))
-			}
-
-			return resp, err
-		}
-
-		return handler(ctx, req)
-	}
-}
-
 // AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
 func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -503,51 +313,6 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 
 		return resp, err
 	}
-}
-
-type namespaceKeyer interface {
-	GetNamespaceKey() string
-}
-
-type flagKeyer interface {
-	namespaceKeyer
-	GetKey() string
-}
-
-type variantFlagKeyger interface {
-	namespaceKeyer
-	GetFlagKey() string
-}
-
-func flagCacheKey(namespaceKey, key string) string {
-	// for backward compatibility
-	if namespaceKey != "" {
-		return fmt.Sprintf("f:%s:%s", namespaceKey, key)
-	}
-	return fmt.Sprintf("f:%s", key)
-}
-
-type evaluationRequest interface {
-	GetNamespaceKey() string
-	GetFlagKey() string
-	GetEntityId() string
-	GetContext() map[string]string
-}
-
-type evaluationCacheKey[T evaluationRequest] string
-
-func (e evaluationCacheKey[T]) Key(r T) (string, error) {
-	out, err := json.Marshal(r.GetContext())
-	if err != nil {
-		return "", fmt.Errorf("marshalling req to json: %w", err)
-	}
-
-	// for backward compatibility
-	if r.GetNamespaceKey() != "" {
-		return fmt.Sprintf("%s:%s:%s:%s:%s", string(e), r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out), nil
-	}
-
-	return fmt.Sprintf("%s:%s:%s:%s", string(e), r.GetFlagKey(), r.GetEntityId(), out), nil
 }
 
 // x-flipt-accept-server-version represents the maximum version of the flipt server that the client can handle.

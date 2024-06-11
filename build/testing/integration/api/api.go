@@ -101,7 +101,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	})
 
 	for i, namespace := range integration.Namespaces {
-		t.Run(fmt.Sprintf("namespace %q", namespace.Key), func(t *testing.T) {
+		t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
 			t.Run("Flags and Variants", func(t *testing.T) {
 				t.Log("Create a new enabled flag with key \"test\".")
 
