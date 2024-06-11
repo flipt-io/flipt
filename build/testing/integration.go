@@ -148,17 +148,17 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					flipt = flipt.
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
 
-					var saToken string
-					// run an OIDC server which exposes a JWKS url using a private key we own
-					// and generate a JWT to act as our SA token
-					flipt, saToken, err = serveOIDC(ctx, client, base, flipt)
+					var priv []byte
+					// run an OIDC server which exposes a JWKS url and returns
+					// the associated private key bytes
+					flipt, priv, err = serveOIDC(ctx, client, base, flipt)
 					if err != nil {
 						return err
 					}
 
 					// mount service account token into base on expected k8s sa token path
-					base = base.WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token", dagger.ContainerWithNewFileOpts{
-						Contents: saToken,
+					base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", dagger.ContainerWithNewFileOpts{
+						Contents: string(priv),
 					})
 				}
 				{
@@ -184,7 +184,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 						Bytes: x509.MarshalPKCS1PrivateKey(priv),
 					})
 
-					base = base.WithNewFile("/var/run/secrets/flipt/private.pem", dagger.ContainerWithNewFileOpts{
+					base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{
 						Contents: string(privBytes),
 					})
 				}
@@ -691,6 +691,12 @@ has_rules contains rules if {
 	rules := role.rules[_]
 }
 
+has_rules contains rules if {
+	some role in data.roles
+	role.name == input.authentication.metadata["io.flipt.auth.k8s.serviceaccount.name"]
+	rules := role.rules[_]
+}
+
 permit_string(allowed, _) if {
 	allowed == "*"
 }
@@ -911,10 +917,10 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 // The function generates two JWTs, one for Flipt to identify itself and one which is returned to the caller.
 // The caller can use this as the service account token identity to be mounted into the container with the
 // client used for running the test and authenticating with Flipt.
-func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, string, error) {
+func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, []byte, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	rsaSigningKey := &bytes.Buffer{}
@@ -922,7 +928,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(priv),
 	}); err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	// generate a SA style JWT for identifying the Flipt service
@@ -964,12 +970,12 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 
 	caPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, &caPrivKey.PublicKey, caPrivKey)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	var caCert bytes.Buffer
@@ -977,7 +983,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 		Type:  "CERTIFICATE",
 		Bytes: caBytes,
 	}); err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	var caPrivKeyPEM bytes.Buffer
@@ -1010,21 +1016,5 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 				dagger.ContainerWithNewFileOpts{Contents: fliptSAToken}).
 			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 				dagger.ContainerWithNewFileOpts{Contents: caCert.String()}),
-		// generate a JWT to used to identify the workload communicating with Flipt
-		// using the private key components of the key pair served by the OIDC server
-		signJWT(priv, map[string]any{
-			"exp": time.Now().Add(24 * time.Hour).Unix(),
-			"iss": "https://discover.svc",
-			"kubernetes.io": map[string]any{
-				"namespace": "integration",
-				"pod": map[string]any{
-					"name": "integration-test-7d26f049-kdurb",
-					"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-				},
-				"serviceaccount": map[string]any{
-					"name": "integration-test",
-					"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-				},
-			},
-		}), nil
+		rsaSigningKey.Bytes(), nil
 }

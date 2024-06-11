@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"flag"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -116,7 +117,7 @@ func (o TestOpts) bootstrapClient(t *testing.T) sdk.SDK {
 
 type ClientOpts struct {
 	Namespace string
-	Metadata  map[string]string
+	Role      string
 }
 
 type ClientOpt func(*ClientOpts)
@@ -129,11 +130,7 @@ func WithNamespace(ns string) ClientOpt {
 
 func WithRole(role string) ClientOpt {
 	return func(co *ClientOpts) {
-		if co.Metadata == nil {
-			co.Metadata = map[string]string{}
-		}
-
-		co.Metadata["io.flipt.auth.role"] = role
+		co.Role = role
 	}
 }
 
@@ -145,10 +142,15 @@ func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 		opt(&copts)
 	}
 
+	metadata := map[string]string{}
+	if copts.Role != "" {
+		metadata["io.flipt.auth.role"] = copts.Role
+	}
+
 	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
 		Name:         t.Name(),
 		NamespaceKey: copts.Namespace,
-		Metadata:     copts.Metadata,
+		Metadata:     metadata,
 	})
 	require.NoError(t, err)
 
@@ -157,12 +159,44 @@ func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 	))
 }
 
-func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
+func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	saName := "integration-test"
+	if copts.Role != "" {
+		saName = copts.Role
+	}
+
+	saToken := signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/k8s.pem", map[string]any{
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iss": "https://discover.svc",
+		"kubernetes.io": map[string]any{
+			"namespace": "integration",
+			"pod": map[string]any{
+				"name": "integration-test-7d26f049-kdurb",
+				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+			},
+			"serviceaccount": map[string]any{
+				"name": saName,
+				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+			},
+		},
+	})
+
+	// write out JWT into service account token slot
+	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
+
+	tokenPath := fmt.Sprintf("/var/run/secrets/kubernetes.io/serviceaccount/%s.token", saName)
+	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
 
 	transport := o.newTransport(t)
 	return sdk.New(transport, sdk.WithAuthenticationProvider(
-		sdk.NewKubernetesAuthenticationProvider(transport),
+		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(tokenPath)),
 	))
 }
 
@@ -174,46 +208,46 @@ func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 		opt(&copts)
 	}
 
-	bytes, err := os.ReadFile("/var/run/secrets/flipt/private.pem")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	block, _ := pem.Decode(bytes)
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sig, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.RS256, Key: key},
-		(&jose.SignerOptions{}).WithType("JWT"),
-	)
-
 	claims := map[string]any{
 		"iss": "https://flipt.io",
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(3 * time.Minute).Unix(),
 	}
 
-	for k, v := range copts.Metadata {
-		claims[k] = v
+	if copts.Role != "" {
+		claims["io.flipt.auth.role"] = copts.Role
 	}
 
 	if copts.Namespace != "" {
 		claims["io.flipt.auth.namespace"] = copts.Namespace
 	}
 
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.JWTAuthenticationProvider(signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)),
+	))
+}
+
+func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]any) string {
+	t.Helper()
+
+	bytes, err := os.ReadFile(privPath)
+	require.NoError(t, err)
+
+	block, _ := pem.Decode(bytes)
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	require.NoError(t, err)
+
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.RS256, Key: key},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
+
 	raw, err := jwt.Signed(sig).
 		Claims(claims).
 		CompactSerialize()
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
-	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
-		sdk.JWTAuthenticationProvider(raw),
-	))
+	return raw
 }
 
 func (o TestOpts) newTransport(t *testing.T) (transport sdk.Transport) {

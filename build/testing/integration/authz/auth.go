@@ -48,6 +48,7 @@ func Common(t *testing.T, opts integration.TestOpts) {
 				}{
 					{"StaticToken", opts.TokenClient},
 					{"JWT", opts.JWTClient},
+					{"K8s", opts.K8sClient},
 				} {
 					t.Run(test.name, func(t *testing.T) {
 						t.Run("NoRole", func(t *testing.T) {
