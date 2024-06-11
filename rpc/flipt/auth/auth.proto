@@ -78,6 +78,7 @@ message CreateTokenRequest {
   string description = 2;
   google.protobuf.Timestamp expires_at = 3;
   string namespace_key = 4;
+  map<string, string> metadata = 7;
 }
 
 message CreateTokenResponse {

@@ -339,7 +339,6 @@ func NewGRPCServer(
 	interceptors = append(interceptors,
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
-			middlewaregrpc.ValidationUnaryInterceptor,
 			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
@@ -482,6 +481,9 @@ func NewGRPCServer(
 
 		logger.Info("authorization middleware enabled")
 	}
+
+	// we validate requests before cache but after authn and authz
+	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),

@@ -198,22 +198,32 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 
 		metadata := map[string]string{}
 
-		userClaims, ok := jwtClaims["user"].(map[string]interface{})
-		if ok {
-			for _, fields := range [][2]string{
-				{"email", "email"},
-				{"sub", "sub"},
-				{"image", "picture"},
-				{"name", "name"},
-			} {
-				if v, ok := userClaims[fields[0]]; ok {
-					metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
+		for k, v := range jwtClaims {
+			if strings.HasPrefix(k, "io.flipt.auth") {
+				metadata[k] = fmt.Sprintf("%v", v)
+				continue
+			}
+
+			if v, ok := v.(string); ok && k == "iss" {
+				metadata["io.flipt.auth.jwt.issuer"] = v
+				continue
+			}
+
+			if k == "user" {
+				userClaims, ok := v.(map[string]interface{})
+				if ok {
+					for _, fields := range [][2]string{
+						{"email", "email"},
+						{"sub", "sub"},
+						{"image", "picture"},
+						{"name", "name"},
+					} {
+						if v, ok := userClaims[fields[0]]; ok {
+							metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
+						}
+					}
 				}
 			}
-		}
-
-		if iss, ok := jwtClaims["iss"].(string); ok {
-			metadata["io.flipt.auth.jwt.issuer"] = iss
 		}
 
 		auth := &authrpc.Authentication{

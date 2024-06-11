@@ -123,6 +123,41 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			},
 		},
 		{
+			name: "successful authentication (with custom user claims and arbitrary role)",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "flipt.io",
+					"aud": "flipt",
+					"iat": nowUnix,
+					"exp": futureUnix,
+					"user": map[string]string{
+						"sub":   "sub",
+						"email": "email",
+						"image": "image",
+						"name":  "name",
+					},
+					"io.flipt.auth.role": "admin",
+				}
+
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:    "flipt.io",
+				Audiences: []string{"flipt"},
+			},
+			expectedMetadata: map[string]string{
+				"io.flipt.auth.jwt.sub":     "sub",
+				"io.flipt.auth.jwt.email":   "email",
+				"io.flipt.auth.jwt.picture": "image",
+				"io.flipt.auth.jwt.name":    "name",
+				"io.flipt.auth.jwt.issuer":  "flipt.io",
+				"io.flipt.auth.role":        "admin",
+			},
+		},
+		{
 			name: "invalid issuer",
 			metadataFunc: func() metadata.MD {
 				claims := map[string]interface{}{

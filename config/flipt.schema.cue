@@ -51,6 +51,7 @@ import "strings"
 				bootstrap?: {
 					token?:     string
 					expiration: =~#duration | int
+					metadata?: [string]: string
 				}
 			}
 
@@ -163,7 +164,7 @@ import "strings"
 	#cloud: {
 		host?:         string | *"flipt.cloud"
 		organization?: string
-		gateway?:     string
+		gateway?:      string
 		authentication?: {
 			api_key?: string
 		}
@@ -358,9 +359,9 @@ import "strings"
 	#audit: {
 		sinks?: {
 			log?: {
-				enabled?: bool | *false
-				file?:    string | *""
-				encoding?:   *"" | "json" | "console"
+				enabled?:  bool | *false
+				file?:     string | *""
+				encoding?: *"" | "json" | "console"
 			}
 			webhook?: {
 				enabled?:              bool | *false

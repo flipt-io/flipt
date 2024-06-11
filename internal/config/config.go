@@ -402,8 +402,8 @@ func (c *Config) validate() (err error) {
 		}
 	}
 
-	if c.Authorization.Required && !(c.Authentication.Required && c.Authentication.SessionEnabled()) {
-		return fmt.Errorf("authorization requires authentication and a session enabled method")
+	if c.Authorization.Required && !c.Authentication.Required {
+		return fmt.Errorf("authorization requires authentication also be required")
 	}
 
 	return nil

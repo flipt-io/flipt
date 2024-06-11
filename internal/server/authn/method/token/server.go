@@ -49,13 +49,16 @@ func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 // Given the token is created successfully, the generate clientToken string is returned.
 // Along with the created Authentication, which includes it's identifier and associated timestamps.
 func (s *Server) CreateToken(ctx context.Context, req *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
-	metadata := map[string]string{
-		storageMetadataNameKey: req.GetName(),
+	metadata := req.Metadata
+	if metadata == nil {
+		metadata = map[string]string{}
 	}
 
+	metadata[storageMetadataNameKey] = req.GetName()
 	if req.GetDescription() != "" {
 		metadata[storageMetadataDescriptionKey] = req.GetDescription()
 	}
+
 	if req.GetNamespaceKey() != "" {
 		metadata[storageMetadataNamespaceKey] = req.GetNamespaceKey()
 	}

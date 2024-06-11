@@ -639,12 +639,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "authorization required without authentication",
 			path:    "./testdata/authorization/authentication_not_required.yml",
-			wantErr: errors.New("authorization requires authentication and a session enabled method"),
-		},
-		{
-			name:    "authorization required without session enabled authentication",
-			path:    "./testdata/authorization/authentication_not_session_enabled.yml",
-			wantErr: errors.New("authorization requires authentication and a session enabled method"),
+			wantErr: errors.New("authorization requires authentication also be required"),
 		},
 		{
 			name: "authorization with all authentication methods enabled",

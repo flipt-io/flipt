@@ -21,7 +21,7 @@ import (
 
 func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	var (
-		client   = opts.DefaultClient(t)
+		client   = opts.TokenClient(t)
 		protocol = opts.Protocol()
 	)
 

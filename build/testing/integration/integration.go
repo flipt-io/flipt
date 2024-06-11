@@ -1,9 +1,11 @@
 package integration
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"flag"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
@@ -99,33 +102,140 @@ func (o TestOpts) Protocol() Protocol {
 }
 
 func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	return sdk.New(o.newTransport(t))
 }
 
-func (o TestOpts) DefaultClient(t *testing.T) sdk.SDK {
+func (o TestOpts) bootstrapClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
 		sdk.StaticTokenAuthenticationProvider(o.Token),
 	))
 }
 
-func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
-	transport := o.newTransport(t)
-	return sdk.New(transport, sdk.WithAuthenticationProvider(
-		sdk.NewKubernetesAuthenticationProvider(transport),
+type ClientOpts struct {
+	Namespace string
+	Role      string
+}
+
+type ClientOpt func(*ClientOpts)
+
+func WithNamespace(ns string) ClientOpt {
+	return func(co *ClientOpts) {
+		co.Namespace = ns
+	}
+}
+
+func WithRole(role string) ClientOpt {
+	return func(co *ClientOpts) {
+		co.Role = role
+	}
+}
+
+func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	metadata := map[string]string{}
+	if copts.Role != "" {
+		metadata["io.flipt.auth.role"] = copts.Role
+	}
+
+	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
+		Name:         t.Name(),
+		NamespaceKey: copts.Namespace,
+		Metadata:     metadata,
+	})
+	require.NoError(t, err)
+
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.StaticTokenAuthenticationProvider(resp.ClientToken),
 	))
 }
 
-func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
-	bytes, err := os.ReadFile("/var/run/secrets/flipt/private.pem")
-	if err != nil {
-		t.Fatal(err)
+func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
 	}
+
+	saName := "integration-test"
+	if copts.Role != "" {
+		saName = copts.Role
+	}
+
+	saToken := signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/k8s.pem", map[string]any{
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iss": "https://discover.svc",
+		"kubernetes.io": map[string]any{
+			"namespace": "integration",
+			"pod": map[string]any{
+				"name": "integration-test-7d26f049-kdurb",
+				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+			},
+			"serviceaccount": map[string]any{
+				"name": saName,
+				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+			},
+		},
+	})
+
+	// write out JWT into service account token slot
+	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
+
+	tokenPath := fmt.Sprintf("/var/run/secrets/kubernetes.io/serviceaccount/%s.token", saName)
+	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
+
+	transport := o.newTransport(t)
+	return sdk.New(transport, sdk.WithAuthenticationProvider(
+		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(tokenPath)),
+	))
+}
+
+func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	claims := map[string]any{
+		"iss": "https://flipt.io",
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(3 * time.Minute).Unix(),
+	}
+
+	if copts.Role != "" {
+		claims["io.flipt.auth.role"] = copts.Role
+	}
+
+	if copts.Namespace != "" {
+		claims["io.flipt.auth.namespace"] = copts.Namespace
+	}
+
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.JWTAuthenticationProvider(signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)),
+	))
+}
+
+func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]any) string {
+	t.Helper()
+
+	bytes, err := os.ReadFile(privPath)
+	require.NoError(t, err)
 
 	block, _ := pem.Decode(bytes)
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	sig, err := jose.NewSigner(
 		jose.SigningKey{Algorithm: jose.RS256, Key: key},
@@ -133,19 +243,11 @@ func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
 	)
 
 	raw, err := jwt.Signed(sig).
-		Claims(map[string]any{
-			"iss": "https://flipt.io",
-			"iat": time.Now().Unix(),
-			"exp": time.Now().Add(3 * time.Minute).Unix(),
-		}).
+		Claims(claims).
 		CompactSerialize()
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
-	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
-		sdk.JWTAuthenticationProvider(raw),
-	))
+	return raw
 }
 
 func (o TestOpts) newTransport(t *testing.T) (transport sdk.Transport) {

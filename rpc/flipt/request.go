@@ -51,7 +51,9 @@ type Request struct {
 
 func WithNamespace(ns string) func(*Request) {
 	return func(r *Request) {
-		r.Namespace = ns
+		if ns != "" {
+			r.Namespace = ns
+		}
 	}
 }
 
@@ -69,9 +71,10 @@ func WithSubject(s Subject) func(*Request) {
 
 func NewRequest(r Resource, a Action, opts ...func(*Request)) Request {
 	req := Request{
-		Resource: r,
-		Action:   a,
-		Status:   StatusSuccess,
+		Resource:  r,
+		Action:    a,
+		Status:    StatusSuccess,
+		Namespace: DefaultNamespace,
 	}
 
 	for _, opt := range opts {
@@ -107,7 +110,7 @@ func (req *UpdateNamespaceRequest) Request() Request {
 }
 
 func (req *DeleteNamespaceRequest) Request() Request {
-	return NewRequest(ResourceFlag, ActionDelete, WithNamespace(req.Key))
+	return NewRequest(ResourceNamespace, ActionDelete, WithNamespace(req.Key))
 }
 
 // Flags

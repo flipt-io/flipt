@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -56,7 +57,7 @@ func TestServer(t *testing.T) {
 		}
 	)
 
-	conn, err := grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(dialer))
+	conn, err := grpc.NewClient("passthrough://local", grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -67,6 +68,9 @@ func TestServer(t *testing.T) {
 		Name:         "access_all_areas",
 		Description:  "Super secret skeleton key",
 		NamespaceKey: "my-namespace",
+		Metadata: map[string]string{
+			"foo": "bar",
+		},
 	})
 	require.NoError(t, err)
 
@@ -75,6 +79,7 @@ func TestServer(t *testing.T) {
 	assert.Equal(t, "access_all_areas", metadata["io.flipt.auth.token.name"])
 	assert.Equal(t, "Super secret skeleton key", metadata["io.flipt.auth.token.description"])
 	assert.Equal(t, "my-namespace", metadata["io.flipt.auth.token.namespace"])
+	assert.Equal(t, "bar", metadata["foo"])
 
 	// ensure client token can be used on store to fetch authentication
 	// and that the authentication returned matches the one received
