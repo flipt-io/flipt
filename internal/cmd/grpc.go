@@ -485,11 +485,6 @@ func NewGRPCServer(
 	// we validate requests before cache but after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
-	// cache must come after authn and authz interceptors
-	if cfg.Cache.Enabled && cacher != nil {
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
-	}
-
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
