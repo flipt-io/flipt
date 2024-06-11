@@ -42,58 +42,66 @@ func Common(t *testing.T, opts integration.TestOpts) {
 
 		for _, namespace := range integration.Namespaces {
 			t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
-				t.Run("StaticToken", func(t *testing.T) {
-					t.Run("NoRole", func(t *testing.T) {
-						// ensure we cannot do any read specific operations across namespaces
-						// with a token with no role
-						client := opts.TokenClient(t)
-						cannotReadAnyIn(t, ctx, client, namespace.Key)
-						cannotWriteNamespaces(t, ctx, client)
-						cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
-					})
+				for _, test := range []struct {
+					name   string
+					client func(*testing.T, ...integration.ClientOpt) sdk.SDK
+				}{
+					{"StaticToken", opts.TokenClient},
+					{"JWT", opts.JWTClient},
+				} {
+					t.Run(test.name, func(t *testing.T) {
+						t.Run("NoRole", func(t *testing.T) {
+							// ensure we cannot do any read specific operations across namespaces
+							// with a token with no role
+							client := test.client(t)
+							cannotReadAnyIn(t, ctx, client, namespace.Key)
+							cannotWriteNamespaces(t, ctx, client)
+							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+						})
 
-					t.Run("Admin", func(t *testing.T) {
-						// ensure admin can do all the things
-						client := opts.TokenClient(t, integration.WithRole("admin"))
-						canReadAllIn(t, ctx, client, namespace.Key)
-						canWriteNamespaces(t, ctx, client)
-						canWriteNamespacedIn(t, ctx, client, namespace.Key)
-					})
+						t.Run("Admin", func(t *testing.T) {
+							// ensure admin can do all the things
+							client := test.client(t, integration.WithRole("admin"))
+							canReadAllIn(t, ctx, client, namespace.Key)
+							canWriteNamespaces(t, ctx, client)
+							canWriteNamespacedIn(t, ctx, client, namespace.Key)
+						})
 
-					t.Run("Editor", func(t *testing.T) {
-						client := opts.TokenClient(t, integration.WithRole("editor"))
-						// can read everywhere (including namespaces)
-						canReadAllIn(t, ctx, client, namespace.Key)
-						// cannot write namespaces
-						cannotWriteNamespaces(t, ctx, client)
-						// but can write in namespaces
-						canWriteNamespacedIn(t, ctx, client, namespace.Key)
-					})
+						t.Run("Editor", func(t *testing.T) {
+							client := test.client(t, integration.WithRole("editor"))
+							// can read everywhere (including namespaces)
+							canReadAllIn(t, ctx, client, namespace.Key)
+							// cannot write namespaces
+							cannotWriteNamespaces(t, ctx, client)
+							// but can write in namespaces
+							canWriteNamespacedIn(t, ctx, client, namespace.Key)
+						})
 
-					t.Run("Viewer", func(t *testing.T) {
-						client := opts.TokenClient(t, integration.WithRole("viewer"))
-						// can read everywhere (including namespaces)
-						canReadAllIn(t, ctx, client, namespace.Key)
-						// cannot write namespaces
-						cannotWriteNamespaces(t, ctx, client)
-						// cannot write in namespaces either
-						cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
-					})
+						t.Run("Viewer", func(t *testing.T) {
+							client := test.client(t, integration.WithRole("viewer"))
+							// can read everywhere (including namespaces)
+							canReadAllIn(t, ctx, client, namespace.Key)
+							// cannot write namespaces
+							cannotWriteNamespaces(t, ctx, client)
+							// cannot write in namespaces either
+							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+						})
 
-					t.Run("NamespacedViewer", func(t *testing.T) {
-						// ensure we cannot do read specific operations across other namespaces
-						// with the namespaced viewer role token
-						client := opts.TokenClient(t, integration.WithRole(fmt.Sprintf("%s_viewer", namespace.Expected)))
-						// can read in designated namespace
-						canReadAllIn(t, ctx, client, namespace.Key)
-						// cannot read in other namespace
-						cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
-						// cannot write namespaces
-						cannotWriteNamespaces(t, ctx, client)
-						// cannot write in namespaces either
-						cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+						t.Run("NamespacedViewer", func(t *testing.T) {
+							// ensure we cannot do read specific operations across other namespaces
+							// with the namespaced viewer role token
+							client := test.client(t, integration.WithRole(fmt.Sprintf("%s_viewer", namespace.Expected)))
+							// can read in designated namespace
+							canReadAllIn(t, ctx, client, namespace.Key)
+							// cannot read in other namespace
+							cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
+							// cannot write namespaces
+							cannotWriteNamespaces(t, ctx, client)
+							// cannot write in namespaces either
+							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+						})
 					})
-				})
+				}
 			})
 		}
 

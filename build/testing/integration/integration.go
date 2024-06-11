@@ -166,8 +166,13 @@ func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
 	))
 }
 
-func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
+func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
 
 	bytes, err := os.ReadFile("/var/run/secrets/flipt/private.pem")
 	if err != nil {
@@ -185,12 +190,22 @@ func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
 		(&jose.SignerOptions{}).WithType("JWT"),
 	)
 
+	claims := map[string]any{
+		"iss": "https://flipt.io",
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(3 * time.Minute).Unix(),
+	}
+
+	for k, v := range copts.Metadata {
+		claims[k] = v
+	}
+
+	if copts.Namespace != "" {
+		claims["io.flipt.auth.namespace"] = copts.Namespace
+	}
+
 	raw, err := jwt.Signed(sig).
-		Claims(map[string]any{
-			"iss": "https://flipt.io",
-			"iat": time.Now().Unix(),
-			"exp": time.Now().Add(3 * time.Minute).Unix(),
-		}).
+		Claims(claims).
 		CompactSerialize()
 	if err != nil {
 		panic(err)
