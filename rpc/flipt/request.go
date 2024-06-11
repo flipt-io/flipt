@@ -107,7 +107,7 @@ func (req *UpdateNamespaceRequest) Request() Request {
 }
 
 func (req *DeleteNamespaceRequest) Request() Request {
-	return NewRequest(ResourceFlag, ActionDelete, WithNamespace(req.Key))
+	return NewRequest(ResourceNamespace, ActionDelete, WithNamespace(req.Key))
 }
 
 // Flags
