@@ -47,9 +47,6 @@ func Common(t *testing.T, opts integration.TestOpts) {
 				})
 
 				t.Run("StaticToken", func(t *testing.T) {
-					// copy options so we can make some more clients with the generated tokens
-					opts := opts
-
 					// ensure we can do resource specific operations across namespaces
 					canReadAllIn(t, ctx, client, namespace.Key)
 
@@ -73,18 +70,18 @@ func Common(t *testing.T, opts integration.TestOpts) {
 						} else {
 							assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
 						}
-
-						opts.Token = resp.ClientToken
 					})
 
 					// ensure we can do resource specific operations in scoped namespace
-					canReadAllIn(t, ctx, opts.TokenClient(t), namespace.Key)
+					scopedClient := opts.TokenClient(t, integration.WithNamespace(namespace.Key))
+
+					canReadAllIn(t, ctx, scopedClient, namespace.Key)
 
 					if namespace.Key != "" {
 						// ensure we exclude from reading in another namespace
 						otherNS := integration.Namespaces.OtherNamespaceFrom(namespace.Expected)
 						t.Run(fmt.Sprintf("NamespaceScopedIn(%q)", otherNS), func(t *testing.T) {
-							cannotReadAnyIn(t, ctx, opts.TokenClient(t), otherNS)
+							cannotReadAnyIn(t, ctx, scopedClient, otherNS)
 						})
 					}
 				})
@@ -114,19 +111,6 @@ func Common(t *testing.T, opts integration.TestOpts) {
 			require.True(t, ok)
 			assert.Equal(t, codes.Unauthenticated, status.Code())
 		})
-	})
-}
-
-func listFlagIsAllowed(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
-	t.Helper()
-
-	t.Run(fmt.Sprintf("ListFlags(namespace: %q)", namespace), func(t *testing.T) {
-		// construct a new client using the previously obtained client token
-		resp, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, resp.Flags)
 	})
 }
 
@@ -272,13 +256,13 @@ func ListSegments(in *flipt.ListSegmentRequest) clientCall {
 
 func assertIsAuthorized(t *testing.T, err error, authorized bool) {
 	t.Helper()
-	expected := "rpc error: code = Unauthenticated desc = request was not authenticated"
-	if authorized {
-		if err != nil {
-			assert.NotEqual(t, err.Error(), expected)
-		}
+	if !authorized {
+		assert.Equal(t, codes.Unauthenticated, status.Code(err), err)
 		return
 	}
 
-	assert.EqualError(t, err, expected)
+	if err != nil {
+		code := status.Code(err)
+		assert.NotEqual(t, codes.Unauthenticated, code, err)
+	}
 }

@@ -101,20 +101,31 @@ func (o TestOpts) Protocol() Protocol {
 }
 
 func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	return sdk.New(o.newTransport(t))
 }
 
 func (o TestOpts) bootstrapClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
 		sdk.StaticTokenAuthenticationProvider(o.Token),
 	))
 }
 
 type ClientOpts struct {
-	Metadata map[string]string
+	Namespace string
+	Metadata  map[string]string
 }
 
 type ClientOpt func(*ClientOpts)
+
+func WithNamespace(ns string) ClientOpt {
+	return func(co *ClientOpts) {
+		co.Namespace = ns
+	}
+}
 
 func WithRole(role string) ClientOpt {
 	return func(co *ClientOpts) {
@@ -127,20 +138,19 @@ func WithRole(role string) ClientOpt {
 }
 
 func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	t.Helper()
+
 	var copts ClientOpts
 	for _, opt := range opts {
 		opt(&copts)
 	}
 
-	resp, err := sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
-		sdk.StaticTokenAuthenticationProvider(o.Token),
-	)).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
-		Name:     t.Name(),
-		Metadata: copts.Metadata,
+	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
+		Name:         t.Name(),
+		NamespaceKey: copts.Namespace,
+		Metadata:     copts.Metadata,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
 		sdk.StaticTokenAuthenticationProvider(resp.ClientToken),
@@ -148,6 +158,8 @@ func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 }
 
 func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	transport := o.newTransport(t)
 	return sdk.New(transport, sdk.WithAuthenticationProvider(
 		sdk.NewKubernetesAuthenticationProvider(transport),
@@ -155,6 +167,8 @@ func (o TestOpts) K8sClient(t *testing.T) sdk.SDK {
 }
 
 func (o TestOpts) JWTClient(t *testing.T) sdk.SDK {
+	t.Helper()
+
 	bytes, err := os.ReadFile("/var/run/secrets/flipt/private.pem")
 	if err != nil {
 		t.Fatal(err)
