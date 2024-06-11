@@ -76,7 +76,6 @@ type grpcRegisterers []grpcRegister
 
 func (g *grpcRegisterers) Add(r grpcRegister) {
 	*g = append(*g, r)
-	//
 }
 
 func (g grpcRegisterers) RegisterGRPC(s *grpc.Server) {
