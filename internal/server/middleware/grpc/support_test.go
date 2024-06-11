@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/mock"
-	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -44,46 +43,6 @@ func (a *authStoreMock) DeleteAuthentications(ctx context.Context, r *storageaut
 
 func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	return nil
-}
-
-type cacheSpy struct {
-	cache.Cacher
-
-	getKeys   map[string]struct{}
-	getCalled int
-
-	setItems  map[string][]byte
-	setCalled int
-
-	deleteKeys   map[string]struct{}
-	deleteCalled int
-}
-
-func newCacheSpy(c cache.Cacher) *cacheSpy {
-	return &cacheSpy{
-		Cacher:     c,
-		getKeys:    make(map[string]struct{}),
-		setItems:   make(map[string][]byte),
-		deleteKeys: make(map[string]struct{}),
-	}
-}
-
-func (c *cacheSpy) Get(ctx context.Context, key string) ([]byte, bool, error) {
-	c.getCalled++
-	c.getKeys[key] = struct{}{}
-	return c.Cacher.Get(ctx, key)
-}
-
-func (c *cacheSpy) Set(ctx context.Context, key string, value []byte) error {
-	c.setCalled++
-	c.setItems[key] = value
-	return c.Cacher.Set(ctx, key, value)
-}
-
-func (c *cacheSpy) Delete(ctx context.Context, key string) error {
-	c.deleteCalled++
-	c.deleteKeys[key] = struct{}{}
-	return c.Cacher.Delete(ctx, key)
 }
 
 type auditSinkSpy struct {

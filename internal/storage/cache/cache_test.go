@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestSetHandleMarshalError(t *testing.T) {
+func TestSetJSON_HandleMarshalError(t *testing.T) {
 	var (
 		store       = &common.StoreMock{}
 		cacher      = &cacheSpy{}
@@ -23,7 +23,7 @@ func TestSetHandleMarshalError(t *testing.T) {
 	assert.Empty(t, cacher.cacheKey)
 }
 
-func TestGetHandleGetError(t *testing.T) {
+func TestGetJSON_HandleGetError(t *testing.T) {
 	var (
 		store       = &common.StoreMock{}
 		cacher      = &cacheSpy{getErr: errors.New("get error")}
@@ -36,7 +36,7 @@ func TestGetHandleGetError(t *testing.T) {
 	assert.False(t, cacheHit)
 }
 
-func TestGetHandleUnmarshalError(t *testing.T) {
+func TestGetJSON_HandleUnmarshalError(t *testing.T) {
 	var (
 		store  = &common.StoreMock{}
 		cacher = &cacheSpy{
