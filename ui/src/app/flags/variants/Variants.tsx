@@ -116,6 +116,12 @@ export default function Variants({ flag }: VariantsProps) {
                   </th>
                   <th
                     scope="col"
+                    className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
+                  >
+                    Default
+                  </th>
+                  <th
+                    scope="col"
                     className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold sm:table-cell"
                   >
                     Name
@@ -137,12 +143,16 @@ export default function Variants({ flag }: VariantsProps) {
                     <td className="text-gray-600 whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                       {variant.key}
                     </td>
+                    <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
+                      {variant.default ? 'Yes' : 'No'}
+                    </td>
                     <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell">
                       {variant.name}
                     </td>
                     <td className="text-gray-500 hidden truncate whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                       {variant.description}
                     </td>
+
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                       {!readOnly && (
                         <>

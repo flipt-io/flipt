@@ -5,6 +5,7 @@ export interface IVariantBase {
   name: string;
   description: string;
   attachment?: string;
+  default?: boolean;
 }
 
 export interface IVariant extends IVariantBase {

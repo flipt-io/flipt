@@ -67,7 +67,7 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 	flag.CreatedAt = createdAt.Timestamp
 	flag.UpdatedAt = updatedAt.Timestamp
 
-	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, attachment, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, \"default\", attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"namespace_key": flag.NamespaceKey, "flag_key": flag.Key}).
 		OrderBy("created_at ASC")
@@ -97,6 +97,7 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 			&variant.Key,
 			&variant.Name,
 			&variant.Description,
+			&variant.Default,
 			&attachment,
 			&createdAt,
 			&updatedAt); err != nil {
