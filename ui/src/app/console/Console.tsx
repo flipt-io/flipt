@@ -147,18 +147,19 @@ export default function Console() {
       setError('Context provided is invalid.');
       return;
     }
+
+    const contextOptions = Object.entries(parsed).map(([key, value]) => ({
+      key: '--context',
+      value: `${key}=${value}`
+    }));
+
     const command = generateCliCommand({
       commandName: Command.Evaluate,
       arguments: [values.flagKey],
       options: [
         { key: '--entity-id', value: values.entityId },
         { key: '--namespace', value: namespace.key },
-        {
-          key: '--context',
-          value: Object.entries(parsed)
-            .map(([key, value]) => `${key}=${value}`)
-            .join(' ')
-        }
+        ...contextOptions
       ]
     });
     copyTextToClipboard(command);
