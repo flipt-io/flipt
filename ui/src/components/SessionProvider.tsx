@@ -35,18 +35,6 @@ export default function SessionProvider({
     };
 
     const loadSession = async () => {
-      if (session) {
-        clearSessionIfNecessary();
-        if (session) {
-          return;
-        }
-      }
-
-      let newSession = {
-        required: true,
-        authenticated: false
-      } as Session;
-
       try {
         await getInfo();
       } catch (err) {
@@ -57,21 +45,27 @@ export default function SessionProvider({
         return;
       }
 
+      if (session) {
+        clearSessionIfNecessary();
+        if (session) {
+          return;
+        }
+      }
+
+      const newSession = {
+        required: true,
+        authenticated: false
+      } as Session;
+
       try {
         const self: IAuthOIDCInternal | IAuthGithubInternal | IAuthJWTInternal =
           await getAuthSelf();
-        newSession = {
-          authenticated: true,
-          required: true,
-          self: self
-        };
+        newSession.authenticated = true;
+        newSession.self = self;
       } catch (err) {
         // if we can't get the self info and we got here then auth is likely not enabled
         // so we can just return
-        newSession = {
-          authenticated: false,
-          required: false
-        };
+        newSession.required = false;
       } finally {
         if (newSession) {
           setSession(newSession);

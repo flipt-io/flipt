@@ -48,6 +48,7 @@ const useStorage = (
     } catch (error) {
       console.error(error);
     }
+    setValue(initialValue);
   };
 
   return [storedValue, setValue, clearValue];
