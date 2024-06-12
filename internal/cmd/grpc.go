@@ -221,7 +221,7 @@ func NewGRPCServer(
 		grpc_ctxtags.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger, grpc_zap.WithDecider(func(methodFullName string, err error) bool {
 			// will not log gRPC calls if it was a call to healthcheck and no error was raised
-			if err == nil && methodFullName == "grpc.health.v1.Health/Check" {
+			if err == nil && methodFullName == "/grpc.health.v1.Health/Check" {
 				return false
 			}
 			return true
