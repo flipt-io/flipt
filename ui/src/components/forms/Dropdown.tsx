@@ -26,7 +26,7 @@ export default function Dropdown(props: DropdownProps) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <Menu.Button className="bg-white text-gray-700 inline-flex w-full justify-center gap-x-1.5 rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-2 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-violet-300">
+        <Menu.Button className="bg-white text-gray-700 mb-1 inline-flex w-full justify-center gap-x-1.5 rounded-md px-4 py-2 text-sm font-semibold shadow-sm ring-2 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-violet-300">
           {label}
           <ChevronDownIcon
             className="text-gray-400 -mr-1 h-5 w-5"
@@ -44,12 +44,12 @@ export default function Dropdown(props: DropdownProps) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="bg-white absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           {actions.map((action) => (
             <div className="py-1" key={action.id}>
               {!action.disabled && (
                 <Menu.Item key={action.id}>
-                  {({ active }) => (
+                  {({ active, close }) => (
                     <a
                       href="#"
                       className={cls(
@@ -63,6 +63,7 @@ export default function Dropdown(props: DropdownProps) {
                       onClick={(e) => {
                         e.preventDefault();
                         action.onClick();
+                        close();
                       }}
                     >
                       {action.icon && (
