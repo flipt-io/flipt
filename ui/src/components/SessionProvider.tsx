@@ -35,14 +35,9 @@ export default function SessionProvider({
     };
 
     const loadSession = async () => {
-      const isAuthenticated = await getInfo()
-        .then(
-          () => true,
-          () => false
-        )
-        .catch(() => false);
-
-      if (isAuthenticated !== true) {
+      try {
+        await getInfo();
+      } catch (err) {
         // if we can't get the info, we're not logged in
         // or there was an error, either way, clear the session so we redirect
         // to the login page
