@@ -32,7 +32,7 @@ export default function Button(props: ButtonProps) {
         className,
         {
           'cursor-not-allowed': disabled,
-          'text-white bg-violet-400  border border-transparent shadow-sm enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
+          'text-white bg-violet-400 border border-transparent shadow-sm enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
             variant === 'primary',
           'bg-white text-gray-500 border-violet-300 border shadow-sm enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
             variant === 'secondary',

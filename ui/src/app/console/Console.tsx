@@ -1,6 +1,6 @@
 import { json } from '@codemirror/lang-json';
 import { ArrowPathIcon } from '@heroicons/react/20/solid';
-import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { CodeBracketIcon, CommandLineIcon } from '@heroicons/react/24/outline';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
@@ -298,7 +298,7 @@ export default function Console() {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <div className="absolute left-[45%] mt-0.5">
+                        <div className="absolute">
                           <Dropdown
                             label="Copy"
                             actions={[
@@ -307,19 +307,17 @@ export default function Console() {
                                 disabled: !(formik.dirty && formik.isValid),
                                 label: 'Curl Request',
                                 onClick: () => handleCopyAsCurl(formik.values),
-                                icon: DocumentDuplicateIcon
+                                icon: CodeBracketIcon
                               },
                               {
                                 id: 'cli',
                                 disabled: !(formik.dirty && formik.isValid),
                                 label: 'Flipt CLI',
                                 onClick: () => handleCopyAsCli(formik.values),
-                                icon: DocumentDuplicateIcon
+                                icon: CommandLineIcon
                               }
                             ]}
                           />
-                        </div>
-                        <div>
                           <Button
                             variant="primary"
                             className="ml-3"
@@ -336,7 +334,7 @@ export default function Console() {
                 )}
               </Formik>
             </div>
-            <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
+            <div className="mt-10 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
                 <pre className="nightwind-prevent bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
