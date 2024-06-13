@@ -1,5 +1,6 @@
 import { json } from '@codemirror/lang-json';
 import { ArrowPathIcon } from '@heroicons/react/20/solid';
+import { CodeBracketIcon, CommandLineIcon } from '@heroicons/react/24/outline';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
@@ -11,10 +12,12 @@ import * as Yup from 'yup';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentRef } from '~/app/refs/refsSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
+import Dropdown from '~/components/forms/Dropdown';
 import Input from '~/components/forms/Input';
 import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
@@ -25,14 +28,15 @@ import {
   requiredValidation
 } from '~/data/validations';
 import { IAuthMethod } from '~/types/Auth';
+import { Command } from '~/types/Cli';
 import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import {
   copyTextToClipboard,
+  generateCliCommand,
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-import { selectCurrentRef } from '~/app/refs/refsSlice';
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -133,6 +137,35 @@ export default function Console() {
       });
   };
 
+  const handleCopyAsCli = (values: ConsoleFormValues) => {
+    let parsed = null;
+    try {
+      // need to unescape the context string
+      parsed = JSON.parse(values.context);
+    } catch (err) {
+      setHasEvaluationError(true);
+      setError('Context provided is invalid.');
+      return;
+    }
+
+    const contextOptions = Object.entries(parsed).map(([key, value]) => ({
+      key: '--context',
+      value: `${key}=${value}`
+    }));
+
+    const command = generateCliCommand({
+      commandName: Command.Evaluate,
+      arguments: [values.flagKey],
+      options: [
+        { key: '--entity-id', value: values.entityId },
+        { key: '--namespace', value: namespace.key },
+        ...contextOptions
+      ]
+    });
+    copyTextToClipboard(command);
+    setSuccess('Command copied to clipboard');
+  };
+
   const handleCopyAsCurl = (values: ConsoleFormValues) => {
     let parsed = null;
     try {
@@ -180,7 +213,7 @@ export default function Console() {
 
   return (
     <>
-      <div className="flex flex-col">
+      <div className="relative flex flex-col">
         <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
           Console
         </h1>
@@ -265,24 +298,35 @@ export default function Console() {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button
-                          className="ml-3"
-                          type="button"
-                          disabled={!(formik.dirty && formik.isValid)}
-                          onClick={() => {
-                            handleCopyAsCurl(formik.values);
-                          }}
-                        >
-                          Copy as curl
-                        </Button>
-                        <Button
-                          variant="primary"
-                          className="ml-3"
-                          type="submit"
-                          disabled={!(formik.dirty && formik.isValid)}
-                        >
-                          Evaluate
-                        </Button>
+                        <div className="absolute">
+                          <Dropdown
+                            label="Copy"
+                            actions={[
+                              {
+                                id: 'curl',
+                                disabled: !(formik.dirty && formik.isValid),
+                                label: 'Curl Request',
+                                onClick: () => handleCopyAsCurl(formik.values),
+                                icon: CodeBracketIcon
+                              },
+                              {
+                                id: 'cli',
+                                disabled: !(formik.dirty && formik.isValid),
+                                label: 'Flipt CLI',
+                                onClick: () => handleCopyAsCli(formik.values),
+                                icon: CommandLineIcon
+                              }
+                            ]}
+                          />
+                          <Button
+                            variant="primary"
+                            className="ml-3"
+                            type="submit"
+                            disabled={!(formik.dirty && formik.isValid)}
+                          >
+                            Evaluate
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <ResetOnNamespaceChange namespace={namespace} />
@@ -290,7 +334,7 @@ export default function Console() {
                 )}
               </Formik>
             </div>
-            <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
+            <div className="mt-10 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
                 <pre className="nightwind-prevent bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (

@@ -2,6 +2,7 @@ import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { selectConfig, selectInfo, selectReadonly } from '~/app/meta/metaSlice';
 import { useSession } from '~/data/hooks/session';
+import { getUser } from '~/data/user';
 import Notifications from './header/Notifications';
 import ReadOnly from './header/ReadOnly';
 import UserProfile from './header/UserProfile';
@@ -18,6 +19,7 @@ export default function Header(props: HeaderProps) {
   const { session } = useSession();
   const { ui } = useSelector(selectConfig);
   const topbarStyle = { backgroundColor: ui.topbar?.color };
+  const user = getUser(session);
 
   return (
     <div className="sticky top-0 z-20 flex h-16 flex-shrink-0 bg-gray-950 dark:border-b dark:border-b-white/20 dark:md:border-b-0">
@@ -44,7 +46,7 @@ export default function Header(props: HeaderProps) {
           {info && info.updateAvailable && <Notifications info={info} />}
 
           {/* user profile */}
-          {session && session.self && <UserProfile session={session.self} />}
+          {user && <UserProfile user={user} />}
         </div>
       </div>
     </div>
