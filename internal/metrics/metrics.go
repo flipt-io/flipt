@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel"
