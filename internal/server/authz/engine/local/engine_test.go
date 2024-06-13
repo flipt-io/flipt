@@ -1,4 +1,4 @@
-package authz
+package local
 
 import (
 	"context"

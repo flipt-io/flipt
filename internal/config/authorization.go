@@ -1,8 +1,6 @@
 package config
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -44,19 +42,19 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 }
 
 func (c *AuthorizationConfig) validate() error {
-	if c.Required {
-		if c.Policy == nil {
-			return errors.New("authorization: policy source must be configured")
-		}
+	// if c.Required {
+	// 	if c.Policy == nil {
+	// 		return errors.New("authorization: policy source must be configured")
+	// 	}
 
-		if err := c.Policy.validate(); err != nil {
-			return fmt.Errorf("authorization: policy: %w", err)
-		}
+	// 	if err := c.Policy.validate(); err != nil {
+	// 		return fmt.Errorf("authorization: policy: %w", err)
+	// 	}
 
-		if err := c.Data.validate(); err != nil {
-			return fmt.Errorf("authorization: data: %w", err)
-		}
-	}
+	// 	if err := c.Data.validate(); err != nil {
+	// 		return fmt.Errorf("authorization: data: %w", err)
+	// 	}
+	// }
 
 	return nil
 }
@@ -68,27 +66,27 @@ type AuthorizationSourceConfig struct {
 }
 
 func (a *AuthorizationSourceConfig) validate() (err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("source: %w", err)
-		}
-	}()
+	// defer func() {
+	// 	if err != nil {
+	// 		err = fmt.Errorf("source: %w", err)
+	// 	}
+	// }()
 
-	if a == nil {
-		return nil
-	}
+	// if a == nil {
+	// 	return nil
+	// }
 
-	if a.Backend != AuthorizationBackendLocal {
-		return errors.New("backend must be one of [local]")
-	}
+	// if a.Backend != AuthorizationBackendLocal {
+	// 	return errors.New("backend must be one of [local]")
+	// }
 
-	if a.Local == nil || a.Local.Path == "" {
-		return errors.New("local: path must be non-empty string")
-	}
+	// if a.Local == nil || a.Local.Path == "" {
+	// 	return errors.New("local: path must be non-empty string")
+	// }
 
-	if a.PollInterval <= 0 {
-		return errors.New("local: poll_interval must be non-zero")
-	}
+	// if a.PollInterval <= 0 {
+	// 	return errors.New("local: poll_interval must be non-zero")
+	// }
 
 	return nil
 }

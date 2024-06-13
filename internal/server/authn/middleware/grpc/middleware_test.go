@@ -174,7 +174,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			expectedJWT: jwt.Expected{
 				Issuer: "flipt.io",
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "invalid subject",
@@ -195,7 +195,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				Issuer:  "flipt.io",
 				Subject: "flipt",
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "invalid audience",
@@ -216,7 +216,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				Issuer:    "flipt.io",
 				Audiences: []string{"flipt"},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "successful authentication (skipped)",
@@ -231,18 +231,18 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 					"Authorization": []string{"blah"},
 				}
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "authorization header not set",
 			metadataFunc: func() metadata.MD {
 				return metadata.MD{}
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name:        "no metadata on context",
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 	} {
 		tt := tt
@@ -388,45 +388,45 @@ func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer " + expiredToken},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "client token not found in store",
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer unknowntoken"},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "client token missing Bearer prefix",
 			metadata: metadata.MD{
 				"Authorization": []string{clientToken},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "authorization header empty",
 			metadata: metadata.MD{
 				"Authorization": []string{},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "cookie header with no flipt_client_token",
 			metadata: metadata.MD{
 				"grpcgateway-cookie": []string{"blah"},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name:        "authorization header not set",
 			metadata:    metadata.MD{},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name:        "no metadata on context",
 			metadata:    nil,
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 	} {
 		tt := tt
@@ -561,7 +561,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"bar@flipt.io",
 			},
 			auth:        storedAuth,
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "email does not match (regex)",
@@ -572,7 +572,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"^.*@gmail.com$",
 			},
 			auth:        storedAuth,
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "email not provided by oidc provider",
@@ -583,7 +583,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"foo@flipt.io",
 			},
 			auth:        nonEmailStoredAuth,
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 	} {
 		tt := tt
@@ -738,7 +738,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			req: &evaluation.EvaluationRequest{
 				NamespaceKey: "foo",
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "namespace not provided by token authentication",
@@ -772,7 +772,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &evaluation.EvaluationRequest{},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "namespace not available",
@@ -783,7 +783,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &evaluation.BatchEvaluationRequest{},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "namespace not consistent for batch",
@@ -803,7 +803,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 					},
 				},
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "non-namespaced request",
@@ -814,7 +814,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &struct{}{},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "non-namespaced scoped server",
@@ -830,7 +830,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			srv: &mockServer{
 				allowNamespacedAuthn: false,
 			},
-			expectedErr: ErrUnauthenticated,
+			expectedErr: errUnauthenticated,
 		},
 	} {
 		tt := tt

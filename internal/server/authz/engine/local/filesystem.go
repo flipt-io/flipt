@@ -1,4 +1,4 @@
-package filesystem
+package local
 
 import (
 	"bytes"
@@ -6,49 +6,44 @@ import (
 	"encoding/json"
 	"os"
 	"time"
-
-	"go.flipt.io/flipt/internal/server/authz"
 )
 
-var _ authz.DataSource = (*DataSource)(nil)
-var _ authz.PolicySource = (*PolicySource)(nil)
-
-// PolicySource is an implementation of authz.PolicySource
+// LocalPolicySource is an implementation of PolicySource
 // It sources policy definitions from the location filesystem
-type PolicySource struct {
+type LocalPolicySource struct {
 	path string
 }
 
-// PolicySourceFromPath builds an instance pof *PolicySourceFromPath which reads the provided
+// LocalPolicySourceFromPath builds an instance of *PolicySourceFromPath which reads the provided
 // path and returns the located policy
-func PolicySourceFromPath(path string) *PolicySource {
-	return &PolicySource{path}
+func PolicySourceFromPath(path string) *LocalPolicySource {
+	return &LocalPolicySource{path}
 }
 
-// Get reads the *PolicySource path as and returns it as a byte slice
+// Get reads the *LocalPolicySource path as and returns it as a byte slice
 // If the mod time of the filepath has not changed based on the provided previously seen
 // mod time then it returns authz.ErrNotModified
-func (p *PolicySource) Get(_ context.Context, seen []byte) ([]byte, []byte, error) {
+func (p *LocalPolicySource) Get(_ context.Context, seen []byte) ([]byte, []byte, error) {
 	return read(p.path, seen)
 }
 
-// DataSource is an implementation of authz.DataSource
+// LocalDataSource is an implementation of DataSource
 // It sources additional data for the policy engine from the local filesystem
-type DataSource struct {
+type LocalDataSource struct {
 	path string
 }
 
-// DataSourceFromPath builds an instance of *DataSource which reads the provided
+// DataSourceFromPath builds an instance of *LocalDataSource which reads the provided
 // path and parses it as JSON on calls to Get
-func DataSourceFromPath(path string) *DataSource {
-	return &DataSource{path: path}
+func DataSourceFromPath(path string) *LocalDataSource {
+	return &LocalDataSource{path: path}
 }
 
-// Get fetches and parses the *DataSource path as JSON and returns it
+// Get fetches and parses the *LocalDataSource path as JSON and returns it
 // modelled as a go map of string to any type
 // If the mod time of the filepath has not changed based on the provided previously seen
 // mod time then it returns authz.ErrNotModified
-func (d *DataSource) Get(_ context.Context, seen []byte) (map[string]any, []byte, error) {
+func (d *LocalDataSource) Get(_ context.Context, seen []byte) (map[string]any, []byte, error) {
 	b, mod, err := read(d.path, seen)
 	if err != nil {
 		return nil, nil, err
@@ -67,7 +62,7 @@ func read(path string, seen []byte) (data, mod []byte, err error) {
 
 	mod = []byte(info.ModTime().Format(time.RFC3339))
 	if seen != nil && bytes.Equal(seen, mod) {
-		return nil, nil, authz.ErrNotModified
+		return nil, nil, errNotModified
 	}
 
 	data, err = os.ReadFile(path)

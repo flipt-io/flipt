@@ -1,4 +1,4 @@
-package authz
+package local
 
 import (
 	"context"
@@ -11,22 +11,18 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.uber.org/zap"
 )
 
 var (
-	_ Verifier = &Engine{}
+	_                         authz.Verifier = (*Engine)(nil)
+	defaultPolicyPollDuration                = 5 * time.Minute
 
-	defaultPolicyPollDuration = 5 * time.Minute
-
-	// ErrNotModified is returned from a source when the data has not
+	// errNotModified is returned from a source when the data has not
 	// been modified, identified based on the provided hash value
-	ErrNotModified = errors.New("not modified")
+	errNotModified = errors.New("not modified")
 )
-
-type Verifier interface {
-	IsAllowed(ctx context.Context, input map[string]any) (bool, error)
-}
 
 type CachedSource[T any] interface {
 	Get(_ context.Context, hash []byte) (T, []byte, error)
@@ -123,6 +119,10 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	return results[0].Expressions[0].Value.(bool), nil
 }
 
+func (e *Engine) Shutdown(_ context.Context) error {
+	return nil
+}
+
 func poll(ctx context.Context, d time.Duration, fn func()) {
 	ticker := time.NewTicker(d)
 	for {
@@ -141,7 +141,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	policy, hash, err := e.policySource.Get(ctx, e.policyHash)
 	if err != nil {
-		if errors.Is(err, ErrNotModified) {
+		if errors.Is(err, errNotModified) {
 			return nil
 		}
 
@@ -171,7 +171,7 @@ func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error)
 
 	data, hash, err := e.dataSource.Get(ctx, e.dataHash)
 	if err != nil {
-		if errors.Is(err, ErrNotModified) {
+		if errors.Is(err, errNotModified) {
 			return nil
 		}
 

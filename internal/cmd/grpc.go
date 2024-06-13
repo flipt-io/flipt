@@ -31,8 +31,8 @@ import (
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
+	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
-	"go.flipt.io/flipt/internal/server/authz/source/filesystem"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -230,9 +230,9 @@ func NewGRPCServer(
 		otelgrpc.UnaryServerInterceptor(),
 	}
 
-	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
 		var (
+			cacher        cache.Cacher
 			cacheShutdown errFunc
 			err           error
 		)
@@ -454,36 +454,20 @@ func NewGRPCServer(
 			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
 		}
 
-		engineOpts := []containers.Option[authz.Engine]{
-			authz.WithPollDuration(cfg.Authorization.Policy.PollInterval),
-		}
+		var (
+			authzEngine   authz.Verifier
+			authzShutdown errFunc
+			err           error
+		)
 
-		if cfg.Authorization.Data != nil {
-			switch cfg.Authorization.Data.Backend {
-			case config.AuthorizationBackendLocal:
-				engineOpts = append(engineOpts, authz.WithDataSource(
-					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
-					cfg.Authorization.Data.PollInterval,
-				))
-			default:
-				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
-			}
-		}
-
-		var source authz.PolicySource
-		switch cfg.Authorization.Policy.Backend {
-		case config.AuthorizationBackendLocal:
-			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
-		default:
-			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
-		}
-
-		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
+		authzEngine, authzShutdown, err = getAuthz(ctx, logger, cfg)
 		if err != nil {
-			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
+			return nil, err
 		}
 
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
+		server.onShutdown(authzShutdown)
+
+		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}
@@ -557,6 +541,52 @@ type errFunc func(context.Context) error
 
 func (s *GRPCServer) onShutdown(fn errFunc) {
 	s.shutdownFuncs = append(s.shutdownFuncs, fn)
+}
+
+var (
+	authzOnce sync.Once
+	validator authz.Verifier
+	authzFunc errFunc = func(context.Context) error { return nil }
+	authzErr  error
+)
+
+func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (authz.Verifier, errFunc, error) {
+	authzOnce.Do(func() {
+		// engineOpts := []containers.Option[authzlocal.Engine]{
+		// 	authzlocal.WithPollDuration(cfg.Authorization.Policy.PollInterval),
+		// }
+
+		// if cfg.Authorization.Data != nil {
+		// 	switch cfg.Authorization.Data.Backend {
+		// 	case config.AuthorizationBackendLocal:
+		// 		engineOpts = append(engineOpts, authzlocal.WithDataSource(
+		// 			authzlocal.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
+		// 			cfg.Authorization.Data.PollInterval,
+		// 		))
+		// 	default:
+		// 		authzErr = fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
+		// 		return
+		// 	}
+		// }
+
+		// var source authzlocal.PolicySource
+		// switch cfg.Authorization.Policy.Backend {
+		// case config.AuthorizationBackendLocal:
+		// 	source = authzlocal.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
+		// default:
+		// 	authzErr = fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
+		// 	return
+		// }
+
+		var err error
+		validator, err = authzbundle.NewEngine(ctx, logger)
+		if err != nil {
+			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
+			return
+		}
+	})
+
+	return validator, authzFunc, authzErr
 }
 
 var (
