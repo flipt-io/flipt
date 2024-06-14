@@ -313,15 +313,15 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	// if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
-	// 	logger.Debug("CI detected, disabling telemetry")
-	// 	cfg.Meta.TelemetryEnabled = false
-	// }
+	if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
+		logger.Debug("CI detected, disabling telemetry")
+		cfg.Meta.TelemetryEnabled = false
+	}
 
-	// if !isRelease && cfg.Meta.TelemetryEnabled {
-	// 	logger.Debug("not a release version, disabling telemetry")
-	// 	cfg.Meta.TelemetryEnabled = false
-	// }
+	if !isRelease && cfg.Meta.TelemetryEnabled {
+		logger.Debug("not a release version, disabling telemetry")
+		cfg.Meta.TelemetryEnabled = false
+	}
 
 	g, ctx := errgroup.WithContext(ctx)
 

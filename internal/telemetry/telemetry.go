@@ -83,6 +83,7 @@ func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, ana
 	// don't log from analytics package
 	analyticsLogger := func() segment.Logger {
 		stdLogger := log.Default()
+		stdLogger.SetOutput(io.Discard)
 		return segment.StdLogger(stdLogger)
 	}
 
