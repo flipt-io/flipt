@@ -91,7 +91,6 @@ func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, ana
 		BatchSize: 1,
 		Logger:    analyticsLogger(),
 		Endpoint:  analyticsEndpoint,
-		Verbose:   true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("initializing telemetry client %w", err)
