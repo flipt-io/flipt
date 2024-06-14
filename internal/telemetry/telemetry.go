@@ -79,17 +79,18 @@ type Reporter struct {
 	shutdown chan struct{}
 }
 
-func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, info info.Flipt) (*Reporter, error) {
+func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, analyticsEndpoint string, info info.Flipt) (*Reporter, error) {
 	// don't log from analytics package
 	analyticsLogger := func() segment.Logger {
 		stdLogger := log.Default()
-		stdLogger.SetOutput(io.Discard)
 		return segment.StdLogger(stdLogger)
 	}
 
 	client, err := segment.NewWithConfig(analyticsKey, segment.Config{
 		BatchSize: 1,
 		Logger:    analyticsLogger(),
+		Endpoint:  analyticsEndpoint,
+		Verbose:   true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("initializing telemetry client %w", err)

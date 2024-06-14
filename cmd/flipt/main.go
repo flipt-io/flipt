@@ -48,6 +48,7 @@ var (
 	goOS               = runtime.GOOS
 	goArch             = runtime.GOARCH
 	analyticsKey       string
+	analyticsEndpoint  string
 	banner             string
 )
 
@@ -312,15 +313,15 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
-		logger.Debug("CI detected, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
+	// if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
+	// 	logger.Debug("CI detected, disabling telemetry")
+	// 	cfg.Meta.TelemetryEnabled = false
+	// }
 
-	if !isRelease && cfg.Meta.TelemetryEnabled {
-		logger.Debug("not a release version, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
+	// if !isRelease && cfg.Meta.TelemetryEnabled {
+	// 	logger.Debug("not a release version, disabling telemetry")
+	// 	cfg.Meta.TelemetryEnabled = false
+	// }
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -348,7 +349,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger := logger.With(zap.String("component", "telemetry"))
 
 		g.Go(func() error {
-			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, info)
+			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, analyticsEndpoint, info)
 			if err != nil {
 				logger.Debug("initializing telemetry reporter", zap.Error(err))
 				return nil

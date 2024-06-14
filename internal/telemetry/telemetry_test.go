@@ -57,7 +57,7 @@ func TestNewReporter(t *testing.T) {
 		}
 
 		logger        = zaptest.NewLogger(t)
-		reporter, err = NewReporter(cfg, logger, "foo", info.Flipt{})
+		reporter, err = NewReporter(cfg, logger, "foo", "http://localhost:8080", info.Flipt{})
 	)
 	assert.NoError(t, err)
 	assert.NotNil(t, reporter)
