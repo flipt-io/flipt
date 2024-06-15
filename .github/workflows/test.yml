@@ -100,5 +100,5 @@ jobs:
         with:
           install-only: true
 
-      - name: Run UI Tests
+      - name: Run Migration Tests
         run: mage dagger:run test:migration
