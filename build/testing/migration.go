@@ -77,10 +77,17 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 
 	// ensure new edge Flipt build continues to work as expected
 	_, err = base.
-		WithServiceBinding("flipt", flipt.WithExec(nil).AsService()).
+		WithServiceBinding("flipt", flipt.
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", "secret").
+			WithExec(nil).
+			AsService()).
 		WithWorkdir("build/testing/integration/readonly").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec([]string{"go", "test", "-v", "-race", "--flipt-addr", "grpc://flipt:9000", "."}).
+		WithExec([]string{"go", "test", "-v", "-race",
+			"--flipt-addr", "grpc://flipt:9000",
+			"--flipt-token", "secret",
+			"."}).
 		Sync(ctx)
 
 	return err
