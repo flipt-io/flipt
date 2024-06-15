@@ -15,7 +15,8 @@ builds:
       - -X main.version={{ .PrefixedTag }}
       - -X main.commit={{ .Commit }}
       - -X main.date={{ .Date }}
-      - -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
+      - -X main.analyticsKey={{ .Env.ANALYTICS_WRITE_KEY }}
+      - -X main.analyticsEndpoint={{ .Env.ANALYTICS_WRITE_ENDPOINT }}
       - -linkmode external -extldflags "-static"
     goos:
       - linux
