@@ -5,7 +5,7 @@ import { cls } from '~/utils/helpers';
 type ToggleProps = {
   id: string;
   name: string;
-  label: string;
+  label?: string;
   description?: string;
   checked: boolean;
   disabled?: boolean;
