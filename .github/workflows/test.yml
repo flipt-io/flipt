@@ -42,7 +42,7 @@ jobs:
         run: mage dagger:run "test:unit"
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v4.4.1
+        uses: codecov/codecov-action@v4.5.0
 
   test-darwin:
     name: "Tests (Go - Darwin)"
