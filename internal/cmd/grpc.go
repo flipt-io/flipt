@@ -579,7 +579,7 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		// }
 
 		var err error
-		validator, err = authzbundle.NewEngine(ctx, logger)
+		validator, err = authzbundle.NewEngine(ctx, logger, cfg)
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return

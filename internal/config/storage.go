@@ -205,9 +205,9 @@ type GitBackend struct {
 // StorageObjectConfig contains configuration of readonly object storage.
 type StorageObjectConfig struct {
 	Type   ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	S3     *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
-	AZBlob *AZBlob              `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
-	GS     *GS                  `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
+	S3     *S3Storage           `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
+	AZBlob *AZBlobStorage       `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
+	GS     *GSStorage           `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
 }
 
 // validate is only called if storage.type == "object"
@@ -231,8 +231,8 @@ func (o *StorageObjectConfig) validate() error {
 	return nil
 }
 
-// S3 contains configuration for referencing a s3 bucket
-type S3 struct {
+// S3Storage contains configuration for referencing a s3 bucket
+type S3Storage struct {
 	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
@@ -240,15 +240,15 @@ type S3 struct {
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
-// AZBlob contains configuration for referencing a Azure Blob Storage
-type AZBlob struct {
+// AZBlobStorage contains configuration for referencing a Azure Blob Storage
+type AZBlobStorage struct {
 	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
-// GS contains configuration for referencing a Google Cloud Storage
-type GS struct {
+// GSStorage contains configuration for referencing a Google Cloud Storage
+type GSStorage struct {
 	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`

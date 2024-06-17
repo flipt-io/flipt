@@ -6,6 +6,7 @@ import (
 
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.uber.org/zap"
 )
@@ -17,23 +18,14 @@ type Engine struct {
 	logger *zap.Logger
 }
 
-const opaConfig = `
-services:
-  flipt:
-    url: http://localhost:9001/
-  s3:
-    url: https://my-example-opa-bucket.s3.eu-north-1.amazonaws.com
-    credentials:
-      s3_signing:
-        environment_credentials: {}
+func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*Engine, error) {
+	var opaConfig string
 
-bundles:
-  flipt:
-    service: flipt
-    resource: bundle.tar.gz
-`
+	switch cfg.Authorization.Backend {
+	case config.AuthorizationBackendObject:
+		opaConfig = cfg.Authorization.Object.String()
+	}
 
-func NewEngine(ctx context.Context, logger *zap.Logger) (*Engine, error) {
 	opa, err := sdk.New(ctx, sdk.Options{
 		Config: strings.NewReader(opaConfig),
 		Store:  inmem.New(),

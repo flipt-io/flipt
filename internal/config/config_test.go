@@ -1113,7 +1113,7 @@ func TestLoad(t *testing.T) {
 					Type: ObjectStorageType,
 					Object: &Object{
 						Type: S3ObjectSubStorageType,
-						S3: &S3{
+						S3: &S3Storage{
 							Bucket:       "testbucket",
 							PollInterval: time.Minute,
 						},
@@ -1131,7 +1131,7 @@ func TestLoad(t *testing.T) {
 					Type: ObjectStorageType,
 					Object: &Object{
 						Type: S3ObjectSubStorageType,
-						S3: &S3{
+						S3: &S3Storage{
 							Bucket:       "testbucket",
 							Prefix:       "prefix",
 							Region:       "region",
@@ -1272,7 +1272,7 @@ func TestLoad(t *testing.T) {
 					Type: ObjectStorageType,
 					Object: &Object{
 						Type: AZBlobObjectSubStorageType,
-						AZBlob: &AZBlob{
+						AZBlob: &AZBlobStorage{
 							Container:    "testdata",
 							Endpoint:     "https//devaccount.blob.core.windows.net",
 							PollInterval: 5 * time.Minute,
@@ -1296,7 +1296,7 @@ func TestLoad(t *testing.T) {
 					Type: ObjectStorageType,
 					Object: &Object{
 						Type: GSBlobObjectSubStorageType,
-						GS: &GS{
+						GS: &GSStorage{
 							Bucket:       "testdata",
 							Prefix:       "prefix",
 							PollInterval: 5 * time.Minute,
