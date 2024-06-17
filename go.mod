@@ -36,7 +36,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-containerregistry v0.19.1
+	github.com/google/go-containerregistry v0.19.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/csrf v1.7.2
