@@ -180,12 +180,17 @@ func (o *AuthorizationSourceObjectConfig) String() string {
 	case S3ObjectSubAuthorizationBackendType:
 		url.WriteString("https://")
 		url.WriteString(o.S3.Bucket)
-		url.WriteString(".s3")
-		if o.S3.Region != "" {
-			url.WriteString(".")
-			url.WriteString(o.S3.Region)
+		url.WriteString(".")
+		if o.S3.Endpoint != "" {
+			url.WriteString(o.S3.Endpoint)
+		} else {
+			url.WriteString("s3")
+			if o.S3.Region != "" {
+				url.WriteString(".")
+				url.WriteString(o.S3.Region)
+			}
+			url.WriteString(".amazonaws.com")
 		}
-		url.WriteString(".amazonaws.com")
 
 		tmpl = fmt.Sprintf(`
 services:
@@ -209,6 +214,7 @@ bundles:
 
 // S3AuthorizationSource contains configuration for referencing a s3 bucket
 type S3AuthorizationSource struct {
+	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	Region       string        `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
