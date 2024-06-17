@@ -19,8 +19,13 @@ type Engine struct {
 
 const opaConfig = `
 services:
-  - name: flipt
+  flipt:
     url: http://localhost:9001/
+  s3:
+    url: https://my-example-opa-bucket.s3.eu-north-1.amazonaws.com
+    credentials:
+      s3_signing:
+        environment_credentials: {}
 
 bundles:
   flipt:

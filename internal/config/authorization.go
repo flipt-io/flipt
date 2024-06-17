@@ -15,22 +15,21 @@ var (
 type AuthorizationConfig struct {
 	// Required designates whether authorization credentials are validated.
 	// If required == true, then authorization is required for all API endpoints.
-	Required bool                       `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
-	Policy   *AuthorizationSourceConfig `json:"policy,omitempty" mapstructure:"policy,omitempty" yaml:"policy,omitempty"`
-	Data     *AuthorizationSourceConfig `json:"data,omitempty" mapstructure:"data,omitempty" yaml:"data,omitempty"`
+	Required bool                      `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
+	Backend  AuthorizationBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Local    *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
 }
 
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
-		auth["policy"] = map[string]any{
-			"backend":       "local",
+		auth["backend"] = AuthorizationBackendLocal
+		auth["local.policy"] = map[string]any{
 			"poll_interval": "5m",
 		}
 
-		if v.GetString("authorization.data.local.path") != "" {
-			auth["data"] = map[string]any{
-				"backend":       "local",
+		if v.GetString("authorization.local.data.path") != "" {
+			auth["local.data"] = map[string]any{
 				"poll_interval": "30s",
 			}
 		}
@@ -59,13 +58,29 @@ func (c *AuthorizationConfig) validate() error {
 	return nil
 }
 
-type AuthorizationSourceConfig struct {
-	Backend      AuthorizationBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
-	Local        *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	PollInterval time.Duration             `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+// AuthorizationBackend configures the data source backend for
+// additional data supplied to the policy evaluation engine
+type AuthorizationBackend string
+
+const (
+	AuthorizationBackendLocal  = AuthorizationBackend("local")
+	AuthorizationBackendObject = AuthorizationBackend("object")
+	AuthorizationBackendOCI    = AuthorizationBackend("oci")
+)
+
+// AuthorizationLocalConfig configures the local backend source
+// for the authorization evaluation engines policies and data
+type AuthorizationLocalConfig struct {
+	Policy *AuthorizationSourceLocalConfig `json:"policy,omitempty" mapstructure:"policy,omitempty" yaml:"policy,omitempty"`
+	Data   *AuthorizationSourceLocalConfig `json:"data,omitempty" mapstructure:"data,omitempty" yaml:"data,omitempty"`
 }
 
-func (a *AuthorizationSourceConfig) validate() (err error) {
+type AuthorizationSourceLocalConfig struct {
+	Path         string        `json:"path,omitempty" mapstructure:"path" yaml:"backend,path"`
+	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+}
+
+func (a *AuthorizationSourceLocalConfig) validate() (err error) {
 	// defer func() {
 	// 	if err != nil {
 	// 		err = fmt.Errorf("source: %w", err)
@@ -89,18 +104,4 @@ func (a *AuthorizationSourceConfig) validate() (err error) {
 	// }
 
 	return nil
-}
-
-// AuthorizationBackend configures the data source backend for
-// additional data supplied to the policy evaluation engine
-type AuthorizationBackend string
-
-const (
-	AuthorizationBackendLocal = "local"
-)
-
-// AuthorizationLocalConfig configures the local backend source
-// for the authorization evaluation engines policies and data
-type AuthorizationLocalConfig struct {
-	Path string `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 }
