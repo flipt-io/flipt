@@ -25,16 +25,29 @@ get_latest_version() {
 }
 
 copy() {
-  if [ ":$PATH:" = *":$HOME/.local/bin:"* ]; then
+  # if [ ":$PATH:" = *":$HOME/.local/bin:"* ]; then
+  #     [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
+  #     mv /tmp/flipt "$HOME/.local/bin/flipt"
+  # else
+  #     # Try without sudo first, run with sudo only if mv failed without it.
+  #     mv /tmp/flipt /usr/local/bin/flipt || (
+  #       echo "Cannot write to installation target directory as current user, writing as root."
+  #       sudo mv /tmp/flipt /usr/local/bin/flipt
+  #     )
+  # fi
+
+  case ":PATH:" in 
+    *":HOME/.local/bin:"*) 
       [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
       mv /tmp/flipt "$HOME/.local/bin/flipt"
-  else
-      # Try without sudo first, run with sudo only if mv failed without it.
+      ;;
+    *)
       mv /tmp/flipt /usr/local/bin/flipt || (
-        echo "Cannot write to installation target directory as current user, writing as root."
-        sudo mv /tmp/flipt /usr/local/bin/flipt
-      )
-  fi
+      echo "Cannot write to installation target directory as current user, writing as root."
+      sudo mv /tmp/flipt /usr/local/bin/flipt
+    )
+    ;;
+  esac 
 }
 
 # This function decides what version will be installed based on the following priority:
