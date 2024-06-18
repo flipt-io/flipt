@@ -31,7 +31,6 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	if v.GetBool("authorization.required") {
 		switch v.GetString("authorization.backend") {
 		case string(AuthorizationBackendObject):
-			auth["backend"] = AuthorizationBackendObject
 			auth["object"] = map[string]any{
 				"type": S3ObjectSubAuthorizationBackendType,
 				"s3": map[string]any{
@@ -146,7 +145,7 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 		return errors.New("path must be non-empty string")
 	}
 
-	if a.PollInterval <= 0 {
+	if a.Path != "" && a.PollInterval <= 0 {
 		return errors.New("poll_interval must be non-zero")
 	}
 

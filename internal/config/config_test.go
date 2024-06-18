@@ -905,7 +905,7 @@ func TestLoad(t *testing.T) {
 						},
 						Data: &AuthorizationSourceLocalConfig{
 							Path:         "/path/to/policy/data.json",
-							PollInterval: 30 * time.Second,
+							PollInterval: time.Minute,
 						},
 					},
 				}
@@ -1680,20 +1680,30 @@ func TestGetConfigFile(t *testing.T) {
 	blob.DefaultURLMux().RegisterBucket("mock", &mockURLOpener{
 		bucket: memblob.OpenBucket(nil),
 	})
-	configData := []byte("some config data")
-	ctx := context.Background()
-	b, err := blob.OpenBucket(ctx, "mock://mybucket")
+
+	var (
+		ctx        = context.Background()
+		configData = []byte("some config data")
+		b, err     = blob.OpenBucket(ctx, "mock://mybucket")
+	)
+
 	require.NoError(t, err)
 	t.Cleanup(func() { b.Close() })
+
 	w, err := b.NewWriter(ctx, "config/local.yml", nil)
 	require.NoError(t, err)
+
 	_, err = w.Write(configData)
 	require.NoError(t, err)
+
 	err = w.Close()
 	require.NoError(t, err)
+
 	t.Run("successful", func(t *testing.T) {
 		f, err := getConfigFile(ctx, "mock://mybucket/config/local.yml")
 		require.NoError(t, err)
+		t.Cleanup(func() { f.Close() })
+
 		s, err := f.Stat()
 		require.NoError(t, err)
 		require.Equal(t, "local.yml", s.Name())

@@ -118,18 +118,17 @@ import "strings"
 	}
 
 	#authorization: {
-		#authorizationSource: {
-			backend: "local"
-			local: path: string
-			poll_interval?: =~#duration
-		}
-
 		required?: bool | *false
-		policy?: #authorizationSource & {
-			poll_interval: =~#duration | *"5m"
-		}
-		data?: #authorizationSource & {
-			poll_interval: =~#duration | *"30s"
+		backend:   "local" | "object" | "custom" | *""
+		local?: {
+			policy?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
+			data?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
 		}
 	}
 

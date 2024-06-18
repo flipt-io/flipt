@@ -41,11 +41,11 @@ authentication:
 
 authorization:
   required: true
-  policy:
-    backend: local
-    local:
+  backend: local
+  local:
+    policy:
       path: "/path/to/policy.rego"
-    poll_interval: 30s
+      poll_interval: 30s
 
 experimental:
   authorization:
