@@ -60,8 +60,10 @@ get_version() {
 install() {
   version=$(get_version "$1");
   echo "Installing version $version"
+
+  OSCHECK=$(uname | tr '[:upper:]' '[:lower:]')
   
-  case "$OSTYPE" in 
+  case "$OSCHECK" in 
     linux*)
       ARCH=$(uname -m)
       OS="linux"
