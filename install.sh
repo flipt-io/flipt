@@ -71,10 +71,10 @@ install() {
           echo "flipt is only available for linux x86_64/arm64 architecture"
           file_issue_prompt
           ;; 
-        esac 
-        [ "$ARCH" = "aarch64" ] && ARCH="arm64"
-        ;;
-      darwin*) 
+      esac 
+      [ "$ARCH" = "aarch64" ] && ARCH="arm64"
+      ;;
+    darwin*) 
         ARCH=$(uname -m)
         OS="darwin"
         if [ "$ARCH" != "arm64" ]; then
@@ -87,7 +87,6 @@ install() {
       file_issue_prompt
       ;;
   esac
-
 
   curl -o /tmp/flipt.tar.gz -fsSL https://download.flipt.io/flipt/$version/$OS\_$ARCH.tar.gz
   tar -xzf /tmp/flipt.tar.gz -C /tmp
