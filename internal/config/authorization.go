@@ -32,7 +32,7 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 		switch v.GetString("authorization.backend") {
 		case string(AuthorizationBackendObject):
 			auth["object"] = map[string]any{
-				"type": S3ObjectSubAuthorizationBackendType,
+				"type": S3ObjectAuthorizationBackendType,
 				"s3": map[string]any{
 					"poll_interval": "60s",
 				},
@@ -100,10 +100,10 @@ const (
 	AuthorizationBackendBundle = AuthorizationBackend("bundle")
 )
 
-type ObjectSubAuthorizationBackendType string
+type ObjectAuthorizationBackendType string
 
 const (
-	S3ObjectSubAuthorizationBackendType = ObjectSubAuthorizationBackendType("s3")
+	S3ObjectAuthorizationBackendType = ObjectAuthorizationBackendType("s3")
 	// AZObjectSubAuthorizationBackendType = ObjectSubAuthorizationBackendType("azblob")
 	// GSObjectSubAuthorizationBackendType = ObjectSubAuthorizationBackendType("googlecloud")
 )
@@ -175,8 +175,8 @@ func (a *AuthorizationSourceBundleConfig) String() string {
 
 // AuthorizationSourceObjectConfig contains authz bundle configuration from object storage.
 type AuthorizationSourceObjectConfig struct {
-	Type ObjectSubAuthorizationBackendType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	S3   *S3AuthorizationSource            `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
+	Type ObjectAuthorizationBackendType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	S3   *S3AuthorizationSource         `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
 	// AZBlob *AZBlobAuthorizationSource        `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
 	// GS     *GSAuthorizationSource            `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
 }
@@ -188,7 +188,7 @@ func (a *AuthorizationSourceObjectConfig) validate() error {
 	}
 
 	switch a.Type {
-	case S3ObjectSubAuthorizationBackendType:
+	case S3ObjectAuthorizationBackendType:
 		if a.S3 == nil || a.S3.Bucket == "" {
 			return errors.New("s3 bucket must be specified")
 		}
@@ -211,7 +211,7 @@ func (a *AuthorizationSourceObjectConfig) String() string {
 	)
 
 	switch a.Type {
-	case S3ObjectSubAuthorizationBackendType:
+	case S3ObjectAuthorizationBackendType:
 		if a.S3.Endpoint != "" {
 			url.WriteString(a.S3.Endpoint)
 		} else {
