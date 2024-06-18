@@ -194,7 +194,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 				return userTeams[team]
 			})
 		}) {
-			return nil, errors.ErrUnauthenticatedf("user not in allowed organization or team")
+			return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 		}
 	}
 
