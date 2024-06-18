@@ -26,6 +26,7 @@ func (s *DBTestSuite) TestGetFlag() {
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    `{"key":"value"}`,
 	})
 
 	require.NoError(t, err)
@@ -41,6 +42,7 @@ func (s *DBTestSuite) TestGetFlag() {
 	assert.Equal(t, flag.Name, got.Name)
 	assert.Equal(t, flag.Description, got.Description)
 	assert.Equal(t, flag.Enabled, got.Enabled)
+	assert.Equal(t, `{"key":"value"}`, flag.Metadata)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.NotZero(t, flag.UpdatedAt)
 }
@@ -458,6 +460,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    `{"key":"value"}`,
 	})
 
 	require.NoError(t, err)
@@ -467,6 +470,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, `{"key":"value"}`, flag.Metadata)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
@@ -547,6 +551,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    `{"key":"value"}`,
 	})
 
 	require.NoError(t, err)
@@ -556,6 +561,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, `{"key":"value"}`, flag.Metadata)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
@@ -564,6 +570,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 		Name:        flag.Name,
 		Description: "foobar",
 		Enabled:     true,
+		Metadata:    `{"key":"value", "foo": "bar"}`,
 	})
 
 	require.NoError(t, err)
@@ -573,6 +580,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, flag.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, `{"key":"value","foo":"bar"}`, updated.Metadata)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }

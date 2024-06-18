@@ -14,7 +14,7 @@ func largeJSONString() string {
 	suffix := `"}`
 
 	// adding one for making the string larger than the limit
-	b := make([]byte, maxVariantAttachmentSize-len(prefix)-len(suffix)+1)
+	b := make([]byte, maxJsonStringSize-len(prefix)-len(suffix)+1)
 	for i := range b {
 		b[i] = 'a'
 	}
@@ -142,6 +142,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    `{"key":"value", "foo": "bar"}`,
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
@@ -152,6 +153,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    `{"key":"value", "foo": "bar"}`,
 			},
 			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
 		},
@@ -162,8 +164,34 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    `{"key":"value", "foo": "bar"}`,
 			},
 			wantErr: errors.EmptyFieldError("name"),
+		},
+		{
+			name: "metadataTooLarge",
+			req: &CreateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+				Metadata:    largeJSONString(),
+			},
+			wantErr: errors.InvalidFieldError(
+				"metadata",
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
+			),
+		},
+		{
+			name: "malformedJsonMetadata",
+			req: &CreateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+				Metadata:    "someMetadata",
+			},
+			wantErr: errors.InvalidFieldError("metadata", "must be a json string"),
 		},
 		{
 			name: "valid",
@@ -172,6 +200,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    `{"key":"value", "foo": "bar"}`,
 			},
 		},
 	}
@@ -214,6 +243,40 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Enabled:     true,
 			},
 			wantErr: errors.EmptyFieldError("name"),
+		},
+		{
+			name: "valid",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+		},
+		{
+			name: "metadataTooLarge",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+				Metadata:    largeJSONString(),
+			},
+			wantErr: errors.InvalidFieldError(
+				"metadata",
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
+			),
+		},
+		{
+			name: "malformedJsonMetadata",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+				Metadata:    "someMetadata",
+			},
+			wantErr: errors.InvalidFieldError("metadata", "must be a json string"),
 		},
 		{
 			name: "valid",
@@ -321,7 +384,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{
@@ -421,7 +484,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{
