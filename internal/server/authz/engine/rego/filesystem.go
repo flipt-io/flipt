@@ -1,4 +1,4 @@
-package local
+package rego
 
 import (
 	"bytes"
@@ -14,9 +14,9 @@ type LocalPolicySource struct {
 	path string
 }
 
-// LocalPolicySourceFromPath builds an instance of *PolicySourceFromPath which reads the provided
+// LocalPolicySourceFromPath builds an instance of *policySourceFromPath which reads the provided
 // path and returns the located policy
-func PolicySourceFromPath(path string) *LocalPolicySource {
+func policySourceFromPath(path string) *LocalPolicySource {
 	return &LocalPolicySource{path}
 }
 
@@ -33,9 +33,9 @@ type LocalDataSource struct {
 	path string
 }
 
-// DataSourceFromPath builds an instance of *LocalDataSource which reads the provided
+// dataSourceFromPath builds an instance of *LocalDataSource which reads the provided
 // path and parses it as JSON on calls to Get
-func DataSourceFromPath(path string) *LocalDataSource {
+func dataSourceFromPath(path string) *LocalDataSource {
 	return &LocalDataSource{path: path}
 }
 

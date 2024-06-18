@@ -244,8 +244,7 @@ bundles:
     service: s3
     resource: %s
     polling:
-      min_delay_seconds: 30
-      max_delay_seconds: %d
+      min_delay_seconds: %d
 `, url.String(), path.Join(a.S3.Bucket, a.S3.Prefix, "bundle.tar.gz"), int(a.S3.PollInterval.Seconds()))
 	}
 

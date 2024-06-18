@@ -32,6 +32,7 @@ import (
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
+	authzrego "go.flipt.io/flipt/internal/server/authz/engine/rego"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
@@ -552,34 +553,13 @@ var (
 
 func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (authz.Verifier, errFunc, error) {
 	authzOnce.Do(func() {
-		// engineOpts := []containers.Option[authzlocal.Engine]{
-		// 	authzlocal.WithPollDuration(cfg.Authorization.Policy.PollInterval),
-		// }
-
-		// if cfg.Authorization.Data != nil {
-		// 	switch cfg.Authorization.Data.Backend {
-		// 	case config.AuthorizationBackendLocal:
-		// 		engineOpts = append(engineOpts, authzlocal.WithDataSource(
-		// 			authzlocal.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
-		// 			cfg.Authorization.Data.PollInterval,
-		// 		))
-		// 	default:
-		// 		authzErr = fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
-		// 		return
-		// 	}
-		// }
-
-		// var source authzlocal.PolicySource
-		// switch cfg.Authorization.Policy.Backend {
-		// case config.AuthorizationBackendLocal:
-		// 	source = authzlocal.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
-		// default:
-		// 	authzErr = fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
-		// 	return
-		// }
-
 		var err error
-		validator, err = authzbundle.NewEngine(ctx, logger, cfg)
+		switch cfg.Authorization.Backend {
+		case config.AuthorizationBackendLocal:
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+		default:
+			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
+		}
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return

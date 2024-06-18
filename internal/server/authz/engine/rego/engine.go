@@ -1,4 +1,4 @@
-package local
+package rego
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.uber.org/zap"
@@ -45,29 +46,55 @@ type Engine struct {
 	dataSource DataSource
 	dataHash   []byte
 
-	pollDuration           time.Duration
-	dataSourcePollDuration time.Duration
+	policySourcePollDuration time.Duration
+	dataSourcePollDuration   time.Duration
 }
 
-func WithDataSource(source DataSource, pollDuration time.Duration) containers.Option[Engine] {
+func withPolicySource(source PolicySource) containers.Option[Engine] {
+	return func(e *Engine) {
+		e.policySource = source
+	}
+}
+
+func withDataSource(source DataSource, pollDuration time.Duration) containers.Option[Engine] {
 	return func(e *Engine) {
 		e.dataSource = source
 		e.dataSourcePollDuration = pollDuration
 	}
 }
 
-func WithPollDuration(dur time.Duration) containers.Option[Engine] {
+func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 	return func(e *Engine) {
-		e.pollDuration = dur
+		e.policySourcePollDuration = dur
 	}
 }
 
-func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opts ...containers.Option[Engine]) (*Engine, error) {
+// NewEngine creates a new local authorization engine
+func NewEngine(ctx context.Context, logger *zap.Logger, config *config.Config) (*Engine, error) {
+	opts := []containers.Option[Engine]{
+		withPolicySource(policySourceFromPath(config.Authorization.Local.Policy.Path)),
+	}
+
+	if config.Authorization.Local.Policy.PollInterval > 0 {
+		opts = append(opts, withPolicySourcePollDuration(config.Authorization.Local.Policy.PollInterval))
+	}
+
+	if config.Authorization.Local.Data != nil {
+		opts = append(opts, withDataSource(
+			dataSourceFromPath(config.Authorization.Local.Data.Path),
+			config.Authorization.Local.Data.PollInterval,
+		))
+	}
+
+	return newEngine(ctx, logger, opts...)
+}
+
+// newEngine creates a new engine with the provided options, visible for testing
+func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Option[Engine]) (*Engine, error) {
 	engine := &Engine{
-		logger:       logger,
-		policySource: source,
-		store:        inmem.New(),
-		pollDuration: defaultPolicyPollDuration,
+		logger:                   logger,
+		store:                    inmem.New(),
+		policySourcePollDuration: defaultPolicyPollDuration,
 	}
 
 	containers.ApplyAll(engine, opts...)
@@ -83,7 +110,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opt
 	}
 
 	// begin polling for updates for policy
-	go poll(ctx, engine.pollDuration, func() {
+	go poll(ctx, engine.policySourcePollDuration, func() {
 		if err := engine.updatePolicy(ctx); err != nil {
 			engine.logger.Error("updating policy", zap.Error(err))
 		}
@@ -91,7 +118,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opt
 
 	// being polling for updates to data if source configured
 	if engine.dataSource != nil {
-		go poll(ctx, engine.pollDuration, func() {
+		go poll(ctx, engine.policySourcePollDuration, func() {
 			if err := engine.updateData(ctx, storage.ReplaceOp); err != nil {
 				engine.logger.Error("updating data", zap.Error(err))
 			}

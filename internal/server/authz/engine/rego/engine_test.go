@@ -1,4 +1,4 @@
-package local
+package rego
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 func TestEngine_NewEngine(t *testing.T) {
 	ctx := context.Background()
-	engine, err := NewEngine(ctx, zaptest.NewLogger(t), testRBACPolicy, WithDataSource(testRoleDefinitions, 5*time.Second))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(testRBACPolicy), withDataSource(testRoleDefinitions, 5*time.Second))
 	require.NoError(t, err)
 	require.NotNil(t, engine)
 }
@@ -190,7 +190,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			engine, err := NewEngine(ctx, zaptest.NewLogger(t), testRBACPolicy, WithDataSource(testRoleDefinitions, 5*time.Second))
+			engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(testRBACPolicy), withDataSource(testRoleDefinitions, 5*time.Second))
 			require.NoError(t, err)
 
 			var input map[string]interface{}
