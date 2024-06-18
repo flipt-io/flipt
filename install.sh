@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #     _________       __ 
 #    / ____/ (_)___  / /_
@@ -20,15 +20,13 @@ file_issue_prompt() {
 }
 
 get_latest_version() {
-  local res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases/latest | grep tag_name | cut -d '"' -f 4)
+  res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases/latest | grep tag_name | cut -d '"' -f 4)
   echo "$res"
 }
 
 copy() {
-  if [[ ":$PATH:" == *":$HOME/.local/bin:"* ]]; then
-      if [ ! -d "$HOME/.local/bin" ]; then
-        mkdir -p "$HOME/.local/bin"
-      fi
+  if [ ":$PATH:" = *":$HOME/.local/bin:"* ]; then
+      [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
       mv /tmp/flipt "$HOME/.local/bin/flipt"
   else
       # Try without sudo first, run with sudo only if mv failed without it.
@@ -42,45 +40,55 @@ copy() {
 # This function decides what version will be installed based on the following priority:
 # 1. Environment variable `VERSION` is set.
 # 2. Latest available on GitHub
-function get_version() {
-  if [[ -z "$VERSION" ]]; then
-      if [[ -n "$1" ]]; then
+get_version() {
+  if [ -z "$VERSION" ]; then
+      if [ -n "$1" ]; then
           VERSION="$1"
       else
           VERSION=$(get_latest_version)
       fi
   fi
+  
   # ensure version starts with v
-  if [[ "$VERSION" != v* ]]; then
-    VERSION="v$VERSION"
-  fi
+  case "$VERSION" in
+    v*) : ;;
+    *) VERSION="v$VERSION" ;;
+  esac
   echo "$VERSION"
 }
 
-function install() {
-  local version=$(get_version $1);
+install() {
+  version=$(get_version "$1");
   echo "Installing version $version"
-  if [[ "$OSTYPE" == "linux"* ]]; then
-      ARCH=$(uname -m);
-      OS="linux";
-      if [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]]; then
+  
+  case "$OSTYPE" in 
+    linux*)
+      ARCH=$(uname -m)
+      OS="linux"
+      case "$ARCH" in 
+        x86_64|aarch64) : ;; 
+        *)
           echo "flipt is only available for linux x86_64/arm64 architecture"
           file_issue_prompt
+          ;; 
+        esac 
+        [ "$ARCH" = "aarch64" ] && ARCH="arm64"
+        ;;
+      darwin*) 
+        ARCH=$(uname -m)
+        OS="darwin"
+        if [ "$ARCH" != "arm64" ]; then
+        echo "flipt is only available for mac arm64 architecture"
+        file_issue_prompt
       fi
-      if [[ "$ARCH" == "aarch64" ]]; then
-          ARCH="arm64"
-      fi
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-      ARCH=$(uname -m);
-      OS="darwin";
-      if [[ "$ARCH" != "arm64" ]]; then
-          echo "flipt is only available for mac arm64 architecture"
-          file_issue_prompt
-      fi
-  else
+      ;;
+    *)
       echo "flipt isn't supported for your platform - $OSTYPE"
       file_issue_prompt
-  fi
+      ;;
+  esac
+
+
   curl -o /tmp/flipt.tar.gz -fsSL https://download.flipt.io/flipt/$version/$OS\_$ARCH.tar.gz
   tar -xzf /tmp/flipt.tar.gz -C /tmp
   chmod +x /tmp/flipt
