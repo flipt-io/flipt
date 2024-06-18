@@ -649,12 +649,12 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
-					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy.rego",
+					Backend:  AuthorizationBackendLocal,
+					Local: &AuthorizationLocalConfig{
+						Policy: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy.rego",
+							PollInterval: 30 * time.Second,
 						},
-						PollInterval: 30 * time.Second,
 					},
 				}
 
@@ -802,7 +802,7 @@ func TestLoad(t *testing.T) {
 
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -897,19 +897,16 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
-					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy.rego",
+					Backend:  AuthorizationBackendLocal,
+					Local: &AuthorizationLocalConfig{
+						Policy: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy.rego",
+							PollInterval: time.Minute,
 						},
-						PollInterval: time.Minute,
-					},
-					Data: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy/data.json",
+						Data: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy/data.json",
+							PollInterval: 30 * time.Second,
 						},
-						PollInterval: 30 * time.Second,
 					},
 				}
 
@@ -957,7 +954,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: LocalStorageType,
-					Local: &Local{
+					Local: &StorageLocalConfig{
 						Path: ".",
 					},
 				}
@@ -971,7 +968,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -991,7 +988,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1012,7 +1009,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1033,7 +1030,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendLocal,
 							Path: "/path/to/gitdir",
@@ -1084,7 +1081,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1111,7 +1108,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: S3ObjectSubStorageType,
 						S3: &S3Storage{
 							Bucket:       "testbucket",
@@ -1129,7 +1126,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: S3ObjectSubStorageType,
 						S3: &S3Storage{
 							Bucket:       "testbucket",
@@ -1149,7 +1146,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1171,7 +1168,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1193,7 +1190,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1213,7 +1210,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						PollInterval:     5 * time.Minute,
@@ -1270,7 +1267,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: AZBlobObjectSubStorageType,
 						AZBlob: &AZBlobStorage{
 							Container:    "testdata",
@@ -1294,7 +1291,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: GSBlobObjectSubStorageType,
 						GS: &GSStorage{
 							Bucket:       "testdata",

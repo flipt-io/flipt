@@ -22,20 +22,32 @@ type AuthorizationConfig struct {
 	Required bool                             `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
 	Backend  AuthorizationBackend             `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Local    *AuthorizationLocalConfig        `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Custom   *AuthorizationSourceCustomConfig `json:"custom,omitempty" mapstructure:"custom,omitempty" yaml:"custom,omitempty"`
 	Object   *AuthorizationSourceObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 }
 
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
-		auth["backend"] = AuthorizationBackendLocal
-		auth["local.policy"] = map[string]any{
-			"poll_interval": "5m",
-		}
+		switch v.GetString("authorization.backend") {
+		case string(AuthorizationBackendObject):
+			auth["backend"] = AuthorizationBackendObject
+			auth["object"] = map[string]any{
+				"type": S3ObjectSubAuthorizationBackendType,
+				"s3": map[string]any{
+					"poll_interval": "60s",
+				},
+			}
+		default:
+			auth["backend"] = AuthorizationBackendLocal
+			auth["local.policy"] = map[string]any{
+				"poll_interval": "5m",
+			}
 
-		if v.GetString("authorization.local.data.path") != "" {
-			auth["local.data"] = map[string]any{
-				"poll_interval": "30s",
+			if v.GetString("authorization.local.data.path") != "" {
+				auth["local.data"] = map[string]any{
+					"poll_interval": "30s",
+				}
 			}
 		}
 
@@ -56,6 +68,15 @@ func (c *AuthorizationConfig) validate() error {
 			if err := c.Local.validate(); err != nil {
 				return fmt.Errorf("authorization: local: %w", err)
 			}
+		case AuthorizationBackendCustom:
+			if c.Custom == nil {
+				return errors.New("authorization: custom backend must be configured")
+			}
+
+			if err := c.Custom.validate(); err != nil {
+				return fmt.Errorf("authorization: custom: %w", err)
+			}
+
 		case AuthorizationBackendObject:
 			if c.Object == nil {
 				return errors.New("authorization: object backend must be configured")
@@ -77,6 +98,7 @@ type AuthorizationBackend string
 const (
 	AuthorizationBackendLocal  = AuthorizationBackend("local")
 	AuthorizationBackendObject = AuthorizationBackend("object")
+	AuthorizationBackendCustom = AuthorizationBackend("custom")
 )
 
 type ObjectSubAuthorizationBackendType string
@@ -121,14 +143,35 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 	}
 
 	if a.Path == "" {
-		return errors.New("local: path must be non-empty string")
+		return errors.New("path must be non-empty string")
 	}
 
 	if a.PollInterval <= 0 {
-		return errors.New("local: poll_interval must be non-zero")
+		return errors.New("poll_interval must be non-zero")
 	}
 
 	return nil
+}
+
+type AuthorizationSourceCustomConfig struct {
+	Configuration string `json:"configuration,omitempty" mapstructure:"configuration" yaml:"configuration,omitempty"`
+}
+
+func (a *AuthorizationSourceCustomConfig) validate() error {
+	if a == nil {
+		return nil
+	}
+
+	if a.Configuration == "" {
+		return errors.New("configuration must be non-empty string")
+	}
+
+	return nil
+}
+
+// String returns the configuration as a string in the format expected by the OPA engine
+func (a *AuthorizationSourceCustomConfig) String() string {
+	return a.Configuration
 }
 
 // AuthorizationSourceObjectConfig contains authz bundle configuration from object storage.
@@ -140,18 +183,18 @@ type AuthorizationSourceObjectConfig struct {
 }
 
 // validate is only called if authorization.backend == "object"
-func (o *AuthorizationSourceObjectConfig) validate() error {
-	if o == nil {
+func (a *AuthorizationSourceObjectConfig) validate() error {
+	if a == nil {
 		return nil
 	}
 
-	switch o.Type {
+	switch a.Type {
 	case S3ObjectSubAuthorizationBackendType:
-		if o.S3 == nil || o.S3.Bucket == "" {
+		if a.S3 == nil || a.S3.Bucket == "" {
 			return errors.New("s3 bucket must be specified")
 		}
 
-		if o.S3.PollInterval < 60*time.Second {
+		if a.S3.PollInterval < 60*time.Second {
 			return errors.New("s3 poll_interval must be at least 60s")
 		}
 
@@ -170,24 +213,21 @@ func (o *AuthorizationSourceObjectConfig) validate() error {
 }
 
 // String returns the configuration as a string in the format expected by the OPA engine
-func (o *AuthorizationSourceObjectConfig) String() string {
+func (a *AuthorizationSourceObjectConfig) String() string {
 	var (
 		url  strings.Builder
 		tmpl string
 	)
 
-	switch o.Type {
+	switch a.Type {
 	case S3ObjectSubAuthorizationBackendType:
-		url.WriteString("https://")
-		url.WriteString(o.S3.Bucket)
-		url.WriteString(".")
-		if o.S3.Endpoint != "" {
-			url.WriteString(o.S3.Endpoint)
+		if a.S3.Endpoint != "" {
+			url.WriteString(a.S3.Endpoint)
 		} else {
-			url.WriteString("s3")
-			if o.S3.Region != "" {
+			url.WriteString("https://s3")
+			if a.S3.Region != "" {
 				url.WriteString(".")
-				url.WriteString(o.S3.Region)
+				url.WriteString(a.S3.Region)
 			}
 			url.WriteString(".amazonaws.com")
 		}
@@ -203,10 +243,11 @@ services:
 bundles:
   flipt:
     service: s3
-	resource: %s
-	polling:
-	  max_delay_seconds: %d
-`, url.String(), path.Join(o.S3.Prefix, "bundle.tar.gz"), int(o.S3.PollInterval.Seconds()))
+    resource: %s
+    polling:
+      min_delay_seconds: 30
+      max_delay_seconds: %d
+`, url.String(), path.Join(a.S3.Bucket, a.S3.Prefix, "bundle.tar.gz"), int(a.S3.PollInterval.Seconds()))
 	}
 
 	return tmpl

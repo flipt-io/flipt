@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/open-policy-agent/contrib/logging/plugins/ozap"
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"go.flipt.io/flipt/internal/config"
@@ -24,11 +25,19 @@ func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*En
 	switch cfg.Authorization.Backend {
 	case config.AuthorizationBackendObject:
 		opaConfig = cfg.Authorization.Object.String()
+	case config.AuthorizationBackendCustom:
+		opaConfig = cfg.Authorization.Custom.String()
+	}
+
+	level, err := zap.ParseAtomicLevel(cfg.Log.Level)
+	if err != nil {
+		return nil, err
 	}
 
 	opa, err := sdk.New(ctx, sdk.Options{
 		Config: strings.NewReader(opaConfig),
 		Store:  inmem.New(),
+		Logger: ozap.Wrap(logger, &level),
 	})
 	if err != nil {
 		return nil, err
