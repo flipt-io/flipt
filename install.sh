@@ -25,17 +25,6 @@ get_latest_version() {
 }
 
 copy() {
-  # if [ ":$PATH:" = *":$HOME/.local/bin:"* ]; then
-  #     [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
-  #     mv /tmp/flipt "$HOME/.local/bin/flipt"
-  # else
-  #     # Try without sudo first, run with sudo only if mv failed without it.
-  #     mv /tmp/flipt /usr/local/bin/flipt || (
-  #       echo "Cannot write to installation target directory as current user, writing as root."
-  #       sudo mv /tmp/flipt /usr/local/bin/flipt
-  #     )
-  # fi
-
   case ":PATH:" in 
     *":HOME/.local/bin:"*) 
       [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
@@ -90,12 +79,16 @@ install() {
       [ "$ARCH" = "aarch64" ] && ARCH="arm64"
       ;;
     darwin*) 
-        ARCH=$(uname -m)
-        OS="darwin"
-        if [ "$ARCH" != "arm64" ]; then
-        echo "flipt is only available for mac arm64 architecture"
-        file_issue_prompt
-      fi
+      ARCH=$(uname -m)
+      OS="darwin"
+      case "$ARCH" in 
+        x86_64|arm64) : ;;
+        *) 
+          echo "flipt is only available for mac x86_64/arm64 architecture"
+          file_issue_prompt
+          ;;
+      esac 
+      [ "$ARCH" = "aarch64" ] && ARCH="arm64"   
       ;;
     *)
       echo "flipt isn't supported for your platform - $OSTYPE"
