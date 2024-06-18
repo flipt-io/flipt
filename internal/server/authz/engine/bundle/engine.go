@@ -25,8 +25,8 @@ func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*En
 	switch cfg.Authorization.Backend {
 	case config.AuthorizationBackendObject:
 		opaConfig = cfg.Authorization.Object.String()
-	case config.AuthorizationBackendCustom:
-		opaConfig = cfg.Authorization.Custom.String()
+	case config.AuthorizationBackendBundle:
+		opaConfig = cfg.Authorization.Bundle.String()
 	}
 
 	level, err := zap.ParseAtomicLevel(cfg.Log.Level)

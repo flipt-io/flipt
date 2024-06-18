@@ -22,7 +22,7 @@ type AuthorizationConfig struct {
 	Required bool                             `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
 	Backend  AuthorizationBackend             `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Local    *AuthorizationLocalConfig        `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	Custom   *AuthorizationSourceCustomConfig `json:"custom,omitempty" mapstructure:"custom,omitempty" yaml:"custom,omitempty"`
+	Bundle   *AuthorizationSourceBundleConfig `json:"bundle,omitempty" mapstructure:"bundle,omitempty" yaml:"bundle,omitempty"`
 	Object   *AuthorizationSourceObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 }
 
@@ -67,13 +67,13 @@ func (c *AuthorizationConfig) validate() error {
 			if err := c.Local.validate(); err != nil {
 				return fmt.Errorf("authorization: local: %w", err)
 			}
-		case AuthorizationBackendCustom:
-			if c.Custom == nil {
-				return errors.New("authorization: custom backend must be configured")
+		case AuthorizationBackendBundle:
+			if c.Bundle == nil {
+				return errors.New("authorization: bundle backend must be configured")
 			}
 
-			if err := c.Custom.validate(); err != nil {
-				return fmt.Errorf("authorization: custom: %w", err)
+			if err := c.Bundle.validate(); err != nil {
+				return fmt.Errorf("authorization: bundle: %w", err)
 			}
 
 		case AuthorizationBackendObject:
@@ -97,7 +97,7 @@ type AuthorizationBackend string
 const (
 	AuthorizationBackendLocal  = AuthorizationBackend("local")
 	AuthorizationBackendObject = AuthorizationBackend("object")
-	AuthorizationBackendCustom = AuthorizationBackend("custom")
+	AuthorizationBackendBundle = AuthorizationBackend("bundle")
 )
 
 type ObjectSubAuthorizationBackendType string
@@ -152,11 +152,11 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 	return nil
 }
 
-type AuthorizationSourceCustomConfig struct {
+type AuthorizationSourceBundleConfig struct {
 	Configuration string `json:"configuration,omitempty" mapstructure:"configuration" yaml:"configuration,omitempty"`
 }
 
-func (a *AuthorizationSourceCustomConfig) validate() error {
+func (a *AuthorizationSourceBundleConfig) validate() error {
 	if a == nil {
 		return nil
 	}
@@ -169,7 +169,7 @@ func (a *AuthorizationSourceCustomConfig) validate() error {
 }
 
 // String returns the configuration as a string in the format expected by the OPA engine
-func (a *AuthorizationSourceCustomConfig) String() string {
+func (a *AuthorizationSourceBundleConfig) String() string {
 	return a.Configuration
 }
 
@@ -197,14 +197,6 @@ func (a *AuthorizationSourceObjectConfig) validate() error {
 			return errors.New("s3 poll_interval must be at least 60s")
 		}
 
-	// case AZObjectSubAuthorizationBackendType:
-	// 	if o.AZBlob == nil || o.AZBlob.Container == "" {
-	// 		return errors.New("azblob container must be specified")
-	// 	}
-	// case GSObjectSubAuthorizationBackendType:
-	// 	if o.GS == nil || o.GS.Bucket == "" {
-	// 		return errors.New("googlecloud bucket must be specified")
-	// 	}
 	default:
 		return errors.New("object storage type must be specified")
 	}
