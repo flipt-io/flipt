@@ -1,17 +1,22 @@
-package rego
+package bundle
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
-	"time"
 
+	"github.com/open-policy-agent/opa/sdk"
+	sdktest "github.com/open-policy-agent/opa/sdk/test"
+	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
-func TestEngine_NewEngine(t *testing.T) {
+func TestEngine_IsAllowed(t *testing.T) {
 	ctx := context.Background()
 
 	policy, err := os.ReadFile("../testdata/rbac.rego")
@@ -20,12 +25,42 @@ func TestEngine_NewEngine(t *testing.T) {
 	data, err := os.ReadFile("../testdata/rbac.json")
 	require.NoError(t, err)
 
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
-	require.NoError(t, err)
-	require.NotNil(t, engine)
-}
+	var (
+		server = sdktest.MustNewServer(
+			sdktest.MockBundle("/bundles/bundle.tar.gz", map[string]string{
+				"main.rego": string(policy),
+				"data.json": string(data),
+			}),
+		)
+		config = fmt.Sprintf(`{
+		"services": {
+			"test": {
+				"url": %q
+			}
+		},
+		"bundles": {
+			"test": {
+				"resource": "/bundles/bundle.tar.gz"
+			}
+		},
+	}`, server.URL())
+	)
 
-func TestEngine_IsAllowed(t *testing.T) {
+	t.Cleanup(server.Stop)
+
+	opa, err := sdk.New(ctx, sdk.Options{
+		Config: strings.NewReader(config),
+		Store:  inmem.New(),
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, opa)
+
+	engine := &Engine{
+		opa:    opa,
+		logger: zaptest.NewLogger(t),
+	}
+
 	var tests = []struct {
 		name     string
 		input    string
@@ -197,16 +232,6 @@ func TestEngine_IsAllowed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			policy, err := os.ReadFile("../testdata/rbac.rego")
-			require.NoError(t, err)
-
-			data, err := os.ReadFile("../testdata/rbac.json")
-			require.NoError(t, err)
-
-			ctx := context.Background()
-			engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
-			require.NoError(t, err)
-
 			var input map[string]interface{}
 
 			err = json.Unmarshal([]byte(tt.input), &input)
@@ -217,16 +242,6 @@ func TestEngine_IsAllowed(t *testing.T) {
 			require.Equal(t, tt.expected, allowed)
 		})
 	}
-}
 
-type policySource string
-
-func (p policySource) Get(context.Context, []byte) ([]byte, []byte, error) {
-	return []byte(p), nil, nil
-}
-
-type dataSource string
-
-func (d dataSource) Get(context.Context, []byte) (data map[string]any, _ []byte, _ error) {
-	return data, nil, json.Unmarshal([]byte(d), &data)
+	assert.NoError(t, engine.Shutdown(ctx))
 }

@@ -1,0 +1,54 @@
+{
+  "version": "0.1.0",
+  "roles": [
+    {
+      "name": "admin",
+      "rules": [
+        {
+          "resource": "*",
+          "actions": ["*"]
+        }
+      ]
+    },
+    {
+      "name": "editor",
+      "rules": [
+        {
+          "resource": "namespace",
+          "actions": ["read"]
+        },
+        {
+          "resource": "authentication",
+          "actions": ["read"]
+        },
+        {
+          "resource": "flag",
+          "actions": ["create", "read", "update", "delete"]
+        },
+        {
+          "resource": "segment",
+          "actions": ["create", "read", "update", "delete"]
+        }
+      ]
+    },
+    {
+      "name": "viewer",
+      "rules": [
+        {
+          "resource": "*",
+          "actions": ["read"]
+        }
+      ]
+    },
+    {
+      "name": "namespaced_viewer",
+      "rules": [
+        {
+          "resource": "*",
+          "actions": ["read"],
+          "namespace": "foo"
+        }
+      ]
+    }
+  ]
+}
