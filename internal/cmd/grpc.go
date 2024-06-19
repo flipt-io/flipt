@@ -213,7 +213,7 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
-	// base observability inteceptors
+	// base inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
@@ -229,6 +229,7 @@ func NewGRPCServer(
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
 		otelgrpc.UnaryServerInterceptor(),
+		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
 	if cfg.Cache.Enabled {
@@ -345,7 +346,6 @@ func NewGRPCServer(
 	// add auth interceptors to the server
 	interceptors = append(interceptors,
 		append(authInterceptors,
-			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
@@ -473,7 +473,7 @@ func NewGRPCServer(
 		logger.Info("authorization middleware enabled")
 	}
 
-	// we validate requests before cache but after authn and authz
+	// we validate requests before after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	grpcOpts := []grpc.ServerOption{
