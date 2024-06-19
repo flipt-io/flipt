@@ -68,6 +68,7 @@ jobs:
             "import/export",
             "authn/sqlite",
             "authz/sqlite",
+            "authz/s3",
           ]
     steps:
       - uses: actions/checkout@v4
