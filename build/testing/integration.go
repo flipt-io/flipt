@@ -65,9 +65,8 @@ var (
 		"fs/azblob":     azblob,
 		"fs/gcs":        gcs,
 		"import/export": importExport,
-		"authn/sqlite":  authn,
-		"authz/sqlite":  authz,
-		"authz/s3":      authzS3,
+		"authn":         authn,
+		"authz":         authz,
 	}
 )
 
@@ -811,49 +810,6 @@ permit_slice(allowed, requested) if {
 	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
 		return func() error { return err }
 	}
-
-	return suite(ctx, "authz", base, fliptToTest, conf)
-}
-
-const (
-	rootAuthzTestdataDir = "build/testing/integration/authz/testdata"
-	opaBundleTestdataDir = rootAuthzTestdataDir + "/opa/bundle"
-)
-
-func authzS3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	minio := client.Container().
-		From("quay.io/minio/minio:latest").
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExposedPort(9009).
-		WithEnvVariable("MINIO_ROOT_USER", "user").
-		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
-		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
-		AsService()
-
-	_, err := base.
-		WithServiceBinding("minio", minio).
-		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
-		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", opaBundleTestdataDir}).
-		Sync(ctx)
-	if err != nil {
-		return func() error { return err }
-	}
-
-	fliptToTest := flipt.
-		WithServiceBinding("minio", minio).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
-		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
-		WithEnvVariable("FLIPT_EXPERIMENTAL_AUTHORIZATION_ENABLED", "true").
-		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
-		WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "object").
-		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_TYPE", "s3").
-		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_S3_ENDPOINT", "http://minio:9009").
-		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_S3_BUCKET", "testdata").
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
 
 	return suite(ctx, "authz", base, fliptToTest, conf)
 }
