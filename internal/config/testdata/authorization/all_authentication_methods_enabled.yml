@@ -45,7 +45,6 @@ authorization:
   local:
     policy:
       path: "/path/to/policy.rego"
-      poll_interval: 30s
 
 experimental:
   authorization:

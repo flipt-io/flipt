@@ -653,7 +653,7 @@ func TestLoad(t *testing.T) {
 					Local: &AuthorizationLocalConfig{
 						Policy: &AuthorizationSourceLocalConfig{
 							Path:         "/path/to/policy.rego",
-							PollInterval: 30 * time.Second,
+							PollInterval: 5 * time.Minute,
 						},
 					},
 				}

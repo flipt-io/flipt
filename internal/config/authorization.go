@@ -29,24 +29,21 @@ type AuthorizationConfig struct {
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
-		switch v.GetString("authorization.backend") {
-		case string(AuthorizationBackendObject):
-			auth["object"] = map[string]any{
-				"type": S3ObjectAuthorizationBackendType,
-				"s3": map[string]any{
-					"poll_interval": "60s",
+		auth["backend"] = AuthorizationBackendLocal
+		if v.GetString("authorization.local.data.path") == "" {
+			auth["local"] = map[string]any{
+				"policy": map[string]any{
+					"poll_interval": "5m",
 				},
 			}
-		default:
-			auth["backend"] = AuthorizationBackendLocal
-			auth["local.policy"] = map[string]any{
-				"poll_interval": "5m",
-			}
-
-			if v.GetString("authorization.local.data.path") != "" {
-				auth["local.data"] = map[string]any{
+		} else {
+			auth["local"] = map[string]any{
+				"policy": map[string]any{
+					"poll_interval": "5m",
+				},
+				"data": map[string]any{
 					"poll_interval": "30s",
-				}
+				},
 			}
 		}
 
@@ -132,7 +129,7 @@ func (c *AuthorizationLocalConfig) validate() error {
 }
 
 type AuthorizationSourceLocalConfig struct {
-	Path         string        `json:"path,omitempty" mapstructure:"path" yaml:"backend,path"`
+	Path         string        `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
@@ -145,8 +142,8 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 		return errors.New("path must be non-empty string")
 	}
 
-	if a.Path != "" && a.PollInterval <= 0 {
-		return errors.New("poll_interval must be non-zero")
+	if a.PollInterval <= 0 {
+		return errors.New("poll_interval must be greater than zero")
 	}
 
 	return nil
@@ -193,10 +190,6 @@ func (a *AuthorizationSourceObjectConfig) validate() error {
 			return errors.New("s3 bucket must be specified")
 		}
 
-		if a.S3.PollInterval < 60*time.Second {
-			return errors.New("s3 poll_interval must be at least 60s")
-		}
-
 	default:
 		return errors.New("object storage type must be specified")
 	}
@@ -235,9 +228,7 @@ bundles:
   flipt:
     service: s3
     resource: %s
-    polling:
-      min_delay_seconds: %d
-`, url.String(), path.Join(a.S3.Bucket, a.S3.Prefix, "bundle.tar.gz"), int(a.S3.PollInterval.Seconds()))
+`, url.String(), path.Join(a.S3.Bucket, a.S3.Prefix, "bundle.tar.gz"))
 	}
 
 	return tmpl
@@ -245,23 +236,20 @@ bundles:
 
 // S3AuthorizationSource contains configuration for referencing a s3 bucket
 type S3AuthorizationSource struct {
-	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
-	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
-	Region       string        `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	Endpoint string `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
+	Bucket   string `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
+	Prefix   string `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
+	Region   string `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
 }
 
 // AZBlobSAuthorizationSource contains configuration for referencing a Azure Blob Storage
 // type AZBlobAuthorizationSource struct {
 // 	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 // 	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
-// 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 // }
 
 // GSAuthorizationSource contains configuration for referencing a Google Cloud Storage
 // type GSAuthorizationSource struct {
 // 	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
 // 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
-// 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 // }

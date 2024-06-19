@@ -1,4 +1,4 @@
-package rego
+package filesystem
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"os"
 	"time"
+
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 )
 
 // LocalPolicySource is an implementation of PolicySource
@@ -14,9 +16,9 @@ type LocalPolicySource struct {
 	path string
 }
 
-// LocalPolicySourceFromPath builds an instance of *policySourceFromPath which reads the provided
+// LocalPolicySourceFromPath builds an instance of *PolicySourceFromPath which reads the provided
 // path and returns the located policy
-func policySourceFromPath(path string) *LocalPolicySource {
+func PolicySourceFromPath(path string) *LocalPolicySource {
 	return &LocalPolicySource{path}
 }
 
@@ -33,9 +35,9 @@ type LocalDataSource struct {
 	path string
 }
 
-// dataSourceFromPath builds an instance of *LocalDataSource which reads the provided
+// DataSourceFromPath builds an instance of *LocalDataSource which reads the provided
 // path and parses it as JSON on calls to Get
-func dataSourceFromPath(path string) *LocalDataSource {
+func DataSourceFromPath(path string) *LocalDataSource {
 	return &LocalDataSource{path: path}
 }
 
@@ -62,7 +64,7 @@ func read(path string, seen []byte) (data, mod []byte, err error) {
 
 	mod = []byte(info.ModTime().Format(time.RFC3339))
 	if seen != nil && bytes.Equal(seen, mod) {
-		return nil, nil, errNotModified
+		return nil, nil, source.ErrNotModified
 	}
 
 	data, err = os.ReadFile(path)

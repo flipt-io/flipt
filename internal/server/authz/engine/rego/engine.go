@@ -13,16 +13,14 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
 	"go.uber.org/zap"
 )
 
 var (
 	_                         authz.Verifier = (*Engine)(nil)
 	defaultPolicyPollDuration                = 5 * time.Minute
-
-	// errNotModified is returned from a source when the data has not
-	// been modified, identified based on the provided hash value
-	errNotModified = errors.New("not modified")
 )
 
 type CachedSource[T any] interface {
@@ -72,7 +70,7 @@ func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 // NewEngine creates a new local authorization engine
 func NewEngine(ctx context.Context, logger *zap.Logger, config *config.Config) (*Engine, error) {
 	opts := []containers.Option[Engine]{
-		withPolicySource(policySourceFromPath(config.Authorization.Local.Policy.Path)),
+		withPolicySource(filesystem.PolicySourceFromPath(config.Authorization.Local.Policy.Path)),
 	}
 
 	if config.Authorization.Local.Policy.PollInterval > 0 {
@@ -81,7 +79,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, config *config.Config) (
 
 	if config.Authorization.Local.Data != nil {
 		opts = append(opts, withDataSource(
-			dataSourceFromPath(config.Authorization.Local.Data.Path),
+			filesystem.DataSourceFromPath(config.Authorization.Local.Data.Path),
 			config.Authorization.Local.Data.PollInterval,
 		))
 	}
@@ -168,7 +166,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	policy, hash, err := e.policySource.Get(ctx, e.policyHash)
 	if err != nil {
-		if errors.Is(err, errNotModified) {
+		if errors.Is(err, source.ErrNotModified) {
 			return nil
 		}
 
@@ -198,7 +196,7 @@ func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error)
 
 	data, hash, err := e.dataSource.Get(ctx, e.dataHash)
 	if err != nil {
-		if errors.Is(err, errNotModified) {
+		if errors.Is(err, source.ErrNotModified) {
 			return nil
 		}
 
