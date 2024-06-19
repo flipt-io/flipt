@@ -41,7 +41,7 @@ const Rollout = forwardRef(
       style={style}
       className={`${className} bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
-      <div className="bg-white border-gray-200 w-full border-b p-2 ">
+      <div className="bg-white border-gray-200 w-full border-b p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}

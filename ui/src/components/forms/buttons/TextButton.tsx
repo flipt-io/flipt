@@ -25,11 +25,7 @@ export default function TextButton(props: ButtonProps) {
         !disabled && onClick && onClick(e);
       }}
       className={cls(
-        `enabled:cursor-hand enabled:cursor text-gray-300 mb-1 inline-flex items-center justify-center
-        rounded-md border-0
-        text-sm font-medium enabled:text-gray-500 enabled:hover:text-gray-600 focus:outline-none
-        disabled:cursor-not-allowed
-        `,
+        `enabled:cursor-hand enabled:cursor text-gray-300 mb-1 inline-flex items-center justify-center rounded-md border-0 text-sm font-medium enabled:text-gray-500 enabled:hover:text-gray-600 focus:outline-none disabled:cursor-not-allowed`,
         className
       )}
       disabled={disabled}

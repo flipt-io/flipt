@@ -210,7 +210,7 @@ func (a *AuthorizationSourceObjectConfig) String() string {
 		tmpl string
 	)
 
-	switch a.Type {
+	switch a.Type { //nolint
 	case S3ObjectAuthorizationBackendType:
 		if a.S3.Endpoint != "" {
 			url.WriteString(a.S3.Endpoint)
