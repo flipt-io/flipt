@@ -841,7 +841,7 @@ func authzS3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Con
 		return func() error { return err }
 	}
 
-	flipt = flipt.
+	fliptToTest := flipt.
 		WithServiceBinding("minio", minio).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
@@ -852,9 +852,10 @@ func authzS3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Con
 		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_TYPE", "s3").
 		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("FLIPT_AUTHORIZATION_OBJECT_S3_BUCKET", "testdata").
-		WithEnvVariable("UNIQUE", uuid.New().String())
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
 
-	return suite(ctx, "authz", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "authz", base, fliptToTest, conf)
 }
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
