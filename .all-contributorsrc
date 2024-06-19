@@ -448,6 +448,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mbezhanov",
+      "name": "Marin Bezhanov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/785542?v=4",
+      "profile": "https://www.linkedin.com/in/mbezhanov",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
