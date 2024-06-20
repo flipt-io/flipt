@@ -28,7 +28,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source=. cli
+          args: test --source .:default cli
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
   test:
@@ -67,7 +67,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source=. integration --cases ${{ matrix.test }}
+          args: test --source .:default integration --cases ${{ matrix.test }}
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Flipt Service Logs
@@ -91,5 +91,5 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source=. ui
+          args: test --source .:default ui
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
