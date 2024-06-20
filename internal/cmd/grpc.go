@@ -27,6 +27,7 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/cloud"
+	"go.flipt.io/flipt/internal/server/audit/kafka"
 	"go.flipt.io/flipt/internal/server/audit/log"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
@@ -418,6 +419,15 @@ func NewGRPCServer(
 		}
 
 		sinks = append(sinks, cloudSink)
+	}
+
+	if cfg.Audit.Sinks.Kafka.Enabled {
+		kafkaCfg := cfg.Audit.Sinks.Kafka
+		kafkaSink, err := kafka.NewSink(ctx, logger, kafkaCfg)
+		if err != nil {
+			return nil, err
+		}
+		sinks = append(sinks, kafkaSink)
 	}
 
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
