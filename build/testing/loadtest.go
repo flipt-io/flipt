@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"dagger.io/dagger"
 	"github.com/google/uuid"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {

@@ -3,7 +3,7 @@ package authz
 import (
 	"testing"
 
-	"go.flipt.io/flipt/build/testing/integration"
+	"go.flipt.io/build/testing/integration"
 )
 
 func TestAuthz(t *testing.T) {
