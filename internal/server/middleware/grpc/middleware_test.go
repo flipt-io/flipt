@@ -118,8 +118,13 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		},
 		{
 			name:     "unauthenticated error",
-			wantErr:  errors.NewErrorf[errors.ErrUnauthenticated]("user %q not found", "foo"),
+			wantErr:  errors.ErrUnauthenticatedf("user %q not found", "foo"),
 			wantCode: codes.Unauthenticated,
+		},
+		{
+			name:     "unauthorized error",
+			wantErr:  errors.ErrUnauthorizedf("user %q not authorized, missing role", "foo"),
+			wantCode: codes.PermissionDenied,
 		},
 		{
 			name:     "other error",

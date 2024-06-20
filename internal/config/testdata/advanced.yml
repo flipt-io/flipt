@@ -109,15 +109,14 @@ authentication:
 
 authorization:
   required: true
-  policy:
-    backend: local
-    local:
+  backend: local
+  local:
+    policy:
       path: "/path/to/policy.rego"
-    poll_interval: 1m
-  data:
-    backend: local
-    local:
+      poll_interval: 1m
+    data:
       path: "/path/to/policy/data.json"
+      poll_interval: 1m
 
 experimental:
   authorization:

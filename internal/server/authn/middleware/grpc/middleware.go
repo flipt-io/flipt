@@ -2,12 +2,15 @@ package grpc_middleware
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"go.flipt.io/flipt/errors"
+
+	errs "errors"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -47,7 +50,7 @@ func (a authenticationScheme) String() string {
 	}
 }
 
-var ErrUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
+var errUnauthenticated = errors.ErrUnauthenticatedf("request was not authenticated")
 
 type authenticationContextKey struct{}
 
@@ -130,7 +133,7 @@ func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Optio
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
 			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -165,7 +168,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		token, err := jwtFromMetadata(md)
@@ -174,7 +177,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 				zap.String("reason", "no authorization provided"),
 				zap.Error(err))
 
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		jwtClaims, err := validator.Validate(ctx, token, expected)
@@ -183,17 +186,17 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 				zap.String("reason", "error validating jwt"),
 				zap.Error(err))
 
-			if errors.Is(err, context.Canceled) {
+			if errs.Is(err, context.Canceled) {
 				err = status.Error(codes.Canceled, err.Error())
 				return ctx, err
 			}
 
-			if errors.Is(err, context.DeadlineExceeded) {
+			if errs.Is(err, context.DeadlineExceeded) {
 				err = status.Error(codes.DeadlineExceeded, err.Error())
 				return ctx, err
 			}
 
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		metadata := map[string]string{}
@@ -264,7 +267,7 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		clientToken, err := clientTokenFromMetadata(md)
@@ -273,7 +276,7 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 				zap.String("reason", "no authorization provided"),
 				zap.Error(err))
 
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
@@ -282,17 +285,17 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 				zap.String("reason", "error retrieving authentication for client token"),
 				zap.Error(err))
 
-			if errors.Is(err, context.Canceled) {
+			if errs.Is(err, context.Canceled) {
 				err = status.Error(codes.Canceled, err.Error())
 				return ctx, err
 			}
 
-			if errors.Is(err, context.DeadlineExceeded) {
+			if errs.Is(err, context.DeadlineExceeded) {
 				err = status.Error(codes.DeadlineExceeded, err.Error())
 				return ctx, err
 			}
 
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
@@ -300,7 +303,7 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 				zap.String("reason", "authorization expired"),
 				zap.String("authentication_id", auth.Id),
 			)
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
@@ -333,7 +336,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
 		if !ok {
 			logger.Debug("no email provided but required for auth")
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		matched := false
@@ -346,7 +349,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 
 		if !matched {
 			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -384,7 +387,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 		if !ok || !nsServer.AllowsNamespaceScopedAuthentication(ctx) {
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		namespace = strings.TrimSpace(namespace)
@@ -417,20 +420,20 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 				if reqNamespace != ns {
 					logger.Error("unauthenticated",
 						zap.String("reason", "namespace is not allowed"))
-					return ctx, ErrUnauthenticated
+					return ctx, errUnauthenticated
 				}
 			}
 		default:
 			// if the the token has a namespace but the request does not then we should reject the request
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		if reqNamespace != namespace {
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
-			return ctx, ErrUnauthenticated
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -465,7 +468,7 @@ func jwtFromMetadata(md metadata.MD) (string, error) {
 		return fromAuthorization(authenticationHeader[0], authenticationSchemeJWT)
 	}
 
-	return "", ErrUnauthenticated
+	return "", errUnauthenticated
 }
 
 func fromAuthorization(auth string, scheme authenticationScheme) (string, error) {
@@ -474,5 +477,5 @@ func fromAuthorization(auth string, scheme authenticationScheme) (string, error)
 		return a, nil
 	}
 
-	return "", ErrUnauthenticated
+	return "", errUnauthenticated
 }
