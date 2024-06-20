@@ -320,7 +320,7 @@ export default function Segment() {
             </div>
             <div className="my-10">
               {segment.constraints && segment.constraints.length > 0 ? (
-                <table className=" min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300">
                   <thead>
                     <tr>
                       <th

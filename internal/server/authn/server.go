@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/audit"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
@@ -131,7 +132,7 @@ func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*
 		return auth, nil
 	}
 
-	return nil, authmiddlewaregrpc.ErrUnauthenticated
+	return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 }
 
 // GetAuthentication returns the Authentication identified by the supplied id.
@@ -203,5 +204,5 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
 	}
 
-	return nil, authmiddlewaregrpc.ErrUnauthenticated
+	return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 }

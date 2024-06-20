@@ -65,6 +65,8 @@ func WithServerSkipsAuthorization(server any) containers.Option[InterceptorOptio
 	}
 }
 
+var errUnauthorized = errors.ErrUnauthorizedf("permission denied")
+
 func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.Verifier, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
@@ -79,13 +81,13 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 		requester, ok := req.(flipt.Requester)
 		if !ok {
 			logger.Error("request must implement flipt.Requester", zap.String("method", info.FullMethod))
-			return ctx, errors.ErrUnauthorized("request not authorized")
+			return ctx, errUnauthorized
 		}
 
 		auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 		if auth == nil {
 			logger.Error("unauthorized", zap.String("reason", "authentication required"))
-			return ctx, errors.ErrUnauthorized("authentication required")
+			return ctx, errUnauthorized
 		}
 
 		request := requester.Request()
@@ -97,12 +99,12 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 
 		if err != nil {
 			logger.Error("unauthorized", zap.Error(err))
-			return ctx, errors.ErrUnauthorized("permission denied")
+			return ctx, errUnauthorized
 		}
 
 		if !allowed {
 			logger.Error("unauthorized", zap.String("reason", "permission denied"))
-			return ctx, errors.ErrUnauthorized("permission denied")
+			return ctx, errUnauthorized
 		}
 
 		return handler(ctx, req)

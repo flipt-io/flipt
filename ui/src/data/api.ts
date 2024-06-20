@@ -42,24 +42,22 @@ function headerCsrf(): Record<string, string> {
 
 // TODO: find a better name for this
 export function checkResponse(response: Response) {
-  if (!response.ok) {
-    if (response.status === 401) {
-      const session = window.localStorage.getItem(sessionKey);
-      window.localStorage.removeItem(csrfTokenHeaderKey);
-      window.localStorage.removeItem(sessionKey);
-      if (session) {
-        try {
-          const user = getUser(JSON.parse(session));
-          if (user?.issuer) {
-            window.location.href = `//${user.issuer}`;
-            return;
-          }
-        } catch (e) {
-          //
+  if (!response.ok && response.status === 401) {
+    const session = window.localStorage.getItem(sessionKey);
+    window.localStorage.removeItem(csrfTokenHeaderKey);
+    window.localStorage.removeItem(sessionKey);
+    if (session) {
+      try {
+        const user = getUser(JSON.parse(session));
+        if (user?.issuer) {
+          window.location.href = `//${user.issuer}`;
+          return;
         }
+      } catch (e) {
+        //
       }
-      window.location.reload();
     }
+    window.location.reload();
   }
 }
 
