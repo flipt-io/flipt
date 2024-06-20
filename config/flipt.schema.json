@@ -1344,6 +1344,29 @@
                 }
               },
               "title": "Cloud"
+            },
+            "kafka": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "topic": {
+                  "type": "string"
+                },
+                "bootstrap_servers": {
+                  "type": ["array", "null"],
+                  "items": { "type": "string" }
+                },
+                "encoding": {
+                  "type": "string",
+                  "enum": ["protobuf"],
+                  "default": "protobuf"
+                }
+              },
+              "title": "Kafka"
             }
           }
         },

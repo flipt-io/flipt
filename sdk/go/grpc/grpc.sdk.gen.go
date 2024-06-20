@@ -5,6 +5,7 @@ package grpc
 import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	analytics "go.flipt.io/flipt/rpc/flipt/analytics"
+	audit "go.flipt.io/flipt/rpc/flipt/audit"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
@@ -24,6 +25,10 @@ func NewTransport(cc grpc.ClientConnInterface) Transport {
 
 func (t Transport) AnalyticsClient() analytics.AnalyticsServiceClient {
 	return analytics.NewAnalyticsServiceClient(t.cc)
+}
+
+func (t Transport) AuditClient() audit.AuditEventServiceClient {
+	return audit.NewAuditEventServiceClient(t.cc)
 }
 
 type authClient struct {

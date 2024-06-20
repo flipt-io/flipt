@@ -391,6 +391,12 @@ import "strings"
 			cloud?: {
 				enabled?: bool | *false
 			}
+			kafka?: {
+				enabled?: bool | *false
+				topic:    string
+				bootstrap_servers: [...string]
+				encoding?: string | *"protobuf"
+			}
 		}
 		buffer?: {
 			capacity?:     int | *2
