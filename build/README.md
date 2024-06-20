@@ -33,7 +33,7 @@ It comes with a nice TUI.
 
 ## Build
 
-```
+```console
 dagger call build
 ```
 
