@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  DAGGER_VERSION: "0.9.5"
+  DAGGER_VERSION: "0.11.8"
   DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
 concurrency:
@@ -30,18 +30,12 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run CLI Tests
-        run: mage dagger:run test:cli
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source=. cli
 
   test:
     name: Integration Tests
@@ -66,8 +60,8 @@ jobs:
             "fs/azblob",
             "fs/gcs",
             "import/export",
-            "authn/sqlite",
-            "authz/sqlite",
+            "authn",
+            "authz",
           ]
     steps:
       - uses: actions/checkout@v4
@@ -80,18 +74,12 @@ jobs:
 
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run Integration Tests
-        run: mage dagger:run "test:integration ${{ matrix.test }}"
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source=. integration --cases ${{ matrix.test }}
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4
@@ -115,15 +103,9 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run UI Tests
-        run: mage dagger:run test:ui
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source=. ui

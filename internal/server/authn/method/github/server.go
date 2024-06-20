@@ -12,7 +12,6 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method"
-	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -195,7 +194,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 				return userTeams[team]
 			})
 		}) {
-			return nil, authmiddlewaregrpc.ErrUnauthenticated
+			return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 		}
 	}
 

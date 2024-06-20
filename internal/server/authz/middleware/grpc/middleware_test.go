@@ -25,6 +25,10 @@ func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any
 	return v.isAllowed, v.wantErr
 }
 
+func (v *mockPolicyVerifier) Shutdown(_ context.Context) error {
+	return nil
+}
+
 // mockServer is used to test skipping authz
 type mockServer struct {
 	skipsAuthz bool

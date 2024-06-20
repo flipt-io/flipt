@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"dagger.io/dagger"
 	"github.com/google/go-cmp/cmp"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func flipt(args ...string) []string {

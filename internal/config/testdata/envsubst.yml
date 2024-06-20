@@ -1,0 +1,4 @@
+server:
+  http_port: ${HTTP_PORT}
+log:
+  encoding: ${LOG_FORMAT}

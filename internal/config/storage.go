@@ -37,12 +37,12 @@ const (
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type     StorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
-	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
-	OCI      *OCI        `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
-	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
+	Type     StorageType          `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Local    *StorageLocalConfig  `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Git      *StorageGitConfig    `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
+	Object   *StorageObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
+	OCI      *StorageOCIConfig    `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
+	ReadOnly *bool                `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
@@ -151,8 +151,8 @@ func (c *StorageConfig) validate() error {
 	return nil
 }
 
-// Local contains configuration for referencing a local filesystem.
-type Local struct {
+// StorageLocalConfig contains configuration for referencing a local filesystem.
+type StorageLocalConfig struct {
 	Path string `json:"path,omitempty" mapstructure:"path"`
 }
 
@@ -164,8 +164,8 @@ const (
 	GitRefTypeSemver GitRefType = "semver"
 )
 
-// Git contains configuration for referencing a git repository.
-type Git struct {
+// StorageGitConfig contains configuration for referencing a git repository.
+type StorageGitConfig struct {
 	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 	Backend         GitBackend     `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
@@ -178,7 +178,7 @@ type Git struct {
 	Authentication  Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
 }
 
-func (g *Git) validate() error {
+func (g *StorageGitConfig) validate() error {
 	if g.CaCertPath != "" && g.CaCertBytes != "" {
 		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
 	}
@@ -202,16 +202,16 @@ type GitBackend struct {
 	Path string         `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
 }
 
-// Object contains configuration of readonly object storage.
-type Object struct {
+// StorageObjectConfig contains configuration of readonly object storage.
+type StorageObjectConfig struct {
 	Type   ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	S3     *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
-	AZBlob *AZBlob              `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
-	GS     *GS                  `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
+	S3     *S3Storage           `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
+	AZBlob *AZBlobStorage       `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
+	GS     *GSStorage           `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
 }
 
 // validate is only called if storage.type == "object"
-func (o *Object) validate() error {
+func (o *StorageObjectConfig) validate() error {
 	switch o.Type {
 	case S3ObjectSubStorageType:
 		if o.S3 == nil || o.S3.Bucket == "" {
@@ -231,8 +231,8 @@ func (o *Object) validate() error {
 	return nil
 }
 
-// S3 contains configuration for referencing a s3 bucket
-type S3 struct {
+// S3Storage contains configuration for referencing a s3 bucket
+type S3Storage struct {
 	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
@@ -240,15 +240,15 @@ type S3 struct {
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
-// AZBlob contains configuration for referencing a Azure Blob Storage
-type AZBlob struct {
+// AZBlobStorage contains configuration for referencing a Azure Blob Storage
+type AZBlobStorage struct {
 	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
-// GS contains configuration for referencing a Google Cloud Storage
-type GS struct {
+// GSStorage contains configuration for referencing a Google Cloud Storage
+type GSStorage struct {
 	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
 	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
@@ -344,8 +344,8 @@ const (
 	OCIManifestVersion11 OCIManifestVersion = "1.1"
 )
 
-// OCI provides configuration support for OCI target registries as a backend store for Flipt.
-type OCI struct {
+// StorageOCIConfig provides configuration support for StorageOCIConfig target registries as a backend store for Flipt.
+type StorageOCIConfig struct {
 	// Repository is the target repository and reference to track.
 	// It should be in the form [<registry>/]<bundle>[:<tag>].
 	// When the registry is omitted, the bundle is referenced via the local bundle store.

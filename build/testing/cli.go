@@ -3,18 +3,17 @@ package testing
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
-	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
+	"go.flipt.io/build/internal/dagger"
 )
 
-func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container) error {
+func CLI(ctx context.Context, client *dagger.Client, source *dagger.Directory, container *dagger.Container) error {
 	{
 		container := container.Pipeline("flipt --help")
-		expected, err := os.ReadFile("build/testing/testdata/cli.txt")
+		expected, err := source.File("build/testing/testdata/cli.txt").Contents(ctx)
 		if err != nil {
 			return err
 		}
@@ -93,7 +92,7 @@ exit $?`,
 		container := container.Pipeline("flipt (user config directory)")
 		container = container.
 			WithExec([]string{"mkdir", "-p", "/home/flipt/.config/flipt"}).
-			WithFile("/home/flipt/.config/flipt/config.yml", client.Host().Directory("build/testing/testdata").File("default.yml")).
+			WithFile("/home/flipt/.config/flipt/config.yml", source.Directory("build/testing/testdata").File("default.yml")).
 			// in order to stop a blocking process via SIGTERM and capture a successful exit code
 			// we use a shell script to start flipt in the background, sleep for two seconds,
 			// send the SIGTERM signal, wait for process to exit and then propagate Flipts exit code
@@ -168,7 +167,7 @@ exit $?`,
 		}
 
 		container = container.WithFile("/tmp/flipt.yml",
-			client.Host().Directory("build/testing/testdata").File("flipt.yml"), opts)
+			source.Directory("build/testing/testdata").File("flipt.yml"), opts)
 
 		// import via STDIN succeeds
 		if _, err = assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin")); err != nil {
@@ -226,7 +225,7 @@ exit $?`,
 		}
 
 		container = container.WithFile("/tmp/flipt.yml",
-			client.Host().Directory("build/testing/testdata").File("flipt-namespace-foo.yml"), opts)
+			source.Directory("build/testing/testdata").File("flipt-namespace-foo.yml"), opts)
 
 		// import via STDIN succeeds
 		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
@@ -272,7 +271,7 @@ exit $?`,
 		}
 
 		container = container.WithFile("/tmp/flipt.yml",
-			client.Host().Directory("build/testing/testdata").File("flipt-yaml-stream.yml"),
+			source.Directory("build/testing/testdata").File("flipt-yaml-stream.yml"),
 			opts,
 		)
 

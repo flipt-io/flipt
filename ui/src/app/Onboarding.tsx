@@ -99,7 +99,7 @@ function OnboardingTile(props: OnboardingTileProps) {
   return (
     <div
       className={cls(
-        'group  relative flex flex-col justify-between overflow-hidden rounded-xl hover:border-gray-300 hover:shadow-md hover:shadow-violet-300',
+        'group relative flex flex-col justify-between overflow-hidden rounded-xl hover:border-gray-300 hover:shadow-md hover:shadow-violet-300',
         // light styles
         'bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]',
         // dark styles

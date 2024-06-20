@@ -1,8 +1,9 @@
-package authz
+package rego
 
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
@@ -12,7 +13,14 @@ import (
 
 func TestEngine_NewEngine(t *testing.T) {
 	ctx := context.Background()
-	engine, err := NewEngine(ctx, zaptest.NewLogger(t), testRBACPolicy, WithDataSource(testRoleDefinitions, 5*time.Second))
+
+	policy, err := os.ReadFile("../testdata/rbac.rego")
+	require.NoError(t, err)
+
+	data, err := os.ReadFile("../testdata/rbac.json")
+	require.NoError(t, err)
+
+	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
 	require.NoError(t, err)
 	require.NotNil(t, engine)
 }
@@ -189,8 +197,14 @@ func TestEngine_IsAllowed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			policy, err := os.ReadFile("../testdata/rbac.rego")
+			require.NoError(t, err)
+
+			data, err := os.ReadFile("../testdata/rbac.json")
+			require.NoError(t, err)
+
 			ctx := context.Background()
-			engine, err := NewEngine(ctx, zaptest.NewLogger(t), testRBACPolicy, WithDataSource(testRoleDefinitions, 5*time.Second))
+			engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
 			require.NoError(t, err)
 
 			var input map[string]interface{}
@@ -216,124 +230,3 @@ type dataSource string
 func (d dataSource) Get(context.Context, []byte) (data map[string]any, _ []byte, _ error) {
 	return data, nil, json.Unmarshal([]byte(d), &data)
 }
-
-var (
-	testRBACPolicy = policySource(`package flipt.authz.v1
-
-import data
-import rego.v1
-
-default allow = false
-
-allow if {
-	some rule in has_rules
-
-	permit_string(rule.resource, input.request.resource)
-	permit_slice(rule.actions, input.request.action)
-	permit_string(rule.namespace, input.request.namespace)
-}
-
-allow if {
-	some rule in has_rules
-
-	permit_string(rule.resource, input.request.resource)
-	permit_slice(rule.actions, input.request.action)
-	not rule.namespace
-}
-
-has_rules contains rules if {
-	some role in data.roles
-	role.name == input.authentication.metadata["io.flipt.auth.role"]
-	rules := role.rules[_]
-}
-
-permit_string(allowed, _) if {
-	allowed == "*"
-}
-
-permit_string(allowed, requested) if {
-	allowed == requested
-}
-
-permit_slice(allowed, _) if {
-	allowed[_] = "*"
-}
-
-permit_slice(allowed, requested) if {
-	allowed[_] = requested
-}`)
-	testRoleDefinitions = dataSource(`{
-    "version": "0.1.0",
-    "roles": [
-        {
-            "name": "admin",
-            "rules": [
-                {
-                    "resource": "*",
-                    "actions": [
-                        "*"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "editor",
-            "rules": [
-                {
-                    "resource": "namespace",
-                    "actions": [
-                        "read"
-                    ]
-                },
-                {
-                    "resource": "authentication",
-                    "actions": [
-                        "read"
-                    ]
-                },
-                {
-                    "resource": "flag",
-                    "actions": [
-                        "create",
-                        "read",
-                        "update",
-                        "delete"
-                    ]
-                },
-                {
-                    "resource": "segment",
-                    "actions": [
-                        "create",
-                        "read",
-                        "update",
-                        "delete"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "viewer",
-            "rules": [
-                {
-                    "resource": "*",
-                    "actions": [
-                        "read"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "namespaced_viewer",
-            "rules": [
-                {
-                    "resource": "*",
-                    "actions": [
-                        "read"
-                    ],
-                    "namespace": "foo"
-                }
-            ]
-        }
-    ]
-}`)
-)
