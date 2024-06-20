@@ -7,6 +7,15 @@
     "screenshots",
     "ui/node_modules"
   ],
+  "views": [
+    {
+      "name": "default",
+      "patterns": [
+        "!.git",
+        "!**/node_modules"
+      ]
+    }
+  ],
   "source": "build",
   "engineVersion": "v0.11.6"
 }
