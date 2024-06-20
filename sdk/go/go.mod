@@ -4,8 +4,8 @@ go 1.22
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.38.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20240520151616-dc85e6b867a5
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291
+	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240617180043-68d350f18fd4
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.2
 )

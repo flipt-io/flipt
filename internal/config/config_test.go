@@ -244,6 +244,20 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "environment variable substitution",
+			path: "./testdata/envsubst.yml",
+			envOverrides: map[string]string{
+				"HTTP_PORT":  "18080",
+				"LOG_FORMAT": "json",
+			},
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Log.Encoding = "json"
+				cfg.Server.HTTPPort = 18080
+				return cfg
+			},
+		},
+		{
 			name: "deprecated tracing jaeger",
 			path: "./testdata/deprecated/tracing_jaeger.yml",
 			expected: func() *Config {

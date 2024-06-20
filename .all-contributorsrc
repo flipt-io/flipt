@@ -427,7 +427,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/7981032?v=4",
       "profile": "http://levlaz.org",
       "contributions": [
-        "doc"
+        "doc",
+        "code"
       ]
     },
     {
@@ -435,6 +436,24 @@
       "name": "Kyryl Perepelytsia",
       "avatar_url": "https://avatars.githubusercontent.com/u/46731109?v=4",
       "profile": "https://github.com/kyryl-perepelytsia",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "PythonHacker24",
+      "name": "Aditya Patil",
+      "avatar_url": "https://avatars.githubusercontent.com/u/72488360?v=4",
+      "profile": "http://pythonhacker24.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mbezhanov",
+      "name": "Marin Bezhanov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/785542?v=4",
+      "profile": "https://www.linkedin.com/in/mbezhanov",
       "contributions": [
         "code"
       ]
