@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json
+
+version: "1.0"
+
+cloud:
+  organization: alextest
+  gateway: staging
+  authentication:
+    api_key: d9cc265ef037b9aef509cc10d8956648
+  host: cloud.flipt.dev
+
+server:
+  cloud:
+    enabled: true
+
+authentication:
+  required: true
+  methods:
+    cloud:
+      enabled: true
+
+audit:
+  sinks:
+    cloud:
+      enabled: true
+
+experimental:
+  cloud:
+    enabled: true

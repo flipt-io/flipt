@@ -29,3 +29,7 @@ cors:
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
+
+experimental:
+  cloud:
+    enabled: true
