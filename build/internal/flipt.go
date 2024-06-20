@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"path"
 	"time"
@@ -53,17 +52,9 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 			WithFile(sum, source.File(sum))
 	}
 
-	// add base dependencies to initialize project with
-	contents, err := source.File("go.work.sum").Contents(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sum := fmt.Sprintf("%x", sha256.Sum256([]byte(contents)))
-
 	var (
-		cacheGoBuild = dag.CacheVolume(fmt.Sprintf("go-build-%s", sum))
-		cacheGoMod   = dag.CacheVolume(fmt.Sprintf("go-mod-%s", sum))
+		cacheGoBuild = dag.CacheVolume("go-build-cache")
+		cacheGoMod   = dag.CacheVolume("go-mod-cache")
 	)
 
 	golang = golang.WithEnvVariable("GOOS", platform.OS).
