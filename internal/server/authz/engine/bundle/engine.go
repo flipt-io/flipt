@@ -81,12 +81,8 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 		return false, err
 	}
 
-	allow, ok := dec.Result.(bool)
-	if !ok || !allow {
-		return false, nil
-	}
-
-	return true, nil
+	allow, _ := dec.Result.(bool)
+	return allow, nil
 }
 
 func (e *Engine) Shutdown(ctx context.Context) error {

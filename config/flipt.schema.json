@@ -343,7 +343,7 @@
         },
         "backend": {
           "type": "string",
-          "enum": ["", "local"],
+          "enum": ["", "local", "object", "bundle"],
           "default": ""
         },
         "local": {
@@ -371,6 +371,45 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "object": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["s3"],
+              "default": "s3"
+            },
+            "s3": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "region": {
+                  "type": "string"
+                },
+                "bucket": {
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                }
+              },
+              "title": "S3"
+            }
+          }
+        },
+        "bundle": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "configuration": {
+              "type": "string"
             }
           }
         }
