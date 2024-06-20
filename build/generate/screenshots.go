@@ -9,22 +9,20 @@ import (
 	"path"
 	"time"
 
-	"dagger.io/dagger"
+	"go.flipt.io/build/internal/dagger"
 	"golang.org/x/sync/errgroup"
 )
 
-func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
+func Screenshots(ctx context.Context, client *dagger.Client, source *dagger.Directory, flipt *dagger.Container) error {
 	if err := os.RemoveAll("./tmp/screenshots"); err != nil {
 		return err
 	}
-	src := client.Host().Directory("./ui/", dagger.HostDirectoryOpts{
-		Include: []string{
-			"./package.json",
-			"./package-lock.json",
-			"./playwright.config.ts",
-			"/screenshots/",
-		},
-	})
+
+	src := client.Directory().WithFiles("ui", []*dagger.File{
+		source.File("ui/package.json"),
+		source.File("ui/package-lock.json"),
+		source.File("ui/playwright.config.ts"),
+	}).WithDirectory("ui/screenshot", source.Directory("ui/screenshot"))
 
 	contents, err := src.File("package-lock.json").Contents(ctx)
 	if err != nil {
@@ -43,12 +41,9 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 		return err
 	}
 
-	src = client.Host().Directory("./ui/", dagger.HostDirectoryOpts{
-		Exclude: []string{
-			"./dist/",
-			"./node_modules/",
-		},
-	})
+	src = source.Directory("./ui/").
+		WithoutDirectory("./dist/").
+		WithoutDirectory("./node_modules/")
 
 	// remount entire directory with module cache
 	ui, err = ui.WithMountedDirectory("/src", src).

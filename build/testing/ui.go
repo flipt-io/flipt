@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"dagger.io/dagger"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container) error {
