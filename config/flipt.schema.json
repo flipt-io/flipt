@@ -1410,16 +1410,6 @@
               "default": false
             }
           }
-        },
-        "authorization": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          }
         }
       },
       "title": "Experimental"

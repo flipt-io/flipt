@@ -22,6 +22,7 @@ type AuthorizationConfig struct {
 	Required bool                             `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
 	Backend  AuthorizationBackend             `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Local    *AuthorizationLocalConfig        `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Cloud    *AuthorizationSourceCloudConfig  `json:"cloud,omitempty" mapstructure:"cloud,omitempty" yaml:"cloud,omitempty"`
 	Bundle   *AuthorizationSourceBundleConfig `json:"bundle,omitempty" mapstructure:"bundle,omitempty" yaml:"bundle,omitempty"`
 	Object   *AuthorizationSourceObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 }
@@ -64,6 +65,16 @@ func (c *AuthorizationConfig) validate() error {
 			if err := c.Local.validate(); err != nil {
 				return fmt.Errorf("authorization: local: %w", err)
 			}
+
+		case AuthorizationBackendCloud:
+			if c.Cloud == nil {
+				return errors.New("authorization: cloud backend must be configured")
+			}
+
+			if err := c.Cloud.validate(); err != nil {
+				return fmt.Errorf("authorization: cloud: %w", err)
+			}
+
 		case AuthorizationBackendBundle:
 			if c.Bundle == nil {
 				return errors.New("authorization: bundle backend must be configured")
@@ -143,6 +154,18 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 		return errors.New("path must be non-empty string")
 	}
 
+	if a.PollInterval <= 0 {
+		return errors.New("poll_interval must be greater than zero")
+	}
+
+	return nil
+}
+
+type AuthorizationSourceCloudConfig struct {
+	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+}
+
+func (a *AuthorizationSourceCloudConfig) validate() error {
 	if a.PollInterval <= 0 {
 		return errors.New("poll_interval must be greater than zero")
 	}

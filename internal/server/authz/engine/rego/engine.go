@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/cloud"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
 	"go.uber.org/zap"
 )
@@ -68,25 +69,37 @@ func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 }
 
 // NewEngine creates a new local authorization engine
-func NewEngine(ctx context.Context, logger *zap.Logger, cfg config.AuthorizationConfig) (*Engine, error) {
-	var opts []containers.Option[Engine]
+func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*Engine, error) {
+	var (
+		opts       []containers.Option[Engine]
+		authConfig = cfg.Authorization
+	)
 
-	switch cfg.Backend {
+	switch authConfig.Backend {
 	case config.AuthorizationBackendLocal:
 		opts = []containers.Option[Engine]{
-			withPolicySource(filesystem.PolicySourceFromPath(cfg.Local.Policy.Path)),
+			withPolicySource(filesystem.PolicySourceFromPath(authConfig.Local.Policy.Path)),
 		}
 
-		if cfg.Local.Policy.PollInterval > 0 {
-			opts = append(opts, withPolicySourcePollDuration(cfg.Local.Policy.PollInterval))
+		if authConfig.Local.Policy.PollInterval > 0 {
+			opts = append(opts, withPolicySourcePollDuration(authConfig.Local.Policy.PollInterval))
 		}
 
-		if cfg.Local.Data != nil {
+		if authConfig.Local.Data != nil {
 			opts = append(opts, withDataSource(
-				filesystem.DataSourceFromPath(cfg.Local.Data.Path),
-				cfg.Local.Data.PollInterval,
+				filesystem.DataSourceFromPath(authConfig.Local.Data.Path),
+				authConfig.Local.Data.PollInterval,
 			))
 		}
+
+	case config.AuthorizationBackendCloud:
+		opts = []containers.Option[Engine]{
+			withPolicySource(cloud.PolicySourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey)),
+			withDataSource(cloud.DataSourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey), authConfig.Cloud.PollInterval),
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported authorization backend: %s", authConfig.Backend)
 	}
 
 	return newEngine(ctx, logger, opts...)

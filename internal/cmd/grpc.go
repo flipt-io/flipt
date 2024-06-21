@@ -556,7 +556,7 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		var err error
 		switch cfg.Authorization.Backend {
 		case config.AuthorizationBackendLocal:
-			validator, err = authzrego.NewEngine(ctx, logger, cfg.Authorization)
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
 
 		case config.AuthorizationBackendCloud:
 			if cfg.Cloud.Authentication.ApiKey == "" {
@@ -564,10 +564,10 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 				break
 			}
 
-			validator, err = authzrego.NewEngine(ctx, logger, cfg.Authorization)
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
 
 		default:
-			validator, err = authzbundle.NewEngine(ctx, logger, cfg.Authorization)
+			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
 		}
 
 		if err != nil {
