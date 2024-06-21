@@ -24,7 +24,7 @@ var (
 )
 
 type CachedSource[T any] interface {
-	Get(_ context.Context, hash []byte) (T, []byte, error)
+	Get(_ context.Context, hash source.Hash) (T, source.Hash, error)
 }
 
 type PolicySource CachedSource[[]byte]
@@ -39,10 +39,10 @@ type Engine struct {
 	store storage.Store
 
 	policySource PolicySource
-	policyHash   []byte
+	policyHash   source.Hash
 
 	dataSource DataSource
-	dataHash   []byte
+	dataHash   source.Hash
 
 	policySourcePollDuration time.Duration
 	dataSourcePollDuration   time.Duration
@@ -68,20 +68,25 @@ func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 }
 
 // NewEngine creates a new local authorization engine
-func NewEngine(ctx context.Context, logger *zap.Logger, config *config.Config) (*Engine, error) {
-	opts := []containers.Option[Engine]{
-		withPolicySource(filesystem.PolicySourceFromPath(config.Authorization.Local.Policy.Path)),
-	}
+func NewEngine(ctx context.Context, logger *zap.Logger, cfg config.AuthorizationConfig) (*Engine, error) {
+	var opts []containers.Option[Engine]
 
-	if config.Authorization.Local.Policy.PollInterval > 0 {
-		opts = append(opts, withPolicySourcePollDuration(config.Authorization.Local.Policy.PollInterval))
-	}
+	switch cfg.Backend {
+	case config.AuthorizationBackendLocal:
+		opts = []containers.Option[Engine]{
+			withPolicySource(filesystem.PolicySourceFromPath(cfg.Local.Policy.Path)),
+		}
 
-	if config.Authorization.Local.Data != nil {
-		opts = append(opts, withDataSource(
-			filesystem.DataSourceFromPath(config.Authorization.Local.Data.Path),
-			config.Authorization.Local.Data.PollInterval,
-		))
+		if cfg.Local.Policy.PollInterval > 0 {
+			opts = append(opts, withPolicySourcePollDuration(cfg.Local.Policy.PollInterval))
+		}
+
+		if cfg.Local.Data != nil {
+			opts = append(opts, withDataSource(
+				filesystem.DataSourceFromPath(cfg.Local.Data.Path),
+				cfg.Local.Data.PollInterval,
+			))
+		}
 	}
 
 	return newEngine(ctx, logger, opts...)

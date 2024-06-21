@@ -25,7 +25,7 @@ func PolicySourceFromPath(path string) *LocalPolicySource {
 // Get reads the *LocalPolicySource path as and returns it as a byte slice
 // If the mod time of the filepath has not changed based on the provided previously seen
 // mod time then it returns authz.ErrNotModified
-func (p *LocalPolicySource) Get(_ context.Context, seen []byte) ([]byte, []byte, error) {
+func (p *LocalPolicySource) Get(_ context.Context, seen source.Hash) ([]byte, source.Hash, error) {
 	return read(p.path, seen)
 }
 
@@ -45,14 +45,13 @@ func DataSourceFromPath(path string) *LocalDataSource {
 // modelled as a go map of string to any type
 // If the mod time of the filepath has not changed based on the provided previously seen
 // mod time then it returns authz.ErrNotModified
-func (d *LocalDataSource) Get(_ context.Context, seen []byte) (map[string]any, []byte, error) {
+func (d *LocalDataSource) Get(_ context.Context, seen source.Hash) (map[string]any, source.Hash, error) {
 	b, mod, err := read(d.path, seen)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	data := map[string]any{}
-
 	return data, mod, json.Unmarshal(b, &data)
 }
 

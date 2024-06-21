@@ -556,10 +556,20 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		var err error
 		switch cfg.Authorization.Backend {
 		case config.AuthorizationBackendLocal:
-			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+			validator, err = authzrego.NewEngine(ctx, logger, cfg.Authorization)
+
+		case config.AuthorizationBackendCloud:
+			if cfg.Cloud.Authentication.ApiKey == "" {
+				err = errors.New("cloud authorization requires an api key")
+				break
+			}
+
+			validator, err = authzrego.NewEngine(ctx, logger, cfg.Authorization)
+
 		default:
-			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
+			validator, err = authzbundle.NewEngine(ctx, logger, cfg.Authorization)
 		}
+
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return

@@ -93,6 +93,7 @@ type AuthorizationBackend string
 
 const (
 	AuthorizationBackendLocal  = AuthorizationBackend("local")
+	AuthorizationBackendCloud  = AuthorizationBackend("cloud")
 	AuthorizationBackendObject = AuthorizationBackend("object")
 	AuthorizationBackendBundle = AuthorizationBackend("bundle")
 )
