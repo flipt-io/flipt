@@ -11,7 +11,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"path"
@@ -96,19 +95,53 @@ func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	return cases, nil
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
-	cases, err := filterCases(caseNames...)
+type IntegrationOptions func(*integrationOptions)
+
+type integrationOptions struct {
+	// The test cases to run. If empty, all test cases are run.
+	cases []string
+	// Whether to export the logs from the test run.
+	exportLogs bool
+}
+
+func WithTestCases(cases ...string) func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.cases = cases
+	}
+}
+
+func WithExportLogs() func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.exportLogs = true
+	}
+}
+
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) error {
+	var options integrationOptions
+
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	cases, err := filterCases(options.cases...)
 	if err != nil {
 		return err
 	}
 
-	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
-	_, err = flipt.WithUser("root").
-		WithMountedCache("/logs", logs).
-		WithExec([]string{"chown", "flipt:flipt", "/logs"}).
-		Sync(ctx)
-	if err != nil {
-		return err
+	var (
+		exportLogs = options.exportLogs
+		logs       *dagger.CacheVolume
+	)
+
+	if exportLogs {
+		logs = client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
+		_, err = flipt.WithUser("root").
+			WithMountedCache("/logs", logs).
+			WithExec([]string{"chown", "flipt:flipt", "/logs"}).
+			Sync(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	var configs []testConfig
@@ -193,9 +226,13 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
-					WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-					WithMountedCache("/var/opt/flipt/logs", logs).
 					WithExposedPort(config.port)
+
+				if exportLogs {
+					flipt = flipt.WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
+						WithMountedCache("/var/opt/flipt/logs", logs)
+				}
+
 				return fn(ctx, client, base.Pipeline(name), flipt, config)()
 			}))
 		}
@@ -203,13 +240,13 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	err = g.Wait()
 
-	if _, lerr := client.Container().From("alpine:3.16").
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithMountedCache("/logs", logs).
-		WithExec([]string{"cp", "-r", "/logs", "/out"}).
-		Directory("/out").
-		Export(ctx, "build/logs"); lerr != nil {
-		log.Println("Error copying logs", lerr)
+	if exportLogs {
+		_, _ = client.Container().From("alpine:3.16").
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			WithMountedCache("/logs", logs).
+			WithExec([]string{"cp", "-r", "/logs", "/out"}).
+			Directory("/out").
+			Export(ctx, "build/logs")
 	}
 
 	return err

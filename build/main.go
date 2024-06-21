@@ -107,6 +107,9 @@ func (t *Test) Integration(
 	// +optional
 	// +default="*"
 	cases string,
+	// +optional
+	// +default=false
+	exportLogs bool,
 ) error {
 	if cases == "list" {
 		fmt.Println("Integration test cases:")
@@ -117,12 +120,16 @@ func (t *Test) Integration(
 		return nil
 	}
 
-	var tests []string
+	var opts []testing.IntegrationOptions
 	if cases != "*" {
-		tests = strings.Split(cases, " ")
+		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
 	}
 
-	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, tests...)
+	if exportLogs {
+		opts = append(opts, testing.WithExportLogs())
+	}
+
+	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
 }
 
 type Generate struct {
