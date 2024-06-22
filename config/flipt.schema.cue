@@ -119,7 +119,7 @@ import "strings"
 
 	#authorization: {
 		required?: bool | *false
-		backend:   "local" | "object" | "bundle" | *""
+		backend:   "local" | "object" | "bundle" | "cloud" | *""
 		local?: {
 			policy?: {
 				poll_interval: =~#duration | *"5m"
@@ -141,6 +141,9 @@ import "strings"
 		}
 		bundle?: {
 			configuration: string
+		}
+		cloud?: {
+			poll_interval: =~#duration | *"5m"
 		}
 	}
 
