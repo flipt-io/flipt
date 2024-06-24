@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
 )
@@ -33,9 +34,7 @@ type webhookTemplate struct {
 	headers      map[string]string
 	bodyTemplate *template.Template
 
-	maxBackoffDuration time.Duration
-
-	retryableClient audit.Retrier
+	httpClient *retryablehttp.Client
 }
 
 // Executer will try and send the event to the configured URL with all of the parameters.
@@ -51,32 +50,16 @@ func NewWebhookTemplate(logger *zap.Logger, url, body string, headers map[string
 		return nil, err
 	}
 
+	httpClient := retryablehttp.NewClient()
+	httpClient.Logger = logger
+	httpClient.RetryWaitMax = maxBackoffDuration
+
 	return &webhookTemplate{
-		url:                url,
-		bodyTemplate:       tmpl,
-		headers:            headers,
-		maxBackoffDuration: maxBackoffDuration,
-		retryableClient:    audit.NewRetrier(logger, maxBackoffDuration),
+		url:          url,
+		bodyTemplate: tmpl,
+		headers:      headers,
+		httpClient:   httpClient,
 	}, nil
-}
-
-func (w *webhookTemplate) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	for key, value := range w.headers {
-		req.Header.Add(key, value)
-	}
-
-	// Add the application/json header if it does not exist in the HTTP headers already.
-	value := req.Header.Get("Content-Type")
-	if !strings.HasPrefix(value, "application/json") {
-		req.Header.Add("Content-Type", "application/json")
-	}
-
-	return req, nil
 }
 
 // Execute will take in an HTTP client, and the event to send upstream to a destination. It will house the logic
@@ -95,7 +78,22 @@ func (w *webhookTemplate) Execute(ctx context.Context, event audit.Event) error 
 		return fmt.Errorf("invalid JSON: %s", buf.String())
 	}
 
-	err = w.retryableClient.RequestRetry(ctx, buf.Bytes(), w.createRequest)
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, w.url, buf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	for key, value := range w.headers {
+		req.Header.Add(key, value)
+	}
+
+	// Add the application/json header if it does not exist in the HTTP headers already.
+	value := req.Header.Get("Content-Type")
+	if !strings.HasPrefix(value, "application/json") {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	_, err = w.httpClient.Do(req)
 	if err != nil {
 		return err
 	}

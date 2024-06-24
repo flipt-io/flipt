@@ -3,9 +3,11 @@ package webhook
 import (
 	"context"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
-	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -13,14 +15,8 @@ import (
 	"go.uber.org/zap"
 )
 
-type dummyRetrier struct{}
-
-func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.RequestCreator) error {
-	return nil
-}
-
 func TestConstructorWebhookClient(t *testing.T) {
-	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "")
+	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "", retryablehttp.NewClient())
 
 	require.NotNil(t, client)
 
@@ -32,38 +28,28 @@ func TestConstructorWebhookClient(t *testing.T) {
 }
 
 func TestWebhookClient(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		assert.JSONEq(t, `{"version":"","type":"flag","action":"create","metadata":{},"payload":null,"timestamp":"","status":""}`, string(b))
+		assert.Equal(t, "6bc16d7434cbd746abfd25e3350a3f43fba04883b7f0b83f09bbc373116f84b0", r.Header.Get(fliptSignatureHeader))
+		w.WriteHeader(200)
+	}))
+
+	t.Cleanup(ts.Close)
+
 	whclient := &webhookClient{
-		logger:             zap.NewNop(),
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
+		logger:        zap.NewNop(),
+		url:           ts.URL,
+		signingSecret: "s3crET",
+		httpClient:    retryablehttp.NewClient(),
 	}
 
-	err := whclient.SendAudit(context.TODO(), audit.Event{
+	_, err := whclient.SendAudit(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
 	})
 
 	require.NoError(t, err)
-}
-
-func TestWebhookClient_createRequest(t *testing.T) {
-	whclient := &webhookClient{
-		logger:             zap.NewNop(),
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
-		signingSecret:      "s3crET",
-	}
-
-	req, err := whclient.createRequest(context.TODO(), []byte(`{"hello": "world"}`))
-	require.NoError(t, err)
-
-	assert.Equal(t, "https://flipt-webhook.io/webhook", req.URL.String())
-
-	b, err := io.ReadAll(req.Body)
-	require.NoError(t, err)
-
-	assert.Equal(t, `{"hello": "world"}`, string(b))
-	assert.Equal(t, "18140945e2c08976ed68adeb0bf80d2fa695d533957cb0e531812798de6b9fad", req.Header.Get(fliptSignatureHeader))
 }

@@ -28,7 +28,7 @@ func (w *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 	var result error
 
 	for _, e := range events {
-		err := w.webhookClient.SendAudit(ctx, e)
+		_, err := w.webhookClient.SendAudit(ctx, e)
 		if err != nil {
 			w.logger.Error("failed to send audit to webhook", zap.Error(err))
 			result = multierror.Append(result, err)
