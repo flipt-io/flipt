@@ -109,8 +109,8 @@ github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.8 h1:jH33S0y5Bo5ZVML62JgZhjd/LrtU
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.8/go.mod h1:hD5YwHLOy6k7d6kqcn3me1bFWHOtzhaXstMd6BpdB68=
 github.com/aws/aws-sdk-go-v2/service/ecr v1.29.1 h1:ywNLJrn/Qn4enDsz/XnKlvpnLqvJxFGQV2BltWltbis=
 github.com/aws/aws-sdk-go-v2/service/ecr v1.29.1/go.mod h1:WadVIk+UrTvWuAsCp6BKGX4i2snurpz8mPWhJQnS7Dg=
-github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.23.10 h1:dNXYTooy/H6NSIJ/zZqAVk/Ri4G4mqEWoz3btXhqI7E=
-github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.23.10/go.mod h1:6JWi6AO/j/YgTOdu+XM2fRfoZTmferahXDwmravqSwQ=
+github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1 h1:Eq9i/mvOlGghiKe9NtsmeD9Wlwg8p4fbsqrMb3nWirM=
+github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1/go.mod h1:VtOgEoLEPV1YADuq+Z2XOK6/wKkGW2YK6DjChZ/GvDs=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 h1:Ji0DY1xUsUr3I8cHps0G+XM3WWU16lP6yG8qu1GAZAs=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2/go.mod h1:5CsjAbs3NlGQyZNFACh+zztPDI7fU6eW9QsxjfnuBKg=
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.10 h1:pkYC5zTOSPXEYJj56b2SOik9AL432i5MT1YVTQbKOK0=

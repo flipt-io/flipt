@@ -17,7 +17,7 @@ require (
 	github.com/XSAM/otelsql v0.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.17
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.29.1
-	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.23.10
+	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.4
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0
