@@ -86,10 +86,6 @@ func (req *CreateFlagRequest) Validate() error {
 		return errors.EmptyFieldError("name")
 	}
 
-	if err := validateJsonParameter(req.Metadata, "metadata"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -100,10 +96,6 @@ func (req *UpdateFlagRequest) Validate() error {
 
 	if req.Name == "" {
 		return errors.EmptyFieldError("name")
-	}
-
-	if err := validateJsonParameter(req.Metadata, "metadata"); err != nil {
-		return err
 	}
 
 	return nil

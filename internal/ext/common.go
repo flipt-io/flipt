@@ -3,6 +3,8 @@ package ext
 import (
 	"encoding/json"
 	"errors"
+
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Document struct {
@@ -13,14 +15,15 @@ type Document struct {
 }
 
 type Flag struct {
-	Key         string     `yaml:"key,omitempty" json:"key,omitempty"`
-	Name        string     `yaml:"name,omitempty" json:"name,omitempty"`
-	Type        string     `yaml:"type,omitempty" json:"type,omitempty"`
-	Description string     `yaml:"description,omitempty" json:"description,omitempty"`
-	Enabled     bool       `yaml:"enabled" json:"enabled"`
-	Variants    []*Variant `yaml:"variants,omitempty" json:"variants,omitempty"`
-	Rules       []*Rule    `yaml:"rules,omitempty" json:"rules,omitempty"`
-	Rollouts    []*Rollout `yaml:"rollouts,omitempty" json:"rollouts,omitempty"`
+	Key         string           `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string           `yaml:"name,omitempty" json:"name,omitempty"`
+	Type        string           `yaml:"type,omitempty" json:"type,omitempty"`
+	Description string           `yaml:"description,omitempty" json:"description,omitempty"`
+	Enabled     bool             `yaml:"enabled" json:"enabled"`
+	Metadata    *structpb.Struct `yaml:"metadata,omitempty" json:"metadata,omitempty"`
+	Variants    []*Variant       `yaml:"variants,omitempty" json:"variants,omitempty"`
+	Rules       []*Rule          `yaml:"rules,omitempty" json:"rules,omitempty"`
+	Rollouts    []*Rollout       `yaml:"rollouts,omitempty" json:"rollouts,omitempty"`
 }
 
 type Variant struct {

@@ -11,6 +11,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -36,7 +37,7 @@ func emptyAsNil(str string) *string {
 // GetFlag gets a flag with variants by key
 func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.Flag, error) {
 	var (
-		metadata  sql.NullString
+		metadata  fliptsql.JSONField[map[string]any]
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
 
@@ -69,15 +70,7 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 
 	flag.CreatedAt = createdAt.Timestamp
 	flag.UpdatedAt = updatedAt.Timestamp
-
-	if metadata.Valid {
-		compactedMetadata, err := compactJSONString(metadata.String)
-		if err != nil {
-			return flag, err
-		}
-
-		flag.Metadata = compactedMetadata
-	}
+	flag.Metadata, _ = structpb.NewStruct(metadata.T)
 
 	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, attachment, created_at, updated_at").
 		From("variants").
@@ -191,7 +184,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 		var (
 			flag = &flipt.Flag{}
 
-			fMetadata  sql.NullString
+			fMetadata  fliptsql.JSONField[map[string]any]
 			fCreatedAt fliptsql.Timestamp
 			fUpdatedAt fliptsql.Timestamp
 		)
@@ -211,15 +204,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 
 		flag.CreatedAt = fCreatedAt.Timestamp
 		flag.UpdatedAt = fUpdatedAt.Timestamp
-
-		if fMetadata.Valid {
-			compactedMetadata, err := compactJSONString(fMetadata.String)
-			if err != nil {
-				return results, err
-			}
-
-			flag.Metadata = compactedMetadata
-		}
+		flag.Metadata, _ = structpb.NewStruct(fMetadata.T)
 
 		flags = append(flags, flag)
 		flagsByKey[flag.Key] = flag
@@ -357,7 +342,6 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		}
 	)
 
-	metadata := emptyAsNil(r.Metadata)
 	if _, err := s.builder.Insert("flags").
 		Columns("namespace_key", "\"key\"", "\"type\"", "name", "description", "enabled", "metadata", "created_at", "updated_at").
 		Values(
@@ -367,20 +351,12 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 			flag.Name,
 			flag.Description,
 			flag.Enabled,
-			metadata,
+			&fliptsql.JSONField[map[string]any]{T: flag.Metadata.AsMap()},
 			&fliptsql.Timestamp{Timestamp: flag.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: flag.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
 		return nil, err
-	}
-
-	if metadata != nil {
-		compactedMetadata, err := compactJSONString(*metadata)
-		if err != nil {
-			return nil, err
-		}
-		flag.Metadata = compactedMetadata
 	}
 
 	return flag, nil
@@ -396,7 +372,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("metadata", emptyAsNil(r.Metadata)).
+		Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()}).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
 

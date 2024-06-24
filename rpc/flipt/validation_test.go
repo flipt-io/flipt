@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/errors"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func largeJSONString() string {
@@ -142,7 +143,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
-				Metadata:    `{"key":"value", "foo": "bar"}`,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
@@ -153,7 +154,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
-				Metadata:    `{"key":"value", "foo": "bar"}`,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
 		},
@@ -164,34 +165,9 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "",
 				Description: "desc",
 				Enabled:     true,
-				Metadata:    `{"key":"value", "foo": "bar"}`,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("name"),
-		},
-		{
-			name: "metadataTooLarge",
-			req: &CreateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-				Metadata:    largeJSONString(),
-			},
-			wantErr: errors.InvalidFieldError(
-				"metadata",
-				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
-			),
-		},
-		{
-			name: "malformedJsonMetadata",
-			req: &CreateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-				Metadata:    "someMetadata",
-			},
-			wantErr: errors.InvalidFieldError("metadata", "must be a json string"),
 		},
 		{
 			name: "valid",
@@ -200,7 +176,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
-				Metadata:    `{"key":"value", "foo": "bar"}`,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 		},
 	}
@@ -231,6 +207,7 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
@@ -241,6 +218,7 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
@@ -251,32 +229,8 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
-		},
-		{
-			name: "metadataTooLarge",
-			req: &UpdateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-				Metadata:    largeJSONString(),
-			},
-			wantErr: errors.InvalidFieldError(
-				"metadata",
-				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
-			),
-		},
-		{
-			name: "malformedJsonMetadata",
-			req: &UpdateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-				Metadata:    "someMetadata",
-			},
-			wantErr: errors.InvalidFieldError("metadata", "must be a json string"),
 		},
 		{
 			name: "valid",
@@ -285,6 +239,7 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 		},
 	}
