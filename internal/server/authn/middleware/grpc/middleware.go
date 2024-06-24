@@ -223,7 +223,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 						{"role", "role"},
 					} {
 						if v, ok := userClaims[fields[0]]; ok {
-							metadata[fmt.Sprintf("io.flipt.auth.%s", fields[1])] = fmt.Sprintf("%v", v)
+							metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
 						}
 					}
 				}
