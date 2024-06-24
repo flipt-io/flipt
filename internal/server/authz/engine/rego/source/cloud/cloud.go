@@ -12,16 +12,16 @@ import (
 )
 
 type CloudPolicySource struct {
-	url    string
+	host   string
 	apiKey string
 }
 
-func PolicySourceFromCloud(url, apiKey string) *CloudPolicySource {
-	return &CloudPolicySource{url, apiKey}
+func PolicySourceFromCloud(host, apiKey string) *CloudPolicySource {
+	return &CloudPolicySource{host, apiKey}
 }
 
 func (p *CloudPolicySource) Get(ctx context.Context, seen source.Hash) ([]byte, source.Hash, error) {
-	body, etag, err := fetch(ctx, seen, fmt.Sprintf("%s/api/auth/policies", p.url), p.apiKey)
+	body, etag, err := fetch(ctx, seen, fmt.Sprintf("https://%s/api/auth/policies", p.host), p.apiKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -30,16 +30,16 @@ func (p *CloudPolicySource) Get(ctx context.Context, seen source.Hash) ([]byte, 
 }
 
 type CloudDataSource struct {
-	url    string
+	host   string
 	apiKey string
 }
 
-func DataSourceFromCloud(url, apiKey string) *CloudDataSource {
-	return &CloudDataSource{url, apiKey}
+func DataSourceFromCloud(host, apiKey string) *CloudDataSource {
+	return &CloudDataSource{host, apiKey}
 }
 
 func (p *CloudDataSource) Get(ctx context.Context, seen source.Hash) (map[string]any, source.Hash, error) {
-	body, etag, err := fetch(ctx, seen, fmt.Sprintf("%s/api/auth/roles", p.url), p.apiKey)
+	body, etag, err := fetch(ctx, seen, fmt.Sprintf("https://%s/api/auth/roles", p.host), p.apiKey)
 	if err != nil {
 		return nil, nil, err
 	}

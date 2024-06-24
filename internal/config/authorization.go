@@ -30,21 +30,28 @@ type AuthorizationConfig struct {
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
-		auth["backend"] = AuthorizationBackendLocal
-		if v.GetString("authorization.local.data.path") == "" {
-			auth["local"] = map[string]any{
-				"policy": map[string]any{
-					"poll_interval": "5m",
-				},
+		switch v.GetString("authorization.backend") {
+		case string(AuthorizationBackendCloud):
+			auth["cloud"] = map[string]any{
+				"poll_interval": "5m",
 			}
-		} else {
-			auth["local"] = map[string]any{
-				"policy": map[string]any{
-					"poll_interval": "5m",
-				},
-				"data": map[string]any{
-					"poll_interval": "30s",
-				},
+		default:
+			auth["backend"] = AuthorizationBackendLocal
+			if v.GetString("authorization.local.data.path") == "" {
+				auth["local"] = map[string]any{
+					"policy": map[string]any{
+						"poll_interval": "5m",
+					},
+				}
+			} else {
+				auth["local"] = map[string]any{
+					"policy": map[string]any{
+						"poll_interval": "5m",
+					},
+					"data": map[string]any{
+						"poll_interval": "30s",
+					},
+				}
 			}
 		}
 
@@ -166,7 +173,7 @@ type AuthorizationSourceCloudConfig struct {
 }
 
 func (a *AuthorizationSourceCloudConfig) validate() error {
-	if a.PollInterval <= 0 {
+	if a != nil && a.PollInterval <= 0 {
 		return errors.New("poll_interval must be greater than zero")
 	}
 
