@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -31,9 +30,5 @@ func (c *CloudConfig) setDefaults(v *viper.Viper) error {
 func (c *CloudConfig) validate() error {
 	// strip trailing slash if present
 	c.Host = strings.TrimSuffix(c.Host, "/")
-
-	if c.Host == "" {
-		return errors.New("cloud host is required")
-	}
 	return nil
 }

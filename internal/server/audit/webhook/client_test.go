@@ -39,17 +39,18 @@ func TestWebhookClient(t *testing.T) {
 
 	t.Cleanup(ts.Close)
 
-	whclient := &webhookClient{
+	client := &webhookClient{
 		logger:        zap.NewNop(),
 		url:           ts.URL,
 		signingSecret: "s3crET",
 		httpClient:    retryablehttp.NewClient(),
 	}
 
-	_, err := whclient.SendAudit(context.TODO(), audit.Event{
+	resp, err := client.SendAudit(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
 	})
 
 	require.NoError(t, err)
+	resp.Body.Close()
 }

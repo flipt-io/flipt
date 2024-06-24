@@ -93,9 +93,13 @@ func (w *webhookTemplate) Execute(ctx context.Context, event audit.Event) error 
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	_, err = w.httpClient.Do(req)
+	resp, err := w.httpClient.Do(req)
 	if err != nil {
 		return err
+	}
+
+	if resp != nil {
+		resp.Body.Close()
 	}
 
 	return nil
