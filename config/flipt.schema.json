@@ -1362,7 +1362,7 @@
                 },
                 "encoding": {
                   "type": "string",
-                  "enum": ["protobuf"],
+                  "enum": ["protobuf", "avro"],
                   "default": "protobuf"
                 }
               },

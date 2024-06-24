@@ -3,15 +3,15 @@
 package http
 
 import (
-	audit "go.flipt.io/flipt/rpc/flipt/audit"
+	_go "go.flipt.io/flipt/sdk/go"
 	http "net/http"
 )
 
-type AuditEventServiceClient struct {
+type auditClient struct {
 	client *http.Client
 	addr   string
 }
 
-func (t Transport) AuditClient() audit.AuditEventServiceClient {
-	return &AuditEventServiceClient{client: t.client, addr: t.addr}
+func (t Transport) AuditClient() _go.AuditClient {
+	return auditClient{client: t.client, addr: t.addr}
 }

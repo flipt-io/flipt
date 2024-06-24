@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/server/audit"
 	protoaudit "go.flipt.io/flipt/rpc/flipt/audit"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -36,12 +37,21 @@ func toProtobuf(v any) ([]byte, error) {
 		r.Timestamp = timestamppb.New(t)
 
 		if e.Payload != nil {
-			// FIXME: payload should be added here
-			payload, err := json.Marshal(e.Payload)
+			//FIXME: this modifies the origin payload
+			payloadString, err := json.Marshal(e.Payload)
 			if err != nil {
 				return nil, err
 			}
-			r.Payload = proto.String(string(payload))
+			var payloadMap map[string]any
+			err = json.Unmarshal(payloadString, &payloadMap)
+			if err != nil {
+				return nil, err
+			}
+			payload, err := structpb.NewStruct(payloadMap)
+			if err != nil {
+				return nil, err
+			}
+			r.Payload = payload
 		}
 
 		b, err := proto.Marshal(r)

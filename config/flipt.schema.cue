@@ -395,7 +395,7 @@ import "strings"
 				enabled?: bool | *false
 				topic:    string
 				bootstrap_servers: [...string]
-				encoding?: string | *"protobuf"
+				encoding?: *"protobuf" | "avro"
 			}
 		}
 		buffer?: {

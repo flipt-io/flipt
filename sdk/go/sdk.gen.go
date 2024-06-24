@@ -6,7 +6,6 @@ import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	analytics "go.flipt.io/flipt/rpc/flipt/analytics"
-	audit "go.flipt.io/flipt/rpc/flipt/audit"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
@@ -28,7 +27,7 @@ const (
 
 type Transport interface {
 	AnalyticsClient() analytics.AnalyticsServiceClient
-	AuditClient() audit.AuditEventServiceClient
+	AuditClient() AuditClient
 	AuthClient() AuthClient
 	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient

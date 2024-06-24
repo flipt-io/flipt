@@ -2,11 +2,10 @@
 
 package sdk
 
-import (
-	audit "go.flipt.io/flipt/rpc/flipt/audit"
-)
+type AuditClient interface {
+}
 
 type Audit struct {
-	transport              audit.AuditEventServiceClient
+	transport              AuditClient
 	authenticationProvider ClientAuthenticationProvider
 }

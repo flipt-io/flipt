@@ -3,7 +3,7 @@ syntax = "proto3";
 package flipt.audit;
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/audit";
-
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 message Actor {
@@ -23,12 +23,7 @@ message Event {
     string type = 2;
     string action = 3;
     Metadata metadata = 4;
-    optional string payload = 5;
+    optional google.protobuf.Struct payload = 5;
     google.protobuf.Timestamp timestamp = 6;
     optional string status = 7;
 }
-
-service AuditEventService {
-
-}
-
