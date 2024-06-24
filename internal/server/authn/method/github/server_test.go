@@ -73,7 +73,7 @@ func Test_Server(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		require.Equal(t, "http://github.com/login/oauth/authorize?state=random-state", resp.AuthorizeUrl)
+		assert.Equal(t, "http://github.com/login/oauth/authorize?state=random-state", resp.AuthorizeUrl)
 	})
 
 	t.Run("should authorize the user correctly", func(t *testing.T) {
@@ -99,14 +99,15 @@ func Test_Server(t *testing.T) {
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		require.NoError(t, err)
 
-		require.NotEmpty(t, callback.ClientToken)
-		require.Equal(t, auth.Method_METHOD_GITHUB, callback.Authentication.Method)
-		require.Equal(t, map[string]string{
+		assert.NotEmpty(t, callback.ClientToken)
+		assert.Equal(t, auth.Method_METHOD_GITHUB, callback.Authentication.Method)
+		assert.Equal(t, map[string]string{
 			"io.flipt.auth.github.email":   "user@flipt.io",
 			"io.flipt.auth.email":          "user@flipt.io",
 			"io.flipt.auth.github.name":    "fliptuser",
 			"io.flipt.auth.name":           "fliptuser",
 			"io.flipt.auth.github.picture": "https://thispicture.com",
+			"io.flipt.auth.picture":        "https://thispicture.com",
 			"io.flipt.auth.github.sub":     "1234567890",
 		}, callback.Authentication.Metadata)
 	})
@@ -141,7 +142,7 @@ func Test_Server(t *testing.T) {
 
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		require.NoError(t, err)
-		require.NotEmpty(t, callback.ClientToken)
+		assert.NotEmpty(t, callback.ClientToken)
 	})
 
 	t.Run("should not authorize when the user is not a member of one of the allowed organizations", func(t *testing.T) {
@@ -174,7 +175,7 @@ func Test_Server(t *testing.T) {
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		uerr := errors.ErrUnauthenticatedf("request was not authenticated")
-		require.ErrorAs(t, err, &uerr)
+		assert.ErrorAs(t, err, &uerr)
 	})
 
 	t.Run("should authorize successfully when the user is a member of one of the allowed organizations and it's inside the allowed team", func(t *testing.T) {
@@ -224,7 +225,7 @@ func Test_Server(t *testing.T) {
 
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		require.NoError(t, err)
-		require.NotEmpty(t, callback.ClientToken)
+		assert.NotEmpty(t, callback.ClientToken)
 	})
 
 	t.Run("should not authorize when the user is a member of one of the allowed organizations and but it's not inside the allowed team", func(t *testing.T) {
@@ -296,7 +297,7 @@ func Test_Server(t *testing.T) {
 			Reply(400)
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		require.ErrorIs(t, err, status.Error(codes.Internal, `github /user info response status: "400 Bad Request"`))
+		assert.ErrorIs(t, err, status.Error(codes.Internal, `github /user info response status: "400 Bad Request"`))
 	})
 
 	t.Run("should return an internal error when github user orgs route returns a code different from 200 (OK)", func(t *testing.T) {
@@ -328,7 +329,7 @@ func Test_Server(t *testing.T) {
 			BodyString("too many requests")
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		require.ErrorIs(t, err, status.Error(codes.Internal, `github /user/orgs info response status: "429 Too Many Requests"`))
+		assert.ErrorIs(t, err, status.Error(codes.Internal, `github /user/orgs info response status: "429 Too Many Requests"`))
 	})
 
 	t.Run("should return an internal error when github user teams route returns a code different from 200 (OK)", func(t *testing.T) {
@@ -370,7 +371,7 @@ func Test_Server(t *testing.T) {
 			BodyString("bad request")
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		require.ErrorIs(t, err, status.Error(codes.Internal, `github /user/teams info response status: "400 Bad Request"`))
+		assert.ErrorIs(t, err, status.Error(codes.Internal, `github /user/teams info response status: "400 Bad Request"`))
 	})
 }
 
@@ -406,8 +407,8 @@ func TestGithubSimpleOrganizationDecode(t *testing.T) {
 	var githubUserOrgsResponse []githubSimpleOrganization
 	err := json.Unmarshal([]byte(body), &githubUserOrgsResponse)
 	require.NoError(t, err)
-	require.Len(t, githubUserOrgsResponse, 1)
-	require.Equal(t, "github", githubUserOrgsResponse[0].Login)
+	assert.Len(t, githubUserOrgsResponse, 1)
+	assert.Equal(t, "github", githubUserOrgsResponse[0].Login)
 }
 
 func newTestServer(t *testing.T, cfg config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]) auth.AuthenticationMethodGithubServiceClient {
