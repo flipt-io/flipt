@@ -81,7 +81,7 @@ func generateSDK(gen *protogen.Plugin) {
 			returns = method
 		)
 
-		if len(file.Services) < 2 {
+		if len(file.Services) == 1 {
 			returns = relativeImport(g, file, file.Services[0].GoName+"Client")
 		}
 
