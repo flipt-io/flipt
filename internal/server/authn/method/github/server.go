@@ -163,6 +163,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	// consolidate common fields
 	set(method.StorageMetadataEmail, githubUserResponse.Email)
 	set(method.StorageMetadataName, githubUserResponse.Name)
+	set(method.StorageMetadataPicture, githubUserResponse.AvatarURL)
 
 	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
 		userOrgs, err := getUserOrgs(ctx, token, apiURL)
