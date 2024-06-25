@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -221,12 +222,12 @@ func TestEngine_IsAllowed(t *testing.T) {
 
 type policySource string
 
-func (p policySource) Get(context.Context, []byte) ([]byte, []byte, error) {
+func (p policySource) Get(context.Context, source.Hash) ([]byte, source.Hash, error) {
 	return []byte(p), nil, nil
 }
 
 type dataSource string
 
-func (d dataSource) Get(context.Context, []byte) (data map[string]any, _ []byte, _ error) {
+func (d dataSource) Get(context.Context, source.Hash) (data map[string]any, _ source.Hash, _ error) {
 	return data, nil, json.Unmarshal([]byte(d), &data)
 }

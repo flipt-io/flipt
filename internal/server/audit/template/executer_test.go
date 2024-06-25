@@ -2,48 +2,43 @@ package template
 
 import (
 	"context"
-	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"text/template"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
-
-type dummyRetrier struct{}
-
-func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.RequestCreator) error {
-	return nil
-}
 
 func TestConstructorWebhookTemplate(t *testing.T) {
 	executer, err := NewWebhookTemplate(zap.NewNop(), "https://flipt-webhook.io/webhook", `{"type": "{{ .Type }}", "action": "{{ .Action }}"}`, nil, 15*time.Second)
 	require.NoError(t, err)
 	require.NotNil(t, executer)
 
-	whTemplate, ok := executer.(*webhookTemplate)
+	template, ok := executer.(*webhookTemplate)
 	require.True(t, ok, "executer should be a webhookTemplate")
 
-	assert.Equal(t, "https://flipt-webhook.io/webhook", whTemplate.url)
-	assert.Nil(t, whTemplate.headers)
+	assert.Equal(t, "https://flipt-webhook.io/webhook", template.url)
+	assert.Nil(t, template.headers)
 }
 
 func TestExecuter_JSON_Failure(t *testing.T) {
 	tmpl, err := template.New("").Parse(`this is invalid JSON {{ .Type }}, {{ .Action }}`)
 	require.NoError(t, err)
 
-	whTemplate := &webhookTemplate{
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
-		bodyTemplate:       tmpl,
+	template := &webhookTemplate{
+		url:          "https://flipt-webhook.io/webhook",
+		bodyTemplate: tmpl,
 	}
 
-	err = whTemplate.Execute(context.TODO(), audit.Event{
+	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
 	})
@@ -59,14 +54,19 @@ func TestExecuter_Execute(t *testing.T) {
 
 	require.NoError(t, err)
 
-	whTemplate := &webhookTemplate{
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
-		bodyTemplate:       tmpl,
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	}))
+
+	t.Cleanup(ts.Close)
+
+	template := &webhookTemplate{
+		url:          ts.URL,
+		bodyTemplate: tmpl,
+		httpClient:   retryablehttp.NewClient(),
 	}
 
-	err = whTemplate.Execute(context.TODO(), audit.Event{
+	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
 	})
@@ -83,14 +83,19 @@ func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
 
 	require.NoError(t, err)
 
-	whTemplate := &webhookTemplate{
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
-		bodyTemplate:       tmpl,
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	}))
+
+	t.Cleanup(ts.Close)
+
+	template := &webhookTemplate{
+		url:          ts.URL,
+		bodyTemplate: tmpl,
+		httpClient:   retryablehttp.NewClient(),
 	}
 
-	err = whTemplate.Execute(context.TODO(), audit.Event{
+	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
 		Payload: &flipt.CreateFlagRequest{
@@ -103,30 +108,4 @@ func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-}
-
-func TestExecuter_createRequest(t *testing.T) {
-	tmpl, err := template.New("").Parse(`{
-		"type": "{{ .Type }}",
-		"action": "{{ .Action }}"
-	}`)
-
-	require.NoError(t, err)
-
-	whTemplate := &webhookTemplate{
-		url:                "https://flipt-webhook.io/webhook",
-		maxBackoffDuration: 15 * time.Second,
-		retryableClient:    &dummyRetrier{},
-		bodyTemplate:       tmpl,
-	}
-
-	req, err := whTemplate.createRequest(context.TODO(), []byte(`{"hello": "world"}`))
-	require.NoError(t, err)
-
-	assert.Equal(t, "https://flipt-webhook.io/webhook", req.URL.String())
-
-	b, err := io.ReadAll(req.Body)
-	require.NoError(t, err)
-
-	assert.Equal(t, `{"hello": "world"}`, string(b))
 }

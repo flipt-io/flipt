@@ -25,34 +25,32 @@ type Engine struct {
 
 func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*Engine, error) {
 	var (
+		authConfig   = cfg.Authorization
 		opaConfig    string
 		cleanupFuncs []cleanupFunc
 	)
 
-	switch cfg.Authorization.Backend {
+	switch authConfig.Backend {
 	case config.AuthorizationBackendObject:
-		opaConfig = cfg.Authorization.Object.String()
+		opaConfig = authConfig.Object.String()
 
-		switch cfg.Authorization.Object.Type { //nolint
+		switch authConfig.Object.Type { //nolint
 		case config.S3ObjectAuthorizationBackendType:
 			// set AWS_REGION env var if not set and region is specified
 			// this is a nicety as the OPA env credentials provider requires this env var
 			// to be set, but we don't want the user to have to supply it twice if they already have it in the config
-			if cfg.Authorization.Object.S3.Region != "" && os.Getenv("AWS_REGION") == "" {
-				os.Setenv("AWS_REGION", cfg.Authorization.Object.S3.Region)
+			if authConfig.Object.S3.Region != "" && os.Getenv("AWS_REGION") == "" {
+				os.Setenv("AWS_REGION", authConfig.Object.S3.Region)
 				cleanupFuncs = append(cleanupFuncs, func() {
 					os.Unsetenv("AWS_REGION")
 				})
 			}
 		}
 	case config.AuthorizationBackendBundle:
-		opaConfig = cfg.Authorization.Bundle.String()
+		opaConfig = authConfig.Bundle.String()
 	}
 
-	level, err := zap.ParseAtomicLevel(cfg.Log.Level)
-	if err != nil {
-		return nil, err
-	}
+	level := zap.NewAtomicLevelAt(logger.Level())
 
 	opa, err := sdk.New(ctx, sdk.Options{
 		Config: strings.NewReader(opaConfig),
