@@ -139,7 +139,7 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 			netHTTP = importPackage(g, "net/http")
 		)
 
-		if len(file.Services) < 2 {
+		if len(file.Services) == 1 {
 			srv := file.Services[0]
 			returnType := srv.GoName + "Client"
 

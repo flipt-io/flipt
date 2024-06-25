@@ -35,7 +35,7 @@ func generateGRPC(gen *protogen.Plugin) {
 			method = typ + "Client"
 		)
 
-		if len(file.Services) < 2 {
+		if len(file.Services) == 1 {
 			returnType := file.Services[0].GoName + "Client"
 			g.P("func (t Transport) ", method, "() ", relativeImport(g, file, returnType), "{")
 			g.P("return ", relativeImport(g, file, "New"+returnType), "(t.cc)")
