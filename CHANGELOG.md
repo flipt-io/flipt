@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `authz`: move out of experimental (#3203)
 - `proto`: prevent panic in protoc-gen-go-flipt-sdk (#3215)
 - `build`: move to new dagger v0.11.8 (#3144)
 
