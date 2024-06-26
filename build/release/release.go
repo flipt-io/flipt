@@ -164,7 +164,7 @@ func UpdateChangelog(module, version string) error {
 	messages := strings.Split(strings.TrimSpace(string(out)), "\n")
 
 	return insertChangeLogEntryIntoFile(
-		path.Join(prefix, "CHANGELOG.md"),
+		path.Join(prefix, "..", "CHANGELOG.md"),
 		parseChangeLogVersion(prefix, version, time.Now(), messages...),
 	)
 }
@@ -274,7 +274,7 @@ func latestRelease(module string, includePre bool) (prefix string, version strin
 		return
 	}
 
-	repo, err := git.PlainOpen(".")
+	repo, err := git.PlainOpen("../.")
 	if err != nil {
 		return "", "", err
 	}
