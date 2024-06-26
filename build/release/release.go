@@ -205,12 +205,7 @@ func ensureVersionAfter(requested, latest string) error {
 	return nil
 }
 
-func tagModule(ctx context.Context, module, version string) error {
-	const (
-		owner = "flipt-io"
-		repo  = "flipt"
-	)
-
+func tagModule(_ context.Context, module, version string) error {
 	prefix, err := moduleTagPrefix(module)
 	if err != nil {
 		return err
