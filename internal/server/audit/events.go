@@ -158,6 +158,28 @@ func (e Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
+func (e *Event) CopyInto(out *Event) {
+	*out = *e
+	out.Metadata = e.Metadata
+	out.Payload = e.Payload
+}
+
+func (e *Event) PayloadToMap() (map[string]any, error) {
+	if e.Payload == nil {
+		return map[string]any{}, nil
+	}
+	payloadString, err := json.Marshal(e.Payload)
+	if err != nil {
+		return nil, err
+	}
+	var payload map[string]any
+	err = json.Unmarshal(payloadString, &payload)
+	if err != nil {
+		return nil, err
+	}
+	return payload, nil
+}
+
 var errEventNotValid = errors.New("event not valid")
 
 // decodeToEvent provides helper logic for turning to value of SpanEvents to

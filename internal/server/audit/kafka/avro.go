@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 
 	"github.com/hamba/avro"
@@ -10,28 +9,22 @@ import (
 	rpcaudit "go.flipt.io/flipt/rpc/flipt/audit"
 )
 
-func toAvro(v any) ([]byte, error) {
-	if e, ok := v.(audit.Event); ok {
-		if e.Payload != nil {
-			//FIXME: this modifies the origin payload
-			payloadString, err := json.Marshal(e.Payload)
+func toAvro() encodingFn {
+	schema := avro.MustParse(rpcaudit.AvroSchema)
+	return func(v any) ([]byte, error) {
+		if event, ok := v.(audit.Event); ok {
+			var e audit.Event
+			var err error
+			event.CopyInto(&e)
+			e.Payload, err = event.PayloadToMap()
 			if err != nil {
 				return nil, err
 			}
-			var payload map[string]any
-			err = json.Unmarshal(payloadString, &payload)
-			if err != nil {
-				return nil, err
-			}
-			e.Payload = payload
+			buf := &bytes.Buffer{}
+			encoder := avro.NewEncoderForSchema(schema, buf)
+			err = encoder.Encode(e)
+			return buf.Bytes(), err
 		}
-		buf := &bytes.Buffer{}
-		enc, err := avro.NewEncoder(rpcaudit.AvroSchema, buf)
-		if err != nil {
-			return nil, err
-		}
-		err = enc.Encode(e)
-		return buf.Bytes(), err
+		return nil, errors.New("unsupported struct")
 	}
-	return nil, errors.New("unsupported struct")
 }

@@ -67,7 +67,7 @@
       "name": "payload",
       "type": {
         "type":"map",
-        "values": ["null", "string", "int", "boolean"]
+        "values": ["null", "string", "int", "boolean", "float", "double", {"type": "map", "values": ["null", "string", "int", "boolean", "float", "double"]}]
       }
     }
   ]

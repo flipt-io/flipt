@@ -10,34 +10,65 @@ import (
 
 func TestEncoding(t *testing.T) {
 	tests := []struct {
-		name string
-		f    func(any) ([]byte, error)
+		name    string
+		encoder encodingFn
 	}{
-		{"protobuf", toProtobuf},
-		{"avro", toAvro},
+		{"protobuf", toProtobuf()},
+		{"avro", toAvro()},
+	}
+
+	dataset := []struct {
+		name    string
+		payload any
+	}{
+		{
+			"flag",
+			audit.NewFlag(&flipt.Flag{
+				Key:          "this-flag",
+				Name:         "this-flag",
+				Description:  "this description",
+				Enabled:      false,
+				NamespaceKey: "default",
+			}),
+		},
+		{
+			"rollout",
+			audit.NewRollout(&flipt.Rollout{
+				Description:  "this description",
+				NamespaceKey: "default",
+			}),
+		},
+		{
+			"auth",
+			map[string]string{
+				"method": "github",
+				"org":    "someone",
+			},
+		},
+		{
+			"nil",
+			nil,
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := flipt.NewRequest(flipt.ResourceFlag, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectRule))
-			e := audit.NewEvent(
-				r,
-				&audit.Actor{
-					Authentication: "token",
-					IP:             "127.0.0.1",
-				},
-				&audit.Flag{
-					Key:          "this-flag",
-					Name:         "this-flag",
-					Description:  "this description",
-					Enabled:      false,
-					NamespaceKey: "default",
-				},
-			)
+		for _, ds := range dataset {
+			t.Run(tt.name+"/"+ds.name, func(t *testing.T) {
+				r := flipt.NewRequest(flipt.ResourceFlag, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectRule))
+				e := audit.NewEvent(
+					r,
+					&audit.Actor{
+						Authentication: "token",
+						IP:             "127.0.0.1",
+					},
+					ds.payload,
+				)
 
-			b, err := tt.f(*e)
-			require.NoError(t, err)
-			require.NotEmpty(t, b)
-		})
+				b, err := tt.encoder(*e)
+				require.NoError(t, err)
+				require.NotEmpty(t, b)
+			})
+		}
 	}
+
 }

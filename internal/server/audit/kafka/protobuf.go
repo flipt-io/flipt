@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -12,50 +11,46 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func toProtobuf(v any) ([]byte, error) {
-	if e, ok := v.(audit.Event); ok {
-		r := &protoaudit.Event{
-			Version: e.Version,
-			Action:  e.Action,
-			Type:    e.Type,
-			Status:  &e.Status,
-			Metadata: &protoaudit.Metadata{
-				Actor: &protoaudit.Actor{},
-			},
-		}
-		if a := e.Metadata.Actor; a != nil {
-			r.Metadata.Actor.Authentication = a.Authentication
-			r.Metadata.Actor.Email = a.Email
-			r.Metadata.Actor.Ip = a.IP
-			r.Metadata.Actor.Name = a.Name
-			r.Metadata.Actor.Picture = a.Picture
-		}
-		t, err := time.Parse(time.RFC3339, e.Timestamp)
-		if err != nil {
-			t = time.Now()
-		}
-		r.Timestamp = timestamppb.New(t)
+func toProtobuf() encodingFn {
+	return func(v any) ([]byte, error) {
+		if e, ok := v.(audit.Event); ok {
+			r := &protoaudit.Event{
+				Version: e.Version,
+				Action:  e.Action,
+				Type:    e.Type,
+				Status:  &e.Status,
+				Metadata: &protoaudit.Metadata{
+					Actor: &protoaudit.Actor{},
+				},
+			}
+			if a := e.Metadata.Actor; a != nil {
+				r.Metadata.Actor.Authentication = a.Authentication
+				r.Metadata.Actor.Email = a.Email
+				r.Metadata.Actor.Ip = a.IP
+				r.Metadata.Actor.Name = a.Name
+				r.Metadata.Actor.Picture = a.Picture
+			}
+			t, err := time.Parse(time.RFC3339, e.Timestamp)
+			if err != nil {
+				t = time.Now()
+			}
+			r.Timestamp = timestamppb.New(t)
 
-		if e.Payload != nil {
-			//FIXME: this modifies the origin payload
-			payloadString, err := json.Marshal(e.Payload)
-			if err != nil {
-				return nil, err
+			if e.Payload != nil {
+				payloadMap, err := e.PayloadToMap()
+				if err != nil {
+					return nil, err
+				}
+				payload, err := structpb.NewStruct(payloadMap)
+				if err != nil {
+					return nil, err
+				}
+				r.Payload = payload
 			}
-			var payloadMap map[string]any
-			err = json.Unmarshal(payloadString, &payloadMap)
-			if err != nil {
-				return nil, err
-			}
-			payload, err := structpb.NewStruct(payloadMap)
-			if err != nil {
-				return nil, err
-			}
-			r.Payload = payload
-		}
 
-		b, err := proto.Marshal(r)
-		return b, err
+			b, err := proto.Marshal(r)
+			return b, err
+		}
+		return nil, errors.New("unsupported struct")
 	}
-	return nil, errors.New("unsupported struct")
 }
