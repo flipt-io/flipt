@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -376,9 +377,11 @@ func NewGRPCServer(
 	}
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
-		opts := []webhook.ClientOption{}
+		httpClient := retryablehttp.NewClient()
+		httpClient.Logger = logger
+
 		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
-			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
+			httpClient.RetryWaitMax = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
 		}
 
 		var webhookSink audit.Sink
@@ -386,7 +389,7 @@ func NewGRPCServer(
 		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
 		// than 0 for the webhook.
 		if cfg.Audit.Sinks.Webhook.URL != "" {
-			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, httpClient))
 		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
 			maxBackoffDuration := 15 * time.Second
 			if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
@@ -557,9 +560,19 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		switch cfg.Authorization.Backend {
 		case config.AuthorizationBackendLocal:
 			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+
+		case config.AuthorizationBackendCloud:
+			if cfg.Cloud.Authentication.ApiKey == "" {
+				err = errors.New("cloud authorization requires an api key")
+				break
+			}
+
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+
 		default:
 			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
 		}
+
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return

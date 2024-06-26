@@ -343,7 +343,7 @@
         },
         "backend": {
           "type": "string",
-          "enum": ["", "local", "object", "bundle"],
+          "enum": ["", "local", "object", "bundle", "cloud"],
           "default": ""
         },
         "local": {
@@ -357,7 +357,8 @@
                 "path": { "type": "string" },
                 "poll_interval": {
                   "type": "string",
-                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                  "default": "5m"
                 }
               },
               "data": {
@@ -367,7 +368,8 @@
                   "path": { "type": "string" },
                   "poll_interval": {
                     "type": "string",
-                    "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                    "default": "5m"
                   }
                 }
               }
@@ -410,6 +412,17 @@
           "properties": {
             "configuration": {
               "type": "string"
+            }
+          }
+        },
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "poll_interval": {
+              "type": "string",
+              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+              "default": "5m"
             }
           }
         }
@@ -1402,16 +1415,6 @@
       "additionalProperties": false,
       "properties": {
         "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        },
-        "authorization": {
           "type": "object",
           "additionalProperties": false,
           "properties": {

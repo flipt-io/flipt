@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
 )
@@ -24,14 +24,12 @@ type webhookClient struct {
 	url           string
 	signingSecret string
 
-	maxBackoffDuration time.Duration
-
-	retryableClient audit.Retrier
+	httpClient *retryablehttp.Client
 }
 
 // Client is the client-side contract for sending an audit to a configured sink.
 type Client interface {
-	SendAudit(ctx context.Context, e audit.Event) error
+	SendAudit(ctx context.Context, e audit.Event) (*http.Response, error)
 }
 
 // signPayload takes in a marshalled payload and returns the sha256 hash of it.
@@ -42,36 +40,23 @@ func (w *webhookClient) signPayload(payload []byte) []byte {
 }
 
 // NewHTTPClient is the constructor for a HTTPClient.
-func NewWebhookClient(logger *zap.Logger, url, signingSecret string, opts ...ClientOption) Client {
-	h := &webhookClient{
-		logger:             logger,
-		url:                url,
-		signingSecret:      signingSecret,
-		maxBackoffDuration: 15 * time.Second,
-	}
-
-	for _, o := range opts {
-		o(h)
-	}
-
-	retyableClient := audit.NewRetrier(logger, h.maxBackoffDuration)
-
-	h.retryableClient = retyableClient
-
-	return h
-}
-
-type ClientOption func(h *webhookClient)
-
-// WithMaxBackoffDuration allows for a configurable backoff duration configuration.
-func WithMaxBackoffDuration(maxBackoffDuration time.Duration) ClientOption {
-	return func(h *webhookClient) {
-		h.maxBackoffDuration = maxBackoffDuration
+func NewWebhookClient(logger *zap.Logger, url, signingSecret string, httpClient *retryablehttp.Client) Client {
+	return &webhookClient{
+		logger:        logger,
+		url:           url,
+		signingSecret: signingSecret,
+		httpClient:    httpClient,
 	}
 }
 
-func (w *webhookClient) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
+// SendAudit will send an audit event to a configured server at a URL.
+func (w *webhookClient) SendAudit(ctx context.Context, e audit.Event) (*http.Response, error) {
+	body, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -84,21 +69,10 @@ func (w *webhookClient) createRequest(ctx context.Context, body []byte) (*http.R
 
 		req.Header.Add(fliptSignatureHeader, fmt.Sprintf("%x", signedPayload))
 	}
-
-	return req, nil
-}
-
-// SendAudit will send an audit event to a configured server at a URL.
-func (w *webhookClient) SendAudit(ctx context.Context, e audit.Event) error {
-	body, err := json.Marshal(e)
+	resp, err := w.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = w.retryableClient.RequestRetry(ctx, body, w.createRequest)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return resp, nil
 }

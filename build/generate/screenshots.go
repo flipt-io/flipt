@@ -2,8 +2,6 @@ package generate
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -24,12 +22,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, source *dagger.Dire
 		source.File("ui/playwright.config.ts"),
 	}).WithDirectory("ui/screenshot", source.Directory("ui/screenshot"))
 
-	contents, err := src.File("package-lock.json").Contents(ctx)
-	if err != nil {
-		return err
-	}
-
-	cache := client.CacheVolume(fmt.Sprintf("node-modules-screenshot-%x", sha256.Sum256([]byte(contents))))
+	cache := client.CacheVolume("node-modules-screenshot")
 
 	ui, err := client.Container().From("node:18-bullseye").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").

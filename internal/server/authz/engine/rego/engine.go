@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/cloud"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
 	"go.uber.org/zap"
 )
@@ -24,7 +25,7 @@ var (
 )
 
 type CachedSource[T any] interface {
-	Get(_ context.Context, hash []byte) (T, []byte, error)
+	Get(_ context.Context, hash source.Hash) (T, source.Hash, error)
 }
 
 type PolicySource CachedSource[[]byte]
@@ -39,10 +40,10 @@ type Engine struct {
 	store storage.Store
 
 	policySource PolicySource
-	policyHash   []byte
+	policyHash   source.Hash
 
 	dataSource DataSource
-	dataHash   []byte
+	dataHash   source.Hash
 
 	policySourcePollDuration time.Duration
 	dataSourcePollDuration   time.Duration
@@ -68,20 +69,37 @@ func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 }
 
 // NewEngine creates a new local authorization engine
-func NewEngine(ctx context.Context, logger *zap.Logger, config *config.Config) (*Engine, error) {
-	opts := []containers.Option[Engine]{
-		withPolicySource(filesystem.PolicySourceFromPath(config.Authorization.Local.Policy.Path)),
-	}
+func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*Engine, error) {
+	var (
+		opts       []containers.Option[Engine]
+		authConfig = cfg.Authorization
+	)
 
-	if config.Authorization.Local.Policy.PollInterval > 0 {
-		opts = append(opts, withPolicySourcePollDuration(config.Authorization.Local.Policy.PollInterval))
-	}
+	switch authConfig.Backend {
+	case config.AuthorizationBackendLocal:
+		opts = []containers.Option[Engine]{
+			withPolicySource(filesystem.PolicySourceFromPath(authConfig.Local.Policy.Path)),
+		}
 
-	if config.Authorization.Local.Data != nil {
-		opts = append(opts, withDataSource(
-			filesystem.DataSourceFromPath(config.Authorization.Local.Data.Path),
-			config.Authorization.Local.Data.PollInterval,
-		))
+		if authConfig.Local.Policy.PollInterval > 0 {
+			opts = append(opts, withPolicySourcePollDuration(authConfig.Local.Policy.PollInterval))
+		}
+
+		if authConfig.Local.Data != nil {
+			opts = append(opts, withDataSource(
+				filesystem.DataSourceFromPath(authConfig.Local.Data.Path),
+				authConfig.Local.Data.PollInterval,
+			))
+		}
+
+	case config.AuthorizationBackendCloud:
+		opts = []containers.Option[Engine]{
+			withPolicySource(cloud.PolicySourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey)),
+			withDataSource(cloud.DataSourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey), authConfig.Cloud.PollInterval),
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported authorization backend: %s", authConfig.Backend)
 	}
 
 	return newEngine(ctx, logger, opts...)

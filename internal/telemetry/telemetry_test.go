@@ -87,8 +87,7 @@ func TestShutdown(t *testing.T) {
 }
 
 var experimental = map[string]any{
-	"cloud":         map[string]any{},
-	"authorization": map[string]any{},
+	"cloud": map[string]any{},
 }
 
 func TestPing(t *testing.T) {
