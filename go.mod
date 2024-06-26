@@ -68,6 +68,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/twmb/franz-go v1.17.0
+	github.com/twmb/franz-go/pkg/sr v1.0.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xo/dburl v0.23.2
 	go.flipt.io/flipt/core v0.0.0-00010101000000-000000000000

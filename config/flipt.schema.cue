@@ -396,6 +396,11 @@ import "strings"
 				topic:    string
 				bootstrap_servers: [...string]
 				encoding?: *"protobuf" | "avro"
+				schema_registry?: string
+				authentication?: {
+					username: string
+					password: string
+				} | null
 			}
 		}
 		buffer?: {

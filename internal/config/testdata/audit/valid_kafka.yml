@@ -7,4 +7,8 @@ audit:
         - kafka-srv1
         - kafka-srv2
       encoding: protobuf
+      authentication:
+        username: user
+        password: passwd
+      schema_registry: http://registry
 

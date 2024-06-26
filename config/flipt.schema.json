@@ -1364,6 +1364,17 @@
                   "type": "string",
                   "enum": ["protobuf", "avro"],
                   "default": "protobuf"
+                },
+                "schema_registry": {
+                  "type": "string"
+                },
+                "authentication": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
                 }
               },
               "title": "Kafka"

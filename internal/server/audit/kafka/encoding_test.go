@@ -13,8 +13,8 @@ func TestEncoding(t *testing.T) {
 		name    string
 		encoder encodingFn
 	}{
-		{"protobuf", toProtobuf()},
-		{"avro", toAvro()},
+		{"protobuf", newProtobufEncoder().Encode},
+		{"avro", newAvroEncoder().Encode},
 	}
 
 	dataset := []struct {

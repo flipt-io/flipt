@@ -423,7 +423,7 @@ func NewGRPCServer(
 
 	if cfg.Audit.Sinks.Kafka.Enabled {
 		kafkaCfg := cfg.Audit.Sinks.Kafka
-		kafkaSink, err := kafka.NewSink(logger, kafkaCfg.BootstrapServers, kafkaCfg.Topic, kafkaCfg.Encoding)
+		kafkaSink, err := kafka.NewSink(logger, kafkaCfg)
 		if err != nil {
 			return nil, err
 		}
