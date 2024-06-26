@@ -233,24 +233,24 @@ func (o *StorageObjectConfig) validate() error {
 
 // S3Storage contains configuration for referencing a s3 bucket
 type S3Storage struct {
-	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
-	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
-	Region       string        `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
+	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
+	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
+	Prefix       string        `json:"-" mapstructure:"prefix" yaml:"prefix,omitempty"`
+	Region       string        `json:"-" mapstructure:"region" yaml:"region,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
 // AZBlobStorage contains configuration for referencing a Azure Blob Storage
 type AZBlobStorage struct {
 	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-	Container    string        `json:"container,omitempty" mapstructure:"container" yaml:"container,omitempty"`
+	Container    string        `json:"-" mapstructure:"container" yaml:"container,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
 // GSStorage contains configuration for referencing a Google Cloud Storage
 type GSStorage struct {
 	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
-	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
+	Prefix       string        `json:"-" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
