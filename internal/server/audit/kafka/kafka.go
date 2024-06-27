@@ -56,6 +56,10 @@ func NewSink(logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error)
 	if err != nil {
 		return nil, err
 	}
+	
+	if err := client.Ping(context.Background()); err != nil {
+		return nil, err
+	}
 	encoder, err := newEncoder(cfg)
 	if err != nil {
 		return nil, err
