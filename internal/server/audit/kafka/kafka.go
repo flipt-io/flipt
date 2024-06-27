@@ -35,7 +35,7 @@ type Sink struct {
 }
 
 // NewSink is the constructor for a Sink.
-func NewSink(logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error) {
+func NewSink(ctx context.Context, logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error) {
 	logger = logger.With(zap.String("sink", sinkType))
 	opts := []kgo.Opt{
 		kgo.SeedBrokers(cfg.BootstrapServers...),
@@ -56,17 +56,18 @@ func NewSink(logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error)
 	if err != nil {
 		return nil, err
 	}
-	
-	if err := client.Ping(context.Background()); err != nil {
+
+	if err := client.Ping(ctx); err != nil {
 		return nil, err
 	}
+
 	encoder, err := newEncoder(cfg)
 	if err != nil {
 		return nil, err
 	}
 	encodeFn := encoder.Encode
 	if cfg.SchemaRegistry != "" {
-		encodeFn, err = setupSchemaRegistryEncoder(cfg, encoder)
+		encodeFn, err = setupSchemaRegistryEncoder(ctx, cfg, encoder)
 		if err != nil {
 			return nil, err
 		}
@@ -81,12 +82,12 @@ func NewSink(logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error)
 
 // setupSchemaRegistryEncoder sets up the schema registry client, registers the schema,
 // and returns an encoding function.
-func setupSchemaRegistryEncoder(cfg config.KafkaSinkConfig, encoder Encoder) (encodingFn, error) {
+func setupSchemaRegistryEncoder(ctx context.Context, cfg config.KafkaSinkConfig, encoder Encoder) (encodingFn, error) {
 	rcl, err := sr.NewClient(sr.URLs(cfg.SchemaRegistry))
 	if err != nil {
 		return nil, err
 	}
-	ss, err := rcl.CreateSchema(context.Background(), cfg.Topic+"-value", encoder.Schema())
+	ss, err := rcl.CreateSchema(ctx, cfg.Topic+"-value", encoder.Schema())
 	if err != nil {
 		return nil, err
 	}

@@ -1369,7 +1369,7 @@
                   "type": "string"
                 },
                 "authentication": {
-                  "type": "object",
+                  "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
                     "username": { "type": "string" },

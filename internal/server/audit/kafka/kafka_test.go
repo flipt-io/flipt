@@ -1,22 +1,29 @@
 package kafka
 
 import (
+	"context"
 	"testing"
 
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap/zaptest"
 )
 
 func TestNewSink(t *testing.T) {
+	mockCluster, err := kafka.NewMockCluster(1)
+	require.NoError(t, err)
+	t.Cleanup(mockCluster.Close)
+	bootstrapServers := []string{mockCluster.BootstrapServers()}
+
 	for _, enc := range []string{encodingAvro, encodingProto} {
 		t.Run(enc, func(t *testing.T) {
 			cfg := config.KafkaSinkConfig{
-				BootstrapServers: []string{"localhost:9092"},
+				BootstrapServers: bootstrapServers,
 				Topic:            "default",
 				Encoding:         enc,
 			}
-			s, err := NewSink(zaptest.NewLogger(t), cfg)
+			s, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
 			require.NoError(t, err)
 			t.Cleanup(func() {
 				err := s.Close()
@@ -27,11 +34,11 @@ func TestNewSink(t *testing.T) {
 	}
 	t.Run("unsupported", func(t *testing.T) {
 		cfg := config.KafkaSinkConfig{
-			BootstrapServers: []string{"localhost:9092"},
+			BootstrapServers: bootstrapServers,
 			Topic:            "default",
 			Encoding:         "unknown",
 		}
-		_, err := NewSink(zaptest.NewLogger(t), cfg)
+		_, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
 		require.ErrorContains(t, err, "unsupported encoding:")
 	})
 }
