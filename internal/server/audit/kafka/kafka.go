@@ -121,8 +121,8 @@ func (s *Sink) Close() error {
 
 // SendAudits implements audit.Sink.
 func (s *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
+	prm := kgo.AbortingFirstErrPromise(s.client)
 	for _, e := range events {
-		prm := kgo.AbortingFirstErrPromise(s.client)
 		value, err := s.encode(e)
 		if err != nil {
 			s.logger.Error("failed to encode event", zap.Error(err))
@@ -132,9 +132,10 @@ func (s *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 			Value: value,
 			Key:   []byte(e.Type),
 		}, prm.Promise())
-		if err := prm.Err(); err != nil {
-			s.logger.Error("failed to publish record", zap.Error(err))
-		}
+	}
+	s.client.Flush(ctx)
+	if err := prm.Err(); err != nil {
+		s.logger.Error("failed to publish record", zap.Error(err))
 	}
 	return nil
 }
