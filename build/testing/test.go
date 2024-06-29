@@ -54,25 +54,6 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
 		AsService()
 
-	kafka := client.Container().
-		From("bitnami/kafka:3.3.1").
-		WithExposedPort(9092).
-		WithEnvVariable("KAFKA_ENABLE_KRAFT", "yes").
-		WithEnvVariable("KAFKA_CFG_PROCESS_ROLES", "controller,broker").
-		WithEnvVariable("KAFKA_CFG_CONTROLLER_LISTENER_NAMES", "CONTROLLER").
-		WithEnvVariable("KAFKA_CFG_LISTENERS", "PLAINTEXT://:9092,CONTROLLER://:9093").
-		WithEnvVariable("KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP", "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT").
-		WithEnvVariable("KAFKA_CFG_CONTROLLER_QUORUM_VOTERS", "1@127.0.0.1:9093").
-		WithEnvVariable("KAFKA_CFG_TRANSACTION_PARTITION_VERIFICATION_ENABLE", "false").
-		WithEnvVariable("KAFKA_CFG_ADVERTISED_LISTENERS", "PLAINTEXT://kafka-1:9092").
-		WithEnvVariable("KAFKA_CFG_NODE_ID", "1").
-		WithEnvVariable("KAFKA_CFG_BROKER_ID", "1").
-		WithEnvVariable("ALLOW_PLAINTEXT_LISTENER", "yes").
-		WithEnvVariable("KAFKA_CFG_BROKER_ID", "1").
-		WithEnvVariable("KAFKA_KRAFT_CLUSTER_ID", "XkpGZQ27R3eTl3OdTm2LYA").
-		WithExec(nil).
-		AsService()
-
 	// S3 unit testing
 
 	flipt = flipt.
@@ -95,15 +76,29 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 
+	// Kafka unit testing
+
+	kafka := client.Container().
+		From("redpandadata/redpanda").
+		WithExposedPort(9092, dagger.ContainerWithExposedPortOpts{
+			Description: "kafka endpoint",
+		}).
+		WithExposedPort(8081, dagger.ContainerWithExposedPortOpts{
+			Description: "schema registry endpoint",
+		}).
+		WithEnvVariable("REDPANDA_ADVERTISE_KAFKA_ADDRESS", "kafka-1:9092").
+		WithExec(nil).
+		AsService()
 	flipt = flipt.
+		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka-1").
 		WithServiceBinding("kafka-1", kafka)
+
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
 		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
 	}
 
 	flipt, err = flipt.
 		WithServiceBinding("redis", redisSrv.AsService()).
-		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka-1:9092").
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).

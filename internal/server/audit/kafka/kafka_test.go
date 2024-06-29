@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
@@ -22,7 +23,6 @@ func createTopic(t testing.TB, bootstrapServers []string, topic string) {
 		kgo.SeedBrokers(bootstrapServers...),
 	)
 	require.NoError(t, err)
-	defer client.Close()
 
 	adminClient := kadm.NewClient(client)
 
@@ -31,17 +31,23 @@ func createTopic(t testing.TB, bootstrapServers []string, topic string) {
 
 	_, err = adminClient.CreateTopic(ctx, 1, 1, nil, topic)
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_, err := adminClient.DeleteTopic(ctx, topic)
+		assert.NoError(t, err)
+		adminClient.Close()
+	})
 }
 
-func TestNewSink(t *testing.T) {
+func TestNewSinkAndSend(t *testing.T) {
 	srv := os.Getenv("KAFKA_BOOTSTRAP_SERVER")
 	if srv == "" {
 		t.Skip("no kafka servers provided")
 	}
 
 	bootstrapServers := []string{srv}
-	topic := fmt.Sprintf("default-%d", time.Now().Unix())
-	createTopic(t, bootstrapServers, topic)
+
 	e := audit.NewEvent(
 		flipt.NewRequest(flipt.ResourceFlag, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectRule)),
 		&audit.Actor{
@@ -57,14 +63,30 @@ func TestNewSink(t *testing.T) {
 		}),
 	)
 
-	for _, enc := range []string{encodingAvro, encodingProto} {
-		t.Run(enc, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	sg := fmt.Sprintf("http://%s:8081", srv)
+
+	tests := []struct {
+		name           string
+		enc            string
+		schemaRegistry string
+	}{
+		{"avro-basic", encodingAvro, ""},
+		{"avro-schema-registry", encodingAvro, sg},
+		{"proto-basic", encodingProto, ""},
+		{"proto-schema-registry", encodingProto, sg},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			topic := fmt.Sprintf("default-%s", tt.name)
+			createTopic(t, bootstrapServers, topic)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			t.Cleanup(cancel)
 			cfg := config.KafkaSinkConfig{
 				BootstrapServers: bootstrapServers,
 				Topic:            topic,
-				Encoding:         enc,
+				Encoding:         tt.enc,
+				SchemaRegistry:   tt.schemaRegistry,
 			}
 			s, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
 			require.NoError(t, err)
@@ -81,10 +103,23 @@ func TestNewSink(t *testing.T) {
 	t.Run("unsupported", func(t *testing.T) {
 		cfg := config.KafkaSinkConfig{
 			BootstrapServers: bootstrapServers,
-			Topic:            topic,
+			Topic:            "unsupported",
 			Encoding:         "unknown",
 		}
 		_, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
 		require.ErrorContains(t, err, "unsupported encoding:")
+	})
+
+	t.Run("auth-failure", func(t *testing.T) {
+		topic := "default-auth-failure"
+		createTopic(t, bootstrapServers, topic)
+		cfg := config.KafkaSinkConfig{
+			BootstrapServers: bootstrapServers,
+			Topic:            topic,
+			Encoding:         encodingProto,
+			Authentication:   &config.KafkaAuthentication{Username: "user", Password: "pass"},
+		}
+		_, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
+		require.Error(t, err)
 	})
 }

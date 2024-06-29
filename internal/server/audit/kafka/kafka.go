@@ -8,6 +8,7 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 	"github.com/twmb/franz-go/pkg/sasl/plain"
 	"github.com/twmb/franz-go/pkg/sr"
+	"github.com/twmb/franz-go/plugin/kzap"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
@@ -37,10 +38,15 @@ type Sink struct {
 // NewSink is the constructor for a Sink.
 func NewSink(ctx context.Context, logger *zap.Logger, cfg config.KafkaSinkConfig) (audit.Sink, error) {
 	logger = logger.With(zap.String("sink", sinkType))
+	logLevel := logger.Level()
+	if logLevel == zap.DebugLevel {
+		// kgo produces a lot of debug logs
+		logLevel = zap.InfoLevel
+	}
 	opts := []kgo.Opt{
 		kgo.SeedBrokers(cfg.BootstrapServers...),
 		kgo.DefaultProduceTopic(cfg.Topic),
-		kgo.WithLogger(&klogger{logger: logger}),
+		kgo.WithLogger(kzap.New(logger, kzap.AtomicLevel(zap.NewAtomicLevelAt(logLevel)))),
 	}
 
 	if cfg.Authentication != nil {
