@@ -78,7 +78,7 @@
     "eslint-config-standard-with-typescript": "^26.0.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-no-relative-import-paths": "^1.5.4",
     "eslint-plugin-playwright": "^0.22.2",
