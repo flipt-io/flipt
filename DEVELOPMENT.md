@@ -44,7 +44,7 @@ Then you need to enable CGO.
 
 1. Clone this repo: `git clone https://github.com/flipt-io/flipt`.
 1. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
-1. Run `mage go:test` to execute the Go test suite.
+1. Run `mage go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
 1. Run `mage` to build the binary with embedded assets.
 1. Run `mage -l` to see a full list of possible commands.
 

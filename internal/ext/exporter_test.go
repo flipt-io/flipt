@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type mockLister struct {
@@ -88,6 +89,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -227,6 +229,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -259,6 +262,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 							Description: "a boolean flag",
 							Enabled:     false,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 						},
 					},
 					"foo": {
@@ -268,6 +272,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -300,6 +305,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 							Description: "a boolean flag",
 							Enabled:     false,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 						},
 					},
 				},
@@ -499,6 +505,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -530,6 +537,7 @@ func TestExport(t *testing.T) {
 							Name:        "flag2",
 							Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 							Description: "a boolean flag",
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Enabled:     false,
 						},
 					},
@@ -540,6 +548,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -571,6 +580,7 @@ func TestExport(t *testing.T) {
 							Name:        "flag2",
 							Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 							Description: "a boolean flag",
+							Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 							Enabled:     false,
 						},
 					},

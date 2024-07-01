@@ -10,7 +10,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 )
 
-func FuzzValidateAttachment(f *testing.F) {
+func FuzzValidateJsonParameter(f *testing.F) {
 	seeds := []string{`{"key":"value"}`, `{"foo":"bar"}`, `{"foo":"bar","key":"value"}`, `{"foo":"bar","key":"value","baz":"qux"}`}
 
 	for _, s := range seeds {
@@ -18,7 +18,7 @@ func FuzzValidateAttachment(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, in string) {
-		err := validateAttachment(in)
+		err := validateJsonParameter(in, "attachment")
 		if err != nil {
 			var verr errs.ErrValidation
 			if errors.As(err, &verr) {

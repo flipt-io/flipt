@@ -132,6 +132,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 					Type:        f.Type.String(),
 					Description: f.Description,
 					Enabled:     f.Enabled,
+					Metadata:    f.Metadata,
 				}
 
 				// map variant id => variant key

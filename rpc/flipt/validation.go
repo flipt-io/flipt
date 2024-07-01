@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	maxVariantAttachmentSize = 10000
-	entityPropertyKey        = "entityId"
+	maxJsonStringSize = 10000
+	entityPropertyKey = "entityId"
 )
 
 // Validator validates types
@@ -22,21 +22,22 @@ type Validator interface {
 
 // Evaluate
 
-func validateAttachment(attachment string) error {
-	if attachment == "" {
+func validateJsonParameter(jsonValue string, parameterName string) error {
+	if jsonValue == "" {
 		return nil
 	}
 
-	bytes := []byte(attachment)
-	if !json.Valid(bytes) {
-		return errors.InvalidFieldError("attachment", "must be a json string")
+	bytes := []byte(jsonValue)
+	if json.Valid(bytes) == false {
+		return errors.InvalidFieldError(parameterName, "must be a json string")
 	}
 
-	if len(bytes) > maxVariantAttachmentSize {
-		return errors.InvalidFieldError("attachment",
-			fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+	if len(bytes) > maxJsonStringSize {
+		return errors.InvalidFieldError(parameterName,
+			fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 		)
 	}
+
 	return nil
 }
 
@@ -117,7 +118,7 @@ func (req *CreateVariantRequest) Validate() error {
 		return errors.EmptyFieldError("key")
 	}
 
-	if err := validateAttachment(req.Attachment); err != nil {
+	if err := validateJsonParameter(req.Attachment, "attachment"); err != nil {
 		return err
 	}
 
@@ -137,7 +138,7 @@ func (req *UpdateVariantRequest) Validate() error {
 		return errors.EmptyFieldError("key")
 	}
 
-	if err := validateAttachment(req.Attachment); err != nil {
+	if err := validateJsonParameter(req.Attachment, "attachment"); err != nil {
 		return err
 	}
 

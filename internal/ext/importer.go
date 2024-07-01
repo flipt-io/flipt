@@ -125,6 +125,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 				Name:         f.Name,
 				Description:  f.Description,
 				Enabled:      f.Enabled,
+				Metadata:     f.Metadata,
 				NamespaceKey: namespace,
 			}
 

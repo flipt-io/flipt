@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/errors"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func largeJSONString() string {
@@ -14,7 +15,7 @@ func largeJSONString() string {
 	suffix := `"}`
 
 	// adding one for making the string larger than the limit
-	b := make([]byte, maxVariantAttachmentSize-len(prefix)-len(suffix)+1)
+	b := make([]byte, maxJsonStringSize-len(prefix)-len(suffix)+1)
 	for i := range b {
 		b[i] = 'a'
 	}
@@ -142,6 +143,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
@@ -152,6 +154,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
 		},
@@ -162,6 +165,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
@@ -172,6 +176,7 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 		},
 	}
@@ -202,6 +207,7 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
@@ -212,6 +218,7 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
@@ -222,6 +229,17 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
+			},
+		},
+		{
+			name: "valid",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+				Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 			},
 		},
 	}
@@ -321,7 +339,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{
@@ -421,7 +439,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{
