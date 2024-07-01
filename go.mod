@@ -15,7 +15,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/MicahParks/keyfunc/v3 v3.3.3
 	github.com/XSAM/otelsql v0.31.0
-	github.com/aws/aws-sdk-go-v2/config v1.27.17
+	github.com/aws/aws-sdk-go-v2/config v1.27.23
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.29.1
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.4
@@ -132,23 +132,23 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/aws/aws-sdk-go v1.50.36 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.30.0 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.30.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.17 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.4 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.23 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.9 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.12 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.12 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.13 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.20.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.24.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.28.11 // indirect
-	github.com/aws/smithy-go v1.20.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.22.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.30.1 // indirect
+	github.com/aws/smithy-go v1.20.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/bytecodealliance/wasmtime-go/v3 v3.0.2 // indirect
