@@ -86,12 +86,13 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExposedPort(8081, dagger.ContainerWithExposedPortOpts{
 			Description: "schema registry endpoint",
 		}).
-		WithEnvVariable("REDPANDA_ADVERTISE_KAFKA_ADDRESS", "kafka-1:9092").
+		WithEnvVariable("REDPANDA_KAFKA_ADDRESS", "internal://127.0.0.1:29092,external://0.0.0.0:9092").
+		WithEnvVariable("REDPANDA_ADVERTISE_KAFKA_ADDRESS", "internal://localhost:29092,external://kafka:9092").
 		WithExec(nil).
 		AsService()
 	flipt = flipt.
-		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka-1").
-		WithServiceBinding("kafka-1", kafka)
+		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka").
+		WithServiceBinding("kafka", kafka)
 
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
 		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
