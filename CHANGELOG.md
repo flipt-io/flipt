@@ -3,6 +3,24 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.45.0](https://github.com/flipt-io/flipt/releases/tag/v1.45.0) - 2024-06-26
+
+### Added
+
+- Rbac cloud (#3203)
+- `authz`: add opa bundle support (#3194)
+- support environment variable substitution in config files (#3195)
+
+### Changed
+
+- `authz`: move out of experimental (#3203)
+- `proto`: prevent panic in protoc-gen-go-flipt-sdk (#3215)
+- `build`: move to new dagger v0.11.8 (#3144)
+
+### Fixed
+
+- `build`: configure token authentication for migration test suite (#3177)
+
 ## [v1.44.0](https://github.com/flipt-io/flipt/releases/tag/v1.44.0) - 2024-06-13
 
 ### Added

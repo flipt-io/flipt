@@ -335,12 +335,8 @@ func (u UI) Build() error {
 
 type Dagger mg.Namespace
 
-func (d Dagger) List() error {
-	return sh.RunV("mage", "-d", "build")
-}
-
-func (d Dagger) Run(command string) error {
-	return sh.RunV("dagger", append([]string{"run", "mage", "-d", "build"}, strings.Split(command, " ")...)...)
+func (d Dagger) Call(command, args string) error {
+	return sh.RunV("dagger", append([]string{"call", command, "--source=."}, strings.Split(args, " ")...)...)
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given

@@ -11,20 +11,19 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
 	"github.com/go-jose/go-jose/v3"
 	jjwt "github.com/go-jose/go-jose/v3/jwt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/hashicorp/cap/jwt"
+	"go.flipt.io/build/internal/dagger"
 	"go.flipt.io/stew/config"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
@@ -65,8 +64,8 @@ var (
 		"fs/azblob":     azblob,
 		"fs/gcs":        gcs,
 		"import/export": importExport,
-		"authn/sqlite":  authn,
-		"authz/sqlite":  authz,
+		"authn":         authn,
+		"authz":         authz,
 	}
 )
 
@@ -96,19 +95,53 @@ func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	return cases, nil
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
-	cases, err := filterCases(caseNames...)
+type IntegrationOptions func(*integrationOptions)
+
+type integrationOptions struct {
+	// The test cases to run. If empty, all test cases are run.
+	cases []string
+	// Whether to export the logs from the test run.
+	exportLogs bool
+}
+
+func WithTestCases(cases ...string) func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.cases = cases
+	}
+}
+
+func WithExportLogs() func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.exportLogs = true
+	}
+}
+
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) error {
+	var options integrationOptions
+
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	cases, err := filterCases(options.cases...)
 	if err != nil {
 		return err
 	}
 
-	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
-	_, err = flipt.WithUser("root").
-		WithMountedCache("/logs", logs).
-		WithExec([]string{"chown", "flipt:flipt", "/logs"}).
-		Sync(ctx)
-	if err != nil {
-		return err
+	var (
+		exportLogs = options.exportLogs
+		logs       *dagger.CacheVolume
+	)
+
+	if exportLogs {
+		logs = client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
+		_, err = flipt.WithUser("root").
+			WithMountedCache("/logs", logs).
+			WithExec([]string{"chown", "flipt:flipt", "/logs"}).
+			Sync(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	var configs []testConfig
@@ -193,9 +226,13 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
-					WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-					WithMountedCache("/var/opt/flipt/logs", logs).
 					WithExposedPort(config.port)
+
+				if exportLogs {
+					flipt = flipt.WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
+						WithMountedCache("/var/opt/flipt/logs", logs)
+				}
+
 				return fn(ctx, client, base.Pipeline(name), flipt, config)()
 			}))
 		}
@@ -203,13 +240,13 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	err = g.Wait()
 
-	if _, lerr := client.Container().From("alpine:3.16").
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithMountedCache("/logs", logs).
-		WithExec([]string{"cp", "-r", "/logs", "/out"}).
-		Directory("/out").
-		Export(ctx, "build/logs"); lerr != nil {
-		log.Println("Error copying logs", lerr)
+	if exportLogs {
+		_, _ = client.Container().From("alpine:3.16").
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			WithMountedCache("/logs", logs).
+			WithExec([]string{"cp", "-r", "/logs", "/out"}).
+			Directory("/out").
+			Export(ctx, "build/logs")
 	}
 
 	return err
@@ -365,8 +402,8 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 }
 
 const (
-	rootTestdataDir           = "build/testing/integration/readonly/testdata"
-	singleRevisionTestdataDir = rootTestdataDir + "/main"
+	rootReadOnlyTestdataDir   = "build/testing/integration/readonly/testdata"
+	singleRevisionTestdataDir = rootReadOnlyTestdataDir + "/main"
 )
 
 func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -424,7 +461,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	_, err = client.Container().
 		From("ghcr.io/flipt-io/stew:latest").
 		WithWorkdir("/work").
-		WithDirectory("/work/base", base.Directory(rootTestdataDir)).
+		WithDirectory("/work/base", base.Directory(rootReadOnlyTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", dagger.ContainerWithNewFileOpts{
 			Contents: string(contents),
 		}).
@@ -493,7 +530,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 
 	var (
 		// username == "username" password == "password"
-		htpasswd  = "username:$2y$05$0krVCN7KfnmV5MwdD6Z7CuFuFnmbqP8.14iEV/nhNLM4V3VFF7NVK"
+		htpasswd  = "username:$2y$05$0krVCN7KfnmV5MwdD6Z7CuFuFnmbqP8.14iEV/nhNLM4V3VFF7NVK" //nolint:gosec
 		zotConfig = `{
     "storage": {
         "rootDirectory": "/var/lib/registry"
@@ -656,7 +693,8 @@ func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 	fliptToTest := flipt.
 		WithEnvVariable("FLIPT_EXPERIMENTAL_AUTHORIZATION_ENABLED", "true").
 		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
-		WithEnvVariable("FLIPT_AUTHORIZATION_POLICY_LOCAL_PATH", policyPath).
+		WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
+		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
 		WithNewFile(policyPath, dagger.ContainerWithNewFileOpts{
 			Contents: `package flipt.authz.v1
 
@@ -713,7 +751,7 @@ permit_slice(allowed, requested) if {
 	allowed[_] = requested
 }`,
 		}).
-		WithEnvVariable("FLIPT_AUTHORIZATION_DATA_LOCAL_PATH", policyData).
+		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
 		WithNewFile(policyData, dagger.ContainerWithNewFileOpts{
 			Contents: `{
     "version": "0.1.0",
@@ -899,6 +937,9 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 		jose.SigningKey{Algorithm: jose.SignatureAlgorithm(string(jwt.RS256)), Key: key},
 		(&jose.SignerOptions{}).WithType("JWT"),
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	raw, err := jjwt.Signed(sig).
 		Claims(claims).

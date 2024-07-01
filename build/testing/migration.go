@@ -3,15 +3,14 @@ package testing
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"dagger.io/dagger"
 	"github.com/google/go-github/v53/github"
 	"github.com/google/uuid"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
-	dir := client.CacheVolume(fmt.Sprintf("flipt-state-%s", time.Now()))
+	dir := client.CacheVolume("flipt-state")
 	latest, err := client.Container().
 		From("flipt/flipt:latest").
 		// support Flipt instances without /var/log/flipt configured

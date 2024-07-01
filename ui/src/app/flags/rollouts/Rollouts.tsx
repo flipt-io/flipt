@@ -276,10 +276,7 @@ export default function Rollouts(props: RolloutsProps) {
                 into place.
               </p>
             </div>
-            <div
-              className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900
-  lg:p-6"
-            >
+            <div className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:p-6">
               {rollouts && rollouts.length > 0 && (
                 <DndContext
                   sensors={sensors}
@@ -324,7 +321,7 @@ export default function Rollouts(props: RolloutsProps) {
               )}
               <div className="flex-col p-2 md:flex">
                 <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-                  <div className="bg-white border-gray-200 w-full border-b p-2 ">
+                  <div className="bg-white border-gray-200 w-full border-b p-2">
                     <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
                       <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
                       <h3 className="text-gray-700 text-sm font-normal leading-6">

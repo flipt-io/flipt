@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -31,8 +32,9 @@ import (
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
+	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
+	authzrego "go.flipt.io/flipt/internal/server/authz/engine/rego"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
-	"go.flipt.io/flipt/internal/server/authz/source/filesystem"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -212,7 +214,7 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
-	// base observability inteceptors
+	// base inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
@@ -228,11 +230,12 @@ func NewGRPCServer(
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
 		otelgrpc.UnaryServerInterceptor(),
+		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
-	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
 		var (
+			cacher        cache.Cacher
 			cacheShutdown errFunc
 			err           error
 		)
@@ -344,7 +347,6 @@ func NewGRPCServer(
 	// add auth interceptors to the server
 	interceptors = append(interceptors,
 		append(authInterceptors,
-			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
@@ -375,9 +377,11 @@ func NewGRPCServer(
 	}
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
-		opts := []webhook.ClientOption{}
+		httpClient := retryablehttp.NewClient()
+		httpClient.Logger = logger
+
 		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
-			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
+			httpClient.RetryWaitMax = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
 		}
 
 		var webhookSink audit.Sink
@@ -385,7 +389,7 @@ func NewGRPCServer(
 		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
 		// than 0 for the webhook.
 		if cfg.Audit.Sinks.Webhook.URL != "" {
-			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, httpClient))
 		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
 			maxBackoffDuration := 15 * time.Second
 			if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
@@ -454,41 +458,25 @@ func NewGRPCServer(
 			authzmiddlewaregrpc.WithServerSkipsAuthorization(healthsrv),
 		}
 
-		engineOpts := []containers.Option[authz.Engine]{
-			authz.WithPollDuration(cfg.Authorization.Policy.PollInterval),
-		}
+		var (
+			authzEngine   authz.Verifier
+			authzShutdown errFunc
+			err           error
+		)
 
-		if cfg.Authorization.Data != nil {
-			switch cfg.Authorization.Data.Backend {
-			case config.AuthorizationBackendLocal:
-				engineOpts = append(engineOpts, authz.WithDataSource(
-					filesystem.DataSourceFromPath(cfg.Authorization.Data.Local.Path),
-					cfg.Authorization.Data.PollInterval,
-				))
-			default:
-				return nil, fmt.Errorf("unexpected authz data backend type: %q", cfg.Authorization.Data.Backend)
-			}
-		}
-
-		var source authz.PolicySource
-		switch cfg.Authorization.Policy.Backend {
-		case config.AuthorizationBackendLocal:
-			source = filesystem.PolicySourceFromPath(cfg.Authorization.Policy.Local.Path)
-		default:
-			return nil, fmt.Errorf("unexpected authz policy backend type: %q", cfg.Authorization.Policy.Backend)
-		}
-
-		policyEngine, err := authz.NewEngine(ctx, logger, source, engineOpts...)
+		authzEngine, authzShutdown, err = getAuthz(ctx, logger, cfg)
 		if err != nil {
-			return nil, fmt.Errorf("creating authorization policy engine: %w", err)
+			return nil, err
 		}
 
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, policyEngine, authzOpts...))
+		server.onShutdown(authzShutdown)
+
+		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}
 
-	// we validate requests before cache but after authn and authz
+	// we validate requests before after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	grpcOpts := []grpc.ServerOption{
@@ -557,6 +545,41 @@ type errFunc func(context.Context) error
 
 func (s *GRPCServer) onShutdown(fn errFunc) {
 	s.shutdownFuncs = append(s.shutdownFuncs, fn)
+}
+
+var (
+	authzOnce sync.Once
+	validator authz.Verifier
+	authzFunc errFunc = func(context.Context) error { return nil }
+	authzErr  error
+)
+
+func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (authz.Verifier, errFunc, error) {
+	authzOnce.Do(func() {
+		var err error
+		switch cfg.Authorization.Backend {
+		case config.AuthorizationBackendLocal:
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+
+		case config.AuthorizationBackendCloud:
+			if cfg.Cloud.Authentication.ApiKey == "" {
+				err = errors.New("cloud authorization requires an api key")
+				break
+			}
+
+			validator, err = authzrego.NewEngine(ctx, logger, cfg)
+
+		default:
+			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
+		}
+
+		if err != nil {
+			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
+			return
+		}
+	})
+
+	return validator, authzFunc, authzErr
 }
 
 var (

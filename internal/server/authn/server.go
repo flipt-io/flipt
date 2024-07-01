@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
@@ -24,32 +26,35 @@ const (
 
 var _ auth.AuthenticationServiceServer = &Server{}
 
+func firstNonEmptyString(s ...string) string {
+	for _, v := range s {
+		if v != "" {
+			return v
+		}
+	}
+
+	return ""
+}
+
 func GetActorFromAuthentication(authentication *auth.Authentication, ip string) *audit.Actor {
+	actor := func(m string) *audit.Actor {
+		return &audit.Actor{
+			Authentication: m,
+			Email:          firstNonEmptyString(authentication.Metadata[method.StorageMetadataEmail], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.email", m)]),
+			Name:           firstNonEmptyString(authentication.Metadata[method.StorageMetadataName], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.name", m)]),
+			Picture:        firstNonEmptyString(authentication.Metadata[method.StorageMetadataPicture], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.picture", m)]),
+			IP:             ip,
+		}
+	}
+
 	switch authentication.Method {
-	case auth.Method_METHOD_GITHUB:
-		return &audit.Actor{
-			Authentication: "github",
-			Email:          authentication.Metadata["io.flipt.auth.github.email"],
-			Name:           authentication.Metadata["io.flipt.auth.github.name"],
-			Picture:        authentication.Metadata["io.flipt.auth.github.picture"],
-			IP:             ip,
-		}
 	case auth.Method_METHOD_OIDC:
-		return &audit.Actor{
-			Authentication: "oidc",
-			Email:          authentication.Metadata["io.flipt.auth.oidc.email"],
-			Name:           authentication.Metadata["io.flipt.auth.oidc.name"],
-			Picture:        authentication.Metadata["io.flipt.auth.oidc.picture"],
-			IP:             ip,
-		}
+		return actor("oidc")
 	case auth.Method_METHOD_JWT:
-		return &audit.Actor{
-			Authentication: "jwt",
-			Email:          authentication.Metadata["io.flipt.auth.jwt.email"],
-			Name:           authentication.Metadata["io.flipt.auth.jwt.name"],
-			Picture:        authentication.Metadata["io.flipt.auth.jwt.picture"],
-			IP:             ip,
-		}
+		return actor("jwt")
+	case auth.Method_METHOD_GITHUB:
+		return actor("github")
+
 	default:
 		authName := strings.ToLower(strings.TrimPrefix(authentication.Method.String(), "METHOD_"))
 		return &audit.Actor{
@@ -131,7 +136,7 @@ func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*
 		return auth, nil
 	}
 
-	return nil, authmiddlewaregrpc.ErrUnauthenticated
+	return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 }
 
 // GetAuthentication returns the Authentication identified by the supplied id.
@@ -203,5 +208,5 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
 	}
 
-	return nil, authmiddlewaregrpc.ErrUnauthenticated
+	return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 }

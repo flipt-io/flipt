@@ -118,18 +118,32 @@ import "strings"
 	}
 
 	#authorization: {
-		#authorizationSource: {
-			backend: "local"
-			local: path: string
-			poll_interval?: =~#duration
-		}
-
 		required?: bool | *false
-		policy?: #authorizationSource & {
-			poll_interval: =~#duration | *"5m"
+		backend:   "local" | "object" | "bundle" | "cloud" | *""
+		local?: {
+			policy?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
+			data?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
 		}
-		data?: #authorizationSource & {
-			poll_interval: =~#duration | *"30s"
+		object?: {
+			type: "s3" | *""
+			s3?: {
+				region:    string
+				bucket:    string
+				prefix?:   string
+				endpoint?: string
+			}
+		}
+		bundle?: {
+			configuration: string
+		}
+		cloud?: {
+			poll_interval: =~#duration | *"5m"
 		}
 	}
 
@@ -399,9 +413,6 @@ import "strings"
 	}
 
 	#experimental: {
-		authorization?: {
-			enabled?: bool | *false
-		}
 		cloud?: {
 			enabled?: bool | *false
 		}

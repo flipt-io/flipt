@@ -3,7 +3,7 @@ package authn
 import (
 	"testing"
 
-	"go.flipt.io/flipt/build/testing/integration"
+	"go.flipt.io/build/testing/integration"
 )
 
 func TestAuthn(t *testing.T) {

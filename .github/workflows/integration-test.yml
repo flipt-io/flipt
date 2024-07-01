@@ -8,8 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  DAGGER_VERSION: "0.9.5"
-  DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+  DAGGER_VERSION: "0.11.8"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -24,24 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run CLI Tests
-        run: mage dagger:run test:cli
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source .:default cli
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
   test:
     name: Integration Tests
@@ -66,32 +54,21 @@ jobs:
             "fs/azblob",
             "fs/gcs",
             "import/export",
-            "authn/sqlite",
-            "authz/sqlite",
+            "authn",
+            "authz",
           ]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run Integration Tests
-        run: mage dagger:run "test:integration ${{ matrix.test }}"
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source .:default integration --cases ${{ matrix.test }}
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4
@@ -109,21 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: true
-
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Run UI Tests
-        run: mage dagger:run test:ui
+        uses: dagger/dagger-for-github@v5
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source .:default ui
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}

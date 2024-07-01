@@ -54,12 +54,8 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 
 func (c *AuditConfig) validate() error {
 	if c.Sinks.Webhook.Enabled {
-		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
-			return errors.New("url or template(s) not provided")
-		}
-
-		if c.Sinks.Webhook.URL != "" && len(c.Sinks.Webhook.Templates) > 0 {
-			return errors.New("only one of url or template(s) allowed")
+		if err := c.Sinks.Webhook.validate(); err != nil {
+			return err
 		}
 	}
 
@@ -94,6 +90,18 @@ type WebhookSinkConfig struct {
 	MaxBackoffDuration time.Duration     `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration" yaml:"max_backoff_duration,omitempty"`
 	SigningSecret      string            `json:"-" mapstructure:"signing_secret" yaml:"-"`
 	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
+}
+
+func (w WebhookSinkConfig) validate() error {
+	if w.URL == "" && len(w.Templates) == 0 {
+		return errors.New("url or template(s) not provided")
+	}
+
+	if w.URL != "" && len(w.Templates) > 0 {
+		return errors.New("only one of url or template(s) allowed")
+	}
+
+	return nil
 }
 
 // LogSinkConfig contains fields that hold configuration for sending audits
