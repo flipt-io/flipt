@@ -27,6 +27,7 @@ const (
 
 type Transport interface {
 	AnalyticsClient() analytics.AnalyticsServiceClient
+	AuditClient() AuditClient
 	AuthClient() AuthClient
 	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient
@@ -221,6 +222,13 @@ func New(t Transport, opts ...Option) SDK {
 func (s SDK) Analytics() *Analytics {
 	return &Analytics{
 		transport:              s.transport.AnalyticsClient(),
+		authenticationProvider: s.authenticationProvider,
+	}
+}
+
+func (s SDK) Audit() *Audit {
+	return &Audit{
+		transport:              s.transport.AuditClient(),
 		authenticationProvider: s.authenticationProvider,
 	}
 }

@@ -84,7 +84,7 @@ func (s *SinkSpanExporter) SendAudits(ctx context.Context, es []Event) error {
 		s.logger.Debug("performing batched sending of audit events", zap.Stringer("sink", sink), zap.Int("batch size", len(es)))
 		err := sink.SendAudits(ctx, es)
 		if err != nil {
-			s.logger.Debug("failed to send audits to sink", zap.Stringer("sink", sink))
+			s.logger.Error("failed to send audits to sink", zap.Stringer("sink", sink), zap.Error(err))
 		}
 	}
 

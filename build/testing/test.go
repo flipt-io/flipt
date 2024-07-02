@@ -76,6 +76,24 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 
+	// Kafka unit testing
+
+	kafka := client.Container().
+		From("redpandadata/redpanda").
+		WithExposedPort(9092, dagger.ContainerWithExposedPortOpts{
+			Description: "kafka endpoint",
+		}).
+		WithExposedPort(8081, dagger.ContainerWithExposedPortOpts{
+			Description: "schema registry endpoint",
+		}).
+		WithEnvVariable("REDPANDA_KAFKA_ADDRESS", "internal://127.0.0.1:29092,external://0.0.0.0:9092").
+		WithEnvVariable("REDPANDA_ADVERTISE_KAFKA_ADDRESS", "internal://localhost:29092,external://kafka:9092").
+		WithExec(nil).
+		AsService()
+	flipt = flipt.
+		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka").
+		WithServiceBinding("kafka", kafka)
+
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
 		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
 	}

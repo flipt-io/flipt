@@ -26,6 +26,14 @@ func (t Transport) AnalyticsClient() analytics.AnalyticsServiceClient {
 	return analytics.NewAnalyticsServiceClient(t.cc)
 }
 
+type auditClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func (t Transport) AuditClient() _go.AuditClient {
+	return auditClient{cc: t.cc}
+}
+
 type authClient struct {
 	cc grpc.ClientConnInterface
 }
