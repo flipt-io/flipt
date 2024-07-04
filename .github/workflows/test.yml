@@ -26,7 +26,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default unit
+          args: test --source .:default unit export --path coverage.txt
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Coverage

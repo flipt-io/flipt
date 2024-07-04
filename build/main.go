@@ -82,7 +82,7 @@ func (t *Test) UI(ctx context.Context) error {
 }
 
 // Run all unit tests
-func (t *Test) Unit(ctx context.Context) error {
+func (t *Test) Unit(ctx context.Context) (*dagger.File, error) {
 	return testing.Unit(ctx, dag, t.BaseContainer)
 }
 
