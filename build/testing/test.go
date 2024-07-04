@@ -8,7 +8,7 @@ import (
 	"go.flipt.io/build/internal/dagger"
 )
 
-func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
+func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (*dagger.File, error) {
 	// create Redis service container
 	redisSrv := client.Container().
 		From("redis:alpine").
@@ -26,12 +26,12 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 
 	out, err := flipt.Stdout(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var push map[string]string
 	if err := json.Unmarshal([]byte(out), &push); err != nil {
-		return err
+		return nil, err
 	}
 
 	minio := client.Container().
@@ -89,11 +89,10 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExec([]string{"go", "test", "-race", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
 		Sync(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// attempt to export coverage if its exists
-	_, _ = flipt.File("coverage.txt").Export(ctx, "coverage.txt")
+	return flipt.File("coverage.txt"), nil
 
-	return nil
 }
