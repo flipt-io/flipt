@@ -2,7 +2,7 @@ package http_middleware
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 	"fmt"
 	"hash"
 	"io"
