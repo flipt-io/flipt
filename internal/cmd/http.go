@@ -21,6 +21,7 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	http_middleware "go.flipt.io/flipt/internal/server/middleware/http"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -153,7 +154,11 @@ func NewHTTPServer(
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
 		r.Mount("/internal/v1/analytics", analyticsAPI)
-		r.Mount("/internal/v1", evaluateDataAPI)
+
+		r.Group(func(r chi.Router) {
+			r.Use(http_middleware.Etag)
+			r.Mount("/internal/v1", evaluateDataAPI)
+		})
 
 		// mount all authentication related HTTP components
 		// to the chi router.
