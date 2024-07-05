@@ -95,7 +95,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
 		WithEnvVariable("TEST_GIT_REPO_TAG", push["TAG"]).
-		WithExec([]string{"go", "test", "-race", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
+		WithExec([]string{"go", "test", "-race", "-coverprofile=coverage.txt", "-covermode=atomic", "-coverpkg=./...", "./..."}).
 		Sync(ctx)
 	if err != nil {
 		return nil, err
