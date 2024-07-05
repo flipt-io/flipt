@@ -1344,6 +1344,48 @@
                 }
               },
               "title": "Cloud"
+            },
+            "kafka": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "topic": {
+                  "type": "string"
+                },
+                "bootstrap_servers": {
+                  "type": ["array", "null"],
+                  "items": { "type": "string" }
+                },
+                "encoding": {
+                  "type": "string",
+                  "enum": ["protobuf", "avro"],
+                  "default": "protobuf"
+                },
+                "schema_registry": {
+                  "type": "string"
+                },
+                "require_tls": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "insecure_skip_tls": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "authentication": {
+                  "type": ["object", "null"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
+                }
+              },
+              "title": "Kafka"
             }
           }
         },

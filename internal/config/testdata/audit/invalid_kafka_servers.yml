@@ -1,0 +1,6 @@
+audit:
+  sinks:
+    kafka:
+      enabled: true
+      topic: audit-topic
+

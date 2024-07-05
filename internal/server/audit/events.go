@@ -25,19 +25,19 @@ const (
 
 // Event holds information that represents an action that was attempted in the system.
 type Event struct {
-	Version string `json:"version"`
+	Version string `json:"version" avro:"version"`
 
-	Type string `json:"type"`
+	Type string `json:"type" avro:"type"`
 
-	Action string `json:"action"`
+	Action string `json:"action" avro:"action"`
 
-	Metadata Metadata `json:"metadata"`
+	Metadata Metadata `json:"metadata" avro:"metadata"`
 
-	Payload interface{} `json:"payload"`
+	Payload interface{} `json:"payload" avro:"payload"`
 
-	Timestamp string `json:"timestamp"`
+	Timestamp string `json:"timestamp" avro:"timestamp"`
 
-	Status string `json:"status"`
+	Status string `json:"status" avro:"status"`
 }
 
 // NewEvent is the constructor for an event.
@@ -158,6 +158,28 @@ func (e Event) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
+func (e *Event) CopyInto(out *Event) {
+	*out = *e
+	out.Metadata = e.Metadata
+	out.Payload = e.Payload
+}
+
+func (e *Event) PayloadToMap() (map[string]any, error) {
+	if e.Payload == nil {
+		return map[string]any{}, nil
+	}
+	payloadString, err := json.Marshal(e.Payload)
+	if err != nil {
+		return nil, err
+	}
+	var payload map[string]any
+	err = json.Unmarshal(payloadString, &payload)
+	if err != nil {
+		return nil, err
+	}
+	return payload, nil
+}
+
 var errEventNotValid = errors.New("event not valid")
 
 // decodeToEvent provides helper logic for turning to value of SpanEvents to
@@ -199,14 +221,14 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 }
 
 type Actor struct {
-	Authentication string `json:"authentication,omitempty"`
-	IP             string `json:"ip,omitempty"`
-	Email          string `json:"email,omitempty"`
-	Name           string `json:"name,omitempty"`
-	Picture        string `json:"picture,omitempty"`
+	Authentication string `json:"authentication,omitempty" avro:"authentication"`
+	IP             string `json:"ip,omitempty" avro:"ip"`
+	Email          string `json:"email,omitempty" avro:"email"`
+	Name           string `json:"name,omitempty" avro:"name"`
+	Picture        string `json:"picture,omitempty" avro:"picture"`
 }
 
 // Metadata holds information of what metadata an event will contain.
 type Metadata struct {
-	Actor *Actor `json:"actor,omitempty"`
+	Actor *Actor `json:"actor,omitempty" avro:"actor"`
 }

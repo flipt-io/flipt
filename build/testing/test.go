@@ -76,6 +76,15 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 
+	// Kafka unit testing
+	kafka, err := redpandaTLSService(ctx, client, "kafka", "admin")
+	if err != nil {
+		return nil, err
+	}
+	flipt = flipt.
+		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka").
+		WithServiceBinding("kafka", kafka)
+
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
 		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
 	}

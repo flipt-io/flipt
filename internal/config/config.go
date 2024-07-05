@@ -644,6 +644,9 @@ func Default() *Config {
 					Enabled: false,
 					File:    "",
 				},
+				Kafka: KafkaSinkConfig{
+					Encoding: "protobuf",
+				},
 			},
 			Buffer: BufferConfig{
 				Capacity:    2,
