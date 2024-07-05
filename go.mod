@@ -75,7 +75,7 @@ require (
 	github.com/xo/dburl v0.23.2
 	go.flipt.io/flipt/core v0.0.0-00010101000000-000000000000
 	go.flipt.io/flipt/errors v1.45.0
-	go.flipt.io/flipt/rpc/flipt v1.38.0
+	go.flipt.io/flipt/rpc/flipt v1.45.0
 	go.flipt.io/flipt/sdk/go v0.11.0
 	go.flipt.io/reverst v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0

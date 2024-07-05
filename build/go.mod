@@ -25,7 +25,7 @@ require (
 	github.com/magefile/mage v1.15.0
 	github.com/stretchr/testify v1.9.0
 	github.com/tsenart/vegeta v12.7.0+incompatible
-	go.flipt.io/flipt/rpc/flipt v1.44.0
+	go.flipt.io/flipt/rpc/flipt v1.45.0
 	go.flipt.io/flipt/sdk/go v0.11.0
 	go.flipt.io/stew v0.0.0-20240109140408-33ad11ecef1c
 	golang.org/x/mod v0.18.0
