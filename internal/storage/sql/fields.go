@@ -62,6 +62,10 @@ type JSONField[T any] struct {
 }
 
 func (f *JSONField[T]) Scan(v any) error {
+	if v == nil {
+		return nil
+	}
+
 	var bytes []byte
 	switch b := v.(type) {
 	case []byte:
