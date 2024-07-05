@@ -1,6 +1,7 @@
 package http_middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestEtag(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/", nil)
+	req, _ := http.NewRequestWithContext(context.Background(), "GET", "/", nil)
 	w := httptest.NewRecorder()
 
 	r := chi.NewRouter()
@@ -26,7 +27,7 @@ func TestEtag(t *testing.T) {
 	require.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "0a4d55a8d778e5022fab701977c5d840bbc486d0", w.Header().Get("ETag"))
 
-	req, _ = http.NewRequest("GET", "/", nil)
+	req, _ = http.NewRequestWithContext(context.Background(), "GET", "/", nil)
 	req.Header.Set("If-None-Match", "0a4d55a8d778e5022fab701977c5d840bbc486d0")
 	w = httptest.NewRecorder()
 
