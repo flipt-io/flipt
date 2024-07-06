@@ -33,6 +33,7 @@ import "strings"
 			management: bool | *false
 			metadata:   bool | *false
 			evaluation: bool | *false
+			ofrep:      bool | *false
 		}
 		session?: {
 			domain?:        string
