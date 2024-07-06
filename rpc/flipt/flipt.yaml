@@ -323,3 +323,9 @@ http:
   # method: evaluation count
   - selector: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount
     get: /internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}
+
+  # Open Feature Remote Evaluation Protocol (OFREP)
+  #
+  # method: provider configuration
+  - selector: flipt.ofrep.OFREPService.GetProviderConfiguration
+    get: /ofrep/*/ofrep/v1/configuration
