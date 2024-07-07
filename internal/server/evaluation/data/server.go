@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"crypto/sha1" //nolint:gosec
+
 	"fmt"
 
 	"github.com/blang/semver/v4"
@@ -103,19 +105,29 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
+		// get If-None-Match header from request
 		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 {
 			ifNoneMatch = vals[0]
 		}
 	}
 
+	// get current version from store
 	currentVersion, err := srv.store.GetVersion(ctx)
 	if err != nil {
 		srv.logger.Error("getting current version", zap.Error(err))
 	}
 
-	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", currentVersion))
+	var (
+		hash = sha1.New() //nolint:gosec
+		_, _ = hash.Write([]byte(currentVersion))
+		// etag is the sha1 hash of the current version
+		etag = fmt.Sprintf("%x", hash.Sum(nil))
+	)
 
-	if ifNoneMatch == currentVersion {
+	// set etag header in the response
+	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
+	// if etag matches the If-None-Match header, we want to return a 304
+	if ifNoneMatch == etag {
 		_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
 	}
 
