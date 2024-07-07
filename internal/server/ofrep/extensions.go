@@ -6,6 +6,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 )
 
+// GetProviderConfiguration returns the configuration set by the running flipt instance.
 func (s *Server) GetProviderConfiguration(_ context.Context, _ *ofrep.GetProviderConfigurationRequest) (*ofrep.GetProviderConfigurationResponse, error) {
 	var pollingInterval int64
 	if s.cacheCfg.Enabled {
