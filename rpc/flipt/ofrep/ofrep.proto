@@ -29,6 +29,7 @@ message FlagEvaluation {
   repeated string supported_types = 1;
 }
 
+// flipt:sdk:ignore
 service OFREPService {
   rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {}
 }

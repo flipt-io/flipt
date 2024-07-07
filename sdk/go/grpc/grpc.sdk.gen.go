@@ -8,7 +8,6 @@ import (
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
-	ofrep "go.flipt.io/flipt/rpc/flipt/ofrep"
 	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 )
@@ -69,8 +68,4 @@ func (t Transport) FliptClient() flipt.FliptClient {
 
 func (t Transport) MetaClient() meta.MetadataServiceClient {
 	return meta.NewMetadataServiceClient(t.cc)
-}
-
-func (t Transport) OfrepClient() ofrep.OFREPServiceClient {
-	return ofrep.NewOFREPServiceClient(t.cc)
 }

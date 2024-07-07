@@ -328,4 +328,4 @@ http:
   #
   # method: provider configuration
   - selector: flipt.ofrep.OFREPService.GetProviderConfiguration
-    get: /ofrep/*/ofrep/v1/configuration
+    get: /ofrep/v1/configuration
