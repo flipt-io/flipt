@@ -36,13 +36,13 @@ func (s *Store) String() string {
 	return ""
 }
 
-func (s *Store) GetVersion(ctx context.Context, namespace string) (string, error) {
+func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (string, error) {
 	var resourcesUpdatedAt fliptsql.NullableTimestamp
 
 	err := s.builder.
 		Select("resources_updated_at").
 		From("namespaces").
-		Where(sq.Eq{"key": namespace}).
+		Where(sq.Eq{"key": ns.Namespace()}).
 		Limit(1).
 		RunWith(s.db).
 		QueryRowContext(ctx).

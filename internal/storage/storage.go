@@ -153,8 +153,8 @@ func WithOrder(order Order) QueryOption {
 	}
 }
 
-type VersionStore interface {
-	GetVersion(ctx context.Context, namespace string) (string, error)
+type NamespaceVersionStore interface {
+	GetVersion(ctx context.Context, ns NamespaceRequest) (string, error)
 }
 
 // ReadOnlyStore is a storage implementation which only supports
@@ -166,8 +166,8 @@ type ReadOnlyStore interface {
 	ReadOnlyRuleStore
 	ReadOnlyRolloutStore
 	EvaluationStore
+	NamespaceVersionStore
 	fmt.Stringer
-	VersionStore
 }
 
 // Store supports reading and writing all the resources within Flipt
@@ -178,8 +178,8 @@ type Store interface {
 	RuleStore
 	RolloutStore
 	EvaluationStore
+	NamespaceVersionStore
 	fmt.Stringer
-	VersionStore
 }
 
 type ResultSet[T any] struct {

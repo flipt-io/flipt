@@ -19,7 +19,7 @@ import (
 type EvaluationStore interface {
 	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
 	storage.EvaluationStore
-	storage.VersionStore
+	storage.NamespaceVersionStore
 }
 
 type Server struct {
@@ -116,7 +116,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 	}
 
 	// get current version from store to calculate etag for this namespace
-	currentVersion, err := srv.store.GetVersion(ctx, namespaceKey)
+	currentVersion, err := srv.store.GetVersion(ctx, storage.NewNamespace(namespaceKey))
 	if err != nil {
 		srv.logger.Error("getting current version", zap.Error(err))
 	}
