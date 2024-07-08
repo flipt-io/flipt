@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.uber.org/zap"
 )
 
@@ -35,22 +36,34 @@ func (s *Store) String() string {
 	return ""
 }
 
-func (s *Store) GetVersion(ctx context.Context) (string, error) {
-	var version string
+func (s *Store) GetVersion(ctx context.Context, namespace string) (string, error) {
+	var resourcesUpdatedAt fliptsql.NullableTimestamp
+
 	err := s.builder.
-		Select("version").
-		From("metadata").
+		Select("resources_updated_at").
+		From("namespaces").
+		Where(sq.Eq{"key": namespace}).
+		Limit(1).
 		RunWith(s.db).
 		QueryRowContext(ctx).
-		Scan(&version)
-	return version, err
+		Scan(&resourcesUpdatedAt)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !resourcesUpdatedAt.IsValid() {
+		return "", nil
+	}
+
+	return resourcesUpdatedAt.Timestamp.String(), nil
 }
 
-func (s *Store) setVersion(ctx context.Context) error {
-	version := time.Now().UTC().Format(time.RFC3339)
+func (s *Store) setVersion(ctx context.Context, namespace string) error {
 	_, err := s.builder.
-		Update("metadata").
-		Set("version", version).
+		Update("namespaces").
+		Set("resources_updated_at", time.Now().UTC()).
+		Where(sq.Eq{"key": namespace}).
 		ExecContext(ctx)
 	return err
 }

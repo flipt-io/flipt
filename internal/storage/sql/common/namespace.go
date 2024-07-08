@@ -158,7 +158,7 @@ func (s *Store) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest)
 func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (_ *flipt.Namespace, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.Key)
 		}
 	}()
 
@@ -192,7 +192,7 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (_ *flipt.Namespace, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.Key)
 		}
 	}()
 
@@ -224,7 +224,7 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.Key)
 		}
 	}()
 

@@ -154,7 +154,7 @@ func WithOrder(order Order) QueryOption {
 }
 
 type VersionStore interface {
-	GetVersion(ctx context.Context) (string, error)
+	GetVersion(ctx context.Context, namespace string) (string, error)
 }
 
 // ReadOnlyStore is a storage implementation which only supports

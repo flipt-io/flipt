@@ -297,7 +297,7 @@ func (s *Store) CountSegments(ctx context.Context, ns storage.NamespaceRequest) 
 func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (_ *flipt.Segment, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -339,7 +339,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (_ *flipt.Segment, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -377,7 +377,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) (err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -396,7 +396,7 @@ func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest
 func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (_ *flipt.Constraint, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -450,7 +450,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (_ *flipt.Constraint, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -515,7 +515,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) (err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 

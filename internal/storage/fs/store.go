@@ -316,6 +316,6 @@ func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest
 	return ErrNotImplemented
 }
 
-func (s *Store) GetVersion(ctx context.Context) (string, error) {
+func (s *Store) GetVersion(context.Context, string) (string, error) {
 	panic("Not implemented")
 }

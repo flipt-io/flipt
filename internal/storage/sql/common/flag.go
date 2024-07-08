@@ -317,7 +317,7 @@ func (s *Store) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uin
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *flipt.Flag, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -362,7 +362,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *flipt.Flag, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -399,7 +399,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *
 // DeleteFlag deletes a flag
 func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	defer func() {
-		_ = s.setVersion(ctx)
+		_ = s.setVersion(ctx, r.NamespaceKey)
 	}()
 
 	if r.NamespaceKey == "" {
@@ -416,7 +416,7 @@ func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) erro
 // CreateVariant creates a variant
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	defer func() {
-		_ = s.setVersion(ctx)
+		_ = s.setVersion(ctx, r.NamespaceKey)
 	}()
 
 	if r.NamespaceKey == "" {
@@ -471,7 +471,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (_ *flipt.Variant, err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 
@@ -536,7 +536,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) (err error) {
 	defer func() {
 		if err == nil {
-			err = s.setVersion(ctx)
+			err = s.setVersion(ctx, r.NamespaceKey)
 		}
 	}()
 

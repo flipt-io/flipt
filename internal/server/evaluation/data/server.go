@@ -101,7 +101,11 @@ var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 
-	var ifNoneMatch string
+	var (
+		namespaceKey = r.Key
+		reference    = r.Reference
+		ifNoneMatch  string
+	)
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
@@ -111,8 +115,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 		}
 	}
 
-	// get current version from store
-	currentVersion, err := srv.store.GetVersion(ctx)
+	// get current version from store to calculate etag for this namespace
+	currentVersion, err := srv.store.GetVersion(ctx, namespaceKey)
 	if err != nil {
 		srv.logger.Error("getting current version", zap.Error(err))
 	}
@@ -132,9 +136,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 	}
 
 	var (
-		namespaceKey = r.Key
-		reference    = r.Reference
-		resp         = &evaluation.EvaluationNamespaceSnapshot{
+		resp = &evaluation.EvaluationNamespaceSnapshot{
 			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},
