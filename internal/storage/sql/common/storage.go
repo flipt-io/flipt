@@ -37,32 +37,32 @@ func (s *Store) String() string {
 }
 
 func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (string, error) {
-	var resourcesUpdatedAt fliptsql.NullableTimestamp
+	var stateModifiedAt fliptsql.NullableTimestamp
 
 	err := s.builder.
-		Select("resources_updated_at").
+		Select("state_modified_at").
 		From("namespaces").
 		Where(sq.Eq{"key": ns.Namespace()}).
 		Limit(1).
 		RunWith(s.db).
 		QueryRowContext(ctx).
-		Scan(&resourcesUpdatedAt)
+		Scan(&stateModifiedAt)
 
 	if err != nil {
 		return "", err
 	}
 
-	if !resourcesUpdatedAt.IsValid() {
+	if !stateModifiedAt.IsValid() {
 		return "", nil
 	}
 
-	return resourcesUpdatedAt.Timestamp.String(), nil
+	return stateModifiedAt.Timestamp.String(), nil
 }
 
 func (s *Store) setVersion(ctx context.Context, namespace string) error {
 	_, err := s.builder.
 		Update("namespaces").
-		Set("resources_updated_at", time.Now().UTC()).
+		Set("state_modified_at", time.Now().UTC()).
 		Where(sq.Eq{"key": namespace}).
 		ExecContext(ctx)
 	return err
