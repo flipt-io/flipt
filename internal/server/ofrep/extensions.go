@@ -8,9 +8,9 @@ import (
 
 // GetProviderConfiguration returns the configuration set by the running flipt instance.
 func (s *Server) GetProviderConfiguration(_ context.Context, _ *ofrep.GetProviderConfigurationRequest) (*ofrep.GetProviderConfigurationResponse, error) {
-	var pollingInterval int64
+	var pollingInterval uint32
 	if s.cacheCfg.Enabled {
-		pollingInterval = s.cacheCfg.TTL.Milliseconds()
+		pollingInterval = uint32(s.cacheCfg.TTL.Milliseconds())
 	}
 
 	return &ofrep.GetProviderConfigurationResponse{

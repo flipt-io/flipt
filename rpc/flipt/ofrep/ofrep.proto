@@ -22,7 +22,7 @@ message CacheInvalidation {
 
 message Polling {
   bool enabled = 1;
-  int64 min_polling_interval_ms = 2;
+  uint32 min_polling_interval_ms = 2;
 }
 
 message FlagEvaluation {
