@@ -18,7 +18,7 @@ func (m *StoreMock) String() string {
 	return "mock"
 }
 
-func (m *StoreMock) GetVersion(ctx context.Context) (string, error) {
+func (m *StoreMock) GetVersion(ctx context.Context, ns string) (string, error) {
 	args := m.Called(ctx)
 	return args.String(0), args.Error(1)
 }
