@@ -163,5 +163,6 @@ func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, er
 }
 
 func (s *SnapshotStore) GetVersion(ctx context.Context) (string, error) {
-	panic("Not implemented")
+	// TODO: implement
+	return "", nil
 }

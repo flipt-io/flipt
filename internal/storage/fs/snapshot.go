@@ -861,5 +861,6 @@ func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 }
 
 func (ss *Snapshot) GetVersion(context.Context, storage.NamespaceRequest) (string, error) {
-	panic("Not implemented")
+	// TODO: implement
+	return "", nil
 }

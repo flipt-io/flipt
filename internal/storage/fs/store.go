@@ -317,5 +317,6 @@ func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest
 }
 
 func (s *Store) GetVersion(context.Context, storage.NamespaceRequest) (string, error) {
-	panic("Not implemented")
+	// TODO: implement
+	return "", nil
 }

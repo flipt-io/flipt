@@ -121,18 +121,20 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 		srv.logger.Error("getting current version", zap.Error(err))
 	}
 
-	var (
-		hash = sha1.New() //nolint:gosec
-		_, _ = hash.Write([]byte(currentVersion))
-		// etag is the sha1 hash of the current version
-		etag = fmt.Sprintf("%x", hash.Sum(nil))
-	)
+	if currentVersion != "" {
+		var (
+			hash = sha1.New() //nolint:gosec
+			_, _ = hash.Write([]byte(currentVersion))
+			// etag is the sha1 hash of the current version
+			etag = fmt.Sprintf("%x", hash.Sum(nil))
+		)
 
-	// set etag header in the response
-	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
-	// if etag matches the If-None-Match header, we want to return a 304
-	if ifNoneMatch == etag {
-		_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+		// set etag header in the response
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
+		// if etag matches the If-None-Match header, we want to return a 304
+		if ifNoneMatch == etag {
+			_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+		}
 	}
 
 	var (
