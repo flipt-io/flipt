@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -361,4 +362,18 @@ func FliptAcceptServerVersionUnaryInterceptor(logger *zap.Logger) grpc.UnaryServ
 
 		return handler(ctx, req)
 	}
+}
+
+// ForwardFliptAcceptServerVersion extracts the "x-flipt-accept-server-version"" header from an HTTP request
+// and forwards them as grpc metadata entries.
+func ForwardFliptAcceptServerVersion(ctx context.Context, req *http.Request) metadata.MD {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		md = metadata.MD{}
+	}
+	values := req.Header.Values(fliptAcceptServerVersionHeaderKey)
+	if len(values) > 0 {
+		md[fliptAcceptServerVersionHeaderKey] = values
+	}
+	return md
 }
