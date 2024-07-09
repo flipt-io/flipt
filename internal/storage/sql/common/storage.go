@@ -42,7 +42,7 @@ func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (st
 	err := s.builder.
 		Select("state_modified_at").
 		From("namespaces").
-		Where(sq.Eq{"`key`": ns.Namespace()}).
+		Where(sq.Eq{"\"key\"": ns.Namespace()}).
 		Limit(1).
 		RunWith(s.db).
 		QueryRowContext(ctx).
@@ -63,7 +63,7 @@ func (s *Store) setVersion(ctx context.Context, namespace string) error {
 	_, err := s.builder.
 		Update("namespaces").
 		Set("state_modified_at", time.Now().UTC()).
-		Where(sq.Eq{"`key`": namespace}).
+		Where(sq.Eq{"\"key\"": namespace}).
 		ExecContext(ctx)
 	return err
 }
