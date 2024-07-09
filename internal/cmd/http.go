@@ -65,13 +65,7 @@ func NewHTTPServer(
 		r               = chi.NewRouter()
 		api             = gateway.NewGatewayServeMux(logger)
 		evaluateAPI     = gateway.NewGatewayServeMux(logger)
-<<<<<<< HEAD
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion))
-||||||| parent of 6be96d00 (feat: start impl of proper etag support for data api)
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger)
-=======
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier))
->>>>>>> 6be96d00 (feat: start impl of proper etag support for data api)
+		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion), runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier))
 		analyticsAPI    = gateway.NewGatewayServeMux(logger)
 		ofrepAPI        = gateway.NewGatewayServeMux(logger)
 		httpPort        = cfg.Server.HTTPPort
