@@ -1,0 +1,16 @@
+audit:
+  sinks:
+    kafka:
+      enabled: true
+      topic: audit-topic
+      bootstrap_servers:
+        - kafka-srv1
+        - kafka-srv2
+      encoding: protobuf
+      authentication:
+        username: user
+        password: passwd
+      schema_registry: http://registry
+      require_tls: true
+      insecure_skip_tls: true
+

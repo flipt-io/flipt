@@ -33,6 +33,7 @@ import "strings"
 			management: bool | *false
 			metadata:   bool | *false
 			evaluation: bool | *false
+			ofrep:      bool | *false
 		}
 		session?: {
 			domain?:        string
@@ -390,6 +391,19 @@ import "strings"
 			}
 			cloud?: {
 				enabled?: bool | *false
+			}
+			kafka?: {
+				enabled?: bool | *false
+				topic:    string
+				bootstrap_servers: [...string]
+				encoding?: *"protobuf" | "avro"
+				schema_registry?: string
+				require_tls?:        bool | *false
+				insecure_skip_tls?:  bool | *false
+				authentication?: {
+					username: string
+					password: string
+				} | null
 			}
 		}
 		buffer?: {
