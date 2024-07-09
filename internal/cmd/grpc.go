@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"go.flipt.io/flipt/internal/server/ofrep"
+
 	otlpRuntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
@@ -27,6 +29,7 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/cloud"
+	"go.flipt.io/flipt/internal/server/audit/kafka"
 	"go.flipt.io/flipt/internal/server/audit/log"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
@@ -257,6 +260,7 @@ func NewGRPCServer(
 		evalsrv     = evaluation.New(logger, store)
 		evaldatasrv = evaluationdata.New(logger, store)
 		healthsrv   = health.NewServer()
+		ofrepsrv    = ofrep.New(cfg.Cache)
 	)
 
 	var (
@@ -275,6 +279,7 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(ofrepsrv, cfg.Authentication.Exclude.OFREP)
 
 	var checker audit.EventPairChecker = &audit.NoOpChecker{}
 
@@ -335,6 +340,7 @@ func NewGRPCServer(
 	register.Add(metasrv)
 	register.Add(evalsrv)
 	register.Add(evaldatasrv)
+	register.Add(ofrepsrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -418,6 +424,15 @@ func NewGRPCServer(
 		}
 
 		sinks = append(sinks, cloudSink)
+	}
+
+	if cfg.Audit.Sinks.Kafka.Enabled {
+		kafkaCfg := cfg.Audit.Sinks.Kafka
+		kafkaSink, err := kafka.NewSink(ctx, logger, kafkaCfg)
+		if err != nil {
+			return nil, err
+		}
+		sinks = append(sinks, kafkaSink)
 	}
 
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,

@@ -54,6 +54,8 @@ type AuthenticationConfig struct {
 		Metadata bool `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 		// Evaluation refers to the section of the API with the prefix /evaluation/v1
 		Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation" yaml:"evaluation,omitempty"`
+		// OFREP refers to the section of the API with the prefix /ofrep
+		OFREP bool `json:"ofrep,omitempty" mapstructure:"ofrep" yaml:"ofrep,omitempty"`
 	} `json:"exclude,omitempty" mapstructure:"exclude" yaml:"exclude,omitempty"`
 
 	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session" yaml:"session,omitempty"`

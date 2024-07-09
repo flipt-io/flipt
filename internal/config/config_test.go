@@ -750,6 +750,7 @@ func TestLoad(t *testing.T) {
 							Enabled: true,
 							File:    "/path/to/logs.txt",
 						},
+						Kafka: KafkaSinkConfig{Encoding: "protobuf"},
 					},
 					Buffer: BufferConfig{
 						Capacity:    10,
@@ -972,6 +973,35 @@ func TestLoad(t *testing.T) {
 				}
 				return cfg
 			},
+		},
+		{
+			name: "audit kafka valid",
+			path: "./testdata/audit/valid_kafka.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Audit.Sinks.Kafka.Enabled = true
+				cfg.Audit.Sinks.Kafka.Topic = "audit-topic"
+				cfg.Audit.Sinks.Kafka.BootstrapServers = []string{"kafka-srv1", "kafka-srv2"}
+				cfg.Audit.Sinks.Kafka.Encoding = "protobuf"
+				cfg.Audit.Sinks.Kafka.Authentication = &KafkaAuthentication{
+					Username: "user",
+					Password: "passwd",
+				}
+				cfg.Audit.Sinks.Kafka.SchemaRegistry = "http://registry"
+				cfg.Audit.Sinks.Kafka.RequireTLS = true
+				cfg.Audit.Sinks.Kafka.InsecureSkipTLS = true
+				return cfg
+			},
+		},
+		{
+			name:    "audit kafka invalid topic",
+			path:    "./testdata/audit/invalid_kafka_topic.yml",
+			wantErr: errors.New("kafka topic not provided"),
+		},
+		{
+			name:    "audit kafka invalid bootstrap servers",
+			path:    "./testdata/audit/invalid_kafka_servers.yml",
+			wantErr: errors.New("kafka bootstrap_servers not provided"),
 		},
 		{
 			name: "git config provided",

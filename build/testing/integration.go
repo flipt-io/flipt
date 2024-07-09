@@ -345,37 +345,10 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 }
 
 func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	keyBytes, crtBytes, err := generateTLSCert("redis")
 	if err != nil {
 		return func() error { return err }
 	}
-	template := &x509.Certificate{
-		SerialNumber: serialNumber,
-		IsCA:         true,
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(time.Hour),
-		DNSNames:     []string{"redis"},
-	}
-
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return func() error { return err }
-	}
-	bytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
-	if err != nil {
-		return func() error { return err }
-	}
-	crtBytes := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: bytes,
-	})
-
-	keyBytes := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	})
-
 	redis := client.Container().
 		From("redis:alpine").
 		WithExposedPort(6379).

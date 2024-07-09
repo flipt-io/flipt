@@ -250,7 +250,7 @@ func (g Go) Test() error {
 		testArgs = append(testArgs, "test")
 	}
 
-	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}...)
+	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "-coverpkg=./..."}...)
 
 	if os.Getenv("FLIPT_TEST_SHORT") != "" {
 		testArgs = append(testArgs, "-short")

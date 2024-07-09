@@ -26,11 +26,16 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default unit
+          args: test --source .:default unit export --path coverage.txt
           cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v4.4.1
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          file: coverage.txt
+          flags: unittests
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-darwin:
     name: "Tests (Go - Darwin)"
