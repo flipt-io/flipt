@@ -3,6 +3,7 @@ package grpc_middleware
 import (
 	"context"
 	"fmt"
+	"net/http/httptest"
 	"testing"
 
 	"go.flipt.io/flipt/errors"
@@ -1649,4 +1650,16 @@ func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestForwardFliptAcceptServerVersion(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	md := ForwardFliptAcceptServerVersion(context.Background(), req)
+	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
+	req.Header.Add(fliptAcceptServerVersionHeaderKey, "v1.32.0")
+
+	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("key", "value"))
+	md = ForwardFliptAcceptServerVersion(ctx, req)
+	assert.Equal(t, []string{"v1.32.0"}, md.Get(fliptAcceptServerVersionHeaderKey))
+	assert.Equal(t, []string{"value"}, md.Get("key"))
 }

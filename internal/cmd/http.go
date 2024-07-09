@@ -21,6 +21,7 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	grpc_middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -61,7 +62,7 @@ func NewHTTPServer(
 		r               = chi.NewRouter()
 		api             = gateway.NewGatewayServeMux(logger)
 		evaluateAPI     = gateway.NewGatewayServeMux(logger)
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger)
+		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion))
 		analyticsAPI    = gateway.NewGatewayServeMux(logger)
 		httpPort        = cfg.Server.HTTPPort
 	)
