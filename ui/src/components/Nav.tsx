@@ -137,7 +137,7 @@ export default function Nav(props: NavProps) {
             }}
           />
         ))}
-        <div className="text-gray-400 flex space-x-1 px-3 pt-2 text-xs ">
+        <div className="text-gray-400 flex space-x-1 px-3 pt-2 text-xs">
           <span className="flex-shrink-0">Command Mode:</span>
           <div className="flex-shrink-0">
             <kbd className="text-gray-400">ctrl</kbd> +{' '}

@@ -1,4 +1,4 @@
-package authz
+package rego
 
 import (
 	"context"
@@ -10,26 +10,22 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/authz"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/cloud"
+	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
 	"go.uber.org/zap"
 )
 
 var (
-	_ Verifier = &Engine{}
-
-	defaultPolicyPollDuration = 5 * time.Minute
-
-	// ErrNotModified is returned from a source when the data has not
-	// been modified, identified based on the provided hash value
-	ErrNotModified = errors.New("not modified")
+	_                         authz.Verifier = (*Engine)(nil)
+	defaultPolicyPollDuration                = 5 * time.Minute
 )
 
-type Verifier interface {
-	IsAllowed(ctx context.Context, input map[string]any) (bool, error)
-}
-
 type CachedSource[T any] interface {
-	Get(_ context.Context, hash []byte) (T, []byte, error)
+	Get(_ context.Context, hash source.Hash) (T, source.Hash, error)
 }
 
 type PolicySource CachedSource[[]byte]
@@ -44,34 +40,77 @@ type Engine struct {
 	store storage.Store
 
 	policySource PolicySource
-	policyHash   []byte
+	policyHash   source.Hash
 
 	dataSource DataSource
-	dataHash   []byte
+	dataHash   source.Hash
 
-	pollDuration           time.Duration
-	dataSourcePollDuration time.Duration
+	policySourcePollDuration time.Duration
+	dataSourcePollDuration   time.Duration
 }
 
-func WithDataSource(source DataSource, pollDuration time.Duration) containers.Option[Engine] {
+func withPolicySource(source PolicySource) containers.Option[Engine] {
+	return func(e *Engine) {
+		e.policySource = source
+	}
+}
+
+func withDataSource(source DataSource, pollDuration time.Duration) containers.Option[Engine] {
 	return func(e *Engine) {
 		e.dataSource = source
 		e.dataSourcePollDuration = pollDuration
 	}
 }
 
-func WithPollDuration(dur time.Duration) containers.Option[Engine] {
+func withPolicySourcePollDuration(dur time.Duration) containers.Option[Engine] {
 	return func(e *Engine) {
-		e.pollDuration = dur
+		e.policySourcePollDuration = dur
 	}
 }
 
-func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opts ...containers.Option[Engine]) (*Engine, error) {
+// NewEngine creates a new local authorization engine
+func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*Engine, error) {
+	var (
+		opts       []containers.Option[Engine]
+		authConfig = cfg.Authorization
+	)
+
+	switch authConfig.Backend {
+	case config.AuthorizationBackendLocal:
+		opts = []containers.Option[Engine]{
+			withPolicySource(filesystem.PolicySourceFromPath(authConfig.Local.Policy.Path)),
+		}
+
+		if authConfig.Local.Policy.PollInterval > 0 {
+			opts = append(opts, withPolicySourcePollDuration(authConfig.Local.Policy.PollInterval))
+		}
+
+		if authConfig.Local.Data != nil {
+			opts = append(opts, withDataSource(
+				filesystem.DataSourceFromPath(authConfig.Local.Data.Path),
+				authConfig.Local.Data.PollInterval,
+			))
+		}
+
+	case config.AuthorizationBackendCloud:
+		opts = []containers.Option[Engine]{
+			withPolicySource(cloud.PolicySourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey)),
+			withDataSource(cloud.DataSourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey), authConfig.Cloud.PollInterval),
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported authorization backend: %s", authConfig.Backend)
+	}
+
+	return newEngine(ctx, logger, opts...)
+}
+
+// newEngine creates a new engine with the provided options, visible for testing
+func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Option[Engine]) (*Engine, error) {
 	engine := &Engine{
-		logger:       logger,
-		policySource: source,
-		store:        inmem.New(),
-		pollDuration: defaultPolicyPollDuration,
+		logger:                   logger,
+		store:                    inmem.New(),
+		policySourcePollDuration: defaultPolicyPollDuration,
 	}
 
 	containers.ApplyAll(engine, opts...)
@@ -87,7 +126,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opt
 	}
 
 	// begin polling for updates for policy
-	go poll(ctx, engine.pollDuration, func() {
+	go poll(ctx, engine.policySourcePollDuration, func() {
 		if err := engine.updatePolicy(ctx); err != nil {
 			engine.logger.Error("updating policy", zap.Error(err))
 		}
@@ -95,7 +134,7 @@ func NewEngine(ctx context.Context, logger *zap.Logger, source PolicySource, opt
 
 	// being polling for updates to data if source configured
 	if engine.dataSource != nil {
-		go poll(ctx, engine.pollDuration, func() {
+		go poll(ctx, engine.policySourcePollDuration, func() {
 			if err := engine.updateData(ctx, storage.ReplaceOp); err != nil {
 				engine.logger.Error("updating data", zap.Error(err))
 			}
@@ -123,6 +162,10 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	return results[0].Expressions[0].Value.(bool), nil
 }
 
+func (e *Engine) Shutdown(_ context.Context) error {
+	return nil
+}
+
 func poll(ctx context.Context, d time.Duration, fn func()) {
 	ticker := time.NewTicker(d)
 	for {
@@ -141,7 +184,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	policy, hash, err := e.policySource.Get(ctx, e.policyHash)
 	if err != nil {
-		if errors.Is(err, ErrNotModified) {
+		if errors.Is(err, source.ErrNotModified) {
 			return nil
 		}
 
@@ -171,7 +214,7 @@ func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error)
 
 	data, hash, err := e.dataSource.Get(ctx, e.dataHash)
 	if err != nil {
-		if errors.Is(err, ErrNotModified) {
+		if errors.Is(err, source.ErrNotModified) {
 			return nil
 		}
 

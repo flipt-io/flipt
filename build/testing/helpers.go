@@ -2,13 +2,19 @@ package testing
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
 	"regexp"
 	"strings"
+	"time"
 
-	"dagger.io/dagger"
 	"github.com/google/go-cmp/cmp"
+	"go.flipt.io/build/internal/dagger"
 )
 
 func flipt(args ...string) []string {
@@ -134,4 +140,39 @@ func assertExec(ctx context.Context, flipt *dagger.Container, args []string, opt
 	}
 
 	return container, nil
+}
+
+// generateTLSCert generates a TLS certificate and private key.
+func generateTLSCert(dnsname ...string) (keyBytes, certBytes []byte, err error) {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, nil, err
+	}
+	template := &x509.Certificate{
+		SerialNumber: serialNumber,
+		IsCA:         true,
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().Add(time.Hour),
+		DNSNames:     dnsname,
+	}
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, nil, err
+	}
+	bytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	if err != nil {
+		return nil, nil, err
+	}
+	certBytes = pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: bytes,
+	})
+
+	keyBytes = pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+	return
 }

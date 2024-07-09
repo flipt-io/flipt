@@ -1,0 +1,74 @@
+{
+  "name": "event",
+  "type": "record",
+  "fields": [
+    {
+      "name": "version",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "action",
+      "type": "string"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "record",
+        "name": "metadata",
+        "fields": [
+          {
+            "name": "actor",
+            "type": [
+              "null",
+              {
+                  "type": "record",
+                  "name": "actor",
+                  "fields": [
+                    {
+                      "name": "authentication",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ip",
+                      "type": "string"
+                    },
+                    {
+                      "name": "email",
+                      "type": "string"
+                    },
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "picture",
+                      "type": "string"
+                    }
+                  ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "timestamp",
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "type": "string"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type":"map",
+        "values": ["null", "string", "int", "boolean", "float", "double", {"type": "map", "values": ["null", "string", "int", "boolean", "float", "double"]}]
+      }
+    }
+  ]
+}

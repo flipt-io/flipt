@@ -22,7 +22,7 @@ type AuditConfig struct {
 
 // Enabled returns true if any nested sink is enabled
 func (c AuditConfig) Enabled() bool {
-	return c.Sinks.Log.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.Cloud.Enabled
+	return c.Sinks.Log.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.Cloud.Enabled || c.Sinks.Kafka.Enabled
 }
 
 func (c AuditConfig) IsZero() bool {
@@ -41,6 +41,10 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 			"cloud": map[string]any{
 				"enabled": "false",
 			},
+			"kafka": map[string]any{
+				"enabled":  "false",
+				"encoding": "protobuf",
+			},
 		},
 		"buffer": map[string]any{
 			"capacity":     2,
@@ -54,12 +58,14 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 
 func (c *AuditConfig) validate() error {
 	if c.Sinks.Webhook.Enabled {
-		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
-			return errors.New("url or template(s) not provided")
+		if err := c.Sinks.Webhook.validate(); err != nil {
+			return err
 		}
+	}
 
-		if c.Sinks.Webhook.URL != "" && len(c.Sinks.Webhook.Templates) > 0 {
-			return errors.New("only one of url or template(s) allowed")
+	if c.Sinks.Kafka.Enabled {
+		if err := c.Sinks.Kafka.validate(); err != nil {
+			return err
 		}
 	}
 
@@ -80,6 +86,7 @@ type SinksConfig struct {
 	Log     LogSinkConfig     `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
 	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
 	Cloud   CloudSinkConfig   `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
+	Kafka   KafkaSinkConfig   `json:"kafka,omitempty" mapstructure:"kafka" yaml:"kafka,omitempty"`
 }
 
 type CloudSinkConfig struct {
@@ -96,12 +103,55 @@ type WebhookSinkConfig struct {
 	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
 }
 
+func (w WebhookSinkConfig) validate() error {
+	if w.URL == "" && len(w.Templates) == 0 {
+		return errors.New("url or template(s) not provided")
+	}
+
+	if w.URL != "" && len(w.Templates) > 0 {
+		return errors.New("only one of url or template(s) allowed")
+	}
+
+	return nil
+}
+
 // LogSinkConfig contains fields that hold configuration for sending audits
 // to a log.
 type LogSinkConfig struct {
 	Enabled  bool        `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 	File     string      `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 	Encoding LogEncoding `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
+}
+
+// KafkaSinkConfig contains fields that hold configuration for sending audits
+// to Kafka.
+type KafkaSinkConfig struct {
+	Enabled          bool                 `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Topic            string               `json:"topic,omitempty" mapstructure:"topic" yaml:"topic,omitempty"`
+	BootstrapServers []string             `json:"bootstrapServers,omitempty" mapstructure:"bootstrap_servers" yaml:"bootstrap_servers,omitempty"`
+	Encoding         string               `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
+	Authentication   *KafkaAuthentication `json:"-" mapstructure:"authentication" yaml:"-"`
+	SchemaRegistry   string               `json:"-" mapstructure:"schema_registry" yaml:"-"`
+	RequireTLS       bool                 `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	InsecureSkipTLS  bool                 `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+}
+
+func (c *KafkaSinkConfig) validate() error {
+	if c.Topic == "" {
+		return errors.New("kafka topic not provided")
+	}
+
+	if len(c.BootstrapServers) == 0 {
+		return errors.New("kafka bootstrap_servers not provided")
+	}
+
+	return nil
+}
+
+// KafkaAuthentication contains fields that hold auth configuration for Kafka.
+type KafkaAuthentication struct {
+	Username string `json:"-" mapstructure:"username" yaml:"-"`
+	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 
 // BufferConfig holds configuration for the buffering of sending the audit

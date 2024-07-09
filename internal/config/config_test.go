@@ -244,6 +244,20 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "environment variable substitution",
+			path: "./testdata/envsubst.yml",
+			envOverrides: map[string]string{
+				"HTTP_PORT":  "18080",
+				"LOG_FORMAT": "json",
+			},
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Log.Encoding = "json"
+				cfg.Server.HTTPPort = 18080
+				return cfg
+			},
+		},
+		{
 			name: "deprecated tracing jaeger",
 			path: "./testdata/deprecated/tracing_jaeger.yml",
 			expected: func() *Config {
@@ -649,12 +663,12 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
-					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy.rego",
+					Backend:  AuthorizationBackendLocal,
+					Local: &AuthorizationLocalConfig{
+						Policy: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy.rego",
+							PollInterval: 5 * time.Minute,
 						},
-						PollInterval: 30 * time.Second,
 					},
 				}
 
@@ -721,7 +735,6 @@ func TestLoad(t *testing.T) {
 					},
 				}
 
-				cfg.Experimental.Authorization.Enabled = true
 				return cfg
 			},
 		},
@@ -737,6 +750,7 @@ func TestLoad(t *testing.T) {
 							Enabled: true,
 							File:    "/path/to/logs.txt",
 						},
+						Kafka: KafkaSinkConfig{Encoding: "protobuf"},
 					},
 					Buffer: BufferConfig{
 						Capacity:    10,
@@ -802,7 +816,7 @@ func TestLoad(t *testing.T) {
 
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -897,23 +911,19 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authorization = AuthorizationConfig{
 					Required: true,
-					Policy: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy.rego",
+					Backend:  AuthorizationBackendLocal,
+					Local: &AuthorizationLocalConfig{
+						Policy: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy.rego",
+							PollInterval: time.Minute,
 						},
-						PollInterval: time.Minute,
-					},
-					Data: &AuthorizationSourceConfig{
-						Backend: AuthorizationBackendLocal,
-						Local: &AuthorizationLocalConfig{
-							Path: "/path/to/policy/data.json",
+						Data: &AuthorizationSourceLocalConfig{
+							Path:         "/path/to/policy/data.json",
+							PollInterval: time.Minute,
 						},
-						PollInterval: 30 * time.Second,
 					},
 				}
 
-				cfg.Experimental.Authorization.Enabled = true
 				return cfg
 			},
 		},
@@ -957,12 +967,41 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: LocalStorageType,
-					Local: &Local{
+					Local: &StorageLocalConfig{
 						Path: ".",
 					},
 				}
 				return cfg
 			},
+		},
+		{
+			name: "audit kafka valid",
+			path: "./testdata/audit/valid_kafka.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Audit.Sinks.Kafka.Enabled = true
+				cfg.Audit.Sinks.Kafka.Topic = "audit-topic"
+				cfg.Audit.Sinks.Kafka.BootstrapServers = []string{"kafka-srv1", "kafka-srv2"}
+				cfg.Audit.Sinks.Kafka.Encoding = "protobuf"
+				cfg.Audit.Sinks.Kafka.Authentication = &KafkaAuthentication{
+					Username: "user",
+					Password: "passwd",
+				}
+				cfg.Audit.Sinks.Kafka.SchemaRegistry = "http://registry"
+				cfg.Audit.Sinks.Kafka.RequireTLS = true
+				cfg.Audit.Sinks.Kafka.InsecureSkipTLS = true
+				return cfg
+			},
+		},
+		{
+			name:    "audit kafka invalid topic",
+			path:    "./testdata/audit/invalid_kafka_topic.yml",
+			wantErr: errors.New("kafka topic not provided"),
+		},
+		{
+			name:    "audit kafka invalid bootstrap servers",
+			path:    "./testdata/audit/invalid_kafka_servers.yml",
+			wantErr: errors.New("kafka bootstrap_servers not provided"),
 		},
 		{
 			name: "git config provided",
@@ -971,7 +1010,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -991,7 +1030,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1012,7 +1051,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1033,7 +1072,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendLocal,
 							Path: "/path/to/gitdir",
@@ -1084,7 +1123,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
-					Git: &Git{
+					Git: &StorageGitConfig{
 						Backend: GitBackend{
 							Type: GitBackendMemory,
 						},
@@ -1111,9 +1150,9 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: S3ObjectSubStorageType,
-						S3: &S3{
+						S3: &S3Storage{
 							Bucket:       "testbucket",
 							PollInterval: time.Minute,
 						},
@@ -1129,9 +1168,9 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: S3ObjectSubStorageType,
-						S3: &S3{
+						S3: &S3Storage{
 							Bucket:       "testbucket",
 							Prefix:       "prefix",
 							Region:       "region",
@@ -1149,7 +1188,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1171,7 +1210,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1193,7 +1232,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						Authentication: &OCIAuthentication{
@@ -1213,7 +1252,7 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: OCIStorageType,
-					OCI: &OCI{
+					OCI: &StorageOCIConfig{
 						Repository:       "some.target/repository/abundle:latest",
 						BundlesDirectory: "/tmp/bundles",
 						PollInterval:     5 * time.Minute,
@@ -1270,9 +1309,9 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: AZBlobObjectSubStorageType,
-						AZBlob: &AZBlob{
+						AZBlob: &AZBlobStorage{
 							Container:    "testdata",
 							Endpoint:     "https//devaccount.blob.core.windows.net",
 							PollInterval: 5 * time.Minute,
@@ -1294,9 +1333,9 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
-					Object: &Object{
+					Object: &StorageObjectConfig{
 						Type: GSBlobObjectSubStorageType,
-						GS: &GS{
+						GS: &GSStorage{
 							Bucket:       "testdata",
 							Prefix:       "prefix",
 							PollInterval: 5 * time.Minute,
@@ -1683,20 +1722,30 @@ func TestGetConfigFile(t *testing.T) {
 	blob.DefaultURLMux().RegisterBucket("mock", &mockURLOpener{
 		bucket: memblob.OpenBucket(nil),
 	})
-	configData := []byte("some config data")
-	ctx := context.Background()
-	b, err := blob.OpenBucket(ctx, "mock://mybucket")
+
+	var (
+		ctx        = context.Background()
+		configData = []byte("some config data")
+		b, err     = blob.OpenBucket(ctx, "mock://mybucket")
+	)
+
 	require.NoError(t, err)
 	t.Cleanup(func() { b.Close() })
+
 	w, err := b.NewWriter(ctx, "config/local.yml", nil)
 	require.NoError(t, err)
+
 	_, err = w.Write(configData)
 	require.NoError(t, err)
+
 	err = w.Close()
 	require.NoError(t, err)
+
 	t.Run("successful", func(t *testing.T) {
 		f, err := getConfigFile(ctx, "mock://mybucket/config/local.yml")
 		require.NoError(t, err)
+		t.Cleanup(func() { f.Close() })
+
 		s, err := f.Stat()
 		require.NoError(t, err)
 		require.Equal(t, "local.yml", s.Name())

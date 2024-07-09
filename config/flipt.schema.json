@@ -72,7 +72,8 @@
           "properties": {
             "management": { "type": "boolean", "default": false },
             "metadata": { "type": "boolean", "default": false },
-            "evaluation": { "type": "boolean", "default": false }
+            "evaluation": { "type": "boolean", "default": false },
+            "ofrep": { "type": "boolean", "default": false }
           },
           "additionalProperties": false
         },
@@ -341,34 +342,88 @@
           "type": "boolean",
           "default": false
         },
-        "policy": {
-          "type": ["object", "null"],
-          "$ref": "#/definitions/authorization/$defs/authorization_source"
+        "backend": {
+          "type": "string",
+          "enum": ["", "local", "object", "bundle", "cloud"],
+          "default": ""
         },
-        "data": {
-          "type": ["object", "null"],
-          "$ref": "#/definitions/authorization/$defs/authorization_source"
-        }
-      },
-      "$defs": {
-        "authorization_source": {
-          "type": ["object", "null"],
+        "local": {
+          "type": "object",
           "additionalProperties": false,
           "properties": {
-            "backend": {
+            "policy": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string" },
+                "poll_interval": {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                  "default": "5m"
+                }
+              },
+              "data": {
+                "type": ["object", "null"],
+                "additionalproperties": false,
+                "properties": {
+                  "path": { "type": "string" },
+                  "poll_interval": {
+                    "type": "string",
+                    "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+                    "default": "5m"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "object": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
               "type": "string",
-              "enum": ["local"]
+              "enum": ["s3"],
+              "default": "s3"
             },
-            "local": {
+            "s3": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "path": { "type": "string" }
-              }
-            },
+                "region": {
+                  "type": "string"
+                },
+                "bucket": {
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                }
+              },
+              "title": "S3"
+            }
+          }
+        },
+        "bundle": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "configuration": {
+              "type": "string"
+            }
+          }
+        },
+        "cloud": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
             "poll_interval": {
               "type": "string",
-              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
+              "default": "5m"
             }
           }
         }
@@ -1290,6 +1345,48 @@
                 }
               },
               "title": "Cloud"
+            },
+            "kafka": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "topic": {
+                  "type": "string"
+                },
+                "bootstrap_servers": {
+                  "type": ["array", "null"],
+                  "items": { "type": "string" }
+                },
+                "encoding": {
+                  "type": "string",
+                  "enum": ["protobuf", "avro"],
+                  "default": "protobuf"
+                },
+                "schema_registry": {
+                  "type": "string"
+                },
+                "require_tls": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "insecure_skip_tls": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "authentication": {
+                  "type": ["object", "null"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
+                }
+              },
+              "title": "Kafka"
             }
           }
         },
@@ -1361,16 +1458,6 @@
       "additionalProperties": false,
       "properties": {
         "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        },
-        "authorization": {
           "type": "object",
           "additionalProperties": false,
           "properties": {

@@ -250,7 +250,7 @@ func (g Go) Test() error {
 		testArgs = append(testArgs, "test")
 	}
 
-	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}...)
+	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "-coverpkg=./..."}...)
 
 	if os.Getenv("FLIPT_TEST_SHORT") != "" {
 		testArgs = append(testArgs, "-short")
@@ -335,12 +335,8 @@ func (u UI) Build() error {
 
 type Dagger mg.Namespace
 
-func (d Dagger) List() error {
-	return sh.RunV("mage", "-d", "build")
-}
-
-func (d Dagger) Run(command string) error {
-	return sh.RunV("dagger", append([]string{"run", "mage", "-d", "build"}, strings.Split(command, " ")...)...)
+func (d Dagger) Call(command, args string) error {
+	return sh.RunV("dagger", append([]string{"call", command, "--source=."}, strings.Split(args, " ")...)...)
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given

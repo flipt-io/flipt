@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,8 +14,8 @@ import (
 
 type dummy struct{}
 
-func (d *dummy) SendAudit(ctx context.Context, e audit.Event) error {
-	return nil
+func (d *dummy) SendAudit(ctx context.Context, e audit.Event) (*http.Response, error) {
+	return nil, nil
 }
 
 func TestSink(t *testing.T) {

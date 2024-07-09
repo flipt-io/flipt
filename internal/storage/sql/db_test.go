@@ -153,10 +153,7 @@ type DBTestSuite struct {
 	namespace string
 }
 
-var dd string
-
 func TestMain(m *testing.M) {
-	dd = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	os.Exit(m.Run())
 }
 

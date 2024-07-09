@@ -33,6 +33,7 @@ import "strings"
 			management: bool | *false
 			metadata:   bool | *false
 			evaluation: bool | *false
+			ofrep:      bool | *false
 		}
 		session?: {
 			domain?:        string
@@ -118,18 +119,32 @@ import "strings"
 	}
 
 	#authorization: {
-		#authorizationSource: {
-			backend: "local"
-			local: path: string
-			poll_interval?: =~#duration
-		}
-
 		required?: bool | *false
-		policy?: #authorizationSource & {
-			poll_interval: =~#duration | *"5m"
+		backend:   "local" | "object" | "bundle" | "cloud" | *""
+		local?: {
+			policy?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
+			data?: {
+				poll_interval: =~#duration | *"5m"
+				path:          string
+			}
 		}
-		data?: #authorizationSource & {
-			poll_interval: =~#duration | *"30s"
+		object?: {
+			type: "s3" | *""
+			s3?: {
+				region:    string
+				bucket:    string
+				prefix?:   string
+				endpoint?: string
+			}
+		}
+		bundle?: {
+			configuration: string
+		}
+		cloud?: {
+			poll_interval: =~#duration | *"5m"
 		}
 	}
 
@@ -377,6 +392,19 @@ import "strings"
 			cloud?: {
 				enabled?: bool | *false
 			}
+			kafka?: {
+				enabled?: bool | *false
+				topic:    string
+				bootstrap_servers: [...string]
+				encoding?: *"protobuf" | "avro"
+				schema_registry?: string
+				require_tls?:        bool | *false
+				insecure_skip_tls?:  bool | *false
+				authentication?: {
+					username: string
+					password: string
+				} | null
+			}
 		}
 		buffer?: {
 			capacity?:     int | *2
@@ -399,9 +427,6 @@ import "strings"
 	}
 
 	#experimental: {
-		authorization?: {
-			enabled?: bool | *false
-		}
 		cloud?: {
 			enabled?: bool | *false
 		}

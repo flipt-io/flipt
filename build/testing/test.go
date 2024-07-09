@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"os"
 
-	"dagger.io/dagger"
+	"go.flipt.io/build/internal/dagger"
 )
 
-func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
+func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (*dagger.File, error) {
 	// create Redis service container
 	redisSrv := client.Container().
 		From("redis:alpine").
@@ -26,12 +26,12 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 
 	out, err := flipt.Stdout(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var push map[string]string
 	if err := json.Unmarshal([]byte(out), &push); err != nil {
-		return err
+		return nil, err
 	}
 
 	minio := client.Container().
@@ -76,6 +76,15 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("AZURE_STORAGE_ACCOUNT", "devstoreaccount1").
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 
+	// Kafka unit testing
+	kafka, err := redpandaTLSService(ctx, client, "kafka", "admin")
+	if err != nil {
+		return nil, err
+	}
+	flipt = flipt.
+		WithEnvVariable("KAFKA_BOOTSTRAP_SERVER", "kafka").
+		WithServiceBinding("kafka", kafka)
+
 	if goFlags := os.Getenv("GOFLAGS"); goFlags != "" {
 		flipt = flipt.WithEnvVariable("GOFLAGS", goFlags)
 	}
@@ -86,14 +95,13 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
 		WithEnvVariable("TEST_GIT_REPO_TAG", push["TAG"]).
-		WithExec([]string{"go", "test", "-race", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
+		WithExec([]string{"go", "test", "-race", "-coverprofile=coverage.txt", "-covermode=atomic", "-coverpkg=./...", "./..."}).
 		Sync(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// attempt to export coverage if its exists
-	_, _ = flipt.File("coverage.txt").Export(ctx, "coverage.txt")
+	return flipt.File("coverage.txt"), nil
 
-	return nil
 }

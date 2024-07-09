@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.21"
+  GO_VERSION: "1.22"
 
 jobs:
   snapshot-build:
@@ -71,7 +71,8 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
+          ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
+          ANALYTICS_WRITE_ENDPOINT: ${{ secrets.ANALYTICS_WRITE_ENDPOINT }}
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
           QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
 
