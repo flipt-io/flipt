@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `build`: configure token authentication for migration test suite (#3177)
 
+## [v1.44.1](https://github.com/flipt-io/flipt/releases/tag/v1.45.2) - 2024-07-09
+
+### Fixed
+
+- forward x-flipt-accept-server-version to grpc (#3262)
+
 ## [v1.44.0](https://github.com/flipt-io/flipt/releases/tag/v1.44.0) - 2024-06-13
 
 ### Added
