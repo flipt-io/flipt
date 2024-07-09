@@ -11,11 +11,13 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type EvaluationStore interface {
 	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
 	storage.EvaluationStore
+	storage.VersionStore
 }
 
 type Server struct {
@@ -96,6 +98,27 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
+
+	var ifNoneMatch string
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 {
+			ifNoneMatch = vals[0]
+		}
+	}
+
+	currentVersion, err := srv.store.GetVersion(ctx)
+	if err != nil {
+		srv.logger.Error("getting current version", zap.Error(err))
+	}
+
+	_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", currentVersion))
+
+	if ifNoneMatch == currentVersion {
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+	}
+
 	var (
 		namespaceKey = r.Key
 		reference    = r.Reference

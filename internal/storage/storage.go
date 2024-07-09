@@ -153,6 +153,10 @@ func WithOrder(order Order) QueryOption {
 	}
 }
 
+type VersionStore interface {
+	GetVersion(ctx context.Context) (string, error)
+}
+
 // ReadOnlyStore is a storage implementation which only supports
 // reading the various types of state configuring within Flipt
 type ReadOnlyStore interface {
@@ -163,6 +167,7 @@ type ReadOnlyStore interface {
 	ReadOnlyRolloutStore
 	EvaluationStore
 	fmt.Stringer
+	VersionStore
 }
 
 // Store supports reading and writing all the resources within Flipt
@@ -174,6 +179,7 @@ type Store interface {
 	RolloutStore
 	EvaluationStore
 	fmt.Stringer
+	VersionStore
 }
 
 type ResultSet[T any] struct {

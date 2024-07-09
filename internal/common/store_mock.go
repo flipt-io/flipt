@@ -18,6 +18,11 @@ func (m *StoreMock) String() string {
 	return "mock"
 }
 
+func (m *StoreMock) GetVersion(ctx context.Context) (string, error) {
+	args := m.Called(ctx)
+	return args.String(0), args.Error(1)
+}
+
 func (m *StoreMock) GetNamespace(ctx context.Context, ns storage.NamespaceRequest) (*flipt.Namespace, error) {
 	args := m.Called(ctx, ns)
 	return args.Get(0).(*flipt.Namespace), args.Error(1)

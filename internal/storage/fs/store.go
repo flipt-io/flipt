@@ -315,3 +315,7 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
 	return ErrNotImplemented
 }
+
+func (s *Store) GetVersion(ctx context.Context) (string, error) {
+	panic("Not implemented")
+}

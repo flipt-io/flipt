@@ -1,7 +1,9 @@
 package common
 
 import (
+	"context"
 	"database/sql"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/storage"
@@ -31,4 +33,24 @@ type PageToken struct {
 
 func (s *Store) String() string {
 	return ""
+}
+
+func (s *Store) GetVersion(ctx context.Context) (string, error) {
+	var version string
+	err := s.builder.
+		Select("version").
+		From("metadata").
+		RunWith(s.db).
+		QueryRowContext(ctx).
+		Scan(&version)
+	return version, err
+}
+
+func (s *Store) setVersion(ctx context.Context) error {
+	version := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.builder.
+		Update("metadata").
+		Set("version", version).
+		ExecContext(ctx)
+	return err
 }

@@ -294,7 +294,13 @@ func (s *Store) CountSegments(ctx context.Context, ns storage.NamespaceRequest) 
 }
 
 // CreateSegment creates a segment
-func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (_ *flipt.Segment, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -330,7 +336,13 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 }
 
 // UpdateSegment updates an existing segment
-func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (_ *flipt.Segment, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -362,12 +374,18 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 }
 
 // DeleteSegment deletes a segment
-func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	_, err := s.builder.Delete("segments").
+	_, err = s.builder.Delete("segments").
 		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}}).
 		ExecContext(ctx)
 
@@ -375,7 +393,13 @@ func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest
 }
 
 // CreateConstraint creates a constraint
-func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (_ *flipt.Constraint, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -423,7 +447,13 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 }
 
 // UpdateConstraint updates an existing constraint
-func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (_ *flipt.Constraint, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -482,12 +512,18 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 }
 
 // DeleteConstraint deletes a constraint
-func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	_, err := s.builder.Delete("constraints").
+	_, err = s.builder.Delete("constraints").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx)
 

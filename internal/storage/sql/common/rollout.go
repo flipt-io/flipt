@@ -378,6 +378,12 @@ func (s *Store) CountRollouts(ctx context.Context, flag storage.ResourceRequest)
 }
 
 func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (_ *flipt.Rollout, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -511,6 +517,12 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 }
 
 func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (_ *flipt.Rollout, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -663,6 +675,12 @@ func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {
 }
 
 func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -727,7 +745,13 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 }
 
 // OrderRollouts orders rollouts
-func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
+func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
