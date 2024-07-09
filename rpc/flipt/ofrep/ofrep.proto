@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package flipt.ofrep;
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/ofrep";
+
+message GetProviderConfigurationRequest {}
+
+message GetProviderConfigurationResponse {
+  string name = 1;
+  Capabilities capabilities = 2;
+}
+
+message Capabilities {
+  CacheInvalidation cache_invalidation = 1;
+  FlagEvaluation flag_evaluation = 2;
+}
+
+message CacheInvalidation {
+  Polling polling = 1;
+}
+
+message Polling {
+  bool enabled = 1;
+  uint32 min_polling_interval_ms = 2;
+}
+
+message FlagEvaluation {
+  repeated string supported_types = 1;
+}
+
+// flipt:sdk:ignore
+service OFREPService {
+  rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {}
+}
