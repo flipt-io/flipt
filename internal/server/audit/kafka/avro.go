@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/hamba/avro"
+	"github.com/hamba/avro/v2"
 	"github.com/twmb/franz-go/pkg/sr"
 	"go.flipt.io/flipt/internal/server/audit"
 	protoaudit "go.flipt.io/flipt/rpc/flipt/audit"
