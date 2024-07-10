@@ -56,6 +56,7 @@ jobs:
             "import/export",
             "authn",
             "authz",
+            "rest",
           ]
     steps:
       - uses: actions/checkout@v4

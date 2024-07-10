@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
+// REST tests the REST API without using the SDK.
 func REST(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	var (
 		client     = opts.TokenClient(t)
