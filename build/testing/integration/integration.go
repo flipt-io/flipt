@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -132,6 +133,41 @@ func WithRole(role string) ClientOpt {
 	return func(co *ClientOpts) {
 		co.Role = role
 	}
+}
+
+type roundTripFunc func(r *http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
+}
+
+func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
+	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	metadata := map[string]string{}
+	if copts.Role != "" {
+		metadata["io.flipt.auth.role"] = copts.Role
+	}
+
+	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
+		Name:         t.Name(),
+		NamespaceKey: copts.Namespace,
+		Metadata:     metadata,
+	})
+
+	require.NoError(t, err)
+
+	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", resp.ClientToken))
+		return http.DefaultTransport.RoundTrip(r)
+	})
+
+	return &http.Client{Transport: transport}
 }
 
 func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
