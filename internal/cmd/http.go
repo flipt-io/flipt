@@ -128,6 +128,7 @@ func NewHTTPServer(
 		})
 	})
 	r.Use(middleware.Compress(gzip.DefaultCompression))
+	r.Use(http_middleware.HandleNoBodyResponse)
 	r.Use(middleware.Recoverer)
 
 	if cfg.Diagnostics.Profiling.Enabled {

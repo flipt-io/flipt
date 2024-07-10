@@ -134,6 +134,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 		// if etag matches the If-None-Match header, we want to return a 304
 		if ifNoneMatch == etag {
 			_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+			return nil, nil
 		}
 	}
 
