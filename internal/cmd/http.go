@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"go.flipt.io/flipt/rpc/flipt/ofrep"
+
 	"github.com/fatih/color"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,6 +23,7 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server/authn/method"
+	grpc_middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -61,8 +64,9 @@ func NewHTTPServer(
 		r               = chi.NewRouter()
 		api             = gateway.NewGatewayServeMux(logger)
 		evaluateAPI     = gateway.NewGatewayServeMux(logger)
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger)
+		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion))
 		analyticsAPI    = gateway.NewGatewayServeMux(logger)
+		ofrepAPI        = gateway.NewGatewayServeMux(logger)
 		httpPort        = cfg.Server.HTTPPort
 	)
 
@@ -83,6 +87,10 @@ func NewHTTPServer(
 	}
 
 	if err := analytics.RegisterAnalyticsServiceHandler(ctx, analyticsAPI, conn); err != nil {
+		return nil, fmt.Errorf("registering grpc gateway: %w", err)
+	}
+
+	if err := ofrep.RegisterOFREPServiceHandler(ctx, ofrepAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -154,6 +162,7 @@ func NewHTTPServer(
 		r.Mount("/evaluate/v1", evaluateAPI)
 		r.Mount("/internal/v1/analytics", analyticsAPI)
 		r.Mount("/internal/v1", evaluateDataAPI)
+		r.Mount("/ofrep", ofrepAPI)
 
 		// mount all authentication related HTTP components
 		// to the chi router.

@@ -72,7 +72,8 @@
           "properties": {
             "management": { "type": "boolean", "default": false },
             "metadata": { "type": "boolean", "default": false },
-            "evaluation": { "type": "boolean", "default": false }
+            "evaluation": { "type": "boolean", "default": false },
+            "ofrep": { "type": "boolean", "default": false }
           },
           "additionalProperties": false
         },
