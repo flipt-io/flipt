@@ -39,7 +39,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^0.2.1",
     "date-fns": "^3.6.0",
-    "formik": "^2.4.5",
+    "formik": "^2.4.6",
     "nightwind": "^1.1.13",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
