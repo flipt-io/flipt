@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"crypto/sha1" //nolint:gosec
+
 	"fmt"
 
 	"github.com/blang/semver/v4"
@@ -11,11 +13,13 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type EvaluationStore interface {
 	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
 	storage.EvaluationStore
+	storage.NamespaceVersionStore
 }
 
 type Server struct {
@@ -96,10 +100,46 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
+
 	var (
 		namespaceKey = r.Key
 		reference    = r.Reference
-		resp         = &evaluation.EvaluationNamespaceSnapshot{
+		ifNoneMatch  string
+	)
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		// get If-None-Match header from request
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 {
+			ifNoneMatch = vals[0]
+		}
+	}
+
+	// get current version from store to calculate etag for this namespace
+	currentVersion, err := srv.store.GetVersion(ctx, storage.NewNamespace(namespaceKey))
+	if err != nil {
+		srv.logger.Error("getting current version", zap.Error(err))
+	}
+
+	if currentVersion != "" {
+		var (
+			hash = sha1.New() //nolint:gosec
+			_, _ = hash.Write([]byte(currentVersion))
+			// etag is the sha1 hash of the current version
+			etag = fmt.Sprintf("%x", hash.Sum(nil))
+		)
+
+		// set etag header in the response
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
+		// if etag matches the If-None-Match header, we want to return a 304
+		if ifNoneMatch == etag {
+			_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+			return nil, nil
+		}
+	}
+
+	var (
+		resp = &evaluation.EvaluationNamespaceSnapshot{
 			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},

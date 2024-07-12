@@ -153,6 +153,10 @@ func WithOrder(order Order) QueryOption {
 	}
 }
 
+type NamespaceVersionStore interface {
+	GetVersion(ctx context.Context, ns NamespaceRequest) (string, error)
+}
+
 // ReadOnlyStore is a storage implementation which only supports
 // reading the various types of state configuring within Flipt
 type ReadOnlyStore interface {
@@ -162,6 +166,7 @@ type ReadOnlyStore interface {
 	ReadOnlyRuleStore
 	ReadOnlyRolloutStore
 	EvaluationStore
+	NamespaceVersionStore
 	fmt.Stringer
 }
 
@@ -173,6 +178,7 @@ type Store interface {
 	RuleStore
 	RolloutStore
 	EvaluationStore
+	NamespaceVersionStore
 	fmt.Stringer
 }
 

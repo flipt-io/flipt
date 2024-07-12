@@ -346,6 +346,12 @@ func (s *Store) CountRules(ctx context.Context, flag storage.ResourceRequest) (u
 
 // CreateRule creates a rule
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *flipt.Rule, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
 
 	if r.NamespaceKey == "" {
@@ -424,6 +430,12 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 
 // UpdateRule updates an existing rule
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *flipt.Rule, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
 
 	if r.NamespaceKey == "" {
@@ -488,7 +500,13 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 }
 
 // DeleteRule deletes a rule
-func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -554,7 +572,13 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 }
 
 // OrderRules orders rules
-func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -620,7 +644,13 @@ func (s *Store) distributionValidationHelper(ctx context.Context, distributionRe
 }
 
 // CreateDistribution creates a distribution
-func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (_ *flipt.Distribution, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -637,7 +667,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		}
 	)
 
-	err := s.distributionValidationHelper(ctx, r)
+	err = s.distributionValidationHelper(ctx, r)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
@@ -645,7 +675,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		return nil, err
 	}
 
-	if _, err := s.builder.
+	if _, err = s.builder.
 		Insert("distributions").
 		Columns("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
 		Values(
@@ -663,13 +693,18 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 }
 
 // UpdateDistribution updates an existing distribution
-// TODO: we dont let user to update variant_id currently.. we should
-func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (_ *flipt.Distribution, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	err := s.distributionValidationHelper(ctx, r)
+	err = s.distributionValidationHelper(ctx, r)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
@@ -719,8 +754,14 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 }
 
 // DeleteDistribution deletes a distribution
-func (s *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	_, err := s.builder.Delete("distributions").
+func (s *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
+	_, err = s.builder.Delete("distributions").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}}).
 		ExecContext(ctx)
 
