@@ -110,6 +110,7 @@ message Flag {
   repeated Variant variants = 7;
   string namespace_key = 8;
   FlagType type = 9;
+  optional Variant default_variant = 10;
  }
 
 message FlagList {
@@ -147,6 +148,7 @@ message UpdateFlagRequest {
   string description = 3;
   bool enabled = 4;
   string namespace_key = 5;
+  string default_variant_id = 6;
 }
 
 message DeleteFlagRequest {
