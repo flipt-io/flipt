@@ -987,7 +987,9 @@ func TestLoad(t *testing.T) {
 					Username: "user",
 					Password: "passwd",
 				}
-				cfg.Audit.Sinks.Kafka.SchemaRegistry = "http://registry"
+				cfg.Audit.Sinks.Kafka.SchemaRegistry = &KafkaSchemaRegistryConfig{
+					URL: "http://registry",
+				}
 				cfg.Audit.Sinks.Kafka.RequireTLS = true
 				cfg.Audit.Sinks.Kafka.InsecureSkipTLS = true
 				return cfg
