@@ -37,5 +37,5 @@ func NewGatewayServeMux(logger *zap.Logger, opts ...runtime.ServeMuxOption) *run
 
 	})
 
-	return runtime.NewServeMux(append(commonMuxOptions, opts...)...)
+	return runtime.NewServeMux(append(opts, commonMuxOptions...)...)
 }

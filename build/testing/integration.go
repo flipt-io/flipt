@@ -66,6 +66,7 @@ var (
 		"import/export": importExport,
 		"authn":         authn,
 		"authz":         authz,
+		"rest":          rest,
 	}
 )
 
@@ -265,6 +266,12 @@ func take(fn func() error) func() error {
 
 func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return suite(ctx, "api", base,
+		// create unique instance for test case
+		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
+}
+
+func rest(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return suite(ctx, "rest", base,
 		// create unique instance for test case
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }

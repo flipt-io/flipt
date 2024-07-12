@@ -859,3 +859,8 @@ func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 
 	return *ns, nil
 }
+
+func (ss *Snapshot) GetVersion(context.Context, storage.NamespaceRequest) (string, error) {
+	// TODO: implement
+	return "", nil
+}
