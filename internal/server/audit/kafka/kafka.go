@@ -76,7 +76,7 @@ func NewSink(ctx context.Context, logger *zap.Logger, cfg config.KafkaSinkConfig
 		return nil, err
 	}
 	encodeFn := encoder.Encode
-	if cfg.SchemaRegistry != "" {
+	if cfg.SchemaRegistry != nil {
 		encodeFn, err = setupSchemaRegistryEncoder(ctx, cfg, encoder)
 		if err != nil {
 			return nil, err
@@ -93,7 +93,7 @@ func NewSink(ctx context.Context, logger *zap.Logger, cfg config.KafkaSinkConfig
 // setupSchemaRegistryEncoder sets up the schema registry client, registers the schema,
 // and returns an encoding function.
 func setupSchemaRegistryEncoder(ctx context.Context, cfg config.KafkaSinkConfig, encoder Encoder) (encodingFn, error) {
-	rcl, err := sr.NewClient(sr.URLs(cfg.SchemaRegistry))
+	rcl, err := sr.NewClient(sr.URLs(cfg.SchemaRegistry.URL))
 	if err != nil {
 		return nil, err
 	}
