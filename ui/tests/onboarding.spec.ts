@@ -10,7 +10,9 @@ test.describe('Onboarding', () => {
         page.getByRole('heading', { name: 'Get Started' })
       ).toBeVisible();
       await expect(
-        page.getByRole('heading', { name: 'Introducing Flipt Hybrid Cloud' })
+        page.getByRole('heading', {
+          name: 'Introducing Flipt Enterprise Cloud'
+        })
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Try the CLI' })

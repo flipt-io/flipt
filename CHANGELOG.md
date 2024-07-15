@@ -3,11 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.46.0](https://github.com/flipt-io/flipt/releases/tag/v1.46.0) - 2024-07-15
+
+### Added
+
+- Etag support for client side evaluation (#3248)
+- Add provider configuration for ofrep (#3247)
+- `audit`: implement sink for kafka (#3204)
+
+### Changed
+
+- Fix issue with missing code coverage report (#3238)
+
 ## [v1.45.1](https://github.com/flipt-io/flipt/releases/tag/v1.45.1) - 2024-07-09
 
 ### Fixed
 
-- forward x-flipt-accept-server-version to grpc (#3262)
+- Forward x-flipt-accept-server-version to grpc (#3262)
 
 ## [v1.45.0](https://github.com/flipt-io/flipt/releases/tag/v1.45.0) - 2024-06-26
 
