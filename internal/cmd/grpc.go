@@ -378,7 +378,6 @@ func NewGRPCServer(
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
 		httpClient := retryablehttp.NewClient()
-		httpClient.Logger = logger
 
 		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
 			httpClient.RetryWaitMax = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
