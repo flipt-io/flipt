@@ -68,11 +68,28 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 
 type SnapshotOption struct {
 	validatorOption []validation.FeaturesValidatorOption
+	etagFn          EtagFn
 }
+
+type EtagFn func(stat fs.FileInfo) string
 
 func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
 		so.validatorOption = opts
+	}
+}
+
+func WithEtag(etag string) containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.etagFn = func(stat fs.FileInfo) string { return etag }
+	}
+}
+
+func WithFileInfoEtag() containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.etagFn = func(stat fs.FileInfo) string {
+			return fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
+		}
 	}
 }
 
@@ -119,6 +136,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 	}
 
 	var so SnapshotOption
+	containers.ApplyAll(&so, WithFileInfoEtag())
 	containers.ApplyAll(&so, opts...)
 
 	for _, fi := range files {
@@ -162,7 +180,9 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		docs, err := documentsFromFile(fi, SnapshotOption{})
+		var so SnapshotOption
+		containers.ApplyAll(&so, WithFileInfoEtag())
+		docs, err := documentsFromFile(fi, so)
 		if err != nil {
 			return err
 		}
@@ -227,7 +247,8 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		if doc.Namespace == "" {
 			doc.Namespace = "default"
 		}
-		doc.Etag = fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
+
+		doc.Etag = opts.etagFn(stat)
 		docs = append(docs, doc)
 	}
 
