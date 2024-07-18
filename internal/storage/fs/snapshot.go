@@ -46,6 +46,7 @@ type namespace struct {
 	rollouts     map[string]*flipt.Rollout
 	evalRules    map[string][]*storage.EvaluationRule
 	evalRollouts map[string][]*storage.EvaluationRollout
+	etag         string
 }
 
 func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
@@ -226,6 +227,7 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		if doc.Namespace == "" {
 			doc.Namespace = "default"
 		}
+		doc.Etag = fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
 		docs = append(docs, doc)
 	}
 
@@ -537,7 +539,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
-
+	ns.etag = doc.Etag
 	ss.ns[doc.Namespace] = ns
 
 	ss.evalDists = evalDists
@@ -860,7 +862,10 @@ func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 	return *ns, nil
 }
 
-func (ss *Snapshot) GetVersion(context.Context, storage.NamespaceRequest) (string, error) {
-	// TODO: implement
-	return "", nil
+func (ss *Snapshot) GetVersion(ctx context.Context, req storage.NamespaceRequest) (string, error) {
+	ns, err := ss.getNamespace(req.Namespace())
+	if err != nil {
+		return "", err
+	}
+	return ns.etag, nil
 }
