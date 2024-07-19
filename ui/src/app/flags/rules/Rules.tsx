@@ -420,24 +420,23 @@ export default function Rules() {
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>
-          {(rules && rules.length > 0) ||
-            (showDefaultVariant && (
-              <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                <Button
-                  variant="primary"
-                  type="button"
-                  onClick={() => setShowRuleForm(true)}
-                  disabled={readOnly}
-                  title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-                >
-                  <PlusIcon
-                    className="text-white -ml-1.5 mr-1 h-5 w-5"
-                    aria-hidden="true"
-                  />
-                  New Rule
-                </Button>
-              </div>
-            ))}
+          {((rules && rules.length > 0) || showDefaultVariant) && (
+            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+              <Button
+                variant="primary"
+                type="button"
+                onClick={() => setShowRuleForm(true)}
+                disabled={readOnly}
+                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+              >
+                <PlusIcon
+                  className="text-white -ml-1.5 mr-1 h-5 w-5"
+                  aria-hidden="true"
+                />
+                New Rule
+              </Button>
+            </div>
+          )}
         </div>
         <div className="mt-10">
           {(rules && rules.length > 0) || showDefaultVariant ? (
