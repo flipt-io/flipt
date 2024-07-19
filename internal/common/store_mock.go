@@ -19,7 +19,7 @@ func (m *StoreMock) String() string {
 }
 
 func (m *StoreMock) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (string, error) {
-	args := m.Called(ctx)
+	args := m.Called(ctx, ns)
 	return args.String(0), args.Error(1)
 }
 

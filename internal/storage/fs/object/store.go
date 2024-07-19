@@ -2,6 +2,7 @@ package object
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"io"
 	"io/fs"
@@ -133,6 +134,7 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 			item.Size,
 			rd,
 			item.ModTime,
+			hex.EncodeToString(item.MD5),
 		))
 	}
 
@@ -160,9 +162,4 @@ func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, er
 
 	return idx, nil
 
-}
-
-func (s *SnapshotStore) GetVersion(ctx context.Context) (string, error) {
-	// TODO: implement
-	return "", nil
 }
