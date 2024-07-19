@@ -13,7 +13,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
+import { Form, Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
@@ -27,6 +28,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
+import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -41,11 +43,180 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { ISegment, SegmentOperatorType } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
+import { FilterableVariant, IVariant } from '~/types/Variant';
+import { truncateKey } from '~/utils/helpers';
+import { useUpdateFlagMutation } from '../flagsApi';
+import { INamespace } from '~/types/Namespace';
+import TextButton from '~/components/forms/buttons/TextButton';
+import { set } from 'date-fns';
 
 type RulesProps = {
   flag: IFlag;
 };
+
+export function DefaultVariant(props: RulesProps) {
+  const { flag } = props;
+
+  const { setError, clearError } = useError();
+  const { setSuccess } = useSuccess();
+
+  const namespace = useSelector(selectCurrentNamespace) as INamespace;
+
+  const readOnly = useSelector(selectReadonly);
+
+  const [selectedVariant, setSelectedVariant] =
+    useState<FilterableVariant | null>(() => {
+      const variant = flag.defaultVariant;
+      if (variant) {
+        return {
+          ...variant,
+          filterValue: truncateKey(variant.key),
+          displayValue: variant.key
+        };
+      }
+      return null;
+    });
+
+  const [updateFlag] = useUpdateFlagMutation();
+
+  const handleRemove = async () => {
+    try {
+      setSelectedVariant(null);
+      await updateFlag({
+        namespaceKey: namespace.key,
+        flagKey: flag.key,
+        values: {
+          ...flag,
+          defaultVariant: undefined
+        }
+      });
+      clearError();
+      setSuccess('Successfully removed default variant');
+    } catch (err) {
+      setError(err);
+    }
+  };
+
+  const handleSubmit = async () => {
+    await updateFlag({
+      namespaceKey: namespace.key,
+      flagKey: flag.key,
+      values: {
+        ...flag,
+        defaultVariant: {
+          ...selectedVariant,
+          id: selectedVariant?.id ?? ''
+        } as IVariant
+      }
+    });
+  };
+
+  return (
+    <Formik
+      initialValues={{
+        variant: selectedVariant
+      }}
+      onSubmit={(_, { setSubmitting }) => {
+        handleSubmit()
+          .then(() => {
+            clearError();
+            setSuccess('Successfully updated default variant');
+          })
+          .catch((err) => {
+            setError(err);
+          })
+          .finally(() => {
+            setSubmitting(false);
+          });
+      }}
+    >
+      {(formik) => {
+        return (
+          <Form className="bg-white flex w-full flex-col overflow-y-scroll">
+            <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+              <div className="w-full flex-1">
+                <div className="bg-white border-gray-200 w-full border-b p-2">
+                  <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+                    <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
+                    <h3 className="text-gray-700 text-sm font-normal leading-6">
+                      Default Variant
+                    </h3>
+                    <span className="hidden h-4 w-4 justify-end sm:flex" />
+                  </div>
+                </div>
+                <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+                  <div className="flex grow flex-col items-center justify-center sm:ml-2">
+                    <div className="flex flex-col pb-4 pt-2">
+                      <p className="text-gray-600 text-center text-sm font-light">
+                        This is the default value that will be returned if no
+                        other rules match.
+                      </p>
+                    </div>
+                    <div className="flex items-baseline space-x-4 py-6 sm:space-y-0 sm:py-0">
+                      {flag.variants && flag.variants.length > 0 && (
+                        <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
+                          <div>
+                            <label
+                              htmlFor="variant"
+                              className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                            >
+                              Variant
+                            </label>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Combobox<FilterableVariant>
+                              id="variant"
+                              name="variant"
+                              values={flag.variants.map((v) => ({
+                                ...v,
+                                filterValue: truncateKey(v.key),
+                                displayValue: v.key
+                              }))}
+                              placeholder="Select a variant"
+                              selected={selectedVariant}
+                              setSelected={setSelectedVariant}
+                              disabled={readOnly}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 py-1">
+                  <div className="flex justify-end space-x-3">
+                    <TextButton
+                      disabled={formik.isSubmitting}
+                      onClick={() => handleRemove()}
+                    >
+                      Remove
+                    </TextButton>
+                    <TextButton
+                      className="min-w-[60px]"
+                      disabled={formik.isSubmitting || !formik.dirty}
+                      onClick={() => formik.resetForm()}
+                    >
+                      Reset
+                    </TextButton>
+                    <TextButton
+                      type="submit"
+                      className="min-w-[60px]"
+                      disabled={
+                        !formik.isValid || formik.isSubmitting || !formik.dirty
+                      }
+                    >
+                      {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
+                    </TextButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Form>
+        );
+      }}
+    </Formik>
+  );
+}
 
 export default function Rules() {
   const { flag } = useOutletContext<RulesProps>();
@@ -68,6 +239,8 @@ export default function Rules() {
     () => segmentsList.data?.segments || [],
     [segmentsList]
   );
+
+  const showDefaultVariant = flag.variants && flag.variants.length > 0;
 
   const [deleteRule] = useDeleteRuleMutation();
   const [orderRules] = useOrderRulesMutation();
@@ -248,26 +421,27 @@ export default function Rules() {
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>
-          {rules && rules.length > 0 && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <Button
-                variant="primary"
-                type="button"
-                onClick={() => setShowRuleForm(true)}
-                disabled={readOnly}
-                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-              >
-                <PlusIcon
-                  className="text-white -ml-1.5 mr-1 h-5 w-5"
-                  aria-hidden="true"
-                />
-                New Rule
-              </Button>
-            </div>
-          )}
+          {(rules && rules.length > 0) ||
+            (showDefaultVariant && (
+              <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                <Button
+                  variant="primary"
+                  type="button"
+                  onClick={() => setShowRuleForm(true)}
+                  disabled={readOnly}
+                  title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+                >
+                  <PlusIcon
+                    className="text-white -ml-1.5 mr-1 h-5 w-5"
+                    aria-hidden="true"
+                  />
+                  New Rule
+                </Button>
+              </div>
+            ))}
         </div>
         <div className="mt-10">
-          {rules && rules.length > 0 ? (
+          {(rules && rules.length > 0) || showDefaultVariant ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
                 <p className="text-gray-700 text-sm font-light">
@@ -281,42 +455,49 @@ export default function Rules() {
                   it into place.
                 </p>
               </div>
-              <div className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:w-3/4 lg:p-6">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={onDragStart}
-                  onDragEnd={onDragEnd}
-                >
-                  <SortableContext
-                    items={rules.map((rule) => rule.id)}
-                    strategy={verticalListSortingStrategy}
+              <div className="border-gray-200 pattern-boxes w-full space-y-4 border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:w-3/4 lg:p-6">
+                {rules && rules.length > 0 && (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={onDragStart}
+                    onDragEnd={onDragEnd}
                   >
-                    <ul role="list" className="flex-col space-y-5 md:flex">
-                      {rules &&
-                        rules.length > 0 &&
-                        rules.map((rule) => (
-                          <SortableRule
-                            key={rule.id}
-                            flag={flag}
-                            rule={rule}
-                            segments={segments}
-                            onDelete={() => {
-                              setDeletingRule(rule);
-                              setShowDeleteRuleModal(true);
-                            }}
-                            onSuccess={clearError}
-                            readOnly={readOnly}
-                          />
-                        ))}
-                    </ul>
-                  </SortableContext>
-                  <DragOverlay>
-                    {activeRule ? (
-                      <Rule flag={flag} rule={activeRule} segments={segments} />
-                    ) : null}
-                  </DragOverlay>
-                </DndContext>
+                    <SortableContext
+                      items={rules.map((rule) => rule.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <ul role="list" className="flex-col space-y-5 md:flex">
+                        {rules &&
+                          rules.length > 0 &&
+                          rules.map((rule) => (
+                            <SortableRule
+                              key={rule.id}
+                              flag={flag}
+                              rule={rule}
+                              segments={segments}
+                              onDelete={() => {
+                                setDeletingRule(rule);
+                                setShowDeleteRuleModal(true);
+                              }}
+                              onSuccess={clearError}
+                              readOnly={readOnly}
+                            />
+                          ))}
+                      </ul>
+                    </SortableContext>
+                    <DragOverlay>
+                      {activeRule ? (
+                        <Rule
+                          flag={flag}
+                          rule={activeRule}
+                          segments={segments}
+                        />
+                      ) : null}
+                    </DragOverlay>
+                  </DndContext>
+                )}
+                {showDefaultVariant && <DefaultVariant flag={flag} />}
               </div>
             </div>
           ) : (

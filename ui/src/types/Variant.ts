@@ -13,4 +13,5 @@ export interface IVariant extends IVariantBase {
   updatedAt: string;
 }
 
-export type FilterableVariant = IVariant & IFilterable;
+export type FilterableVariant = Pick<IVariant, 'id' | 'key' | 'name'> &
+  IFilterable;

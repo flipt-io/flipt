@@ -399,6 +399,8 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *
 
 	if r.DefaultVariantId != "" {
 		query = query.Set("default_variant_id", r.DefaultVariantId)
+	} else {
+		query = query.Set("default_variant_id", nil)
 	}
 
 	query = query.

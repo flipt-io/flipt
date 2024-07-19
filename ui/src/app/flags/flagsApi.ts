@@ -68,10 +68,16 @@ export const flagsApi = createApi({
       { namespaceKey: string; flagKey: string; values: IFlagBase }
     >({
       query({ namespaceKey, flagKey, values }) {
+        // create new object 'values' to remap defaultVariant to defaultVariantId
+        const update = {
+          defaultVariantId: values.defaultVariant?.id || null,
+          ...values
+        };
+
         return {
           url: `/namespaces/${namespaceKey}/flags/${flagKey}`,
           method: 'PUT',
-          body: values
+          body: update
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
