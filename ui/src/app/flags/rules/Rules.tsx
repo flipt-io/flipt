@@ -45,10 +45,9 @@ import { IRule } from '~/types/Rule';
 import { ISegment, SegmentOperatorType } from '~/types/Segment';
 import { FilterableVariant, IVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
-import { useUpdateFlagMutation } from '../flagsApi';
+import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
 import { INamespace } from '~/types/Namespace';
 import TextButton from '~/components/forms/buttons/TextButton';
-import { set } from 'date-fns';
 
 type RulesProps = {
   flag: IFlag;
