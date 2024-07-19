@@ -25,7 +25,7 @@ const gettingStartedTiles = [
   },
   {
     icon: CloudIcon,
-    name: 'Introducing Flipt Hybrid Cloud',
+    name: 'Introducing Flipt Enterprise Cloud',
     className: 'sm:col-span-2',
     description:
       'Learn about our managed offering with enhanced security and support',

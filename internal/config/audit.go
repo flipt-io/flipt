@@ -126,14 +126,14 @@ type LogSinkConfig struct {
 // KafkaSinkConfig contains fields that hold configuration for sending audits
 // to Kafka.
 type KafkaSinkConfig struct {
-	Enabled          bool                 `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	Topic            string               `json:"topic,omitempty" mapstructure:"topic" yaml:"topic,omitempty"`
-	BootstrapServers []string             `json:"bootstrapServers,omitempty" mapstructure:"bootstrap_servers" yaml:"bootstrap_servers,omitempty"`
-	Encoding         string               `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
-	Authentication   *KafkaAuthentication `json:"-" mapstructure:"authentication" yaml:"-"`
-	SchemaRegistry   string               `json:"-" mapstructure:"schema_registry" yaml:"-"`
-	RequireTLS       bool                 `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
-	InsecureSkipTLS  bool                 `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Enabled          bool                       `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Topic            string                     `json:"topic,omitempty" mapstructure:"topic" yaml:"topic,omitempty"`
+	BootstrapServers []string                   `json:"bootstrapServers,omitempty" mapstructure:"bootstrap_servers" yaml:"bootstrap_servers,omitempty"`
+	Encoding         string                     `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
+	Authentication   *KafkaAuthenticationConfig `json:"-" mapstructure:"authentication" yaml:"-"`
+	SchemaRegistry   *KafkaSchemaRegistryConfig `json:"-" mapstructure:"schema_registry" yaml:"-"`
+	RequireTLS       bool                       `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	InsecureSkipTLS  bool                       `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
 }
 
 func (c *KafkaSinkConfig) validate() error {
@@ -148,8 +148,12 @@ func (c *KafkaSinkConfig) validate() error {
 	return nil
 }
 
-// KafkaAuthentication contains fields that hold auth configuration for Kafka.
-type KafkaAuthentication struct {
+type KafkaSchemaRegistryConfig struct {
+	URL string `json:"-" mapstructure:"url" yaml:"-"`
+}
+
+// KafkaAuthenticationConfig contains fields that hold auth configuration for Kafka.
+type KafkaAuthenticationConfig struct {
 	Username string `json:"-" mapstructure:"username" yaml:"-"`
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }

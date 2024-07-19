@@ -10,7 +10,7 @@ audit:
       authentication:
         username: user
         password: passwd
-      schema_registry: http://registry
+      schema_registry:
+        url: http://registry
       require_tls: true
       insecure_skip_tls: true
-

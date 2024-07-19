@@ -983,11 +983,13 @@ func TestLoad(t *testing.T) {
 				cfg.Audit.Sinks.Kafka.Topic = "audit-topic"
 				cfg.Audit.Sinks.Kafka.BootstrapServers = []string{"kafka-srv1", "kafka-srv2"}
 				cfg.Audit.Sinks.Kafka.Encoding = "protobuf"
-				cfg.Audit.Sinks.Kafka.Authentication = &KafkaAuthentication{
+				cfg.Audit.Sinks.Kafka.Authentication = &KafkaAuthenticationConfig{
 					Username: "user",
 					Password: "passwd",
 				}
-				cfg.Audit.Sinks.Kafka.SchemaRegistry = "http://registry"
+				cfg.Audit.Sinks.Kafka.SchemaRegistry = &KafkaSchemaRegistryConfig{
+					URL: "http://registry",
+				}
 				cfg.Audit.Sinks.Kafka.RequireTLS = true
 				cfg.Audit.Sinks.Kafka.InsecureSkipTLS = true
 				return cfg

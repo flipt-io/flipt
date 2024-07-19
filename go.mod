@@ -15,7 +15,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.23
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.29.1
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.30.3
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.57.1
 	github.com/blang/semver/v4 v4.0.0
@@ -78,18 +78,18 @@ require (
 	go.flipt.io/reverst v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.53.0
-	go.opentelemetry.io/contrib/propagators/autoprop v0.51.0
+	go.opentelemetry.io/contrib/propagators/autoprop v0.53.0
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.27.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.27.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.27.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.27.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.28.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.49.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.27.0
 	go.opentelemetry.io/otel/metric v1.28.0
-	go.opentelemetry.io/otel/sdk v1.27.0
+	go.opentelemetry.io/otel/sdk v1.28.0
 	go.opentelemetry.io/otel/sdk/metric v1.27.0
 	go.opentelemetry.io/otel/trace v1.28.0
 	go.uber.org/zap v1.27.0
@@ -98,9 +98,9 @@ require (
 	golang.org/x/crypto v0.24.0
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	golang.org/x/net v0.26.0
-	golang.org/x/oauth2 v0.20.0
+	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.7.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4
+	google.golang.org/genproto/googleapis/api v0.0.0-20240701130421-f6361c86f094
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
@@ -134,13 +134,13 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/aws/aws-sdk-go v1.50.36 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.30.1 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.30.3 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.3 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.23 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.9 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.13 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.13 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.13 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.3 // indirect
@@ -286,10 +286,10 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0 // indirect
-	go.opentelemetry.io/contrib/propagators/aws v1.26.0 // indirect
-	go.opentelemetry.io/contrib/propagators/b3 v1.26.0 // indirect
-	go.opentelemetry.io/contrib/propagators/jaeger v1.26.0 // indirect
-	go.opentelemetry.io/contrib/propagators/ot v1.26.0 // indirect
+	go.opentelemetry.io/contrib/propagators/aws v1.28.0 // indirect
+	go.opentelemetry.io/contrib/propagators/b3 v1.28.0 // indirect
+	go.opentelemetry.io/contrib/propagators/jaeger v1.28.0 // indirect
+	go.opentelemetry.io/contrib/propagators/ot v1.28.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.4.0 // indirect

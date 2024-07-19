@@ -46,6 +46,7 @@ type namespace struct {
 	rollouts     map[string]*flipt.Rollout
 	evalRules    map[string][]*storage.EvaluationRule
 	evalRollouts map[string][]*storage.EvaluationRollout
+	etag         string
 }
 
 func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
@@ -67,11 +68,46 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 
 type SnapshotOption struct {
 	validatorOption []validation.FeaturesValidatorOption
+	etagFn          EtagFn
+}
+
+// EtagFn is a function type that takes an fs.FileInfo object as input and
+// returns a string representing the ETag.
+type EtagFn func(stat fs.FileInfo) string
+
+// EtagInfo is an interface that defines a single method, Etag(), which returns
+// a string representing the ETag of an object.
+type EtagInfo interface {
+	// Etag returns the ETag of the implementing object.
+	Etag() string
 }
 
 func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
 		so.validatorOption = opts
+	}
+}
+
+// WithEtag returns a containers.Option[SnapshotOption] that sets the ETag function
+// to always return the provided ETag string.
+func WithEtag(etag string) containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.etagFn = func(stat fs.FileInfo) string { return etag }
+	}
+}
+
+// WithFileInfoEtag returns a containers.Option[SnapshotOption] that sets the ETag function
+// to generate an ETag based on the file information. If the file information implements
+// the EtagInfo interface, the Etag method is used. Otherwise, it generates an ETag
+// based on the file's modification time and size.
+func WithFileInfoEtag() containers.Option[SnapshotOption] {
+	return func(so *SnapshotOption) {
+		so.etagFn = func(stat fs.FileInfo) string {
+			if s, ok := stat.(EtagInfo); ok {
+				return s.Etag()
+			}
+			return fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
+		}
 	}
 }
 
@@ -118,6 +154,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 	}
 
 	var so SnapshotOption
+	containers.ApplyAll(&so, WithFileInfoEtag())
 	containers.ApplyAll(&so, opts...)
 
 	for _, fi := range files {
@@ -161,7 +198,9 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		docs, err := documentsFromFile(fi, SnapshotOption{})
+		var so SnapshotOption
+		containers.ApplyAll(&so, WithFileInfoEtag())
+		docs, err := documentsFromFile(fi, so)
 		if err != nil {
 			return err
 		}
@@ -226,6 +265,8 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		if doc.Namespace == "" {
 			doc.Namespace = "default"
 		}
+
+		doc.Etag = opts.etagFn(stat)
 		docs = append(docs, doc)
 	}
 
@@ -537,7 +578,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
-
+	ns.etag = doc.Etag
 	ss.ns[doc.Namespace] = ns
 
 	ss.evalDists = evalDists
@@ -860,7 +901,10 @@ func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 	return *ns, nil
 }
 
-func (ss *Snapshot) GetVersion(context.Context, storage.NamespaceRequest) (string, error) {
-	// TODO: implement
-	return "", nil
+func (ss *Snapshot) GetVersion(ctx context.Context, req storage.NamespaceRequest) (string, error) {
+	ns, err := ss.getNamespace(req.Namespace())
+	if err != nil {
+		return "", err
+	}
+	return ns.etag, nil
 }

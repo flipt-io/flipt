@@ -355,5 +355,5 @@ func (s *SnapshotStore) buildSnapshot(ctx context.Context, hash plumbing.Hash) (
 		}
 	}
 
-	return storagefs.SnapshotFromFS(s.logger, gfs)
+	return storagefs.SnapshotFromFS(s.logger, gfs, storagefs.WithEtag(hash.String()))
 }

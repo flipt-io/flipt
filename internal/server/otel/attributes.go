@@ -2,7 +2,7 @@ package otel
 
 import (
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 var (

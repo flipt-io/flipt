@@ -1367,7 +1367,13 @@
                   "default": "protobuf"
                 },
                 "schema_registry": {
-                  "type": "string"
+                  "type": ["object", "null"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  }
                 },
                 "require_tls": {
                   "type": "boolean",
