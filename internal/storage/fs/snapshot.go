@@ -71,7 +71,16 @@ type SnapshotOption struct {
 	etagFn          EtagFn
 }
 
+// EtagFn is a function type that takes an fs.FileInfo object as input and
+// returns a string representing the ETag.
 type EtagFn func(stat fs.FileInfo) string
+
+// EtagInfo is an interface that defines a single method, Etag(), which returns
+// a string representing the ETag of an object.
+type EtagInfo interface {
+	// Etag returns the ETag of the implementing object.
+	Etag() string
+}
 
 func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
@@ -79,15 +88,24 @@ func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.
 	}
 }
 
+// WithEtag returns a containers.Option[SnapshotOption] that sets the ETag function
+// to always return the provided ETag string.
 func WithEtag(etag string) containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
 		so.etagFn = func(stat fs.FileInfo) string { return etag }
 	}
 }
 
+// WithFileInfoEtag returns a containers.Option[SnapshotOption] that sets the ETag function
+// to generate an ETag based on the file information. If the file information implements
+// the EtagInfo interface, the Etag method is used. Otherwise, it generates an ETag
+// based on the file's modification time and size.
 func WithFileInfoEtag() containers.Option[SnapshotOption] {
 	return func(so *SnapshotOption) {
 		so.etagFn = func(stat fs.FileInfo) string {
+			if s, ok := stat.(EtagInfo); ok {
+				return s.Etag()
+			}
 			return fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
 		}
 	}

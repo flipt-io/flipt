@@ -2,6 +2,7 @@ package object
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"io"
 	"io/fs"
@@ -133,6 +134,7 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 			item.Size,
 			rd,
 			item.ModTime,
+			hex.EncodeToString(item.MD5),
 		))
 	}
 
