@@ -113,7 +113,7 @@ export function DefaultVariant(props: RulesProps) {
   return (
     <Formik
       initialValues={{
-        variant: selectedVariant
+        defaultVariant: selectedVariant
       }}
       onSubmit={(_, { setSubmitting }) => {
         handleSubmit()
@@ -156,7 +156,7 @@ export function DefaultVariant(props: RulesProps) {
                         <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                           <div>
                             <label
-                              htmlFor="variant"
+                              htmlFor="defaultVariant"
                               className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                             >
                               Variant
@@ -164,8 +164,8 @@ export function DefaultVariant(props: RulesProps) {
                           </div>
                           <div className="sm:col-span-2">
                             <Combobox<FilterableVariant>
-                              id="variant"
-                              name="variant"
+                              id="defaultVariant"
+                              name="defaultVariant"
                               values={flag.variants.map((v) => ({
                                 ...v,
                                 filterValue: truncateKey(v.key),
