@@ -771,7 +771,7 @@ func TestExport(t *testing.T) {
 					found    = ext.NewDecoder(b)
 				)
 
-				// handle newline delimeted JSON
+				// handle newline delimited JSON
 				for {
 					var exp, fnd any
 					eerr := expected.Decode(&exp)

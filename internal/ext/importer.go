@@ -18,6 +18,7 @@ type Creator interface {
 	GetNamespace(context.Context, *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
 	CreateNamespace(context.Context, *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	CreateFlag(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
+	UpdateFlag(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	CreateVariant(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
 	CreateSegment(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	CreateConstraint(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
@@ -130,10 +131,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 
 			// support explicitly setting flag type from 1.1
 			if f.Type != "" {
-				if err := ensureFieldSupported("flag.type", semver.Version{
-					Major: 1,
-					Minor: 1,
-				}, version); err != nil {
+				if err := ensureFieldSupported("flag.type", v1_1, version); err != nil {
 					return err
 				}
 
@@ -144,6 +142,8 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 			if err != nil {
 				return fmt.Errorf("creating flag: %w", err)
 			}
+
+			var defaultVariantId string
 
 			for _, v := range f.Variants {
 				if v == nil {
@@ -160,6 +160,15 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 					}
 				}
 
+				// last variant with default=true will be the default variant when importing
+				if v.Default {
+					// support explicitly setting default variant from 1.3
+					if err := ensureFieldSupported("variant.default", v1_3, version); err != nil {
+						return err
+					}
+					defaultVariantId = v.Key
+				}
+
 				variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
 					FlagKey:      f.Key,
 					Key:          v.Key,
@@ -174,6 +183,21 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 				}
 
 				createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
+			}
+
+			if defaultVariantId != "" {
+				_, err := i.creator.UpdateFlag(ctx, &flipt.UpdateFlagRequest{
+					Key:              flag.Key,
+					Name:             flag.Name,
+					Description:      flag.Description,
+					Enabled:          flag.Enabled,
+					NamespaceKey:     namespace,
+					DefaultVariantId: defaultVariantId,
+				})
+
+				if err != nil {
+					return fmt.Errorf("updating flag: %w", err)
+				}
 			}
 
 			createdFlags[flag.Key] = flag
@@ -233,7 +257,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 
 				// support implicit rank from version >=1.1
 				rank := int32(r.Rank)
-				if rank == 0 && version.GE(semver.Version{Major: 1, Minor: 1}) {
+				if rank == 0 && version.GE(v1_1) {
 					rank = int32(idx) + 1
 				}
 
@@ -283,10 +307,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 
 			// support explicitly setting flag type from 1.1
 			if len(f.Rollouts) > 0 {
-				if err := ensureFieldSupported("flag.rollouts", semver.Version{
-					Major: 1,
-					Minor: 1,
-				}, version); err != nil {
+				if err := ensureFieldSupported("flag.rollouts", v1_1, version); err != nil {
 					return err
 				}
 
@@ -322,10 +343,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err e
 
 						// support explicitly setting only "keys" on rules from 1.2
 						if len(r.Segment.Keys) > 0 {
-							if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
-								Major: 1,
-								Minor: 2,
-							}, version); err != nil {
+							if err := ensureFieldSupported("flag.rollouts[*].segment.keys", v1_2, version); err != nil {
 								return err
 							}
 

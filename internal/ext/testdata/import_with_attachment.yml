@@ -8,7 +8,6 @@ flags:
       - key: variant1
         name: variant1
         description: variant description
-        default: true
         attachment:
           pi: 3.141
           happy: true
