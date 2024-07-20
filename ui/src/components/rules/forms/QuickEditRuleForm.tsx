@@ -8,7 +8,6 @@ import {
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
-import Combobox from '~/components/forms/Combobox';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
@@ -24,8 +23,9 @@ import {
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
-import { cls, truncateKey } from '~/utils/helpers';
+import { cls, toFilterableVariant } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
+import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
 
 type QuickEditRuleFormProps = {
   flag: IFlag;
@@ -72,15 +72,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         return null;
       }
 
-      let selected = rule.rollouts[0].variant;
-      if (selected) {
-        return {
-          ...selected,
-          displayValue: selected.name,
-          filterValue: selected.id
-        };
-      }
-      return null;
+      return toFilterableVariant(rule.rollouts[0].variant);
     });
 
   const readOnly = useSelector(selectReadonly);
@@ -329,30 +321,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 {ruleType === DistributionType.Single &&
                   flag.variants &&
                   flag.variants.length > 0 && (
-                    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
-                      <div>
-                        <label
-                          htmlFor="variantKey"
-                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
-                        >
-                          Variant
-                        </label>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Combobox<FilterableVariant>
-                          id="variantKey"
-                          name="variantKey"
-                          values={flag.variants?.map((v) => ({
-                            ...v,
-                            filterValue: truncateKey(v.key),
-                            displayValue: v.key
-                          }))}
-                          selected={selectedVariant}
-                          setSelected={setSelectedVariant}
-                          disabled={readOnly}
-                        />
-                      </div>
-                    </div>
+                    <SingleDistributionFormInput
+                      id={`quick-variant-${rule.rank}`}
+                      variants={flag.variants}
+                      selectedVariant={selectedVariant}
+                      setSelectedVariant={setSelectedVariant}
+                    />
                   )}
 
                 {ruleType === DistributionType.Multi && (

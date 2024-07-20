@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import { defaultHeaders } from '~/data/api';
 import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
+import { IVariant } from '~/types/Variant';
 
 export function cls(...args: ClassValue[]) {
   return twMerge(clsx(args));
@@ -120,4 +121,15 @@ export function generateCurlCommand(curlOptions: ICurlOptions) {
 
 export function generateCliCommand(command: ICommand): string {
   return `flipt ${command.commandName} ${command.arguments?.join(' ')} ${command.options?.map(({ key, value }) => `${key} ${value}`).join(' ')}`;
+}
+
+export function toFilterableVariant(selected: IVariant | undefined) {
+  if (selected) {
+    return {
+      ...selected,
+      displayValue: selected.name,
+      filterValue: selected.id
+    };
+  }
+  return null;
 }
