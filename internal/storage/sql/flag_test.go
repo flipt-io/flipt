@@ -644,6 +644,74 @@ func (s *DBTestSuite) TestUpdateFlagNamespace_NotFound() {
 	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
 }
 
+func (s *DBTestSuite) TestUpdateFlag_DefaultVariant() {
+	t := s.T()
+
+	t.Run("update flag with default variant", func(t *testing.T) {
+		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+
+		require.NoError(t, err)
+
+		variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+			FlagKey:     flag.Key,
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Attachment:  `{"key":"value"}`,
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, variant)
+
+		_, err = s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+			Key:              flag.Key,
+			Name:             flag.Name,
+			Description:      "foobar",
+			Enabled:          true,
+			DefaultVariantId: variant.Id,
+		})
+
+		require.NoError(t, err)
+
+		// get the flag again
+		flag, err = s.store.GetFlag(context.TODO(), storage.NewResource(storage.DefaultNamespace, flag.Key))
+
+		require.NoError(t, err)
+		assert.NotNil(t, flag)
+		assert.Equal(t, variant.Id, flag.DefaultVariant.Id)
+		assert.Equal(t, variant.Key, flag.DefaultVariant.Key)
+		assert.Equal(t, variant.Name, flag.DefaultVariant.Name)
+		assert.Equal(t, variant.Description, flag.DefaultVariant.Description)
+		assert.Equal(t, variant.Attachment, flag.DefaultVariant.Attachment)
+	})
+
+	t.Run("update flag with default variant not found", func(t *testing.T) {
+		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+
+		require.NoError(t, err)
+
+		_, err = s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+			Key:              flag.Key,
+			Name:             flag.Name,
+			Description:      "foobar",
+			Enabled:          true,
+			DefaultVariantId: "non-existent",
+		})
+
+		assert.EqualError(t, err, "variant \"non-existent\" not found for flag \"default/TestDBTestSuite/TestUpdateFlag_DefaultVariant/update_flag_with_default_variant_not_found\"")
+	})
+}
+
 func (s *DBTestSuite) TestDeleteFlag() {
 	t := s.T()
 
@@ -1517,6 +1585,52 @@ func (s *DBTestSuite) TestDeleteVariantNamespace_NotFound() {
 	})
 
 	require.NoError(t, err)
+}
+
+func (s *DBTestSuite) TestDeleteVariant_DefaultVariant() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	_, err = s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+		Key:              flag.Key,
+		Name:             flag.Name,
+		Description:      flag.Description,
+		Enabled:          true,
+		DefaultVariantId: variant.Id,
+	})
+
+	require.NoError(t, err)
+
+	err = s.store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: variant.FlagKey, Id: variant.Id})
+	require.NoError(t, err)
+
+	// get the flag again
+	flag, err = s.store.GetFlag(context.TODO(), storage.NewResource(storage.DefaultNamespace, flag.Key))
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	assert.Empty(t, flag.Variants)
+	assert.Nil(t, flag.DefaultVariant)
 }
 
 func BenchmarkListFlags(b *testing.B) {

@@ -22,7 +22,10 @@
             "object": { "currency": "USD", "value": 42.99 }
           }
         },
-        { "key": "foo" }
+        {
+          "key": "foo",
+          "default": true
+        }
       ],
       "rules": [
         {

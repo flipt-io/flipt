@@ -24,6 +24,7 @@ flags:
             currency: USD
             value: 42.99
       - key: foo
+        default: true
     rules:
       - segment: segment1
         distributions:
