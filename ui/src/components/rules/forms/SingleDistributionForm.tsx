@@ -5,12 +5,14 @@ type SingleDistributionFormInputProps = {
   variants: IVariant[];
   selectedVariant: FilterableVariant | null;
   setSelectedVariant: (variant: FilterableVariant | null) => void;
+  id?: string;
 };
 
 export default function SingleDistributionFormInput(
   props: SingleDistributionFormInputProps
 ) {
   const { variants, selectedVariant, setSelectedVariant } = props;
+  const id = props.id || 'variant';
   return (
     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
       <div>
@@ -23,7 +25,7 @@ export default function SingleDistributionFormInput(
       </div>
       <div className="sm:col-span-2">
         <Combobox<FilterableVariant>
-          id="variant"
+          id={id}
           name="variant"
           placeholder="Select or search for a variant"
           values={

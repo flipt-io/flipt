@@ -73,7 +73,7 @@ export const flagsApi = createApi({
           defaultVariantId: values.defaultVariant?.id || null,
           ...values
         };
-
+        delete update.defaultVariant;
         return {
           url: `/namespaces/${namespaceKey}/flags/${flagKey}`,
           method: 'PUT',
