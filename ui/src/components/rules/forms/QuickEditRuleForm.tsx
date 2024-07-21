@@ -22,8 +22,8 @@ import {
   segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
-import { FilterableVariant } from '~/types/Variant';
-import { cls, toFilterableVariant } from '~/utils/helpers';
+import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
+import { cls } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
 

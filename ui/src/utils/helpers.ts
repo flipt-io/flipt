@@ -122,14 +122,3 @@ export function generateCurlCommand(curlOptions: ICurlOptions) {
 export function generateCliCommand(command: ICommand): string {
   return `flipt ${command.commandName} ${command.arguments?.join(' ')} ${command.options?.map(({ key, value }) => `${key} ${value}`).join(' ')}`;
 }
-
-export function toFilterableVariant(selected: IVariant | undefined) {
-  if (selected) {
-    return {
-      ...selected,
-      displayValue: selected.name,
-      filterValue: selected.id
-    };
-  }
-  return null;
-}

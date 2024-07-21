@@ -43,12 +43,15 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { ISegment, SegmentOperatorType } from '~/types/Segment';
-import { FilterableVariant, IVariant } from '~/types/Variant';
+import {
+  FilterableVariant,
+  IVariant,
+  toFilterableVariant
+} from '~/types/Variant';
 import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
 import { INamespace } from '~/types/Namespace';
 import TextButton from '~/components/forms/buttons/TextButton';
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
-import { toFilterableVariant } from '~/utils/helpers';
 
 type RulesProps = {
   flag: IFlag;
