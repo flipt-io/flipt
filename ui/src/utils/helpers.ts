@@ -3,7 +3,6 @@ import { twMerge } from 'tailwind-merge';
 import { defaultHeaders } from '~/data/api';
 import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
-import { IVariant } from '~/types/Variant';
 
 export function cls(...args: ClassValue[]) {
   return twMerge(clsx(args));
