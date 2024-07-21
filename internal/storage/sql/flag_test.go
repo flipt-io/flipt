@@ -710,6 +710,91 @@ func (s *DBTestSuite) TestUpdateFlag_DefaultVariant() {
 
 		assert.EqualError(t, err, "variant \"non-existent\" not found for flag \"default/TestDBTestSuite/TestUpdateFlag_DefaultVariant/update_flag_with_default_variant_not_found\"")
 	})
+
+	t.Run("update flag with variant from different flag", func(t *testing.T) {
+		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+
+		require.NoError(t, err)
+
+		flag2, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			Key:         fmt.Sprintf("%s_two", t.Name()),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+
+		require.NoError(t, err)
+
+		variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+			FlagKey:     flag2.Key,
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Attachment:  `{"key":"value"}`,
+		})
+
+		require.NoError(t, err)
+
+		_, err = s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+			Key:              flag.Key,
+			Name:             flag.Name,
+			Description:      "foobar",
+			Enabled:          true,
+			DefaultVariantId: variant.Id,
+		})
+
+		assert.EqualError(t, err, fmt.Sprintf("variant \"%s\" not found for flag \"%s/%s\"", variant.Id, "default", flag.Key))
+	})
+
+	t.Run("update flag with default variant in different namespace", func(t *testing.T) {
+
+		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			NamespaceKey: s.namespace,
+			Key:          t.Name(),
+			Name:         "foo",
+			Description:  "bar",
+			Enabled:      true,
+		})
+
+		require.NoError(t, err)
+
+		variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+			NamespaceKey: s.namespace,
+			FlagKey:      flag.Key,
+			Key:          t.Name(),
+			Name:         "foo",
+			Description:  "bar",
+			Attachment:   `{"key":"value"}`,
+		})
+
+		require.NoError(t, err)
+
+		// flag in default namespace
+		flag2, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			Key:         t.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+
+		require.NoError(t, err)
+
+		// try to update flag in non-default namespace with default variant from default namespace
+		_, err = s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+			Key:              flag2.Key,
+			Name:             flag2.Name,
+			Description:      flag2.Description,
+			Enabled:          true,
+			DefaultVariantId: variant.Id,
+		})
+
+		assert.EqualError(t, err, fmt.Sprintf("variant \"%s\" not found for flag \"%s/%s\"", variant.Id, "default", flag2.Key))
+	})
 }
 
 func (s *DBTestSuite) TestDeleteFlag() {

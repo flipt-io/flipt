@@ -391,6 +391,23 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
+	// if default variant is set, check that the variant and flag exist in the same namespace
+	if r.DefaultVariantId != "" {
+		var count uint64
+
+		if err := s.builder.Select("COUNT(id)").
+			From("variants").
+			Where(sq.Eq{"id": r.DefaultVariantId, "namespace_key": r.NamespaceKey, "flag_key": r.Key}).
+			QueryRowContext(ctx).
+			Scan(&count); err != nil {
+			return nil, err
+		}
+
+		if count != 1 {
+			return nil, errs.ErrInvalidf(`variant %q not found for flag "%s/%s"`, r.DefaultVariantId, r.NamespaceKey, r.Key)
+		}
+	}
+
 	query := s.builder.Update("flags").
 		Set("name", r.Name).
 		Set("description", r.Description).
