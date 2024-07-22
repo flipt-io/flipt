@@ -1,0 +1,48 @@
+flags:
+  - key: flag1
+    name: flag1
+    description: description
+    enabled: true
+    variants:
+      - key: variant1
+        name: variant1
+        description: variant description
+    rules:
+      - segment: segment1
+        rank: 1
+        distributions:
+          - variant: variant1
+            rollout: 100
+  - key: flag2
+    name: flag2
+    type: "BOOLEAN_FLAG_TYPE"
+    description: a boolean flag
+    enabled: false
+    rollouts:
+      - description: enabled for internal users
+        segment:
+          key: internal_users
+          value: true
+      - description: enabled for 50%
+        threshold:
+          percentage: 50
+          value: true
+segments:
+  - key: segment1
+    name: segment1
+    match_type: "ANY_MATCH_TYPE"
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
+  - key: segment2
+    name: segment2
+    match_type: "ANY_MATCH_TYPE"
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: buzz
+        operator: neq
+        value: fizz
