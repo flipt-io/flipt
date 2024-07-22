@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var extensions = []Encoding{EncodingYML, EncodingJSON}
@@ -317,7 +316,6 @@ func TestImport(t *testing.T) {
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 						Enabled:     true,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 					{
 						Key:         "flag2",
@@ -325,7 +323,6 @@ func TestImport(t *testing.T) {
 						Description: "a boolean flag",
 						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 						Enabled:     false,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
@@ -406,7 +403,6 @@ func TestImport(t *testing.T) {
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 						Enabled:     true,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 					{
 						Key:         "flag2",
@@ -414,7 +410,6 @@ func TestImport(t *testing.T) {
 						Description: "a boolean flag",
 						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 						Enabled:     false,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
@@ -494,7 +489,6 @@ func TestImport(t *testing.T) {
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 						Enabled:     true,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 					{
 						Key:         "flag2",
@@ -502,7 +496,6 @@ func TestImport(t *testing.T) {
 						Description: "a boolean flag",
 						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 						Enabled:     false,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
@@ -583,7 +576,6 @@ func TestImport(t *testing.T) {
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 						Enabled:     true,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 					{
 						Key:         "flag2",
@@ -591,7 +583,6 @@ func TestImport(t *testing.T) {
 						Description: "a boolean flag",
 						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 						Enabled:     false,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
@@ -671,7 +662,6 @@ func TestImport(t *testing.T) {
 						Name:        "flag1",
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 						Enabled:     true,
 					},
 				},
@@ -729,7 +719,6 @@ func TestImport(t *testing.T) {
 						Description: "description",
 						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 						Enabled:     true,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 					{
 						Key:         "flag2",
@@ -737,7 +726,6 @@ func TestImport(t *testing.T) {
 						Description: "a boolean flag",
 						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 						Enabled:     false,
-						Metadata:    structpb.NewStringValue("foobar").GetStructValue(),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
