@@ -16,7 +16,6 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 
 	_, err = test.
 		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
-		WithWorkdir("tests").
 		WithExec([]string{"npx", "playwright", "test"}).
 		Sync(ctx)
 	if err != nil {
