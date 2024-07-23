@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
-import { Form, Formik, FormikValues } from 'formik';
+import { Form, Formik } from 'formik';
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
@@ -40,9 +40,9 @@ import { IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
-import Select from '../forms/Select';
-import TextButton from '../forms/buttons/TextButton';
-import Loading from '../Loading';
+import Select from '~/components/forms/Select';
+import TextButton from '~/components/forms/buttons/TextButton';
+import Loading from '~/components/Loading';
 import { cls } from '~/utils/helpers';
 
 type RolloutsProps = {
