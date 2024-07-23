@@ -17,6 +17,18 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
   });
 
+  test('has default rollout', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-boolean' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Default Rollout' })
+    ).toBeVisible();
+    await page.locator('#defaultValue').selectOption('true');
+    await page.getByRole('button', { name: 'Update' }).last().click();
+    await expect(
+      page.getByText('Successfully updated default rollout')
+    ).toBeVisible();
+  });
+
   test('can create rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
