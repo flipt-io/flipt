@@ -10,7 +10,8 @@ import (
 )
 
 func TestValidate_V1_Success(t *testing.T) {
-	f, err := os.Open("testdata/valid_v1.yaml")
+	const file = "testdata/valid_v1.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -18,12 +19,13 @@ func TestValidate_V1_Success(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid_v1.yaml", f)
+	err = v.Validate(file, f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_Latest_Success(t *testing.T) {
-	f, err := os.Open("testdata/valid.yaml")
+	const file = "testdata/valid.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -31,12 +33,13 @@ func TestValidate_Latest_Success(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid.yaml", f)
+	err = v.Validate(file, f)
 	assert.NoError(t, err)
 }
 
-func TestValidate_Latest_Segments_V2(t *testing.T) {
-	f, err := os.Open("testdata/valid_segments_v2.yaml")
+func TestValidate_Segments_V2(t *testing.T) {
+	const file = "testdata/valid_segments_v2.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -44,12 +47,27 @@ func TestValidate_Latest_Segments_V2(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid_segments_v2.yaml", f)
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
+
+func TestValidate_DefaultVariant_V3(t *testing.T) {
+	const file = "testdata/valid_default_variant_v3.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_YAML_Stream(t *testing.T) {
-	f, err := os.Open("testdata/valid_yaml_stream.yaml")
+	const file = "testdata/valid_yaml_stream.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -57,12 +75,13 @@ func TestValidate_YAML_Stream(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid_yaml_stream.yaml", f)
+	err = v.Validate(file, f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_Failure(t *testing.T) {
-	f, err := os.Open("testdata/invalid.yaml")
+	const file = "testdata/invalid.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -70,7 +89,7 @@ func TestValidate_Failure(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/invalid.yaml", f)
+	err = v.Validate(file, f)
 
 	errs, ok := Unwrap(err)
 	require.True(t, ok)
@@ -79,12 +98,13 @@ func TestValidate_Failure(t *testing.T) {
 	require.True(t, errors.As(errs[0], &ferr))
 
 	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", ferr.Message)
-	assert.Equal(t, "testdata/invalid.yaml", ferr.Location.File)
+	assert.Equal(t, file, ferr.Location.File)
 	assert.Equal(t, 22, ferr.Location.Line)
 }
 
 func TestValidate_Failure_YAML_Stream(t *testing.T) {
-	f, err := os.Open("testdata/invalid_yaml_stream.yaml")
+	const file = "testdata/invalid_yaml_stream.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -92,7 +112,7 @@ func TestValidate_Failure_YAML_Stream(t *testing.T) {
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/invalid_yaml_stream.yaml", f)
+	err = v.Validate(file, f)
 
 	errs, ok := Unwrap(err)
 	require.True(t, ok)
@@ -101,12 +121,13 @@ func TestValidate_Failure_YAML_Stream(t *testing.T) {
 	require.True(t, errors.As(errs[0], &ferr))
 
 	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", ferr.Message)
-	assert.Equal(t, "testdata/invalid_yaml_stream.yaml", ferr.Location.File)
+	assert.Equal(t, file, ferr.Location.File)
 	assert.Equal(t, 59, ferr.Location.Line)
 }
 
 func TestValidate_Extended(t *testing.T) {
-	f, err := os.Open("testdata/valid.yaml")
+	const file = "testdata/valid.yaml"
+	f, err := os.Open(file)
 	require.NoError(t, err)
 
 	defer f.Close()
@@ -117,7 +138,7 @@ func TestValidate_Extended(t *testing.T) {
 	v, err := NewFeaturesValidator(WithSchemaExtension(extended))
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid.yaml", f)
+	err = v.Validate(file, f)
 
 	errs, ok := Unwrap(err)
 	require.True(t, ok)
@@ -126,7 +147,7 @@ func TestValidate_Extended(t *testing.T) {
 	require.True(t, errors.As(errs[0], &ferr))
 
 	assert.Equal(t, `flags.1.description: incomplete value =~"^.+$"`, ferr.Message)
-	assert.Equal(t, "testdata/valid.yaml", ferr.Location.File)
+	assert.Equal(t, file, ferr.Location.File)
 	// location of the start of the boolean flag
 	// which lacks a description
 	assert.Equal(t, 30, ferr.Location.Line)

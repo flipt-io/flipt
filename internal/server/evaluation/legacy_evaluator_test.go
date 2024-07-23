@@ -861,9 +861,25 @@ var (
 		Key:     "foo",
 		Enabled: true,
 	}
+	enabledFlagWithDefaultVariant = &flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+		DefaultVariant: &flipt.Variant{
+			Key:        "bar",
+			Attachment: `{ "bar": "baz" }`,
+		},
+	}
 	disabledFlag = &flipt.Flag{
 		Key:     "foo",
 		Enabled: false,
+	}
+	disabledFlagWithDefaultVariant = &flipt.Flag{
+		Key:     "foo",
+		Enabled: false,
+		DefaultVariant: &flipt.Variant{
+			Key:        "bar",
+			Attachment: `{ "bar": "baz" }`,
+		},
 	}
 )
 
@@ -884,6 +900,30 @@ func TestEvaluator_FlagDisabled(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.False(t, resp.Match)
+	assert.Empty(t, resp.Value)
+	assert.Empty(t, resp.Attachment)
+	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_FlagDisabled_DefaultVariant(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	resp, err := s.Evaluate(context.TODO(), disabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, "bar", resp.Value)
+	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
 	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
 }
 
@@ -931,6 +971,30 @@ func TestEvaluator_FlagNoRules(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return([]*storage.EvaluationRule{}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, "bar", resp.Value)
+	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluator_ErrorGettingRules(t *testing.T) {
@@ -1242,6 +1306,57 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	}
 }
 
+func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: "1",
+		Context: map[string]string{
+			"bar": "baz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "foo", resp.FlagKey)
+	assert.True(t, resp.Match)
+	assert.Equal(t, "bar", resp.SegmentKey)
+	assert.Equal(t, "bar", resp.Value)
+	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+}
+
 func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
@@ -1413,6 +1528,76 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	assert.Equal(t, "foo", resp.FlagKey)
 
 	assert.False(t, resp.Match, "distribution not matched")
+}
+
+func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+							// constraint: admin (bool) == true
+							{
+								ID:       "3",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "admin",
+								Operator: flipt.OpTrue,
+							},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           10,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: "123",
+		Context: map[string]string{
+			"bar":   "baz",
+			"admin": "true",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "foo", resp.FlagKey)
+
+	assert.False(t, resp.Match, "distribution not matched")
+	assert.Equal(t, "bar", resp.Value)
+	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
@@ -1938,6 +2123,57 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
+}
+
+func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: "1",
+		Context: map[string]string{
+			"bar": "baz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "foo", resp.FlagKey)
+	assert.True(t, resp.Match)
+	assert.Equal(t, "bar", resp.SegmentKey)
+	assert.Equal(t, "bar", resp.Value)
+	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {

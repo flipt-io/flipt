@@ -319,11 +319,11 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 // x-flipt-accept-server-version represents the maximum version of the flipt server that the client can handle.
 const fliptAcceptServerVersionHeaderKey = "x-flipt-accept-server-version"
 
-type fliptServerVersionContextKey struct{}
+type fliptAcceptServerVersionContextKey struct{}
 
 // WithFliptAcceptServerVersion sets the flipt version in the context.
 func WithFliptAcceptServerVersion(ctx context.Context, version semver.Version) context.Context {
-	return context.WithValue(ctx, fliptServerVersionContextKey{}, version)
+	return context.WithValue(ctx, fliptAcceptServerVersionContextKey{}, version)
 }
 
 // The last version that does not support the x-flipt-accept-server-version header.
@@ -331,7 +331,7 @@ var preFliptAcceptServerVersion = semver.MustParse("1.37.1")
 
 // FliptAcceptServerVersionFromContext returns the flipt-accept-server-version from the context if it exists or the default version.
 func FliptAcceptServerVersionFromContext(ctx context.Context) semver.Version {
-	v, ok := ctx.Value(fliptServerVersionContextKey{}).(semver.Version)
+	v, ok := ctx.Value(fliptAcceptServerVersionContextKey{}).(semver.Version)
 	if !ok {
 		return preFliptAcceptServerVersion
 	}

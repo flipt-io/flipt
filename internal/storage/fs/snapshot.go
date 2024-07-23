@@ -144,14 +144,7 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...co
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
 func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
-	now := flipt.Now()
-	s := Snapshot{
-		ns: map[string]*namespace{
-			defaultNs: newNamespace("default", "Default", now),
-		},
-		evalDists: map[string][]*storage.EvaluationDistribution{},
-		now:       now,
-	}
+	s := newSnapshot()
 
 	var so SnapshotOption
 	containers.ApplyAll(&so, WithFileInfoEtag())
@@ -178,7 +171,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 		}
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 // WalkDocuments walks all the Flipt feature documents found in the target fs.FS
@@ -213,6 +206,17 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 	}
 
 	return nil
+}
+
+func newSnapshot() *Snapshot {
+	now := flipt.Now()
+	return &Snapshot{
+		ns: map[string]*namespace{
+			defaultNs: newNamespace("default", "Default", now),
+		},
+		evalDists: map[string][]*storage.EvaluationDistribution{},
+		now:       now,
+	}
 }
 
 // documentsFromFile parses and validates a document from a single fs.File instance
@@ -363,7 +367,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				return err
 			}
 
-			flag.Variants = append(flag.Variants, &flipt.Variant{
+			variant := &flipt.Variant{
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				NamespaceKey: doc.Namespace,
 				Key:          v.Key,
@@ -372,7 +376,13 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				Attachment:   string(attachment),
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
-			})
+			}
+
+			flag.Variants = append(flag.Variants, variant)
+
+			if v.Default {
+				flag.DefaultVariant = variant
+			}
 		}
 
 		ns.flags[f.Key] = flag

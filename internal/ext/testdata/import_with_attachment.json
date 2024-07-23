@@ -23,10 +23,8 @@
       ],
       "rules": [
         {
-          "segment": {
-            "keys": ["segment1"],
-            "operator": "OR_SEGMENT_OPERATOR"
-          },
+          "segment": "segment1",
+          "rank": 1,
           "distributions": [{ "variant": "variant1", "rollout": 100 }]
         }
       ]

@@ -1,19 +1,19 @@
+version:   "1.0" | "1.1" | "1.2" | *"1.3"
+
 close({
-	version:   "1.0" | "1.1" | *"1.2"
 	namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
-	flags: [...{_version: version} & #Flag]
+	flags: [...#Flag]
 	segments: [...#Segment]
 })
 
 #Flag: {
-	_version:     string
 	key:          string & =~"^[-_,A-Za-z0-9]+$"
 	name:         string & =~"^.+$"
 	description?: string
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
-	if _version == "1.1" || _version == "1.2" {
+	if version == "1.1" || version == "1.2" || version == "1.3" {
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		#FlagBoolean | *{}
 	}
@@ -32,6 +32,9 @@ close({
 	name?:        string & =~"^.+$"
 	description?: string
 	attachment:   {...} | [...] | *null
+	if version == "1.3" {
+		default: bool | *false
+	}
 }
 
 #RuleSegment: {

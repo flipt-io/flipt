@@ -25,6 +25,7 @@ type Flag struct {
 }
 
 type Variant struct {
+	Default     bool        `yaml:"default,omitempty" json:"default,omitempty"`
 	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
 	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
 	Description string      `yaml:"description,omitempty" json:"description,omitempty"`

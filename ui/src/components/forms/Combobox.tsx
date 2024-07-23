@@ -68,6 +68,7 @@ export default function Combobox<T extends IFilterable>(
               }}
               displayValue={(v: T) => v?.key}
               placeholder={placeholder}
+              id={`${id}-select-input`}
             />
             <C.Button
               className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-none"
