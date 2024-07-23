@@ -22,7 +22,7 @@ const Flags = loadable(() => import('./app/flags/Flags'));
 const ConditionalFlagRouter = loadable(
   () => import('./app/flags/ConditionalFlagRouter')
 );
-const Rules = loadable(() => import('./components/rules/Rules'));
+const Rules = loadable(() => import('./app/flags/rules/Rules'));
 const Analytics = loadable(() => import('./app/flags/analytics/Analytics'));
 const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));
