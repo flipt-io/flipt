@@ -7,13 +7,13 @@ import 'chartjs-adapter-date-fns';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
-import FlagForm from '~/components/flags/FlagForm';
+import FlagForm from '~/components/flags/forms/FlagForm';
 import Dropdown from '~/components/forms/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -23,24 +23,11 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { FlagType } from '~/types/Flag';
-import { cls } from '~/utils/helpers';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
-
-const variantFlagTabs = [
-  { name: 'Variants', to: '' },
-  { name: 'Rules', to: 'rules' },
-  { name: 'Analytics', to: 'analytics' }
-];
-
-const booleanFlagTabs = [
-  { name: 'Rollouts', to: '' },
-  { name: 'Analytics', to: 'analytics' }
-];
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -202,60 +189,7 @@ export default function Flag() {
             </div>
           </div>
         </div>
-        <>
-          <div className="mt-3 flex flex-row sm:mt-5">
-            <div className="border-gray-200 border-b-2">
-              <nav className="-mb-px flex space-x-8">
-                {flag.type === FlagType.VARIANT ? (
-                  <>
-                    {variantFlagTabs.map((tab) => (
-                      <NavLink
-                        end
-                        key={tab.name}
-                        to={tab.to}
-                        className={({ isActive }) =>
-                          cls(
-                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                            {
-                              'text-violet-600 border-violet-500': isActive,
-                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
-                                !isActive
-                            }
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {booleanFlagTabs.map((tab) => (
-                      <NavLink
-                        end
-                        key={tab.name}
-                        to={tab.to}
-                        className={({ isActive }) =>
-                          cls(
-                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                            {
-                              'text-violet-600 border-violet-500': isActive,
-                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
-                                !isActive
-                            }
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </>
-                )}
-              </nav>
-            </div>
-          </div>
-          <Outlet context={{ flag }} />
-        </>
+        <Outlet context={{ flag }} />
       </div>
     </>
   );

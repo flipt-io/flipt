@@ -1,7 +1,7 @@
 import { useOutletContext } from 'react-router-dom';
 import { FlagType, IFlag } from '~/types/Flag';
-import Rollouts from './rollouts/Rollouts';
-import Variants from './variants/Variants';
+import VariantFlag from '~/components/flags/VariantFlag';
+import BooleanFlag from '~/components/flags/BooleanFlag';
 
 type ConditionalFlagRouterProps = {
   flag: IFlag;
@@ -13,13 +13,9 @@ export default function ConditionalFlagRouter() {
   return (
     <>
       {flag.type === FlagType.VARIANT ? (
-        <>
-          <Variants flag={flag} />
-        </>
+        <VariantFlag flag={flag} />
       ) : (
-        <>
-          <Rollouts flag={flag} />
-        </>
+        <BooleanFlag flag={flag} />
       )}
     </>
   );
