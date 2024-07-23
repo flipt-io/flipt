@@ -24,6 +24,7 @@ export interface IFlagBase {
   name: string;
   enabled: boolean;
   description: string;
+  defaultVariant?: IVariant;
 }
 
 export interface IFlag extends IFlagBase {

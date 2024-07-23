@@ -13,14 +13,10 @@
       },
       "oneOf": [
         {
-          "required": [
-            "segment"
-          ]
+          "required": ["segment"]
         },
         {
-          "required": [
-            "threshold"
-          ]
+          "required": ["threshold"]
         }
       ]
     },
@@ -39,37 +35,24 @@
           }
         },
         "operator": {
-          "enum": [
-            "AND_SEGMENT_OPERATOR",
-            "OR_SEGMENT_OPERATOR"
-          ]
+          "enum": ["AND_SEGMENT_OPERATOR", "OR_SEGMENT_OPERATOR"]
         },
         "value": {
           "type": "boolean"
         }
       },
-      "required": [
-        "value"
-      ],
+      "required": ["value"],
       "oneOf": [
         {
-          "required": [
-            "key"
-          ],
+          "required": ["key"],
           "not": {
-            "required": [
-              "keys"
-            ]
+            "required": ["keys"]
           }
         },
         {
-          "required": [
-            "keys"
-          ],
+          "required": ["keys"],
           "not": {
-            "required": [
-              "key"
-            ]
+            "required": ["key"]
           }
         }
       ]
@@ -84,15 +67,10 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "percentage",
-        "value"
-      ]
+      "required": ["percentage", "value"]
     },
     "rule": {
-      "required": [
-        "segment"
-      ],
+      "required": ["segment"],
       "properties": {
         "segment": {
           "type": "string",
@@ -102,10 +80,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "required": [
-              "variant",
-              "rollout"
-            ],
+            "required": ["variant", "rollout"],
             "properties": {
               "variant": {
                 "type": "string"
@@ -121,9 +96,7 @@
       }
     },
     "variant": {
-      "required": [
-        "key"
-      ],
+      "required": ["key"],
       "properties": {
         "key": {
           "type": "string"
@@ -133,6 +106,9 @@
         },
         "description": {
           "type": "string"
+        },
+        "default": {
+          "type": "boolean"
         },
         "attachment": {
           "oneOf": [
@@ -153,9 +129,7 @@
             "const": "STRING_COMPARISON_TYPE"
           }
         },
-        "required": [
-          "operator"
-        ]
+        "required": ["operator"]
       },
       "then": {
         "properties": {
@@ -181,9 +155,7 @@
             "const": "NUMBER_COMPARISON_TYPE"
           }
         },
-        "required": [
-          "operator"
-        ]
+        "required": ["operator"]
       },
       "then": {
         "properties": {
@@ -211,19 +183,12 @@
             "const": "BOOLEAN_COMPARISON_TYPE"
           }
         },
-        "required": [
-          "operator"
-        ]
+        "required": ["operator"]
       },
       "then": {
         "properties": {
           "operator": {
-            "enum": [
-              "true",
-              "false",
-              "present",
-              "notpresent"
-            ]
+            "enum": ["true", "false", "present", "notpresent"]
           }
         }
       }
@@ -235,9 +200,7 @@
             "const": "DATETIME_COMPARISON_TYPE"
           }
         },
-        "required": [
-          "operator"
-        ]
+        "required": ["operator"]
       },
       "then": {
         "properties": {
@@ -263,29 +226,18 @@
             "const": "ENTITY_ID_COMPARISON_TYPE"
           }
         },
-        "required": [
-          "operator"
-        ]
+        "required": ["operator"]
       },
       "then": {
         "properties": {
           "operator": {
-            "enum": [
-              "eq",
-              "neq",
-              "isoneof",
-              "isnotoneof"
-            ]
+            "enum": ["eq", "neq", "isoneof", "isnotoneof"]
           }
         }
       }
     },
     "constraint": {
-      "required": [
-        "type",
-        "property",
-        "operator"
-      ],
+      "required": ["type", "property", "operator"],
       "properties": {
         "type": {
           "enum": [
@@ -339,12 +291,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "required": [
-          "key",
-          "name",
-          "type",
-          "enabled"
-        ],
+        "required": ["key", "name", "type", "enabled"],
         "properties": {
           "key": {
             "type": "string",
@@ -355,10 +302,7 @@
             "pattern": "^.+$"
           },
           "type": {
-            "enum": [
-              "VARIANT_FLAG_TYPE",
-              "BOOLEAN_FLAG_TYPE"
-            ]
+            "enum": ["VARIANT_FLAG_TYPE", "BOOLEAN_FLAG_TYPE"]
           },
           "description": {
             "type": "string"
@@ -399,9 +343,7 @@
             },
             "then": {
               "not": {
-                "required": [
-                  "rollouts"
-                ]
+                "required": ["rollouts"]
               }
             }
           },
@@ -415,9 +357,7 @@
             },
             "then": {
               "not": {
-                "required": [
-                  "rules"
-                ]
+                "required": ["rules"]
               }
             }
           },
@@ -431,9 +371,7 @@
             },
             "then": {
               "not": {
-                "required": [
-                  "variants"
-                ]
+                "required": ["variants"]
               }
             }
           }
@@ -444,11 +382,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "required": [
-          "key",
-          "name",
-          "match_type"
-        ],
+        "required": ["key", "name", "match_type"],
         "properties": {
           "key": {
             "type": "string",
@@ -468,19 +402,11 @@
             }
           },
           "match_type": {
-            "enum": [
-              "ALL_MATCH_TYPE",
-              "ANY_MATCH_TYPE"
-            ]
+            "enum": ["ALL_MATCH_TYPE", "ANY_MATCH_TYPE"]
           }
         }
       }
     }
   },
-  "required": [
-    "version",
-    "namespace",
-    "flags",
-    "segments"
-  ]
+  "required": ["version", "namespace", "flags", "segments"]
 }

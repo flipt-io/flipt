@@ -70,6 +70,8 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 	case flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON:
 		reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+	case flipt.EvaluationReason_DEFAULT_EVALUATION_REASON:
+		reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	default:
 		reason = rpcevaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON
 	}

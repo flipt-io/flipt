@@ -73,6 +73,26 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	return flag, nil
 }
 
+func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+	flag, err := s.Store.UpdateFlag(ctx, r)
+
+	if err != nil {
+		var perr *pgconn.PgError
+
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
+			if r.DefaultVariantId != "" {
+				return nil, errs.ErrInvalidf(`variant %q not found for flag "%s/%s"`, r.DefaultVariantId, r.NamespaceKey, r.Key)
+			}
+
+			return nil, errs.ErrInvalidf(`flag "%s/%s" not found`, r.NamespaceKey, r.Key)
+		}
+
+		return nil, err
+	}
+
+	return flag, nil
+}
+
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	variant, err := s.Store.CreateVariant(ctx, r)
 

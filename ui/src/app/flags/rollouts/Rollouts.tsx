@@ -42,6 +42,44 @@ type RolloutsProps = {
   flag: IFlag;
 };
 
+export function DefaultRollout(props: RolloutsProps) {
+  const { flag } = props;
+
+  return (
+    <div className="flex-col p-2 md:flex">
+      <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+        <div className="bg-white border-gray-200 w-full border-b p-2">
+          <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+            <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
+            <h3 className="text-gray-700 text-sm font-normal leading-6">
+              Default Rollout
+            </h3>
+            <span className="hidden h-4 w-4 justify-end sm:flex" />
+          </div>
+        </div>
+        <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+          <div className="flex grow flex-col items-center justify-center sm:ml-2">
+            <div className="flex flex-col pb-4 pt-2">
+              <p className="text-gray-600 text-center text-sm font-light">
+                This is the default value that will be returned if no other
+                rules match. It is directly tied to the flag enabled state.
+              </p>
+            </div>
+            <div className="flex items-baseline space-x-4 py-6 sm:space-y-0 sm:py-0">
+              <span className="text-gray-900 mb-2 text-sm font-medium">
+                Value
+              </span>
+              <span className="text-gray-600 bg-gray-50 w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10">
+                {flag.enabled ? 'True' : 'False'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Rollouts(props: RolloutsProps) {
   const { flag } = props;
 
@@ -266,7 +304,7 @@ export default function Rollouts(props: RolloutsProps) {
           <div className="flex lg:space-x-5">
             <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
               <p className="text-gray-700 text-sm font-light">
-                Rules are evaluated in order from{' '}
+                Rollout rules are evaluated in order from{' '}
                 <span className="font-semibold">top to bottom</span>. The first
                 rule that matches will be applied.
               </p>
@@ -319,38 +357,7 @@ export default function Rollouts(props: RolloutsProps) {
                   </DragOverlay>
                 </DndContext>
               )}
-              <div className="flex-col p-2 md:flex">
-                <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-                  <div className="bg-white border-gray-200 w-full border-b p-2">
-                    <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                      <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
-                      <h3 className="text-gray-700 text-sm font-normal leading-6">
-                        Default Rollout
-                      </h3>
-                      <span className="hidden h-4 w-4 justify-end sm:flex" />
-                    </div>
-                  </div>
-                  <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-                    <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                      <div className="flex flex-col pb-4 pt-2">
-                        <p className="text-gray-600 text-center text-sm font-light">
-                          This is the default value that will be returned if no
-                          other rules match. It is directly tied to the flag
-                          enabled state.
-                        </p>
-                      </div>
-                      <div className="flex items-baseline space-x-4 py-6 sm:space-y-0 sm:py-0">
-                        <span className="text-gray-900 mb-2 text-sm font-medium">
-                          Value
-                        </span>
-                        <span className="text-gray-600 bg-gray-50 w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10">
-                          {flag.enabled ? 'True' : 'False'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <DefaultRollout flag={flag} />
             </div>
           </div>
         </div>

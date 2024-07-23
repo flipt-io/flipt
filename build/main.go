@@ -48,7 +48,7 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*Container,
 	return f.BaseContainer, err
 }
 
-// Return container with Flipt binariesin a thinner alpine distribution
+// Return container with Flipt binaries in a thinner alpine distribution
 func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*Container, error) {
 	base, err := f.Base(ctx, source)
 	if err != nil {

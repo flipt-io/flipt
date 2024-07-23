@@ -97,7 +97,26 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 	return evaluation.EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
 }
 
-var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
+type minVersion struct {
+	semver.Version
+	msg string
+}
+
+func (m minVersion) String() string {
+	return m.msg
+}
+
+var (
+	supportsEntityIdConstraintMinVersion = minVersion{
+		Version: semver.MustParse("1.38.0"),
+		msg:     "skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type",
+	}
+
+	supportsDefaultVariantMinVersion = minVersion{
+		Version: semver.MustParse("1.47.0"),
+		msg:     "skipping `default_variant` to support older client; upgrade client to allow `default_variant`",
+	}
+)
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 
@@ -180,7 +199,21 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			}
 
 			flagKey := storage.NewResource(namespaceKey, f.Key, storage.WithReference(reference))
-			if f.Type == flipt.FlagType_VARIANT_FLAG_TYPE {
+			switch f.Type {
+			// variant flag
+			case flipt.FlagType_VARIANT_FLAG_TYPE:
+				if f.DefaultVariant != nil {
+					if supportedServerVersion.LT(supportsDefaultVariantMinVersion.Version) {
+						srv.logger.Warn(supportsDefaultVariantMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+					} else {
+						flag.DefaultVariant = &evaluation.EvaluationVariant{
+							Id:         f.DefaultVariant.Id,
+							Key:        f.DefaultVariant.Key,
+							Attachment: f.DefaultVariant.Attachment,
+						}
+					}
+				}
+
 				rules, err := srv.store.GetEvaluationRules(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rules for flag %q: %w", f.Key, err)
@@ -208,8 +241,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								typ := toEvaluationConstraintComparisonType(c.Type)
 								// see: https://github.com/flipt-io/flipt/pull/2791
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion.Version) {
+										srv.logger.Warn(supportsEntityIdConstraintMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}
@@ -247,9 +280,9 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					}
 
 				}
-			}
 
-			if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
+			// boolean flag
+			case flipt.FlagType_BOOLEAN_FLAG_TYPE:
 				rollouts, err := srv.store.GetEvaluationRollouts(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
@@ -293,8 +326,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								typ := toEvaluationConstraintComparisonType(c.Type)
 								// see: https://github.com/flipt-io/flipt/pull/2791
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion.Version) {
+										srv.logger.Warn(supportsEntityIdConstraintMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}

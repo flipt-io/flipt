@@ -11,15 +11,19 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
-const (
-	defaultBatchSize = 25
-)
+const defaultBatchSize = 25
 
 var (
-	latestVersion     = semver.Version{Major: 1, Minor: 2}
+	v1_0          = semver.Version{Major: 1}
+	v1_1          = semver.Version{Major: 1, Minor: 1}
+	v1_2          = semver.Version{Major: 1, Minor: 2}
+	v1_3          = semver.Version{Major: 1, Minor: 3}
+	latestVersion = v1_3
+
 	supportedVersions = semver.Versions{
-		{Major: 1},
-		{Major: 1, Minor: 1},
+		v1_0,
+		v1_1,
+		v1_2,
 		latestVersion,
 	}
 )
@@ -146,7 +150,13 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 						}
 					}
 
+					defaultVariant := false
+					if f.DefaultVariant != nil {
+						defaultVariant = f.DefaultVariant.Id == v.Id
+					}
+
 					flag.Variants = append(flag.Variants, &Variant{
+						Default:     defaultVariant,
 						Key:         v.Key,
 						Name:        v.Name,
 						Description: v.Description,

@@ -19,11 +19,11 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      12,
-	LibSQL:      12, // libsql driver uses the same migrations as sqlite3
-	Postgres:    13,
-	MySQL:       12,
-	CockroachDB: 10,
+	SQLite:      13,
+	LibSQL:      13, // libsql driver uses the same migrations as sqlite3
+	Postgres:    14,
+	MySQL:       13,
+	CockroachDB: 11,
 	Clickhouse:  3,
 }
 

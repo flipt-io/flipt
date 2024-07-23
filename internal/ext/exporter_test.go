@@ -88,6 +88,10 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 							Description: "description",
 							Enabled:     true,
+							DefaultVariant: &flipt.Variant{
+								Id:  "2",
+								Key: "foo",
+							},
 							Variants: []*flipt.Variant{
 								{
 									Id:   "1",
@@ -771,7 +775,7 @@ func TestExport(t *testing.T) {
 					found    = ext.NewDecoder(b)
 				)
 
-				// handle newline delimeted JSON
+				// handle newline delimited JSON
 				for {
 					var exp, fnd any
 					eerr := expected.Decode(&exp)

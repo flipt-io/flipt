@@ -80,7 +80,7 @@ test.describe('Rules', () => {
     });
 
     await test.step('can update single-variant rule', async () => {
-      await page.locator('#variantKey-select-button').click();
+      await page.locator('#quick-variant-2-select-button').click();
       await page
         .locator('li')
         .filter({ hasText: 'Single Variant' })

@@ -142,6 +142,12 @@ message EvaluationSegment {
   repeated EvaluationConstraint constraints = 7;
 }
 
+message EvaluationVariant {
+  string id = 1;
+  string key = 2;
+  string attachment = 3;
+}
+
 enum EvaluationFlagType {
   VARIANT_FLAG_TYPE = 0;
   BOOLEAN_FLAG_TYPE = 1;
@@ -157,6 +163,7 @@ message EvaluationFlag {
   google.protobuf.Timestamp updated_at = 7;
   repeated EvaluationRule rules = 8;
   repeated EvaluationRollout rollouts = 9;
+  optional EvaluationVariant default_variant = 10;
 }
 
 enum EvaluationConstraintComparisonType {

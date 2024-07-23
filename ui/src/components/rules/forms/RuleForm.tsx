@@ -30,8 +30,8 @@ import SingleDistributionFormInput from './SingleDistributionForm';
 export const distTypes = [
   {
     id: DistributionType.None,
-    name: 'No Variants',
-    description: 'No variants will be returned'
+    name: 'Default Variant / None',
+    description: 'The default variant will be returned if any'
   },
   {
     id: DistributionType.Single,
