@@ -21,7 +21,10 @@ test.describe('Rollouts', () => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
     await page.getByLabel('Percentage').fill('100');
-    await page.getByLabel('Value').selectOption('false');
+    await page
+      .getByLabel('New Rollout')
+      .getByLabel('Value')
+      .selectOption('false');
     await page.getByRole('textbox').fill('test'); // TODO: should get description by label
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created rollout')).toBeVisible();
