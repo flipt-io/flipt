@@ -206,10 +206,10 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 			&flag.Name,
 			&flag.Description,
 			&flag.Enabled,
-			&fMetadata,
 			&fCreatedAt,
 			&fUpdatedAt,
 			&fDefaultVariantId,
+			&fMetadata,
 		); err != nil {
 			return results, err
 		}
