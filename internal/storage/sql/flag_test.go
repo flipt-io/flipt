@@ -22,7 +22,7 @@ import (
 func (s *DBTestSuite) TestGetFlag() {
 	t := s.T()
 
-	metadataMap := map[string]interface{}{
+	metadataMap := map[string]any{
 		"key": "value",
 	}
 
@@ -464,7 +464,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 func (s *DBTestSuite) TestCreateFlag() {
 	t := s.T()
 
-	metadataMap := map[string]interface{}{
+	metadataMap := map[string]any{
 		"key": "value",
 	}
 
@@ -561,7 +561,7 @@ func (s *DBTestSuite) TestCreateFlagNamespace_DuplicateKey() {
 func (s *DBTestSuite) TestUpdateFlag() {
 	t := s.T()
 
-	metadataMap := map[string]interface{}{
+	metadataMap := map[string]any{
 		"key": "value",
 	}
 
@@ -585,7 +585,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
-	updatedMetadataMap := map[string]interface{}{
+	updatedMetadataMap := map[string]any{
 		"key": "value",
 		"foo": "bar",
 	}

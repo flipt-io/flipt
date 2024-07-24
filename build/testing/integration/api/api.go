@@ -17,7 +17,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
@@ -106,16 +105,12 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 			t.Run("Flags and Variants", func(t *testing.T) {
 				t.Log("Create a new enabled flag with key \"test\".")
 
-				metadata, err := structpb.NewStruct(nil)
-				assert.NoError(t, err)
-
 				enabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 					NamespaceKey: namespace.Key,
 					Key:          "test",
 					Name:         "Test",
 					Description:  "This is a test flag",
 					Enabled:      true,
-					Metadata:     metadata,
 				})
 				require.NoError(t, err)
 

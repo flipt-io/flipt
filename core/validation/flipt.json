@@ -330,6 +330,12 @@
             "items": {
               "$ref": "#/$defs/rule"
             }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": ["string", "number", "boolean"]
+            }
           }
         },
         "allOf": [

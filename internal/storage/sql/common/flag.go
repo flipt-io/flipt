@@ -69,7 +69,9 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 
 	flag.CreatedAt = createdAt.Timestamp
 	flag.UpdatedAt = updatedAt.Timestamp
-	flag.Metadata, _ = structpb.NewStruct(metadata.T)
+	if metadata.T != nil {
+		flag.Metadata, _ = structpb.NewStruct(metadata.T)
+	}
 
 	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, attachment, created_at, updated_at").
 		From("variants").
@@ -364,7 +366,12 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
+		metadata any
 	)
+
+	if flag.Metadata != nil && len(flag.Metadata.Fields) > 0 {
+		metadata = &fliptsql.JSONField[map[string]any]{T: flag.Metadata.AsMap()}
+	}
 
 	if _, err := s.builder.Insert("flags").
 		Columns("namespace_key", "\"key\"", "\"type\"", "name", "description", "enabled", "metadata", "created_at", "updated_at").
@@ -375,7 +382,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 			flag.Name,
 			flag.Description,
 			flag.Enabled,
-			&fliptsql.JSONField[map[string]any]{T: flag.Metadata.AsMap()},
+			metadata,
 			&fliptsql.Timestamp{Timestamp: flag.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: flag.UpdatedAt},
 		).
@@ -419,9 +426,15 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
-		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
-		Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()})
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()})
+
+	if r.Metadata != nil {
+		if len(r.Metadata.Fields) > 0 {
+			query = query.Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()})
+		} else {
+			query = query.Set("metadata", nil)
+		}
+	}
 
 	if r.DefaultVariantId != "" {
 		query = query.Set("default_variant_id", r.DefaultVariantId)

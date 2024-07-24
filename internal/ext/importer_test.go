@@ -927,6 +927,95 @@ func TestImport(t *testing.T) {
 				listSegmentResps: []*flipt.SegmentList{},
 			},
 		},
+		{
+			name: "import v1.3",
+			path: "testdata/import_v1_3",
+			expected: &mockCreator{
+				createflagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+						Metadata:    newStruct(t, map[string]any{"label": "variant", "area": true}),
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+						Metadata:    newStruct(t, map[string]any{"label": "bool", "area": 12}),
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
