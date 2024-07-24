@@ -17,7 +17,7 @@ export default function SingleDistributionFormInput(
     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
       <div>
         <label
-          htmlFor="variantKey"
+          htmlFor="variant"
           className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
         >
           Variant

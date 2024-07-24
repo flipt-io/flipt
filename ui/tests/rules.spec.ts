@@ -103,7 +103,7 @@ test.describe('Rules', () => {
       page.getByRole('heading', { name: 'Default Rule' })
     ).toBeVisible();
     await page.locator('#variant-default-select-button').click();
-    await page.getByText('456').click();
+    await page.getByLabel('', { exact: true }).getByText('456').click(); // TODO: should get variant by label
     await page.getByRole('button', { name: 'Update' }).last().click();
     await expect(
       page.getByText('Successfully updated default variant')
