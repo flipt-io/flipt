@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.22"
-  DAGGER_VERSION: "0.11.8"
+  DAGGER_VERSION: "0.12.2"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
