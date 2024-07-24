@@ -399,6 +399,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/mbezhanov"><img src="https://avatars.githubusercontent.com/u/785542?v=4?s=100" width="100px;" alt="Marin Bezhanov"/><br /><sub><b>Marin Bezhanov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=mbezhanov" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wtertius"><img src="https://avatars.githubusercontent.com/u/5527797?v=4?s=100" width="100px;" alt="wtertius"/><br /><sub><b>wtertius</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=wtertius" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
