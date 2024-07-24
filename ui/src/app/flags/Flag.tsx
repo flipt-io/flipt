@@ -13,7 +13,7 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
-import FlagForm from '~/components/flags/FlagForm';
+import FlagForm from '~/components/flags/forms/FlagForm';
 import Dropdown from '~/components/forms/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -23,13 +23,13 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { FlagType } from '~/types/Flag';
-import { cls } from '~/utils/helpers';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
+import { FlagType } from '~/types/Flag';
+import { cls } from '~/utils/helpers';
 
 const variantFlagTabs = [
   { name: 'Variants', to: '' },

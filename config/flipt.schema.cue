@@ -397,7 +397,9 @@ import "strings"
 				topic:    string
 				bootstrap_servers: [...string]
 				encoding?: *"protobuf" | "avro"
-				schema_registry?: string
+				schema_registry?: {
+					url: string
+				} | null
 				require_tls?:        bool | *false
 				insecure_skip_tls?:  bool | *false
 				authentication?: {

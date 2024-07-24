@@ -163,7 +163,6 @@ export default function Segment() {
               namespaceKey: namespace.key,
               segmentKey: segment.key,
               constraintId: deletingConstraint?.id ?? ''
-              // TODO: Determine impact of blank ID param
             }).unwrap()
           }
         />

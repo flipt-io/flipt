@@ -25,6 +25,8 @@ const (
 // AnalyticsServiceClient is the client API for AnalyticsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// flipt:sdk:ignore
 type AnalyticsServiceClient interface {
 	GetFlagEvaluationsCount(ctx context.Context, in *GetFlagEvaluationsCountRequest, opts ...grpc.CallOption) (*GetFlagEvaluationsCountResponse, error)
 }
@@ -50,6 +52,8 @@ func (c *analyticsServiceClient) GetFlagEvaluationsCount(ctx context.Context, in
 // AnalyticsServiceServer is the server API for AnalyticsService service.
 // All implementations must embed UnimplementedAnalyticsServiceServer
 // for forward compatibility
+//
+// flipt:sdk:ignore
 type AnalyticsServiceServer interface {
 	GetFlagEvaluationsCount(context.Context, *GetFlagEvaluationsCountRequest) (*GetFlagEvaluationsCountResponse, error)
 	mustEmbedUnimplementedAnalyticsServiceServer()

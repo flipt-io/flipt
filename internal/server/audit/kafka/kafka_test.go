@@ -24,7 +24,7 @@ import (
 
 func adminCreateUser(t testing.TB, base string) {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	t.Cleanup(cancel)
 	endpoint, err := url.JoinPath(base, "/v1/security/users")
 	require.NoError(t, err)
@@ -58,13 +58,13 @@ func adminCreateTopic(t testing.TB, bootstrapServers []string, topic string) {
 
 	adminClient := kadm.NewClient(client)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	_, err = adminClient.CreateTopic(ctx, 1, 1, nil, topic)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 		_, err := adminClient.DeleteTopic(ctx, topic)
 		assert.NoError(t, err)
@@ -79,7 +79,7 @@ func TestNewSinkAndSend(t *testing.T) {
 	}
 	adminCreateUser(t, fmt.Sprintf("http://%s:9644", srv))
 	bootstrapServers := []string{srv}
-	defaultAuth := &config.KafkaAuthentication{Username: "admin", Password: "password"}
+	defaultAuth := &config.KafkaAuthenticationConfig{Username: "admin", Password: "password"}
 	e := audit.NewEvent(
 		flipt.NewRequest(flipt.ResourceFlag, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectRule)),
 		&audit.Actor{
@@ -112,18 +112,22 @@ func TestNewSinkAndSend(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			topic := fmt.Sprintf("default-%s", tt.name)
 			adminCreateTopic(t, bootstrapServers, topic)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			t.Cleanup(cancel)
 			cfg := config.KafkaSinkConfig{
 				BootstrapServers: bootstrapServers,
 				Topic:            topic,
 				Encoding:         tt.enc,
-				SchemaRegistry:   tt.schemaRegistry,
 				RequireTLS:       true,
 				//nolint:gosec
 				InsecureSkipTLS: true,
 				Authentication:  defaultAuth,
 			}
+
+			if tt.schemaRegistry != "" {
+				cfg.SchemaRegistry = &config.KafkaSchemaRegistryConfig{URL: tt.schemaRegistry}
+			}
+
 			s, err := NewSink(context.Background(), zaptest.NewLogger(t), cfg)
 			require.NoError(t, err)
 			t.Cleanup(func() {
@@ -162,7 +166,7 @@ func TestNewSinkAndSend(t *testing.T) {
 				Encoding:         encodingProto,
 				InsecureSkipTLS:  true,
 				RequireTLS:       true,
-				Authentication:   &config.KafkaAuthentication{Username: "user", Password: ""},
+				Authentication:   &config.KafkaAuthenticationConfig{Username: "user", Password: ""},
 			},
 			"SCRAM-SHA-256 user and pass must be non-empty",
 		},

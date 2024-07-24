@@ -16,6 +16,7 @@ message GetFlagEvaluationsCountResponse {
     repeated float values = 2;
 }
 
+// flipt:sdk:ignore
 service AnalyticsService {
     rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {}
 }

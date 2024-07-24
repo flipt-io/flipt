@@ -155,7 +155,13 @@ func (s *Store) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest)
 	return count, nil
 }
 
-func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (_ *flipt.Namespace, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.Key)
+		}
+	}()
+
 	var (
 		now       = flipt.Now()
 		namespace = &flipt.Namespace{
@@ -183,7 +189,13 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 	return namespace, nil
 }
 
-func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (_ *flipt.Namespace, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.Key)
+		}
+	}()
+
 	query := s.builder.Update("namespaces").
 		Set("name", r.Name).
 		Set("description", r.Description).
@@ -209,8 +221,9 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 	return s.GetNamespace(ctx, p)
 }
 
-func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
-	_, err := s.builder.Delete("namespaces").
+func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (err error) {
+
+	_, err = s.builder.Delete("namespaces").
 		Where(sq.Eq{"\"key\"": r.Key}).
 		ExecContext(ctx)
 

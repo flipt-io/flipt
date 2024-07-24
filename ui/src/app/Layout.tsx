@@ -80,7 +80,7 @@ function InnerLayout() {
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner
-            title="Introducing Flipt Hybrid Cloud"
+            title="Introducing Flipt Enterprise Cloud"
             description="Learn about our latest offering that enhances Flipt Open Source with managed security and support"
             href="https://docs.flipt.io/cloud/overview"
           />

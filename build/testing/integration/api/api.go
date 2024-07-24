@@ -197,7 +197,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 				assert.Equal(t, "Test 2", updated.Name)
 
-				t.Log("List all Flags error with invalid page token")
+				t.Log("List all flags error with invalid page token")
 
 				_, err = client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 					NamespaceKey: namespace.Key,
@@ -264,6 +264,29 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 				assert.Equal(t, "one", updatedVariant.Key)
 				assert.Equal(t, "One", updatedVariant.Name)
+
+				t.Log("Set default variant for flag \"test\".")
+
+				_, err = client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
+					NamespaceKey:     namespace.Key,
+					Key:              enabled.Key,
+					Name:             "Test 2",
+					Description:      enabled.Description,
+					Enabled:          true,
+					DefaultVariantId: updatedVariant.Id,
+				})
+
+				require.NoError(t, err)
+
+				flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+					NamespaceKey: namespace.Key,
+					Key:          enabled.Key,
+				})
+
+				require.NoError(t, err)
+				assert.Equal(t, updatedVariant.Id, flag.DefaultVariant.Id)
+				assert.Equal(t, updatedVariant.Key, flag.DefaultVariant.Key)
+				assert.Equal(t, updatedVariant.Name, flag.DefaultVariant.Name)
 			})
 
 			t.Run("Segments and Constraints", func(t *testing.T) {

@@ -37,27 +37,26 @@ func emptyAsNil(str string) *string {
 // GetFlag gets a flag with variants by key
 func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.Flag, error) {
 	var (
-		metadata  fliptsql.JSONField[map[string]any]
-		createdAt fliptsql.Timestamp
-		updatedAt fliptsql.Timestamp
-
-		flag = &flipt.Flag{}
-
-		err = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, metadata, created_at, updated_at").
-			From("flags").
-			Where(sq.Eq{"namespace_key": p.Namespace(), "\"key\"": p.Key}).
-			QueryRowContext(ctx).
-			Scan(
+		createdAt        fliptsql.Timestamp
+		updatedAt        fliptsql.Timestamp
+		defaultVariantId sql.NullString
+		metadata         fliptsql.JSONField[map[string]any]
+		flag             = &flipt.Flag{}
+		err              = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id", "metadata").
+					From("flags").
+					Where(sq.Eq{"namespace_key": p.Namespace(), "\"key\"": p.Key}).
+					QueryRowContext(ctx).
+					Scan(
 				&flag.NamespaceKey,
 				&flag.Key,
 				&flag.Type,
 				&flag.Name,
 				&flag.Description,
 				&flag.Enabled,
-				&metadata,
 				&createdAt,
 				&updatedAt,
-			)
+				&defaultVariantId,
+				&metadata)
 	)
 
 	if err != nil {
@@ -110,12 +109,17 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 
 		variant.CreatedAt = createdAt.Timestamp
 		variant.UpdatedAt = updatedAt.Timestamp
+
 		if attachment.Valid {
 			compactedAttachment, err := compactJSONString(attachment.String)
 			if err != nil {
 				return flag, err
 			}
 			variant.Attachment = compactedAttachment
+		}
+
+		if defaultVariantId.Valid && variant.Id == defaultVariantId.String {
+			flag.DefaultVariant = &variant
 		}
 
 		flag.Variants = append(flag.Variants, &variant)
@@ -136,13 +140,18 @@ type optionalVariant struct {
 	UpdatedAt    fliptsql.NullableTimestamp
 }
 
+type flagWithDefaultVariant struct {
+	*flipt.Flag
+	DefaultVariantId sql.NullString
+}
+
 // ListFlags lists all flags with variants
 func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error) {
 	var (
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
-		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, metadata, created_at, updated_at").
+		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id, metadata").
 			From("flags").
 			Where(sq.Eq{"namespace_key": req.Predicate.Namespace()}).
 			OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
@@ -179,14 +188,15 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 	}()
 
 	// keep track of flags so we can associated variants in second query.
-	flagsByKey := make(map[string]*flipt.Flag)
+	flagsByKey := make(map[string]*flagWithDefaultVariant)
 	for rows.Next() {
 		var (
 			flag = &flipt.Flag{}
 
-			fMetadata  fliptsql.JSONField[map[string]any]
-			fCreatedAt fliptsql.Timestamp
-			fUpdatedAt fliptsql.Timestamp
+			fCreatedAt        fliptsql.Timestamp
+			fUpdatedAt        fliptsql.Timestamp
+			fDefaultVariantId sql.NullString
+			fMetadata         fliptsql.JSONField[map[string]any]
 		)
 
 		if err := rows.Scan(
@@ -198,7 +208,9 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 			&flag.Enabled,
 			&fMetadata,
 			&fCreatedAt,
-			&fUpdatedAt); err != nil {
+			&fUpdatedAt,
+			&fDefaultVariantId,
+		); err != nil {
 			return results, err
 		}
 
@@ -207,7 +219,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 		flag.Metadata, _ = structpb.NewStruct(fMetadata.T)
 
 		flags = append(flags, flag)
-		flagsByKey[flag.Key] = flag
+		flagsByKey[flag.Key] = &flagWithDefaultVariant{Flag: flag, DefaultVariantId: fDefaultVariantId}
 	}
 
 	if err := rows.Err(); err != nil {
@@ -242,7 +254,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 	return results, nil
 }
 
-func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey map[string]*flipt.Flag) error {
+func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey map[string]*flagWithDefaultVariant) error {
 	allFlagKeys := make([]string, 0, len(flagsByKey))
 	for k := range flagsByKey {
 		allFlagKeys = append(allFlagKeys, k)
@@ -285,7 +297,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 		}
 
 		if flag, ok := flagsByKey[variant.FlagKey.String]; ok {
-			flag.Variants = append(flag.Variants, &flipt.Variant{
+			v := &flipt.Variant{
 				Id:           variant.Id.String,
 				NamespaceKey: variant.NamespaceKey.String,
 				Key:          variant.Key.String,
@@ -295,7 +307,13 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 				Attachment:   variant.Attachment.String,
 				CreatedAt:    vCreatedAt.Timestamp,
 				UpdatedAt:    vUpdatedAt.Timestamp,
-			})
+			}
+
+			flag.Variants = append(flag.Variants, v)
+
+			if flag.DefaultVariantId.Valid && variant.Id.String == flag.DefaultVariantId.String {
+				flag.DefaultVariant = v
+			}
 		}
 	}
 
@@ -322,7 +340,13 @@ func (s *Store) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uin
 }
 
 // CreateFlag creates a flag
-func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *flipt.Flag, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -363,17 +387,49 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 }
 
 // UpdateFlag updates an existing flag
-func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *flipt.Flag, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	// if default variant is set, check that the variant and flag exist in the same namespace
+	if r.DefaultVariantId != "" {
+		var count uint64
+
+		if err := s.builder.Select("COUNT(id)").
+			From("variants").
+			Where(sq.Eq{"id": r.DefaultVariantId, "namespace_key": r.NamespaceKey, "flag_key": r.Key}).
+			QueryRowContext(ctx).
+			Scan(&count); err != nil {
+			return nil, err
+		}
+
+		if count != 1 {
+			return nil, errs.ErrInvalidf(`variant %q not found for flag "%s/%s"`, r.DefaultVariantId, r.NamespaceKey, r.Key)
+		}
 	}
 
 	query := s.builder.Update("flags").
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()}).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
+		Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()})
+
+	if r.DefaultVariantId != "" {
+		query = query.Set("default_variant_id", r.DefaultVariantId)
+	} else {
+		query = query.Set("default_variant_id", nil)
+	}
+
+	query = query.
 		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
 
 	res, err := query.ExecContext(ctx)
@@ -397,6 +453,10 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 
 // DeleteFlag deletes a flag
 func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+	defer func() {
+		_ = s.setVersion(ctx, r.NamespaceKey)
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -410,6 +470,10 @@ func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) erro
 
 // CreateVariant creates a variant
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+	defer func() {
+		_ = s.setVersion(ctx, r.NamespaceKey)
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -459,7 +523,13 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 }
 
 // UpdateVariant updates an existing variant
-func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (_ *flipt.Variant, err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -518,12 +588,18 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 }
 
 // DeleteVariant deletes a variant
-func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) (err error) {
+	defer func() {
+		if err == nil {
+			err = s.setVersion(ctx, r.NamespaceKey)
+		}
+	}()
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	_, err := s.builder.Delete("variants").
+	_, err = s.builder.Delete("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx)
 

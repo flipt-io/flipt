@@ -23,8 +23,11 @@ type mockCreator struct {
 	createNSReqs []*flipt.CreateNamespaceRequest
 	createNSErr  error
 
-	flagReqs []*flipt.CreateFlagRequest
-	flagErr  error
+	createflagReqs []*flipt.CreateFlagRequest
+	createflagErr  error
+
+	updateFlagReqs []*flipt.UpdateFlagRequest
+	updateFlagErr  error
 
 	variantReqs []*flipt.CreateVariantRequest
 	variantErr  error
@@ -56,17 +59,35 @@ func (m *mockCreator) CreateNamespace(ctx context.Context, r *flipt.CreateNamesp
 }
 
 func (m *mockCreator) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	m.flagReqs = append(m.flagReqs, r)
-	if m.flagErr != nil {
-		return nil, m.flagErr
+	m.createflagReqs = append(m.createflagReqs, r)
+	if m.createflagErr != nil {
+		return nil, m.createflagErr
 	}
 	return &flipt.Flag{
-		Key:         r.Key,
-		Name:        r.Name,
-		Description: r.Description,
-		Type:        r.Type,
-		Enabled:     r.Enabled,
-		Metadata:    r.Metadata,
+		NamespaceKey: r.NamespaceKey,
+		Key:          r.Key,
+		Name:         r.Name,
+		Description:  r.Description,
+		Type:         r.Type,
+		Enabled:      r.Enabled,
+		Metadata:     r.Metadata,
+	}, nil
+}
+
+func (m *mockCreator) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+	m.updateFlagReqs = append(m.updateFlagReqs, r)
+	if m.updateFlagErr != nil {
+		return nil, m.updateFlagErr
+	}
+	return &flipt.Flag{
+		NamespaceKey: r.NamespaceKey,
+		Key:          r.Key,
+		Name:         r.Name,
+		Description:  r.Description,
+		DefaultVariant: &flipt.Variant{
+			Id: r.DefaultVariantId,
+		},
+		Enabled: r.Enabled,
 	}, nil
 }
 
@@ -167,7 +188,6 @@ func (m *mockCreator) CreateRollout(ctx context.Context, r *flipt.CreateRolloutR
 	}
 
 	return rollout, nil
-
 }
 
 const variantAttachment = `{
@@ -191,10 +211,106 @@ func TestImport(t *testing.T) {
 		expected *mockCreator
 	}{
 		{
-			name: "import with attachment",
+			name: "import with attachment and default variant",
 			path: "testdata/import",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				updateFlagReqs: []*flipt.UpdateFlagRequest{
+					{
+						Key:              "flag1",
+						Name:             "flag1",
+						Description:      "description",
+						Enabled:          true,
+						DefaultVariantId: "variant1",
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "import with attachment",
+			path: "testdata/import_with_attachment",
+			expected: &mockCreator{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -283,7 +399,7 @@ func TestImport(t *testing.T) {
 			name: "import without attachment",
 			path: "testdata/import_no_attachment",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -371,7 +487,7 @@ func TestImport(t *testing.T) {
 			name: "import with implicit rule ranks",
 			path: "testdata/import_implicit_rule_rank",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -460,7 +576,7 @@ func TestImport(t *testing.T) {
 			name: "import with multiple segments",
 			path: "testdata/import_rule_multiple_segments",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -549,7 +665,7 @@ func TestImport(t *testing.T) {
 			name: "import v1",
 			path: "testdata/import_v1",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -606,7 +722,7 @@ func TestImport(t *testing.T) {
 			name: "import v1.1",
 			path: "testdata/import_v1_1",
 			expected: &mockCreator{
-				flagReqs: []*flipt.CreateFlagRequest{
+				createflagReqs: []*flipt.CreateFlagRequest{
 					{
 						Key:         "flag1",
 						Name:        "flag1",
@@ -727,7 +843,7 @@ func TestImport_Export(t *testing.T) {
 
 	err = importer.Import(context.Background(), EncodingYML, in)
 	require.NoError(t, err)
-	assert.Equal(t, "default", creator.flagReqs[0].NamespaceKey)
+	assert.Equal(t, "default", creator.createflagReqs[0].NamespaceKey)
 }
 
 func TestImport_InvalidVersion(t *testing.T) {
@@ -840,7 +956,7 @@ func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 				assert.NoError(t, err)
 
 				assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)
-				assert.Len(t, creator.flagReqs, tc.expectedCreateFlagReqs)
+				assert.Len(t, creator.createflagReqs, tc.expectedCreateFlagReqs)
 				assert.Len(t, creator.segmentReqs, tc.expectedCreateSegmentReqs)
 			})
 		}

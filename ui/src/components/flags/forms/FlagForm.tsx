@@ -112,18 +112,20 @@ export default function FlagForm(props: { flag?: IFlag }) {
           <Form className="px-1 sm:overflow-hidden sm:rounded-md">
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-3 md:col-span-2">
-                  <Toggle
-                    id="enabled"
-                    name="enabled"
-                    label="Enabled"
-                    disabled={readOnly}
-                    checked={enabled}
-                    onChange={(e) => {
-                      formik.setFieldValue('enabled', e);
-                    }}
-                  />
-                </div>
+                {formik.values.type === FlagType.VARIANT && (
+                  <div className="col-span-3 md:col-span-2">
+                    <Toggle
+                      id="enabled"
+                      name="enabled"
+                      label="Enabled"
+                      disabled={readOnly}
+                      checked={enabled}
+                      onChange={(e) => {
+                        formik.setFieldValue('enabled', e);
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="col-span-2">
                   <label
                     htmlFor="name"
@@ -235,6 +237,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                               className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
                                 formik.setFieldValue('type', flagType.id);
+                                formik.setFieldValue('enabled', false);
                               }}
                               checked={flagType.id === formik.values.type}
                               value={flagType.id}

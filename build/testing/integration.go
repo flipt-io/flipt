@@ -66,6 +66,7 @@ var (
 		"import/export": importExport,
 		"authn":         authn,
 		"authz":         authz,
+		"rest":          rest,
 	}
 )
 
@@ -225,7 +226,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
 				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
-					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
+					WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 					WithExposedPort(config.port)
 
 				if exportLogs {
@@ -265,6 +266,12 @@ func take(fn func() error) func() error {
 
 func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return suite(ctx, "api", base,
+		// create unique instance for test case
+		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
+}
+
+func rest(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return suite(ctx, "rest", base,
 		// create unique instance for test case
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }
@@ -337,7 +344,7 @@ func withCockroach(fn testCaseFn) testCaseFn {
 
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
 		WithEnvVariable("FLIPT_CACHE_TTL", "1s")
 
@@ -362,7 +369,7 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 		AsService()
 
 	flipt = flipt.
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
 		WithEnvVariable("FLIPT_CACHE_TTL", "1s").
 		WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
@@ -382,7 +389,7 @@ const (
 func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
 		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
@@ -447,7 +454,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 
 	flipt = flipt.
 		WithServiceBinding("gitea", gitea.AsService()).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_USERNAME", "root").
@@ -483,7 +490,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 
 	flipt = flipt.
 		WithServiceBinding("minio", minio).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
@@ -547,7 +554,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 
 	flipt = flipt.
 		WithServiceBinding("zot", zot.AsService()).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
 		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
@@ -612,7 +619,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 			if ns == "default" {
 				// replace namespace in expected yaml
-				expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", ns))
+				expected = strings.ReplaceAll(expected, "version: \"1.3\"\n", fmt.Sprintf("version: \"1.3\"\nnamespace: %s\n", ns))
 			}
 
 			if ns != "default" {
@@ -863,7 +870,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 
 	flipt = flipt.
 		WithServiceBinding("azurite", azurite).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "azblob").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_AZBLOB_ENDPOINT", "http://azurite:10000/devstoreaccount1").
@@ -895,7 +902,7 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 
 	flipt = flipt.
 		WithServiceBinding("gcs", gcs).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "googlecloud").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_GOOGLECLOUD_BUCKET", "testdata").
@@ -1007,7 +1014,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 	})
 
 	return flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_DISCOVERY_URL", "https://discover.svc").
 			WithServiceBinding("discover.svc", base.
 				WithNewFile("/server.crt", dagger.ContainerWithNewFileOpts{

@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"crypto/sha1" //nolint:gosec
+
 	"fmt"
 
 	"github.com/blang/semver/v4"
@@ -11,11 +13,13 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type EvaluationStore interface {
 	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
 	storage.EvaluationStore
+	storage.NamespaceVersionStore
 }
 
 type Server struct {
@@ -93,13 +97,68 @@ func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutTy
 	return evaluation.EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
 }
 
-var supportsEntityIdConstraintMinVersion = semver.MustParse("1.38.0")
+type minVersion struct {
+	semver.Version
+	msg string
+}
+
+func (m minVersion) String() string {
+	return m.msg
+}
+
+var (
+	supportsEntityIdConstraintMinVersion = minVersion{
+		Version: semver.MustParse("1.38.0"),
+		msg:     "skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type",
+	}
+
+	supportsDefaultVariantMinVersion = minVersion{
+		Version: semver.MustParse("1.47.0"),
+		msg:     "skipping `default_variant` to support older client; upgrade client to allow `default_variant`",
+	}
+)
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
+
 	var (
 		namespaceKey = r.Key
 		reference    = r.Reference
-		resp         = &evaluation.EvaluationNamespaceSnapshot{
+		ifNoneMatch  string
+	)
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		// get If-None-Match header from request
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 {
+			ifNoneMatch = vals[0]
+		}
+	}
+
+	// get current version from store to calculate etag for this namespace
+	currentVersion, err := srv.store.GetVersion(ctx, storage.NewNamespace(namespaceKey))
+	if err != nil {
+		srv.logger.Error("getting current version", zap.Error(err))
+	}
+
+	if currentVersion != "" {
+		var (
+			hash = sha1.New() //nolint:gosec
+			_, _ = hash.Write([]byte(currentVersion))
+			// etag is the sha1 hash of the current version
+			etag = fmt.Sprintf("%x", hash.Sum(nil))
+		)
+
+		// set etag header in the response
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
+		// if etag matches the If-None-Match header, we want to return a 304
+		if ifNoneMatch == etag {
+			_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
+			return nil, nil
+		}
+	}
+
+	var (
+		resp = &evaluation.EvaluationNamespaceSnapshot{
 			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},
@@ -140,7 +199,21 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			}
 
 			flagKey := storage.NewResource(namespaceKey, f.Key, storage.WithReference(reference))
-			if f.Type == flipt.FlagType_VARIANT_FLAG_TYPE {
+			switch f.Type {
+			// variant flag
+			case flipt.FlagType_VARIANT_FLAG_TYPE:
+				if f.DefaultVariant != nil {
+					if supportedServerVersion.LT(supportsDefaultVariantMinVersion.Version) {
+						srv.logger.Warn(supportsDefaultVariantMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+					} else {
+						flag.DefaultVariant = &evaluation.EvaluationVariant{
+							Id:         f.DefaultVariant.Id,
+							Key:        f.DefaultVariant.Key,
+							Attachment: f.DefaultVariant.Attachment,
+						}
+					}
+				}
+
 				rules, err := srv.store.GetEvaluationRules(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rules for flag %q: %w", f.Key, err)
@@ -168,8 +241,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								typ := toEvaluationConstraintComparisonType(c.Type)
 								// see: https://github.com/flipt-io/flipt/pull/2791
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion.Version) {
+										srv.logger.Warn(supportsEntityIdConstraintMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}
@@ -207,9 +280,9 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					}
 
 				}
-			}
 
-			if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
+			// boolean flag
+			case flipt.FlagType_BOOLEAN_FLAG_TYPE:
 				rollouts, err := srv.store.GetEvaluationRollouts(ctx, flagKey)
 				if err != nil {
 					return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
@@ -253,8 +326,8 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								typ := toEvaluationConstraintComparisonType(c.Type)
 								// see: https://github.com/flipt-io/flipt/pull/2791
 								if typ == evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE {
-									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion) {
-										srv.logger.Warn("skipping `entity_id` constraint type to support older client; upgrade client to allow `entity_id` constraint type", zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
+									if supportedServerVersion.LT(supportsEntityIdConstraintMinVersion.Version) {
+										srv.logger.Warn(supportsEntityIdConstraintMinVersion.String(), zap.String("namespace", f.NamespaceKey), zap.String("flag", f.Key))
 										typ = evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 									}
 								}

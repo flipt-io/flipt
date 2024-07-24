@@ -457,7 +457,7 @@ segments:
     value: buzz
 `
 
-	expectedYAMLStreamOutput = `version: "1.2"
+	expectedYAMLStreamOutput = `version: "1.3"
 namespace: default
 ---
 namespace: foo

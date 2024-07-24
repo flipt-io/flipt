@@ -80,7 +80,7 @@ test.describe('Rules', () => {
     });
 
     await test.step('can update single-variant rule', async () => {
-      await page.locator('#variantKey-select-button').click();
+      await page.locator('#quick-variant-2-select-button').click();
       await page
         .locator('li')
         .filter({ hasText: 'Single Variant' })
@@ -94,6 +94,20 @@ test.describe('Rules', () => {
         .click();
       await expect(page.getByText('Successfully updated rule')).toBeVisible();
     });
+  });
+
+  test('has default rule', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-rule' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Default Rule' })
+    ).toBeVisible();
+    await page.locator('#variant-default-select-button').click();
+    await page.getByLabel('', { exact: true }).getByText('456').click(); // TODO: should get variant by label
+    await page.getByRole('button', { name: 'Update' }).last().click();
+    await expect(
+      page.getByText('Successfully updated default variant')
+    ).toBeVisible();
   });
 });
 

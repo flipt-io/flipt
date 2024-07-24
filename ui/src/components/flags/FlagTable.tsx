@@ -18,8 +18,19 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
-import { flagTypeToLabel, IFlag } from '~/types/Flag';
+import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { truncateKey } from '~/utils/helpers';
+
+function flagDefaultValue(flag: IFlag): string {
+  switch (flag.type) {
+    case FlagType.BOOLEAN:
+      return flag.enabled ? 'True' : 'False';
+    case FlagType.VARIANT:
+      return flag.defaultVariant?.key || '';
+    default:
+      return '';
+  }
+}
 
 type FlagTableProps = {
   flags: IFlag[];
@@ -65,28 +76,38 @@ export default function FlagTable(props: FlagTableProps) {
         className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-500'
       }
     }),
-    columnHelper.accessor('enabled', {
-      header: 'Status',
-      cell: (info) => (
-        <span
-          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 ${
-            info.getValue()
-              ? 'text-green-600 bg-green-100'
-              : 'text-gray-500 bg-gray-100'
-          }`}
-        >
-          {info.getValue() ? 'Enabled' : 'Disabled'}
-        </span>
-      ),
-      meta: {
-        className: 'whitespace-nowrap py-4 px-3 text-sm'
+    columnHelper.accessor(
+      (row) => row.type === FlagType.BOOLEAN || row.enabled,
+      {
+        header: 'Evaluation',
+        cell: (info) => (
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 ${
+              info.getValue()
+                ? 'text-green-600 bg-green-100'
+                : 'text-gray-500 bg-gray-100'
+            }`}
+          >
+            {info.getValue() ? 'Enabled' : 'Disabled'}
+          </span>
+        ),
+        meta: {
+          className: 'whitespace-nowrap py-4 px-3 text-sm'
+        }
       }
-    }),
+    ),
     columnHelper.accessor('type', {
       header: 'Type',
       cell: (info) => flagTypeToLabel(info.getValue()),
       meta: {
         className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
+      }
+    }),
+    columnHelper.accessor((row) => row, {
+      header: 'Default Value',
+      cell: (info) => flagDefaultValue(info.getValue()),
+      meta: {
+        className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-600'
       }
     }),
     columnHelper.accessor('description', {

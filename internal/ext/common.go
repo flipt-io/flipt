@@ -12,6 +12,7 @@ type Document struct {
 	Namespace string     `yaml:"namespace,omitempty" json:"namespace,omitempty"`
 	Flags     []*Flag    `yaml:"flags,omitempty" json:"flags,omitempty"`
 	Segments  []*Segment `yaml:"segments,omitempty" json:"segments,omitempty"`
+	Etag      string     `yaml:"-" json:"-"`
 }
 
 type Flag struct {
@@ -27,6 +28,7 @@ type Flag struct {
 }
 
 type Variant struct {
+	Default     bool        `yaml:"default,omitempty" json:"default,omitempty"`
 	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
 	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
 	Description string      `yaml:"description,omitempty" json:"description,omitempty"`

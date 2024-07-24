@@ -7,6 +7,7 @@ flags:
     variants:
       - key: prod-variant
         name: Prod Variant
+        default: true
         attachment:
           pi: 3.141
           happy: true
@@ -34,14 +35,14 @@ flags:
     description: Boolean Flag Description
     enabled: false
     rollouts:
-    - description: enabled for segment2
-      segment:
-        key: segment2
-        value: true
-    - description: enabled for 50%
-      threshold:
-        percentage: 50
-        value: true
+      - description: enabled for segment2
+        segment:
+          key: segment2
+          value: true
+      - description: enabled for 50%
+        threshold:
+          percentage: 50
+          value: true
 segments:
   - key: segment2
     name: segment2

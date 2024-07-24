@@ -94,6 +94,12 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 	if !flag.Enabled {
 		resp.Match = false
 		resp.Reason = flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+
+		if flag.DefaultVariant != nil {
+			resp.Value = flag.DefaultVariant.Key
+			resp.Attachment = flag.DefaultVariant.Attachment
+		}
+
 		return resp, nil
 	}
 
@@ -105,6 +111,11 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 	if len(rules) == 0 {
 		e.logger.Debug("no rules match")
+		if flag.DefaultVariant != nil {
+			resp.Reason = flipt.EvaluationReason_DEFAULT_EVALUATION_REASON
+			resp.Value = flag.DefaultVariant.Key
+			resp.Attachment = flag.DefaultVariant.Attachment
+		}
 		return resp, nil
 	}
 
@@ -185,10 +196,15 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		}
 
 		// no distributions for rule
+		// match is true here because it did match the segment/rule
 		if len(validDistributions) == 0 {
 			e.logger.Info("no distributions for rule")
 			resp.Match = true
 			resp.Reason = flipt.EvaluationReason_MATCH_EVALUATION_REASON
+			if flag.DefaultVariant != nil {
+				resp.Value = flag.DefaultVariant.Key
+				resp.Attachment = flag.DefaultVariant.Attachment
+			}
 			return resp, nil
 		}
 
@@ -202,8 +218,13 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 		// if index is outside of our existing buckets then it does not match any distribution
 		if index == len(validDistributions) {
-			resp.Match = false
 			e.logger.Debug("did not match any distributions")
+			resp.Match = false
+			if flag.DefaultVariant != nil {
+				resp.Reason = flipt.EvaluationReason_DEFAULT_EVALUATION_REASON
+				resp.Value = flag.DefaultVariant.Key
+				resp.Attachment = flag.DefaultVariant.Attachment
+			}
 			return resp, nil
 		}
 
