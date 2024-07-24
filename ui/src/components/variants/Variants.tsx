@@ -5,7 +5,7 @@ import { useDeleteVariantMutation } from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-import VariantForm from '~/components/flags/VariantForm';
+import VariantForm from '~/components/variants/forms/VariantForm';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';

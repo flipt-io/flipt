@@ -64,6 +64,7 @@ export function DefaultVariant(props: RulesProps) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace) as INamespace;
+  const readOnly = useSelector(selectReadonly);
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
@@ -124,75 +125,87 @@ export function DefaultVariant(props: RulesProps) {
     >
       {(formik) => {
         return (
-          <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-            <div className="bg-white border-gray-200 w-full border-b p-2">
-              <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
-                <h3 className="text-gray-700 text-sm font-normal leading-6">
-                  Default Rule
-                </h3>
-                <span className="hidden h-4 w-4 justify-end sm:flex" />
+          <div className="flex flex-col p-2">
+            <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+              <div className="bg-white border-gray-200 w-full border-b p-2">
+                <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+                  <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
+                  <h3 className="text-gray-700 text-sm font-normal leading-6">
+                    Default Rule
+                  </h3>
+                  <span className="hidden h-4 w-4 justify-end sm:flex" />
+                </div>
               </div>
-            </div>
 
-            <div className="flex grow flex-col items-center justify-center sm:ml-2">
-              <p className="text-gray-600 text-center text-sm font-light">
-                This is the default value that will be returned if no other
-                rules match.
-              </p>
-            </div>
-            <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-              <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                <Form className="bg-white flex w-full flex-col overflow-y-scroll">
-                  <div className="w-full flex-1">
-                    <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                      {flag.variants && flag.variants.length > 0 && (
-                        <SingleDistributionFormInput
-                          id="variant-default"
-                          variants={flag.variants}
-                          selectedVariant={selectedVariant}
-                          setSelectedVariant={setSelectedVariant}
-                        />
-                      )}
+              <div className="flex grow flex-col items-center justify-center sm:ml-2">
+                <p className="text-gray-600 text-center text-sm font-light">
+                  This is the default value that will be returned if no other
+                  rules match.
+                </p>
+              </div>
+              <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+                <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+                  <Form className="bg-white flex w-full flex-col overflow-y-scroll">
+                    <div className="w-full flex-1">
+                      <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
+                        {flag.variants && flag.variants.length > 0 && (
+                          <SingleDistributionFormInput
+                            id="variant-default"
+                            variants={flag.variants}
+                            selectedVariant={selectedVariant}
+                            setSelectedVariant={setSelectedVariant}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-shrink-0 py-1">
-                    <div className="flex justify-end space-x-3">
-                      <TextButton
-                        className="min-w-[80px]"
-                        disabled={formik.isSubmitting || !flag.defaultVariant}
-                        onClick={() => handleRemove()}
-                      >
-                        Remove
-                      </TextButton>
-                      <TextButton
-                        disabled={
-                          formik.isSubmitting ||
-                          flag.defaultVariant?.id == selectedVariant?.id
-                        }
-                        onClick={() => {
-                          formik.resetForm();
-                          setSelectedVariant(
-                            toFilterableVariant(flag.defaultVariant)
-                          );
-                        }}
-                      >
-                        Reset
-                      </TextButton>
-                      <TextButton
-                        type="submit"
-                        className="min-w-[80px]"
-                        disabled={
-                          !formik.isValid ||
-                          formik.isSubmitting ||
-                          flag.defaultVariant?.id == selectedVariant?.id
-                        }
-                      >
-                        {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
-                      </TextButton>
+                    <div className="flex-shrink-0 py-1">
+                      <div className="flex justify-end space-x-3">
+                        <TextButton
+                          className="min-w-[80px]"
+                          disabled={
+                            formik.isSubmitting ||
+                            !flag.defaultVariant ||
+                            readOnly
+                          }
+                          onClick={() => handleRemove()}
+                        >
+                          Remove
+                        </TextButton>
+                        <TextButton
+                          disabled={
+                            formik.isSubmitting ||
+                            flag.defaultVariant?.id == selectedVariant?.id ||
+                            readOnly
+                          }
+                          onClick={() => {
+                            formik.resetForm();
+                            setSelectedVariant(
+                              toFilterableVariant(flag.defaultVariant)
+                            );
+                          }}
+                        >
+                          Reset
+                        </TextButton>
+                        <TextButton
+                          type="submit"
+                          className="min-w-[80px]"
+                          disabled={
+                            !formik.isValid ||
+                            formik.isSubmitting ||
+                            flag.defaultVariant?.id == selectedVariant?.id ||
+                            readOnly
+                          }
+                        >
+                          {formik.isSubmitting ? (
+                            <Loading isPrimary />
+                          ) : (
+                            'Update'
+                          )}
+                        </TextButton>
+                      </div>
                     </div>
-                  </div>
-                </Form>
+                  </Form>
+                </div>
               </div>
             </div>
           </div>
@@ -438,7 +451,7 @@ export default function Rules() {
                   it into place.
                 </p>
               </div>
-              <div className="border-gray-200 pattern-boxes w-full space-y-4 border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:w-3/4 lg:p-6">
+              <div className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:w-3/4 lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}
@@ -450,7 +463,10 @@ export default function Rules() {
                       items={rules.map((rule) => rule.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      <ul role="list" className="flex-col space-y-5 md:flex">
+                      <ul
+                        role="list"
+                        className="flex-col space-y-6 p-2 md:flex"
+                      >
                         {rules &&
                           rules.length > 0 &&
                           rules.map((rule) => (

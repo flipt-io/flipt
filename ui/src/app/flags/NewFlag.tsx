@@ -1,4 +1,4 @@
-import FlagForm from '~/components/flags/FlagForm';
+import FlagForm from '~/components/flags/forms/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
 
 export default function NewFlag() {
