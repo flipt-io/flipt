@@ -329,3 +329,5 @@ http:
   # method: provider configuration
   - selector: flipt.ofrep.OFREPService.GetProviderConfiguration
     get: /ofrep/v1/configuration
+  - selector: flipt.ofrep.OFREPService.EvaluateFlag
+    post: /ofrep/v1/evaluate/flags/{key}

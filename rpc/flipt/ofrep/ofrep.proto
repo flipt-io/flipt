@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package flipt.ofrep;
 
+import "google/protobuf/struct.proto";
+
 option go_package = "go.flipt.io/flipt/rpc/flipt/ofrep";
 
 message GetProviderConfigurationRequest {}
@@ -29,7 +31,28 @@ message FlagEvaluation {
   repeated string supported_types = 1;
 }
 
+message EvaluateFlagRequest {
+  string key = 1;
+  map<string, string> context = 2;
+}
+
+message EvaluatedFlag {
+  string key = 1;
+  EvaluateReason reason = 2;
+  string variant = 3;
+  google.protobuf.Struct metadata = 4;
+  google.protobuf.Value value = 5;
+}
+
+enum EvaluateReason {
+  UNKNOWN = 0;
+  DISABLED = 1;
+  TARGETING_MATCH = 2;
+  DEFAULT = 3;
+}
+
 // flipt:sdk:ignore
 service OFREPService {
   rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {}
+  rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluatedFlag) {}
 }
