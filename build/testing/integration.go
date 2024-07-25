@@ -671,7 +671,6 @@ func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 
 	// create unique instance for test case
 	fliptToTest := flipt.
-		WithEnvVariable("FLIPT_EXPERIMENTAL_AUTHORIZATION_ENABLED", "true").
 		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
 		WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
 		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
