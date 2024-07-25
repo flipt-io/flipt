@@ -12,6 +12,7 @@ import (
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,11 +22,19 @@ import (
 func (s *DBTestSuite) TestGetFlag() {
 	t := s.T()
 
+	metadataMap := map[string]any{
+		"key": "value",
+	}
+
+	metadata, err := structpb.NewStruct(metadataMap)
+	require.NoError(t, err, "Failed to create metadata struct")
+
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    metadata,
 	})
 
 	require.NoError(t, err)
@@ -41,6 +50,8 @@ func (s *DBTestSuite) TestGetFlag() {
 	assert.Equal(t, flag.Name, got.Name)
 	assert.Equal(t, flag.Description, got.Description)
 	assert.Equal(t, flag.Enabled, got.Enabled)
+	assert.Equal(t, flag.Metadata.String(), got.Metadata.String())
+
 	assert.NotZero(t, flag.CreatedAt)
 	assert.NotZero(t, flag.UpdatedAt)
 }
@@ -453,11 +464,18 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 func (s *DBTestSuite) TestCreateFlag() {
 	t := s.T()
 
+	metadataMap := map[string]any{
+		"key": "value",
+	}
+
+	metadata, _ := structpb.NewStruct(metadataMap)
+
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    metadata,
 	})
 
 	require.NoError(t, err)
@@ -467,6 +485,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, metadata.String(), flag.Metadata.String())
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
@@ -542,11 +561,17 @@ func (s *DBTestSuite) TestCreateFlagNamespace_DuplicateKey() {
 func (s *DBTestSuite) TestUpdateFlag() {
 	t := s.T()
 
+	metadataMap := map[string]any{
+		"key": "value",
+	}
+
+	metadata, _ := structpb.NewStruct(metadataMap)
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
+		Metadata:    metadata,
 	})
 
 	require.NoError(t, err)
@@ -556,14 +581,22 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, metadata.String(), flag.Metadata.String())
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
+	updatedMetadataMap := map[string]any{
+		"key": "value",
+		"foo": "bar",
+	}
+
+	updatedMetadata, _ := structpb.NewStruct(updatedMetadataMap)
 	updated, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
 		Key:         flag.Key,
 		Name:        flag.Name,
 		Description: "foobar",
 		Enabled:     true,
+		Metadata:    updatedMetadata,
 	})
 
 	require.NoError(t, err)
@@ -573,6 +606,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, flag.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
+	assert.Equal(t, updatedMetadata.String(), updated.Metadata.String())
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }

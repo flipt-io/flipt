@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type mockLister struct {
@@ -69,6 +70,13 @@ func (m mockLister) ListRollouts(_ context.Context, listRequest *flipt.ListRollo
 	return &flipt.RolloutList{}, nil
 }
 
+func newStruct(t testing.TB, m map[string]any) *structpb.Struct {
+	t.Helper()
+	value, err := structpb.NewStruct(m)
+	require.NoError(t, err)
+	return value
+}
+
 func TestExport(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -117,6 +125,7 @@ func TestExport(t *testing.T) {
 									Key: "foo",
 								},
 							},
+							Metadata: newStruct(t, map[string]any{"label": "variant", "area": true}),
 						},
 						{
 							Key:         "flag2",
@@ -124,6 +133,7 @@ func TestExport(t *testing.T) {
 							Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
 							Description: "a boolean flag",
 							Enabled:     false,
+							Metadata:    newStruct(t, map[string]any{"label": "bool", "area": 12}),
 						},
 					},
 				},

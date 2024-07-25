@@ -19,11 +19,11 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      13,
-	LibSQL:      13, // libsql driver uses the same migrations as sqlite3
-	Postgres:    14,
-	MySQL:       13,
-	CockroachDB: 11,
+	SQLite:      14,
+	LibSQL:      14, // libsql driver uses the same migrations as sqlite3
+	Postgres:    15,
+	MySQL:       14,
+	CockroachDB: 12,
 	Clickhouse:  3,
 }
 
@@ -42,9 +42,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	var (
-		dr database.Driver
-	)
+	var dr database.Driver
 
 	switch driver {
 	case SQLite, LibSQL:
@@ -127,7 +125,6 @@ func (m *Migrator) Up(force bool) error {
 
 	// check if any migrations are pending
 	currentVersion, _, err := m.migrator.Version()
-
 	if err != nil {
 		if !errors.Is(err, migrate.ErrNilVersion) {
 			return fmt.Errorf("getting current migrations version: %w", err)

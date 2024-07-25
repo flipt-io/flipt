@@ -67,7 +67,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 	defer enc.Close()
 
-	var namespaces = e.namespaces
+	namespaces := e.namespaces
 
 	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a string slice.
 	if e.allNamespaces {
@@ -136,6 +136,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 					Type:        f.Type.String(),
 					Description: f.Description,
 					Enabled:     f.Enabled,
+					Metadata:    f.Metadata.AsMap(),
 				}
 
 				// map variant id => variant key

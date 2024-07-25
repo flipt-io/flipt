@@ -14,7 +14,7 @@ func largeJSONString() string {
 	suffix := `"}`
 
 	// adding one for making the string larger than the limit
-	b := make([]byte, maxVariantAttachmentSize-len(prefix)-len(suffix)+1)
+	b := make([]byte, maxJsonStringSize-len(prefix)-len(suffix)+1)
 	for i := range b {
 		b[i] = 'a'
 	}
@@ -224,6 +224,15 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 				Enabled:     true,
 			},
 		},
+		{
+			name: "valid",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -321,7 +330,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{
@@ -421,7 +430,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
+				fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
 			),
 		},
 		{

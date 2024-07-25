@@ -11,6 +11,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -39,14 +40,13 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 		createdAt        fliptsql.Timestamp
 		updatedAt        fliptsql.Timestamp
 		defaultVariantId sql.NullString
-
-		flag = &flipt.Flag{}
-
-		err = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id").
-			From("flags").
-			Where(sq.Eq{"namespace_key": p.Namespace(), "\"key\"": p.Key}).
-			QueryRowContext(ctx).
-			Scan(
+		metadata         fliptsql.JSONField[map[string]any]
+		flag             = &flipt.Flag{}
+		err              = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id", "metadata").
+					From("flags").
+					Where(sq.Eq{"namespace_key": p.Namespace(), "\"key\"": p.Key}).
+					QueryRowContext(ctx).
+					Scan(
 				&flag.NamespaceKey,
 				&flag.Key,
 				&flag.Type,
@@ -55,7 +55,8 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 				&flag.Enabled,
 				&createdAt,
 				&updatedAt,
-				&defaultVariantId)
+				&defaultVariantId,
+				&metadata)
 	)
 
 	if err != nil {
@@ -68,6 +69,9 @@ func (s *Store) GetFlag(ctx context.Context, p storage.ResourceRequest) (*flipt.
 
 	flag.CreatedAt = createdAt.Timestamp
 	flag.UpdatedAt = updatedAt.Timestamp
+	if metadata.T != nil {
+		flag.Metadata, _ = structpb.NewStruct(metadata.T)
+	}
 
 	query := s.builder.Select("id, namespace_key, flag_key, \"key\", name, description, attachment, created_at, updated_at").
 		From("variants").
@@ -149,7 +153,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
-		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id").
+		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at, default_variant_id, metadata").
 			From("flags").
 			Where(sq.Eq{"namespace_key": req.Predicate.Namespace()}).
 			OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
@@ -194,6 +198,7 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 			fCreatedAt        fliptsql.Timestamp
 			fUpdatedAt        fliptsql.Timestamp
 			fDefaultVariantId sql.NullString
+			fMetadata         fliptsql.JSONField[map[string]any]
 		)
 
 		if err := rows.Scan(
@@ -206,12 +211,14 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 			&fCreatedAt,
 			&fUpdatedAt,
 			&fDefaultVariantId,
+			&fMetadata,
 		); err != nil {
 			return results, err
 		}
 
 		flag.CreatedAt = fCreatedAt.Timestamp
 		flag.UpdatedAt = fUpdatedAt.Timestamp
+		flag.Metadata, _ = structpb.NewStruct(fMetadata.T)
 
 		flags = append(flags, flag)
 		flagsByKey[flag.Key] = &flagWithDefaultVariant{Flag: flag, DefaultVariantId: fDefaultVariantId}
@@ -355,13 +362,19 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 			Name:         r.Name,
 			Description:  r.Description,
 			Enabled:      r.Enabled,
+			Metadata:     r.Metadata,
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
+		metadata any
 	)
 
+	if flag.Metadata != nil && len(flag.Metadata.Fields) > 0 {
+		metadata = &fliptsql.JSONField[map[string]any]{T: flag.Metadata.AsMap()}
+	}
+
 	if _, err := s.builder.Insert("flags").
-		Columns("namespace_key", "\"key\"", "\"type\"", "name", "description", "enabled", "created_at", "updated_at").
+		Columns("namespace_key", "\"key\"", "\"type\"", "name", "description", "enabled", "metadata", "created_at", "updated_at").
 		Values(
 			flag.NamespaceKey,
 			flag.Key,
@@ -369,6 +382,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 			flag.Name,
 			flag.Description,
 			flag.Enabled,
+			metadata,
 			&fliptsql.Timestamp{Timestamp: flag.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: flag.UpdatedAt},
 		).
@@ -413,6 +427,14 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (_ *
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()})
+
+	if r.Metadata != nil {
+		if len(r.Metadata.Fields) > 0 {
+			query = query.Set("metadata", &fliptsql.JSONField[map[string]any]{T: r.Metadata.AsMap()})
+		} else {
+			query = query.Set("metadata", nil)
+		}
+	}
 
 	if r.DefaultVariantId != "" {
 		query = query.Set("default_variant_id", r.DefaultVariantId)

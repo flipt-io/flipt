@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Creator interface {
@@ -56,7 +57,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 	idx := 0
 
 	for {
-		var doc = new(Document)
+		doc := new(Document)
 		if err := dec.Decode(doc); err != nil {
 			if errors.Is(err, io.EOF) {
 				break
@@ -86,13 +87,12 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 			}
 		}
 
-		var namespace = doc.Namespace
+		namespace := doc.Namespace
 
 		if namespace != "" && namespace != flipt.DefaultNamespace {
 			_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
 				Key: namespace,
 			})
-
 			if err != nil {
 				if status.Code(err) != codes.NotFound && !errs.AsMatch[errs.ErrNotFound](err) {
 					return err
@@ -149,6 +149,14 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				NamespaceKey: namespace,
 			}
 
+			if f.Metadata != nil {
+				metadata, err := structpb.NewStruct(f.Metadata)
+				if err != nil {
+					return err
+				}
+				req.Metadata = metadata
+			}
+
 			// support explicitly setting flag type from 1.1
 			if f.Type != "" {
 				if err := ensureFieldSupported("flag.type", v1_1, version); err != nil {
@@ -197,7 +205,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					Attachment:   string(out),
 					NamespaceKey: namespace,
 				})
-
 				if err != nil {
 					return fmt.Errorf("creating variant: %w", err)
 				}
@@ -238,7 +245,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
 				NamespaceKey: namespace,
 			})
-
 			if err != nil {
 				return fmt.Errorf("creating segment: %w", err)
 			}
@@ -256,7 +262,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					Value:        c.Value,
 					NamespaceKey: namespace,
 				})
-
 				if err != nil {
 					return fmt.Errorf("creating constraint: %w", err)
 				}
@@ -300,7 +305,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				}
 
 				rule, err := i.creator.CreateRule(ctx, fcr)
-
 				if err != nil {
 					return fmt.Errorf("creating rule: %w", err)
 				}
@@ -322,7 +326,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 						Rollout:      d.Rollout,
 						NamespaceKey: namespace,
 					})
-
 					if err != nil {
 						return fmt.Errorf("creating distribution: %w", err)
 					}

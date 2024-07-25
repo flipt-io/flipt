@@ -17,6 +17,9 @@ close({
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		#FlagBoolean | *{}
 	}
+	if version == "1.3" {
+		metadata: [string]: (string | int | bool | float)
+	}
 }
 
 #FlagBoolean: {

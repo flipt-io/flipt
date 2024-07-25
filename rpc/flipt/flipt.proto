@@ -3,6 +3,7 @@ syntax = "proto3";
 package flipt;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt";
@@ -112,6 +113,7 @@ message Flag {
   string namespace_key = 8;
   FlagType type = 9;
   optional Variant default_variant = 10;
+  optional google.protobuf.Struct metadata = 11;
  }
 
 message FlagList {
@@ -141,6 +143,7 @@ message CreateFlagRequest {
   bool enabled = 4;
   string namespace_key = 5;
   FlagType type = 6;
+  optional google.protobuf.Struct metadata = 7;
 }
 
 message UpdateFlagRequest {
@@ -150,6 +153,7 @@ message UpdateFlagRequest {
   bool enabled = 4;
   string namespace_key = 5;
   string default_variant_id = 6;
+  optional google.protobuf.Struct metadata = 7;
 }
 
 message DeleteFlagRequest {
