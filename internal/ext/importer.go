@@ -188,15 +188,6 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					}
 				}
 
-				// last variant with default=true will be the default variant when importing
-				if v.Default {
-					// support explicitly setting default variant from 1.3
-					if err := ensureFieldSupported("variant.default", v1_3, version); err != nil {
-						return err
-					}
-					defaultVariantId = v.Key
-				}
-
 				variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
 					FlagKey:      f.Key,
 					Key:          v.Key,
@@ -207,6 +198,15 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				})
 				if err != nil {
 					return fmt.Errorf("creating variant: %w", err)
+				}
+
+				// last variant with default=true will be the default variant when importing
+				if v.Default {
+					// support explicitly setting default variant from 1.3
+					if err := ensureFieldSupported("variant.default", v1_3, version); err != nil {
+						return err
+					}
+					defaultVariantId = variant.Id
 				}
 
 				createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
