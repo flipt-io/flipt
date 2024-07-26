@@ -2,6 +2,7 @@ package ofrep
 
 import (
 	"context"
+
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.uber.org/zap"
 
@@ -46,10 +47,11 @@ func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest)
 	}
 
 	resp := &ofrep.EvaluatedFlag{
-		Key:     output.FlagKey,
-		Reason:  transformReason(output.Reason),
-		Variant: output.Variant,
-		Value:   value,
+		Key:      output.FlagKey,
+		Reason:   transformReason(output.Reason),
+		Variant:  output.Variant,
+		Value:    value,
+		Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
 	}
 
 	s.logger.Debug("ofrep variant", zap.Stringer("response", resp))

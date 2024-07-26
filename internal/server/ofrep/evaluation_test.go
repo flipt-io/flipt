@@ -2,10 +2,11 @@ package ofrep
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/mock"
 	flipterrors "go.flipt.io/flipt/errors"
 	"google.golang.org/grpc/codes"
-	"testing"
 
 	"google.golang.org/grpc/metadata"
 
@@ -24,10 +25,11 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		ctx := context.TODO()
 		flagKey := "flag-key"
 		expectedResponse := &ofrep.EvaluatedFlag{
-			Key:     flagKey,
-			Reason:  ofrep.EvaluateReason_DEFAULT,
-			Variant: "false",
-			Value:   structpb.NewBoolValue(false),
+			Key:      flagKey,
+			Reason:   ofrep.EvaluateReason_DEFAULT,
+			Variant:  "false",
+			Value:    structpb.NewBoolValue(false),
+			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
 		}
 		bridge := &bridgeMock{}
 		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
@@ -62,10 +64,11 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		}))
 		flagKey := "flag-key"
 		expectedResponse := &ofrep.EvaluatedFlag{
-			Key:     flagKey,
-			Reason:  ofrep.EvaluateReason_DISABLED,
-			Variant: "true",
-			Value:   structpb.NewBoolValue(true),
+			Key:      flagKey,
+			Reason:   ofrep.EvaluateReason_DISABLED,
+			Variant:  "true",
+			Value:    structpb.NewBoolValue(true),
+			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
 		}
 		bridge := &bridgeMock{}
 		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
