@@ -287,7 +287,7 @@ func TestImport(t *testing.T) {
 						Name:             "flag1",
 						Description:      "description",
 						Enabled:          true,
-						DefaultVariantId: "variant1",
+						DefaultVariantId: "static_variant_id",
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
