@@ -59,7 +59,8 @@ func TestOFREPEvaluationBridge_Variant(t *testing.T) {
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{
-			"hello": "world",
+			"hello":        "world",
+			"targetingKey": "12345",
 		},
 	})
 	require.NoError(t, err)
@@ -92,6 +93,9 @@ func TestOFREPEvaluationBridge_Boolean(t *testing.T) {
 	output, err := s.OFREPEvaluationBridge(context.TODO(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"targetingKey": "12345",
+		},
 	})
 	require.NoError(t, err)
 

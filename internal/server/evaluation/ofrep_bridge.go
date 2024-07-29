@@ -17,6 +17,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const ofrepCtxTargetingKey = "targetingKey"
+
 func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
 	flag, err := s.store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
 	if err != nil {
@@ -33,10 +35,13 @@ func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.Evaluati
 	req := &rpcevaluation.EvaluationRequest{
 		NamespaceKey: input.NamespaceKey,
 		FlagKey:      input.FlagKey,
-		// OFREP does not have the idea of an `entity` and this is why we're generating one here.
-		// I might change in the future as the specification grows.
-		EntityId: uuid.NewString(),
-		Context:  input.Context,
+		EntityId:     uuid.NewString(),
+		Context:      input.Context,
+	}
+
+	// https://openfeature.dev/docs/reference/concepts/evaluation-context/#targeting-key
+	if targetingKey, ok := input.Context[ofrepCtxTargetingKey]; ok {
+		req.EntityId = targetingKey
 	}
 
 	switch flag.Type {
