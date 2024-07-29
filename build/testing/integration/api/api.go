@@ -282,6 +282,17 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, updatedVariant.Id, flag.DefaultVariant.Id)
 				assert.Equal(t, updatedVariant.Key, flag.DefaultVariant.Key)
 				assert.Equal(t, updatedVariant.Name, flag.DefaultVariant.Name)
+
+				t.Log("Reset default variant for flag \"test\".")
+				_, err = client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
+					NamespaceKey:     namespace.Key,
+					Key:              enabled.Key,
+					Name:             "Test 2",
+					Description:      enabled.Description,
+					Enabled:          true,
+					DefaultVariantId: "",
+				})
+				require.NoError(t, err)
 			})
 
 			t.Run("Segments and Constraints", func(t *testing.T) {
