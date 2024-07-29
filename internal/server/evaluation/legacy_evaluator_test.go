@@ -980,21 +980,53 @@ func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
 		s      = NewEvaluator(logger, store)
 	)
 
-	store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", "foo")).Return([]*storage.EvaluationRule{}, nil)
+	tests := []struct {
+		key   string
+		rules []*storage.EvaluationRule
+	}{
+		{key: "foo", rules: []*storage.EvaluationRule{}},
+		{key: "bar", rules: []*storage.EvaluationRule{
+			{
+				ID:              "entry",
+				NamespaceKey:    enabledFlagWithDefaultVariant.NamespaceKey,
+				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"entity": {
+						SegmentKey: "entity",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "entity",
+								Type:     flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+								Operator: "eq",
+								Value:    "some",
+							},
+						},
+					},
+				},
+			},
+		}},
+	}
 
-	resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
-		EntityId: "1",
-		FlagKey:  "foo",
-		Context: map[string]string{
-			"bar": "boz",
-		},
-	})
+	for _, tt := range tests {
+		t.Run(tt.key, func(t *testing.T) {
+			store.On("GetEvaluationRules", mock.Anything, storage.NewResource("", tt.key)).Return(tt.rules, nil)
 
-	assert.NoError(t, err)
-	assert.False(t, resp.Match)
-	assert.Equal(t, "bar", resp.Value)
-	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
-	assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
+			resp, err := s.Evaluate(context.TODO(), enabledFlagWithDefaultVariant, &evaluation.EvaluationRequest{
+				EntityId: "1",
+				FlagKey:  tt.key,
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			})
+
+			assert.NoError(t, err)
+			assert.False(t, resp.Match)
+			assert.Equal(t, "bar", resp.Value)
+			assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+			assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
+		})
+	}
 }
 
 func TestEvaluator_ErrorGettingRules(t *testing.T) {

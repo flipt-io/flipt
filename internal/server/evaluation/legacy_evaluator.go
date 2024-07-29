@@ -91,15 +91,15 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		NamespaceKey:   r.NamespaceKey,
 	}
 
+	if flag.DefaultVariant != nil {
+		resp.Reason = flipt.EvaluationReason_DEFAULT_EVALUATION_REASON
+		resp.Value = flag.DefaultVariant.Key
+		resp.Attachment = flag.DefaultVariant.Attachment
+	}
+
 	if !flag.Enabled {
 		resp.Match = false
 		resp.Reason = flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
-
-		if flag.DefaultVariant != nil {
-			resp.Value = flag.DefaultVariant.Key
-			resp.Attachment = flag.DefaultVariant.Attachment
-		}
-
 		return resp, nil
 	}
 
@@ -111,11 +111,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 
 	if len(rules) == 0 {
 		e.logger.Debug("no rules match")
-		if flag.DefaultVariant != nil {
-			resp.Reason = flipt.EvaluationReason_DEFAULT_EVALUATION_REASON
-			resp.Value = flag.DefaultVariant.Key
-			resp.Attachment = flag.DefaultVariant.Attachment
-		}
 		return resp, nil
 	}
 
@@ -201,10 +196,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 			e.logger.Info("no distributions for rule")
 			resp.Match = true
 			resp.Reason = flipt.EvaluationReason_MATCH_EVALUATION_REASON
-			if flag.DefaultVariant != nil {
-				resp.Value = flag.DefaultVariant.Key
-				resp.Attachment = flag.DefaultVariant.Attachment
-			}
 			return resp, nil
 		}
 
@@ -220,11 +211,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *evaluatio
 		if index == len(validDistributions) {
 			e.logger.Debug("did not match any distributions")
 			resp.Match = false
-			if flag.DefaultVariant != nil {
-				resp.Reason = flipt.EvaluationReason_DEFAULT_EVALUATION_REASON
-				resp.Value = flag.DefaultVariant.Key
-				resp.Attachment = flag.DefaultVariant.Attachment
-			}
 			return resp, nil
 		}
 
