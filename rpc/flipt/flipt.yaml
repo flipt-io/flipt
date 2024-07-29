@@ -331,3 +331,4 @@ http:
     get: /ofrep/v1/configuration
   - selector: flipt.ofrep.OFREPService.EvaluateFlag
     post: /ofrep/v1/evaluate/flags/{key}
+    body: "*"
