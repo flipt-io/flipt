@@ -260,7 +260,7 @@ func NewGRPCServer(
 		evalsrv     = evaluation.New(logger, store)
 		evaldatasrv = evaluationdata.New(logger, store)
 		healthsrv   = health.NewServer()
-		ofrepsrv    = ofrep.New(cfg.Cache)
+		ofrepsrv    = ofrep.New(logger, cfg.Cache, evalsrv)
 	)
 
 	var (
