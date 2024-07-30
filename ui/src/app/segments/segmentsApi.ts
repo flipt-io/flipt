@@ -4,9 +4,7 @@ import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 import { baseQuery } from '~/utils/redux-rtk';
 
-export const segmentTag = (
-  namespaceKey: string
-): TagDescription<'Segment'> => {
+export const segmentTag = (namespaceKey: string): TagDescription<'Segment'> => {
   return { type: 'Segment', id: namespaceKey };
 };
 
@@ -21,12 +19,12 @@ export const segmentsApi = createApi({
       providesTags: (result, _error, namespaceKey) =>
         result
           ? [
-            ...result.segments.map(({ key }) => ({
-              type: 'Segment' as const,
-              id: namespaceKey + '/' + key
-            })),
-            segmentTag(namespaceKey)
-          ]
+              ...result.segments.map(({ key }) => ({
+                type: 'Segment' as const,
+                id: namespaceKey + '/' + key
+              })),
+              segmentTag(namespaceKey)
+            ]
           : [segmentTag(namespaceKey)]
     }),
     // get segment in this namespace
