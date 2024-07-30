@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `import`: Add import append flag to import new flags only not existing in DB yet (#3299)
 - default variants (#3271)
 - support etag for declarative stores (#3287)
+- support for flag metadata - api only (#3196)
 
 ### Changed
 
