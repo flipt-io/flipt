@@ -1,4 +1,4 @@
-import { FullTagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { TagDescription } from '@reduxjs/toolkit/query';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { IDistributionBase } from '~/types/Distribution';
 import { IRule, IRuleBase, IRuleList } from '~/types/Rule';
@@ -8,7 +8,7 @@ import { baseQuery } from '~/utils/redux-rtk';
 export const ruleTag = (arg: {
   namespaceKey: string;
   flagKey: string;
-}): FullTagDescription<'Rule'> => {
+}): TagDescription<'Rule'> => {
   return { type: 'Rule', id: arg.namespaceKey + '/' + arg.flagKey };
 };
 
