@@ -15,7 +15,7 @@ func redpandaTLSService(ctx context.Context, client *dagger.Client, hostAlias, s
 		return nil, err
 	}
 	kafka := client.Container().
-		From("redpandadata/redpanda").
+		From("redpandadata/redpanda:v23.3.18").
 		WithNewFile("/etc/redpanda/.bootstrap.yaml", dagger.ContainerWithNewFileOpts{
 			Contents: fmt.Sprintf(redpandaBoostrapConfigurationTpl, superuser),
 		}).
