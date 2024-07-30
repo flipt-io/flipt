@@ -37,6 +37,13 @@ func redpandaTLSService(ctx context.Context, client *dagger.Client, hostAlias, s
 		WithExposedPort(9644, dagger.ContainerWithExposedPortOpts{
 			Description: "admin api endpoint",
 		}).
+		WithExec([]string{"redpanda",
+			"start",
+			"--mode=dev-container",
+			"--smp=1",
+			"--overprovisioned",
+			"--check=false",
+			"--memory=200M"}).
 		AsService()
 	return kafka, nil
 }
@@ -45,11 +52,13 @@ var redpandaBoostrapConfigurationTpl = `
 superusers:
   - %s
 kafka_enable_authorization: true
+storage_min_free_bytes: 10485760
 `
 
 var redpandaConfigurationTpl = `
 redpanda:
   developer_mode: true
+  storage_min_free_bytes: 10485760
   admin:
     address: 0.0.0.0
     port: 9644
@@ -90,4 +99,19 @@ schema_registry_client:
   brokers:
     - address: localhost
       port: 29092
+rpk:
+  tune_network: false
+  tune_disk_scheduler: false
+  tune_disk_nomerges: false
+  tune_disk_irq: false
+  tune_fstrim: false
+  tune_cpu: false
+  tune_aio_events: false
+  tune_clocksource: false
+  tune_swappiness: false
+  tnable_memory_locking: false
+  tune_coredump: false
+  coredump_dir: "/var/lib/redpanda/coredump"
+logger:
+  level: WARN
 `

@@ -1,4 +1,4 @@
-import { FullTagDescription } from '@reduxjs/toolkit/dist/query/endpointDefinitions';
+import { TagDescription } from '@reduxjs/toolkit/query';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { IRollout, IRolloutBase, IRolloutList } from '~/types/Rollout';
 
@@ -7,7 +7,7 @@ import { baseQuery } from '~/utils/redux-rtk';
 export const rolloutTag = (arg: {
   namespaceKey: string;
   flagKey: string;
-}): FullTagDescription<'Rollout'> => {
+}): TagDescription<'Rollout'> => {
   return { type: 'Rollout', id: arg.namespaceKey + '/' + arg.flagKey };
 };
 
