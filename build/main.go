@@ -33,7 +33,7 @@ type Flipt struct {
 }
 
 // Returns a container with all the assets compiled and ready for testing and distribution
-func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*Container, error) {
+func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	platform, err := dag.DefaultPlatform(ctx)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*Container,
 }
 
 // Return container with Flipt binaries in a thinner alpine distribution
-func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*Container, error) {
+func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	base, err := f.Base(ctx, source)
 	if err != nil {
 		return nil, err

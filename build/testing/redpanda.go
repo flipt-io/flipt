@@ -9,25 +9,17 @@ import (
 	"go.flipt.io/build/internal/dagger"
 )
 
-func redpandaTLSService(ctx context.Context, client *dagger.Client, hostAlias, superuser string) (*dagger.Service, error) {
+func redpandaTLSService(_ context.Context, client *dagger.Client, hostAlias, superuser string) (*dagger.Service, error) {
 	key, cert, err := generateTLSCert(hostAlias)
 	if err != nil {
 		return nil, err
 	}
 	kafka := client.Container().
 		From("redpandadata/redpanda").
-		WithNewFile("/etc/redpanda/.bootstrap.yaml", dagger.ContainerWithNewFileOpts{
-			Contents: fmt.Sprintf(redpandaBoostrapConfigurationTpl, superuser),
-		}).
-		WithNewFile("/etc/redpanda/redpanda.yaml", dagger.ContainerWithNewFileOpts{
-			Contents: fmt.Sprintf(redpandaConfigurationTpl, hostAlias),
-		}).
-		WithNewFile("/etc/redpanda/key.pem", dagger.ContainerWithNewFileOpts{
-			Contents: string(key),
-		}).
-		WithNewFile("/etc/redpanda/cert.pem", dagger.ContainerWithNewFileOpts{
-			Contents: string(cert),
-		}).
+		WithNewFile("/etc/redpanda/.bootstrap.yaml", fmt.Sprintf(redpandaBoostrapConfigurationTpl, superuser)).
+		WithNewFile("/etc/redpanda/redpanda.yaml", fmt.Sprintf(redpandaConfigurationTpl, hostAlias)).
+		WithNewFile("/etc/redpanda/key.pem", string(key)).
+		WithNewFile("/etc/redpanda/cert.pem", string(cert)).
 		WithExposedPort(9092, dagger.ContainerWithExposedPortOpts{
 			Description: "kafka endpoint",
 		}).
