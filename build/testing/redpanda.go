@@ -15,7 +15,7 @@ func redpandaTLSService(_ context.Context, client *dagger.Client, hostAlias, sup
 		return nil, err
 	}
 	kafka := client.Container().
-		From("redpandadata/redpanda").
+		From("redpandadata/redpanda:v24.1.13").
 		WithNewFile("/etc/redpanda/.bootstrap.yaml", fmt.Sprintf(redpandaBoostrapConfigurationTpl, superuser)).
 		WithNewFile("/etc/redpanda/redpanda.yaml", fmt.Sprintf(redpandaConfigurationTpl, hostAlias)).
 		WithNewFile("/etc/redpanda/key.pem", string(key)).
@@ -35,7 +35,7 @@ func redpandaTLSService(_ context.Context, client *dagger.Client, hostAlias, sup
 			"--smp=1",
 			"--overprovisioned",
 			"--check=false",
-			"--memory=200M"}).
+			"--memory=200M"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 	return kafka, nil
 }

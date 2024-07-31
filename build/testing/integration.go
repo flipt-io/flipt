@@ -291,7 +291,6 @@ func withPostgres(fn testCaseFn) testCaseFn {
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
 				WithExposedPort(5432).
 				WithEnvVariable("UNIQUE", uuid.New().String()).
-				WithExec(nil).
 				AsService()),
 			conf,
 		)
@@ -313,7 +312,6 @@ func withMySQL(fn testCaseFn) testCaseFn {
 				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(3306).
-				WithExec(nil).
 				AsService()),
 			conf,
 		)
@@ -330,7 +328,9 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
-				WithExec([]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"}).
+				WithExec(
+					[]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"},
+					dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 				AsService()),
 			conf,
 		)
@@ -396,8 +396,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
 		From("gitea/gitea:1.21.1").
-		WithExposedPort(3000).
-		WithExec(nil)
+		WithExposedPort(3000)
 
 	stew := config.Config{
 		URL: "http://gitea:3000",
@@ -469,7 +468,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 
 	_, err := base.
@@ -877,7 +876,7 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		From("fsouza/fake-gcs-server").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(4443).
-		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 
 	_, err := base.

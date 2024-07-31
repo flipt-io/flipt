@@ -40,7 +40,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"})
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true})
 
 	azurite := client.Container().
 		From("mcr.microsoft.com/azure-storage/azurite").
@@ -51,7 +51,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 	gcs := client.Container().
 		From("fsouza/fake-gcs-server").
 		WithExposedPort(4443).
-		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 
 	// S3 unit testing
