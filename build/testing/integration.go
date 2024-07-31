@@ -191,9 +191,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					}
 
 					// mount service account token into base on expected k8s sa token path
-					base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", dagger.ContainerWithNewFileOpts{
-						Contents: string(priv),
-					})
+					base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
 				}
 				{
 					// JWT auth configuration
@@ -208,7 +206,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					})
 
 					flipt = flipt.
-						WithNewFile("/etc/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{Contents: string(bytes)}).
+						WithNewFile("/etc/flipt/jwt.pem", string(bytes)).
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
@@ -218,9 +216,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 						Bytes: x509.MarshalPKCS1PrivateKey(priv),
 					})
 
-					base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", dagger.ContainerWithNewFileOpts{
-						Contents: string(privBytes),
-					})
+					base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
 				}
 
 				name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -295,7 +291,6 @@ func withPostgres(fn testCaseFn) testCaseFn {
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
 				WithExposedPort(5432).
 				WithEnvVariable("UNIQUE", uuid.New().String()).
-				WithExec(nil).
 				AsService()),
 			conf,
 		)
@@ -317,7 +312,6 @@ func withMySQL(fn testCaseFn) testCaseFn {
 				WithEnvVariable("MYSQL_ALLOW_EMPTY_PASSWORD", "true").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(3306).
-				WithExec(nil).
 				AsService()),
 			conf,
 		)
@@ -334,7 +328,9 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
-				WithExec([]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"}).
+				WithExec(
+					[]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"},
+					dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 				AsService()),
 			conf,
 		)
@@ -359,8 +355,8 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 	redis := client.Container().
 		From("redis:alpine").
 		WithExposedPort(6379).
-		WithNewFile("/opt/tls/key", dagger.ContainerWithNewFileOpts{Contents: string(keyBytes)}).
-		WithNewFile("/opt/tls/crt", dagger.ContainerWithNewFileOpts{Contents: string(crtBytes)}).
+		WithNewFile("/opt/tls/key", string(keyBytes)).
+		WithNewFile("/opt/tls/crt", string(crtBytes)).
 		WithExec([]string{
 			"redis-server", "--tls-port", "6379", "--port", "0",
 			"--tls-key-file", "/opt/tls/key", "--tls-cert-file",
@@ -376,7 +372,7 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 		WithEnvVariable("FLIPT_CACHE_REDIS_REQUIRE_TLS", "true").
 		WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").
 		WithEnvVariable("FLIPT_CACHE_REDIS_CA_CERT_PATH", "/opt/tls/crt").
-		WithNewFile("/opt/tls/crt", dagger.ContainerWithNewFileOpts{Contents: string(crtBytes)}).
+		WithNewFile("/opt/tls/crt", string(crtBytes)).
 		WithServiceBinding("redis", redis)
 	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
 }
@@ -400,8 +396,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
 		From("gitea/gitea:1.21.1").
-		WithExposedPort(3000).
-		WithExec(nil)
+		WithExposedPort(3000)
 
 	stew := config.Config{
 		URL: "http://gitea:3000",
@@ -442,9 +437,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		From("ghcr.io/flipt-io/stew:latest").
 		WithWorkdir("/work").
 		WithDirectory("/work/base", base.Directory(rootReadOnlyTestdataDir)).
-		WithNewFile("/etc/stew/config.yml", dagger.ContainerWithNewFileOpts{
-			Contents: string(contents),
-		}).
+		WithNewFile("/etc/stew/config.yml", string(contents)).
 		WithServiceBinding("gitea", gitea.AsService()).
 		WithExec(nil).
 		Sync(ctx)
@@ -475,7 +468,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 
 	_, err := base.
@@ -535,8 +528,8 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest",
 			platforms.MustParse(string(platform)).Architecture)).
 		WithExposedPort(5000).
-		WithNewFile("/etc/zot/htpasswd", dagger.ContainerWithNewFileOpts{Contents: htpasswd}).
-		WithNewFile("/etc/zot/config.json", dagger.ContainerWithNewFileOpts{Contents: zotConfig})
+		WithNewFile("/etc/zot/htpasswd", htpasswd).
+		WithNewFile("/etc/zot/config.json", zotConfig)
 
 	if _, err := flipt.
 		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
@@ -674,8 +667,7 @@ func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
 		WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
 		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
-		WithNewFile(policyPath, dagger.ContainerWithNewFileOpts{
-			Contents: `package flipt.authz.v1
+		WithNewFile(policyPath, `package flipt.authz.v1
 
 import data
 import rego.v1
@@ -728,11 +720,9 @@ permit_slice(allowed, _) if {
 
 permit_slice(allowed, requested) if {
 	allowed[_] = requested
-}`,
-		}).
+}`).
 		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
-		WithNewFile(policyData, dagger.ContainerWithNewFileOpts{
-			Contents: `{
+		WithNewFile(policyData, `{
     "version": "0.1.0",
     "roles": [
         {
@@ -817,8 +807,7 @@ permit_slice(allowed, requested) if {
             ]
         }
     ]
-}`,
-		}).
+}`).
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExec(nil)
 
@@ -887,7 +876,7 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		From("fsouza/fake-gcs-server").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(4443).
-		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 		AsService()
 
 	_, err := base.
@@ -1016,15 +1005,9 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_DISCOVERY_URL", "https://discover.svc").
 			WithServiceBinding("discover.svc", base.
-				WithNewFile("/server.crt", dagger.ContainerWithNewFileOpts{
-					Contents: caCert.String(),
-				}).
-				WithNewFile("/server.key", dagger.ContainerWithNewFileOpts{
-					Contents: caPrivKeyPEM.String(),
-				}).
-				WithNewFile("/priv.pem", dagger.ContainerWithNewFileOpts{
-					Contents: rsaSigningKey.String(),
-				}).
+				WithNewFile("/server.crt", caCert.String()).
+				WithNewFile("/server.key", caPrivKeyPEM.String()).
+				WithNewFile("/priv.pem", rsaSigningKey.String()).
 				WithExposedPort(443).
 				WithExec([]string{
 					"sh",
@@ -1032,9 +1015,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 					"go run ./build/internal/cmd/discover/... --private-key /priv.pem",
 				}).
 				AsService()).
-			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token",
-				dagger.ContainerWithNewFileOpts{Contents: fliptSAToken}).
-			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
-				dagger.ContainerWithNewFileOpts{Contents: caCert.String()}),
+			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token", fliptSAToken).
+			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt", caCert.String()),
 		rsaSigningKey.Bytes(), nil
 }
