@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.47.0](https://github.com/flipt-io/flipt/releases/tag/v1.47.0) - 2024-07-29
+
+### Added
+
+- add single evaluation endpoint for OFREP (#3267)
+- `import`: Add import append flag to import new flags only not existing in DB yet (#3299)
+- default variants (#3271)
+- support etag for declarative stores (#3287)
+- support for flag metadata - api only (#3196)
+
+### Changed
+
+- Update default rollout (#3301)
+- show default value in flag table (#3300)
+- add kvnhmn as a contributor for code (#3304)
+- add wtertius as a contributor for code (#3303)
+
 ## [v1.46.2](https://github.com/flipt-io/flipt/releases/tag/v1.46.2) - 2024-07-25
 
 ### Fixed
