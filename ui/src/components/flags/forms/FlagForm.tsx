@@ -77,7 +77,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
     name: flag?.name || '',
     description: flag?.description || '',
     type: flag?.type || FlagType.VARIANT,
-    enabled: flag?.enabled || false
+    enabled: flag?.enabled || false,
+    defaultVariant: flag?.defaultVariant
   };
 
   const [keyCopied, setKeyCopied] = useState(false);
