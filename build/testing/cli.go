@@ -65,8 +65,7 @@ Run 'flipt --help' for usage.`))); err != nil {
 			// in order to stop a blocking process via SIGTERM and capture a successful exit code
 			// we use a shell script to start flipt in the background, sleep for two seconds,
 			// send the SIGTERM signal, wait for process to exit and then propagate Flipts exit code
-			WithNewFile("/test.sh", dagger.ContainerWithNewFileOpts{
-				Contents: `#!/bin/sh
+			WithNewFile("/test.sh", `#!/bin/sh
 rm -rf /etc/flipt/config/default.yml
 /flipt &
 
@@ -77,9 +76,10 @@ kill -s TERM $!
 wait $!
 
 exit $?`,
-				Owner:       "flipt",
-				Permissions: 0777,
-			})
+				dagger.ContainerWithNewFileOpts{
+					Owner:       "flipt",
+					Permissions: 0777,
+				})
 
 		if _, err := assertExec(ctx, container, []string{"/test.sh"},
 			stdout(contains("no configuration file found, using defaults")),
@@ -96,8 +96,7 @@ exit $?`,
 			// in order to stop a blocking process via SIGTERM and capture a successful exit code
 			// we use a shell script to start flipt in the background, sleep for two seconds,
 			// send the SIGTERM signal, wait for process to exit and then propagate Flipts exit code
-			WithNewFile("/test.sh", dagger.ContainerWithNewFileOpts{
-				Contents: `#!/bin/sh
+			WithNewFile("/test.sh", `#!/bin/sh
 
 /flipt &
 
@@ -108,9 +107,10 @@ kill -s TERM $!
 wait $!
 
 exit $?`,
-				Owner:       "flipt",
-				Permissions: 0777,
-			}).
+				dagger.ContainerWithNewFileOpts{
+					Owner:       "flipt",
+					Permissions: 0777,
+				}).
 			WithEnvVariable("FLIPT_LOG_LEVEL", "debug")
 
 		if _, err := assertExec(ctx, container, []string{"/test.sh"},
@@ -128,7 +128,7 @@ exit $?`,
 			WithEnvVariable("MINIO_ROOT_USER", "user").
 			WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 			WithEnvVariable("MINIO_BROWSER", "off").
-			WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+			WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
 			AsService()
 
 		if _, err := assertExec(ctx,
