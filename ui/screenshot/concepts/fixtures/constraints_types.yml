@@ -1,5 +1,0 @@
-namespace: default
-segments:
-  - key: lunch-party
-    name: Lunch Party
-    description: Lunch party? It should be launch party!

@@ -1,4 +1,0 @@
-namespace: default
-segments:
-  - key: all-users
-    name: All Users
