@@ -76,7 +76,7 @@ func Snapshot(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				_, err = client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 					Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 					NamespaceKey: namespace.Key,
-					Key:          fmt.Sprintf("boolean_disabled%s", flag),
+					Key:          fmt.Sprintf("boolean_disabled_%s", flag),
 					Name:         "Boolean Disabled",
 					Description:  "This is a disabled boolean test flag",
 					Enabled:      false,
@@ -101,7 +101,6 @@ func Snapshot(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				resp.Body.Close()
 
 				assert.NotEmpty(t, body)
-				fmt.Printf("body: %q\n", body)
 
 				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/internal/v1/evaluation/snapshot/namespace/%s", opts.URL, namespace), nil)
 				req.Header.Set("If-None-Match", etag)
