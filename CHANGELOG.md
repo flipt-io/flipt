@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.47.1](https://github.com/flipt-io/flipt/releases/tag/v1.47.1) - 2024-08-01
+
+### Fixed
+
+- `storage`: support mysql 5.7 in 12 migration (#3334)
+- `ui`: preserve default variant during the flag updates (#3330)
+
 ## [v1.47.0](https://github.com/flipt-io/flipt/releases/tag/v1.47.0) - 2024-07-29
 
 ### Added
@@ -19,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - show default value in flag table (#3300)
 - add kvnhmn as a contributor for code (#3304)
 - add wtertius as a contributor for code (#3303)
+
+## [v1.46.3](https://github.com/flipt-io/flipt/releases/tag/v1.46.3) - 2024-08-01
+
+### Fixed
+
+- `storage`: support mysql 5.7 in 12 migration (#3334)
 
 ## [v1.46.2](https://github.com/flipt-io/flipt/releases/tag/v1.46.2) - 2024-07-25
 
