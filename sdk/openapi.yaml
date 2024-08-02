@@ -1,0 +1,2051 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: api
+    version: 1.47.0
+servers:
+    - url: http://localhost:8080
+paths:
+    /api/v1/namespaces:
+        get:
+            tags:
+                - Flipt
+            operationId: NamespacesService.list
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceList'
+        post:
+            tags:
+                - Flipt
+            operationId: NamespacesService.create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Namespace'
+    /api/v1/namespaces/{key}:
+        get:
+            tags:
+                - Flipt
+            operationId: NamespacesService.get
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Namespace'
+        put:
+            tags:
+                - Flipt
+            operationId: NamespacesService.update
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Namespace'
+        delete:
+            tags:
+                - Flipt
+            operationId: NamespacesService.delete
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags:
+        get:
+            tags:
+                - Flipt
+            operationId: FlagsService.list
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/FlagList'
+        post:
+            tags:
+                - Flipt
+            operationId: FlagsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateFlagRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Flag'
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rollouts:
+        get:
+            tags:
+                - Flipt
+            operationId: RolloutsService.list
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RolloutList'
+        post:
+            tags:
+                - Flipt
+            operationId: RolloutsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRolloutRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rollout'
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rollouts/order:
+        put:
+            tags:
+                - Flipt
+            operationId: RolloutsService.order
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OrderRolloutsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rollouts/{id}:
+        get:
+            tags:
+                - Flipt
+            operationId: RolloutsService.get
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rollout'
+        put:
+            tags:
+                - Flipt
+            operationId: RolloutsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRolloutRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rollout'
+        delete:
+            tags:
+                - Flipt
+            operationId: RolloutsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rules:
+        get:
+            tags:
+                - Flipt
+            operationId: RulesService.list
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleList'
+        post:
+            tags:
+                - Flipt
+            operationId: RulesService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rule'
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rules/order:
+        put:
+            tags:
+                - Flipt
+            operationId: RulesService.order
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OrderRulesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rules/{id}:
+        get:
+            tags:
+                - Flipt
+            operationId: RulesService.get
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rule'
+        put:
+            tags:
+                - Flipt
+            operationId: RulesService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Rule'
+        delete:
+            tags:
+                - Flipt
+            operationId: RulesService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rules/{ruleId}/distributions:
+        post:
+            tags:
+                - Flipt
+            operationId: DistributionsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: ruleId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateDistributionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Distribution'
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/rules/{ruleId}/distributions/{id}:
+        put:
+            tags:
+                - Flipt
+            operationId: DistributionsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: ruleId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateDistributionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Distribution'
+        delete:
+            tags:
+                - Flipt
+            operationId: DistributionsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: ruleId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: variantId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/variants:
+        post:
+            tags:
+                - Flipt
+            operationId: VariantsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateVariantRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Variant'
+    /api/v1/namespaces/{namespaceKey}/flags/{flagKey}/variants/{id}:
+        put:
+            tags:
+                - Flipt
+            operationId: VariantsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateVariantRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Variant'
+        delete:
+            tags:
+                - Flipt
+            operationId: VariantsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: flagKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/flags/{key}:
+        get:
+            tags:
+                - Flipt
+            operationId: FlagsService.get
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Flag'
+        put:
+            tags:
+                - Flipt
+            operationId: FlagsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateFlagRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Flag'
+        delete:
+            tags:
+                - Flipt
+            operationId: FlagsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/segments:
+        get:
+            tags:
+                - Flipt
+            operationId: SegmentsService.list
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SegmentList'
+        post:
+            tags:
+                - Flipt
+            operationId: SegmentsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateSegmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Segment'
+    /api/v1/namespaces/{namespaceKey}/segments/{key}:
+        get:
+            tags:
+                - Flipt
+            operationId: SegmentsService.get
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Segment'
+        put:
+            tags:
+                - Flipt
+            operationId: SegmentsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateSegmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Segment'
+        delete:
+            tags:
+                - Flipt
+            operationId: SegmentsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v1/namespaces/{namespaceKey}/segments/{segmentKey}/constraints:
+        post:
+            tags:
+                - Flipt
+            operationId: ConstraintsService.create
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: segmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateConstraintRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Constraint'
+    /api/v1/namespaces/{namespaceKey}/segments/{segmentKey}/constraints/{id}:
+        put:
+            tags:
+                - Flipt
+            operationId: ConstraintsService.update
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: segmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateConstraintRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Constraint'
+        delete:
+            tags:
+                - Flipt
+            operationId: ConstraintsService.delete
+            parameters:
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: segmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /auth/v1/method/kubernetes/serviceaccount:
+        post:
+            tags:
+                - AuthenticationMethodKubernetesService
+            operationId: AuthMethodK8SService.verifyServiceAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/VerifyServiceAccountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VerifyServiceAccountResponse'
+    /auth/v1/method/oidc/{provider}/authorize:
+        get:
+            tags:
+                - AuthenticationMethodOIDCService
+            operationId: AuthMethodOIDCService.authorizeURL
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: state
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthorizeURLResponse'
+    /auth/v1/method/oidc/{provider}/callback:
+        get:
+            tags:
+                - AuthenticationMethodOIDCService
+            operationId: AuthMethodOIDCService.callback
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: code
+                  in: query
+                  schema:
+                    type: string
+                - name: state
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CallbackResponse'
+    /auth/v1/method/token:
+        post:
+            tags:
+                - AuthenticationMethodTokenService
+            operationId: AuthMethodTokenService.createToken
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateTokenRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateTokenResponse'
+    /auth/v1/self:
+        get:
+            tags:
+                - AuthenticationService
+            operationId: AuthService.getSelf
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Authentication'
+    /auth/v1/self/expire:
+        put:
+            tags:
+                - AuthenticationService
+            operationId: AuthService.expireSelf
+            parameters:
+                - name: expiresAt
+                  in: query
+                  schema:
+                    type: string
+                    format: date-time
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /auth/v1/tokens:
+        get:
+            tags:
+                - AuthenticationService
+            operationId: AuthService.listTokens
+            parameters:
+                - name: method
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListAuthenticationsResponse'
+    /auth/v1/tokens/{id}:
+        get:
+            tags:
+                - AuthenticationService
+            operationId: AuthService.getToken
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Authentication'
+        delete:
+            tags:
+                - AuthenticationService
+            operationId: AuthService.deleteToken
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /evaluate/v1/batch:
+        post:
+            tags:
+                - EvaluationService
+            operationId: EvaluationService.batch
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BatchEvaluationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BatchEvaluationResponse'
+    /evaluate/v1/boolean:
+        post:
+            tags:
+                - EvaluationService
+            operationId: EvaluationService.boolean
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EvaluationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BooleanEvaluationResponse'
+    /evaluate/v1/variant:
+        post:
+            tags:
+                - EvaluationService
+            operationId: EvaluationService.variant
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EvaluationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VariantEvaluationResponse'
+components:
+    schemas:
+        Authentication:
+            type: object
+            properties:
+                id:
+                    type: string
+                method:
+                    type: integer
+                    format: enum
+                expiresAt:
+                    type: string
+                    format: date-time
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        AuthorizeURLResponse:
+            type: object
+            properties:
+                authorizeUrl:
+                    type: string
+        BatchEvaluationRequest:
+            required:
+                - requests
+            type: object
+            properties:
+                requestId:
+                    type: string
+                requests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationRequest'
+                reference:
+                    type: string
+        BatchEvaluationResponse:
+            type: object
+            properties:
+                requestId:
+                    type: string
+                responses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationResponse'
+                requestDurationMillis:
+                    type: number
+                    format: double
+        BooleanEvaluationResponse:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                reason:
+                    type: integer
+                    format: enum
+                requestId:
+                    type: string
+                requestDurationMillis:
+                    type: number
+                    format: double
+                timestamp:
+                    type: string
+                    format: date-time
+                flagKey:
+                    type: string
+        CallbackResponse:
+            type: object
+            properties:
+                clientToken:
+                    type: string
+                authentication:
+                    $ref: '#/components/schemas/Authentication'
+        Constraint:
+            type: object
+            properties:
+                id:
+                    type: string
+                segmentKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                property:
+                    type: string
+                operator:
+                    type: string
+                value:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                namespaceKey:
+                    type: string
+                description:
+                    type: string
+        CreateConstraintRequest:
+            required:
+                - type
+                - property
+                - operator
+            type: object
+            properties:
+                segmentKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                property:
+                    type: string
+                operator:
+                    type: string
+                value:
+                    type: string
+                namespaceKey:
+                    type: string
+                description:
+                    type: string
+        CreateDistributionRequest:
+            required:
+                - variantId
+                - rollout
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                ruleId:
+                    type: string
+                variantId:
+                    type: string
+                rollout:
+                    type: number
+                    format: float
+                namespaceKey:
+                    type: string
+        CreateFlagRequest:
+            required:
+                - key
+                - name
+                - type
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                namespaceKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+        CreateNamespaceRequest:
+            required:
+                - key
+                - name
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+        CreateRolloutRequest:
+            required:
+                - rank
+            type: object
+            properties:
+                namespaceKey:
+                    type: string
+                flagKey:
+                    type: string
+                rank:
+                    type: integer
+                    format: int32
+                description:
+                    type: string
+                segment:
+                    $ref: '#/components/schemas/RolloutSegment'
+                threshold:
+                    $ref: '#/components/schemas/RolloutThreshold'
+        CreateRuleRequest:
+            required:
+                - rank
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                segmentKey:
+                    type: string
+                rank:
+                    type: integer
+                    format: int32
+                namespaceKey:
+                    type: string
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
+                segmentOperator:
+                    type: integer
+                    format: enum
+        CreateSegmentRequest:
+            required:
+                - key
+                - name
+                - matchType
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                matchType:
+                    type: integer
+                    format: enum
+                namespaceKey:
+                    type: string
+        CreateTokenRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                expiresAt:
+                    type: string
+                    format: date-time
+                namespaceKey:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        CreateTokenResponse:
+            type: object
+            properties:
+                clientToken:
+                    type: string
+                authentication:
+                    $ref: '#/components/schemas/Authentication'
+        CreateVariantRequest:
+            required:
+                - key
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                attachment:
+                    type: string
+                namespaceKey:
+                    type: string
+        Distribution:
+            type: object
+            properties:
+                id:
+                    type: string
+                ruleId:
+                    type: string
+                variantId:
+                    type: string
+                rollout:
+                    type: number
+                    format: float
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+        ErrorEvaluationResponse:
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                reason:
+                    type: integer
+                    format: enum
+        EvaluationRequest:
+            required:
+                - namespaceKey
+                - flagKey
+                - entityId
+                - context
+            type: object
+            properties:
+                requestId:
+                    type: string
+                namespaceKey:
+                    type: string
+                flagKey:
+                    type: string
+                entityId:
+                    type: string
+                context:
+                    type: object
+                    additionalProperties:
+                        type: string
+                reference:
+                    type: string
+        EvaluationResponse:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: enum
+                booleanResponse:
+                    $ref: '#/components/schemas/BooleanEvaluationResponse'
+                variantResponse:
+                    $ref: '#/components/schemas/VariantEvaluationResponse'
+                errorResponse:
+                    $ref: '#/components/schemas/ErrorEvaluationResponse'
+        Flag:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                variants:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Variant'
+                namespaceKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                defaultVariant:
+                    $ref: '#/components/schemas/Variant'
+                metadata:
+                    type: object
+        FlagList:
+            type: object
+            properties:
+                flags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Flag'
+                nextPageToken:
+                    type: string
+                totalCount:
+                    type: integer
+                    format: int32
+        ListAuthenticationsResponse:
+            type: object
+            properties:
+                authentications:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Authentication'
+                nextPageToken:
+                    type: string
+        Namespace:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                protected:
+                    type: boolean
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+        NamespaceList:
+            type: object
+            properties:
+                namespaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Namespace'
+                nextPageToken:
+                    type: string
+                totalCount:
+                    type: integer
+                    format: int32
+        OrderRolloutsRequest:
+            required:
+                - rolloutIds
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                rolloutIds:
+                    type: array
+                    items:
+                        type: string
+        OrderRulesRequest:
+            required:
+                - ruleIds
+            type: object
+            properties:
+                flagKey:
+                    type: string
+                ruleIds:
+                    type: array
+                    items:
+                        type: string
+                namespaceKey:
+                    type: string
+        Rollout:
+            type: object
+            properties:
+                id:
+                    type: string
+                namespaceKey:
+                    type: string
+                flagKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                rank:
+                    type: integer
+                    format: int32
+                description:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                segment:
+                    $ref: '#/components/schemas/RolloutSegment'
+                threshold:
+                    $ref: '#/components/schemas/RolloutThreshold'
+        RolloutList:
+            type: object
+            properties:
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Rollout'
+                nextPageToken:
+                    type: string
+                totalCount:
+                    type: integer
+                    format: int32
+        RolloutSegment:
+            type: object
+            properties:
+                segmentKey:
+                    type: string
+                value:
+                    type: boolean
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
+                segmentOperator:
+                    type: integer
+                    format: enum
+        RolloutThreshold:
+            type: object
+            properties:
+                percentage:
+                    type: number
+                    format: float
+                value:
+                    type: boolean
+        Rule:
+            type: object
+            properties:
+                id:
+                    type: string
+                flagKey:
+                    type: string
+                segmentKey:
+                    type: string
+                distributions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Distribution'
+                rank:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                namespaceKey:
+                    type: string
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
+                segmentOperator:
+                    type: integer
+                    format: enum
+        RuleList:
+            type: object
+            properties:
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Rule'
+                nextPageToken:
+                    type: string
+                totalCount:
+                    type: integer
+                    format: int32
+        Segment:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                constraints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Constraint'
+                matchType:
+                    type: integer
+                    format: enum
+                namespaceKey:
+                    type: string
+        SegmentList:
+            type: object
+            properties:
+                segments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Segment'
+                nextPageToken:
+                    type: string
+                totalCount:
+                    type: integer
+                    format: int32
+        UpdateConstraintRequest:
+            required:
+                - type
+                - property
+                - operator
+            type: object
+            properties:
+                id:
+                    type: string
+                segmentKey:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                property:
+                    type: string
+                operator:
+                    type: string
+                value:
+                    type: string
+                namespaceKey:
+                    type: string
+                description:
+                    type: string
+        UpdateDistributionRequest:
+            required:
+                - variantId
+                - rollout
+            type: object
+            properties:
+                id:
+                    type: string
+                flagKey:
+                    type: string
+                ruleId:
+                    type: string
+                variantId:
+                    type: string
+                rollout:
+                    type: number
+                    format: float
+                namespaceKey:
+                    type: string
+        UpdateFlagRequest:
+            required:
+                - name
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                namespaceKey:
+                    type: string
+                defaultVariantId:
+                    type: string
+                metadata:
+                    type: object
+        UpdateNamespaceRequest:
+            required:
+                - name
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+        UpdateRolloutRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                namespaceKey:
+                    type: string
+                flagKey:
+                    type: string
+                description:
+                    type: string
+                segment:
+                    $ref: '#/components/schemas/RolloutSegment'
+                threshold:
+                    $ref: '#/components/schemas/RolloutThreshold'
+        UpdateRuleRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                flagKey:
+                    type: string
+                segmentKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
+                segmentOperator:
+                    type: integer
+                    format: enum
+        UpdateSegmentRequest:
+            required:
+                - name
+                - matchType
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                matchType:
+                    type: integer
+                    format: enum
+                namespaceKey:
+                    type: string
+        UpdateVariantRequest:
+            required:
+                - key
+            type: object
+            properties:
+                id:
+                    type: string
+                flagKey:
+                    type: string
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                attachment:
+                    type: string
+                namespaceKey:
+                    type: string
+        Variant:
+            type: object
+            properties:
+                id:
+                    type: string
+                flagKey:
+                    type: string
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                attachment:
+                    type: string
+                namespaceKey:
+                    type: string
+        VariantEvaluationResponse:
+            type: object
+            properties:
+                match:
+                    type: boolean
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
+                reason:
+                    type: integer
+                    format: enum
+                variantKey:
+                    type: string
+                variantAttachment:
+                    type: string
+                requestId:
+                    type: string
+                requestDurationMillis:
+                    type: number
+                    format: double
+                timestamp:
+                    type: string
+                    format: date-time
+                flagKey:
+                    type: string
+        VerifyServiceAccountRequest:
+            type: object
+            properties:
+                serviceAccountToken:
+                    type: string
+        VerifyServiceAccountResponse:
+            type: object
+            properties:
+                clientToken:
+                    type: string
+                authentication:
+                    $ref: '#/components/schemas/Authentication'
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+        jwtAuth:
+            type: http
+            scheme: JWT
+security:
+    - bearerAuth: []
+tags:
+    - name: AuthenticationMethodKubernetesService
+    - name: AuthenticationMethodOIDCService
+    - name: AuthenticationMethodTokenService
+    - name: AuthenticationService
+    - name: EvaluationService
+    - name: Flipt

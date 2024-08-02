@@ -9,6 +9,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"sigs.k8s.io/yaml"
 )
@@ -32,6 +33,21 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 	}
 
 	m := mappings{}
+
+	for _, f := range gen.Files {
+		if !f.Generate {
+			continue
+		}
+		for _, s := range f.Services {
+			for _, m := range s.Methods {
+				if rule := proto.GetExtension(m.Desc.Options(), annotations.E_Http).(*annotations.HttpRule); rule != nil {
+					rule.Selector = string(m.Desc.FullName())
+					config.Http.Rules = append(config.Http.Rules, rule)
+				}
+			}
+		}
+	}
+
 	for _, r := range config.Http.Rules {
 		rule := rule{
 			body: r.Body == "*",
@@ -53,7 +69,6 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 		default:
 			fmt.Fprintf(os.Stderr, "unsupported pattern: %T\n", r.Pattern)
 		}
-
 		m[r.Selector] = rule
 	}
 

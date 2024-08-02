@@ -3,6 +3,7 @@ module go.flipt.io/flipt/rpc/flipt
 go 1.22
 
 require (
+	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/stretchr/testify v1.9.0

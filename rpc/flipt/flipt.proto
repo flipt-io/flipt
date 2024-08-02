@@ -5,6 +5,9 @@ package flipt;
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "gnostic/openapi/v3/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt";
 
@@ -82,14 +85,14 @@ message ListNamespaceRequest {
 }
 
 message CreateNamespaceRequest {
-  string key = 1;
-  string name = 2;
+  string key = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
 }
 
 message UpdateNamespaceRequest {
   string key = 1;
-  string name = 2;
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
 }
 
@@ -137,18 +140,18 @@ message ListFlagRequest {
 }
 
 message CreateFlagRequest {
-  string key = 1;
-  string name = 2;
+  string key = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
   bool enabled = 4;
   string namespace_key = 5;
-  FlagType type = 6;
+  FlagType type = 6 [(google.api.field_behavior) = REQUIRED];
   optional google.protobuf.Struct metadata = 7;
 }
 
 message UpdateFlagRequest {
   string key = 1;
-  string name = 2;
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
   bool enabled = 4;
   string namespace_key = 5;
@@ -175,7 +178,7 @@ message Variant {
 
 message CreateVariantRequest {
   string flag_key = 1;
-  string key = 2;
+  string key = 2 [(google.api.field_behavior) = REQUIRED];
   string name = 3;
   string description = 4;
   string attachment = 5;
@@ -185,7 +188,7 @@ message CreateVariantRequest {
 message UpdateVariantRequest {
   string id = 1;
   string flag_key = 2;
-  string key = 3;
+  string key = 3 [(google.api.field_behavior) = REQUIRED];
   string name = 4;
   string description = 5;
   string attachment = 6;
@@ -235,18 +238,18 @@ message ListSegmentRequest {
 }
 
 message CreateSegmentRequest {
-  string key = 1;
-  string name = 2;
+  string key = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
-  MatchType match_type = 4;
+  MatchType match_type = 4 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 5;
 }
 
 message UpdateSegmentRequest {
   string key = 1;
-  string name = 2;
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
   string description = 3;
-  MatchType match_type = 4;
+  MatchType match_type = 4 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 5;
 }
 
@@ -279,9 +282,9 @@ message Constraint {
 
 message CreateConstraintRequest {
   string segment_key = 1;
-  ComparisonType type = 2;
-  string property = 3;
-  string operator = 4;
+  ComparisonType type = 2 [(google.api.field_behavior) = REQUIRED];
+  string property = 3 [(google.api.field_behavior) = REQUIRED];
+  string operator = 4 [(google.api.field_behavior) = REQUIRED];
   string value = 5;
   string namespace_key = 6;
   string description = 7;
@@ -290,9 +293,9 @@ message CreateConstraintRequest {
 message UpdateConstraintRequest {
   string id = 1;
   string segment_key = 2;
-  ComparisonType type = 3;
-  string property = 4;
-  string operator = 5;
+  ComparisonType type = 3 [(google.api.field_behavior) = REQUIRED];
+  string property = 4 [(google.api.field_behavior) = REQUIRED];
+  string operator = 5 [(google.api.field_behavior) = REQUIRED];
   string value = 6;
   string namespace_key = 7;
   string description = 8;
@@ -366,7 +369,7 @@ message GetRolloutRequest {
 message CreateRolloutRequest {
   string namespace_key = 1;
   string flag_key = 2;
-  int32 rank = 3;
+  int32 rank = 3 [(google.api.field_behavior) = REQUIRED];
   string description = 4;
   oneof rule {
     RolloutSegment segment = 20;
@@ -394,7 +397,7 @@ message DeleteRolloutRequest {
 message OrderRolloutsRequest {
   string flag_key = 1;
   string namespace_key = 2;
-  repeated string rollout_ids = 3;
+  repeated string rollout_ids = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message Rule {
@@ -435,7 +438,7 @@ message GetRuleRequest {
 message CreateRuleRequest {
   string flag_key = 1;
   string segment_key = 2 [deprecated = true];
-  int32 rank = 3;
+  int32 rank = 3 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 4;
   repeated string segment_keys = 5;
   SegmentOperator segment_operator = 6;
@@ -458,7 +461,7 @@ message DeleteRuleRequest {
 
 message OrderRulesRequest {
   string flag_key = 1;
-  repeated string rule_ids = 2;
+  repeated string rule_ids = 2 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 3;
 }
 
@@ -474,8 +477,8 @@ message Distribution {
 message CreateDistributionRequest {
   string flag_key = 1;
   string rule_id = 2;
-  string variant_id = 3;
-  float rollout = 4;
+  string variant_id = 3 [(google.api.field_behavior) = REQUIRED];
+  float rollout = 4 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 5;
 }
 
@@ -483,8 +486,8 @@ message UpdateDistributionRequest {
   string id = 1;
   string flag_key = 2;
   string rule_id = 3;
-  string variant_id = 4;
-  float rollout = 5;
+  string variant_id = 4 [(google.api.field_behavior) = REQUIRED];
+  float rollout = 5 [(google.api.field_behavior) = REQUIRED];
   string namespace_key = 6;
 }
 
@@ -503,40 +506,310 @@ service Flipt {
   rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
     option deprecated = true;
   }
-  rpc GetNamespace(GetNamespaceRequest) returns (Namespace) { } 
-  rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {}
-  rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {}
-  rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {}
-  rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {}
-  rpc GetFlag(GetFlagRequest) returns (Flag) {}
-  rpc ListFlags(ListFlagRequest) returns (FlagList) {}
-  rpc CreateFlag(CreateFlagRequest) returns (Flag) {}
-  rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {}
-  rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {}
-  rpc CreateVariant(CreateVariantRequest) returns (Variant) {}
-  rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {}
-  rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {}
-  rpc GetRule(GetRuleRequest) returns (Rule) {}
-  rpc ListRules(ListRuleRequest) returns (RuleList) {}
-  rpc CreateRule(CreateRuleRequest) returns (Rule) {}
-  rpc UpdateRule(UpdateRuleRequest) returns (Rule) {}
-  rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {}
-  rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {}
-  rpc GetRollout(GetRolloutRequest) returns (Rollout) {}
-  rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {}
-  rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {}
-  rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {}
-  rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {}
-  rpc OrderRollouts(OrderRolloutsRequest) returns (google.protobuf.Empty) {}
-  rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
-  rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
-  rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}
-  rpc GetSegment(GetSegmentRequest) returns (Segment) {}
-  rpc ListSegments(ListSegmentRequest) returns (SegmentList) {}
-  rpc CreateSegment(CreateSegmentRequest) returns (Segment) {}
-  rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {}
-  rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {}
-  rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {}
-  rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {}
-  rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {}
+  rpc GetNamespace(GetNamespaceRequest) returns (Namespace) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "NamespacesService.get"
+    };
+  }
+  rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "NamespacesService.list"
+    };
+  }
+  rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "NamespacesService.create"
+    };
+  }
+  rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{key}",
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "NamespacesService.update"
+    };
+  }
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "NamespacesService.delete"
+    };
+  }
+  rpc GetFlag(GetFlagRequest) returns (Flag) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "FlagsService.get"
+    };
+  }
+  rpc ListFlags(ListFlagRequest) returns (FlagList) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "FlagsService.list"
+    };
+  }
+  rpc CreateFlag(CreateFlagRequest) returns (Flag) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/flags"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "FlagsService.create"
+    };
+  }
+  rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{key}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "FlagsService.update"
+    };
+  }
+  rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/flags/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "FlagsService.delete"
+    };
+  }
+  rpc CreateVariant(CreateVariantRequest) returns (Variant) {
+    option (google.api.http) = {
+      post:  "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "VariantsService.create"
+    };
+  }
+  rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "VariantsService.update"
+    };
+  }
+  rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "VariantsService.delete"
+    };
+  }
+  rpc GetRule(GetRuleRequest) returns (Rule) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.get"
+    };
+  }
+  rpc ListRules(ListRuleRequest) returns (RuleList) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.list"
+    };
+  }
+  rpc CreateRule(CreateRuleRequest) returns (Rule) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.create"
+    };
+  }
+  rpc UpdateRule(UpdateRuleRequest) returns (Rule) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.update"
+    };
+  }
+  rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/order"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.order"
+    };
+  }
+  rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RulesService.delete"
+    };
+  }
+  rpc GetRollout(GetRolloutRequest) returns (Rollout) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.get"
+    };
+  }
+  rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.list"
+    };
+  }
+  rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.create"
+    };
+  }
+  rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.update"
+    };
+  }
+  rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.delete"
+    };
+  }
+  rpc OrderRollouts(OrderRolloutsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "RolloutsService.order"
+    };
+  }
+  rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "DistributionsService.create"
+    };
+  }
+  rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "DistributionsService.update"
+    };
+  }
+  rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "DistributionsService.delete"
+    };
+  }
+  rpc GetSegment(GetSegmentRequest) returns (Segment) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/segments/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "SegmentsService.get"
+    };
+  }
+  rpc ListSegments(ListSegmentRequest) returns (SegmentList) {
+    option (google.api.http) = {
+      get: "/api/v1/namespaces/{namespace_key}/segments"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "SegmentsService.list"
+    };
+  }
+  rpc CreateSegment(CreateSegmentRequest) returns (Segment) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/segments"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "SegmentsService.create"
+    };
+  }
+  rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/segments/{key}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "SegmentsService.update"
+    };
+  }
+  rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/segments/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "SegmentsService.delete"
+    };
+  }
+  rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {
+    option (google.api.http) = {
+      post: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "ConstraintsService.create"
+    };
+  }
+  rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {
+    option (google.api.http) = {
+      put: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "ConstraintsService.update"
+    };
+  }
+  rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "ConstraintsService.delete"
+    };
+  }
 }

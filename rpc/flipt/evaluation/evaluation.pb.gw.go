@@ -183,6 +183,7 @@ func local_request_DataService_EvaluationSnapshotNamespace_0(ctx context.Context
 // UnaryRPC     :call EvaluationServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterEvaluationServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterEvaluationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server EvaluationServiceServer) error {
 
 	mux.Handle("POST", pattern_EvaluationService_Boolean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -267,6 +268,7 @@ func RegisterEvaluationServiceHandlerServer(ctx context.Context, mux *runtime.Se
 // UnaryRPC     :call DataServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterDataServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterDataServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server DataServiceServer) error {
 
 	mux.Handle("GET", pattern_DataService_EvaluationSnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -332,7 +334,7 @@ func RegisterEvaluationServiceHandler(ctx context.Context, mux *runtime.ServeMux
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "EvaluationServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "EvaluationServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "EvaluationServiceClient" to call the correct interceptors.
+// "EvaluationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterEvaluationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client EvaluationServiceClient) error {
 
 	mux.Handle("POST", pattern_EvaluationService_Boolean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -455,7 +457,7 @@ func RegisterDataServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "DataServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DataServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "DataServiceClient" to call the correct interceptors.
+// "DataServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterDataServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DataServiceClient) error {
 
 	mux.Handle("GET", pattern_DataService_EvaluationSnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
