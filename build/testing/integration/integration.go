@@ -48,6 +48,10 @@ type NamespaceExpectation struct {
 	Expected string
 }
 
+func (n NamespaceExpectation) String() string {
+	return n.Expected
+}
+
 type NamespaceExpectations []NamespaceExpectation
 
 // OtherNamespaceFrom returns any other namespace in the set of expected
