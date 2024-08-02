@@ -57,6 +57,7 @@ var (
 		"api/cockroach": withCockroach(api),
 		"api/cache":     cache,
 		"api/cachetls":  cacheWithTLS,
+		"api/snapshot":  snapshot,
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
@@ -66,7 +67,6 @@ var (
 		"import/export": importExport,
 		"authn":         authn,
 		"authz":         authz,
-		"rest":          rest,
 	}
 )
 
@@ -266,8 +266,8 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }
 
-func rest(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	return suite(ctx, "rest", base,
+func snapshot(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return suite(ctx, "snapshot", base,
 		// create unique instance for test case
 		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }
