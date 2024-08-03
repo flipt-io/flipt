@@ -45,6 +45,8 @@ func TestSnapshot(t *testing.T) {
 
 					assert.NotEmpty(t, body)
 
+					t.Logf("Get snapshot for namespace with etag/if-none-match.")
+
 					req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/internal/v1/evaluation/snapshot/namespace/%s", opts.URL, namespace), nil)
 					req.Header.Set("If-None-Match", etag)
 					require.NoError(t, err)
