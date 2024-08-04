@@ -48,6 +48,7 @@ jobs:
             "api/cache",
             "api/cachetls",
             "api/snapshot",
+            "api/ofrep",
             "fs/git",
             "fs/local",
             "fs/s3",

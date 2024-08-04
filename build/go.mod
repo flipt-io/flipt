@@ -131,6 +131,8 @@ require (
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/onsi/gomega v1.33.0 // indirect
+	github.com/open-feature/go-sdk v1.11.0 // indirect
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.4 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

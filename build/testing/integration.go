@@ -58,6 +58,7 @@ var (
 		"api/cache":     cache,
 		"api/cachetls":  cacheWithTLS,
 		"api/snapshot":  snapshot,
+		"api/ofrep":     ofrep,
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
@@ -267,9 +268,25 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 }
 
 func snapshot(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	return suite(ctx, "snapshot", base,
-		// create unique instance for test case
-		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
+	flipt = flipt.
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
+}
+
+func ofrep(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	flipt = flipt.
+		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
 }
 
 func withSQLite(fn testCaseFn) testCaseFn {
