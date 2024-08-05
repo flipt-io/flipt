@@ -401,6 +401,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/mbezhanov"><img src="https://avatars.githubusercontent.com/u/785542?v=4?s=100" width="100px;" alt="Marin Bezhanov"/><br /><sub><b>Marin Bezhanov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=mbezhanov" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/wtertius"><img src="https://avatars.githubusercontent.com/u/5527797?v=4?s=100" width="100px;" alt="wtertius"/><br /><sub><b>wtertius</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=wtertius" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kvnhmn"><img src="https://avatars.githubusercontent.com/u/49870044?v=4?s=100" width="100px;" alt="Kevin H"/><br /><sub><b>Kevin H</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=kvnhmn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/radekska"><img src="https://avatars.githubusercontent.com/u/48757764?v=4?s=100" width="100px;" alt="Radosław Skałbania"/><br /><sub><b>Radosław Skałbania</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=radekska" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
