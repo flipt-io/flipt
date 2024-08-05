@@ -35,6 +35,31 @@ func TestParse(t *testing.T) {
 			dsn:    "flipt.db?_fk=true&cache=shared&mode=rwc",
 		},
 		{
+			name: "postgresql url",
+			cfg: config.DatabaseConfig{
+				URL: "postgresql://postgres@localhost:5432/flipt?sslmode=disable",
+			},
+			driver: Postgres,
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes&sslmode=disable",
+		},
+		{
+			name: "postgresql url prepared statements enabled",
+			cfg: config.DatabaseConfig{
+				URL:                       "postgresql://postgres@localhost:5432/flipt?sslmode=disable",
+				PreparedStatementsEnabled: true,
+			},
+			driver: Postgres,
+			dsn:    "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+		},
+		{
+			name: "postgresql no disable sslmode",
+			cfg: config.DatabaseConfig{
+				URL: "postgresql://postgres@localhost:5432/flipt",
+			},
+			driver: Postgres,
+			dsn:    "postgres://postgres@localhost:5432/flipt?binary_parameters=yes",
+		},
+		{
 			name: "postgres url prepared statements enabled",
 			cfg: config.DatabaseConfig{
 				URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
