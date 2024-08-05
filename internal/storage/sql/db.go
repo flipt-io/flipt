@@ -52,6 +52,7 @@ func init() {
 	// drop references to lib/pq and relay on pgx
 	dburl.Unregister("postgres")
 	dburl.RegisterAlias("pgx", "postgres")
+	dburl.RegisterAlias("pgx", "postgresql")
 }
 
 // Open opens a connection to the db
