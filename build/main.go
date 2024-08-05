@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/containerd/containerd/platforms"
-	"go.flipt.io/build/generate"
 	"go.flipt.io/build/internal"
 	"go.flipt.io/build/internal/dagger"
 	"go.flipt.io/build/testing"
@@ -130,24 +129,4 @@ func (t *Test) Integration(
 	}
 
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
-}
-
-type Generate struct {
-	Source         *dagger.Directory
-	FliptContainer *dagger.Container
-}
-
-// Execute generate function with subcommand
-// see all available subcommands with dagger call generate --help
-func (f *Flipt) Generate(ctx context.Context, source *dagger.Directory) (*Generate, error) {
-	flipt, err := f.Build(ctx, source)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Generate{source, flipt}, nil
-}
-
-func (g *Generate) Screenshots(ctx context.Context) error {
-	return generate.Screenshots(ctx, dag, g.Source, g.FliptContainer)
 }

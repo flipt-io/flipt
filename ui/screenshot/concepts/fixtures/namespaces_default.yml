@@ -1,5 +1,0 @@
-namespace: default
-flags:
-  - key: new-login
-    name: New Login
-    description: Enables the new login page for users

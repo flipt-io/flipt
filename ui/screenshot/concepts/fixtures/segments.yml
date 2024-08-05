@@ -1,5 +1,0 @@
-namespace: default
-segments:
-  - key: new-users
-    name: New Users
-    description: Users who haven't finished onboarding
