@@ -1,10 +1,21 @@
-version:   "1.0" | "1.1" | "1.2" | *"1.3"
+version: "1.0" | "1.1" | "1.2" | "1.3" | *"1.4"
 
 close({
-	namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
 	flags: [...#Flag]
 	segments: [...#Segment]
 })
+
+if version == "1.0" || version == "1.1" || version == "1.2" || version == "1.3" {
+	namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
+}
+
+if version == "1.4" {
+	namespace?: #Namespace: {
+		key:          string & =~"^[-_,A-Za-z0-9]+$" | *"default"
+		name?:        string & =~"^.+$"
+		description?: string
+	}
+}
 
 #Flag: {
 	key:          string & =~"^[-_,A-Za-z0-9]+$"
@@ -13,11 +24,11 @@ close({
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
-	if version == "1.1" || version == "1.2" || version == "1.3" {
+	if version == "1.1" || version == "1.2" || version == "1.3" || version == "1.4" {
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		#FlagBoolean | *{}
 	}
-	if version == "1.3" {
+	if version == "1.3" || version == "1.4" {
 		metadata: [string]: (string | int | bool | float)
 	}
 }
@@ -34,7 +45,7 @@ close({
 	key:          string & =~"^.+$"
 	name?:        string & =~"^.+$"
 	description?: string
-	attachment:   {...} | [...] | *null
+	attachment: {...} | [...] | *null
 	if version == "1.3" {
 		default: bool | *false
 	}
