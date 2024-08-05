@@ -16,7 +16,7 @@ import (
 )
 
 type mockLister struct {
-	namespaces []*flipt.Namespace
+	namespaces map[string]*flipt.Namespace
 
 	nsToFlags    map[string][]*flipt.Flag
 	nsToSegments map[string][]*flipt.Segment
@@ -24,9 +24,17 @@ type mockLister struct {
 	nsToRollouts map[string][]*flipt.Rollout
 }
 
+func (m mockLister) GetNamespace(_ context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
+	return m.namespaces[r.Key], nil
+}
+
 func (m mockLister) ListNamespaces(_ context.Context, _ *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
+	var namespaces []*flipt.Namespace
+	for _, ns := range m.namespaces {
+		namespaces = append(namespaces, ns)
+	}
 	return &flipt.NamespaceList{
-		Namespaces: m.namespaces,
+		Namespaces: namespaces,
 	}, nil
 }
 
@@ -494,15 +502,23 @@ func TestExport(t *testing.T) {
 		{
 			name: "all namespaces",
 			lister: mockLister{
-				namespaces: []*flipt.Namespace{
-					{
-						Key: "default",
+				namespaces: map[string]*flipt.Namespace{
+					"default": {
+						Key:         "default",
+						Name:        "default",
+						Description: "default namespace",
 					},
-					{
-						Key: "foo",
+
+					"foo": {
+						Key:         "foo",
+						Name:        "foo",
+						Description: "foo namespace",
 					},
-					{
-						Key: "bar",
+
+					"bar": {
+						Key:         "bar",
+						Name:        "bar",
+						Description: "bar namespace",
 					},
 				},
 				nsToFlags: map[string][]*flipt.Flag{

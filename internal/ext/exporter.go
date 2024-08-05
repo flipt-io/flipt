@@ -18,17 +18,20 @@ var (
 	v1_1          = semver.Version{Major: 1, Minor: 1}
 	v1_2          = semver.Version{Major: 1, Minor: 2}
 	v1_3          = semver.Version{Major: 1, Minor: 3}
-	latestVersion = v1_3
+	v1_4          = semver.Version{Major: 1, Minor: 4}
+	latestVersion = v1_4
 
 	supportedVersions = semver.Versions{
 		v1_0,
 		v1_1,
 		v1_2,
+		v1_3,
 		latestVersion,
 	}
 )
 
 type Lister interface {
+	GetNamespace(context.Context, *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
 	ListNamespaces(context.Context, *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error)
 	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
 	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
@@ -39,7 +42,7 @@ type Lister interface {
 type Exporter struct {
 	store         Lister
 	batchSize     int32
-	namespaces    []string
+	namespaceKeys []string
 	allNamespaces bool
 }
 
@@ -49,7 +52,7 @@ func NewExporter(store Lister, namespaces string, allNamespaces bool) *Exporter 
 	return &Exporter{
 		store:         store,
 		batchSize:     defaultBatchSize,
-		namespaces:    ns,
+		namespaceKeys: ns,
 		allNamespaces: allNamespaces,
 	}
 }
@@ -67,16 +70,14 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 	defer enc.Close()
 
-	namespaces := e.namespaces
+	namespaces := make([]*Namespace, 0)
 
-	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a string slice.
+	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a slice.
 	if e.allNamespaces {
 		var (
 			remaining = true
 			nextPage  string
 		)
-
-		intermediateNamespaces := make([]string, 0)
 
 		for remaining {
 			resp, err := e.store.ListNamespaces(ctx, &flipt.ListNamespaceRequest{
@@ -91,11 +92,29 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 			remaining = nextPage != ""
 
 			for _, ns := range resp.Namespaces {
-				intermediateNamespaces = append(intermediateNamespaces, ns.Key)
+				namespaces = append(namespaces, &Namespace{
+					Key:         ns.Key,
+					Name:        ns.Name,
+					Description: ns.Description,
+				})
 			}
 		}
+	} else {
+		// If allNamespaces is "false", then retrieve the namespaces specified in the namespaceKeys slice.
+		for _, key := range e.namespaceKeys {
+			resp, err := e.store.GetNamespace(ctx, &flipt.GetNamespaceRequest{
+				Key: key,
+			})
+			if err != nil {
+				return fmt.Errorf("getting namespaces: %w", err)
+			}
 
-		namespaces = intermediateNamespaces
+			namespaces = append(namespaces, &Namespace{
+				Key:         resp.Key,
+				Name:        resp.Name,
+				Description: resp.Description,
+			})
+		}
 	}
 
 	for i := 0; i < len(namespaces); i++ {
@@ -104,7 +123,10 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 		if i == 0 {
 			doc.Version = versionString(latestVersion)
 		}
-		doc.Namespace = namespaces[i]
+		ns := namespaces[i]
+		doc.Namespace = &NamespaceEmbed{
+			IsNamespace: ns,
+		}
 
 		var (
 			remaining = true
@@ -116,7 +138,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 			resp, err := e.store.ListFlags(
 				ctx,
 				&flipt.ListFlagRequest{
-					NamespaceKey: namespaces[i],
+					NamespaceKey: ns.Key,
 					PageToken:    nextPage,
 					Limit:        batchSize,
 				},
@@ -171,7 +193,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 				resp, err := e.store.ListRules(
 					ctx,
 					&flipt.ListRuleRequest{
-						NamespaceKey: namespaces[i],
+						NamespaceKey: ns.Key,
 						FlagKey:      flag.Key,
 					},
 				)
@@ -210,7 +232,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 				}
 
 				rollouts, err := e.store.ListRollouts(ctx, &flipt.ListRolloutRequest{
-					NamespaceKey: namespaces[i],
+					NamespaceKey: ns.Key,
 					FlagKey:      flag.Key,
 				})
 				if err != nil {
@@ -259,7 +281,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 			resp, err := e.store.ListSegments(
 				ctx,
 				&flipt.ListSegmentRequest{
-					NamespaceKey: namespaces[i],
+					NamespaceKey: ns.Key,
 					PageToken:    nextPage,
 					Limit:        batchSize,
 				},

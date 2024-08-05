@@ -87,20 +87,35 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 			}
 		}
 
-		namespace := doc.Namespace
+		var namespaceKey = flipt.DefaultNamespace
 
-		if namespace != "" && namespace != flipt.DefaultNamespace {
+		// non-default namespace, create it if it doesn't exist
+		if doc.Namespace != nil && doc.Namespace.GetKey() != flipt.DefaultNamespace {
+			namespaceKey = doc.Namespace.GetKey()
 			_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
-				Key: namespace,
+				Key: namespaceKey,
 			})
 			if err != nil {
 				if status.Code(err) != codes.NotFound && !errs.AsMatch[errs.ErrNotFound](err) {
 					return err
 				}
 
+				var (
+					namespaceName, namespaceDescription string
+				)
+
+				switch ns := doc.Namespace.IsNamespace.(type) {
+				case NamespaceKey:
+					namespaceName = string(ns)
+				case *Namespace:
+					namespaceName = ns.Name
+					namespaceDescription = ns.Description
+				}
+
 				_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-					Key:  namespace,
-					Name: namespace,
+					Key:         namespaceKey,
+					Name:        namespaceName,
+					Description: namespaceDescription,
 				})
 				if err != nil {
 					return err
@@ -122,12 +137,12 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 		)
 
 		if skipExisting {
-			existingFlags, err = i.existingFlags(ctx, namespace)
+			existingFlags, err = i.existingFlags(ctx, namespaceKey)
 			if err != nil {
 				return err
 			}
 
-			existingSegments, err = i.existingSegments(ctx, namespace)
+			existingSegments, err = i.existingSegments(ctx, namespaceKey)
 			if err != nil {
 				return err
 			}
@@ -146,7 +161,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				Name:         f.Name,
 				Description:  f.Description,
 				Enabled:      f.Enabled,
-				NamespaceKey: namespace,
+				NamespaceKey: namespaceKey,
 			}
 
 			if f.Metadata != nil {
@@ -194,7 +209,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					Name:         v.Name,
 					Description:  v.Description,
 					Attachment:   string(out),
-					NamespaceKey: namespace,
+					NamespaceKey: namespaceKey,
 				})
 				if err != nil {
 					return fmt.Errorf("creating variant: %w", err)
@@ -218,7 +233,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					Name:             flag.Name,
 					Description:      flag.Description,
 					Enabled:          flag.Enabled,
-					NamespaceKey:     namespace,
+					NamespaceKey:     namespaceKey,
 					DefaultVariantId: defaultVariantId,
 				})
 
@@ -243,7 +258,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				Name:         s.Name,
 				Description:  s.Description,
 				MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
-				NamespaceKey: namespace,
+				NamespaceKey: namespaceKey,
 			})
 			if err != nil {
 				return fmt.Errorf("creating segment: %w", err)
@@ -260,7 +275,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 					Property:     c.Property,
 					Operator:     c.Operator,
 					Value:        c.Value,
-					NamespaceKey: namespace,
+					NamespaceKey: namespaceKey,
 				})
 				if err != nil {
 					return fmt.Errorf("creating constraint: %w", err)
@@ -293,7 +308,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				fcr := &flipt.CreateRuleRequest{
 					FlagKey:      f.Key,
 					Rank:         rank,
-					NamespaceKey: namespace,
+					NamespaceKey: namespaceKey,
 				}
 
 				switch s := r.Segment.IsSegment.(type) {
@@ -324,7 +339,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 						RuleId:       rule.Id,
 						VariantId:    variant.Id,
 						Rollout:      d.Rollout,
-						NamespaceKey: namespace,
+						NamespaceKey: namespaceKey,
 					})
 					if err != nil {
 						return fmt.Errorf("creating distribution: %w", err)
@@ -341,14 +356,14 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 				for idx, r := range f.Rollouts {
 					if r.Segment != nil && r.Threshold != nil {
 						return fmt.Errorf(`rollout "%s/%s/%d" cannot have both segment and percentage rule`,
-							namespace,
+							namespaceKey,
 							f.Key,
 							idx,
 						)
 					}
 
 					req := &flipt.CreateRolloutRequest{
-						NamespaceKey: namespace,
+						NamespaceKey: namespaceKey,
 						FlagKey:      f.Key,
 						Description:  r.Description,
 						Rank:         int32(idx + 1),
@@ -362,7 +377,7 @@ func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader, skipEx
 
 						if len(r.Segment.Keys) > 0 && r.Segment.Key != "" {
 							return fmt.Errorf("rollout %s/%s/%d cannot have both segment.keys and segment.key",
-								namespace,
+								namespaceKey,
 								f.Key,
 								idx,
 							)
