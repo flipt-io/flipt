@@ -1,24 +1,22 @@
 version: "1.0" | "1.1" | "1.2" | "1.3" | *"1.4"
 
+_#key: string & =~"^[-_,A-Za-z0-9]+$"
+
 close({
+	version: version
+	namespace?:  #Namespace
 	flags: [...#Flag]
 	segments: [...#Segment]
 })
 
-if version == "1.0" || version == "1.1" || version == "1.2" || version == "1.3" {
-	namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
-}
-
-if version == "1.4" {
-	namespace?: #Namespace: {
-		key:          string & =~"^[-_,A-Za-z0-9]+$" | *"default"
-		name?:        string & =~"^.+$"
-		description?: string
-	}
-}
+#Namespace: {
+	key:          _#key | *"default"
+	name?:        string & =~"^.+$"
+	description?: string
+} | _#key
 
 #Flag: {
-	key:          string & =~"^[-_,A-Za-z0-9]+$"
+	key:          _#key
 	name:         string & =~"^.+$"
 	description?: string
 	enabled:      bool | *false
@@ -46,7 +44,7 @@ if version == "1.4" {
 	name?:        string & =~"^.+$"
 	description?: string
 	attachment: {...} | [...] | *null
-	if version == "1.3" {
+	if version == "1.3"  || version == "1.4" {
 		default: bool | *false
 	}
 }
@@ -57,7 +55,7 @@ if version == "1.4" {
 }
 
 #Rule: {
-	segment: string & =~"^[-_,A-Za-z0-9]+$" | #RuleSegment
+	segment: _#key | #RuleSegment
 	rank?:   int
 	distributions: [...#Distribution]
 }
@@ -67,7 +65,7 @@ if version == "1.4" {
 	rollout: >=0 & <=100
 }
 
-#RolloutSegment: {key: string & =~"^[-_,A-Za-z0-9]+$"} | {keys: [...string]}
+#RolloutSegment: {key: _#key} | {keys: [...string]}
 
 #Rollout: {
 	segment: {
@@ -84,7 +82,7 @@ if version == "1.4" {
 } | *{} // I found a comment somewhere that this helps with distinguishing disjunctions
 
 #Segment: {
-	key:          string & =~"^[-_,A-Za-z0-9]+$"
+	key:          _#key
 	name:         string & =~"^.+$"
 	match_type:   "ANY_MATCH_TYPE" | "ALL_MATCH_TYPE"
 	description?: string

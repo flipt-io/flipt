@@ -79,6 +79,20 @@ func TestValidate_Metadata_V3(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidate_NamespaceDetails_v4(t *testing.T) {
+	const file = "testdata/valid_namespace_details_v4.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
+
 func TestValidate_YAML_Stream(t *testing.T) {
 	const file = "testdata/valid_yaml_stream.yaml"
 	f, err := os.Open(file)
@@ -164,5 +178,5 @@ func TestValidate_Extended(t *testing.T) {
 	assert.Equal(t, file, ferr.Location.File)
 	// location of the start of the boolean flag
 	// which lacks a description
-	assert.Equal(t, 30, ferr.Location.Line)
+	assert.Equal(t, 33, ferr.Location.Line)
 }

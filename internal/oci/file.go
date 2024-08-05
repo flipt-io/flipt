@@ -18,6 +18,7 @@ import (
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
 	"oras.land/oras-go/v2"
@@ -378,16 +379,23 @@ func (s *Store) buildLayers(ctx context.Context, store oras.Target, src fs.FS) (
 			return err
 		}
 
+		var namespaceKey string
+		if doc.Namespace == nil {
+			namespaceKey = storage.DefaultNamespace
+		} else {
+			namespaceKey = doc.Namespace.GetKey()
+		}
+
 		desc := v1.Descriptor{
 			Digest:    digest.FromBytes(payload),
 			Size:      int64(len(payload)),
 			MediaType: MediaTypeFliptNamespace,
 			Annotations: map[string]string{
-				AnnotationFliptNamespace: doc.Namespace,
+				AnnotationFliptNamespace: namespaceKey,
 			},
 		}
 
-		s.logger.Debug("adding layer", zap.String("digest", desc.Digest.Hex()), zap.String("namespace", doc.Namespace))
+		s.logger.Debug("adding layer", zap.String("digest", desc.Digest.Hex()), zap.String("namespace", namespaceKey))
 
 		if err := store.Push(ctx, desc, bytes.NewReader(payload)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
 			return err
