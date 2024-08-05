@@ -49,13 +49,26 @@ type namespace struct {
 	etag         string
 }
 
-func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
+func newNamespace(ns *ext.NamespaceEmbed, created *timestamppb.Timestamp) *namespace {
+	var (
+		namespaceName        string
+		namespaceDescription string
+	)
+
+	switch t := ns.IsNamespace.(type) {
+	case ext.NamespaceKey:
+		namespaceName = string(t)
+	case *ext.Namespace:
+		namespaceName = t.Name
+		namespaceDescription = t.Description
+	}
 	return &namespace{
 		resource: &flipt.Namespace{
-			Key:       key,
-			Name:      name,
-			CreatedAt: created,
-			UpdatedAt: created,
+			Key:         ns.GetKey(),
+			Name:        namespaceName,
+			Description: namespaceDescription,
+			CreatedAt:   created,
+			UpdatedAt:   created,
 		},
 		flags:        map[string]*flipt.Flag{},
 		segments:     map[string]*flipt.Segment{},
@@ -212,7 +225,7 @@ func newSnapshot() *Snapshot {
 	now := flipt.Now()
 	return &Snapshot{
 		ns: map[string]*namespace{
-			defaultNs: newNamespace("default", "Default", now),
+			defaultNs: newNamespace(ext.DefaultNamespace, now),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
 		now:       now,
@@ -267,11 +280,7 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 
 		// set namespace to default if empty in document
 		if doc.Namespace == nil {
-			doc.Namespace = &ext.NamespaceEmbed{
-				IsNamespace: &ext.Namespace{
-					Key: "default",
-				},
-			}
+			doc.Namespace = ext.DefaultNamespace
 		}
 
 		doc.Etag = opts.etagFn(stat)
@@ -317,7 +326,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	)
 
 	if ns == nil {
-		ns = newNamespace(namespaceKey, namespaceKey, ss.now)
+		ns = newNamespace(doc.Namespace, ss.now)
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}

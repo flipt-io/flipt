@@ -182,6 +182,8 @@ type NamespaceEmbed struct {
 	IsNamespace `yaml:"-"`
 }
 
+var DefaultNamespace = &NamespaceEmbed{&Namespace{Key: "default", Name: "Default"}}
+
 // MarshalYAML tries to type assert to either of the following types that implement
 // IsNamespace, and returns the marshaled value.
 func (n *NamespaceEmbed) MarshalYAML() (interface{}, error) {
