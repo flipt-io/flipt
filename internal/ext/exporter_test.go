@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,14 +27,37 @@ type mockLister struct {
 }
 
 func (m mockLister) GetNamespace(_ context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
-	return m.namespaces[r.Key], nil
+	for k, ns := range m.namespaces {
+		// split the key by _ to get the namespace key, as its prefixed with an index
+		key := strings.Split(k, "_")[1]
+		if r.Key == key {
+			return ns, nil
+		}
+	}
+
+	return nil, fmt.Errorf("namespace %s not found", r.Key)
 }
 
 func (m mockLister) ListNamespaces(_ context.Context, _ *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
-	var namespaces []*flipt.Namespace
-	for _, ns := range m.namespaces {
-		namespaces = append(namespaces, ns)
+	var (
+		keys       []string
+		namespaces []*flipt.Namespace
+	)
+
+	// sort the namespaces by key, as they are prefixed with an index
+	for k := range m.namespaces {
+		keys = append(keys, k)
 	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+
+	// remove the index prefix from the key
+	for _, k := range keys {
+		namespaces = append(namespaces, m.namespaces[k])
+	}
+
 	return &flipt.NamespaceList{
 		Namespaces: namespaces,
 	}, nil
@@ -96,6 +121,13 @@ func TestExport(t *testing.T) {
 		{
 			name: "single default namespace",
 			lister: mockLister{
+				namespaces: map[string]*flipt.Namespace{
+					"0_default": {
+						Key:         "default",
+						Name:        "default",
+						Description: "default namespace",
+					},
+				},
 				nsToFlags: map[string][]*flipt.Flag{
 					"default": {
 						{
@@ -241,6 +273,18 @@ func TestExport(t *testing.T) {
 		{
 			name: "multiple namespaces",
 			lister: mockLister{
+				namespaces: map[string]*flipt.Namespace{
+					"0_default": {
+						Key:         "default",
+						Name:        "default",
+						Description: "default namespace",
+					},
+					"1_foo": {
+						Key:         "foo",
+						Name:        "foo",
+						Description: "foo namespace",
+					},
+				},
 				nsToFlags: map[string][]*flipt.Flag{
 					"default": {
 						{
@@ -503,19 +547,19 @@ func TestExport(t *testing.T) {
 			name: "all namespaces",
 			lister: mockLister{
 				namespaces: map[string]*flipt.Namespace{
-					"default": {
+					"0_default": {
 						Key:         "default",
 						Name:        "default",
 						Description: "default namespace",
 					},
 
-					"foo": {
+					"1_foo": {
 						Key:         "foo",
 						Name:        "foo",
 						Description: "foo namespace",
 					},
 
-					"bar": {
+					"2_bar": {
 						Key:         "bar",
 						Name:        "bar",
 						Description: "bar namespace",
