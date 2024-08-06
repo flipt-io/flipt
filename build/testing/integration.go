@@ -44,13 +44,6 @@ func init() {
 	}
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
