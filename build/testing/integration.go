@@ -14,6 +14,7 @@ import (
 	"math/big"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 	"time"
 
@@ -43,10 +44,17 @@ func init() {
 	}
 }
 
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
-	sema          = make(chan struct{}, 6)
+	sema          = make(chan struct{}, max(6, runtime.NumCPU()))
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
@@ -625,11 +633,6 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			expected, err := seed.Contents(ctx)
 			if err != nil {
 				return err
-			}
-
-			if ns == "default" {
-				// replace namespace in expected yaml
-				expected = strings.ReplaceAll(expected, "version: \"1.3\"\n", fmt.Sprintf("version: \"1.3\"\nnamespace: %s\n", ns))
 			}
 
 			if ns != "default" {
