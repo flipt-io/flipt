@@ -1248,6 +1248,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VariantEvaluationResponse'
+    /ofrep/v1/configuration:
+        get:
+            tags:
+                - OFREPService
+            operationId: ofrep.configuration
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetProviderConfigurationResponse'
+    /ofrep/v1/evaluate/flags/{key}:
+        post:
+            tags:
+                - OFREPService
+            operationId: ofrep.evaluate
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EvaluateFlagRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EvaluatedFlag'
 components:
     schemas:
         Authentication:
@@ -1319,6 +1355,11 @@ components:
                     format: date-time
                 flagKey:
                     type: string
+        CacheInvalidation:
+            type: object
+            properties:
+                polling:
+                    $ref: '#/components/schemas/Polling'
         CallbackResponse:
             type: object
             properties:
@@ -1326,6 +1367,13 @@ components:
                     type: string
                 authentication:
                     $ref: '#/components/schemas/Authentication'
+        Capabilities:
+            type: object
+            properties:
+                cacheInvalidation:
+                    $ref: '#/components/schemas/CacheInvalidation'
+                flagEvaluation:
+                    $ref: '#/components/schemas/FlagEvaluation'
         Constraint:
             type: object
             properties:
@@ -1550,6 +1598,29 @@ components:
                 reason:
                     type: integer
                     format: enum
+        EvaluateFlagRequest:
+            type: object
+            properties:
+                key:
+                    type: string
+                context:
+                    type: object
+                    additionalProperties:
+                        type: string
+        EvaluatedFlag:
+            type: object
+            properties:
+                key:
+                    type: string
+                reason:
+                    type: integer
+                    format: enum
+                variant:
+                    type: string
+                metadata:
+                    type: object
+                value:
+                    $ref: '#/components/schemas/GoogleProtobufValue'
         EvaluationRequest:
             required:
                 - namespaceKey
@@ -1614,6 +1685,13 @@ components:
                     $ref: '#/components/schemas/Variant'
                 metadata:
                     type: object
+        FlagEvaluation:
+            type: object
+            properties:
+                supportedTypes:
+                    type: array
+                    items:
+                        type: string
         FlagList:
             type: object
             properties:
@@ -1626,6 +1704,15 @@ components:
                 totalCount:
                     type: integer
                     format: int32
+        GetProviderConfigurationResponse:
+            type: object
+            properties:
+                name:
+                    type: string
+                capabilities:
+                    $ref: '#/components/schemas/Capabilities'
+        GoogleProtobufValue:
+            description: Represents a dynamically typed value which can be either null, a number, a string, a boolean, a recursive struct value, or a list of values.
         ListAuthenticationsResponse:
             type: object
             properties:
@@ -1690,6 +1777,14 @@ components:
                         type: string
                 namespaceKey:
                     type: string
+        Polling:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                minPollingIntervalMs:
+                    type: integer
+                    format: uint32
         Rollout:
             type: object
             properties:
@@ -2049,3 +2144,5 @@ tags:
     - name: AuthenticationService
     - name: EvaluationService
     - name: Flipt
+    - name: OFREPService
+      description: flipt:sdk:ignore
