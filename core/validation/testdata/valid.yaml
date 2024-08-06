@@ -1,4 +1,7 @@
-namespace: default
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
 flags:
 - key: flipt
   name: flipt

@@ -457,10 +457,15 @@ segments:
     value: buzz
 `
 
-	expectedYAMLStreamOutput = `version: "1.3"
-namespace: default
+	expectedYAMLStreamOutput = `version: "1.4"
+namespace:
+  key: default
+  name: Default
+  description: Default namespace
 ---
-namespace: foo
+namespace:
+  key: foo
+  name: foo
 flags:
 - key: zUFtS7D0UyMeueYu
   name: UAoZRksg94r1iipa
@@ -491,7 +496,9 @@ segments:
     value: buzz
   match_type: ALL_MATCH_TYPE
 ---
-namespace: bar
+namespace:
+  key: bar
+  name: bar
 flags:
 - key: zUFtS7D0UyMeueYu
   name: UAoZRksg94r1iipa

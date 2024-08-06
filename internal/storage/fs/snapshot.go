@@ -49,13 +49,26 @@ type namespace struct {
 	etag         string
 }
 
-func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
+func newNamespace(ns *ext.NamespaceEmbed, created *timestamppb.Timestamp) *namespace {
+	var (
+		namespaceName        string
+		namespaceDescription string
+	)
+
+	switch t := ns.IsNamespace.(type) {
+	case ext.NamespaceKey:
+		namespaceName = string(t)
+	case *ext.Namespace:
+		namespaceName = t.Name
+		namespaceDescription = t.Description
+	}
 	return &namespace{
 		resource: &flipt.Namespace{
-			Key:       key,
-			Name:      name,
-			CreatedAt: created,
-			UpdatedAt: created,
+			Key:         ns.GetKey(),
+			Name:        namespaceName,
+			Description: namespaceDescription,
+			CreatedAt:   created,
+			UpdatedAt:   created,
 		},
 		flags:        map[string]*flipt.Flag{},
 		segments:     map[string]*flipt.Segment{},
@@ -212,7 +225,7 @@ func newSnapshot() *Snapshot {
 	now := flipt.Now()
 	return &Snapshot{
 		ns: map[string]*namespace{
-			defaultNs: newNamespace("default", "Default", now),
+			defaultNs: newNamespace(ext.DefaultNamespace, now),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
 		now:       now,
@@ -266,8 +279,8 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		}
 
 		// set namespace to default if empty in document
-		if doc.Namespace == "" {
-			doc.Namespace = "default"
+		if doc.Namespace == nil {
+			doc.Namespace = ext.DefaultNamespace
 		}
 
 		doc.Etag = opts.etagFn(stat)
@@ -307,9 +320,13 @@ func listStateFiles(logger *zap.Logger, src fs.FS) ([]string, error) {
 }
 
 func (ss *Snapshot) addDoc(doc *ext.Document) error {
-	ns := ss.ns[doc.Namespace]
+	var (
+		namespaceKey = doc.Namespace.GetKey()
+		ns           = ss.ns[namespaceKey]
+	)
+
 	if ns == nil {
-		ns = newNamespace(doc.Namespace, doc.Namespace, ss.now)
+		ns = newNamespace(doc.Namespace, ss.now)
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
@@ -320,7 +337,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	for _, s := range doc.Segments {
 		matchType := flipt.MatchType_value[s.MatchType]
 		segment := &flipt.Segment{
-			NamespaceKey: doc.Namespace,
+			NamespaceKey: namespaceKey,
 			Name:         s.Name,
 			Key:          s.Key,
 			Description:  s.Description,
@@ -332,7 +349,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		for _, constraint := range s.Constraints {
 			constraintType := flipt.ComparisonType_value[constraint.Type]
 			segment.Constraints = append(segment.Constraints, &flipt.Constraint{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				SegmentKey:   segment.Key,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				Operator:     constraint.Operator,
@@ -351,7 +368,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	for _, f := range doc.Flags {
 		flagType := flipt.FlagType_value[f.Type]
 		flag := &flipt.Flag{
-			NamespaceKey: doc.Namespace,
+			NamespaceKey: namespaceKey,
 			Key:          f.Key,
 			Name:         f.Name,
 			Description:  f.Description,
@@ -369,7 +386,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 
 			variant := &flipt.Variant{
 				Id:           uuid.Must(uuid.NewV4()).String(),
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				Key:          v.Key,
 				Name:         v.Name,
 				Description:  v.Description,
@@ -391,7 +408,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		for i, r := range f.Rules {
 			rank := int32(i + 1)
 			rule := &flipt.Rule{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
 				Rank:         rank,
@@ -400,7 +417,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			}
 
 			evalRule := &storage.EvaluationRule{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				FlagKey:      f.Key,
 				ID:           rule.Id,
 				Rank:         rank,
@@ -492,7 +509,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		for i, rollout := range f.Rollouts {
 			rank := int32(i + 1)
 			s := &storage.EvaluationRollout{
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				Rank:         rank,
 			}
 
@@ -500,7 +517,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				Rank:         rank,
 				FlagKey:      f.Key,
-				NamespaceKey: doc.Namespace,
+				NamespaceKey: namespaceKey,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
 			}
@@ -589,7 +606,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
 	ns.etag = doc.Etag
-	ss.ns[doc.Namespace] = ns
+	ss.ns[namespaceKey] = ns
 
 	ss.evalDists = evalDists
 

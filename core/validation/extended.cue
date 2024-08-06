@@ -1,4 +1,3 @@
 #Flag: {
 	description: =~"^.+$"
 }
-

@@ -1,4 +1,8 @@
-version: "1.3"
+version: "1.4"
+namespace:
+  key: default
+  name: Default
+  description: Default namespace
 flags:
 - key: flag_001
   name: FLAG_001

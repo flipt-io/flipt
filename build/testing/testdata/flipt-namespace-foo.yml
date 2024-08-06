@@ -1,30 +1,29 @@
-# exported by Flipt (dev) on 2020-02-24T14:57:19Z
 namespace: foo
 flags:
-- key: zUFtS7D0UyMeueYu
-  name: UAoZRksg94r1iipa
-  description: description
-  enabled: true
-  variants:
-  - key: NGxfcVffpMhBz9n8
-    name: fhDHQ7rcxvoaWbHw
-  - key: sDGD6NvfCRyaQUn3
-  rules:
-  - segment: 08UoVJ96LhZblPEx
-    rank: 1
-    distributions:
-    - variant: NGxfcVffpMhBz9n8
-      rollout: 100
+  - key: zUFtS7D0UyMeueYu
+    name: UAoZRksg94r1iipa
+    description: description
+    enabled: true
+    variants:
+      - key: NGxfcVffpMhBz9n8
+        name: fhDHQ7rcxvoaWbHw
+      - key: sDGD6NvfCRyaQUn3
+    rules:
+      - segment: 08UoVJ96LhZblPEx
+        rank: 1
+        distributions:
+          - variant: NGxfcVffpMhBz9n8
+            rollout: 100
 segments:
-- key: 08UoVJ96LhZblPEx
-  name: 2oS8SHbrxyFkRg1a
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  - type: STRING_COMPARISON_TYPE
-    property: fizz
-    operator: neq
-    value: buzz
+  - key: 08UoVJ96LhZblPEx
+    name: 2oS8SHbrxyFkRg1a
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz

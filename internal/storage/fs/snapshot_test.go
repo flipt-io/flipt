@@ -47,8 +47,8 @@ func TestSnapshotFromFS_Invalid(t *testing.T) {
 			path: "testdata/invalid/namespace",
 			err: errors.Join(
 				validation.Error{Message: "namespace: 2 errors in empty disjunction:", Location: validation.Location{File: "features.json", Line: 1}},
-				validation.Error{Message: "namespace: conflicting values 1 and \"default\" (mismatched types int and string)", Location: validation.Location{File: "features.json", Line: 1}},
 				validation.Error{Message: "namespace: conflicting values 1 and string (mismatched types int and string)", Location: validation.Location{File: "features.json", Line: 1}},
+				validation.Error{Message: "namespace: conflicting values 1 and {key:((string & =~\"^[-_,A-Za-z0-9]+$\")|*\"default\"),name?:(string & =~\"^.+$\"),description?:string} (mismatched types int and struct)", Location: validation.Location{File: "features.json", Line: 1}},
 			),
 		},
 	} {

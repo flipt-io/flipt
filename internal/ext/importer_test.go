@@ -74,8 +74,8 @@ func (m *mockCreator) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 		return nil, m.createflagErr
 	}
 	return &flipt.Flag{
-		NamespaceKey: r.NamespaceKey,
 		Key:          r.Key,
+		NamespaceKey: r.NamespaceKey,
 		Name:         r.Name,
 		Description:  r.Description,
 		Type:         r.Type,
@@ -90,8 +90,8 @@ func (m *mockCreator) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest
 		return nil, m.updateFlagErr
 	}
 	return &flipt.Flag{
-		NamespaceKey: r.NamespaceKey,
 		Key:          r.Key,
+		NamespaceKey: r.NamespaceKey,
 		Name:         r.Name,
 		Description:  r.Description,
 		DefaultVariant: &flipt.Variant{
@@ -107,12 +107,13 @@ func (m *mockCreator) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 		return nil, m.variantErr
 	}
 	return &flipt.Variant{
-		Id:          "static_variant_id",
-		FlagKey:     r.FlagKey,
-		Key:         r.Key,
-		Name:        r.Name,
-		Description: r.Description,
-		Attachment:  r.Attachment,
+		Id:           "static_variant_id",
+		NamespaceKey: r.NamespaceKey,
+		FlagKey:      r.FlagKey,
+		Key:          r.Key,
+		Name:         r.Name,
+		Description:  r.Description,
+		Attachment:   r.Attachment,
 	}, nil
 }
 
@@ -122,10 +123,11 @@ func (m *mockCreator) CreateSegment(ctx context.Context, r *flipt.CreateSegmentR
 		return nil, m.segmentErr
 	}
 	return &flipt.Segment{
-		Key:         r.Key,
-		Name:        r.Name,
-		Description: r.Description,
-		MatchType:   r.MatchType,
+		Key:          r.Key,
+		NamespaceKey: r.NamespaceKey,
+		Name:         r.Name,
+		Description:  r.Description,
+		MatchType:    r.MatchType,
 	}, nil
 }
 
@@ -135,12 +137,13 @@ func (m *mockCreator) CreateConstraint(ctx context.Context, r *flipt.CreateConst
 		return nil, m.constraintErr
 	}
 	return &flipt.Constraint{
-		Id:         "static_constraint_id",
-		SegmentKey: r.SegmentKey,
-		Type:       r.Type,
-		Property:   r.Property,
-		Operator:   r.Operator,
-		Value:      r.Value,
+		Id:           "static_constraint_id",
+		NamespaceKey: r.NamespaceKey,
+		SegmentKey:   r.SegmentKey,
+		Type:         r.Type,
+		Property:     r.Property,
+		Operator:     r.Operator,
+		Value:        r.Value,
 	}, nil
 }
 
@@ -150,10 +153,11 @@ func (m *mockCreator) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 		return nil, m.ruleErr
 	}
 	return &flipt.Rule{
-		Id:         "static_rule_id",
-		FlagKey:    r.FlagKey,
-		SegmentKey: r.SegmentKey,
-		Rank:       r.Rank,
+		Id:           "static_rule_id",
+		NamespaceKey: r.NamespaceKey,
+		FlagKey:      r.FlagKey,
+		SegmentKey:   r.SegmentKey,
+		Rank:         r.Rank,
 	}, nil
 }
 
@@ -258,31 +262,35 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				updateFlagReqs: []*flipt.UpdateFlagRequest{
 					{
+						NamespaceKey:     "default",
 						Key:              "flag1",
 						Name:             "flag1",
 						Description:      "description",
@@ -292,41 +300,46 @@ func TestImport(t *testing.T) {
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -335,9 +348,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -354,66 +368,74 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -422,9 +444,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -441,65 +464,73 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -508,9 +539,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -527,66 +559,74 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -595,9 +635,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -614,66 +655,74 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:     "flag1",
-						SegmentKeys: []string{"segment1"},
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKeys:  []string{"segment1"},
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -682,9 +731,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -701,52 +751,58 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 			},
@@ -757,66 +813,74 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -825,9 +889,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -846,19 +911,21 @@ func TestImport(t *testing.T) {
 				return &mockCreator{
 					listFlagResps: []*flipt.FlagList{{
 						Flags: []*flipt.Flag{{
-							Key:         "flag1",
-							Name:        "flag1",
-							Description: "description",
-							Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-							Enabled:     true,
+							NamespaceKey: "default",
+							Key:          "flag1",
+							Name:         "flag1",
+							Description:  "description",
+							Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+							Enabled:      true,
 						}},
 					}},
 					listSegmentResps: []*flipt.SegmentList{{
 						Segments: []*flipt.Segment{{
-							Key:         "segment1",
-							Name:        "segment1",
-							Description: "description",
-							MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+							NamespaceKey: "default",
+							Key:          "segment1",
+							Name:         "segment1",
+							Description:  "description",
+							MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 						}},
 					}},
 				}
@@ -866,38 +933,42 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
 					},
 				},
 				variantReqs: nil,
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment2",
-						Name:        "segment2",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment2",
+						Name:         "segment2",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment2",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "buzz",
-						Operator:   "neq",
-						Value:      "fizz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment2",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "buzz",
+						Operator:     "neq",
+						Value:        "fizz",
 					},
 				},
 				ruleReqs:         nil,
 				distributionReqs: nil,
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -906,9 +977,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,
@@ -918,11 +990,15 @@ func TestImport(t *testing.T) {
 					},
 				},
 				listFlagReqs: []*flipt.ListFlagRequest{
-					{},
+					{
+						NamespaceKey: "default",
+					},
 				},
 				listFlagResps: []*flipt.FlagList{},
 				listSegmentReqs: []*flipt.ListSegmentRequest{
-					{},
+					{
+						NamespaceKey: "default",
+					},
 				},
 				listSegmentResps: []*flipt.SegmentList{},
 			},
@@ -933,68 +1009,76 @@ func TestImport(t *testing.T) {
 			expected: &mockCreator{
 				createflagReqs: []*flipt.CreateFlagRequest{
 					{
-						Key:         "flag1",
-						Name:        "flag1",
-						Description: "description",
-						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
-						Enabled:     true,
-						Metadata:    newStruct(t, map[string]any{"label": "variant", "area": true}),
+						NamespaceKey: "default",
+						Key:          "flag1",
+						Name:         "flag1",
+						Description:  "description",
+						Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:      true,
+						Metadata:     newStruct(t, map[string]any{"label": "variant", "area": true}),
 					},
 					{
-						Key:         "flag2",
-						Name:        "flag2",
-						Description: "a boolean flag",
-						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
-						Enabled:     false,
-						Metadata:    newStruct(t, map[string]any{"label": "bool", "area": 12}),
+						NamespaceKey: "default",
+						Key:          "flag2",
+						Name:         "flag2",
+						Description:  "a boolean flag",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:      false,
+						Metadata:     newStruct(t, map[string]any{"label": "bool", "area": 12}),
 					},
 				},
 				variantReqs: []*flipt.CreateVariantRequest{
 					{
-						FlagKey:     "flag1",
-						Key:         "variant1",
-						Name:        "variant1",
-						Description: "variant description",
-						Attachment:  compact(t, variantAttachment),
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						Key:          "variant1",
+						Name:         "variant1",
+						Description:  "variant description",
+						Attachment:   compact(t, variantAttachment),
 					},
 				},
 				segmentReqs: []*flipt.CreateSegmentRequest{
 					{
-						Key:         "segment1",
-						Name:        "segment1",
-						Description: "description",
-						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+						NamespaceKey: "default",
+						Key:          "segment1",
+						Name:         "segment1",
+						Description:  "description",
+						MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 				constraintReqs: []*flipt.CreateConstraintRequest{
 					{
-						SegmentKey: "segment1",
-						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property:   "fizz",
-						Operator:   "neq",
-						Value:      "buzz",
+						NamespaceKey: "default",
+						SegmentKey:   "segment1",
+						Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:     "fizz",
+						Operator:     "neq",
+						Value:        "buzz",
 					},
 				},
 				ruleReqs: []*flipt.CreateRuleRequest{
 					{
-						FlagKey:    "flag1",
-						SegmentKey: "segment1",
-						Rank:       1,
+						NamespaceKey: "default",
+						FlagKey:      "flag1",
+						SegmentKey:   "segment1",
+						Rank:         1,
 					},
 				},
 				distributionReqs: []*flipt.CreateDistributionRequest{
 					{
-						RuleId:    "static_rule_id",
-						VariantId: "static_variant_id",
-						FlagKey:   "flag1",
-						Rollout:   100,
+						NamespaceKey: "default",
+						RuleId:       "static_rule_id",
+						VariantId:    "static_variant_id",
+						FlagKey:      "flag1",
+						Rollout:      100,
 					},
 				},
 				rolloutReqs: []*flipt.CreateRolloutRequest{
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for internal users",
-						Rank:        1,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for internal users",
+						Rank:         1,
 						Rule: &flipt.CreateRolloutRequest_Segment{
 							Segment: &flipt.RolloutSegment{
 								SegmentKey: "internal_users",
@@ -1003,9 +1087,10 @@ func TestImport(t *testing.T) {
 						},
 					},
 					{
-						FlagKey:     "flag2",
-						Description: "enabled for 50%",
-						Rank:        2,
+						NamespaceKey: "default",
+						FlagKey:      "flag2",
+						Description:  "enabled for 50%",
+						Rank:         2,
 						Rule: &flipt.CreateRolloutRequest_Threshold{
 							Threshold: &flipt.RolloutThreshold{
 								Percentage: 50.0,

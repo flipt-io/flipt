@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/ext"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -27,16 +28,15 @@ const (
 )
 
 var (
-	snapshotOne = &Snapshot{ns: map[string]*namespace{
-		"one": newNamespace("one", "One", timestamppb.Now()),
-	}}
-	snapshotTwo = &Snapshot{ns: map[string]*namespace{
-		"two": newNamespace("two", "Two", timestamppb.Now()),
-	}}
-	snapshotThree = &Snapshot{ns: map[string]*namespace{
-		"three": newNamespace("three", "Three", timestamppb.Now()),
-	}}
+	snapshotOne   = newMockSnapshot("one", "One", timestamppb.Now())
+	snapshotTwo   = newMockSnapshot("two", "Two", timestamppb.Now())
+	snapshotThree = newMockSnapshot("three", "Three", timestamppb.Now())
 )
+
+func newMockSnapshot(key, name string, created *timestamppb.Timestamp) *Snapshot {
+	n := newNamespace(&ext.NamespaceEmbed{IsNamespace: &ext.Namespace{Key: key, Name: name}}, created)
+	return &Snapshot{ns: map[string]*namespace{key: n}}
+}
 
 func Test_SnapshotCache(t *testing.T) {
 	cache, err := NewSnapshotCache[string](zaptest.NewLogger(t), 2)
