@@ -31,6 +31,7 @@ plugins:
       - version=1.47.0
       - fq_schema_naming=false
       - default_response=false
+      - enum_type=string
       - title=api
       - description=
 
