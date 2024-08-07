@@ -420,14 +420,14 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 
 				if reqNamespace != ns {
 					logger.Error("unauthenticated",
-						zap.String("reason", "namespace is not allowed"))
+						zap.String("reason", "same namespace is not set for all requests"))
 					return ctx, errUnauthenticated
 				}
 			}
 		default:
 			// if the the token has a namespace but the request does not then we should reject the request
 			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed"))
+				zap.String("reason", "namespace is requried when using namespace scoped token"))
 			return ctx, errUnauthenticated
 		}
 
