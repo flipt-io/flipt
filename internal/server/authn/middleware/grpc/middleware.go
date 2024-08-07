@@ -427,7 +427,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 		default:
 			// if the the token has a namespace but the request does not then we should reject the request
 			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is requried when using namespace scoped token"))
+				zap.String("reason", "namespace is required when using namespace scoped token"))
 			return ctx, errUnauthenticated
 		}
 
