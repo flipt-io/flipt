@@ -1,10 +1,12 @@
 version: v1
+
 plugins:
   # core apis
   - name: go
     out: rpc/flipt
     opt:
       - paths=source_relative
+      - Mgnostic/openapi/v3/annotations.proto=github.com/google/gnostic-models/openapiv3
     strategy: all
   - name: go-grpc
     out: rpc/flipt
@@ -23,3 +25,12 @@ plugins:
       - paths=source_relative
       - grpc_api_configuration=rpc/flipt/flipt.yaml
     strategy: all
+  - plugin: buf.build/community/google-gnostic-openapi
+    out: .
+    opt:
+      - version=1.47.0
+      - fq_schema_naming=false
+      - default_response=false
+      - title=api
+      - description=
+

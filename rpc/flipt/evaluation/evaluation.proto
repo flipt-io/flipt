@@ -3,21 +3,25 @@ syntax = "proto3";
 package flipt.evaluation;
 
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "google/api/visibility.proto";
+import "google/api/field_behavior.proto";
+import "gnostic/openapi/v3/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
 
 message EvaluationRequest {
   string request_id = 1;
-  string namespace_key = 2;
-  string flag_key = 3;
-  string entity_id = 4;
-  map<string, string> context = 5;
+  string namespace_key = 2 [(google.api.field_behavior) = REQUIRED];
+  string flag_key = 3 [(google.api.field_behavior) = REQUIRED];
+  string entity_id = 4 [(google.api.field_behavior) = REQUIRED];
+  map<string, string> context = 5 [(google.api.field_behavior) = REQUIRED];
   string reference = 6;
 }
 
 message BatchEvaluationRequest {
   string request_id = 1;
-  repeated EvaluationRequest requests = 3;
+  repeated EvaluationRequest requests = 3 [(google.api.field_behavior) = REQUIRED];
   string reference = 4;
 }
 
@@ -82,9 +86,18 @@ message ErrorEvaluationResponse {
 }
 
 service EvaluationService {
-  rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {}
-  rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {}
-  rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
+  rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {
+    option (google.api.http) = {post: "/evaluate/v1/boolean" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBoolean"};
+  }
+  rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {
+    option (google.api.http) = {post: "/evaluate/v1/variant" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateVariant"};
+  }
+  rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
+    option (google.api.http) = {post: "/evaluate/v1/batch" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBatch"};
+  }
 }
 
 message EvaluationDistribution {
@@ -205,7 +218,8 @@ message EvaluationNamespaceSnapshotRequest {
   string reference = 2;
 }
 
-// flipt:sdk:ignore
 service DataService {
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
+
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
 }

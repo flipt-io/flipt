@@ -7,7 +7,9 @@ import (
 	"slices"
 	"strings"
 
+	"google.golang.org/genproto/googleapis/api/visibility"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -415,9 +417,8 @@ func New(t Transport, opts ...Option) SDK {
 }`
 
 func shouldIgnoreService(srv *protogen.Service) bool {
-	if srv.Comments.Leading != "" {
-		leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
-		return strings.TrimSpace(leading) == ignoreDecl
+	if v := proto.GetExtension(srv.Desc.Options(), visibility.E_ApiVisibility).(*visibility.VisibilityRule); v != nil {
+		return v.Restriction == ignoreDecl
 	}
 	return false
 }

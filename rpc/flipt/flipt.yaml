@@ -4,25 +4,6 @@ config_version: 3
 
 http:
   rules:
-  # namespaces
-  #
-  - selector: flipt.Flipt.GetNamespace
-    get: /api/v1/namespaces/{key}
-
-  - selector: flipt.Flipt.ListNamespaces
-    get: /api/v1/namespaces
-
-  - selector: flipt.Flipt.CreateNamespace
-    post: /api/v1/namespaces
-    body: "*"
-
-  - selector: flipt.Flipt.UpdateNamespace
-    put: /api/v1/namespaces/{key}
-    body: "*"
-
-  - selector: flipt.Flipt.DeleteNamespace
-    delete: /api/v1/namespaces/{key}
-
   # evaluation
   #
   - selector: flipt.Flipt.Evaluate
@@ -40,147 +21,61 @@ http:
   - selector: flipt.Flipt.BatchEvaluate
     post: /api/v1/namespaces/{namespace_key}/batch-evaluate
     body: "*"
-  
-  # evaluation v2
-  #
-  - selector: flipt.evaluation.EvaluationService.Boolean
-    post: /evaluate/v1/boolean
-    body: "*"
-
-  - selector: flipt.evaluation.EvaluationService.Variant
-    post: /evaluate/v1/variant
-    body: "*"
-
-  - selector: flipt.evaluation.EvaluationService.Batch
-    post: /evaluate/v1/batch
-    body: "*"
 
   # flags
-  # 
+  #
   - selector: flipt.Flipt.GetFlag
     get: /api/v1/flags/{key}
-
-  - selector: flipt.Flipt.GetFlag
-    get: /api/v1/namespaces/{namespace_key}/flags/{key}
 
   - selector: flipt.Flipt.ListFlags
     get: /api/v1/flags
 
-  - selector: flipt.Flipt.ListFlags
-    get: /api/v1/namespaces/{namespace_key}/flags
-
   - selector: flipt.Flipt.CreateFlag
     post: /api/v1/flags
-    body: "*"
-
-  - selector: flipt.Flipt.CreateFlag
-    post: /api/v1/namespaces/{namespace_key}/flags
     body: "*"
 
   - selector: flipt.Flipt.UpdateFlag
     put: /api/v1/flags/{key}
     body: "*"
 
-  - selector: flipt.Flipt.UpdateFlag
-    put: /api/v1/namespaces/{namespace_key}/flags/{key}
-    body: "*"
-
   - selector: flipt.Flipt.DeleteFlag
     delete: /api/v1/flags/{key}
 
-  - selector: flipt.Flipt.DeleteFlag
-    delete: /api/v1/namespaces/{namespace_key}/flags/{key}
-
-  ## rollout rules
-  #
-  - selector: flipt.Flipt.GetRollout
-    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
-
-  - selector: flipt.Flipt.ListRollouts
-    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts
-
-  - selector: flipt.Flipt.CreateRollout
-    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts
-    body: "*"
-  
-  - selector: flipt.Flipt.UpdateRollout
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
-    body: "*"
-
-  - selector: flipt.Flipt.DeleteRollout
-    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
-
-  - selector: flipt.Flipt.OrderRollouts
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order
-    body: "*"
-
   # variants
-  # 
+  #
   - selector: flipt.Flipt.CreateVariant
     post: /api/v1/flags/{flag_key}/variants
-    body: "*"
-
-  - selector: flipt.Flipt.CreateVariant
-    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants
     body: "*"
 
   - selector: flipt.Flipt.UpdateVariant
     put: /api/v1/flags/{flag_key}/variants/{id}
     body: "*"
 
-  - selector: flipt.Flipt.UpdateVariant
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}
-    body: "*"
-
   - selector: flipt.Flipt.DeleteVariant
     delete: /api/v1/flags/{flag_key}/variants/{id}
 
-  - selector: flipt.Flipt.DeleteVariant
-    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}
-
   # rules
-  # 
+  #
   - selector: flipt.Flipt.GetRule
     get: /api/v1/flags/{flag_key}/rules/{id}
-
-  - selector: flipt.Flipt.GetRule
-    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}
 
   - selector: flipt.Flipt.ListRules
     get: /api/v1/flags/{flag_key}/rules
 
-  - selector: flipt.Flipt.ListRules
-    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules
-
   - selector: flipt.Flipt.CreateRule
     post: /api/v1/flags/{flag_key}/rules
-    body: "*"
-
-  - selector: flipt.Flipt.CreateRule
-    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules
     body: "*"
 
   - selector: flipt.Flipt.UpdateRule
     put: /api/v1/flags/{flag_key}/rules/{id}
     body: "*"
 
-  - selector: flipt.Flipt.UpdateRule
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}
-    body: "*"
-
   - selector: flipt.Flipt.OrderRules
     put: /api/v1/flags/{flag_key}/rules/order
     body: "*"
 
-  - selector: flipt.Flipt.OrderRules
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/order
-    body: "*"
-
   - selector: flipt.Flipt.DeleteRule
     delete: /api/v1/flags/{flag_key}/rules/{id}
-
-  - selector: flipt.Flipt.DeleteRule
-    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}
 
   # distributions
   #
@@ -188,59 +83,32 @@ http:
     post: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"
     body: "*"
 
-  - selector: flipt.Flipt.CreateDistribution
-    post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions"
-    body: "*"
-
   - selector: flipt.Flipt.UpdateDistribution
     put: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
     body: "*"
 
-  - selector: flipt.Flipt.UpdateDistribution
-    put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
-    body: "*"
-
   - selector: flipt.Flipt.DeleteDistribution
     delete: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
-
-  - selector: flipt.Flipt.DeleteDistribution
-    delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
 
   # segments
   #
   - selector: flipt.Flipt.GetSegment
     get: /api/v1/segments/{key}
 
-  - selector: flipt.Flipt.GetSegment
-    get: /api/v1/namespaces/{namespace_key}/segments/{key}
 
   - selector: flipt.Flipt.ListSegments
     get: /api/v1/segments
 
-  - selector: flipt.Flipt.ListSegments
-    get: /api/v1/namespaces/{namespace_key}/segments
-
   - selector: flipt.Flipt.CreateSegment
     post: /api/v1/segments
-    body: "*"
-
-  - selector: flipt.Flipt.CreateSegment
-    post: /api/v1/namespaces/{namespace_key}/segments
     body: "*"
 
   - selector: flipt.Flipt.UpdateSegment
     put: /api/v1/segments/{key}
     body: "*"
 
-  - selector: flipt.Flipt.UpdateSegment
-    put: /api/v1/namespaces/{namespace_key}/segments/{key}
-    body: "*"
-
   - selector: flipt.Flipt.DeleteSegment
     delete: /api/v1/segments/{key}
-
-  - selector: flipt.Flipt.DeleteSegment
-    delete: /api/v1/namespaces/{namespace_key}/segments/{key}
 
   # constraints
   #
@@ -248,64 +116,27 @@ http:
     post: /api/v1/segments/{segment_key}/constraints
     body: "*"
 
-  - selector: flipt.Flipt.CreateConstraint
-    post: /api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints
-    body: "*"
-
   - selector: flipt.Flipt.UpdateConstraint
     put: /api/v1/segments/{segment_key}/constraints/{id}
-    body: "*"
-
-  - selector: flipt.Flipt.UpdateConstraint
-    put: /api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}
     body: "*"
 
   - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/segments/{segment_key}/constraints/{id}
 
-  - selector: flipt.Flipt.DeleteConstraint
-    delete: /api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}
-
   # metadata
-  # 
+  #
   - selector: flipt.meta.MetadataService.GetConfiguration
     get: /meta/config
   - selector: flipt.meta.MetadataService.GetInfo
     get: /meta/info
 
   # authentication public routes
-  # 
+  #
   - selector: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods
     get: /auth/v1/method
 
-  # authentication
-  # 
-  - selector: flipt.auth.AuthenticationService.GetAuthenticationSelf
-    get: /auth/v1/self
-  - selector: flipt.auth.AuthenticationService.ExpireAuthenticationSelf
-    put: /auth/v1/self/expire
-  - selector: flipt.auth.AuthenticationService.GetAuthentication
-    get: /auth/v1/tokens/{id}
-  - selector: flipt.auth.AuthenticationService.ListAuthentications
-    get: /auth/v1/tokens
-  - selector: flipt.auth.AuthenticationService.DeleteAuthentication
-    delete: /auth/v1/tokens/{id}
-
   # authentication methods
   #
-  # method: token
-  - selector: flipt.auth.AuthenticationMethodTokenService.CreateToken
-    post: /auth/v1/method/token
-    body: "*"
-  # method: oidc
-  - selector: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL
-    get: /auth/v1/method/oidc/{provider}/authorize
-  - selector: flipt.auth.AuthenticationMethodOIDCService.Callback
-    get: /auth/v1/method/oidc/{provider}/callback
-  # method: kubernetes
-  - selector: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount
-    post: /auth/v1/method/kubernetes/serviceaccount
-    body: "*"
   # method: oauth
   - selector: flipt.auth.AuthenticationMethodGithubService.AuthorizeURL
     get: /auth/v1/method/github/authorize
@@ -323,12 +154,3 @@ http:
   # method: evaluation count
   - selector: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount
     get: /internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}
-
-  # Open Feature Remote Evaluation Protocol (OFREP)
-  #
-  # method: provider configuration
-  - selector: flipt.ofrep.OFREPService.GetProviderConfiguration
-    get: /ofrep/v1/configuration
-  - selector: flipt.ofrep.OFREPService.EvaluateFlag
-    post: /ofrep/v1/evaluate/flags/{key}
-    body: "*"

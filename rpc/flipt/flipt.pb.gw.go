@@ -4917,6 +4917,7 @@ func local_request_Flipt_DeleteConstraint_1(ctx context.Context, marshaler runti
 // UnaryRPC     :call FliptServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterFliptHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, server FliptServer) error {
 
 	mux.Handle("POST", pattern_Flipt_Evaluate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -6582,7 +6583,7 @@ func RegisterFliptHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "FliptClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "FliptClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "FliptClient" to call the correct interceptors.
+// "FliptClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, client FliptClient) error {
 
 	mux.Handle("POST", pattern_Flipt_Evaluate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {

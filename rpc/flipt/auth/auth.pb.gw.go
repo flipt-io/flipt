@@ -512,6 +512,7 @@ func local_request_AuthenticationMethodGithubService_Callback_0(ctx context.Cont
 // UnaryRPC     :call PublicAuthenticationServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterPublicAuthenticationServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server PublicAuthenticationServiceServer) error {
 
 	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -546,6 +547,7 @@ func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *
 // UnaryRPC     :call AuthenticationServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationServiceServer) error {
 
 	mux.Handle("GET", pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -680,6 +682,7 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 // UnaryRPC     :call AuthenticationMethodTokenServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodTokenServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodTokenServiceServer) error {
 
 	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -714,6 +717,7 @@ func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, 
 // UnaryRPC     :call AuthenticationMethodOIDCServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodOIDCServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodOIDCServiceServer) error {
 
 	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -773,6 +777,7 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 // UnaryRPC     :call AuthenticationMethodKubernetesServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodKubernetesServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodKubernetesServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodKubernetesServiceServer) error {
 
 	mux.Handle("POST", pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -807,6 +812,7 @@ func RegisterAuthenticationMethodKubernetesServiceHandlerServer(ctx context.Cont
 // UnaryRPC     :call AuthenticationMethodGithubServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodGithubServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodGithubServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodGithubServiceServer) error {
 
 	mux.Handle("GET", pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -897,7 +903,7 @@ func RegisterPublicAuthenticationServiceHandler(ctx context.Context, mux *runtim
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "PublicAuthenticationServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "PublicAuthenticationServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "PublicAuthenticationServiceClient" to call the correct interceptors.
+// "PublicAuthenticationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterPublicAuthenticationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client PublicAuthenticationServiceClient) error {
 
 	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -968,7 +974,7 @@ func RegisterAuthenticationServiceHandler(ctx context.Context, mux *runtime.Serv
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AuthenticationServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AuthenticationServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AuthenticationServiceClient" to call the correct interceptors.
+// "AuthenticationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationServiceClient) error {
 
 	mux.Handle("GET", pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1143,7 +1149,7 @@ func RegisterAuthenticationMethodTokenServiceHandler(ctx context.Context, mux *r
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AuthenticationMethodTokenServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AuthenticationMethodTokenServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AuthenticationMethodTokenServiceClient" to call the correct interceptors.
+// "AuthenticationMethodTokenServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodTokenServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodTokenServiceClient) error {
 
 	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1214,7 +1220,7 @@ func RegisterAuthenticationMethodOIDCServiceHandler(ctx context.Context, mux *ru
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AuthenticationMethodOIDCServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AuthenticationMethodOIDCServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AuthenticationMethodOIDCServiceClient" to call the correct interceptors.
+// "AuthenticationMethodOIDCServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodOIDCServiceClient) error {
 
 	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1311,7 +1317,7 @@ func RegisterAuthenticationMethodKubernetesServiceHandler(ctx context.Context, m
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AuthenticationMethodKubernetesServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AuthenticationMethodKubernetesServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AuthenticationMethodKubernetesServiceClient" to call the correct interceptors.
+// "AuthenticationMethodKubernetesServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodKubernetesServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodKubernetesServiceClient) error {
 
 	mux.Handle("POST", pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1382,7 +1388,7 @@ func RegisterAuthenticationMethodGithubServiceHandler(ctx context.Context, mux *
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AuthenticationMethodGithubServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AuthenticationMethodGithubServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "AuthenticationMethodGithubServiceClient" to call the correct interceptors.
+// "AuthenticationMethodGithubServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodGithubServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodGithubServiceClient) error {
 
 	mux.Handle("GET", pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {

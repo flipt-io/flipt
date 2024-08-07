@@ -3,6 +3,9 @@ syntax = "proto3";
 package flipt.ofrep;
 
 import "google/protobuf/struct.proto";
+import "google/api/annotations.proto";
+import "google/api/visibility.proto";
+import "gnostic/openapi/v3/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/ofrep";
 
@@ -51,8 +54,15 @@ enum EvaluateReason {
   DEFAULT = 3;
 }
 
-// flipt:sdk:ignore
 service OFREPService {
-  rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {}
-  rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluatedFlag) {}
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
+
+  rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {
+    option (google.api.http) = {get: "/ofrep/v1/configuration" };
+    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.configuration"};
+  }
+  rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluatedFlag) {
+    option (google.api.http) = {post: "/ofrep/v1/evaluate/flags/{key}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.evaluateFlag"};
+  }
 }
