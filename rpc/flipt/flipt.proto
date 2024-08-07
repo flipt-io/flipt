@@ -507,309 +507,147 @@ service Flipt {
     option deprecated = true;
   }
   rpc GetNamespace(GetNamespaceRequest) returns (Namespace) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "NamespacesService.get"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getNamespace" tags: ["NamespacesService"]};
   }
   rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "NamespacesService.list"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listNamespaces" tags: ["NamespacesService"]};
   }
   rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "NamespacesService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createNamespace" tags: ["NamespacesService"]};
   }
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{key}",
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "NamespacesService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{key}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateNamespace" tags: ["NamespacesService"]};
   }
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "NamespacesService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteNamespace" tags: ["NamespacesService"]};
   }
   rpc GetFlag(GetFlagRequest) returns (Flag) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "FlagsService.get"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getFlag" tags: ["FlagsService"]};
   }
   rpc ListFlags(ListFlagRequest) returns (FlagList) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "FlagsService.list"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listFlags" tags: ["FlagsService"]};
   }
   rpc CreateFlag(CreateFlagRequest) returns (Flag) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/flags"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "FlagsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createFlag" tags: ["FlagsService"]};
   }
   rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{key}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "FlagsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{key}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateFlag" tags: ["FlagsService"]};
   }
   rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/flags/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "FlagsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteFlag" tags: ["FlagsService"]};
   }
   rpc CreateVariant(CreateVariantRequest) returns (Variant) {
-    option (google.api.http) = {
-      post:  "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "VariantsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createVariant" tags: ["VariantsService"]};
   }
   rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "VariantsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateVariant" tags: ["VariantsService"]};
   }
   rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "VariantsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteVariant" tags: ["VariantsService"]};
   }
   rpc GetRule(GetRuleRequest) returns (Rule) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.get"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getRule" tags: ["RulesService"]};
   }
   rpc ListRules(ListRuleRequest) returns (RuleList) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.list"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listRules" tags: ["RulesService"]};
   }
   rpc CreateRule(CreateRuleRequest) returns (Rule) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createRule" tags: ["RulesService"]};
   }
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateRule" tags: ["RulesService"]};
   }
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/order"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.order"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/order" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "orderRules" tags: ["RulesService"]};
   }
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RulesService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteRule" tags: ["RulesService"]};
   }
   rpc GetRollout(GetRolloutRequest) returns (Rollout) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.get"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getRollout" tags: ["RolloutsService"]};
   }
   rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.list"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listRollouts" tags: ["RolloutsService"]};
   }
   rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createRollout" tags: ["RolloutsService"]};
   }
   rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateRollout" tags: ["RolloutsService"]};
   }
   rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteRollout" tags: ["RolloutsService"]};
   }
   rpc OrderRollouts(OrderRolloutsRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "RolloutsService.order"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "orderRollouts" tags: ["RolloutsService"]};
   }
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "DistributionsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createDistribution" tags: ["DistributionsService"]};
   }
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "DistributionsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateDistribution" tags: ["DistributionsService"]};
   }
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "DistributionsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteDistribution" tags: ["DistributionsService"]};
   }
   rpc GetSegment(GetSegmentRequest) returns (Segment) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/segments/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "SegmentsService.get"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/segments/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getSegment" tags: ["SegmentsService"]};
   }
   rpc ListSegments(ListSegmentRequest) returns (SegmentList) {
-    option (google.api.http) = {
-      get: "/api/v1/namespaces/{namespace_key}/segments"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "SegmentsService.list"
-    };
+    option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/segments"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listSegments" tags: ["SegmentsService"]};
   }
   rpc CreateSegment(CreateSegmentRequest) returns (Segment) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/segments"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "SegmentsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/segments" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createSegment" tags: ["SegmentsService"]};
   }
   rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/segments/{key}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "SegmentsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/segments/{key}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateSegment" tags: ["SegmentsService"]};
   }
   rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/segments/{key}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "SegmentsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/segments/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteSegment" tags: ["SegmentsService"]};
   }
   rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {
-    option (google.api.http) = {
-      post: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "ConstraintsService.create"
-    };
+    option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "createConstraint" tags: ["ConstraintsService"]};
   }
   rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {
-    option (google.api.http) = {
-      put: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "ConstraintsService.update"
-    };
+    option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "updateConstraint" tags: ["ConstraintsService"]};
   }
   rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "ConstraintsService.delete"
-    };
+    option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteConstraint" tags: ["ConstraintsService"]};
   }
 }

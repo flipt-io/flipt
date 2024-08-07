@@ -26,7 +26,7 @@ plugins:
       - grpc_api_configuration=rpc/flipt/flipt.yaml
     strategy: all
   - plugin: buf.build/community/google-gnostic-openapi
-    out: sdk
+    out: .
     opt:
       - version=1.47.0
       - fq_schema_naming=false

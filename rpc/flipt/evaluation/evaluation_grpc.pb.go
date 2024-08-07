@@ -203,8 +203,6 @@ const (
 // DataServiceClient is the client API for DataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// flipt:sdk:ignore
 type DataServiceClient interface {
 	EvaluationSnapshotNamespace(ctx context.Context, in *EvaluationNamespaceSnapshotRequest, opts ...grpc.CallOption) (*EvaluationNamespaceSnapshot, error)
 }
@@ -230,8 +228,6 @@ func (c *dataServiceClient) EvaluationSnapshotNamespace(ctx context.Context, in 
 // DataServiceServer is the server API for DataService service.
 // All implementations must embed UnimplementedDataServiceServer
 // for forward compatibility.
-//
-// flipt:sdk:ignore
 type DataServiceServer interface {
 	EvaluationSnapshotNamespace(context.Context, *EvaluationNamespaceSnapshotRequest) (*EvaluationNamespaceSnapshot, error)
 	mustEmbedUnimplementedDataServiceServer()

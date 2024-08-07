@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package flipt.analytics;
 
+import "google/api/visibility.proto";
+
 option go_package = "go.flipt.io/flipt/rpc/flipt/analytics";
 
 message GetFlagEvaluationsCountRequest {
@@ -16,7 +18,8 @@ message GetFlagEvaluationsCountResponse {
     repeated float values = 2;
 }
 
-// flipt:sdk:ignore
 service AnalyticsService {
+    option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
+
     rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {}
 }

@@ -26,8 +26,6 @@ const (
 // OFREPServiceClient is the client API for OFREPService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// flipt:sdk:ignore
 type OFREPServiceClient interface {
 	GetProviderConfiguration(ctx context.Context, in *GetProviderConfigurationRequest, opts ...grpc.CallOption) (*GetProviderConfigurationResponse, error)
 	EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluatedFlag, error)
@@ -64,8 +62,6 @@ func (c *oFREPServiceClient) EvaluateFlag(ctx context.Context, in *EvaluateFlagR
 // OFREPServiceServer is the server API for OFREPService service.
 // All implementations must embed UnimplementedOFREPServiceServer
 // for forward compatibility.
-//
-// flipt:sdk:ignore
 type OFREPServiceServer interface {
 	GetProviderConfiguration(context.Context, *GetProviderConfigurationRequest) (*GetProviderConfigurationResponse, error)
 	EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluatedFlag, error)

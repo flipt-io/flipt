@@ -4,6 +4,7 @@ package flipt.evaluation;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/api/field_behavior.proto";
 import "gnostic/openapi/v3/annotations.proto";
 
@@ -86,31 +87,16 @@ message ErrorEvaluationResponse {
 
 service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {
-    option (google.api.http) = {
-      post: "/evaluate/v1/boolean"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "EvaluationService.boolean"
-    };
+    option (google.api.http) = {post: "/evaluate/v1/boolean" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBoolean"};
   }
   rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {
-    option (google.api.http) = {
-      post: "/evaluate/v1/variant"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "EvaluationService.variant"
-    };
+    option (google.api.http) = {post: "/evaluate/v1/variant" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateVariant"};
   }
   rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
-    option (google.api.http) = {
-      post: "/evaluate/v1/batch"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "EvaluationService.batch"
-    };
+    option (google.api.http) = {post: "/evaluate/v1/batch" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBatch"};
   }
 }
 
@@ -232,7 +218,8 @@ message EvaluationNamespaceSnapshotRequest {
   string reference = 2;
 }
 
-// flipt:sdk:ignore
 service DataService {
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
+
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
 }

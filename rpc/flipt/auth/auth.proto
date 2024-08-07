@@ -114,7 +114,7 @@ service AuthenticationService {
       get: "/auth/v1/self"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthService.getSelf"
+      operation_id: "getAuthSelf"
     };
   }
   rpc GetAuthentication(GetAuthenticationRequest) returns (Authentication) {
@@ -122,7 +122,7 @@ service AuthenticationService {
       get: "/auth/v1/tokens/{id}"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthService.getToken"
+      operation_id: "getAuthToken"
     };
   }
   rpc ListAuthentications(ListAuthenticationsRequest) returns (ListAuthenticationsResponse) {
@@ -130,7 +130,7 @@ service AuthenticationService {
       get: "/auth/v1/tokens"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthService.listTokens"
+      operation_id: "listAuthTokens"
     };
   }
   rpc DeleteAuthentication(DeleteAuthenticationRequest) returns (google.protobuf.Empty) {
@@ -138,7 +138,7 @@ service AuthenticationService {
       delete: "/auth/v1/tokens/{id}"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthService.deleteToken"
+      operation_id: "deleteAuthToken"
     };
   }
   rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
@@ -146,7 +146,7 @@ service AuthenticationService {
       put: "/auth/v1/self/expire"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthService.expireSelf"
+      operation_id: "expireAuthSelf"
     };
   }
 }
@@ -171,7 +171,7 @@ service AuthenticationMethodTokenService {
       body: "*"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthMethodTokenService.createToken"
+      operation_id: "createMethodToken"
     };
   }
 }
@@ -202,7 +202,7 @@ service AuthenticationMethodOIDCService {
       get: "/auth/v1/method/oidc/{provider}/authorize"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthMethodOIDCService.authorizeURL"
+      operation_id: "oidcAuthorizeURL"
     };
   }
   rpc Callback(CallbackRequest) returns (CallbackResponse) {
@@ -210,7 +210,7 @@ service AuthenticationMethodOIDCService {
       get: "/auth/v1/method/oidc/{provider}/callback"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthMethodOIDCService.callback"
+      operation_id: "oidcCallback"
     };
   }
 }
@@ -231,7 +231,7 @@ service AuthenticationMethodKubernetesService {
       body: "*"
     };
     option (gnostic.openapi.v3.operation) = {
-      operation_id: "AuthMethodK8SService.verifyServiceAccount"
+      operation_id: "kubernetesVerifyServiceAccount"
     };
   }
 }

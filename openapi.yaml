@@ -12,7 +12,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: NamespacesService.list
+                - NamespacesService
+            operationId: listNamespaces
             parameters:
                 - name: limit
                   in: query
@@ -42,7 +43,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: NamespacesService.create
+                - NamespacesService
+            operationId: createNamespace
             requestBody:
                 content:
                     application/json:
@@ -60,7 +62,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: NamespacesService.get
+                - NamespacesService
+            operationId: getNamespace
             parameters:
                 - name: key
                   in: path
@@ -81,7 +84,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: NamespacesService.update
+                - NamespacesService
+            operationId: updateNamespace
             parameters:
                 - name: key
                   in: path
@@ -104,7 +108,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: NamespacesService.delete
+                - NamespacesService
+            operationId: deleteNamespace
             parameters:
                 - name: key
                   in: path
@@ -119,7 +124,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: FlagsService.list
+                - FlagsService
+            operationId: listFlags
             parameters:
                 - name: namespaceKey
                   in: path
@@ -154,7 +160,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: FlagsService.create
+                - FlagsService
+            operationId: createFlag
             parameters:
                 - name: namespaceKey
                   in: path
@@ -178,7 +185,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: RolloutsService.list
+                - RolloutsService
+            operationId: listRollouts
             parameters:
                 - name: namespaceKey
                   in: path
@@ -213,7 +221,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: RolloutsService.create
+                - RolloutsService
+            operationId: createRollout
             parameters:
                 - name: namespaceKey
                   in: path
@@ -242,7 +251,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: RolloutsService.order
+                - RolloutsService
+            operationId: orderRollouts
             parameters:
                 - name: namespaceKey
                   in: path
@@ -268,7 +278,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: RolloutsService.get
+                - RolloutsService
+            operationId: getRollout
             parameters:
                 - name: namespaceKey
                   in: path
@@ -299,7 +310,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: RolloutsService.update
+                - RolloutsService
+            operationId: updateRollout
             parameters:
                 - name: namespaceKey
                   in: path
@@ -332,7 +344,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: RolloutsService.delete
+                - RolloutsService
+            operationId: deleteRollout
             parameters:
                 - name: namespaceKey
                   in: path
@@ -357,7 +370,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: RulesService.list
+                - RulesService
+            operationId: listRules
             parameters:
                 - name: namespaceKey
                   in: path
@@ -397,7 +411,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: RulesService.create
+                - RulesService
+            operationId: createRule
             parameters:
                 - name: namespaceKey
                   in: path
@@ -426,7 +441,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: RulesService.order
+                - RulesService
+            operationId: orderRules
             parameters:
                 - name: namespaceKey
                   in: path
@@ -452,7 +468,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: RulesService.get
+                - RulesService
+            operationId: getRule
             parameters:
                 - name: namespaceKey
                   in: path
@@ -483,7 +500,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: RulesService.update
+                - RulesService
+            operationId: updateRule
             parameters:
                 - name: namespaceKey
                   in: path
@@ -516,7 +534,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: RulesService.delete
+                - RulesService
+            operationId: deleteRule
             parameters:
                 - name: namespaceKey
                   in: path
@@ -541,7 +560,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: DistributionsService.create
+                - DistributionsService
+            operationId: createDistribution
             parameters:
                 - name: namespaceKey
                   in: path
@@ -575,7 +595,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: DistributionsService.update
+                - DistributionsService
+            operationId: updateDistribution
             parameters:
                 - name: namespaceKey
                   in: path
@@ -613,7 +634,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: DistributionsService.delete
+                - DistributionsService
+            operationId: deleteDistribution
             parameters:
                 - name: namespaceKey
                   in: path
@@ -647,7 +669,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: VariantsService.create
+                - VariantsService
+            operationId: createVariant
             parameters:
                 - name: namespaceKey
                   in: path
@@ -676,7 +699,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: VariantsService.update
+                - VariantsService
+            operationId: updateVariant
             parameters:
                 - name: namespaceKey
                   in: path
@@ -709,7 +733,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: VariantsService.delete
+                - VariantsService
+            operationId: deleteVariant
             parameters:
                 - name: namespaceKey
                   in: path
@@ -734,7 +759,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: FlagsService.get
+                - FlagsService
+            operationId: getFlag
             parameters:
                 - name: namespaceKey
                   in: path
@@ -760,7 +786,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: FlagsService.update
+                - FlagsService
+            operationId: updateFlag
             parameters:
                 - name: namespaceKey
                   in: path
@@ -788,7 +815,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: FlagsService.delete
+                - FlagsService
+            operationId: deleteFlag
             parameters:
                 - name: namespaceKey
                   in: path
@@ -808,7 +836,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: SegmentsService.list
+                - SegmentsService
+            operationId: listSegments
             parameters:
                 - name: namespaceKey
                   in: path
@@ -843,7 +872,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: SegmentsService.create
+                - SegmentsService
+            operationId: createSegment
             parameters:
                 - name: namespaceKey
                   in: path
@@ -867,7 +897,8 @@ paths:
         get:
             tags:
                 - Flipt
-            operationId: SegmentsService.get
+                - SegmentsService
+            operationId: getSegment
             parameters:
                 - name: namespaceKey
                   in: path
@@ -893,7 +924,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: SegmentsService.update
+                - SegmentsService
+            operationId: updateSegment
             parameters:
                 - name: namespaceKey
                   in: path
@@ -921,7 +953,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: SegmentsService.delete
+                - SegmentsService
+            operationId: deleteSegment
             parameters:
                 - name: namespaceKey
                   in: path
@@ -941,7 +974,8 @@ paths:
         post:
             tags:
                 - Flipt
-            operationId: ConstraintsService.create
+                - ConstraintsService
+            operationId: createConstraint
             parameters:
                 - name: namespaceKey
                   in: path
@@ -970,7 +1004,8 @@ paths:
         put:
             tags:
                 - Flipt
-            operationId: ConstraintsService.update
+                - ConstraintsService
+            operationId: updateConstraint
             parameters:
                 - name: namespaceKey
                   in: path
@@ -1003,7 +1038,8 @@ paths:
         delete:
             tags:
                 - Flipt
-            operationId: ConstraintsService.delete
+                - ConstraintsService
+            operationId: deleteConstraint
             parameters:
                 - name: namespaceKey
                   in: path
@@ -1028,7 +1064,7 @@ paths:
         post:
             tags:
                 - AuthenticationMethodKubernetesService
-            operationId: AuthMethodK8SService.verifyServiceAccount
+            operationId: kubernetesVerifyServiceAccount
             requestBody:
                 content:
                     application/json:
@@ -1046,7 +1082,7 @@ paths:
         get:
             tags:
                 - AuthenticationMethodOIDCService
-            operationId: AuthMethodOIDCService.authorizeURL
+            operationId: oidcAuthorizeURL
             parameters:
                 - name: provider
                   in: path
@@ -1068,7 +1104,7 @@ paths:
         get:
             tags:
                 - AuthenticationMethodOIDCService
-            operationId: AuthMethodOIDCService.callback
+            operationId: oidcCallback
             parameters:
                 - name: provider
                   in: path
@@ -1094,7 +1130,7 @@ paths:
         post:
             tags:
                 - AuthenticationMethodTokenService
-            operationId: AuthMethodTokenService.createToken
+            operationId: createMethodToken
             requestBody:
                 content:
                     application/json:
@@ -1112,7 +1148,7 @@ paths:
         get:
             tags:
                 - AuthenticationService
-            operationId: AuthService.getSelf
+            operationId: getAuthSelf
             responses:
                 "200":
                     description: OK
@@ -1124,7 +1160,7 @@ paths:
         put:
             tags:
                 - AuthenticationService
-            operationId: AuthService.expireSelf
+            operationId: expireAuthSelf
             parameters:
                 - name: expiresAt
                   in: query
@@ -1139,7 +1175,7 @@ paths:
         get:
             tags:
                 - AuthenticationService
-            operationId: AuthService.listTokens
+            operationId: listAuthTokens
             parameters:
                 - name: method
                   in: query
@@ -1166,7 +1202,7 @@ paths:
         get:
             tags:
                 - AuthenticationService
-            operationId: AuthService.getToken
+            operationId: getAuthToken
             parameters:
                 - name: id
                   in: path
@@ -1183,7 +1219,7 @@ paths:
         delete:
             tags:
                 - AuthenticationService
-            operationId: AuthService.deleteToken
+            operationId: deleteAuthToken
             parameters:
                 - name: id
                   in: path
@@ -1198,7 +1234,7 @@ paths:
         post:
             tags:
                 - EvaluationService
-            operationId: EvaluationService.batch
+            operationId: evaluateBatch
             requestBody:
                 content:
                     application/json:
@@ -1216,7 +1252,7 @@ paths:
         post:
             tags:
                 - EvaluationService
-            operationId: EvaluationService.boolean
+            operationId: evaluateBoolean
             requestBody:
                 content:
                     application/json:
@@ -1234,7 +1270,7 @@ paths:
         post:
             tags:
                 - EvaluationService
-            operationId: EvaluationService.variant
+            operationId: evaluateVariant
             requestBody:
                 content:
                     application/json:
@@ -1264,7 +1300,7 @@ paths:
         post:
             tags:
                 - OFREPService
-            operationId: ofrep.evaluate
+            operationId: ofrep.evaluateFlag
             parameters:
                 - name: key
                   in: path
@@ -2145,4 +2181,3 @@ tags:
     - name: EvaluationService
     - name: Flipt
     - name: OFREPService
-      description: flipt:sdk:ignore
