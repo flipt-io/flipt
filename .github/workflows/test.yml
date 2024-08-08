@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      - name: Delete huge unnecessary tools
+        run: rm -rf /opt/hostedtoolcache
       - name: Run Unit Tests
-        uses: dagger/dagger-for-github@v6
+        uses: dagger/dagger-for-github@v6.3.0
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
