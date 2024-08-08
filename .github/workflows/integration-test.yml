@@ -23,6 +23,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          # Runs quick, run rm in background
+          tool-cache: true
+
+          # These run slower as use apt to uninstall packages
+          # Turned on by default, so we disable them
+          android: false
+          dotnet: false
+          haskell: false
+          large-packages: false
+          docker-images: false
+          swap-storage: false
+
       - name: Run CLI Tests
         uses: dagger/dagger-for-github@v6
         with:
@@ -62,6 +77,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          # Runs quick, run rm in background
+          tool-cache: true
+
+          # These run slower as use apt to uninstall packages
+          # Turned on by default, so we disable them
+          android: false
+          dotnet: false
+          haskell: false
+          large-packages: false
+          docker-images: false
+          swap-storage: false
+
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Run Integration Tests
@@ -87,6 +117,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          # Runs quick, run rm in background
+          tool-cache: true
+
+          # These run slower as use apt to uninstall packages
+          # Turned on by default, so we disable them
+          android: false
+          dotnet: false
+          haskell: false
+          large-packages: false
+          docker-images: false
+          swap-storage: false
 
       - name: Run UI Tests
         uses: dagger/dagger-for-github@v6
