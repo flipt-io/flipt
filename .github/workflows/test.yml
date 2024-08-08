@@ -20,7 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      - name: Delete unnecessary hosted tools
+        run: rm -rf /opt/hostedtoolcache
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v6
         with:

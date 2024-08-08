@@ -1180,7 +1180,15 @@ paths:
                 - name: method
                   in: query
                   schema:
-                    type: integer
+                    enum:
+                        - METHOD_NONE
+                        - METHOD_TOKEN
+                        - METHOD_OIDC
+                        - METHOD_KUBERNETES
+                        - METHOD_GITHUB
+                        - METHOD_JWT
+                        - METHOD_CLOUD
+                    type: string
                     format: enum
                 - name: limit
                   in: query
@@ -1328,7 +1336,15 @@ components:
                 id:
                     type: string
                 method:
-                    type: integer
+                    enum:
+                        - METHOD_NONE
+                        - METHOD_TOKEN
+                        - METHOD_OIDC
+                        - METHOD_KUBERNETES
+                        - METHOD_GITHUB
+                        - METHOD_JWT
+                        - METHOD_CLOUD
+                    type: string
                     format: enum
                 expiresAt:
                     type: string
@@ -1379,7 +1395,12 @@ components:
                 enabled:
                     type: boolean
                 reason:
-                    type: integer
+                    enum:
+                        - UNKNOWN_EVALUATION_REASON
+                        - FLAG_DISABLED_EVALUATION_REASON
+                        - MATCH_EVALUATION_REASON
+                        - DEFAULT_EVALUATION_REASON
+                    type: string
                     format: enum
                 requestId:
                     type: string
@@ -1418,7 +1439,14 @@ components:
                 segmentKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - UNKNOWN_COMPARISON_TYPE
+                        - STRING_COMPARISON_TYPE
+                        - NUMBER_COMPARISON_TYPE
+                        - BOOLEAN_COMPARISON_TYPE
+                        - DATETIME_COMPARISON_TYPE
+                        - ENTITY_ID_COMPARISON_TYPE
+                    type: string
                     format: enum
                 property:
                     type: string
@@ -1446,7 +1474,14 @@ components:
                 segmentKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - UNKNOWN_COMPARISON_TYPE
+                        - STRING_COMPARISON_TYPE
+                        - NUMBER_COMPARISON_TYPE
+                        - BOOLEAN_COMPARISON_TYPE
+                        - DATETIME_COMPARISON_TYPE
+                        - ENTITY_ID_COMPARISON_TYPE
+                    type: string
                     format: enum
                 property:
                     type: string
@@ -1493,7 +1528,10 @@ components:
                 namespaceKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - VARIANT_FLAG_TYPE
+                        - BOOLEAN_FLAG_TYPE
+                    type: string
                     format: enum
                 metadata:
                     type: object
@@ -1546,7 +1584,10 @@ components:
                     items:
                         type: string
                 segmentOperator:
-                    type: integer
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
                     format: enum
         CreateSegmentRequest:
             required:
@@ -1562,7 +1603,10 @@ components:
                 description:
                     type: string
                 matchType:
-                    type: integer
+                    enum:
+                        - ALL_MATCH_TYPE
+                        - ANY_MATCH_TYPE
+                    type: string
                     format: enum
                 namespaceKey:
                     type: string
@@ -1632,7 +1676,10 @@ components:
                 namespaceKey:
                     type: string
                 reason:
-                    type: integer
+                    enum:
+                        - UNKNOWN_ERROR_EVALUATION_REASON
+                        - NOT_FOUND_ERROR_EVALUATION_REASON
+                    type: string
                     format: enum
         EvaluateFlagRequest:
             type: object
@@ -1649,7 +1696,12 @@ components:
                 key:
                     type: string
                 reason:
-                    type: integer
+                    enum:
+                        - UNKNOWN
+                        - DISABLED
+                        - TARGETING_MATCH
+                        - DEFAULT
+                    type: string
                     format: enum
                 variant:
                     type: string
@@ -1683,7 +1735,11 @@ components:
             type: object
             properties:
                 type:
-                    type: integer
+                    enum:
+                        - VARIANT_EVALUATION_RESPONSE_TYPE
+                        - BOOLEAN_EVALUATION_RESPONSE_TYPE
+                        - ERROR_EVALUATION_RESPONSE_TYPE
+                    type: string
                     format: enum
                 booleanResponse:
                     $ref: '#/components/schemas/BooleanEvaluationResponse'
@@ -1715,7 +1771,10 @@ components:
                 namespaceKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - VARIANT_FLAG_TYPE
+                        - BOOLEAN_FLAG_TYPE
+                    type: string
                     format: enum
                 defaultVariant:
                     $ref: '#/components/schemas/Variant'
@@ -1831,7 +1890,11 @@ components:
                 flagKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - UNKNOWN_ROLLOUT_TYPE
+                        - SEGMENT_ROLLOUT_TYPE
+                        - THRESHOLD_ROLLOUT_TYPE
+                    type: string
                     format: enum
                 rank:
                     type: integer
@@ -1872,7 +1935,10 @@ components:
                     items:
                         type: string
                 segmentOperator:
-                    type: integer
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
                     format: enum
         RolloutThreshold:
             type: object
@@ -1911,7 +1977,10 @@ components:
                     items:
                         type: string
                 segmentOperator:
-                    type: integer
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
                     format: enum
         RuleList:
             type: object
@@ -1945,7 +2014,10 @@ components:
                     items:
                         $ref: '#/components/schemas/Constraint'
                 matchType:
-                    type: integer
+                    enum:
+                        - ALL_MATCH_TYPE
+                        - ANY_MATCH_TYPE
+                    type: string
                     format: enum
                 namespaceKey:
                     type: string
@@ -1973,7 +2045,14 @@ components:
                 segmentKey:
                     type: string
                 type:
-                    type: integer
+                    enum:
+                        - UNKNOWN_COMPARISON_TYPE
+                        - STRING_COMPARISON_TYPE
+                        - NUMBER_COMPARISON_TYPE
+                        - BOOLEAN_COMPARISON_TYPE
+                        - DATETIME_COMPARISON_TYPE
+                        - ENTITY_ID_COMPARISON_TYPE
+                    type: string
                     format: enum
                 property:
                     type: string
@@ -2065,7 +2144,10 @@ components:
                     items:
                         type: string
                 segmentOperator:
-                    type: integer
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
                     format: enum
         UpdateSegmentRequest:
             required:
@@ -2080,7 +2162,10 @@ components:
                 description:
                     type: string
                 matchType:
-                    type: integer
+                    enum:
+                        - ALL_MATCH_TYPE
+                        - ANY_MATCH_TYPE
+                    type: string
                     format: enum
                 namespaceKey:
                     type: string
@@ -2136,7 +2221,12 @@ components:
                     items:
                         type: string
                 reason:
-                    type: integer
+                    enum:
+                        - UNKNOWN_EVALUATION_REASON
+                        - FLAG_DISABLED_EVALUATION_REASON
+                        - MATCH_EVALUATION_REASON
+                        - DEFAULT_EVALUATION_REASON
+                    type: string
                     format: enum
                 variantKey:
                     type: string
