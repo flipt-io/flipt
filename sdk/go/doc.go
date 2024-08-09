@@ -15,7 +15,7 @@ The main entrypoint within this package is [New], which takes an instance of [Tr
 The following is an example of creating and instance of the SDK using the gRPC transport.
 
 	func main() {
-		conn := grpc.Dial("localhost:9090")
+		conn, _ := grpc.NewClient("localhost:9000")
 		transport := grpc.NewTransport(conn)
 		client := sdk.New(transport)
 	}

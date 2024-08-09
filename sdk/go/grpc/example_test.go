@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleNewTransport() {
-	cc, _ := grpc.Dial("localhost:9090")
+	cc, _ := grpc.NewClient("localhost:9000")
 
 	transport := NewTransport(cc)
 
