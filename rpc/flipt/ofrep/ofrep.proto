@@ -5,6 +5,7 @@ package flipt.ofrep;
 import "google/protobuf/struct.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
+import "google/api/field_behavior.proto";
 import "gnostic/openapi/v3/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/ofrep";
@@ -54,15 +55,29 @@ enum EvaluateReason {
   DEFAULT = 3;
 }
 
+message EvaluateBulkRequest {
+  map<string, string> context = 2;
+}
+
+message BulkEvaluationResponse {
+  repeated EvaluatedFlag flags = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
 service OFREPService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
-
+  // OFREP provider configuration
   rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {
     option (google.api.http) = {get: "/ofrep/v1/configuration" };
     option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.configuration"};
   }
+  // OFREP single flag evaluation
   rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluatedFlag) {
     option (google.api.http) = {post: "/ofrep/v1/evaluate/flags/{key}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.evaluateFlag"};
+  }
+  // OFREP bulk flag evaluation
+  rpc EvaluateBulk(EvaluateBulkRequest) returns (BulkEvaluationResponse) {
+    option (google.api.http) = {post: "/ofrep/v1/evaluate/flags" body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.evaluateBulk"};
   }
 }

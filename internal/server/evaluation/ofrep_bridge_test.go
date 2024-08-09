@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestOFREPEvaluationBridge_Variant(t *testing.T) {
+func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
@@ -55,7 +55,7 @@ func TestOFREPEvaluationBridge_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	output, err := s.OFREPEvaluationBridge(context.TODO(), ofrep.EvaluationBridgeInput{
+	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{
@@ -71,7 +71,7 @@ func TestOFREPEvaluationBridge_Variant(t *testing.T) {
 	assert.Equal(t, "boz", output.Value)
 }
 
-func TestOFREPEvaluationBridge_Boolean(t *testing.T) {
+func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
@@ -90,7 +90,7 @@ func TestOFREPEvaluationBridge_Boolean(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	output, err := s.OFREPEvaluationBridge(context.TODO(), ofrep.EvaluationBridgeInput{
+	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{

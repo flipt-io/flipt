@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	flipterrors "go.flipt.io/flipt/errors"
 	"google.golang.org/grpc/codes"
 
@@ -31,14 +32,16 @@ func TestEvaluateFlag_Success(t *testing.T) {
 			Value:    structpb.NewBoolValue(false),
 			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
 		}
-		bridge := &bridgeMock{}
+		bridge := NewMockBridge(t)
 		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
 
-		bridge.On("OFREPEvaluationBridge", ctx, EvaluationBridgeInput{
+		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
 			FlagKey:      flagKey,
 			NamespaceKey: "default",
+			EntityId:     "testing-key",
 			Context: map[string]string{
-				"hello": "world",
+				ofrepCtxTargetingKey: "testing-key",
+				"hello":              "world",
 			},
 		}).Return(EvaluationBridgeOutput{
 			FlagKey: flagKey,
@@ -50,7 +53,8 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		actualResponse, err := s.EvaluateFlag(ctx, &ofrep.EvaluateFlagRequest{
 			Key: flagKey,
 			Context: map[string]string{
-				"hello": "world",
+				ofrepCtxTargetingKey: "testing-key",
+				"hello":              "world",
 			},
 		})
 		assert.NoError(t, err)
@@ -70,12 +74,16 @@ func TestEvaluateFlag_Success(t *testing.T) {
 			Value:    structpb.NewBoolValue(true),
 			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
 		}
-		bridge := &bridgeMock{}
+		bridge := NewMockBridge(t)
 		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
 
-		bridge.On("OFREPEvaluationBridge", ctx, EvaluationBridgeInput{
+		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
 			FlagKey:      flagKey,
+			EntityId:     "string",
 			NamespaceKey: namespace,
+			Context: map[string]string{
+				ofrepCtxTargetingKey: "string",
+			},
 		}).Return(EvaluationBridgeOutput{
 			FlagKey: flagKey,
 			Reason:  rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON,
@@ -84,7 +92,8 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		}, nil)
 
 		actualResponse, err := s.EvaluateFlag(ctx, &ofrep.EvaluateFlagRequest{
-			Key: flagKey,
+			Key:     flagKey,
+			Context: map[string]string{ofrepCtxTargetingKey: "string"},
 		})
 		assert.NoError(t, err)
 		assert.True(t, proto.Equal(expectedResponse, actualResponse))
@@ -102,7 +111,7 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 		{
 			name:        "should return a targeting key missing error when a key is not provided",
 			req:         &ofrep.EvaluateFlagRequest{},
-			expectedErr: NewTargetingKeyMissing(),
+			expectedErr: NewFlagMissing(),
 		},
 		{
 			name:        "should return a bad request error when an invalid is returned by the bridge",
@@ -139,14 +148,58 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.TODO()
-			bridge := &bridgeMock{}
+			bridge := NewMockBridge(t)
 			s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
-
-			bridge.On("OFREPEvaluationBridge", ctx, mock.Anything).Return(EvaluationBridgeOutput{}, tc.err)
+			if tc.req.Key != "" {
+				bridge.On("OFREPFlagEvaluation", ctx, mock.Anything).Return(EvaluationBridgeOutput{}, tc.err)
+			}
 
 			_, err := s.EvaluateFlag(ctx, tc.req)
 
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
+}
+
+func TestEvaluateBulkSuccess(t *testing.T) {
+	t.Run("should use the default namespace when no one was provided", func(t *testing.T) {
+		ctx := context.TODO()
+		flagKey := "flag-key"
+		expectedResponse := []*ofrep.EvaluatedFlag{{
+			Key:      flagKey,
+			Reason:   ofrep.EvaluateReason_DEFAULT,
+			Variant:  "false",
+			Value:    structpb.NewBoolValue(false),
+			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
+		}}
+		bridge := NewMockBridge(t)
+		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
+
+		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
+			FlagKey:      flagKey,
+			NamespaceKey: "default",
+			EntityId:     "targeting",
+			Context: map[string]string{
+				ofrepCtxTargetingKey: "targeting",
+				"flags":              flagKey,
+			},
+		}).Return(EvaluationBridgeOutput{
+			FlagKey: flagKey,
+			Reason:  rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+			Variant: "false",
+			Value:   false,
+		}, nil)
+
+		actualResponse, err := s.EvaluateBulk(ctx, &ofrep.EvaluateBulkRequest{
+			Context: map[string]string{
+				ofrepCtxTargetingKey: "targeting",
+				"flags":              flagKey,
+			},
+		})
+		assert.NoError(t, err)
+		require.Len(t, actualResponse.Flags, len(expectedResponse))
+		for i, expected := range expectedResponse {
+			assert.True(t, proto.Equal(expected, actualResponse.Flags[i]))
+		}
+	})
 }

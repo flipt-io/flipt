@@ -68,10 +68,22 @@ func NewFlagNotFoundError(key string) error {
 	return status.Error(codes.NotFound, string(msg))
 }
 
-func NewTargetingKeyMissing() error {
+func NewFlagMissing() error {
 	msg, err := json.Marshal(errorSchema{
-		ErrorCode:    string(errorCodeTargetingKeyMissing),
+		ErrorCode:    string(errorCodeFlagNotFound),
 		ErrorDetails: "flag key was not provided",
+	})
+	if err != nil {
+		return NewInternalServerError(err)
+	}
+
+	return status.Error(codes.InvalidArgument, string(msg))
+}
+
+func NewFlagsMissing() error {
+	msg, err := json.Marshal(errorSchema{
+		ErrorCode:    string(errorCodeFlagNotFound),
+		ErrorDetails: "flags were not provided in context",
 	})
 	if err != nil {
 		return NewInternalServerError(err)
