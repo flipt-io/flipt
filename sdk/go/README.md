@@ -43,14 +43,18 @@ import (
  sdk "go.flipt.io/flipt/sdk/go"
  sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
  grpc "google.golang.org/grpc"
+ "google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
  token := sdk.StaticTokenAuthenticationProvider("a-flipt-client-token")
 
- conn := grpc.Dial("localhost:9090")
- transport := sdkgrpc.NewTransport(conn)
+ conn, err := grpc.NewClient("localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+ if err != nil {
+  panic(err)
+ }
+ defer conn.Close()
 
- client := sdk.New(transport, sdk.WithAuthenticationProvider(token))
+ client := sdk.New(sdkgrpc.NewTransport(conn), sdk.WithAuthenticationProvider(token))
 }
 ```
