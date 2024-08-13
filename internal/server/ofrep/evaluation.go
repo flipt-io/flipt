@@ -61,12 +61,12 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 			Context:      r.Context,
 		})
 		if err != nil {
-			return nil, transformError("", err)
+			return nil, transformError(key, err)
 		}
 
 		evaluation, err := transformOutput(o)
 		if err != nil {
-			return nil, NewInternalServerError(err)
+			return nil, transformError(key, err)
 		}
 		flags = append(flags, evaluation)
 	}
@@ -80,11 +80,11 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 func transformOutput(output EvaluationBridgeOutput) (*ofrep.EvaluatedFlag, error) {
 	value, err := structpb.NewValue(output.Value)
 	if err != nil {
-		return nil, NewInternalServerError(err)
+		return nil, err
 	}
 	metadata, err := structpb.NewStruct(output.Metadata)
 	if err != nil {
-		return nil, NewInternalServerError(err)
+		return nil, err
 	}
 
 	return &ofrep.EvaluatedFlag{
@@ -139,11 +139,6 @@ func transformError(key string, err error) error {
 		return NewBadRequestError(key, err)
 	case flipterrors.AsMatch[flipterrors.ErrNotFound](err):
 		return NewFlagNotFoundError(key)
-	case flipterrors.AsMatch[flipterrors.ErrUnauthenticated](err):
-		return NewUnauthenticatedError()
-	case flipterrors.AsMatch[flipterrors.ErrUnauthorized](err):
-		return NewUnauthorizedError()
 	}
-
-	return NewInternalServerError(err)
+	return err
 }

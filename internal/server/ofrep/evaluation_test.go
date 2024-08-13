@@ -2,6 +2,8 @@ package ofrep
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -132,16 +134,10 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 			expectedErr: NewFlagNotFoundError("test-flag"),
 		},
 		{
-			name:        "should return an unauthenticated error when an unauthenticated error is returned by the bridge",
+			name:        "should return a general error",
 			req:         &ofrep.EvaluateFlagRequest{Key: "test-flag"},
-			err:         flipterrors.ErrUnauthenticated("unauthenticated"),
-			expectedErr: NewUnauthenticatedError(),
-		},
-		{
-			name:        "should return an unauthorized error when an unauthorized error is returned by the bridge",
-			req:         &ofrep.EvaluateFlagRequest{Key: "test-flag"},
-			err:         flipterrors.ErrUnauthorized("unauthorized"),
-			expectedErr: NewUnauthorizedError(),
+			err:         io.ErrNoProgress,
+			expectedErr: io.ErrNoProgress,
 		},
 	}
 
@@ -166,11 +162,13 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 		ctx := context.TODO()
 		flagKey := "flag-key"
 		expectedResponse := []*ofrep.EvaluatedFlag{{
-			Key:      flagKey,
-			Reason:   ofrep.EvaluateReason_DEFAULT,
-			Variant:  "false",
-			Value:    structpb.NewBoolValue(false),
-			Metadata: &structpb.Struct{Fields: make(map[string]*structpb.Value)},
+			Key:     flagKey,
+			Reason:  ofrep.EvaluateReason_DEFAULT,
+			Variant: "false",
+			Value:   structpb.NewBoolValue(false),
+			Metadata: &structpb.Struct{
+				Fields: map[string]*structpb.Value{"attachment": structpb.NewStringValue("my value")},
+			},
 		}}
 		bridge := NewMockBridge(t)
 		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge)
@@ -184,10 +182,11 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 				"flags":              flagKey,
 			},
 		}).Return(EvaluationBridgeOutput{
-			FlagKey: flagKey,
-			Reason:  rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
-			Variant: "false",
-			Value:   false,
+			FlagKey:  flagKey,
+			Reason:   rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON,
+			Variant:  "false",
+			Value:    false,
+			Metadata: map[string]any{"attachment": "my value"},
 		}, nil)
 
 		actualResponse, err := s.EvaluateBulk(ctx, &ofrep.EvaluateBulkRequest{
@@ -199,6 +198,7 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 		assert.NoError(t, err)
 		require.Len(t, actualResponse.Flags, len(expectedResponse))
 		for i, expected := range expectedResponse {
+			fmt.Println(actualResponse.Flags)
 			assert.True(t, proto.Equal(expected, actualResponse.Flags[i]))
 		}
 	})
