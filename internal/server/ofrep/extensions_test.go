@@ -64,7 +64,8 @@ func TestGetProviderConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			s := New(zaptest.NewLogger(t), tc.cfg, &bridgeMock{})
+			b := NewMockBridge(t)
+			s := New(zaptest.NewLogger(t), tc.cfg, b)
 
 			resp, err := s.GetProviderConfiguration(context.TODO(), &ofrep.GetProviderConfigurationRequest{})
 

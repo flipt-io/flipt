@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
-
-	"github.com/google/uuid"
+	"strings"
 
 	"go.flipt.io/flipt/internal/server/ofrep"
 
@@ -17,14 +16,16 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const ofrepCtxTargetingKey = "targetingKey"
+const (
+	metaKeyAttachment = "attachment"
+	metaKeySegments   = "segments"
+)
 
-func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
+func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
 	flag, err := s.store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
 	if err != nil {
 		return ofrep.EvaluationBridgeOutput{}, err
 	}
-
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
 		fliptotel.AttributeNamespace.String(input.NamespaceKey),
@@ -35,13 +36,8 @@ func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.Evaluati
 	req := &rpcevaluation.EvaluationRequest{
 		NamespaceKey: input.NamespaceKey,
 		FlagKey:      input.FlagKey,
-		EntityId:     uuid.NewString(),
+		EntityId:     input.EntityId,
 		Context:      input.Context,
-	}
-
-	// https://openfeature.dev/docs/reference/concepts/evaluation-context/#targeting-key
-	if targetingKey, ok := input.Context[ofrepCtxTargetingKey]; ok {
-		req.EntityId = targetingKey
 	}
 
 	switch flag.Type {
@@ -60,11 +56,20 @@ func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.Evaluati
 			fliptotel.AttributeFlagVariant(resp.VariantKey),
 		)
 
+		metadata := map[string]any{}
+		if len(resp.SegmentKeys) > 0 {
+			metadata[metaKeySegments] = strings.Join(resp.SegmentKeys, ",")
+		}
+		if resp.VariantAttachment != "" {
+			metadata[metaKeyAttachment] = resp.VariantAttachment
+		}
+
 		return ofrep.EvaluationBridgeOutput{
-			FlagKey: resp.FlagKey,
-			Reason:  resp.Reason,
-			Variant: resp.VariantKey,
-			Value:   resp.VariantKey,
+			FlagKey:  resp.FlagKey,
+			Reason:   resp.Reason,
+			Variant:  resp.VariantKey,
+			Value:    resp.VariantKey,
+			Metadata: metadata,
 		}, nil
 	case flipt.FlagType_BOOLEAN_FLAG_TYPE:
 		resp, err := s.boolean(ctx, flag, req)
@@ -79,10 +84,11 @@ func (s *Server) OFREPEvaluationBridge(ctx context.Context, input ofrep.Evaluati
 		)
 
 		return ofrep.EvaluationBridgeOutput{
-			FlagKey: resp.FlagKey,
-			Variant: strconv.FormatBool(resp.Enabled),
-			Reason:  resp.Reason,
-			Value:   resp.Enabled,
+			FlagKey:  resp.FlagKey,
+			Variant:  strconv.FormatBool(resp.Enabled),
+			Reason:   resp.Reason,
+			Value:    resp.Enabled,
+			Metadata: map[string]any{},
 		}, nil
 	default:
 		return ofrep.EvaluationBridgeOutput{}, errors.New("unsupported flag type for ofrep bridge")

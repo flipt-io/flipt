@@ -1,88 +1,45 @@
 package ofrep
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type errorCode string
+const statusFlagKeyPointer = "ofrep-flag-key"
 
-const (
-	errorCodeFlagNotFound        errorCode = "FLAG_NOT_FOUND"
-	errorCodeParseError          errorCode = "PARSE_ERROR"
-	errorCodeTargetingKeyMissing errorCode = "TARGETING_KEY_MISSING"
-	errorCodeInvalidContext      errorCode = "INVALID_CONTEXT"
-	errorCodeParseGeneral        errorCode = "GENERAL"
-)
-
-type errorSchema struct {
-	Key          string `json:"key,omitempty"`
-	ErrorCode    string `json:"errorCode,omitempty"`
-	ErrorDetails string `json:"errorDetails"`
-}
-
-func NewBadRequestError(key string, err error) error {
-	msg, err := json.Marshal(errorSchema{
-		Key:          key,
-		ErrorCode:    string(errorCodeParseGeneral),
-		ErrorDetails: err.Error(),
+func statusWithKey(st *status.Status, key string) (*status.Status, error) {
+	return st.WithDetails(&structpb.Struct{
+		Fields: map[string]*structpb.Value{
+			statusFlagKeyPointer: structpb.NewStringValue(key),
+		},
 	})
-	if err != nil {
-		return NewInternalServerError(err)
-	}
-
-	return status.Error(codes.InvalidArgument, string(msg))
 }
 
-func NewUnauthenticatedError() error {
-	msg, err := json.Marshal(errorSchema{ErrorDetails: "unauthenticated error"})
-	if err != nil {
-		return NewInternalServerError(err)
+func newBadRequestError(key string, err error) error {
+	v := status.New(codes.InvalidArgument, err.Error())
+	v, derr := statusWithKey(v, key)
+	if derr != nil {
+		return status.Errorf(codes.Internal, "failed to encode not bad request error")
 	}
-
-	return status.Error(codes.Unauthenticated, string(msg))
+	return v.Err()
 }
 
-func NewUnauthorizedError() error {
-	msg, err := json.Marshal(errorSchema{ErrorDetails: "unauthorized error"})
-	if err != nil {
-		return NewInternalServerError(err)
+func newFlagNotFoundError(key string) error {
+	v := status.New(codes.NotFound, fmt.Sprintf("flag was not found %s", key))
+	v, derr := statusWithKey(v, key)
+	if derr != nil {
+		return status.Errorf(codes.Internal, "failed to encode not found error")
 	}
-
-	return status.Error(codes.PermissionDenied, string(msg))
+	return v.Err()
 }
 
-func NewFlagNotFoundError(key string) error {
-	msg, err := json.Marshal(errorSchema{
-		Key:       key,
-		ErrorCode: string(errorCodeFlagNotFound),
-	})
-	if err != nil {
-		return NewInternalServerError(err)
-	}
-
-	return status.Error(codes.NotFound, string(msg))
+func newFlagMissingError() error {
+	return status.Error(codes.InvalidArgument, "flag key was not provided")
 }
 
-func NewTargetingKeyMissing() error {
-	msg, err := json.Marshal(errorSchema{
-		ErrorCode:    string(errorCodeTargetingKeyMissing),
-		ErrorDetails: "flag key was not provided",
-	})
-	if err != nil {
-		return NewInternalServerError(err)
-	}
-
-	return status.Error(codes.InvalidArgument, string(msg))
-}
-
-func NewInternalServerError(err error) error {
-	return status.Error(
-		codes.Internal,
-		fmt.Sprintf(`{"errorDetails": "%s"}`, strings.ReplaceAll(err.Error(), `"`, `\"`)),
-	)
+func newFlagsMissingError() error {
+	return status.Error(codes.InvalidArgument, "flags were not provided in context")
 }

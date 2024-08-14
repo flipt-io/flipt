@@ -1296,6 +1296,7 @@ paths:
         get:
             tags:
                 - OFREPService
+            description: OFREP provider configuration
             operationId: ofrep.configuration
             responses:
                 "200":
@@ -1304,10 +1305,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetProviderConfigurationResponse'
+    /ofrep/v1/evaluate/flags:
+        post:
+            tags:
+                - OFREPService
+            description: OFREP bulk flag evaluation
+            operationId: ofrep.evaluateBulk
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EvaluateBulkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BulkEvaluationResponse'
     /ofrep/v1/evaluate/flags/{key}:
         post:
             tags:
                 - OFREPService
+            description: OFREP single flag evaluation
             operationId: ofrep.evaluateFlag
             parameters:
                 - name: key
@@ -1412,6 +1433,15 @@ components:
                     format: date-time
                 flagKey:
                     type: string
+        BulkEvaluationResponse:
+            required:
+                - flags
+            type: object
+            properties:
+                flags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluatedFlag'
         CacheInvalidation:
             type: object
             properties:
@@ -1681,6 +1711,13 @@ components:
                         - NOT_FOUND_ERROR_EVALUATION_REASON
                     type: string
                     format: enum
+        EvaluateBulkRequest:
+            type: object
+            properties:
+                context:
+                    type: object
+                    additionalProperties:
+                        type: string
         EvaluateFlagRequest:
             type: object
             properties:
