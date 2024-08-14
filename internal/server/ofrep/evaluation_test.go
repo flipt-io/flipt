@@ -113,25 +113,25 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 		{
 			name:        "should return a targeting key missing error when a key is not provided",
 			req:         &ofrep.EvaluateFlagRequest{},
-			expectedErr: NewFlagMissing(),
+			expectedErr: newFlagMissingError(),
 		},
 		{
 			name:        "should return a bad request error when an invalid is returned by the bridge",
 			req:         &ofrep.EvaluateFlagRequest{Key: "test-flag"},
 			err:         flipterrors.ErrInvalid("invalid"),
-			expectedErr: NewBadRequestError("test-flag", flipterrors.ErrInvalid("invalid")),
+			expectedErr: newBadRequestError("test-flag", flipterrors.ErrInvalid("invalid")),
 		},
 		{
 			name:        "should return a bad request error when a validation error is returned by the bridge",
 			req:         &ofrep.EvaluateFlagRequest{Key: "test-flag"},
 			err:         flipterrors.InvalidFieldError("field", "reason"),
-			expectedErr: NewBadRequestError("test-flag", flipterrors.InvalidFieldError("field", "reason")),
+			expectedErr: newBadRequestError("test-flag", flipterrors.InvalidFieldError("field", "reason")),
 		},
 		{
 			name:        "should return a not found error when a flag not found error is returned by the bridge",
 			req:         &ofrep.EvaluateFlagRequest{Key: "test-flag"},
 			err:         flipterrors.ErrNotFound("test-flag"),
-			expectedErr: NewFlagNotFoundError("test-flag"),
+			expectedErr: newFlagNotFoundError("test-flag"),
 		},
 		{
 			name:        "should return a general error",

@@ -23,22 +23,22 @@ func TestErrorHandler(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			input:          NewFlagsMissing(),
+			input:          newFlagsMissingError(),
 			expectedCode:   http.StatusBadRequest,
 			expectedOutput: `{"errorCode":"INVALID_CONTEXT","errorDetails":"flags were not provided in context"}`,
 		},
 		{
-			input:          NewFlagMissing(),
+			input:          newFlagMissingError(),
 			expectedCode:   http.StatusBadRequest,
 			expectedOutput: `{"errorCode":"INVALID_CONTEXT","errorDetails":"flag key was not provided"}`,
 		},
 		{
-			input:          NewFlagNotFoundError("flag1"),
+			input:          newFlagNotFoundError("flag1"),
 			expectedCode:   http.StatusNotFound,
 			expectedOutput: `{"key":"flag1","errorCode":"FLAG_NOT_FOUND","errorDetails":"flag was not found flag1"}`,
 		},
 		{
-			input:          NewBadRequestError("flag1", errors.New("custom failure")),
+			input:          newBadRequestError("flag1", errors.New("custom failure")),
 			expectedCode:   http.StatusBadRequest,
 			expectedOutput: `{"key":"flag1","errorCode":"INVALID_CONTEXT","errorDetails":"custom failure"}`,
 		},

@@ -19,7 +19,7 @@ const ofrepCtxTargetingKey = "targetingKey"
 func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluatedFlag, error) {
 	s.logger.Debug("ofrep flag", zap.Stringer("request", r))
 	if r.Key == "" {
-		return nil, NewFlagMissing()
+		return nil, newFlagMissingError()
 	}
 	entityId := getTargetingKey(r.Context)
 	output, err := s.bridge.OFREPFlagEvaluation(ctx, EvaluationBridgeInput{
@@ -47,7 +47,7 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 	entityId := getTargetingKey(r.Context)
 	flagKeys, ok := r.Context["flags"]
 	if !ok {
-		return nil, NewFlagsMissing()
+		return nil, newFlagsMissingError()
 	}
 	namespaceKey := getNamespace(ctx)
 	keys := strings.Split(flagKeys, ",")
@@ -134,11 +134,11 @@ func transformReason(reason rpcevaluation.EvaluationReason) ofrep.EvaluateReason
 func transformError(key string, err error) error {
 	switch {
 	case flipterrors.AsMatch[flipterrors.ErrInvalid](err):
-		return NewBadRequestError(key, err)
+		return newBadRequestError(key, err)
 	case flipterrors.AsMatch[flipterrors.ErrValidation](err):
-		return NewBadRequestError(key, err)
+		return newBadRequestError(key, err)
 	case flipterrors.AsMatch[flipterrors.ErrNotFound](err):
-		return NewFlagNotFoundError(key)
+		return newFlagNotFoundError(key)
 	}
 	return err
 }

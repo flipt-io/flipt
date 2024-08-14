@@ -18,7 +18,7 @@ func statusWithKey(st *status.Status, key string) (*status.Status, error) {
 	})
 }
 
-func NewBadRequestError(key string, err error) error {
+func newBadRequestError(key string, err error) error {
 	v := status.New(codes.InvalidArgument, err.Error())
 	v, derr := statusWithKey(v, key)
 	if derr != nil {
@@ -27,7 +27,7 @@ func NewBadRequestError(key string, err error) error {
 	return v.Err()
 }
 
-func NewFlagNotFoundError(key string) error {
+func newFlagNotFoundError(key string) error {
 	v := status.New(codes.NotFound, fmt.Sprintf("flag was not found %s", key))
 	v, derr := statusWithKey(v, key)
 	if derr != nil {
@@ -36,10 +36,10 @@ func NewFlagNotFoundError(key string) error {
 	return v.Err()
 }
 
-func NewFlagMissing() error {
+func newFlagMissingError() error {
 	return status.Error(codes.InvalidArgument, "flag key was not provided")
 }
 
-func NewFlagsMissing() error {
+func newFlagsMissingError() error {
 	return status.Error(codes.InvalidArgument, "flags were not provided in context")
 }
