@@ -3,6 +3,27 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.48.0](https://github.com/flipt-io/flipt/releases/tag/v1.48.0) - 2024-08-14
+
+### Added
+
+- `ofrep`: implement bulk evaluation for OFREP (#3364)
+- Support import export namespace data (#3356)
+- support postgresql url prefix (#3354)
+
+### Changed
+
+- `sdk`: update go sdk examples with new change in gRPC (#3363)
+- generate OpenAPI from grpc (#3357)
+- add rajyan as a contributor for code (#3359)
+- add radekska as a contributor for code (#3355)
+
+### Fixed
+
+- `cors`: add missing from default allowed CORS headers (#3378)
+- `gh`: clear unused tools before dagger runs (#3362)
+- use different error messages for namespace scoped token errors (#3358)
+
 ## [v1.47.1](https://github.com/flipt-io/flipt/releases/tag/v1.47.1) - 2024-08-01
 
 ### Fixed
