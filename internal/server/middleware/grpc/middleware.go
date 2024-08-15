@@ -239,77 +239,78 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 // AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
 func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var request flipt.Request
+		var requests []flipt.Request
 		r, ok := req.(flipt.Requester)
 
 		if !ok {
 			return handler(ctx, req)
 		}
 
-		request = r.Request()
+		requests = r.Request()
 
-		var event *audit.Event
+		var events []*audit.Event
 
 		actor := authn.ActorFromContext(ctx)
 
 		defer func() {
-			if event != nil {
-				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
+			if events != nil {
+				for _, event := range events {
+					eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
 
-				exists := eventPairChecker.Check(eventPair)
-				if exists {
-					span := trace.SpanFromContext(ctx)
-					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+					exists := eventPairChecker.Check(eventPair)
+					if exists {
+						span := trace.SpanFromContext(ctx)
+						span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+					}
 				}
 			}
 		}()
 
 		resp, err := handler(ctx, req)
-		if err != nil {
-			var uerr errs.ErrUnauthorized
-			if errors.As(err, &uerr) {
-				request.Status = flipt.StatusDenied
-				event = audit.NewEvent(request, actor, nil)
-			}
-			return resp, err
-		}
+		for _, request := range requests {
+			if err != nil {
+				var uerr errs.ErrUnauthorized
+				if errors.As(err, &uerr) {
+					request.Status = flipt.StatusDenied
+					events = append(events, audit.NewEvent(request, actor, nil))
+				}
 
-		// Delete and Order request(s) have to be handled separately because they do not
-		// return the concrete type but rather an *empty.Empty response.
-		if request.Action == flipt.ActionDelete {
-			event = audit.NewEvent(request, actor, r)
-		} else {
+				continue
+			}
+
+			// Delete and Order request(s) have to be handled separately because they do not
+			// return the concrete type but rather an *empty.Empty response.
+			if request.Action == flipt.ActionDelete {
+				events = append(events, audit.NewEvent(request, actor, r))
+				continue
+			}
+
 			switch r := req.(type) {
 			case *flipt.OrderRulesRequest, *flipt.OrderRolloutsRequest:
-				event = audit.NewEvent(request, actor, r)
+				events = append(events, audit.NewEvent(request, actor, r))
+				continue
 			}
-		}
 
-		// Short circuiting the middleware here since we have a non-nil event from
-		// detecting a delete.
-		if event != nil {
-			return resp, err
-		}
-
-		switch r := resp.(type) {
-		case *flipt.Flag:
-			event = audit.NewEvent(request, actor, audit.NewFlag(r))
-		case *flipt.Variant:
-			event = audit.NewEvent(request, actor, audit.NewVariant(r))
-		case *flipt.Segment:
-			event = audit.NewEvent(request, actor, audit.NewSegment(r))
-		case *flipt.Distribution:
-			event = audit.NewEvent(request, actor, audit.NewDistribution(r))
-		case *flipt.Constraint:
-			event = audit.NewEvent(request, actor, audit.NewConstraint(r))
-		case *flipt.Namespace:
-			event = audit.NewEvent(request, actor, audit.NewNamespace(r))
-		case *flipt.Rollout:
-			event = audit.NewEvent(request, actor, audit.NewRollout(r))
-		case *flipt.Rule:
-			event = audit.NewEvent(request, actor, audit.NewRule(r))
-		case *auth.CreateTokenResponse:
-			event = audit.NewEvent(request, actor, r.Authentication.Metadata)
+			switch r := resp.(type) {
+			case *flipt.Flag:
+				events = append(events, audit.NewEvent(request, actor, audit.NewFlag(r)))
+			case *flipt.Variant:
+				events = append(events, audit.NewEvent(request, actor, audit.NewVariant(r)))
+			case *flipt.Segment:
+				events = append(events, audit.NewEvent(request, actor, audit.NewSegment(r)))
+			case *flipt.Distribution:
+				events = append(events, audit.NewEvent(request, actor, audit.NewDistribution(r)))
+			case *flipt.Constraint:
+				events = append(events, audit.NewEvent(request, actor, audit.NewConstraint(r)))
+			case *flipt.Namespace:
+				events = append(events, audit.NewEvent(request, actor, audit.NewNamespace(r)))
+			case *flipt.Rollout:
+				events = append(events, audit.NewEvent(request, actor, audit.NewRollout(r)))
+			case *flipt.Rule:
+				events = append(events, audit.NewEvent(request, actor, audit.NewRule(r)))
+			case *auth.CreateTokenResponse:
+				events = append(events, audit.NewEvent(request, actor, r.Authentication.Metadata))
+			}
 		}
 
 		return resp, err

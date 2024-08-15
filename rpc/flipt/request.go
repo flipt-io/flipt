@@ -1,7 +1,7 @@
 package flipt
 
 type Requester interface {
-	Request() Request
+	Request() []Request
 }
 
 // Resource represents what resource or parent resource is being acted on.
@@ -93,153 +93,153 @@ func newSegmentScopedRequest(ns string, s Subject, a Action) Request {
 }
 
 // Namespaces
-func (req *GetNamespaceRequest) Request() Request {
-	return NewRequest(ResourceNamespace, ActionRead, WithNamespace(req.Key))
+func (req *GetNamespaceRequest) Request() []Request {
+	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNamespace(req.Key))}
 }
 
-func (req *ListNamespaceRequest) Request() Request {
-	return NewRequest(ResourceNamespace, ActionRead)
+func (req *ListNamespaceRequest) Request() []Request {
+	return []Request{NewRequest(ResourceNamespace, ActionRead)}
 }
 
-func (req *CreateNamespaceRequest) Request() Request {
-	return NewRequest(ResourceNamespace, ActionCreate, WithNamespace(req.Key))
+func (req *CreateNamespaceRequest) Request() []Request {
+	return []Request{NewRequest(ResourceNamespace, ActionCreate, WithNamespace(req.Key))}
 }
 
-func (req *UpdateNamespaceRequest) Request() Request {
-	return NewRequest(ResourceNamespace, ActionUpdate, WithNamespace(req.Key))
+func (req *UpdateNamespaceRequest) Request() []Request {
+	return []Request{NewRequest(ResourceNamespace, ActionUpdate, WithNamespace(req.Key))}
 }
 
-func (req *DeleteNamespaceRequest) Request() Request {
-	return NewRequest(ResourceNamespace, ActionDelete, WithNamespace(req.Key))
+func (req *DeleteNamespaceRequest) Request() []Request {
+	return []Request{NewRequest(ResourceNamespace, ActionDelete, WithNamespace(req.Key))}
 }
 
 // Flags
-func (req *GetFlagRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionRead)
+func (req *GetFlagRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionRead)}
 }
 
-func (req *ListFlagRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionRead)
+func (req *ListFlagRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionRead)}
 }
 
-func (req *CreateFlagRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionCreate)
+func (req *CreateFlagRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionCreate)}
 }
 
-func (req *UpdateFlagRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionUpdate)
+func (req *UpdateFlagRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionUpdate)}
 }
 
-func (req *DeleteFlagRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionDelete)
+func (req *DeleteFlagRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionDelete)}
 }
 
 // Variants
-func (req *CreateVariantRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionCreate)
+func (req *CreateVariantRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionCreate)}
 }
 
-func (req *UpdateVariantRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionUpdate)
+func (req *UpdateVariantRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionUpdate)}
 }
 
-func (req *DeleteVariantRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionDelete)
+func (req *DeleteVariantRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectVariant, ActionDelete)}
 }
 
 // Rules
-func (req *ListRuleRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionRead)
+func (req *ListRuleRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionRead)}
 }
 
-func (req *GetRuleRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionRead)
+func (req *GetRuleRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionRead)}
 }
 
-func (req *CreateRuleRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionCreate)
+func (req *CreateRuleRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionCreate)}
 }
 
-func (req *UpdateRuleRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionUpdate)
+func (req *UpdateRuleRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionUpdate)}
 }
 
-func (req *OrderRulesRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionUpdate)
+func (req *OrderRulesRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionUpdate)}
 }
 
-func (req *DeleteRuleRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionDelete)
+func (req *DeleteRuleRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRule, ActionDelete)}
 }
 
 // Rollouts
-func (req *ListRolloutRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionRead)
+func (req *ListRolloutRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionRead)}
 }
 
-func (req *GetRolloutRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionRead)
+func (req *GetRolloutRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionRead)}
 }
 
-func (req *CreateRolloutRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionCreate)
+func (req *CreateRolloutRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionCreate)}
 }
 
-func (req *UpdateRolloutRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionUpdate)
+func (req *UpdateRolloutRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionUpdate)}
 }
 
-func (req *OrderRolloutsRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionUpdate)
+func (req *OrderRolloutsRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionUpdate)}
 }
 
-func (req *DeleteRolloutRequest) Request() Request {
-	return newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionDelete)
+func (req *DeleteRolloutRequest) Request() []Request {
+	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectRollout, ActionDelete)}
 }
 
 // Segments
-func (req *GetSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionRead)
+func (req *GetSegmentRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionRead)}
 }
 
-func (req *ListSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionRead)
+func (req *ListSegmentRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionRead)}
 }
 
-func (req *CreateSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionCreate)
+func (req *CreateSegmentRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionCreate)}
 }
 
-func (req *UpdateSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionUpdate)
+func (req *UpdateSegmentRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionUpdate)}
 }
 
-func (req *DeleteSegmentRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionDelete)
+func (req *DeleteSegmentRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectSegment, ActionDelete)}
 }
 
 // Constraints
-func (req *CreateConstraintRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionCreate)
+func (req *CreateConstraintRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionCreate)}
 }
 
-func (req *UpdateConstraintRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionUpdate)
+func (req *UpdateConstraintRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionUpdate)}
 }
 
-func (req *DeleteConstraintRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionDelete)
+func (req *DeleteConstraintRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectConstraint, ActionDelete)}
 }
 
 // Distributions
-func (req *CreateDistributionRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionCreate)
+func (req *CreateDistributionRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionCreate)}
 }
 
-func (req *UpdateDistributionRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionUpdate)
+func (req *UpdateDistributionRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionUpdate)}
 }
 
-func (req *DeleteDistributionRequest) Request() Request {
-	return newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionDelete)
+func (req *DeleteDistributionRequest) Request() []Request {
+	return []Request{newSegmentScopedRequest(req.NamespaceKey, SubjectDistribution, ActionDelete)}
 }
