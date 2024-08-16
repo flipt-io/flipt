@@ -5,16 +5,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"text/template"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestConstructorWebhookTemplate(t *testing.T) {
@@ -30,14 +29,11 @@ func TestConstructorWebhookTemplate(t *testing.T) {
 }
 
 func TestExecuter_JSON_Failure(t *testing.T) {
-	tmpl, err := template.New("").Parse(`this is invalid JSON {{ .Type }}, {{ .Action }}`)
+	tmpl := `this is invalid JSON {{ .Type }}, {{ .Action }}`
+
+	template, err := NewWebhookTemplate(zaptest.NewLogger(t), "https://flipt-webhook.io/webhook", tmpl, nil, time.Second)
+
 	require.NoError(t, err)
-
-	template := &webhookTemplate{
-		url:          "https://flipt-webhook.io/webhook",
-		bodyTemplate: tmpl,
-	}
-
 	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
 		Action: string(flipt.ActionCreate),
@@ -47,12 +43,10 @@ func TestExecuter_JSON_Failure(t *testing.T) {
 }
 
 func TestExecuter_Execute(t *testing.T) {
-	tmpl, err := template.New("").Parse(`{
+	tmpl := `{
 		"type": "{{ .Type }}",
 		"action": "{{ .Action }}"
-	}`)
-
-	require.NoError(t, err)
+	}`
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
@@ -60,11 +54,8 @@ func TestExecuter_Execute(t *testing.T) {
 
 	t.Cleanup(ts.Close)
 
-	template := &webhookTemplate{
-		url:          ts.URL,
-		bodyTemplate: tmpl,
-		httpClient:   retryablehttp.NewClient(),
-	}
+	template, err := NewWebhookTemplate(zaptest.NewLogger(t), ts.URL, tmpl, nil, time.Second)
+	require.NoError(t, err)
 
 	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
@@ -75,13 +66,11 @@ func TestExecuter_Execute(t *testing.T) {
 }
 
 func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
-	tmpl, err := template.New("").Funcs(funcMap).Parse(`{
+	tmpl := `{
 		"type": "{{ .Type }}",
 		"action": "{{ .Action }}",
 		"payload": {{ toJson .Payload }}
-	}`)
-
-	require.NoError(t, err)
+	}`
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
@@ -89,11 +78,8 @@ func TestExecuter_Execute_toJson_valid_Json(t *testing.T) {
 
 	t.Cleanup(ts.Close)
 
-	template := &webhookTemplate{
-		url:          ts.URL,
-		bodyTemplate: tmpl,
-		httpClient:   retryablehttp.NewClient(),
-	}
+	template, err := NewWebhookTemplate(zaptest.NewLogger(t), ts.URL, tmpl, nil, time.Second)
+	require.NoError(t, err)
 
 	err = template.Execute(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),

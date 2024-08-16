@@ -51,7 +51,7 @@ func NewWebhookTemplate(logger *zap.Logger, url, body string, headers map[string
 	}
 
 	httpClient := retryablehttp.NewClient()
-	httpClient.Logger = logger
+	httpClient.Logger = NewLeveledLogger(logger)
 	httpClient.RetryWaitMax = maxBackoffDuration
 
 	return &webhookTemplate{

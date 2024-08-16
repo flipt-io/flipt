@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +42,9 @@ func (w *webhookClient) signPayload(payload []byte) []byte {
 }
 
 // NewHTTPClient is the constructor for a HTTPClient.
-func NewWebhookClient(logger *zap.Logger, url, signingSecret string, httpClient *retryablehttp.Client) Client {
+func NewWebhookClient(logger *zap.Logger, url, signingSecret string, maxBackoffDuration time.Duration) Client {
+	httpClient := retryablehttp.NewClient()
+	httpClient.Logger = template.NewLeveledLogger(logger)
 	return &webhookClient{
 		logger:        logger,
 		url:           url,

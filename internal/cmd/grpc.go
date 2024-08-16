@@ -16,7 +16,6 @@ import (
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hashicorp/go-retryablehttp"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -383,10 +382,9 @@ func NewGRPCServer(
 	}
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
-		httpClient := retryablehttp.NewClient()
-
+		maxBackoffDuration := 15 * time.Second
 		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
-			httpClient.RetryWaitMax = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
+			maxBackoffDuration = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
 		}
 
 		var webhookSink audit.Sink
@@ -394,13 +392,8 @@ func NewGRPCServer(
 		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
 		// than 0 for the webhook.
 		if cfg.Audit.Sinks.Webhook.URL != "" {
-			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, httpClient))
+			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, maxBackoffDuration))
 		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
-			maxBackoffDuration := 15 * time.Second
-			if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
-				maxBackoffDuration = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
-			}
-
 			webhookSink, err = template.NewSink(logger, cfg.Audit.Sinks.Webhook.Templates, maxBackoffDuration)
 			if err != nil {
 				return nil, err
