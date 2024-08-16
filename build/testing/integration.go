@@ -51,24 +51,26 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		"api/sqlite":    withSQLite(api),
-		"api/libsql":    withLibSQL(api),
-		"api/postgres":  withPostgres(api),
-		"api/mysql":     withMySQL(api),
-		"api/cockroach": withCockroach(api),
-		"api/cache":     cache,
-		"api/cachetls":  cacheWithTLS,
-		"api/snapshot":  snapshot,
-		"api/ofrep":     ofrep,
-		"fs/git":        git,
-		"fs/local":      local,
-		"fs/s3":         s3,
-		"fs/oci":        oci,
-		"fs/azblob":     azblob,
-		"fs/gcs":        gcs,
-		"import/export": importExport,
-		"authn":         authn,
-		"authz":         authz,
+		"api/sqlite":        withSQLite(api),
+		"api/libsql":        withLibSQL(api),
+		"api/postgres":      withPostgres(api),
+		"api/mysql":         withMySQL(api),
+		"api/cockroach":     withCockroach(api),
+		"api/cache":         cache,
+		"api/cachetls":      cacheWithTLS,
+		"api/snapshot":      snapshot,
+		"api/ofrep":         ofrep,
+		"fs/git":            git,
+		"fs/local":          local,
+		"fs/s3":             s3,
+		"fs/oci":            oci,
+		"fs/azblob":         azblob,
+		"fs/gcs":            gcs,
+		"import/export":     importExport,
+		"authn":             authn,
+		"authz":             authz,
+		"audit/webhook":     withWebhook(api),
+		"audit/webhooktmpl": withWebhookTemplates(api),
 	}
 )
 
@@ -830,6 +832,46 @@ permit_slice(allowed, requested) if {
 	}
 
 	return suite(ctx, "authz", base, fliptToTest, conf)
+}
+
+func withWebhook(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		owntracks := client.Container().From("frxyt/gohrec").WithExposedPort(8080).AsService()
+
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_AUDIT_SINKS_WEBHOOK_ENABLED", "true").
+			WithEnvVariable("FLIPT_AUDIT_SINKS_WEBHOOK_URL", "http://owntracks:8080").
+			WithServiceBinding("owntracks", owntracks),
+			conf,
+		)
+	}
+}
+
+func withWebhookTemplates(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		owntracks := client.Container().From("frxyt/gohrec").WithExposedPort(8080).AsService()
+
+		return fn(ctx, client, base, flipt.
+			WithNewFile("/etc/flipt/config/default.yml", `
+audit:
+  sinks:
+    webhook:
+      enabled: true
+      templates:
+        - url: http://owntracks:8080
+          headers:
+            Content-Type: application/json
+          body: |
+            {
+              "type": "{{ .Type }}",
+              "action": "{{ .Action }}",
+              "metadata": {{ toJson .Metadata }},
+              "payload": {{ toJson .Payload }}
+            }`).
+			WithServiceBinding("owntracks", owntracks),
+			conf,
+		)
+	}
 }
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
