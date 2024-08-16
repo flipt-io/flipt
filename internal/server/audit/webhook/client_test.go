@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestConstructorWebhookClient(t *testing.T) {
-	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "", retryablehttp.NewClient())
+	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "", 8*time.Second)
 
 	require.NotNil(t, client)
 
@@ -25,6 +26,9 @@ func TestConstructorWebhookClient(t *testing.T) {
 
 	assert.Equal(t, "https://flipt-webhook.io/webhook", whClient.url)
 	assert.Empty(t, whClient.signingSecret)
+	assert.Equal(t, 8*time.Second, whClient.httpClient.RetryWaitMax)
+	_, ok = whClient.httpClient.Logger.(retryablehttp.LeveledLogger)
+	assert.True(t, ok)
 }
 
 func TestWebhookClient(t *testing.T) {
@@ -39,12 +43,7 @@ func TestWebhookClient(t *testing.T) {
 
 	t.Cleanup(ts.Close)
 
-	client := &webhookClient{
-		logger:        zap.NewNop(),
-		url:           ts.URL,
-		signingSecret: "s3crET",
-		httpClient:    retryablehttp.NewClient(),
-	}
+	client := NewWebhookClient(zap.NewNop(), ts.URL, "s3crET", time.Second)
 
 	resp, err := client.SendAudit(context.TODO(), audit.Event{
 		Type:   string(flipt.SubjectFlag),
