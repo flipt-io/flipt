@@ -45,6 +45,7 @@ func (w *webhookClient) signPayload(payload []byte) []byte {
 func NewWebhookClient(logger *zap.Logger, url, signingSecret string, maxBackoffDuration time.Duration) Client {
 	httpClient := retryablehttp.NewClient()
 	httpClient.Logger = template.NewLeveledLogger(logger)
+	httpClient.RetryWaitMax = maxBackoffDuration
 	return &webhookClient{
 		logger:        logger,
 		url:           url,

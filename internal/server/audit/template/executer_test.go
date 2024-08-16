@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -26,6 +27,9 @@ func TestConstructorWebhookTemplate(t *testing.T) {
 
 	assert.Equal(t, "https://flipt-webhook.io/webhook", template.url)
 	assert.Nil(t, template.headers)
+	assert.Equal(t, 15*time.Second, template.httpClient.RetryWaitMax)
+	_, ok = template.httpClient.Logger.(retryablehttp.LeveledLogger)
+	assert.True(t, ok)
 }
 
 func TestExecuter_JSON_Failure(t *testing.T) {
