@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.48.1](https://github.com/flipt-io/flipt/releases/tag/v1.48.1) - 2024-08-16
+
+### Fixed
+
+- `audit`: provide correct leveled_logger for retryablehttp client (#3382)
+
 ## [v1.48.0](https://github.com/flipt-io/flipt/releases/tag/v1.48.0) - 2024-08-14
 
 ### Added
