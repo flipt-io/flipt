@@ -73,6 +73,8 @@ jobs:
             "import/export",
             "authn",
             "authz",
+            "audit/webhook",
+            "audit/webhooktmpl",
           ]
     steps:
       - uses: actions/checkout@v4
