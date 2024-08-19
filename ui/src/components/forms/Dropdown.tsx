@@ -56,9 +56,9 @@ export default function Dropdown(props: DropdownProps) {
                         'group flex items-center px-4 py-2 text-sm',
                         action.className,
                         active
-                          ? action.activeClassName ??
-                              'text-gray-900 bg-gray-100'
-                          : action.inActiveClassName ?? 'text-gray-700'
+                          ? (action.activeClassName ??
+                              'text-gray-900 bg-gray-100')
+                          : (action.inActiveClassName ?? 'text-gray-700')
                       )}
                       onClick={(e) => {
                         e.preventDefault();
@@ -85,9 +85,9 @@ export default function Dropdown(props: DropdownProps) {
                         'group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed',
                         action.className,
                         active
-                          ? action.activeClassName ??
-                              'text-gray-700 bg-gray-100'
-                          : action.inActiveClassName ?? 'text-gray-500'
+                          ? (action.activeClassName ??
+                              'text-gray-700 bg-gray-100')
+                          : (action.inActiveClassName ?? 'text-gray-500')
                       )}
                     >
                       {action.icon && (
