@@ -163,9 +163,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download OpenAPI Spec
-        run: |
-          curl -s -o openapi.yml https://raw.githubusercontent.com/flipt-io/flipt-openapi/main/openapi.yml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Update HawkScan Configuration
         uses: mikefarah/yq@master
