@@ -36,9 +36,6 @@
     <a href="https://github.com/orgs/flipt-io/projects/4">
         <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
     </a>
-    <a href="https://flipt.io/#newsletter">
-        <img src="https://img.shields.io/badge/newsletter-subscribe-green" alt="Flipt Newsletter" />
-    </a>
     <a href="https://twitter.com/flipt_io">
         <img src="https://img.shields.io/twitter/follow/flipt_io?label=Follow" alt="Flipt Twitter" />
     </a>
@@ -68,15 +65,24 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
-## Managed Services
+## Managed Cloud
 
-Need more? We've got you covered! Check out our [managed offering](https://www.flipt.io/docs/managed/overview).
+Want the best of Flipt without the hassle of running it yourself? Check out our [managed offering](https://docs.flipt.io/cloud).
 
 <p align="center">
-    <a href="https://flipt.io/cloud" title="Flipt Hybrid Cloud">
-      <img src="./.github/images/flipt-cloud.svg" alt="Flipt Hybrid Cloud" />
+    <a href="https://docs.flipt.io/cloud" title="Flipt Managed Cloud">
+      <img src="./.github/images/flipt-managed-cloud.svg" alt="Flipt Managed Cloud" />
     </a>
 </p>
+
+### Features
+
+- Fully managed Flipt service
+- Multiple Environments
+- Integrated with GitHub
+- Automatic Upgrades
+- SSO / SAML Authentication
+- Granular Access Control
 
 ## Usecases
 
