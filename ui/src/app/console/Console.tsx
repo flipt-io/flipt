@@ -84,7 +84,8 @@ export default function Console() {
   const flags = useMemo(() => {
     const initialFlags = data?.flags || [];
     return initialFlags.map((flag) => {
-      const status = flag.enabled ? 'active' : 'inactive';
+      const status =
+        flag.enabled || flag.type === FlagType.BOOLEAN ? 'active' : 'inactive';
 
       return {
         ...flag,
