@@ -12,7 +12,7 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
@@ -20,6 +20,7 @@ import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 import { truncateKey } from '~/utils/helpers';
+import { selectSorting, setSorting } from '~/app/flags/flagsApi';
 
 function flagDefaultValue(flag: IFlag): string {
   switch (flag.type) {
@@ -39,6 +40,8 @@ type FlagTableProps = {
 export default function FlagTable(props: FlagTableProps) {
   const { flags } = props;
 
+  const dispatch = useDispatch();
+
   const namespace = useSelector(selectCurrentNamespace);
   const { inTimezone } = useTimezone();
 
@@ -46,7 +49,6 @@ export default function FlagTable(props: FlagTableProps) {
 
   const searchThreshold = 10;
 
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 20
@@ -151,6 +153,7 @@ export default function FlagTable(props: FlagTableProps) {
     })
   ];
 
+  const sorting = useSelector(selectSorting);
   const table = useReactTable({
     data: flags,
     columns,
@@ -160,7 +163,10 @@ export default function FlagTable(props: FlagTableProps) {
       pagination
     },
     globalFilterFn: 'includesString',
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      dispatch(setSorting(newSorting));
+    },
     onPaginationChange: setPagination,
     onGlobalFilterChange: setFilter,
     getCoreRowModel: getCoreRowModel(),
