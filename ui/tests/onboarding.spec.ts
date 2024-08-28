@@ -11,7 +11,7 @@ test.describe('Onboarding', () => {
       ).toBeVisible();
       await expect(
         page.getByRole('heading', {
-          name: 'Introducing Flipt Enterprise Cloud'
+          name: 'Introducing Flipt Cloud'
         })
       ).toBeVisible();
       await expect(
@@ -68,12 +68,15 @@ test.describe('Onboarding', () => {
         page.getByText('Integrate Your Application', { exact: true })
       ).toBeVisible();
       await expect(
-        page.getByText('Join the Community', { exact: true })
+        page.getByText('Chat With Us', { exact: true })
       ).toBeVisible();
       await expect(
         page.getByText('View API Reference', { exact: true })
       ).toBeVisible();
       await expect(page.getByText('Support Us', { exact: true })).toBeVisible();
+      await expect(
+        page.getByText('Join the Community', { exact: true })
+      ).toBeVisible();
       await expect(
         page.getByRole('button', { name: 'Continue to Dashboard' })
       ).toBeHidden();

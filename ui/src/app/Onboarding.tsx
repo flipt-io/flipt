@@ -56,7 +56,7 @@ const gettingStartedTiles = [
 const moreTiles = [
   {
     icon: ChatBubbleLeftIcon,
-    name: 'Discord',
+    name: 'Chat With Us',
     description:
       'Join our Discord community to engage with the team and other Flipt users',
     cta: 'Join Discord',
@@ -77,10 +77,10 @@ const moreTiles = [
   },
   {
     icon: UsersIcon,
-    name: 'Community',
+    name: 'Join the Community',
     description:
       'Engage with our community on Discourse for support, discussions, and knowledge sharing',
-    cta: 'Join Community',
+    cta: 'Join Discourse',
     href: 'https://community.flipt.io'
   }
 ];
