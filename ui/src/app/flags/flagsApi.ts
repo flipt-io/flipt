@@ -7,7 +7,7 @@ import { IVariantBase } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
 
 
-const initialState: {
+const initialTableState: {
   sorting: SortingState;
 } = {
   sorting: []
@@ -15,7 +15,7 @@ const initialState: {
 
 export const flagsTableSlice = createSlice({
   name: 'flagsTable',
-  initialState,
+  initialState: initialTableState,
   reducers: {
     setSorting: (state, action: PayloadAction<SortingState>) => {
       const newSorting = action.payload;
