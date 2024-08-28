@@ -7,7 +7,8 @@ import {
   CodeBracketIcon,
   CommandLineIcon,
   PuzzlePieceIcon,
-  StarIcon
+  StarIcon,
+  UsersIcon
 } from '@heroicons/react/24/outline';
 import { useDispatch } from 'react-redux';
 import Button from '~/components/forms/buttons/Button';
@@ -25,10 +26,10 @@ const gettingStartedTiles = [
   },
   {
     icon: CloudIcon,
-    name: 'Introducing Flipt Enterprise Cloud',
+    name: 'Introducing Flipt Cloud',
     className: 'sm:col-span-2',
     description:
-      'Learn about our managed offering with enhanced security and support',
+      'Learn about our SaaS offering that integrates with your Git repositories and can be used alongside your existing Flipt instances',
     href: 'https://docs.flipt.io/cloud/overview'
   },
   {
@@ -55,8 +56,9 @@ const gettingStartedTiles = [
 const moreTiles = [
   {
     icon: ChatBubbleLeftIcon,
-    name: 'Join the Community',
-    description: 'Join our Discord community to ask questions and get help',
+    name: 'Discord',
+    description:
+      'Join our Discord community to engage with the team and other Flipt users',
     cta: 'Join Discord',
     href: 'https://flipt.io/discord'
   },
@@ -72,6 +74,14 @@ const moreTiles = [
     description: 'Show your support by starring us on GitHub',
     cta: 'Star Flipt on GitHub',
     href: 'https://github.com/flipt-io/flipt'
+  },
+  {
+    icon: UsersIcon,
+    name: 'Community',
+    description:
+      'Engage with our community on Discourse for support, discussions, and knowledge sharing',
+    cta: 'Join Community',
+    href: 'https://community.flipt.io'
   }
 ];
 
