@@ -164,7 +164,8 @@ export default function FlagTable(props: FlagTableProps) {
     },
     globalFilterFn: 'includesString',
     onSortingChange: (updater) => {
-      const newSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      const newSorting =
+        typeof updater === 'function' ? updater(sorting) : updater;
       dispatch(setSorting(newSorting));
     },
     onPaginationChange: setPagination,

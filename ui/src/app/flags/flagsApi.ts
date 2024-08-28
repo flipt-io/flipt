@@ -6,7 +6,6 @@ import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
 import { IVariantBase } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
 
-
 const initialTableState: {
   sorting: SortingState;
 } = {
@@ -20,7 +19,7 @@ export const flagsTableSlice = createSlice({
     setSorting: (state, action: PayloadAction<SortingState>) => {
       const newSorting = action.payload;
       state.sorting = newSorting;
-    },
+    }
   }
 });
 
