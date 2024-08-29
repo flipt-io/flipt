@@ -4,12 +4,12 @@ import { RootState } from '~/store';
 export const eventKey = 'event';
 interface IEventState {
   completedOnboarding: boolean;
-  dismissedBanner: boolean;
+  dismissedBanner_v1_49_0: boolean;
 }
 
 const initialState: IEventState = {
   completedOnboarding: false,
-  dismissedBanner: false
+  dismissedBanner_v1_49_0: false
 };
 
 export const eventSlice = createSlice({
@@ -20,7 +20,7 @@ export const eventSlice = createSlice({
       state.completedOnboarding = true;
     },
     bannerDismissed: (state) => {
-      state.dismissedBanner = true;
+      state.dismissedBanner_v1_49_0 = true;
     }
   }
 });
@@ -34,7 +34,7 @@ export const selectCompletedOnboarding = createSelector(
 
 export const selectDismissedBanner = createSelector(
   [(state: RootState) => state.user],
-  (user) => user.dismissedBanner
+  (user) => user.dismissedBanner_v1_49_0
 );
 
 export default eventSlice.reducer;
