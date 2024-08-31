@@ -11,7 +11,7 @@ import {
   namespacesSlice
 } from '~/app/namespaces/namespacesSlice';
 import { analyticsApi } from './app/flags/analyticsApi';
-import { flagsApi } from './app/flags/flagsApi';
+import { flagsApi, flagsTableSlice } from './app/flags/flagsApi';
 import { rolloutTag, rolloutsApi } from './app/flags/rolloutsApi';
 import { ruleTag, rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
@@ -19,7 +19,11 @@ import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
-import { segmentTag, segmentsApi } from './app/segments/segmentsApi';
+import {
+  segmentTag,
+  segmentsApi,
+  segmentsTableSlice
+} from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { refsKey, refsSlice } from './app/refs/refsSlice';
@@ -142,9 +146,17 @@ export const store = configureStore({
       status: LoadingStatus.IDLE,
       currentNamespace,
       error: undefined
+    },
+    flagsTable: {
+      sorting: []
+    },
+    segmentsTable: {
+      sorting: []
     }
   },
   reducer: {
+    flagsTable: flagsTableSlice.reducer,
+    segmentsTable: segmentsTableSlice.reducer,
     refs: refsSlice.reducer,
     user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,
