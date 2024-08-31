@@ -65,13 +65,13 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
-## Managed Cloud
+## Flipt Cloud
 
-Want the best of Flipt without the hassle of running it yourself? Check out our [managed offering](https://docs.flipt.io/cloud).
+Want the best of Flipt without the hassle of running it yourself? Check out [Flipt Cloud](https://docs.flipt.io/cloud).
 
 <p align="center">
-    <a href="https://docs.flipt.io/cloud" title="Flipt Managed Cloud">
-      <img src="./.github/images/flipt-managed-cloud.svg" alt="Flipt Managed Cloud" />
+    <a href="https://docs.flipt.io/cloud" title="Flipt Cloud">
+      <img src="./.github/images/flipt-cloud.svg" alt="Flipt Cloud" />
     </a>
 </p>
 
@@ -79,7 +79,7 @@ Want the best of Flipt without the hassle of running it yourself? Check out our 
 
 - Fully managed Flipt service
 - Multiple Environments
-- Integrated with GitHub
+- Your Data in Your GitHub Repositories
 - Automatic Upgrades
 - SSO / SAML Authentication
 - Granular Access Control
