@@ -19,7 +19,11 @@ import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
-import { segmentTag, segmentsApi } from './app/segments/segmentsApi';
+import {
+  segmentTag,
+  segmentsApi,
+  segmentsTableSlice
+} from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { refsKey, refsSlice } from './app/refs/refsSlice';
@@ -145,10 +149,14 @@ export const store = configureStore({
     },
     flagsTable: {
       sorting: []
+    },
+    segmentsTable: {
+      sorting: []
     }
   },
   reducer: {
     flagsTable: flagsTableSlice.reducer,
+    segmentsTable: segmentsTableSlice.reducer,
     refs: refsSlice.reducer,
     user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,

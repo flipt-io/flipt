@@ -12,9 +12,10 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -28,6 +29,8 @@ type SegmentTableProps = {
 export default function SegmentTable(props: SegmentTableProps) {
   const { segments } = props;
 
+  const dispatch = useDispatch();
+
   const namespace = useSelector(selectCurrentNamespace);
   const { inTimezone } = useTimezone();
 
@@ -35,7 +38,6 @@ export default function SegmentTable(props: SegmentTableProps) {
 
   const searchThreshold = 10;
 
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 20
@@ -113,6 +115,7 @@ export default function SegmentTable(props: SegmentTableProps) {
     })
   ];
 
+  const sorting = useSelector(selectSorting);
   const table = useReactTable({
     data: segments,
     columns,
@@ -122,7 +125,11 @@ export default function SegmentTable(props: SegmentTableProps) {
       pagination
     },
     globalFilterFn: 'includesString',
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const newSorting =
+        typeof updater === 'function' ? updater(sorting) : updater;
+      dispatch(setSorting(newSorting));
+    },
     onPaginationChange: setPagination,
     onGlobalFilterChange: setFilter,
     getCoreRowModel: getCoreRowModel(),
