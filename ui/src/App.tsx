@@ -1,6 +1,6 @@
 import loadable from '@loadable/component';
 import nightwind from 'nightwind/helper';
-import formbricks from '@formbricks/js';
+import formbricks from '@formbricks/js/website';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';

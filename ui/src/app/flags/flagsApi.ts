@@ -1,7 +1,30 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { SortingState } from '@tanstack/react-table';
+import { RootState } from '~/store';
 import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
 import { IVariantBase } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
+
+const initialTableState: {
+  sorting: SortingState;
+} = {
+  sorting: []
+};
+
+export const flagsTableSlice = createSlice({
+  name: 'flagsTable',
+  initialState: initialTableState,
+  reducers: {
+    setSorting: (state, action: PayloadAction<SortingState>) => {
+      const newSorting = action.payload;
+      state.sorting = newSorting;
+    }
+  }
+});
+
+export const selectSorting = (state: RootState) => state.flagsTable.sorting;
+export const { setSorting } = flagsTableSlice.actions;
 
 export const flagsApi = createApi({
   reducerPath: 'flags',

@@ -1,8 +1,31 @@
 import { TagDescription } from '@reduxjs/toolkit/query';
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { SortingState } from '@tanstack/react-table';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '~/store';
 import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 import { baseQuery } from '~/utils/redux-rtk';
+
+const initialTableState: {
+  sorting: SortingState;
+} = {
+  sorting: []
+};
+
+export const segmentsTableSlice = createSlice({
+  name: 'segmentsTable',
+  initialState: initialTableState,
+  reducers: {
+    setSorting: (state, action: PayloadAction<SortingState>) => {
+      const newSorting = action.payload;
+      state.sorting = newSorting;
+    }
+  }
+});
+
+export const selectSorting = (state: RootState) => state.segmentsTable.sorting;
+export const { setSorting } = segmentsTableSlice.actions;
 
 export const segmentTag = (namespaceKey: string): TagDescription<'Segment'> => {
   return { type: 'Segment', id: namespaceKey };

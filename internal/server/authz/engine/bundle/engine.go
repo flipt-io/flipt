@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authz"
+	_ "go.flipt.io/flipt/internal/server/authz/engine/ext"
 	"go.uber.org/zap"
 )
 

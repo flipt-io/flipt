@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authz"
+	_ "go.flipt.io/flipt/internal/server/authz/engine/ext"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/cloud"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
@@ -134,7 +135,7 @@ func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Optio
 
 	// being polling for updates to data if source configured
 	if engine.dataSource != nil {
-		go poll(ctx, engine.policySourcePollDuration, func() {
+		go poll(ctx, engine.dataSourcePollDuration, func() {
 			if err := engine.updateData(ctx, storage.ReplaceOp); err != nil {
 				engine.logger.Error("updating data", zap.Error(err))
 			}
@@ -149,7 +150,6 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	defer e.mu.RUnlock()
 
 	e.logger.Debug("evaluating policy", zap.Any("input", input))
-
 	results, err := e.query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, err
@@ -192,7 +192,6 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	}
 
 	e.policyHash = hash
-
 	r := rego.New(
 		rego.Query("data.flipt.authz.v1.allow"),
 		rego.Module("policy.rego", string(policy)),
