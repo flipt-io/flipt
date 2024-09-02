@@ -15,7 +15,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.28
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.31.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.32.2
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3
 	github.com/blang/semver/v4 v4.0.0
@@ -54,11 +54,11 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20240305195513-547d54e7c251
-	github.com/open-policy-agent/opa v0.67.0
+	github.com/open-policy-agent/opa v0.68.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/prometheus/client_golang v1.20.0
+	github.com/prometheus/client_golang v1.20.2
 	github.com/redis/go-redis/v9 v9.6.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.8.1
@@ -67,7 +67,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/twmb/franz-go v1.17.0
 	github.com/twmb/franz-go/pkg/kadm v1.13.0
-	github.com/twmb/franz-go/pkg/sr v1.0.1
+	github.com/twmb/franz-go/pkg/sr v1.1.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xo/dburl v0.23.2
@@ -83,7 +83,7 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.28.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.28.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.29.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.28.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.28.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.50.0
@@ -101,7 +101,7 @@ require (
 	golang.org/x/oauth2 v0.22.0
 	golang.org/x/sync v0.8.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142
-	google.golang.org/grpc v1.65.0
+	google.golang.org/grpc v1.66.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -159,7 +159,7 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.1.1 // indirect
-	github.com/containerd/containerd v1.7.20 // indirect
+	github.com/containerd/containerd v1.7.21 // indirect
 	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -235,7 +235,8 @@ require (
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.1 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
-	github.com/moby/sys/user v0.2.0 // indirect
+	github.com/moby/sys/user v0.3.0 // indirect
+	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
