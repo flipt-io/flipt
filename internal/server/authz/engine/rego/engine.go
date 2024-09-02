@@ -1,6 +1,7 @@
 package rego
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -179,10 +180,11 @@ func poll(ctx context.Context, d time.Duration, fn func()) {
 }
 
 func (e *Engine) updatePolicy(ctx context.Context) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	e.mu.RLock()
+	policyHash := e.policyHash
+	e.mu.RUnlock()
 
-	policy, hash, err := e.policySource.Get(ctx, e.policyHash)
+	policy, hash, err := e.policySource.Get(ctx, policyHash)
 	if err != nil {
 		if errors.Is(err, source.ErrNotModified) {
 			return nil
@@ -191,17 +193,25 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return fmt.Errorf("getting policy definition: %w", err)
 	}
 
-	e.policyHash = hash
 	r := rego.New(
 		rego.Query("data.flipt.authz.v1.allow"),
 		rego.Module("policy.rego", string(policy)),
 		rego.Store(e.store),
 	)
 
-	e.query, err = r.PrepareForEval(ctx)
+	query, err := r.PrepareForEval(ctx)
 	if err != nil {
 		return fmt.Errorf("preparing policy: %w", err)
 	}
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if !bytes.Equal(e.policyHash, policyHash) {
+		e.logger.Warn("policy hash doesn't match original one. skipping updating")
+		return nil
+	}
+	e.policyHash = hash
+	e.query = query
 
 	return nil
 }
