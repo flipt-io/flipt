@@ -34,7 +34,7 @@
     "@uiw/codemirror-theme-tokyo-night": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
     "buffer": "^6.0.3",
-    "chart.js": "^4.4.3",
+    "chart.js": "^4.4.4",
     "chartjs-adapter-date-fns": "^3.0.0",
     "clsx": "^2.1.1",
     "cmdk": "^0.2.1",
