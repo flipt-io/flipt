@@ -288,9 +288,8 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 			v.Set("sslmode", "disable")
 		}
 
-		// see: https://github.com/lib/pq/issues/389
 		if !cfg.Database.PreparedStatementsEnabled {
-			v.Set("binary_parameters", "yes")
+			v.Set("default_query_exec_mode", "simple_protocol")
 		}
 	case MySQL:
 		v.Set("multiStatements", "true")
