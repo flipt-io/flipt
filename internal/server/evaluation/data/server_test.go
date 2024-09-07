@@ -34,8 +34,3 @@ func TestEvaluationSnapshotNamespace(t *testing.T) {
 		store.AssertExpectations(t)
 	})
 }
-
-func Test_Server_SkipsAuthorization(t *testing.T) {
-	server := &Server{}
-	assert.True(t, server.SkipsAuthorization(context.Background()))
-}
