@@ -68,7 +68,7 @@ var (
 		"fs/gcs":            gcs,
 		"import/export":     importExport,
 		"authn":             authn,
-		"authz":             withAuthz(authz),
+		"authz":             authz,
 		"audit/webhook":     withWebhook(api),
 		"audit/webhooktmpl": withWebhookTemplates(api),
 	}
@@ -671,19 +671,21 @@ func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 	return suite(ctx, "authn", base, fliptToTest, conf)
 }
 
-func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+func authz(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withAuthz(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 
-	// create unique instance for test case
-	fliptToTest := flipt.
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
+		// create unique instance for test case
+		fliptToTest := flipt.
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			WithExec(nil)
 
-	// import state into instance before running test
-	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
-		return func() error { return err }
-	}
+		// import state into instance before running test
+		if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
+			return func() error { return err }
+		}
 
-	return suite(ctx, "authz", base, fliptToTest, conf)
+		return suite(ctx, "authz", base, fliptToTest, conf)
+	})(ctx, client, base, flipt, conf)
 }
 
 func withAuthz(fn testCaseFn) testCaseFn {
@@ -837,11 +839,7 @@ permit_slice(allowed, requested) if {
             ]
         }
     ]
-}`).
-			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
-			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", "/etc/flipt/authz/policy.rego").
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", "/etc/flipt/authz/data.json"),
+}`),
 			conf,
 		)
 	}
