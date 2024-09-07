@@ -56,3 +56,7 @@ func New(logger *zap.Logger, cacheCfg config.CacheConfig, bridge Bridge) *Server
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	ofrep.RegisterOFREPServiceServer(server, s)
 }
+
+func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}

@@ -360,3 +360,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 	return resp, nil
 }
+
+func (srv *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
