@@ -253,15 +253,13 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 		actor := authn.ActorFromContext(ctx)
 
 		defer func() {
-			if events != nil {
-				for _, event := range events {
-					eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
+			for _, event := range events {
+				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
 
-					exists := eventPairChecker.Check(eventPair)
-					if exists {
-						span := trace.SpanFromContext(ctx)
-						span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
-					}
+				exists := eventPairChecker.Check(eventPair)
+				if exists {
+					span := trace.SpanFromContext(ctx)
+					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
 				}
 			}
 		}()
