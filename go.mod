@@ -11,13 +11,13 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.0
 	github.com/ClickHouse/clickhouse-go/v2 v2.28.0
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.28
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.32.2
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.61.2
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/docker/go-connections v0.5.0
@@ -51,7 +51,7 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b
 	github.com/magefile/mage v1.15.0
-	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20240305195513-547d54e7c251
 	github.com/open-policy-agent/opa v0.68.0
@@ -65,7 +65,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.33.0
-	github.com/twmb/franz-go v1.17.0
+	github.com/twmb/franz-go v1.17.1
 	github.com/twmb/franz-go/pkg/kadm v1.13.0
 	github.com/twmb/franz-go/pkg/sr v1.1.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
@@ -90,7 +90,7 @@ require (
 	go.opentelemetry.io/otel/exporters/zipkin v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0
-	go.opentelemetry.io/otel/sdk/metric v1.28.0
+	go.opentelemetry.io/otel/sdk/metric v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
 	go.uber.org/zap v1.27.0
 	go.uber.org/zap/exp v0.2.0
@@ -134,19 +134,19 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.30.4 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.3 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.30.5 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.4 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.28 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.12 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.10 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.16 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.16 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.17 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.18 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.19 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.19 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.22.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.4 // indirect
