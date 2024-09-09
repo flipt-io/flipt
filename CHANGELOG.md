@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.49.2](https://github.com/flipt-io/flipt/releases/tag/v1.49.2) - 2024-09-09
+
+### Fixed
+
+- enable pgx simple protocol if prepared statements disabled (#3436)
+- check authz for client-side evaluation endpoint (#3438)
+
 ## [v1.49.1](https://github.com/flipt-io/flipt/releases/tag/v1.49.1) - 2024-09-03
 
 ### Changed
