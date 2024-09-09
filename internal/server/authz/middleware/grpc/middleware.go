@@ -90,21 +90,21 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			return ctx, errUnauthorized
 		}
 
-		request := requester.Request()
+		for _, request := range requester.Request() {
+			allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
+				"request":        request,
+				"authentication": auth,
+			})
 
-		allowed, err := policyVerifier.IsAllowed(ctx, map[string]interface{}{
-			"request":        request,
-			"authentication": auth,
-		})
+			if err != nil {
+				logger.Error("unauthorized", zap.Error(err))
+				return ctx, errUnauthorized
+			}
 
-		if err != nil {
-			logger.Error("unauthorized", zap.Error(err))
-			return ctx, errUnauthorized
-		}
-
-		if !allowed {
-			logger.Error("unauthorized", zap.String("reason", "permission denied"))
-			return ctx, errUnauthorized
+			if !allowed {
+				logger.Error("unauthorized", zap.String("reason", "permission denied"))
+				return ctx, errUnauthorized
+			}
 		}
 
 		return handler(ctx, req)

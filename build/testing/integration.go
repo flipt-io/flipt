@@ -58,8 +58,8 @@ var (
 		"api/cockroach":     withCockroach(api),
 		"api/cache":         cache,
 		"api/cachetls":      cacheWithTLS,
-		"api/snapshot":      snapshot,
-		"api/ofrep":         ofrep,
+		"api/snapshot":      withAuthz(snapshot),
+		"api/ofrep":         withAuthz(ofrep),
 		"fs/git":            git,
 		"fs/local":          local,
 		"fs/s3":             s3,
@@ -671,18 +671,35 @@ func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 	return suite(ctx, "authn", base, fliptToTest, conf)
 }
 
-func authz(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	var (
-		policyPath = "/etc/flipt/authz/policy.rego"
-		policyData = "/etc/flipt/authz/data.json"
-	)
+func authz(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withAuthz(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 
-	// create unique instance for test case
-	fliptToTest := flipt.
-		WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
-		WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
-		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
-		WithNewFile(policyPath, `package flipt.authz.v1
+		// create unique instance for test case
+		fliptToTest := flipt.
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			WithExec(nil)
+
+		// import state into instance before running test
+		if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
+			return func() error { return err }
+		}
+
+		return suite(ctx, "authz", base, fliptToTest, conf)
+	})(ctx, client, base, flipt, conf)
+}
+
+func withAuthz(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		var (
+			policyPath = "/etc/flipt/authz/policy.rego"
+			policyData = "/etc/flipt/authz/data.json"
+		)
+
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
+			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
+			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
+			WithNewFile(policyPath, `package flipt.authz.v1
 
 import data
 import rego.v1
@@ -736,8 +753,8 @@ permit_slice(allowed, _) if {
 permit_slice(allowed, requested) if {
 	allowed[_] = requested
 }`).
-		WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
-		WithNewFile(policyData, `{
+			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
+			WithNewFile(policyData, `{
     "version": "0.1.0",
     "roles": [
         {
@@ -822,18 +839,11 @@ permit_slice(allowed, requested) if {
             ]
         }
     ]
-}`).
-		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
-
-	// import state into instance before running test
-	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
-		return func() error { return err }
+}`),
+			conf,
+		)
 	}
-
-	return suite(ctx, "authz", base, fliptToTest, conf)
 }
-
 func withWebhook(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		owntracks := client.Container().From("frxyt/gohrec").WithExposedPort(8080).AsService()
