@@ -65,7 +65,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.33.0
-	github.com/twmb/franz-go v1.17.0
+	github.com/twmb/franz-go v1.17.1
 	github.com/twmb/franz-go/pkg/kadm v1.13.0
 	github.com/twmb/franz-go/pkg/sr v1.1.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
