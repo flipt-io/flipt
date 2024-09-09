@@ -440,7 +440,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	if _, err := s.builder.Insert(tableRollouts).
 		RunWith(tx).
 		Columns("id", "namespace_key", "flag_key", "\"type\"", "\"rank\"", "description", "created_at", "updated_at").
-		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, rollout.Type, rollout.Rank, rollout.Description,
+		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, int32(rollout.Type), rollout.Rank, rollout.Description,
 			&fliptsql.Timestamp{Timestamp: rollout.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rollout.UpdatedAt},
 		).ExecContext(ctx); err != nil {
@@ -464,7 +464,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		if _, err := s.builder.Insert(tableRolloutSegments).
 			RunWith(tx).
 			Columns("id", "rollout_id", "\"value\"", "segment_operator").
-			Values(rolloutSegmentId, rollout.Id, segmentRule.Value, segmentOperator).
+			Values(rolloutSegmentId, rollout.Id, segmentRule.Value, int32(segmentOperator)).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
