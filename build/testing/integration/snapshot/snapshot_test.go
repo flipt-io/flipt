@@ -15,7 +15,7 @@ import (
 func TestSnapshot(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
 		var (
-			httpClient = opts.HTTPClient(t)
+			httpClient = opts.HTTPClient(t, integration.WithRole("viewer")) // TODO: test other roles/namespace combinations
 			protocol   = opts.Protocol()
 		)
 

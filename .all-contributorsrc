@@ -493,6 +493,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lzakharov",
+      "name": "Lev Zakharov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26368218?v=4",
+      "profile": "https://github.com/lzakharov",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,6 +19,30 @@ import (
 
 func Common(t *testing.T, opts integration.TestOpts) {
 	client := opts.TokenClient(t)
+
+	t.Run("Evaluation", func(t *testing.T) {
+		ctx := context.Background()
+
+		t.Run("Boolean", func(t *testing.T) {
+			_, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+				FlagKey: "flag_boolean",
+				Context: map[string]string{
+					"in_segment": "segment_001",
+				},
+			})
+			require.NoError(t, err)
+		})
+
+		t.Run("Variant", func(t *testing.T) {
+			_, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+				FlagKey: "flag_001",
+				Context: map[string]string{
+					"in_segment": "segment_001",
+				},
+			})
+			require.NoError(t, err)
+		})
+	})
 
 	t.Run("Authentication Methods", func(t *testing.T) {
 		ctx := context.Background()
@@ -121,19 +146,6 @@ func Common(t *testing.T, opts integration.TestOpts) {
 			require.True(t, ok)
 			assert.Equal(t, codes.Unauthenticated, status.Code())
 		})
-	})
-}
-
-func listFlagIsAllowed(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
-	t.Helper()
-
-	t.Run(fmt.Sprintf("ListFlags(namespace: %q)", namespace), func(t *testing.T) {
-		// construct a new client using the previously obtained client token
-		resp, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
-		})
-		require.NoError(t, err)
-		require.NotEmpty(t, resp.Flags)
 	})
 }
 
