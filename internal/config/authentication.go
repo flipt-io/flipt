@@ -440,7 +440,13 @@ type AuthenticationMethodOIDCConfig struct {
 	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers" yaml:"providers,omitempty"`
 }
 
-func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
+func (a AuthenticationMethodOIDCConfig) setDefaults(defaults map[string]any) {
+	for provider := range a.Providers {
+		providerDefaults := map[string]any{}
+		a.Providers[provider].setDefaults(providerDefaults)
+		defaults[provider] = providerDefaults
+	}
+}
 
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info(ctx context.Context) AuthenticationMethodInfo {
