@@ -8,3 +8,7 @@ func (r *EvaluationNamespaceSnapshotRequest) Request() []flipt.Request {
 		flipt.NewRequest(flipt.ResourceSegment, flipt.ActionRead, flipt.WithNamespace(r.Key)),
 	}
 }
+
+func (r *EvaluationNamespaceSnapshotRequest) GetNamespaceKey() string {
+	return r.Key
+}

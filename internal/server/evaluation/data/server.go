@@ -41,6 +41,10 @@ func (srv *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterDataServiceServer(server, srv)
 }
 
+func (srv *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
+	return true
+}
+
 func toEvaluationFlagType(f flipt.FlagType) evaluation.EvaluationFlagType {
 	switch f {
 	case flipt.FlagType_BOOLEAN_FLAG_TYPE:
