@@ -1,0 +1,22 @@
+authentication:
+  required: true
+  session:
+    domain: "http://localhost:8080"
+    secure: false
+  methods:
+    oidc:
+      enabled: true
+      providers:
+        foo:
+          client_id: "client_id"
+          client_secret: "client_secret"
+          redirect_address: "http://localhost:8080"
+          nonce: "nonce-asdf8080"
+          scopes:
+            - "user:email"
+        bar:
+          client_id: "client_id"
+          client_secret: "client_secret"
+          redirect_address: "http://localhost:8080"
+          scopes:
+            - "user:email"

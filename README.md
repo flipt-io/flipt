@@ -410,6 +410,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/radekska"><img src="https://avatars.githubusercontent.com/u/48757764?v=4?s=100" width="100px;" alt="Radosław Skałbania"/><br /><sub><b>Radosław Skałbania</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=radekska" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rajyan"><img src="https://avatars.githubusercontent.com/u/38206553?v=4?s=100" width="100px;" alt="Yohta Kimura"/><br /><sub><b>Yohta Kimura</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=rajyan" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lzakharov"><img src="https://avatars.githubusercontent.com/u/26368218?v=4?s=100" width="100px;" alt="Lev Zakharov"/><br /><sub><b>Lev Zakharov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=lzakharov" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gnalin-impala"><img src="https://avatars.githubusercontent.com/u/100129418?v=4?s=100" width="100px;" alt="gnalin-impala"/><br /><sub><b>gnalin-impala</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=gnalin-impala" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

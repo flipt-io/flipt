@@ -545,6 +545,42 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "authentication oidc with nonce",
+			path: "./testdata/authentication/oidc.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Authentication.Required = true
+				cfg.Authentication.Session.Domain = "localhost"
+				cfg.Authentication.Methods = AuthenticationMethods{
+					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+						Enabled: true,
+						Cleanup: &AuthenticationCleanupSchedule{
+							Interval:    time.Hour,
+							GracePeriod: 30 * time.Minute,
+						},
+						Method: AuthenticationMethodOIDCConfig{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"foo": {
+									ClientID:        "client_id",
+									ClientSecret:    "client_secret",
+									RedirectAddress: "http://localhost:8080",
+									Nonce:           "nonce-asdf8080",
+									Scopes:          []string{"user:email"},
+								},
+								"bar": {
+									ClientID:        "client_id",
+									ClientSecret:    "client_secret",
+									RedirectAddress: "http://localhost:8080",
+									Nonce:           "",
+									Scopes:          []string{"user:email"},
+								},
+							},
+						},
+					}}
+				return cfg
+			},
+		},
+		{
 			name: "authentication kubernetes defaults when enabled",
 			path: "./testdata/authentication/kubernetes.yml",
 			expected: func() *Config {

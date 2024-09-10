@@ -440,7 +440,13 @@ type AuthenticationMethodOIDCConfig struct {
 	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers" yaml:"providers,omitempty"`
 }
 
-func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
+func (a AuthenticationMethodOIDCConfig) setDefaults(defaults map[string]any) {
+	for provider := range a.Providers {
+		providerDefaults := map[string]any{}
+		a.Providers[provider].setDefaults(providerDefaults)
+		defaults[provider] = providerDefaults
+	}
+}
 
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info(ctx context.Context) AuthenticationMethodInfo {
@@ -493,8 +499,13 @@ type AuthenticationMethodOIDCProvider struct {
 	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
 	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Nonce           string   `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
+}
+
+func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
+	defaults["nonce"] = "static"
 }
 
 func (a AuthenticationMethodOIDCProvider) validate() error {

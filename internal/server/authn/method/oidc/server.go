@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -226,7 +227,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 	var oidcOpts = []capoidc.Option{
 		capoidc.WithState(state),
 		capoidc.WithScopes(providerCfg.Scopes...),
-		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
+		capoidc.WithNonce(cmp.Or(providerCfg.Nonce, "static")),
 	}
 
 	if providerCfg.UsePKCE {
