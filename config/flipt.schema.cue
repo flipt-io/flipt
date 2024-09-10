@@ -113,6 +113,7 @@ import "strings"
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
+			nonce?: string
 			scopes?: [...string]
 			use_pkce?: bool
 		}
