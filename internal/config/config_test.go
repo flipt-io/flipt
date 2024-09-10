@@ -571,7 +571,7 @@ func TestLoad(t *testing.T) {
 									ClientID:        "client_id",
 									ClientSecret:    "client_secret",
 									RedirectAddress: "http://localhost:8080",
-									Nonce:           "static",
+									Nonce:           "",
 									Scopes:          []string{"user:email"},
 								},
 							},
