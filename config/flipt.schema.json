@@ -327,6 +327,7 @@
             "client_id": { "type": "string" },
             "client_secret": { "type": "string" },
             "redirect_address": { "type": "string" },
+            "nonce": { "type": "string" },
             "scopes": { "type": "array", "items": { "type": "string" } },
             "use_pkce": { "type": "boolean", "default": false }
           },
