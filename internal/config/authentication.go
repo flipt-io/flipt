@@ -498,6 +498,10 @@ type AuthenticationMethodOIDCProvider struct {
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
 }
 
+func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
+	defaults["nonce"] = "static"
+}
+
 func (a AuthenticationMethodOIDCProvider) validate() error {
 	if a.ClientID == "" {
 		return errFieldWrap("client_id", errValidationRequired)

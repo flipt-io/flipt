@@ -223,15 +223,10 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		return nil, nil, err
 	}
 
-	nonce := providerCfg.Nonce
-	if nonce == "" {
-		nonce = "static"
-	}
-
 	var oidcOpts = []capoidc.Option{
 		capoidc.WithState(state),
 		capoidc.WithScopes(providerCfg.Scopes...),
-		capoidc.WithNonce(nonce),
+		capoidc.WithNonce(providerCfg.Nonce),
 	}
 
 	if providerCfg.UsePKCE {
