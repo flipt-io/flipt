@@ -263,10 +263,7 @@ func Test_Server_Nonce(t *testing.T) {
 	)
 
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n\n", err)
-		return
-	}
+	require.NoError(t, err)
 
 	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
 		CustomClaims: map[string]interface{}{},
