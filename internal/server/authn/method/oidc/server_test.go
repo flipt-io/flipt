@@ -42,6 +42,7 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		id, secret = "client_id", "client_secret"
+		nonce      = "static"
 
 		logger = zaptest.NewLogger(t)
 		ctx    = context.Background()
@@ -89,8 +90,9 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
 		},
-		ClientID:     &id,
-		ClientSecret: &secret,
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
 	}))
 
 	defer tp.Stop()
@@ -146,6 +148,7 @@ func Test_Server_PKCE(t *testing.T) {
 		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
 
 		id, secret = "client_id", "client_secret"
+		nonce      = "static"
 
 		logger = zaptest.NewLogger(t)
 		ctx    = context.Background()
@@ -193,9 +196,10 @@ func Test_Server_PKCE(t *testing.T) {
 		AllowedRedirectURIs: []string{
 			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
 		},
-		ClientID:     &id,
-		ClientSecret: &secret,
-		PKCEVerifier: authoidc.PKCEVerifier,
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+		PKCEVerifier:  authoidc.PKCEVerifier,
 	}))
 
 	defer tp.Stop()
@@ -219,6 +223,113 @@ func Test_Server_PKCE(t *testing.T) {
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
 								UsePKCE:         true,
+							},
+						},
+					},
+				},
+			},
+		}
+		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+	)
+
+	t.Cleanup(func() { _ = server.Stop() })
+
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	require.NoError(t, err)
+
+	client := &http.Client{
+		// skip redirects
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		// establish a cookie jar
+		Jar: jar,
+	}
+
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+}
+
+func Test_Server_Nonce(t *testing.T) {
+	var (
+		router        = chi.NewRouter()
+		httpServer    = httptest.NewServer(router)
+		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+
+		id, secret = "client_id", "client_secret"
+		nonce      = "random-nonce"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = context.Background()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n\n", err)
+		return
+	}
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		CustomClaims: map[string]interface{}{},
+		SubjectInfo: map[string]*oidc.TestSubject{
+			"mark": {
+				Password: "phelps",
+				UserInfo: map[string]interface{}{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+				},
+				CustomClaims: map[string]interface{}{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+					"roles": []string{"admin"},
+				},
+			},
+			"george": {
+				Password: "macrorie",
+				UserInfo: map[string]interface{}{
+					"email": "george@flipt.io",
+					"name":  "George MacRorie",
+				},
+				CustomClaims: map[string]interface{}{
+					"email": "george@flipt.io",
+					"name":  "George MacRorie",
+					"roles": []string{"editor"},
+				},
+			},
+		},
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		AllowedRedirectURIs: []string{
+			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+		},
+		ClientID:      &id,
+		ClientSecret:  &secret,
+		ExpectedNonce: &nonce,
+	}))
+
+	defer tp.Stop()
+
+	var (
+		authConfig = config.AuthenticationConfig{
+			Session: config.AuthenticationSession{
+				Domain:        "localhost",
+				Secure:        false,
+				TokenLifetime: 1 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+			Methods: config.AuthenticationMethods{
+				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+					Enabled: true,
+					Method: config.AuthenticationMethodOIDCConfig{
+						Providers: map[string]config.AuthenticationMethodOIDCProvider{
+							"google": {
+								IssuerURL:       tp.Addr(),
+								ClientID:        id,
+								ClientSecret:    secret,
+								RedirectAddress: clientAddress,
+								Nonce:           nonce,
 							},
 						},
 					},
