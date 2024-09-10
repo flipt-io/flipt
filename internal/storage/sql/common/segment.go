@@ -325,7 +325,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 			segment.Key,
 			segment.Name,
 			segment.Description,
-			segment.MatchType,
+			int32(segment.MatchType),
 			&fliptsql.Timestamp{Timestamp: segment.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: segment.UpdatedAt}).
 		ExecContext(ctx); err != nil {
@@ -432,7 +432,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 			c.Id,
 			c.NamespaceKey,
 			c.SegmentKey,
-			c.Type,
+			int32(c.Type),
 			c.Property,
 			c.Operator,
 			c.Value,

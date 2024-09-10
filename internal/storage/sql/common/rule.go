@@ -396,7 +396,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 			rule.NamespaceKey,
 			rule.FlagKey,
 			rule.Rank,
-			rule.SegmentOperator,
+			int32(rule.SegmentOperator),
 			&fliptsql.Timestamp{Timestamp: rule.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt},
 		).

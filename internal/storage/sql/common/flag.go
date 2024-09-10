@@ -378,7 +378,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (_ *
 		Values(
 			flag.NamespaceKey,
 			flag.Key,
-			flag.Type,
+			int32(flag.Type),
 			flag.Name,
 			flag.Description,
 			flag.Enabled,
