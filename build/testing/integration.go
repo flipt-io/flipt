@@ -51,26 +51,27 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		"api/sqlite":        withSQLite(api),
-		"api/libsql":        withLibSQL(api),
-		"api/postgres":      withPostgres(api),
-		"api/mysql":         withMySQL(api),
-		"api/cockroach":     withCockroach(api),
-		"api/cache":         cache,
-		"api/cachetls":      cacheWithTLS,
-		"api/snapshot":      withAuthz(snapshot),
-		"api/ofrep":         withAuthz(ofrep),
-		"fs/git":            git,
-		"fs/local":          local,
-		"fs/s3":             s3,
-		"fs/oci":            oci,
-		"fs/azblob":         azblob,
-		"fs/gcs":            gcs,
-		"import/export":     importExport,
-		"authn":             authn,
-		"authz":             authz,
-		"audit/webhook":     withWebhook(api),
-		"audit/webhooktmpl": withWebhookTemplates(api),
+		"api/sqlite":                      withSQLite(api),
+		"api/libsql":                      withLibSQL(api),
+		"api/postgres":                    withPostgres(api),
+		"api/postgreswithoutpreparedstmt": withPostgresWithoutPreparedStmt(api),
+		"api/mysql":                       withMySQL(api),
+		"api/cockroach":                   withCockroach(api),
+		"api/cache":                       cache,
+		"api/cachetls":                    cacheWithTLS,
+		"api/snapshot":                    withAuthz(snapshot),
+		"api/ofrep":                       withAuthz(ofrep),
+		"fs/git":                          git,
+		"fs/local":                        local,
+		"fs/s3":                           s3,
+		"fs/oci":                          oci,
+		"fs/azblob":                       azblob,
+		"fs/gcs":                          gcs,
+		"import/export":                   importExport,
+		"authn":                           authn,
+		"authz":                           authz,
+		"audit/webhook":                   withWebhook(api),
+		"audit/webhooktmpl":               withWebhookTemplates(api),
 	}
 )
 
@@ -306,6 +307,22 @@ func withPostgres(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithServiceBinding("postgres", client.Container().
+				From("postgres:alpine").
+				WithEnvVariable("POSTGRES_PASSWORD", "password").
+				WithExposedPort(5432).
+				WithEnvVariable("UNIQUE", uuid.New().String()).
+				AsService()),
+			conf,
+		)
+	}
+}
+
+func withPostgresWithoutPreparedStmt(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithEnvVariable("FLIPT_DB_PREPARED_STATEMENTS_ENABLED", "false").
 			WithServiceBinding("postgres", client.Container().
 				From("postgres:alpine").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
