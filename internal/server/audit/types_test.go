@@ -9,10 +9,11 @@ import (
 
 func TestFlag(t *testing.T) {
 	f := &flipt.Flag{
-		Key:          "flipt",
-		Name:         "flipt",
-		NamespaceKey: "flipt",
-		Enabled:      false,
+		Key:            "flipt",
+		Name:           "flipt",
+		NamespaceKey:   "flipt",
+		Enabled:        false,
+		DefaultVariant: nil,
 	}
 	nf := NewFlag(f)
 
@@ -20,6 +21,26 @@ func TestFlag(t *testing.T) {
 	assert.Equal(t, nf.Key, f.Key)
 	assert.Equal(t, nf.Name, f.Name)
 	assert.Equal(t, nf.NamespaceKey, f.NamespaceKey)
+}
+
+func TestFlagWithDefaultVariant(t *testing.T) {
+	f := &flipt.Flag{
+		Key:          "flipt",
+		Name:         "flipt",
+		NamespaceKey: "flipt",
+		Enabled:      false,
+		DefaultVariant: &flipt.Variant{
+			Key: "default-variant",
+		},
+	}
+	nf := NewFlag(f)
+
+	assert.Equal(t, nf.Enabled, f.Enabled)
+	assert.Equal(t, nf.Key, f.Key)
+	assert.Equal(t, nf.Name, f.Name)
+	assert.Equal(t, nf.NamespaceKey, f.NamespaceKey)
+	assert.Equal(t, "default-variant", nf.DefaultVariant)
+
 }
 
 func TestVariant(t *testing.T) {
