@@ -246,7 +246,7 @@ func TestDeleteNamespace_Protected(t *testing.T) {
 	store.AssertNotCalled(t, "DeleteNamespace")
 
 	got, err := s.DeleteNamespace(context.TODO(), req)
-	assert.EqualError(t, err, "namespace \"foo\" is protected")
+	require.EqualError(t, err, "namespace \"foo\" is protected")
 	assert.Nil(t, got)
 }
 
@@ -272,6 +272,6 @@ func TestDeleteNamespace_HasFlags(t *testing.T) {
 	store.AssertNotCalled(t, "DeleteNamespace")
 
 	got, err := s.DeleteNamespace(context.TODO(), req)
-	assert.EqualError(t, err, "namespace \"foo\" cannot be deleted; flags must be deleted first")
+	require.EqualError(t, err, "namespace \"foo\" cannot be deleted; flags must be deleted first")
 	assert.Nil(t, got)
 }

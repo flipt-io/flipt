@@ -59,7 +59,7 @@ func TestNewReporter(t *testing.T) {
 		logger        = zaptest.NewLogger(t)
 		reporter, err = NewReporter(cfg, logger, "foo", "http://localhost:8080", info.Flipt{})
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, reporter)
 }
 
@@ -81,7 +81,7 @@ func TestShutdown(t *testing.T) {
 	)
 
 	err := reporter.Shutdown()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.True(t, mockAnalytics.closed)
 }
@@ -514,7 +514,7 @@ func TestPing(t *testing.T) {
 			)
 
 			err := reporter.ping(context.Background(), mockFile)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			msg, ok := mockAnalytics.msg.(segment.Track)
 			require.True(t, ok)
@@ -559,7 +559,7 @@ func TestPing_Existing(t *testing.T) {
 	)
 
 	err := reporter.ping(context.Background(), mockFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	msg, ok := mockAnalytics.msg.(segment.Track)
 	require.True(t, ok)
@@ -594,7 +594,7 @@ func TestPing_Disabled(t *testing.T) {
 	)
 
 	err := reporter.ping(context.Background(), &mockFile{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Nil(t, mockAnalytics.msg)
 }
@@ -627,7 +627,7 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	defer os.Remove(path)
 
 	err := reporter.report(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	msg, ok := mockAnalytics.msg.(segment.Track)
 	require.True(t, ok)

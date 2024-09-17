@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/config"
@@ -110,14 +111,14 @@ func TestGetEvaluationRules(t *testing.T) {
 
 	// First call to get rules should call the store and cache the result
 	_, err := cachedStore.GetEvaluationRules(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.setItems)
 	assert.NotEmpty(t, cacher.setItems["s:er:ns:flag-1"])
 	assert.Equal(t, 1, cacher.setCalled)
 
 	// Second call to get rules should hit the cache
 	_, err = cachedStore.GetEvaluationRules(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.getKeys)
 	_, ok := cacher.getKeys["s:er:ns:flag-1"]
 	assert.True(t, ok)
@@ -149,14 +150,14 @@ func TestGetEvaluationRollouts(t *testing.T) {
 
 	// First call to get rollouts should call the store and cache the result
 	_, err := cachedStore.GetEvaluationRollouts(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.setItems)
 	assert.NotEmpty(t, cacher.setItems["s:ero:ns:flag-1"])
 	assert.Equal(t, 1, cacher.setCalled)
 
 	// Second call to get rollouts should hit the cache
 	_, err = cachedStore.GetEvaluationRollouts(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.getKeys)
 	_, ok := cacher.getKeys["s:ero:ns:flag-1"]
 	assert.True(t, ok)
@@ -188,14 +189,14 @@ func TestGetFlag(t *testing.T) {
 
 	// First call to get flag should call the store and cache the result
 	_, err := cachedStore.GetFlag(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.setItems)
 	assert.NotEmpty(t, cacher.setItems["s:f:ns:flag-1"])
 	assert.Equal(t, 1, cacher.setCalled)
 
 	// Second call to get flag should hit the cache
 	_, err = cachedStore.GetFlag(context.TODO(), storage.NewResource("ns", "flag-1"))
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.getKeys)
 	_, ok := cacher.getKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -225,7 +226,7 @@ func TestCreateFlag(t *testing.T) {
 
 	// Create flag should call the store and set the cache
 	_, err := cachedStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{NamespaceKey: "ns", Key: "flag-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.setItems)
 	_, ok := cacher.setItems["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -256,7 +257,7 @@ func TestUpdateFlag(t *testing.T) {
 
 	// Update flag should call the store and delete the cache
 	_, err := cachedStore.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{NamespaceKey: "ns", Key: "flag-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.deleteKeys)
 	_, ok := cacher.deleteKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -284,7 +285,7 @@ func TestDeleteFlag(t *testing.T) {
 
 	// Delete flag should call the store and delete the cache
 	err := cachedStore.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{NamespaceKey: "ns", Key: "flag-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.deleteKeys)
 	_, ok := cacher.deleteKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -315,7 +316,7 @@ func TestCreateVariant(t *testing.T) {
 
 	// Create variant should call the store and delete the cache
 	_, err := cachedStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{NamespaceKey: "ns", FlagKey: "flag-1", Key: "variant-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.deleteKeys)
 	_, ok := cacher.deleteKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -346,7 +347,7 @@ func TestUpdateVariant(t *testing.T) {
 
 	// Update variant should call the store and delete the cache
 	_, err := cachedStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{NamespaceKey: "ns", FlagKey: "flag-1", Key: "variant-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.deleteKeys)
 	_, ok := cacher.deleteKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)
@@ -374,7 +375,7 @@ func TestDeleteVariant(t *testing.T) {
 
 	// Delete variant should call the store and delete the cache
 	err := cachedStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{NamespaceKey: "ns", FlagKey: "flag-1", Id: "variant-1"})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, cacher.deleteKeys)
 	_, ok := cacher.deleteKeys["s:f:ns:flag-1"]
 	assert.True(t, ok)

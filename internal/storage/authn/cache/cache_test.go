@@ -36,7 +36,7 @@ func TestGetAuthenticationByClientToken(t *testing.T) {
 	)
 
 	got, err := cachedStore.GetAuthenticationByClientToken(context.TODO(), "foo")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
 	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.getCacheKeys[0]) // assert we looked up the key first
@@ -71,7 +71,7 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	)
 
 	got, err := cachedStore.GetAuthenticationByClientToken(context.TODO(), "foo")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
 	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.getCacheKeys[0]) // assert we looked up the key
@@ -99,7 +99,7 @@ func TestExpireAuthenticationByID(t *testing.T) {
 	)
 
 	err := cachedStore.ExpireAuthenticationByID(context.TODO(), "123", nil)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "s:a:i:123", cacher.getCacheKeys[0])                             // assert we looked up the key by id
 	assert.Equal(t, fmt.Sprintf("s:a:t:%s", hashedToken), cacher.deleteCacheKeys[0]) // assert we cached the key

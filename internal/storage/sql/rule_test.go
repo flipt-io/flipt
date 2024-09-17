@@ -268,13 +268,13 @@ func (s *DBTestSuite) TestListRules() {
 			storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken("Hello World")),
 		),
 	)
-	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+	require.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, rule := range got {
 		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
@@ -346,13 +346,13 @@ func (s *DBTestSuite) TestListRules_MultipleSegments() {
 		storage.ListWithOptions(
 			storage.NewResource(storage.DefaultNamespace, flag.Key),
 			storage.ListWithQueryParamOptions[storage.ResourceRequest](storage.WithPageToken("Hello World"))))
-	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+	require.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListRules(context.TODO(), storage.ListWithOptions(storage.NewResource(storage.DefaultNamespace, flag.Key)))
 	require.NoError(t, err)
 
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, rule := range got {
 		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
@@ -423,7 +423,7 @@ func (s *DBTestSuite) TestListRulesNamespace() {
 	require.NoError(t, err)
 
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, rule := range got {
 		assert.Equal(t, s.namespace, rule.NamespaceKey)
@@ -559,7 +559,7 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pageToken := &common.PageToken{}
 	err = json.Unmarshal(pTokenB, pageToken)
@@ -682,11 +682,11 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		require.Len(t, found[i].Distributions, 2)
 		assert.Equal(t, found[i].Id, found[i].Distributions[0].RuleId)
 		assert.Equal(t, variant.Id, found[i].Distributions[0].VariantId)
-		assert.Equal(t, float32(100.0), found[i].Distributions[0].Rollout)
+		assert.InDelta(t, 100.0, found[i].Distributions[0].Rollout, 0)
 
 		assert.Equal(t, found[i].Id, found[i].Distributions[1].RuleId)
 		assert.Equal(t, variant.Id, found[i].Distributions[1].VariantId)
-		assert.Equal(t, float32(100.0), found[i].Distributions[1].Rollout)
+		assert.InDelta(t, 100.0, found[i].Distributions[1].Rollout, 0)
 	}
 }
 
@@ -749,7 +749,7 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variant.Id, distribution.VariantId)
-	assert.Equal(t, float32(100), distribution.Rollout)
+	assert.InDelta(t, 100, distribution.Rollout, 0)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 }
@@ -821,7 +821,7 @@ func (s *DBTestSuite) TestCreateRuleAndDistributionNamespace() {
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variant.Id, distribution.VariantId)
-	assert.Equal(t, float32(100), distribution.Rollout)
+	assert.InDelta(t, 100, distribution.Rollout, 0)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 }
@@ -999,7 +999,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variantOne.Id, distribution.VariantId)
-	assert.Equal(t, float32(100), distribution.Rollout)
+	assert.InDelta(t, 100, distribution.Rollout, 0)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 
@@ -1063,7 +1063,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
-	assert.Equal(t, float32(10), updatedDistribution.Rollout)
+	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	assert.NotZero(t, rule.UpdatedAt)
 
 	// update distribution variant
@@ -1079,7 +1079,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
-	assert.Equal(t, float32(10), updatedDistribution.Rollout)
+	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	assert.NotZero(t, rule.UpdatedAt)
 
 	err = s.store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
@@ -1166,7 +1166,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variantOne.Id, distribution.VariantId)
-	assert.Equal(t, float32(100), distribution.Rollout)
+	assert.InDelta(t, 100, distribution.Rollout, 0)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 
@@ -1212,7 +1212,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
-	assert.Equal(t, float32(10), updatedDistribution.Rollout)
+	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
 	assert.NotZero(t, rule.UpdatedAt)
 
@@ -1230,7 +1230,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
-	assert.Equal(t, float32(10), updatedDistribution.Rollout)
+	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
 	assert.NotZero(t, rule.UpdatedAt)
 
@@ -1368,7 +1368,7 @@ func (s *DBTestSuite) TestDeleteRule() {
 
 	got := res.Results
 	assert.NotNil(t, got)
-	assert.Equal(t, 2, len(got))
+	assert.Len(t, got, 2)
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)
 	assert.Equal(t, storage.DefaultNamespace, got[0].NamespaceKey)
@@ -1443,7 +1443,7 @@ func (s *DBTestSuite) TestDeleteRuleNamespace() {
 
 	got := res.Results
 	assert.NotNil(t, got)
-	assert.Equal(t, 2, len(got))
+	assert.Len(t, got, 2)
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)
 	assert.Equal(t, s.namespace, got[0].NamespaceKey)
@@ -1565,7 +1565,7 @@ func (s *DBTestSuite) TestOrderRules() {
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotNil(t, got)
-	assert.Equal(t, 3, len(got))
+	assert.Len(t, got, 3)
 
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)
@@ -1654,7 +1654,7 @@ func (s *DBTestSuite) TestOrderRulesNamespace() {
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotNil(t, got)
-	assert.Equal(t, 3, len(got))
+	assert.Len(t, got, 3)
 
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)

@@ -115,7 +115,7 @@ func TestParseReference(t *testing.T) {
 				return
 			}
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, test.expected, ref)
 		})
 	}
@@ -196,7 +196,7 @@ func TestStore_Fetch(t *testing.T) {
 
 		require.True(t, resp.Matched)
 		assert.Equal(t, manifestDigest, resp.Digest)
-		assert.Len(t, resp.Files, 0)
+		assert.Empty(t, resp.Files)
 	})
 }
 
@@ -243,7 +243,7 @@ func TestStore_List(t *testing.T) {
 
 	bundles, err := store.List(ctx)
 	require.NoError(t, err)
-	require.Len(t, bundles, 0)
+	require.Empty(t, bundles)
 
 	testdata, err := fs.Sub(testdata, "testdata")
 	require.NoError(t, err)
@@ -371,12 +371,12 @@ func TestFile(t *testing.T) {
 	assert.Nil(t, stat.Sys())
 
 	count, err := fi.Seek(3, io.SeekStart)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(3), count)
 
 	data, err := io.ReadAll(fi)
 	require.NoError(t, err)
-	assert.Equal(t, string(data), "tents")
+	assert.Equal(t, "tents", string(data))
 
 	// rewind reader
 	_, err = rd.Seek(0, io.SeekStart)

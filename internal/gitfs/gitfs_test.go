@@ -31,18 +31,18 @@ func Test_FS(t *testing.T) {
 
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
 		_, err := filesystem.Open("..")
-		require.Equal(t, err, &fs.PathError{
+		require.Equal(t, &fs.PathError{
 			Op:   "Open",
 			Path: "..",
 			Err:  fs.ErrInvalid,
-		})
+		}, err)
 
 		_, err = filesystem.Open("zero.txt")
-		require.Equal(t, err, &fs.PathError{
+		require.Equal(t, &fs.PathError{
 			Op:   "Open",
 			Path: "zero.txt",
 			Err:  fs.ErrNotExist,
-		})
+		}, err)
 	})
 
 	t.Run("Ensure files exist with expected contents", func(t *testing.T) {

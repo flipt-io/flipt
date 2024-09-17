@@ -237,9 +237,9 @@ func TestReadOnly(t *testing.T) {
 					require.Len(t, rule.Distributions, 2)
 
 					assert.NotEmpty(t, rule.Distributions[0].Id)
-					assert.Equal(t, float32(50.0), rule.Distributions[0].Rollout)
+					assert.InDelta(t, 50.0, rule.Distributions[0].Rollout, 0)
 					assert.NotEmpty(t, rule.Distributions[1].Id)
-					assert.Equal(t, float32(50.0), rule.Distributions[1].Rollout)
+					assert.InDelta(t, 50.0, rule.Distributions[1].Rollout, 0)
 				})
 
 				t.Run("ListRules", func(t *testing.T) {
@@ -268,9 +268,9 @@ func TestReadOnly(t *testing.T) {
 					require.Len(t, rule.Distributions, 2)
 
 					assert.NotEmpty(t, rule.Distributions[0].Id)
-					assert.Equal(t, float32(50.0), rule.Distributions[0].Rollout)
+					assert.InDelta(t, 50.0, rule.Distributions[0].Rollout, 0)
 					assert.NotEmpty(t, rule.Distributions[1].Id)
-					assert.Equal(t, float32(50.0), rule.Distributions[1].Rollout)
+					assert.InDelta(t, 50.0, rule.Distributions[1].Rollout, 0)
 
 					t.Run("Paginated (page size 10)", func(t *testing.T) {
 						var (
@@ -373,7 +373,7 @@ func TestReadOnly(t *testing.T) {
 						})
 						require.NoError(t, err)
 
-						assert.Equal(t, true, response.Match)
+						assert.True(t, response.Match)
 						assert.Equal(t, "variant_002", response.Value)
 						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
 					})
@@ -401,11 +401,11 @@ func TestReadOnly(t *testing.T) {
 						require.NoError(t, err)
 						require.Len(t, response.Responses, 2)
 
-						assert.Equal(t, true, response.Responses[0].Match)
+						assert.True(t, response.Responses[0].Match)
 						assert.Equal(t, "variant_002", response.Responses[0].Value)
 						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[0].Reason)
 
-						assert.Equal(t, true, response.Responses[1].Match)
+						assert.True(t, response.Responses[1].Match)
 						assert.Equal(t, "variant_001", response.Responses[1].Value)
 						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[1].Reason)
 					})
@@ -424,7 +424,7 @@ func TestReadOnly(t *testing.T) {
 							})
 							require.NoError(t, err)
 
-							assert.Equal(t, true, response.Match)
+							assert.True(t, response.Match)
 							assert.Equal(t, "flag_001", response.FlagKey)
 							assert.Equal(t, "variant_002", response.VariantKey)
 							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
@@ -443,7 +443,7 @@ func TestReadOnly(t *testing.T) {
 							})
 							require.NoError(t, err)
 
-							assert.Equal(t, true, response.Match)
+							assert.True(t, response.Match)
 							assert.Equal(t, "variant_002", response.VariantKey)
 							assert.Equal(t, "flag_variant_and_segments", response.FlagKey)
 							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
@@ -462,7 +462,7 @@ func TestReadOnly(t *testing.T) {
 							})
 							require.NoError(t, err)
 
-							assert.Equal(t, false, response.Match)
+							assert.False(t, response.Match)
 							assert.Empty(t, response.VariantKey)
 							assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, response.Reason)
 						})
@@ -476,7 +476,7 @@ func TestReadOnly(t *testing.T) {
 							})
 							require.NoError(t, err)
 
-							assert.Equal(t, true, response.Match)
+							assert.True(t, response.Match)
 							assert.Equal(t, "variant_001", response.VariantKey)
 							assert.Equal(t, "flag_using_entity_id", response.FlagKey)
 							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
@@ -521,7 +521,7 @@ func TestReadOnly(t *testing.T) {
 							})
 							require.NoError(t, err)
 
-							assert.Equal(t, true, response.Match)
+							assert.True(t, response.Match)
 							assert.Equal(t, "flag_no_distributions", response.FlagKey)
 							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
 							assert.Contains(t, response.SegmentKeys, "segment_001")

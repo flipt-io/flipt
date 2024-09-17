@@ -54,7 +54,7 @@ func TestPrivateClient(t *testing.T) {
 		}, nil)
 		client := privateClient{client: m}
 		token, expiresAt, err := client.GetAuthorizationToken(context.Background())
-		require.ErrorIs(t, err, nil)
+		require.NoError(t, err)
 		require.Equal(t, wantToken, token)
 		require.Equal(t, wantExpiresAt, expiresAt)
 	})
@@ -93,7 +93,7 @@ func TestPublicClient(t *testing.T) {
 		}, nil)
 		client := publicClient{client: m}
 		token, expiresAt, err := client.GetAuthorizationToken(context.Background())
-		require.ErrorIs(t, err, nil)
+		require.NoError(t, err)
 		require.Equal(t, wantToken, token)
 		require.Equal(t, wantExpiresAt, expiresAt)
 	})

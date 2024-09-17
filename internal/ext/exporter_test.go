@@ -835,10 +835,10 @@ func TestExport(t *testing.T) {
 				)
 
 				err := exporter.Export(context.Background(), ext, b)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				in, err := os.ReadFile(tc.path + "." + string(ext))
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				var (
 					expected = ext.NewDecoder(bytes.NewReader(in))

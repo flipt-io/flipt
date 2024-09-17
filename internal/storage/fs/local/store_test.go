@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
@@ -33,14 +34,14 @@ func Test_Store(t *testing.T) {
 			}
 		}),
 	))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Cleanup(func() {
 		_ = s.Close()
 	})
 
 	dir, err := os.Getwd()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ftc := filepath.Join(dir, "testdata", "a.features.yml")
 
@@ -53,7 +54,7 @@ func Test_Store(t *testing.T) {
 	}()
 
 	// change the filesystem contents
-	assert.NoError(t, os.WriteFile(ftc, []byte(`{"namespace":"staging"}`), os.ModePerm))
+	assert.NoError(t, os.WriteFile(ftc, []byte(`{"namespace":"staging"}`), 0600))
 
 	select {
 	case <-ch:
