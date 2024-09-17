@@ -8,21 +8,26 @@ import (
 // the different sinks.
 
 type Flag struct {
-	Key          string `json:"key"`
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	Enabled      bool   `json:"enabled"`
-	NamespaceKey string `json:"namespace_key"`
+	Key            string `json:"key"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Enabled        bool   `json:"enabled"`
+	NamespaceKey   string `json:"namespace_key"`
+	DefaultVariant string `json:"default_variant,omitempty"`
 }
 
 func NewFlag(f *flipt.Flag) *Flag {
-	return &Flag{
+	af := &Flag{
 		Key:          f.Key,
 		Name:         f.Name,
 		Description:  f.Description,
 		Enabled:      f.Enabled,
 		NamespaceKey: f.NamespaceKey,
 	}
+	if f.DefaultVariant != nil {
+		af.DefaultVariant = f.DefaultVariant.Key
+	}
+	return af
 }
 
 type Variant struct {
