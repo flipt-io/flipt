@@ -101,8 +101,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("GetAuthenticationSelf", func(t *testing.T) {
 		_, err := client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
-		uerr := errors.ErrUnauthenticatedf("request was not authenticated")
-		require.ErrorAs(t, err, &uerr)
+		require.ErrorContains(t, err, "request was not authenticated")
 
 		retrievedAuth, err := client.GetAuthenticationSelf(authorize(ctx), &emptypb.Empty{})
 		require.NoError(t, err)
@@ -158,8 +157,8 @@ func TestServer(t *testing.T) {
 
 		// get self with authenticated context now unauthorized
 		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
-		uerr := errors.ErrUnauthenticatedf("request was not authenticated")
-		require.ErrorAs(t, err, &uerr)
+
+		require.ErrorContains(t, err, "request was not authenticated")
 
 		// no longer can be retrieved from store by client ID
 		_, err = store.GetAuthenticationByClientToken(ctx, clientToken)
@@ -195,8 +194,7 @@ func TestServer(t *testing.T) {
 
 		// get self with authenticated context now unauthorized
 		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
-		uerr := errors.ErrUnauthenticatedf("request was not authenticated")
-		require.ErrorAs(t, err, &uerr)
+		require.ErrorContains(t, err, "request was not authenticated")
 	})
 }
 

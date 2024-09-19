@@ -147,6 +147,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 
 			clientToken, created, err := store.CreateAuthentication(ctx, test.req)
 			if test.expectedErrAs != nil {
+				// nolint:testifylint
 				require.ErrorAs(t, err, test.expectedErrAs)
 				return
 			}
@@ -202,6 +203,7 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			retrieved, err := storeFn(commonOpts(t)...).GetAuthenticationByClientToken(ctx, clientToken)
 			if expectedErrAs != nil {
+				// nolint:testifylint
 				require.ErrorAs(t, err, expectedErrAs)
 				return
 			}

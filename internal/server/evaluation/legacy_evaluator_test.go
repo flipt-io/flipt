@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -484,13 +485,13 @@ func Test_matchesNumber(t *testing.T) {
 			match, err := matchesNumber(constraint, value)
 
 			if wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				var ierr ferrors.ErrInvalid
 				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -608,13 +609,13 @@ func Test_matchesBool(t *testing.T) {
 			match, err := matchesBool(constraint, value)
 
 			if wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				var ierr ferrors.ErrInvalid
 				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -844,13 +845,13 @@ func Test_matchesDateTime(t *testing.T) {
 			match, err := matchesDateTime(constraint, value)
 
 			if wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				var ierr ferrors.ErrInvalid
 				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -898,7 +899,7 @@ func TestEvaluator_FlagDisabled(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Empty(t, resp.Value)
 	assert.Empty(t, resp.Attachment)
@@ -920,7 +921,7 @@ func TestEvaluator_FlagDisabled_DefaultVariant(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, "bar", resp.Value)
 	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
@@ -946,7 +947,7 @@ func TestEvaluator_NonVariantFlag(t *testing.T) {
 		},
 	})
 
-	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
+	require.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
@@ -968,7 +969,7 @@ func TestEvaluator_FlagNoRules(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
@@ -1020,7 +1021,7 @@ func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
 				},
 			})
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.False(t, resp.Match)
 			assert.Equal(t, "bar", resp.Value)
 			assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
@@ -1046,7 +1047,7 @@ func TestEvaluator_ErrorGettingRules(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
@@ -1110,8 +1111,8 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "rule rank: 0 detected out of order")
+	require.Error(t, err)
+	require.EqualError(t, err, "rule rank: 0 detected out of order")
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
@@ -1155,7 +1156,7 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
@@ -1198,7 +1199,7 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
@@ -1244,7 +1245,7 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
@@ -1319,7 +1320,7 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -1379,7 +1380,7 @@ func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, "foo", resp.FlagKey)
 	assert.True(t, resp.Match)
@@ -1473,7 +1474,7 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -1555,7 +1556,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, "foo", resp.FlagKey)
 
@@ -1622,7 +1623,7 @@ func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, "foo", resp.FlagKey)
 
@@ -1741,7 +1742,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -1862,7 +1863,7 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -1949,7 +1950,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Match)
@@ -2048,7 +2049,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2138,7 +2139,7 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2198,7 +2199,7 @@ func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, "foo", resp.FlagKey)
 	assert.True(t, resp.Match)
@@ -2350,7 +2351,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2470,7 +2471,7 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2566,7 +2567,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Match)
@@ -2631,7 +2632,7 @@ func TestEvaluator_MatchEntityId(t *testing.T) {
 		Context:  map[string]string{},
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Match)
@@ -2730,7 +2731,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2830,7 +2831,7 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)
@@ -2957,7 +2958,7 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, "foo", resp.FlagKey)
 			assert.Equal(t, req.Context, resp.RequestContext)

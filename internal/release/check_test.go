@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-github/v32/github"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func strPtr(s string) *string {
@@ -71,7 +72,7 @@ func TestGetLatestRelease(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -136,7 +137,7 @@ func TestCheck(t *testing.T) {
 			}
 
 			got, err := check(context.Background(), rc, tt.version)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
 	}

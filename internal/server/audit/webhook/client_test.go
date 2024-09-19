@@ -34,7 +34,7 @@ func TestConstructorWebhookClient(t *testing.T) {
 func TestWebhookClient(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 
 		assert.JSONEq(t, `{"version":"","type":"flag","action":"create","metadata":{},"payload":null,"timestamp":"","status":""}`, string(b))
 		assert.Equal(t, "6bc16d7434cbd746abfd25e3350a3f43fba04883b7f0b83f09bbc373116f84b0", r.Header.Get(fliptSignatureHeader))

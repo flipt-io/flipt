@@ -145,12 +145,12 @@ func (s *DBTestSuite) TestListSegments() {
 	}
 
 	_, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace), storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithPageToken("Hello World"))))
-	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+	require.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace)))
 	require.NoError(t, err)
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, segment := range got {
 		assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
@@ -185,7 +185,7 @@ func (s *DBTestSuite) TestListSegmentsNamespace() {
 	res, err := s.store.ListSegments(context.TODO(), storage.ListWithOptions(storage.NewNamespace(s.namespace)))
 	require.NoError(t, err)
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, segment := range got {
 		assert.Equal(t, s.namespace, segment.NamespaceKey)
@@ -310,7 +310,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pageToken := &common.PageToken{}
 	err = json.Unmarshal(pTokenB, pageToken)
@@ -330,7 +330,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
@@ -719,7 +719,7 @@ func (s *DBTestSuite) TestDeleteSegment_ExistingRule() {
 		Key: segment.Key,
 	})
 
-	assert.EqualError(t, err, "atleast one rule exists that matches this segment")
+	require.EqualError(t, err, "atleast one rule exists that matches this segment")
 
 	// delete the rule, then try to delete the segment again
 	err = s.store.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{

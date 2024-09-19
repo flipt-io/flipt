@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -40,21 +41,21 @@ func TestTrailingSlashMiddleware(t *testing.T) {
 
 	// Request with the middleware on.
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req.Header.Set(tsoHeader, "on")
 
 	res, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, http.StatusOK, res.StatusCode)
+	require.Equal(t, http.StatusOK, res.StatusCode)
 	res.Body.Close()
 
 	// Request with the middleware off.
 	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, fmt.Sprintf("%s/hello/", s.URL), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	res, err = http.DefaultClient.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusNotFound, res.StatusCode)
 	res.Body.Close()

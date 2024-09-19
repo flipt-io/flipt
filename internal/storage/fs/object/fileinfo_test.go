@@ -15,7 +15,7 @@ func TestFileInfo(t *testing.T) {
 	require.Equal(t, "f.txt", fi.Name())
 	require.Equal(t, int64(100), fi.Size())
 	require.Equal(t, modTime, fi.ModTime())
-	require.Equal(t, false, fi.isDir)
+	require.False(t, fi.isDir)
 	info, err := fi.Info()
 	require.NoError(t, err)
 	require.Equal(t, fi, info)
@@ -26,5 +26,5 @@ func TestFileInfo(t *testing.T) {
 func TestFileInfoIsDir(t *testing.T) {
 	fi := FileInfo{}
 	fi.SetDir(true)
-	require.Equal(t, true, fi.isDir)
+	require.True(t, fi.isDir)
 }

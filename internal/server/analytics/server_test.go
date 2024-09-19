@@ -29,8 +29,8 @@ func TestServer(t *testing.T) {
 		From:         "2024-01-01 00:00:00",
 		To:           "2024-01-01 00:00:00",
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, res.Timestamps, []string{"2000-01-01 00:00:00", "2000-01-01 00:01:00", "2000-01-01 00:02:00"})
-	assert.Equal(t, res.Values, []float32{20.0, 30.0, 40.0})
+	assert.Equal(t, []string{"2000-01-01 00:00:00", "2000-01-01 00:01:00", "2000-01-01 00:02:00"}, res.Timestamps)
+	assert.Equal(t, []float32{20.0, 30.0, 40.0}, res.Values)
 }

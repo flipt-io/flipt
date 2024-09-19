@@ -664,7 +664,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				}
 
 				assert.Equal(t, ruleTwo.Id, distribution.RuleId)
-				assert.Equal(t, float32(100), distribution.Rollout)
+				assert.InDelta(t, 100, distribution.Rollout, 0)
 
 				distribution, err = client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 					NamespaceKey: namespace.Key,
@@ -733,7 +733,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, "boolean_disabled", rolloutSegment.FlagKey)
 				assert.Equal(t, int32(1), rolloutSegment.Rank)
 				assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
-				assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+				assert.True(t, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 				anotherRolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 					NamespaceKey: namespace.Key,
@@ -753,7 +753,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, "boolean_disabled", anotherRolloutSegment.FlagKey)
 				assert.Equal(t, int32(2), anotherRolloutSegment.Rank)
 				assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
-				assert.Equal(t, false, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+				assert.False(t, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 				updatedAnotherRolloutSegment, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
 					Id:           anotherRolloutSegment.Id,
@@ -773,7 +773,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, int32(2), updatedAnotherRolloutSegment.Rank)
 				assert.Contains(t, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "segment")
 				assert.Contains(t, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "another-segment")
-				assert.Equal(t, false, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+				assert.False(t, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 				rolloutThreshold, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 					NamespaceKey: namespace.Key,
@@ -793,8 +793,8 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, "boolean_disabled", rolloutThreshold.FlagKey)
 				assert.Equal(t, "50% disabled", rolloutThreshold.Description)
 				assert.Equal(t, int32(3), rolloutThreshold.Rank)
-				assert.Equal(t, float32(50.0), rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
-				assert.Equal(t, true, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+				assert.InDelta(t, 50.0, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage, 0)
+				assert.True(t, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
 				t.Log(`Ensure multiple rollouts with same rank can not be created`)
 
@@ -874,8 +874,8 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Equal(t, "boolean_disabled", updatedRollout.FlagKey)
 				assert.Equal(t, "50% enabled", updatedRollout.Description)
 				assert.Equal(t, int32(3), updatedRollout.Rank)
-				assert.Equal(t, float32(50.0), updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
-				assert.Equal(t, false, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+				assert.InDelta(t, 50.0, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage, 0)
+				assert.False(t, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
 				t.Run("Cannot change rollout type", func(t *testing.T) {
 					_, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
