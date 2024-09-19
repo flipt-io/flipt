@@ -124,13 +124,13 @@ func (s *DBTestSuite) TestListFlags() {
 		storage.NewNamespace(storage.DefaultNamespace),
 		storage.ListWithQueryParamOptions[storage.NamespaceRequest](storage.WithPageToken("Hello World"))),
 	)
-	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+	require.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListFlags(context.TODO(), storage.ListWithOptions(storage.NewNamespace(storage.DefaultNamespace)))
 	require.NoError(t, err)
 
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, flag := range got {
 		assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
@@ -167,7 +167,7 @@ func (s *DBTestSuite) TestListFlagsNamespace() {
 	require.NoError(t, err)
 
 	got := res.Results
-	assert.NotZero(t, len(got))
+	assert.NotEmpty(t, got)
 
 	for _, flag := range got {
 		assert.Equal(t, s.namespace, flag.NamespaceKey)
@@ -342,7 +342,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = json.Unmarshal(pTokenB, pageToken)
 
@@ -1644,7 +1644,7 @@ func (s *DBTestSuite) TestDeleteVariant_ExistingRule() {
 		FlagKey: flag.Key,
 	})
 
-	assert.EqualError(t, err, "atleast one rule exists that includes this variant")
+	require.EqualError(t, err, "atleast one rule exists that includes this variant")
 
 	// delete the rule, then try to delete the variant again
 	err = s.store.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{

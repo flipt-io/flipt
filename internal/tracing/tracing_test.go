@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -45,7 +46,7 @@ func TestNewResourceDefault(t *testing.T) {
 				t.Setenv(k, v)
 			}
 			r, err := newResource(context.Background(), "test")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			want := make(map[attribute.Key]attribute.KeyValue)
 			for _, keyValue := range tt.want {
@@ -145,7 +146,7 @@ func TestGetExporter(t *testing.T) {
 				err := expFunc(context.Background())
 				assert.NoError(t, err)
 			})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, exp)
 			assert.NotNil(t, expFunc)
 		})

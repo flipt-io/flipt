@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
 )
@@ -13,6 +14,6 @@ import (
 func TestBootstrap(t *testing.T) {
 	store := memory.NewStore()
 	s, err := authn.Bootstrap(context.TODO(), store, authn.WithExpiration(time.Minute), authn.WithToken("this-is-a-token"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, s)
 }

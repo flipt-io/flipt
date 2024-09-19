@@ -120,7 +120,7 @@ func Test_Server(t *testing.T) {
 				return
 			}
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, test.expectedResp, resp)
 		})
 	}

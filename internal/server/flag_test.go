@@ -35,7 +35,7 @@ func TestGetFlag(t *testing.T) {
 
 	assert.NotNil(t, got)
 	assert.Equal(t, "foo", got.Key)
-	assert.Equal(t, true, got.Enabled)
+	assert.True(t, got.Enabled)
 }
 
 func TestListFlags_PaginationOffset(t *testing.T) {

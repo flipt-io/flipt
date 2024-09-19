@@ -59,7 +59,7 @@ func TestEvaluateFlag_Success(t *testing.T) {
 				"hello":              "world",
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, proto.Equal(expectedResponse, actualResponse))
 	})
 
@@ -97,7 +97,7 @@ func TestEvaluateFlag_Success(t *testing.T) {
 			Key:     flagKey,
 			Context: map[string]string{ofrepCtxTargetingKey: "string"},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, proto.Equal(expectedResponse, actualResponse))
 	})
 }
@@ -195,7 +195,7 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 				"flags":              flagKey,
 			},
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		require.Len(t, actualResponse.Flags, len(expectedResponse))
 		for i, expected := range expectedResponse {
 			fmt.Println(actualResponse.Flags)
