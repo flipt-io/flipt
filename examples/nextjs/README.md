@@ -4,7 +4,7 @@ This is an example of how to use Flipt with a NextJS application.
 
 **Note:** This example is not meant to be used in production, it is only meant to demonstrate how to use Flipt with NextJS.
 
-It uses both the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node)  and [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evalute feature flags from the Flipt API in two different ways:
+It uses both the [Flipt Node SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-node) and [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evalute feature flags from the Flipt API in two different ways:
 
 1. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page 
 1. Using the Flipt Browser SDK to evaluate the flags in the browser/client side
@@ -13,9 +13,11 @@ We also included [some code](./pages/api/hello.ts) showing how you could use Fli
 
 ## Example
 
-In this example, we are leveraging Flipt to prototype some personalization for our NextJS application. We want to show a different greeting message to the user at random, but we aren't sure if we should use client-side data fetching or server-side data fetching, so we are going to try both ways. We will use both the Flipt TypeScript SDK (server-side) and Flipt Browser SDK (client-side) to integrate with Flipt.
+In this example, we are leveraging Flipt to prototype some personalization for our NextJS application. We want to show a different greeting message to the user at random, but we aren't sure if we should use client-side data fetching or server-side data fetching, so we are going to try both ways. We will use both the Flipt Node SDK and Flipt Browser SDK to integrate with Flipt.
 
 ## Architecture
+
+Both examples are using the same Flipt flag and are evaluating the flag within the application. Both of these SDKs pull flag state from the Flipt server and perform evaluation client-side in the browser or server-side (Node.js) in the application.
 
 ### Client Side
 
@@ -23,7 +25,7 @@ For the client-side example, we are using the [Flipt Browser SDK](https://github
 
 ### Server Side
 
-For the server-side example, we are using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page. This uses the `FliptApiClient` directly to evalute the `language` flag to then render the greeting message.
+For the server-side example, we are using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page. This uses the `FliptEvaluationClient` to evalute the `language` flag to then render the greeting message. While this example is using the same flag as the client-side example, it is important to note that the Flipt Node SDK is running on the server-side and is not sending any data to the browser.
 
 ## Requirements
 
