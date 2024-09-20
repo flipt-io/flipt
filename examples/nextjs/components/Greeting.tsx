@@ -12,10 +12,10 @@ export default function Greeting() {
           url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://localhost:8080",
         });
 
-        const evaluation = client.evaluateVariant("language", uuidv4(), {});
-        console.log(evaluation);
+        const result = client.evaluateVariant("language", uuidv4(), {});
+        console.log(result);
 
-        let language = evaluation.result?.variant_key;
+        let language = result.variantKey;
 
         const greeting =
           language == "es"
