@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@flipt-io/flipt": "^0.2.17",
+    "@flipt-io/flipt-client": "^0.10.0",
     "@flipt-io/flipt-client-react": "^0.0.1-rc.3",
     "@next/font": "13.0.7",
     "@types/node": "18.11.17",
