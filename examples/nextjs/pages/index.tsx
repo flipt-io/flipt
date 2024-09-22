@@ -1,4 +1,4 @@
-import { FliptApiClient } from "@flipt-io/flipt";
+import { FliptEvaluationClient } from "@flipt-io/flipt-client";
 import Head from "next/head";
 import Greeting from "../components/Greeting";
 import { v4 as uuidv4 } from "uuid";
@@ -28,21 +28,13 @@ export default function Home(data: HomeProps) {
   );
 }
 
-const client = new FliptApiClient({
-  environment: process.env.FLIPT_ADDR ?? "http://flipt:8080",
-});
 
 export async function getServerSideProps() {
+  const client = await FliptEvaluationClient.init("default", {url: process.env.FLIPT_ADDR ?? "http://flipt:8080"}  );
   let language = "en";
   try {
-    const evaluation = await client.evaluation.variant({
-      namespaceKey: "default",
-      flagKey: "language",
-      entityId: uuidv4(),
-      context: {},
-    });
-
-    language = evaluation.variantKey;
+    const result = client.evaluateVariant("language", uuidv4(), {});
+    language = result.variantKey;
   } catch (err) {
     console.log(err);
   }
