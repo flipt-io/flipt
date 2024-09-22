@@ -4,10 +4,10 @@ This is an example of how to use Flipt with a NextJS application.
 
 **Note:** This example is not meant to be used in production, it is only meant to demonstrate how to use Flipt with NextJS.
 
-It uses both the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node)  and [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evalute feature flags from the Flipt API in two different ways:
+It uses both the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node) and [Flipt React SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-react) to evalute feature flags from the Flipt API in two different ways:
 
-1. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page 
-1. Using the Flipt Browser SDK to evaluate the flags in the browser/client side
+1. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page
+1. Using the Flipt React SDK to evaluate the flags in the browser/client side
 
 We also included [some code](./pages/api/hello.ts) showing how you could use Flipt with [NextJS API routes](https://nextjs.org/docs/api-routes/introduction), but we are not hitting the API it in this example.
 
@@ -19,7 +19,7 @@ In this example, we are leveraging Flipt to prototype some personalization for o
 
 ### Client Side
 
-For the client-side example, we are using the [Flipt Browser SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-browser) to evaluate the flag in the browser/client side. The `FliptEvaluationClient` object pulls flag state from the Flipt server and performs evaluation client-side in the browser to evalute the `language` flag.
+For the client-side example, we are using the [Flipt React SDK](https://github.com/flipt-io/flipt-client-sdks/tree/main/flipt-client-react) to evaluate the flag in the browser/client side. The `FliptEvaluationClient` object pulls flag state from the Flipt server and performs evaluation client-side in the browser to evalute the `language` flag.
 
 ### Server Side
 
@@ -29,8 +29,8 @@ For the server-side example, we are using the [`getServerSideProps`](https://nex
 
 To run this example application you'll need:
 
-* [Docker](https://docs.docker.com/install/)
-* [docker-compose](https://docs.docker.com/compose/install/)
+- [Docker](https://docs.docker.com/install/)
+- [docker-compose](https://docs.docker.com/compose/install/)
 
 ## Running the Example
 
