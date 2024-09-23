@@ -15,11 +15,18 @@ import (
 
 func TestNewGRPCServer(t *testing.T) {
 	tmp := t.TempDir()
-	cfg := &config.Config{}
+	cfg := &config.Config{
+		Storage: config.StorageConfig{
+			Type: config.LocalStorageType,
+			Local: &config.StorageLocalConfig{
+				Path: ".",
+			},
+		},
+	}
 	cfg.Database.URL = fmt.Sprintf("file:%s", filepath.Join(tmp, "flipt.db"))
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	s, err := NewGRPCServer(ctx, zaptest.NewLogger(t), cfg, info.Flipt{}, false)
+	s, err := NewGRPCServer(ctx, zaptest.NewLogger(t), cfg, info.Flipt{})
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := s.Shutdown(ctx)
