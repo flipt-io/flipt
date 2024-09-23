@@ -262,31 +262,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		err         error
 	)
 
-	if cfg.Meta.CheckForUpdates && isRelease {
-		logger.Debug("checking for updates")
-
-		releaseInfo, err = release.Check(ctx, version)
-		if err != nil {
-			logger.Warn("checking for updates", zap.Error(err))
-		}
-
-		logger.Debug("version info", zap.String("current_version", releaseInfo.CurrentVersion), zap.String("latest_version", releaseInfo.LatestVersion))
-
-		if isConsole {
-			if releaseInfo.UpdateAvailable {
-				color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", releaseInfo.LatestVersionURL)
-			} else {
-				color.Green("You are currently running the latest version of Flipt [%s]!", releaseInfo.CurrentVersion)
-			}
-		} else {
-			if releaseInfo.UpdateAvailable {
-				logger.Info("newer version available", zap.String("version", releaseInfo.LatestVersion), zap.String("url", releaseInfo.LatestVersionURL))
-			} else {
-				logger.Info("running latest version", zap.String("version", releaseInfo.CurrentVersion))
-			}
-		}
-	}
-
 	// see: https://consoledonottrack.com/
 	if isSet(dntVar) && cfg.Meta.TelemetryEnabled {
 		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
