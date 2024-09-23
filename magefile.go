@@ -67,7 +67,7 @@ func Build() error {
 	mg.Deps(Prep)
 	fmt.Println("Building...")
 
-	if err := build(buildModeProd); err != nil {
+	if err := build(buildModeProd, "flipt"); err != nil {
 		return err
 	}
 
@@ -112,7 +112,7 @@ const (
 	buildModeProd
 )
 
-func build(mode buildMode) error {
+func build(mode buildMode, bin string) error {
 	buildDate := time.Now().UTC().Format(time.RFC3339)
 	buildArgs := make([]string, 0)
 
@@ -127,7 +127,7 @@ func build(mode buildMode) error {
 	}
 
 	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
-	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
+	buildArgs = append(buildArgs, "-o", fmt.Sprintf("./bin/%s", bin), fmt.Sprintf("./cmd/%s/", bin))
 
 	return sh.RunV("go", buildArgs...)
 }
@@ -167,7 +167,7 @@ func (g Go) Build() error {
 	mg.Deps(Clean)
 	fmt.Println("Building...")
 
-	if err := build(buildModeDev); err != nil {
+	if err := build(buildModeDev, "flipt"); err != nil {
 		return err
 	}
 
@@ -176,6 +176,21 @@ func (g Go) Build() error {
 	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
 	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
 	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
+	return nil
+}
+
+// Builds the Go server for development, without bundling assets
+func (g Go) BuildEdge() error {
+	mg.Deps(Clean)
+	fmt.Println("Building Edge...")
+
+	if err := build(buildModeDev, "flipt-edge"); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	fmt.Printf("\nRun the following to start Flipt edge server:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt-edge [--config config/local.yml]`))
 	return nil
 }
 
