@@ -46,11 +46,6 @@ func TestRequiresDatabase(t *testing.T) {
 			func(m *AuthenticationMethods) { m.JWT.Enabled = true },
 			false,
 		},
-		{
-			"cloud",
-			func(m *AuthenticationMethods) { m.Cloud.Enabled = true },
-			false,
-		},
 	}
 
 	for _, tt := range tests {
