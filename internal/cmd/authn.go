@@ -251,29 +251,6 @@ func authenticationGRPC(
 			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 		}
 
-		if authCfg.Methods.Cloud.Enabled {
-			jwksURL := fmt.Sprintf("https://%s/api/auth/jwks", cfg.Cloud.Host)
-
-			ks, err := jwt.NewJSONWebKeySet(ctx, jwksURL, "")
-			if err != nil {
-				return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
-			}
-
-			validator, err := jwt.NewValidator(ks)
-			if err != nil {
-				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
-			}
-
-			// intentionally restricted to a set of common asymmetric algorithms
-			exp := jwt.Expected{
-				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512, jwt.EdDSA},
-				Issuer:            cfg.Cloud.Host,
-				Audiences:         []string{cfg.Cloud.Organization},
-			}
-
-			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
-		}
-
 		interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
 			logger,
 			store,

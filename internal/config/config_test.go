@@ -664,29 +664,6 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New(`field "public_key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
 		},
 		{
-			name: "server cloud missing port",
-			path: "./testdata/server/cloud_missing_port.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cloud.Host = "flipt.cloud"
-				cfg.Server.Cloud.Enabled = true
-				cfg.Server.Cloud.Port = 8443
-				cfg.Experimental.Cloud.Enabled = true
-				return cfg
-			},
-		},
-		{
-			name: "cloud trailing slash",
-			path: "./testdata/cloud/trim_trailing_slash.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cloud.Host = "flipt.cloud"
-				cfg.Server.Cloud.Port = 8443
-				cfg.Experimental.Cloud.Enabled = true
-				return cfg
-			},
-		},
-		{
 			name:    "authorization required without authentication",
 			path:    "./testdata/authorization/authentication_not_required.yml",
 			wantErr: errors.New("authorization requires authentication also be required"),

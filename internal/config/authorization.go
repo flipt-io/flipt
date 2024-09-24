@@ -22,7 +22,6 @@ type AuthorizationConfig struct {
 	Required bool                             `json:"required,omitempty" mapstructure:"required" yaml:"required,omitempty"`
 	Backend  AuthorizationBackend             `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
 	Local    *AuthorizationLocalConfig        `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	Cloud    *AuthorizationSourceCloudConfig  `json:"cloud,omitempty" mapstructure:"cloud,omitempty" yaml:"cloud,omitempty"`
 	Bundle   *AuthorizationSourceBundleConfig `json:"bundle,omitempty" mapstructure:"bundle,omitempty" yaml:"bundle,omitempty"`
 	Object   *AuthorizationSourceObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 }
@@ -31,10 +30,6 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
 		switch v.GetString("authorization.backend") {
-		case string(AuthorizationBackendCloud):
-			auth["cloud"] = map[string]any{
-				"poll_interval": "5m",
-			}
 		default:
 			auth["backend"] = AuthorizationBackendLocal
 			if v.GetString("authorization.local.data.path") == "" {
@@ -73,15 +68,6 @@ func (c *AuthorizationConfig) validate() error {
 				return fmt.Errorf("authorization: local: %w", err)
 			}
 
-		case AuthorizationBackendCloud:
-			if c.Cloud == nil {
-				return errors.New("authorization: cloud backend must be configured")
-			}
-
-			if err := c.Cloud.validate(); err != nil {
-				return fmt.Errorf("authorization: cloud: %w", err)
-			}
-
 		case AuthorizationBackendBundle:
 			if c.Bundle == nil {
 				return errors.New("authorization: bundle backend must be configured")
@@ -111,7 +97,6 @@ type AuthorizationBackend string
 
 const (
 	AuthorizationBackendLocal  = AuthorizationBackend("local")
-	AuthorizationBackendCloud  = AuthorizationBackend("cloud")
 	AuthorizationBackendObject = AuthorizationBackend("object")
 	AuthorizationBackendBundle = AuthorizationBackend("bundle")
 )
@@ -162,18 +147,6 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 	}
 
 	if a.PollInterval <= 0 {
-		return errors.New("poll_interval must be greater than zero")
-	}
-
-	return nil
-}
-
-type AuthorizationSourceCloudConfig struct {
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-}
-
-func (a *AuthorizationSourceCloudConfig) validate() error {
-	if a != nil && a.PollInterval <= 0 {
 		return errors.New("poll_interval must be greater than zero")
 	}
 

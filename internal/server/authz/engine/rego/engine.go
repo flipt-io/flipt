@@ -16,7 +16,6 @@ import (
 	"go.flipt.io/flipt/internal/server/authz"
 	_ "go.flipt.io/flipt/internal/server/authz/engine/ext"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
-	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/cloud"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source/filesystem"
 	"go.uber.org/zap"
 )
@@ -92,12 +91,6 @@ func NewEngine(ctx context.Context, logger *zap.Logger, cfg *config.Config) (*En
 				filesystem.DataSourceFromPath(authConfig.Local.Data.Path),
 				authConfig.Local.Data.PollInterval,
 			))
-		}
-
-	case config.AuthorizationBackendCloud:
-		opts = []containers.Option[Engine]{
-			withPolicySource(cloud.PolicySourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey)),
-			withDataSource(cloud.DataSourceFromCloud(cfg.Cloud.Host, cfg.Cloud.Authentication.ApiKey), authConfig.Cloud.PollInterval),
 		}
 
 	default:
