@@ -163,7 +163,6 @@ func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMe
 		}),
 		kubernetes: newInfo(auth.Method_METHOD_KUBERNETES, false, nil),
 		jwt:        newInfo(auth.Method_METHOD_JWT, false, nil),
-		cloud:      newInfo(auth.Method_METHOD_CLOUD, true, nil),
 	}
 
 	fn(&methods)
@@ -175,7 +174,6 @@ func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMe
 			methods.oidc,
 			methods.kubernetes,
 			methods.jwt,
-			methods.cloud,
 		},
 	}
 }
