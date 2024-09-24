@@ -132,7 +132,6 @@ type methods struct {
 	oidc       *auth.MethodInfo
 	kubernetes *auth.MethodInfo
 	jwt        *auth.MethodInfo
-	cloud      *auth.MethodInfo
 }
 
 func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMethodsResponse {

@@ -29,24 +29,22 @@ type AuthorizationConfig struct {
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	auth := map[string]any{"required": false}
 	if v.GetBool("authorization.required") {
-		switch v.GetString("authorization.backend") {
-		default:
-			auth["backend"] = AuthorizationBackendLocal
-			if v.GetString("authorization.local.data.path") == "" {
-				auth["local"] = map[string]any{
-					"policy": map[string]any{
-						"poll_interval": "5m",
-					},
-				}
-			} else {
-				auth["local"] = map[string]any{
-					"policy": map[string]any{
-						"poll_interval": "5m",
-					},
-					"data": map[string]any{
-						"poll_interval": "30s",
-					},
-				}
+
+		auth["backend"] = AuthorizationBackendLocal
+		if v.GetString("authorization.local.data.path") == "" {
+			auth["local"] = map[string]any{
+				"policy": map[string]any{
+					"poll_interval": "5m",
+				},
+			}
+		} else {
+			auth["local"] = map[string]any{
+				"policy": map[string]any{
+					"poll_interval": "5m",
+				},
+				"data": map[string]any{
+					"poll_interval": "30s",
+				},
 			}
 		}
 
