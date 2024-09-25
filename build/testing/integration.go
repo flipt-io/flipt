@@ -234,7 +234,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 						WithMountedCache("/var/opt/flipt/logs", logs)
 				}
 
-				return fn(ctx, client, base.Pipeline(name), flipt, config)()
+				return fn(ctx, client, base.WithLabel("name", name), flipt, config)()
 			}))
 		}
 	}
@@ -354,7 +354,6 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				AsService()),
 			conf,
 		)
-
 	}
 }
 
@@ -381,7 +380,8 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 			"redis-server", "--tls-port", "6379", "--port", "0",
 			"--tls-key-file", "/opt/tls/key", "--tls-cert-file",
 			"/opt/tls/crt", "--tls-ca-cert-file", "/opt/tls/crt",
-			"--tls-auth-clients", "no"}).
+			"--tls-auth-clients", "no",
+		}).
 		AsService()
 
 	flipt = flipt.
@@ -581,9 +581,7 @@ func importInto(ctx context.Context, base, flipt, fliptToTest *dagger.Container,
 	for _, ns := range []string{"default", "production"} {
 		seed := base.File(path.Join(singleRevisionTestdataDir, ns+".yaml"))
 
-		var (
-			importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
-		)
+		importCmd := append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
 		// use target flipt binary to invoke import
 		_, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -673,7 +671,6 @@ func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 
 func authz(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return withAuthz(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-
 		// create unique instance for test case
 		fliptToTest := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -844,6 +841,7 @@ permit_slice(allowed, requested) if {
 		)
 	}
 }
+
 func withWebhook(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		owntracks := client.Container().From("frxyt/gohrec").WithExposedPort(8080).AsService()
