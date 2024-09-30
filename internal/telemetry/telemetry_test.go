@@ -86,9 +86,7 @@ func TestShutdown(t *testing.T) {
 	assert.True(t, mockAnalytics.closed)
 }
 
-var experimental = map[string]any{
-	"cloud": map[string]any{},
-}
+var experimental = map[string]any{}
 
 func TestPing(t *testing.T) {
 	test := []struct {

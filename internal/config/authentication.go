@@ -251,7 +251,6 @@ type AuthenticationMethods struct {
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
 	JWT        AuthenticationMethod[AuthenticationMethodJWTConfig]        `json:"jwt,omitempty" mapstructure:"jwt" yaml:"jwt,omitempty"`
-	Cloud      AuthenticationMethod[AuthenticationMethodCloudConfig]      `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -262,7 +261,6 @@ func (a *AuthenticationMethods) AllMethods(ctx context.Context) []StaticAuthenti
 		a.OIDC.info(ctx),
 		a.Kubernetes.info(ctx),
 		a.JWT.info(ctx),
-		a.Cloud.info(ctx),
 	}
 }
 
@@ -388,21 +386,6 @@ func (a *AuthenticationMethod[C]) validate() error {
 
 	return a.Method.validate()
 }
-
-type AuthenticationMethodCloudConfig struct{}
-
-func (a AuthenticationMethodCloudConfig) setDefaults(map[string]any) {}
-
-// info describes properties of the authentication method "cloud".
-func (a AuthenticationMethodCloudConfig) info(_ context.Context) AuthenticationMethodInfo {
-	return AuthenticationMethodInfo{
-		Method:            auth.Method_METHOD_CLOUD,
-		SessionCompatible: true,
-		RequiresDatabase:  false,
-	}
-}
-
-func (a AuthenticationMethodCloudConfig) validate() error { return nil }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".

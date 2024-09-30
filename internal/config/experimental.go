@@ -7,17 +7,10 @@ import (
 // ExperimentalConfig allows for experimental features to be enabled
 // and disabled.
 type ExperimentalConfig struct {
-	Cloud ExperimentalFlag `json:"cloud,omitempty" mapstructure:"cloud" yaml:"cloud,omitempty"`
 }
 
 func (c *ExperimentalConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.InConfig("experimental.filesystem_storage") {
-		deprecations = append(deprecations, "experimental.filesystem_storage")
-	}
-
-	return deprecations
+	return nil
 }
 
 // ExperimentalFlag is a structure which has properties to configure

@@ -27,7 +27,6 @@ import (
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/audit/cloud"
 	"go.flipt.io/flipt/internal/server/audit/kafka"
 	"go.flipt.io/flipt/internal/server/audit/log"
 	"go.flipt.io/flipt/internal/server/audit/template"
@@ -403,21 +402,6 @@ func NewGRPCServer(
 		sinks = append(sinks, webhookSink)
 	}
 
-	if cfg.Audit.Sinks.Cloud.Enabled {
-		webhookURL := fmt.Sprintf("https://%s/api/audit/event", cfg.Cloud.Host)
-
-		if cfg.Cloud.Authentication.ApiKey == "" {
-			return nil, errors.New("cloud audit sink requires an api key")
-		}
-
-		cloudSink, err := cloud.NewSink(logger, cfg.Cloud.Authentication.ApiKey, webhookURL)
-		if err != nil {
-			return nil, err
-		}
-
-		sinks = append(sinks, cloudSink)
-	}
-
 	if cfg.Audit.Sinks.Kafka.Enabled {
 		kafkaCfg := cfg.Audit.Sinks.Kafka
 		kafkaSink, err := kafka.NewSink(ctx, logger, kafkaCfg)
@@ -566,14 +550,6 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		var err error
 		switch cfg.Authorization.Backend {
 		case config.AuthorizationBackendLocal:
-			validator, err = authzrego.NewEngine(ctx, logger, cfg)
-
-		case config.AuthorizationBackendCloud:
-			if cfg.Cloud.Authentication.ApiKey == "" {
-				err = errors.New("cloud authorization requires an api key")
-				break
-			}
-
 			validator, err = authzrego.NewEngine(ctx, logger, cfg)
 
 		default:
