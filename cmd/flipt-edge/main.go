@@ -16,7 +16,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/edge"
 	"go.flipt.io/flipt/internal/config"

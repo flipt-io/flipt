@@ -2,7 +2,6 @@ package edge
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -81,7 +80,7 @@ type GRPCServer struct {
 }
 
 // NewGRPCServer constructs the core Flipt gRPC service including its dependencies
-// (e.g. tracing, metrics, storage, migrations, caching and cleanup).
+// (e.g. tracing, metrics, and cleanup).
 // It returns an instance of *GRPCServer which callers can Run().
 func NewGRPCServer(
 	ctx context.Context,
@@ -364,14 +363,6 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 		var err error
 		switch cfg.Authorization.Backend {
 		case config.AuthorizationBackendLocal:
-			validator, err = authzrego.NewEngine(ctx, logger, cfg)
-
-		case config.AuthorizationBackendCloud:
-			if cfg.Cloud.Authentication.ApiKey == "" {
-				err = errors.New("cloud authorization requires an api key")
-				break
-			}
-
 			validator, err = authzrego.NewEngine(ctx, logger, cfg)
 
 		default:
