@@ -77,6 +77,21 @@ func Build() error {
 	return nil
 }
 
+// Builds the edge server similar to a release build
+func BuildEdge() error {
+	mg.Deps(Clean)
+	fmt.Println("Building Edge...")
+
+	if err := build(buildModeProd, "flipt-edge"); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	fmt.Printf("\nRun the following to start Flipt edge server:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt-edge [--config config/local.yml]`))
+	return nil
+}
+
 // Cleans up built files
 func Clean() error {
 	fmt.Println("Cleaning...")
