@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -44,9 +45,10 @@ type Exporter struct {
 	batchSize     int32
 	namespaceKeys []string
 	allNamespaces bool
+	sortByKey     bool
 }
 
-func NewExporter(store Lister, namespaces string, allNamespaces bool) *Exporter {
+func NewExporter(store Lister, namespaces string, allNamespaces, sortByKey bool) *Exporter {
 	ns := strings.Split(namespaces, ",")
 
 	return &Exporter{
@@ -54,6 +56,7 @@ func NewExporter(store Lister, namespaces string, allNamespaces bool) *Exporter 
 		batchSize:     defaultBatchSize,
 		namespaceKeys: ns,
 		allNamespaces: allNamespaces,
+		sortByKey:     sortByKey,
 	}
 }
 
@@ -314,6 +317,17 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				doc.Segments = append(doc.Segments, segment)
 			}
+		}
+
+		// sort flags and segments by key if sorting is enabled
+		if e.sortByKey {
+			sort.SliceStable(doc.Flags, func(i, j int) bool {
+				return doc.Flags[i].Key < doc.Flags[j].Key
+			})
+
+			sort.SliceStable(doc.Segments, func(i, j int) bool {
+				return doc.Segments[i].Key < doc.Segments[j].Key
+			})
 		}
 
 		if err := enc.Encode(doc); err != nil {
