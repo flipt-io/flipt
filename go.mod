@@ -9,7 +9,7 @@ require (
 	cuelang.org/go v0.10.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.0
-	github.com/ClickHouse/clickhouse-go/v2 v2.28.0
+	github.com/ClickHouse/clickhouse-go/v2 v2.29.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/Masterminds/squirrel v1.5.4
@@ -171,7 +171,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
-	github.com/docker/docker v27.1.1+incompatible // indirect
+	github.com/docker/docker v27.3.0+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
