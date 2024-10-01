@@ -91,7 +91,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s", time.Now().UTC().Format(time.RFC3339))
 		path       = path.Join("/bin", platforms.Format(platform))
 		goBuildCmd = fmt.Sprintf(
-			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
+			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./cmd/flipt",
 			path,
 			ldflags,
 		)
