@@ -1,13 +1,8 @@
 version: "1.4"
 namespace:
-  key: default
-  name: default
-  description: default namespace
----
-namespace:
-  key: foo
-  name: foo
-  description: foo namespace
+  key: bar
+  name: bar
+  description: bar namespace
 flags:
   - key: FLag2
     name: FLag2
@@ -32,6 +27,7 @@ flags:
     description: description
     enabled: true
     variants:
+      - key: foo
       - key: variant1
         name: variant1
         attachment:
@@ -48,7 +44,6 @@ flags:
           object:
             currency: USD
             value: 42.99
-      - key: foo
     rules:
       - segment: segment1
         distributions:
@@ -95,9 +90,14 @@ segments:
     description: description
 ---
 namespace:
-  key: bar
-  name: bar
-  description: bar namespace
+  key: default
+  name: default
+  description: default namespace
+---
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
 flags:
   - key: FLag2
     name: FLag2
@@ -122,6 +122,7 @@ flags:
     description: description
     enabled: true
     variants:
+      - key: foo
       - key: variant1
         name: variant1
         attachment:
@@ -138,7 +139,6 @@ flags:
           object:
             currency: USD
             value: 42.99
-      - key: foo
     rules:
       - segment: segment1
         distributions:

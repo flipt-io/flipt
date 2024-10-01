@@ -27,6 +27,7 @@ flags:
     description: description
     enabled: true
     variants:
+      - key: foo
       - key: variant1
         name: variant1
         attachment:
@@ -43,7 +44,6 @@ flags:
           object:
             currency: USD
             value: 42.99
-      - key: foo
     rules:
       - segment: segment1
         distributions:
@@ -117,6 +117,7 @@ flags:
     description: description
     enabled: true
     variants:
+      - key: foo
       - key: variant1
         name: variant1
         attachment:
@@ -133,7 +134,6 @@ flags:
           object:
             currency: USD
             value: 42.99
-      - key: foo
     rules:
       - segment: segment1
         distributions:

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -102,6 +102,13 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 				})
 			}
 		}
+
+		// sort namespaces by key if sorting is enabled
+		if e.sortByKey {
+			slices.SortStableFunc(namespaces, func(i, j *Namespace) int {
+				return strings.Compare(i.Key, j.Key)
+			})
+		}
 	} else {
 		// If allNamespaces is "false", then retrieve the namespaces specified in the namespaceKeys slice.
 		for _, key := range e.namespaceKeys {
@@ -166,6 +173,13 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				// map variant id => variant key
 				variantKeys := make(map[string]string)
+
+				// sort variants by key if sorting is enabled
+				if e.sortByKey {
+					slices.SortStableFunc(f.Variants, func(i, j *flipt.Variant) int {
+						return strings.Compare(i.Key, j.Key)
+					})
+				}
 
 				for _, v := range f.Variants {
 					var attachment interface{}
@@ -321,12 +335,12 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 		// sort flags and segments by key if sorting is enabled
 		if e.sortByKey {
-			sort.SliceStable(doc.Flags, func(i, j int) bool {
-				return doc.Flags[i].Key < doc.Flags[j].Key
+			slices.SortStableFunc(doc.Flags, func(i, j *Flag) int {
+				return strings.Compare(i.Key, j.Key)
 			})
 
-			sort.SliceStable(doc.Segments, func(i, j int) bool {
-				return doc.Segments[i].Key < doc.Segments[j].Key
+			slices.SortStableFunc(doc.Segments, func(i, j *Segment) int {
+				return strings.Compare(i.Key, j.Key)
 			})
 		}
 

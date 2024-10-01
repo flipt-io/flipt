@@ -1024,15 +1024,15 @@ func TestExport(t *testing.T) {
 			name: "multiple namespaces with sort by key",
 			lister: mockLister{
 				namespaces: map[string]*flipt.Namespace{
-					"0_default": {
-						Key:         "default",
-						Name:        "default",
-						Description: "default namespace",
-					},
 					"1_foo": {
 						Key:         "foo",
 						Name:        "foo",
 						Description: "foo namespace",
+					},
+					"0_default": {
+						Key:         "default",
+						Name:        "default",
+						Description: "default namespace",
 					},
 				},
 				nsToFlags: map[string][]*flipt.Flag{
@@ -1363,7 +1363,7 @@ func TestExport(t *testing.T) {
 			sortByKey:     true,
 		},
 		{
-			name: "all namespaces",
+			name: "all namespaces with sort by key",
 			lister: mockLister{
 				namespaces: map[string]*flipt.Namespace{
 					"0_default": {

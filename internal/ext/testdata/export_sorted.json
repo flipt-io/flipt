@@ -35,6 +35,10 @@
       "enabled": true,
       "variants": [
         {
+          "key": "foo",
+          "default": true
+        },
+        {
           "key": "variant1",
           "name": "variant1",
           "attachment": {
@@ -46,10 +50,6 @@
             "list": [1, 0, 2],
             "object": { "currency": "USD", "value": 42.99 }
           }
-        },
-        {
-          "key": "foo",
-          "default": true
         }
       ],
       "rules": [
