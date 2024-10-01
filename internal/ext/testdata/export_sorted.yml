@@ -1,0 +1,97 @@
+version: "1.4"
+namespace:
+  key: default
+  name: default
+  description: default namespace
+flags:
+  - key: FLag2
+    name: FLag2
+    type: "BOOLEAN_FLAG_TYPE"
+    description: a boolean flag
+    enabled: false
+    rollouts:
+      - description: enabled for external users
+        segment:
+          key: external_users
+          value: true
+      - description: enabled for 60%
+        threshold:
+          percentage: 60
+          value: true
+    metadata:
+      label: bool
+      area: 12
+  - key: flag1
+    name: flag1
+    type: "VARIANT_FLAG_TYPE"
+    description: description
+    enabled: true
+    variants:
+      - key: foo
+        default: true
+      - key: variant1
+        name: variant1
+        attachment:
+          pi: 3.141
+          happy: true
+          name: Niels
+          nothing:
+          answer:
+            everything: 42
+          list:
+            - 1
+            - 0
+            - 2
+          object:
+            currency: USD
+            value: 42.99
+    rules:
+      - segment: segment1
+        distributions:
+          - variant: variant1
+            rollout: 100
+      - segment:
+          keys:
+            - segment1
+            - segment2
+          operator: AND_SEGMENT_OPERATOR
+    metadata:
+      label: variant
+      area: true
+  - key: flag2
+    name: flag2
+    type: "BOOLEAN_FLAG_TYPE"
+    description: a boolean flag
+    enabled: false
+    rollouts:
+      - description: enabled for internal users
+        segment:
+          key: internal_users
+          value: true
+      - description: enabled for 50%
+        threshold:
+          percentage: 50
+          value: true
+    metadata:
+      label: bool
+      area: 12
+segments:
+  - key: segment1
+    name: segment1
+    match_type: "ANY_MATCH_TYPE"
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+        description: desc
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
+        description: desc
+  - key: segment2
+    name: segment2
+    match_type: "ANY_MATCH_TYPE"
+    description: description

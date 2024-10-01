@@ -289,6 +289,56 @@ exit $?`,
 	}
 
 	{
+		container := container.WithLabel("name", "flipt import and export selected namespaces (sorted by key)")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			source.Directory("build/testing/testdata").File("flipt-sorting.yml"),
+			opts,
+		)
+
+		container, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		if _, err := assertExec(ctx, container,
+			flipt("export", "--namespace", "foo,bar", "--sort-by-key"),
+			stdout(contains(expectedFliptSortedOutput)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.WithLabel("name", "flipt import and export all namespaces (sorted by key)")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			source.Directory("build/testing/testdata").File("flipt-sorting.yml"),
+			opts,
+		)
+
+		container, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		if _, err := assertExec(ctx, container,
+			flipt("export", "--all-namespaces", "--sort-by-key"),
+			stdout(contains(expectedFliptSortedAllNamespacesOutput)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
 		container := container.WithLabel("name", "flipt migrate")
 		if _, err := assertExec(ctx, container, flipt("migrate")); err != nil {
 			return err
@@ -528,5 +578,117 @@ segments:
     operator: neq
     value: buzz
   match_type: ALL_MATCH_TYPE
+`
+	
+	expectedFliptSortedOutput = `version: "1.4"
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
+flags:
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment1
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  match_type: ANY_MATCH_TYPE
+---
+namespace:
+  key: bar
+  name: bar
+  description: bar namespace
+flags:
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  match_type: ALL_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
+`
+	expectedFliptSortedAllNamespacesOutput = `version: "1.4"
+namespace:
+  key: bar
+  name: bar
+  description: bar namespace
+flags:
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  match_type: ALL_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
+---
+namespace:
+  key: default
+  name: Default
+  description: Default namespace
+---
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
+flags:
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment1
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  match_type: ANY_MATCH_TYPE
 `
 )
