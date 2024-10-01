@@ -34,3 +34,7 @@ func New(logger *zap.Logger, client Client) *Server {
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	analytics.RegisterAnalyticsServiceServer(server, s)
 }
+
+func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
