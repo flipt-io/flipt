@@ -34,3 +34,8 @@ func TestServer(t *testing.T) {
 	assert.Equal(t, []string{"2000-01-01 00:00:00", "2000-01-01 00:01:00", "2000-01-01 00:02:00"}, res.Timestamps)
 	assert.Equal(t, []float32{20.0, 30.0, 40.0}, res.Values)
 }
+
+func Test_Server_SkipsAuthorization(t *testing.T) {
+	server := &Server{}
+	assert.True(t, server.SkipsAuthorization(context.Background()))
+}
