@@ -412,6 +412,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lzakharov"><img src="https://avatars.githubusercontent.com/u/26368218?v=4?s=100" width="100px;" alt="Lev Zakharov"/><br /><sub><b>Lev Zakharov</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=lzakharov" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gnalin-impala"><img src="https://avatars.githubusercontent.com/u/100129418?v=4?s=100" width="100px;" alt="gnalin-impala"/><br /><sub><b>gnalin-impala</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=gnalin-impala" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/devumesh"><img src="https://avatars.githubusercontent.com/u/58872100?v=4?s=100" width="100px;" alt="Umesh Balamurugan"/><br /><sub><b>Umesh Balamurugan</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=devumesh" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
