@@ -2,8 +2,6 @@ package edge
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,7 +12,6 @@ import (
 )
 
 func TestNewGRPCServer(t *testing.T) {
-	tmp := t.TempDir()
 	cfg := &config.Config{
 		Storage: config.StorageConfig{
 			Type: config.LocalStorageType,
@@ -23,7 +20,6 @@ func TestNewGRPCServer(t *testing.T) {
 			},
 		},
 	}
-	cfg.Database.URL = fmt.Sprintf("file:%s", filepath.Join(tmp, "flipt.db"))
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	s, err := NewGRPCServer(ctx, zaptest.NewLogger(t), cfg, info.Flipt{})
