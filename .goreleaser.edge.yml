@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+version: 2
+
+project_name: flipt-edge
+
+git:
+  tag_sort: semver
+
+monorepo:
+  tag_prefix: v
+
+builds:
+  - main: ./cmd/flipt-edge/.
+    ldflags:
+      - -s -w
+      - -X main.version={{ .PrefixedTag }}
+      - -X main.commit={{ .Commit }}
+      - -X main.date={{ .Date }}
+      - -linkmode external -extldflags "-static"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -tags=netgo
+      - -trimpath
+    overrides:
+      - goos: linux
+        goarch: amd64
+        goamd64: v1
+        env:
+          - CGO_ENABLED=1
+          - CC=x86_64-linux-gnu-gcc
+
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=aarch64-linux-gnu-gcc
+
+changelog:
+  disable: true
+
+dockers:
+  - dockerfile: ./build/Dockerfile.edge
+    use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "{{ if .IsNightly }}flipt/flipt-edge:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt-edge:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt-edge:v{{ incpatch .Version }}-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt-edge:v{{ .Tag }}-amd64{{ end }}"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - config/default.yml
+
+  - dockerfile: ./build/Dockerfile.edge
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "{{ if .IsNightly }}flipt/flipt-edge:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt-edge:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt-edge:v{{ incpatch .Version }}-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt-edge:v{{ .Tag }}-arm64{{ end }}"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - config/default.yml
+
+docker_manifests:
+  - name_template: "{{ if .IsNightly }}flipt/flipt-edge:v{{ incpatch .Version }}-nightly{{ else }}flipt/flipt-edge:v{{ .Tag }}{{ end }}"
+    image_templates:
+      - "{{ if .IsNightly }}flipt/flipt-edge:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt-edge:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt-edge:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt-edge:v{{ .Tag }}-arm64{{ end }}"
+
+  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt-edge:v{{ incpatch .Version }}-nightly{{ else }}ghcr.io/flipt-io/flipt-edge:v{{ .Tag }}{{ end }}"
+    image_templates:
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt-edge:v{{ incpatch .Version }}-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt-edge:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt-edge:v{{ incpatch .Version }}-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt-edge:v{{ .Tag }}-arm64{{ end }}"
