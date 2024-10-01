@@ -511,7 +511,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(2), rollouts[1].Rank)
 
 			require.NotNil(t, rollouts[1].Threshold)
-			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
+			assert.InDelta(t, float32(50), rollouts[1].Threshold.Percentage, 0)
 			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
 		})
 	}
@@ -1441,7 +1441,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(2), rollouts[1].Rank)
 
 			require.NotNil(t, rollouts[1].Threshold)
-			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
+			assert.InDelta(t, float32(50), rollouts[1].Threshold.Percentage, 0.0)
 			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
 		})
 	}
@@ -1592,7 +1592,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
-			assert.Equal(t, float32(100), dist[0].Rollout)
+			assert.InDelta(t, float32(100), dist[0].Rollout, 0)
 		})
 	}
 }

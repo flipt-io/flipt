@@ -85,7 +85,7 @@ func TestCredential(t *testing.T) {
 		}
 		for i := 0; i < 3; i++ {
 			credential, err := r.Get(context.Background(), "")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, "user_name", credential.Username)
 			assert.Equal(t, "password", credential.Password)
 		}

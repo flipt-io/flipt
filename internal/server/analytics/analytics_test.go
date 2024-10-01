@@ -83,7 +83,7 @@ func (a *AnalyticsDBTestSuite) TestAnalyticsMutationAndQuery() {
 				Timestamp:    now,
 			},
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	_, values, err := a.client.GetFlagEvaluationsCount(context.TODO(), &analytics.GetFlagEvaluationsCountRequest{
@@ -92,8 +92,8 @@ func (a *AnalyticsDBTestSuite) TestAnalyticsMutationAndQuery() {
 		From:         now.Add(-time.Hour).Format(time.DateTime),
 		To:           now.Format(time.DateTime),
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Len(t, values, 1)
-	assert.Equal(t, values[0], float32(25))
+	assert.InDelta(t, 25, values[0], 0.0)
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -25,7 +26,7 @@ func TestTimestamp_Value(t *testing.T) {
 	}
 
 	v, err := ts.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if tv, ok := v.(time.Time); ok {
 		rt, _ := time.Parse(time.RFC3339, "1970-01-01T00:00:00Z")
@@ -37,11 +38,11 @@ func TestNullableTimestamp_Scan(t *testing.T) {
 	nts := NullableTimestamp{}
 
 	err := nts.Scan(nil)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	rt, _ := time.Parse(time.RFC3339, "1970-01-01T00:00:00Z")
 	err = nts.Scan(rt)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestNullableTimestamp_Value(t *testing.T) {
@@ -50,7 +51,7 @@ func TestNullableTimestamp_Value(t *testing.T) {
 	}
 
 	v, err := nts.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, v)
 
 	nts = NullableTimestamp{
@@ -60,7 +61,7 @@ func TestNullableTimestamp_Value(t *testing.T) {
 	}
 
 	v, err = nts.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if tv, ok := v.(time.Time); ok {
 		rt, _ := time.Parse(time.RFC3339, "1970-01-01T00:00:00Z")
@@ -72,7 +73,7 @@ func TestJSONField_Scan(t *testing.T) {
 	jf := JSONField[map[string]string]{}
 
 	err := jf.Scan(`{"hello": "world"}`)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = jf.Scan([]byte(`{"hello": "world"}`))
 	assert.NoError(t, err)
@@ -86,9 +87,9 @@ func TestJSONField_Value(t *testing.T) {
 	}
 
 	b, err := jf.Value()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if b, ok := b.([]byte); ok {
-		assert.Equal(t, string(b), `{"hello":"world"}`)
+		assert.Equal(t, `{"hello":"world"}`, string(b))
 	}
 }

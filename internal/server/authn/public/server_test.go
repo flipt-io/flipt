@@ -120,7 +120,7 @@ func Test_Server(t *testing.T) {
 				return
 			}
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, test.expectedResp, resp)
 		})
 	}
@@ -132,7 +132,6 @@ type methods struct {
 	oidc       *auth.MethodInfo
 	kubernetes *auth.MethodInfo
 	jwt        *auth.MethodInfo
-	cloud      *auth.MethodInfo
 }
 
 func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMethodsResponse {
@@ -163,7 +162,6 @@ func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMe
 		}),
 		kubernetes: newInfo(auth.Method_METHOD_KUBERNETES, false, nil),
 		jwt:        newInfo(auth.Method_METHOD_JWT, false, nil),
-		cloud:      newInfo(auth.Method_METHOD_CLOUD, true, nil),
 	}
 
 	fn(&methods)
@@ -175,7 +173,6 @@ func responseBuilder(t testing.TB, fn func(*methods)) *auth.ListAuthenticationMe
 			methods.oidc,
 			methods.kubernetes,
 			methods.jwt,
-			methods.cloud,
 		},
 	}
 }

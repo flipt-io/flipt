@@ -101,7 +101,7 @@ func testDistributionHelper(t *testing.T, d *flipt.Distribution) {
 	assert.Equal(t, nd.Id, d.Id)
 	assert.Equal(t, nd.RuleId, d.RuleId)
 	assert.Equal(t, nd.VariantId, d.VariantId)
-	assert.Equal(t, nd.Rollout, d.Rollout)
+	assert.InDelta(t, nd.Rollout, d.Rollout, 0)
 }
 func TestDistribution(t *testing.T) {
 	d := &flipt.Distribution{

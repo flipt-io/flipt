@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/blang/semver/v4"
@@ -44,9 +45,10 @@ type Exporter struct {
 	batchSize     int32
 	namespaceKeys []string
 	allNamespaces bool
+	sortByKey     bool
 }
 
-func NewExporter(store Lister, namespaces string, allNamespaces bool) *Exporter {
+func NewExporter(store Lister, namespaces string, allNamespaces, sortByKey bool) *Exporter {
 	ns := strings.Split(namespaces, ",")
 
 	return &Exporter{
@@ -54,6 +56,7 @@ func NewExporter(store Lister, namespaces string, allNamespaces bool) *Exporter 
 		batchSize:     defaultBatchSize,
 		namespaceKeys: ns,
 		allNamespaces: allNamespaces,
+		sortByKey:     sortByKey,
 	}
 }
 
@@ -98,6 +101,13 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 					Description: ns.Description,
 				})
 			}
+		}
+
+		// sort namespaces by key if sorting is enabled
+		if e.sortByKey {
+			slices.SortStableFunc(namespaces, func(i, j *Namespace) int {
+				return strings.Compare(i.Key, j.Key)
+			})
 		}
 	} else {
 		// If allNamespaces is "false", then retrieve the namespaces specified in the namespaceKeys slice.
@@ -163,6 +173,13 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				// map variant id => variant key
 				variantKeys := make(map[string]string)
+
+				// sort variants by key if sorting is enabled
+				if e.sortByKey {
+					slices.SortStableFunc(f.Variants, func(i, j *flipt.Variant) int {
+						return strings.Compare(i.Key, j.Key)
+					})
+				}
 
 				for _, v := range f.Variants {
 					var attachment interface{}
@@ -314,6 +331,17 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				doc.Segments = append(doc.Segments, segment)
 			}
+		}
+
+		// sort flags and segments by key if sorting is enabled
+		if e.sortByKey {
+			slices.SortStableFunc(doc.Flags, func(i, j *Flag) int {
+				return strings.Compare(i.Key, j.Key)
+			})
+
+			slices.SortStableFunc(doc.Segments, func(i, j *Segment) int {
+				return strings.Compare(i.Key, j.Key)
+			})
 		}
 
 		if err := enc.Encode(doc); err != nil {

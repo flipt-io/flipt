@@ -12,7 +12,7 @@ import (
 
 func CLI(ctx context.Context, client *dagger.Client, source *dagger.Directory, container *dagger.Container) error {
 	{
-		container := container.Pipeline("flipt --help")
+		container := container.WithLabel("name", "flipt --help")
 		expected, err := source.File("build/testing/testdata/cli.txt").Contents(ctx)
 		if err != nil {
 			return err
@@ -25,7 +25,7 @@ func CLI(ctx context.Context, client *dagger.Client, source *dagger.Directory, c
 	}
 
 	{
-		container := container.Pipeline("flipt --version")
+		container := container.WithLabel("name", "flipt --version")
 		if _, err := assertExec(ctx, container, flipt("--version"),
 			stdout(contains("Commit:")),
 			stdout(matches(`Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z`)),
@@ -36,7 +36,7 @@ func CLI(ctx context.Context, client *dagger.Client, source *dagger.Directory, c
 	}
 
 	{
-		container := container.Pipeline("flipt --config")
+		container := container.WithLabel("name", "flipt --config")
 		if _, err := assertExec(ctx, container, flipt("foo"),
 			fails,
 			stderr(contains(`unknown command "foo" for "flipt"
@@ -60,7 +60,7 @@ Run 'flipt --help' for usage.`))); err != nil {
 	}
 
 	{
-		container := container.Pipeline("flipt (no config present) defaults")
+		container := container.WithLabel("name", "flipt (no config present) defaults")
 		container = container.
 			// in order to stop a blocking process via SIGTERM and capture a successful exit code
 			// we use a shell script to start flipt in the background, sleep for two seconds,
@@ -89,7 +89,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt (user config directory)")
+		container := container.WithLabel("name", "flipt (user config directory)")
 		container = container.
 			WithExec([]string{"mkdir", "-p", "/home/flipt/.config/flipt"}).
 			WithFile("/home/flipt/.config/flipt/config.yml", source.Directory("build/testing/testdata").File("default.yml")).
@@ -121,7 +121,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt (remote config)")
+		container := container.WithLabel("name", "flipt (remote config)")
 		minio := container.
 			From("quay.io/minio/minio:latest").
 			WithExposedPort(9009).
@@ -145,7 +145,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt import/export")
+		container := container.WithLabel("name", "flipt import/export")
 
 		var err error
 		if _, err = assertExec(ctx, container,
@@ -205,7 +205,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt export with mutually exclusive flags")
+		container := container.WithLabel("name", "flipt export with mutually exclusive flags")
 
 		_, err := assertExec(ctx, container,
 			flipt("export", "--all-namespaces", "--namespaces", "foo,bar"),
@@ -218,7 +218,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt import")
+		container := container.WithLabel("name", "flipt import")
 
 		opts := dagger.ContainerWithFileOpts{
 			Owner: "flipt",
@@ -264,7 +264,7 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt import YAML stream")
+		container := container.WithLabel("name", "flipt import YAML stream")
 
 		opts := dagger.ContainerWithFileOpts{
 			Owner: "flipt",
@@ -289,14 +289,64 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt migrate")
+		container := container.WithLabel("name", "flipt import and export selected namespaces (sorted by key)")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			source.Directory("build/testing/testdata").File("flipt-sorting.yml"),
+			opts,
+		)
+
+		container, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		if _, err := assertExec(ctx, container,
+			flipt("export", "--namespace", "foo,bar", "--sort-by-key"),
+			stdout(contains(expectedFliptSortedOutput)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.WithLabel("name", "flipt import and export all namespaces (sorted by key)")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			source.Directory("build/testing/testdata").File("flipt-sorting.yml"),
+			opts,
+		)
+
+		container, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		if _, err := assertExec(ctx, container,
+			flipt("export", "--all-namespaces", "--sort-by-key"),
+			stdout(contains(expectedFliptSortedAllNamespacesOutput)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.WithLabel("name", "flipt migrate")
 		if _, err := assertExec(ctx, container, flipt("migrate")); err != nil {
 			return err
 		}
 	}
 
 	{
-		container := container.Pipeline("flipt config init")
+		container := container.WithLabel("name", "flipt config init")
 
 		container, err := assertExec(ctx, container, flipt("config", "init", "-y"))
 		if err != nil {
@@ -316,7 +366,7 @@ exit $?`,
 	}
 
 	{
-		container = container.Pipeline("flipt bundle").
+		container = container.WithLabel("name", "flipt bundle").
 			WithWorkdir("build/testing/testdata/bundle")
 
 		var err error
@@ -528,5 +578,117 @@ segments:
     operator: neq
     value: buzz
   match_type: ALL_MATCH_TYPE
+`
+	
+	expectedFliptSortedOutput = `version: "1.4"
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
+flags:
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment1
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  match_type: ANY_MATCH_TYPE
+---
+namespace:
+  key: bar
+  name: bar
+  description: bar namespace
+flags:
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  match_type: ALL_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
+`
+	expectedFliptSortedAllNamespacesOutput = `version: "1.4"
+namespace:
+  key: bar
+  name: bar
+  description: bar namespace
+flags:
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  match_type: ALL_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
+---
+namespace:
+  key: default
+  name: Default
+  description: Default namespace
+---
+namespace:
+  key: foo
+  name: foo
+  description: foo namespace
+flags:
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment1
+segments:
+- key: segment1
+  name: segment1
+  description: description
+  match_type: ANY_MATCH_TYPE
 `
 )

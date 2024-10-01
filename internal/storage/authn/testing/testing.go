@@ -128,9 +128,8 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 		auth, err := store.GetAuthenticationByClientToken(ctx, created[99].Token)
 		var expected errors.ErrNotFound
-		if !assert.ErrorAs(t, err, &expected, "authentication still exists in the database") {
-			t.Log("Auth still exists", auth)
-		}
+		require.ErrorAs(t, err, &expected, "authentication still exists in the database")
+		assert.Nil(t, auth)
 	})
 
 	t.Run("Delete by method Token with before expired constraint", func(t *testing.T) {

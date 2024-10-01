@@ -187,7 +187,7 @@ func TestVariant_Success(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Match)
+	assert.True(t, res.Match)
 	assert.Contains(t, res.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
@@ -278,7 +278,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -322,7 +322,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -366,7 +366,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, false, res.Enabled)
+	assert.False(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -433,7 +433,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -498,7 +498,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -555,7 +555,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -627,7 +627,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Enabled)
+	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
 }
@@ -729,8 +729,8 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, "unknown flag type: 3")
+	require.Error(t, err)
+	require.EqualError(t, err, "unknown flag type: 3")
 }
 
 func TestBatch_InternalError_GetFlag(t *testing.T) {
@@ -759,7 +759,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.EqualError(t, err, "internal error")
 }
 

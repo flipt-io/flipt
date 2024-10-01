@@ -16,7 +16,6 @@ import (
 	"github.com/h2non/gock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
@@ -174,8 +173,7 @@ func Test_Server(t *testing.T) {
 			JSON([]githubSimpleOrganization{{Login: "flipt-io"}})
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
-		uerr := errors.ErrUnauthenticatedf("request was not authenticated")
-		assert.ErrorAs(t, err, &uerr)
+		assert.ErrorContains(t, err, "request was not authenticated")
 	})
 
 	t.Run("should authorize successfully when the user is a member of one of the allowed organizations and it's inside the allowed team", func(t *testing.T) {
@@ -382,10 +380,10 @@ func Test_Server_SkipsAuthentication(t *testing.T) {
 
 func TestCallbackURL(t *testing.T) {
 	callback := callbackURL("https://flipt.io")
-	assert.Equal(t, callback, "https://flipt.io/auth/v1/method/github/callback")
+	assert.Equal(t, "https://flipt.io/auth/v1/method/github/callback", callback)
 
 	callback = callbackURL("https://flipt.io/")
-	assert.Equal(t, callback, "https://flipt.io/auth/v1/method/github/callback")
+	assert.Equal(t, "https://flipt.io/auth/v1/method/github/callback", callback)
 }
 
 func TestGithubSimpleOrganizationDecode(t *testing.T) {

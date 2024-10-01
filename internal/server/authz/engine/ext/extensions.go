@@ -24,7 +24,6 @@ var labelMethodTable = map[string]*ast.Term{
 	"k8s":        ast.IntNumberTerm(int(authrpc.Method_METHOD_KUBERNETES.Number())),
 	"github":     ast.IntNumberTerm(int(authrpc.Method_METHOD_GITHUB.Number())),
 	"jwt":        ast.IntNumberTerm(int(authrpc.Method_METHOD_JWT.Number())),
-	"cloud":      ast.IntNumberTerm(int(authrpc.Method_METHOD_CLOUD.Number())),
 }
 
 var (

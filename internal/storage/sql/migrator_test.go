@@ -87,7 +87,7 @@ func TestMigratorExpectedVersions(t *testing.T) {
 		require.NoError(t, err)
 
 		count := len(migrations)
-		require.True(t, count > 0, "no migrations found for %s", driver)
+		require.Positive(t, count, "no migrations found for %s", driver)
 
 		// migrations start at 0
 		actual := uint(count - 1)
