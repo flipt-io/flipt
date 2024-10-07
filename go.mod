@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/storage v1.43.0
 	cuelang.org/go v0.10.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.0
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.29.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.3.0
