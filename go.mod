@@ -42,7 +42,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0
 	github.com/h2non/gock v1.2.0
-	github.com/hamba/avro/v2 v2.23.0
+	github.com/hamba/avro/v2 v2.26.0
 	github.com/hashicorp/cap v0.7.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.7
