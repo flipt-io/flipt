@@ -61,6 +61,7 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
 <br clear="both"/>
 
 <p align="center">
+    <a href="https://www.producthunt.com/posts/flipt-cloud?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt&#0045;cloud" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=498373&theme=light" alt="Flipt&#0032;Cloud - Feature&#0032;flags&#0046;&#0032;Powered&#0032;by&#0032;Git | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
     <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
