@@ -229,6 +229,11 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                           />
                         )}
                       />
+                      {rule.segments.length === 0 ? (
+                        <div className="text-red-500 mt-1 text-sm">
+                          segment is missing
+                        </div>
+                      ) : null}
                     </div>
                     <div className="mt-6 flex space-x-8">
                       {formik.values.segmentKeys.length > 1 &&

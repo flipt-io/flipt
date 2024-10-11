@@ -292,11 +292,6 @@ export default function Rules() {
         ruleSegments.push(segment);
       }
 
-      // If there are no ruleSegments return an empty array.
-      if (ruleSegments.length === 0) {
-        return [];
-      }
-
       const operator = rule.segmentOperator
         ? rule.segmentOperator
         : SegmentOperatorType.OR;
