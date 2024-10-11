@@ -235,7 +235,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 							},
 						}
 					default:
-						return fmt.Errorf("wrong format for rule segments")
+						return fmt.Errorf("wrong format for rule segments %v for flagKey %v", r.Id, flag.Key)
 					}
 
 					for _, d := range r.Distributions {

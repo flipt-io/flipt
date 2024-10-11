@@ -71,6 +71,7 @@ export default function Combobox<T extends IFilterable>(
               placeholder={placeholder}
               name={name}
               id={`${id}-select-input`}
+              autoComplete="off"
             />
             <C.Button
               className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-none"
