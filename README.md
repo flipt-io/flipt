@@ -85,7 +85,7 @@ Want the best of Flipt without the hassle of running it yourself? Check out [Fli
 - SSO / SAML Authentication
 - Granular Access Control
 
-## Usecases
+## Use cases
 
 Flipt supports use cases such as:
 
