@@ -100,7 +100,7 @@ require (
 	golang.org/x/sync v0.8.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/grpc v1.67.0
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
