@@ -20,44 +20,45 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Flipt_Evaluate_FullMethodName           = "/flipt.Flipt/Evaluate"
-	Flipt_BatchEvaluate_FullMethodName      = "/flipt.Flipt/BatchEvaluate"
-	Flipt_GetNamespace_FullMethodName       = "/flipt.Flipt/GetNamespace"
-	Flipt_ListNamespaces_FullMethodName     = "/flipt.Flipt/ListNamespaces"
-	Flipt_CreateNamespace_FullMethodName    = "/flipt.Flipt/CreateNamespace"
-	Flipt_UpdateNamespace_FullMethodName    = "/flipt.Flipt/UpdateNamespace"
-	Flipt_DeleteNamespace_FullMethodName    = "/flipt.Flipt/DeleteNamespace"
-	Flipt_GetFlag_FullMethodName            = "/flipt.Flipt/GetFlag"
-	Flipt_ListFlags_FullMethodName          = "/flipt.Flipt/ListFlags"
-	Flipt_CreateFlag_FullMethodName         = "/flipt.Flipt/CreateFlag"
-	Flipt_UpdateFlag_FullMethodName         = "/flipt.Flipt/UpdateFlag"
-	Flipt_DeleteFlag_FullMethodName         = "/flipt.Flipt/DeleteFlag"
-	Flipt_CreateVariant_FullMethodName      = "/flipt.Flipt/CreateVariant"
-	Flipt_UpdateVariant_FullMethodName      = "/flipt.Flipt/UpdateVariant"
-	Flipt_DeleteVariant_FullMethodName      = "/flipt.Flipt/DeleteVariant"
-	Flipt_GetRule_FullMethodName            = "/flipt.Flipt/GetRule"
-	Flipt_ListRules_FullMethodName          = "/flipt.Flipt/ListRules"
-	Flipt_CreateRule_FullMethodName         = "/flipt.Flipt/CreateRule"
-	Flipt_UpdateRule_FullMethodName         = "/flipt.Flipt/UpdateRule"
-	Flipt_OrderRules_FullMethodName         = "/flipt.Flipt/OrderRules"
-	Flipt_DeleteRule_FullMethodName         = "/flipt.Flipt/DeleteRule"
-	Flipt_GetRollout_FullMethodName         = "/flipt.Flipt/GetRollout"
-	Flipt_ListRollouts_FullMethodName       = "/flipt.Flipt/ListRollouts"
-	Flipt_CreateRollout_FullMethodName      = "/flipt.Flipt/CreateRollout"
-	Flipt_UpdateRollout_FullMethodName      = "/flipt.Flipt/UpdateRollout"
-	Flipt_DeleteRollout_FullMethodName      = "/flipt.Flipt/DeleteRollout"
-	Flipt_OrderRollouts_FullMethodName      = "/flipt.Flipt/OrderRollouts"
-	Flipt_CreateDistribution_FullMethodName = "/flipt.Flipt/CreateDistribution"
-	Flipt_UpdateDistribution_FullMethodName = "/flipt.Flipt/UpdateDistribution"
-	Flipt_DeleteDistribution_FullMethodName = "/flipt.Flipt/DeleteDistribution"
-	Flipt_GetSegment_FullMethodName         = "/flipt.Flipt/GetSegment"
-	Flipt_ListSegments_FullMethodName       = "/flipt.Flipt/ListSegments"
-	Flipt_CreateSegment_FullMethodName      = "/flipt.Flipt/CreateSegment"
-	Flipt_UpdateSegment_FullMethodName      = "/flipt.Flipt/UpdateSegment"
-	Flipt_DeleteSegment_FullMethodName      = "/flipt.Flipt/DeleteSegment"
-	Flipt_CreateConstraint_FullMethodName   = "/flipt.Flipt/CreateConstraint"
-	Flipt_UpdateConstraint_FullMethodName   = "/flipt.Flipt/UpdateConstraint"
-	Flipt_DeleteConstraint_FullMethodName   = "/flipt.Flipt/DeleteConstraint"
+	Flipt_Evaluate_FullMethodName            = "/flipt.Flipt/Evaluate"
+	Flipt_BatchEvaluate_FullMethodName       = "/flipt.Flipt/BatchEvaluate"
+	Flipt_GetNamespace_FullMethodName        = "/flipt.Flipt/GetNamespace"
+	Flipt_ListNamespaces_FullMethodName      = "/flipt.Flipt/ListNamespaces"
+	Flipt_CreateNamespace_FullMethodName     = "/flipt.Flipt/CreateNamespace"
+	Flipt_UpdateNamespace_FullMethodName     = "/flipt.Flipt/UpdateNamespace"
+	Flipt_DeleteNamespace_FullMethodName     = "/flipt.Flipt/DeleteNamespace"
+	Flipt_DeleteAllNamespaces_FullMethodName = "/flipt.Flipt/DeleteAllNamespaces"
+	Flipt_GetFlag_FullMethodName             = "/flipt.Flipt/GetFlag"
+	Flipt_ListFlags_FullMethodName           = "/flipt.Flipt/ListFlags"
+	Flipt_CreateFlag_FullMethodName          = "/flipt.Flipt/CreateFlag"
+	Flipt_UpdateFlag_FullMethodName          = "/flipt.Flipt/UpdateFlag"
+	Flipt_DeleteFlag_FullMethodName          = "/flipt.Flipt/DeleteFlag"
+	Flipt_CreateVariant_FullMethodName       = "/flipt.Flipt/CreateVariant"
+	Flipt_UpdateVariant_FullMethodName       = "/flipt.Flipt/UpdateVariant"
+	Flipt_DeleteVariant_FullMethodName       = "/flipt.Flipt/DeleteVariant"
+	Flipt_GetRule_FullMethodName             = "/flipt.Flipt/GetRule"
+	Flipt_ListRules_FullMethodName           = "/flipt.Flipt/ListRules"
+	Flipt_CreateRule_FullMethodName          = "/flipt.Flipt/CreateRule"
+	Flipt_UpdateRule_FullMethodName          = "/flipt.Flipt/UpdateRule"
+	Flipt_OrderRules_FullMethodName          = "/flipt.Flipt/OrderRules"
+	Flipt_DeleteRule_FullMethodName          = "/flipt.Flipt/DeleteRule"
+	Flipt_GetRollout_FullMethodName          = "/flipt.Flipt/GetRollout"
+	Flipt_ListRollouts_FullMethodName        = "/flipt.Flipt/ListRollouts"
+	Flipt_CreateRollout_FullMethodName       = "/flipt.Flipt/CreateRollout"
+	Flipt_UpdateRollout_FullMethodName       = "/flipt.Flipt/UpdateRollout"
+	Flipt_DeleteRollout_FullMethodName       = "/flipt.Flipt/DeleteRollout"
+	Flipt_OrderRollouts_FullMethodName       = "/flipt.Flipt/OrderRollouts"
+	Flipt_CreateDistribution_FullMethodName  = "/flipt.Flipt/CreateDistribution"
+	Flipt_UpdateDistribution_FullMethodName  = "/flipt.Flipt/UpdateDistribution"
+	Flipt_DeleteDistribution_FullMethodName  = "/flipt.Flipt/DeleteDistribution"
+	Flipt_GetSegment_FullMethodName          = "/flipt.Flipt/GetSegment"
+	Flipt_ListSegments_FullMethodName        = "/flipt.Flipt/ListSegments"
+	Flipt_CreateSegment_FullMethodName       = "/flipt.Flipt/CreateSegment"
+	Flipt_UpdateSegment_FullMethodName       = "/flipt.Flipt/UpdateSegment"
+	Flipt_DeleteSegment_FullMethodName       = "/flipt.Flipt/DeleteSegment"
+	Flipt_CreateConstraint_FullMethodName    = "/flipt.Flipt/CreateConstraint"
+	Flipt_UpdateConstraint_FullMethodName    = "/flipt.Flipt/UpdateConstraint"
+	Flipt_DeleteConstraint_FullMethodName    = "/flipt.Flipt/DeleteConstraint"
 )
 
 // FliptClient is the client API for Flipt service.
@@ -73,6 +74,7 @@ type FliptClient interface {
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteAllNamespaces(ctx context.Context, in *DeleteAllNamespacesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetFlag(ctx context.Context, in *GetFlagRequest, opts ...grpc.CallOption) (*Flag, error)
 	ListFlags(ctx context.Context, in *ListFlagRequest, opts ...grpc.CallOption) (*FlagList, error)
 	CreateFlag(ctx context.Context, in *CreateFlagRequest, opts ...grpc.CallOption) (*Flag, error)
@@ -180,6 +182,16 @@ func (c *fliptClient) DeleteNamespace(ctx context.Context, in *DeleteNamespaceRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Flipt_DeleteNamespace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) DeleteAllNamespaces(ctx context.Context, in *DeleteAllNamespacesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Flipt_DeleteAllNamespaces_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -509,6 +521,7 @@ type FliptServer interface {
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*Namespace, error)
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*Namespace, error)
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*emptypb.Empty, error)
+	DeleteAllNamespaces(context.Context, *DeleteAllNamespacesRequest) (*emptypb.Empty, error)
 	GetFlag(context.Context, *GetFlagRequest) (*Flag, error)
 	ListFlags(context.Context, *ListFlagRequest) (*FlagList, error)
 	CreateFlag(context.Context, *CreateFlagRequest) (*Flag, error)
@@ -570,6 +583,9 @@ func (UnimplementedFliptServer) UpdateNamespace(context.Context, *UpdateNamespac
 }
 func (UnimplementedFliptServer) DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespace not implemented")
+}
+func (UnimplementedFliptServer) DeleteAllNamespaces(context.Context, *DeleteAllNamespacesRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAllNamespaces not implemented")
 }
 func (UnimplementedFliptServer) GetFlag(context.Context, *GetFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFlag not implemented")
@@ -807,6 +823,24 @@ func _Flipt_DeleteNamespace_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FliptServer).DeleteNamespace(ctx, req.(*DeleteNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_DeleteAllNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAllNamespacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).DeleteAllNamespaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_DeleteAllNamespaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).DeleteAllNamespaces(ctx, req.(*DeleteAllNamespacesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1403,6 +1437,10 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteNamespace",
 			Handler:    _Flipt_DeleteNamespace_Handler,
+		},
+		{
+			MethodName: "DeleteAllNamespaces",
+			Handler:    _Flipt_DeleteAllNamespaces_Handler,
 		},
 		{
 			MethodName: "GetFlag",

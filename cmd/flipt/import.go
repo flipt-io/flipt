@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/rpc/flipt"
 )
 
 type importCommand struct {
@@ -106,6 +107,12 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		client, err := fliptClient(c.address, c.token)
 		if err != nil {
 			return err
+		}
+		if c.dropBeforeImport {
+			err = client.DeleteAllNamespaces(ctx, &flipt.DeleteAllNamespacesRequest{})
+			if err != nil {
+				return fmt.Errorf("deleting all namespaces: %w", err)
+			}
 		}
 		return ext.NewImporter(client).Import(ctx, enc, in, c.skipExisting)
 	}

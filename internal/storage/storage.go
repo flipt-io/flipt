@@ -213,6 +213,7 @@ type NamespaceStore interface {
 	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error)
 	DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error
+	DeleteAllNamespaces(ctx context.Context) error
 }
 
 // ReadOnlyFlagStore supports retrieval of flags
