@@ -20,7 +20,7 @@ export async function getGreeting() {
   });
 
   let language = result.variantKey;
-  let greeting = "Hello, from Next.js server-side";
+  let greeting = "";
 
   switch (language) {
     case "es":

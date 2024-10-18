@@ -7,12 +7,12 @@ export default function Greeting() {
   const [data, setData] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const language = useFliptVariant("language", "es", uuid, {
+  const language = useFliptVariant("language", "en", uuid, {
     user_id: uuid,
   });
 
   useEffect(() => {
-    let greeting = "Hello, from Next.js client-side";
+    let greeting = "";
 
     switch (language) {
       case "es":
@@ -28,9 +28,9 @@ export default function Greeting() {
     setData(greeting);
   }, [language]);
 
-  const handleReEvaluate = () => {
+  const handleRefresh = () => {
     setIsLoading(true);
-    setUuid(uuidv4()); // Generate a new UUID
+    setUuid(uuidv4());
     setTimeout(() => setIsLoading(false), 100); // Simulate a delay
   };
 
@@ -41,7 +41,7 @@ export default function Greeting() {
     <div className="flex flex-col items-center justify-center space-y-4">
       <h1 className="text-3xl font-bold align-middle">{data}</h1>
       <button
-        onClick={handleReEvaluate}
+        onClick={handleRefresh}
         className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800 flex items-center"
         disabled={isLoading}
       >

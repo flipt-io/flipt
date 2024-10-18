@@ -16,6 +16,7 @@ export default async function handler(
   res: NextApiResponse<Data>,
 ) {
   let language = "en";
+
   try {
     const evaluation = await client.evaluation.variant({
       namespaceKey: "default",
@@ -29,7 +30,7 @@ export default async function handler(
     console.log(err);
   }
 
-  let greeting = "Hello, from Next.js client-side";
+  let greeting = "";
 
   switch (language) {
     case "es":

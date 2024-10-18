@@ -32,6 +32,7 @@ export async function getServerSideProps() {
   const client = await FliptEvaluationClient.init("default", {
     url: process.env.FLIPT_ADDR ?? "http://flipt:8080",
   });
+
   let language = "en";
   try {
     const result = client.evaluateVariant("language", uuidv4(), {});
@@ -40,7 +41,7 @@ export async function getServerSideProps() {
     console.log(err);
   }
 
-  let greeting = "Hello, from Next.js server-side";
+  let greeting = "";
   switch (language) {
     case "es":
       greeting = "Hola, from Next.js server-side";
