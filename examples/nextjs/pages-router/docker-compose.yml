@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  next:
+    build: .
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_FLIPT_ADDR=http://localhost:8080
+      - FLIPT_ADDR=http://flipt:8080
+    depends_on:
+      - flipt
+    networks:
+      - flipt_network
+
+  init:
+    image: flipt/flipt:latest
+    command: ["./flipt", "import", "flipt.yml"]
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELEMETRY_ENABLED=false
+    volumes:
+      - "./flipt.yml:/flipt.yml"
+      - "flipt_data:/var/opt/flipt"
+
+  flipt:
+    image: flipt/flipt:latest
+    command: ["./flipt", "--force-migrate"]
+    depends_on:
+      - init
+    ports:
+      - "8080:8080"
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELEMETRY_ENABLED=false
+      - FLIPT_CORS_ENABLED=true
+    volumes:
+      - "flipt_data:/var/opt/flipt"
+    networks:
+      - flipt_network
+
+volumes:
+  flipt_data:
+
+networks:
+  flipt_network:

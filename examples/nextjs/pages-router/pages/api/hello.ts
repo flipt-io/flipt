@@ -1,21 +1,22 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { FliptApiClient } from "@flipt-io/flipt";
+import { FliptClient } from "@flipt-io/flipt";
 import { v4 as uuidv4 } from "uuid";
 
-const client = new FliptApiClient({
-  environment: process.env.FLIPT_ADDR ?? "http://flipt:8080",
+const client = new FliptClient({
+  url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://flipt:8080",
 });
 
 type Data = {
-  name: string;
+  greeting: string;
 };
 
 export default async function handler(
   _req: NextApiRequest,
   res: NextApiResponse<Data>,
 ) {
-  let language = "english";
+  let language = "en";
+
   try {
     const evaluation = await client.evaluation.variant({
       namespaceKey: "default",
@@ -29,12 +30,20 @@ export default async function handler(
     console.log(err);
   }
 
-  let response: any = {
-    greeting:
-      language == "spanish"
-        ? "Hola, from Next.js API route"
-        : "Hello, from Next.js API route",
-  };
+  let greeting = "";
 
-  res.status(200).json(response);
+  switch (language) {
+    case "es":
+      greeting = "Hola, from Next.js client-side";
+      break;
+    case "fr":
+      greeting = "Bonjour, from Next.js client-side";
+      break;
+    default:
+      greeting = "Hello, from Next.js client-side";
+  }
+
+  res.status(200).json({
+    greeting,
+  });
 }
