@@ -1,10 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { FliptApiClient } from "@flipt-io/flipt";
+import { FliptClient } from "@flipt-io/flipt";
 import { v4 as uuidv4 } from "uuid";
 
-const client = new FliptApiClient({
-  environment: process.env.FLIPT_ADDR ?? "http://flipt:8080",
+const client = new FliptClient({
+  url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://localhost:8080",
 });
 
 type Data = {

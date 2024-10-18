@@ -1,11 +1,15 @@
 import { FliptEvaluationClient } from "@flipt-io/flipt-client";
 import Head from "next/head";
-import Greeting from "../components/Greeting";
 import { v4 as uuidv4 } from "uuid";
+import dynamic from "next/dynamic";
 
 type HomeProps = {
   greeting: string;
 };
+const Greeting = dynamic(
+  () => import('../components/Greeting'),
+  { ssr: false }
+)
 
 export default function Home(data: HomeProps) {
   return (
@@ -30,7 +34,7 @@ export default function Home(data: HomeProps) {
 
 
 export async function getServerSideProps() {
-  const client = await FliptEvaluationClient.init("default", {url: process.env.FLIPT_ADDR ?? "http://flipt:8080"}  );
+  const client = await FliptEvaluationClient.init("default", {url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://localhost:8080"}  );
   let language = "en";
   try {
     const result = client.evaluateVariant("language", uuidv4(), {});

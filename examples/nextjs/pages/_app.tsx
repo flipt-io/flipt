@@ -1,7 +1,6 @@
-import { FliptProvider } from "@flipt-io/flipt-client-react";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-
+import { FliptProvider } from "@flipt-io/flipt-client-react";
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <FliptProvider
