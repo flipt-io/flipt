@@ -8,14 +8,14 @@ const client = new FliptClient({
 });
 
 type Data = {
-  name: string;
+  greeting: string;
 };
 
 export default async function handler(
   _req: NextApiRequest,
   res: NextApiResponse<Data>,
 ) {
-  let language = "english";
+  let language = "en";
   try {
     const evaluation = await client.evaluation.variant({
       namespaceKey: "default",
@@ -29,12 +29,20 @@ export default async function handler(
     console.log(err);
   }
 
-  let response: any = {
-    greeting:
-      language == "spanish"
-        ? "Hola, from Next.js API route"
-        : "Hello, from Next.js API route",
-  };
+  let greeting = "Hello, from Next.js client-side";
 
-  res.status(200).json(response);
+  switch (language) {
+    case "es":
+      greeting = "Hola, from Next.js client-side";
+      break;
+    case "fr":
+      greeting = "Bonjour, from Next.js client-side";
+      break;
+    default:
+      greeting = "Hello, from Next.js client-side";
+  }
+
+  res.status(200).json({
+    greeting,
+  });
 }

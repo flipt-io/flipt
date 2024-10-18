@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <FliptProvider
       namespace="default"
       options={{
-        url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://localhost:8080",
+        url: process.env.NEXT_PUBLIC_FLIPT_ADDR ?? "http://flipt:8080",
       }}
     >
       <Component {...pageProps} />
