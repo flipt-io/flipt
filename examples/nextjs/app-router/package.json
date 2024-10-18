@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@flipt-io/flipt": "^1.2.0",
-    "@flipt-io/flipt-client-react": "^0.0.3-rc.1",
+    "@flipt-io/flipt-client-react": "^0.1.0",
     "next": "^14.2.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
