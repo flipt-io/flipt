@@ -228,8 +228,7 @@ func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) {
-			switch merr.Number {
-			case constraintForeignKeyErr:
+			if merr.Number == constraintForeignKeyErr {
 				return errs.ErrInvalidf(`segment "%s/%s" is in use`, r.NamespaceKey, r.Key)
 			}
 		}
