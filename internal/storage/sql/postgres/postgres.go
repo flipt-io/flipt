@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
@@ -38,7 +37,6 @@ func (s *Store) String() string {
 
 func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
 	namespace, err := s.Store.CreateNamespace(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -54,7 +52,6 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -75,7 +72,6 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 
 func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.UpdateFlag(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -95,7 +91,6 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	variant, err := s.Store.CreateVariant(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -116,7 +111,6 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 
 func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	variant, err := s.Store.UpdateVariant(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -132,7 +126,6 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 
 func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	segment, err := s.Store.CreateSegment(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -153,7 +146,6 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 
 func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	constraint, err := s.Store.CreateConstraint(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -169,7 +161,6 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 
 func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	rollout, err := s.Store.CreateRollout(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -188,7 +179,6 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	rule, err := s.Store.CreateRule(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -204,7 +194,6 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	rule, err := s.Store.UpdateRule(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -220,7 +209,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	dist, err := s.Store.CreateDistribution(ctx, r)
-
 	if err != nil {
 		var perr *pgconn.PgError
 
@@ -232,4 +220,16 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	}
 
 	return dist, nil
+}
+
+func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+	err := s.Store.DeleteSegment(ctx, r)
+	if err != nil {
+		var perr *pgconn.PgError
+
+		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErr {
+			return errs.ErrInvalidf(`segment "%s/%s" is in use`, r.NamespaceKey, r.Key)
+		}
+	}
+	return err
 }
