@@ -93,3 +93,12 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 
 	return &empty.Empty{}, nil
 }
+
+func (s *Server) DeleteAllNamespaces(ctx context.Context, req *flipt.DeleteAllNamespacesRequest) (*empty.Empty, error) {
+	s.logger.Debug("delete all namespaces")
+	err := s.store.DeleteAllNamespaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &empty.Empty{}, nil
+}

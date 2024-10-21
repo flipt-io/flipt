@@ -234,6 +234,33 @@ func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamesp
 	return &output, nil
 }
 
+func (x *FliptClient) DeleteAllNamespaces(ctx context.Context, v *flipt.DeleteAllNamespacesRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+"/api/v1/namespaces", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output emptypb.Empty
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ...grpc.CallOption) (*flipt.Flag, error) {
 	var body io.Reader
 	values := url.Values{}
