@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	cloud.google.com/go/storage v1.41.0
 	code.gitea.io/sdk/gitea v0.18.0
-	dagger.io/dagger v0.13.3
+	dagger.io/dagger v0.13.5
 	github.com/99designs/gqlgen v0.17.49
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
 	github.com/Khan/genqlient v0.7.0
