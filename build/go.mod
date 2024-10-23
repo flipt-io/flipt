@@ -1,13 +1,13 @@
 module go.flipt.io/build
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.22.4
+toolchain go1.23.2
 
 require (
 	cloud.google.com/go/storage v1.41.0
 	code.gitea.io/sdk/gitea v0.18.0
-	dagger.io/dagger v0.13.3
+	dagger.io/dagger v0.13.5
 	github.com/99designs/gqlgen v0.17.49
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
 	github.com/Khan/genqlient v0.7.0
@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.23
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.57.1
 	github.com/containerd/containerd v1.7.20
-	github.com/docker/docker v27.1.0+incompatible
+	github.com/docker/docker v27.3.0+incompatible
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-jose/go-jose/v3 v3.0.3
