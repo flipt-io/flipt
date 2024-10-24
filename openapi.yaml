@@ -58,6 +58,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Namespace'
+        delete:
+            tags:
+                - Flipt
+                - NamespacesService
+            operationId: deleteAllNamespaces
+            responses:
+                "200":
+                    description: OK
+                    content: {}
     /api/v1/namespaces/{key}:
         get:
             tags:

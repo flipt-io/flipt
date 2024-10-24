@@ -69,6 +69,15 @@ func (x *Flipt) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceReq
 	return err
 }
 
+func (x *Flipt) DeleteAllNamespaces(ctx context.Context, v *flipt.DeleteAllNamespacesRequest) error {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.DeleteAllNamespaces(ctx, v)
+	return err
+}
+
 func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {

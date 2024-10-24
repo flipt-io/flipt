@@ -275,3 +275,18 @@ func TestDeleteNamespace_HasFlags(t *testing.T) {
 	require.EqualError(t, err, "namespace \"foo\" cannot be deleted; flags must be deleted first")
 	assert.Nil(t, got)
 }
+
+func TestDeleteAllNamespaces(t *testing.T) {
+	var (
+		store  = &common.StoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	store.On("DeleteAllNamespaces", mock.Anything).Return(nil)
+	_, err := s.DeleteAllNamespaces(context.TODO(), &flipt.DeleteAllNamespacesRequest{})
+	require.NoError(t, err)
+}
