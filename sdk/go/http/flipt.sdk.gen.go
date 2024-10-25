@@ -209,7 +209,8 @@ func (x *FliptClient) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamesp
 
 func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("force", fmt.Sprintf("%v", v.Force))
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
 	if err != nil {
 		return nil, err

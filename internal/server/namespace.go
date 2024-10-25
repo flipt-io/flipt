@@ -73,7 +73,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 		return &empty.Empty{}, nil
 	}
 
-	if namespace.Protected {
+	if !r.GetForce() && namespace.Protected {
 		return nil, errors.ErrInvalidf("namespace %q is protected", r.Key)
 	}
 
@@ -83,7 +83,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 		return nil, err
 	}
 
-	if count > 0 {
+	if !r.GetForce() && count > 0 {
 		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
 	}
 
