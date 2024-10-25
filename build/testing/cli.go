@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
 )
 
@@ -579,7 +579,7 @@ segments:
     value: buzz
   match_type: ALL_MATCH_TYPE
 `
-	
+
 	expectedFliptSortedOutput = `version: "1.4"
 namespace:
   key: foo

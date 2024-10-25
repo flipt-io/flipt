@@ -6,7 +6,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
 	"golang.org/x/mod/modfile"
 )

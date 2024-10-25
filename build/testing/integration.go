@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"github.com/go-jose/go-jose/v3"
 	jjwt "github.com/go-jose/go-jose/v3/jwt"
 	"github.com/google/go-cmp/cmp"
