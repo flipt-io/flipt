@@ -77,14 +77,16 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 		return nil, errors.ErrInvalidf("namespace %q is protected", r.Key)
 	}
 
-	// if any flags exist under the namespace then it cannot be deleted
-	count, err := s.store.CountFlags(ctx, storage.NewNamespace(r.Key))
-	if err != nil {
-		return nil, err
-	}
+	if !r.GetForce() {
+		// if any flags exist under the namespace then it cannot be deleted
+		count, err := s.store.CountFlags(ctx, storage.NewNamespace(r.Key))
+		if err != nil {
+			return nil, err
+		}
 
-	if !r.GetForce() && count > 0 {
-		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
+		if count > 0 {
+			return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
+		}
 	}
 
 	if err := s.store.DeleteNamespace(ctx, r); err != nil {

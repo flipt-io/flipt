@@ -296,7 +296,7 @@ func TestDeleteNamespace_ProtectedWithForce(t *testing.T) {
 		Protected: true,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(0), nil)
+	store.AssertNotCalled(t, "CountFlags")
 
 	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
 
@@ -324,7 +324,7 @@ func TestDeleteNamespace_HasFlagsWithForce(t *testing.T) {
 		Key: req.Key,
 	}, nil)
 
-	store.On("CountFlags", mock.Anything, storage.NewNamespace("foo")).Return(uint64(1), nil)
+	store.AssertNotCalled(t, "CountFlags")
 
 	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
 
