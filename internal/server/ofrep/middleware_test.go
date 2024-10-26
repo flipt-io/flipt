@@ -23,11 +23,6 @@ func TestErrorHandler(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			input:          newFlagsMissingError(),
-			expectedCode:   http.StatusBadRequest,
-			expectedOutput: `{"errorCode":"INVALID_CONTEXT","errorDetails":"flags were not provided in context"}`,
-		},
-		{
 			input:          newFlagMissingError(),
 			expectedCode:   http.StatusBadRequest,
 			expectedOutput: `{"errorCode":"INVALID_CONTEXT","errorDetails":"flag key was not provided"}`,

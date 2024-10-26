@@ -6,11 +6,15 @@ import (
 
 	"github.com/google/uuid"
 	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap"
 
+	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -45,12 +49,26 @@ func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest)
 func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
 	s.logger.Debug("ofrep bulk", zap.Stringer("request", r))
 	entityId := getTargetingKey(r.Context)
-	flagKeys, ok := r.Context["flags"]
-	if !ok {
-		return nil, newFlagsMissingError()
-	}
 	namespaceKey := getNamespace(ctx)
+	flagKeys, ok := r.Context["flags"]
 	keys := strings.Split(flagKeys, ",")
+	if !ok {
+		flags, err := s.store.ListFlags(ctx, storage.ListWithOptions(storage.NewNamespace(namespaceKey)))
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to fetch list of flags")
+		}
+		keys = make([]string, 0, len(flags.Results))
+		for _, flag := range flags.Results {
+			switch flag.Type {
+			case flipt.FlagType_BOOLEAN_FLAG_TYPE:
+				keys = append(keys, flag.Key)
+			case flipt.FlagType_VARIANT_FLAG_TYPE:
+				if flag.Enabled {
+					keys = append(keys, flag.Key)
+				}
+			}
+		}
+	}
 	flags := make([]*ofrep.EvaluatedFlag, 0, len(keys))
 	for _, key := range keys {
 		key = strings.TrimSpace(key)

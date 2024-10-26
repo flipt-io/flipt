@@ -10,6 +10,19 @@ import (
 
 var _ storage.Store = &StoreMock{}
 
+func NewMockStore(t interface {
+	mock.TestingT
+	Cleanup(func())
+},
+) *StoreMock {
+	mock := &StoreMock{}
+	mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
+
 type StoreMock struct {
 	mock.Mock
 }

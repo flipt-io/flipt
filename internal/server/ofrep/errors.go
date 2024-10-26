@@ -39,7 +39,3 @@ func newFlagNotFoundError(key string) error {
 func newFlagMissingError() error {
 	return status.Error(codes.InvalidArgument, "flag key was not provided")
 }
-
-func newFlagsMissingError() error {
-	return status.Error(codes.InvalidArgument, "flags were not provided in context")
-}
