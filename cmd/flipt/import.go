@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/rpc/flipt"
+	sdk "go.flipt.io/flipt/sdk/go"
 )
 
 type importCommand struct {
@@ -107,6 +110,11 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+		if c.dropBeforeImport {
+			if err := dropNamespaces(ctx, client); err != nil {
+				return fmt.Errorf("dropping namespaces: %w", err)
+			}
+		}
 		return ext.NewImporter(client).Import(ctx, enc, in, c.skipExisting)
 	}
 
@@ -160,4 +168,28 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	return ext.NewImporter(
 		server,
 	).Import(ctx, enc, in, c.skipExisting)
+}
+
+func dropNamespaces(ctx context.Context, client *sdk.Flipt) error {
+	namespaces, err := client.ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
+	if err != nil {
+		return err
+	}
+
+	for _, ns := range namespaces.Namespaces {
+		if err := client.DeleteNamespace(ctx, &flipt.DeleteNamespaceRequest{
+			Key:   ns.Key,
+			Force: true,
+		}); err != nil {
+			return err
+		}
+	}
+
+	_, err = client.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+		Key:         "default",
+		Name:        "Default",
+		Description: "Default namespace",
+	})
+
+	return err
 }
