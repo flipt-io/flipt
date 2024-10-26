@@ -73,11 +73,11 @@ release:
     - [Newsletter](https://www.flipt.io/#newsletter)
 
 snapshot:
-  name_template: "{{ .ShortCommit }}-snapshot"
+  version_template: "{{ .ShortCommit }}-snapshot"
 
 nightly:
   # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  name_template: "{{ incpatch .Version }}-nightly"
+  version_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
   disable: true
