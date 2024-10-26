@@ -13,8 +13,8 @@ import (
 	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
 
-	"github.com/libsql/libsql-client-go/libsql"
 	"github.com/mattn/go-sqlite3"
+	"github.com/tursodatabase/libsql-client-go/libsql"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
