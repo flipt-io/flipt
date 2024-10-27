@@ -116,6 +116,10 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: force
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK

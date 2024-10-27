@@ -275,3 +275,61 @@ func TestDeleteNamespace_HasFlags(t *testing.T) {
 	require.EqualError(t, err, "namespace \"foo\" cannot be deleted; flags must be deleted first")
 	assert.Nil(t, got)
 }
+
+
+func TestDeleteNamespace_ProtectedWithForce(t *testing.T) {
+	var (
+		store  = &common.StoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+		req = &flipt.DeleteNamespaceRequest{
+			Key: "foo",
+			Force: true,
+		}
+	)
+
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
+		Key:       req.Key,
+		Protected: true,
+	}, nil)
+
+	store.AssertNotCalled(t, "CountFlags")
+
+	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
+
+	got, err := s.DeleteNamespace(context.TODO(), req)
+	require.NoError(t, err)
+	
+	assert.NotNil(t, got)
+}
+
+func TestDeleteNamespace_HasFlagsWithForce(t *testing.T) {
+	var (
+		store  = &common.StoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+		req = &flipt.DeleteNamespaceRequest{
+			Key: "foo",
+			Force: true,
+		}
+	)
+
+	store.On("GetNamespace", mock.Anything, storage.NewNamespace("foo")).Return(&flipt.Namespace{
+		Key: req.Key,
+	}, nil)
+
+	store.AssertNotCalled(t, "CountFlags")
+
+	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
+
+	got, err := s.DeleteNamespace(context.TODO(), req)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+}
