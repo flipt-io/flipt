@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 
@@ -34,21 +36,27 @@ type Bridge interface {
 	OFREPFlagEvaluation(ctx context.Context, input EvaluationBridgeInput) (EvaluationBridgeOutput, error)
 }
 
+type Storer interface {
+	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
+}
+
 // Server servers the methods used by the OpenFeature Remote Evaluation Protocol.
 // It will be used only with gRPC Gateway as there's no specification for gRPC itself.
 type Server struct {
 	logger   *zap.Logger
 	cacheCfg config.CacheConfig
 	bridge   Bridge
+	store    Storer
 	ofrep.UnimplementedOFREPServiceServer
 }
 
 // New constructs a new Server.
-func New(logger *zap.Logger, cacheCfg config.CacheConfig, bridge Bridge) *Server {
+func New(logger *zap.Logger, cacheCfg config.CacheConfig, bridge Bridge, store Storer) *Server {
 	return &Server{
 		logger:   logger,
 		cacheCfg: cacheCfg,
 		bridge:   bridge,
+		store:    store,
 	}
 }
 
