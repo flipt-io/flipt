@@ -13,7 +13,7 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/XSAM/otelsql v0.31.0
+	github.com/XSAM/otelsql v0.35.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.32.2
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.24.1
