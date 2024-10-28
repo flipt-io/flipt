@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v1.51.0](https://github.com/flipt-io/flipt/releases/tag/v1.51.0) - 2024-10-28
+
+### Changed
+
+- `ofrep`: relax flags constraint for bulk evaluation (#3556)
+- don't allow to delete segment which is in use (#3552)
+- `export`: display a better error for missing segments and don't hide them in ui (#3527)
+
+### Fixed
+
+- Import issue when --address and --drop is used (#3530)
+
 ## [v1.50.1](https://github.com/flipt-io/flipt/releases/tag/v1.50.1) - 2024-10-01
 
 ### Added
