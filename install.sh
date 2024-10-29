@@ -25,8 +25,8 @@ get_latest_version() {
 }
 
 copy() {
-  case "$PATH" in
-    *"$HOME/.local/bin:"*)
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*)
       [ ! -d "$HOME/.local/bin" ] && mkdir -p "$HOME/.local/bin"
       mv /tmp/flipt "$HOME/.local/bin/flipt"
       ;;
