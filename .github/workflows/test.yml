@@ -26,11 +26,11 @@ jobs:
         with:
           # Runs quick, run rm in background
           tool-cache: true
+          android: true
+          dotnet: true
 
           # These run slower as use apt to uninstall packages
           # Turned on by default, so we disable them
-          android: false
-          dotnet: false
           haskell: false
           large-packages: false
           docker-images: false
@@ -42,6 +42,7 @@ jobs:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default unit export --path coverage.txt
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v4.6.0
@@ -97,11 +98,11 @@ jobs:
         with:
           # Runs quick, run rm in background
           tool-cache: true
+          android: true
+          dotnet: true
 
           # These run slower as use apt to uninstall packages
           # Turned on by default, so we disable them
-          android: false
-          dotnet: false
           haskell: false
           large-packages: false
           docker-images: false
