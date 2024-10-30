@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v66/github"
 	"github.com/google/uuid"
 	"go.flipt.io/build/internal/dagger"
 )
