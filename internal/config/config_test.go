@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/iancoleman/strcase"
-	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xeipuuv/gojsonschema"
 	"go.flipt.io/flipt/internal/oci"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/memblob"
@@ -26,7 +26,9 @@ import (
 )
 
 func TestJSONSchema(t *testing.T) {
-	_, err := jsonschema.Compile("../../config/flipt.schema.json")
+	schemaBytes, err := os.ReadFile("../../config/flipt.schema.json")
+	require.NoError(t, err)
+	_, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
 	require.NoError(t, err)
 }
 
