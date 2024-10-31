@@ -12,12 +12,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofrs/uuid"
-	"github.com/gorilla/mux"
+	"github.com/google/uuid"
 	otelHook "github.com/open-feature/go-sdk-contrib/hooks/open-telemetry/pkg"
+	flipt "github.com/open-feature/go-sdk-contrib/providers/flipt/pkg/provider"
 	"github.com/open-feature/go-sdk/openfeature"
-	"go.flipt.io/flipt-openfeature-provider/pkg/provider/flipt"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -107,7 +105,7 @@ func main() {
 	openfeature.SetProvider(provider)
 	client := openfeature.NewClient(service + "-client")
 
-	router := mux.NewRouter().StrictSlash(true)
+	router := http.NewServeMux()
 	router.HandleFunc("/api/greeting", func(w http.ResponseWriter, r *http.Request) {
 		// otelHook requires the context to have a span so it can add an event
 		newCtx, span := tp.Tracer("").Start(r.Context(), fmt.Sprintf("%s handler", r.URL.Path))
@@ -115,13 +113,14 @@ func main() {
 
 		requestID := r.Header.Get("X-Request-ID")
 		if requestID == "" {
-			requestID = uuid.Must(uuid.NewV4()).String()
+			requestID = uuid.NewString()
 		}
+
 		span.SetAttributes(attribute.String("request_id", requestID))
 
 		key := r.URL.Query().Get("user")
 		if key == "" {
-			key = uuid.Must(uuid.NewV4()).String()
+			key = uuid.NewString()
 		}
 		span.SetAttributes(attribute.String("user_id", key))
 
@@ -129,7 +128,6 @@ func main() {
 			key,
 			map[string]interface{}{},
 		))
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

@@ -3,7 +3,7 @@ version: "3"
 services:
   init:
     image: flipt/flipt:latest
-    command: ["./flipt", "import", "flipt.yml"]
+    command: ["/flipt", "import", "--skip-existing", "flipt.yml"]
     environment:
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_META_TELEMETRY_ENABLED=false
@@ -13,9 +13,10 @@ services:
 
   flipt:
     image: flipt/flipt:latest
-    command: ["./flipt"]
+    command: ["/flipt"]
     depends_on:
-      - init
+      init:
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
       - "9000:9000"
@@ -26,11 +27,16 @@ services:
       - FLIPT_META_TELEMETRY_ENABLED=false
     volumes:
       - "flipt_data:/var/opt/flipt"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1
+      interval: 5s
+      start_period: 5s
 
   example:
     build: .
     depends_on:
-      - flipt
+      flipt:
+        condition: service_healthy
     ports:
       - "8000:8000"
     networks:

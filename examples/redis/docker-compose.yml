@@ -5,11 +5,14 @@ services:
     image: redis:latest
     networks:
       - flipt_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
 
   flipt:
-    build: .
+    image: flipt/flipt:latest
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
@@ -22,7 +25,7 @@ services:
       - FLIPT_CACHE_REDIS_PORT=6379
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_META_TELEMETRY_ENABLED=false
-    command: ["./tmp/wait-for-it.sh", "redis:6379", "--", "./flipt", "--force-migrate"]
+    command: ["/flipt", "--force-migrate"]
 
 networks:
   flipt_network:
