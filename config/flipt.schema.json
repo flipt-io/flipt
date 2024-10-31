@@ -1475,6 +1475,36 @@
               "default": false
             }
           }
+        },
+        "jira": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "instance_name": {
+              "type": "string"
+            },
+            "authentication": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "oauth": {
+                  "type": "object",
+                  "properties": {
+                    "client_id": {
+                      "type": "string"
+                    },
+                    "client_secret": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "title": "Experimental"

@@ -121,3 +121,10 @@ authorization:
 experimental:
   authorization:
     enabled: true
+  jira:
+    enabled: true
+    instance_name: "INSTANCE_NAME"
+    authentication:
+      oauth:
+        client_id: "CLIENT_ID"
+        client_secret: "CLIENT_SECRET"

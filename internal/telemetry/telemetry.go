@@ -53,16 +53,20 @@ type analytics struct {
 	Storage string `json:"storage,omitempty"`
 }
 
+type experimental struct {
+	Jira bool `json:"jira,omitempty"`
+}
+
 type flipt struct {
-	Version        string                    `json:"version"`
-	OS             string                    `json:"os"`
-	Arch           string                    `json:"arch"`
-	Storage        *storage                  `json:"storage,omitempty"`
-	Authentication *authentication           `json:"authentication,omitempty"`
-	Audit          *audit                    `json:"audit,omitempty"`
-	Tracing        *tracing                  `json:"tracing,omitempty"`
-	Analytics      *analytics                `json:"analytics,omitempty"`
-	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
+	Version        string          `json:"version"`
+	OS             string          `json:"os"`
+	Arch           string          `json:"arch"`
+	Storage        *storage        `json:"storage,omitempty"`
+	Authentication *authentication `json:"authentication,omitempty"`
+	Audit          *audit          `json:"audit,omitempty"`
+	Tracing        *tracing        `json:"tracing,omitempty"`
+	Analytics      *analytics      `json:"analytics,omitempty"`
+	Experimental   experimental    `json:"experimental,omitempty"`
 }
 
 type state struct {
@@ -193,10 +197,9 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var (
 		props = segment.NewProperties()
 		flipt = flipt{
-			OS:           info.OS,
-			Arch:         info.Arch,
-			Version:      info.Version,
-			Experimental: r.cfg.Experimental,
+			OS:      info.OS,
+			Arch:    info.Arch,
+			Version: info.Version,
 		}
 	)
 
@@ -267,6 +270,8 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 			Storage: r.cfg.Analytics.Storage.String(),
 		}
 	}
+
+	flipt.Experimental.Jira = r.cfg.Experimental.Jira.Enabled
 
 	p := ping{
 		Version: version,
