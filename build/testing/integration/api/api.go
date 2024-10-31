@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/build/testing/integration"
@@ -609,9 +609,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 				if !namespaceIsDefault(namespace.Key) {
 					t.Log(`Ensure that distributions and all entities associated with them are part of same namespace.`)
-					var (
-						flagKey = "defaultflag"
-					)
+					flagKey := "defaultflag"
 
 					defaultFlag, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 						Key:         flagKey,
@@ -902,7 +900,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
 						NamespaceKey: namespace.Key,
 						FlagKey:      "test",
-						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						EntityId:     uuid.NewString(),
 						Context: map[string]string{
 							"foo":  "baz",
 							"fizz": "bozz",
@@ -920,7 +918,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
 						NamespaceKey: namespace.Key,
 						FlagKey:      "test",
-						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						EntityId:     uuid.NewString(),
 						Context: map[string]string{
 							"fizz": "buzz",
 						},
@@ -939,7 +937,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 							{
 								NamespaceKey: namespace.Key,
 								FlagKey:      "test",
-								EntityId:     uuid.Must(uuid.NewV4()).String(),
+								EntityId:     uuid.NewString(),
 								Context: map[string]string{
 									"foo":  "baz",
 									"fizz": "bozz",
@@ -965,7 +963,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 							{
 								NamespaceKey: namespace.Key,
 								FlagKey:      "test",
-								EntityId:     uuid.Must(uuid.NewV4()).String(),
+								EntityId:     uuid.NewString(),
 								Context: map[string]string{
 									"fizz": "buzz",
 								},
@@ -987,7 +985,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 							NamespaceKey: namespace.Key,
 							FlagKey:      "test",
-							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							EntityId:     uuid.NewString(),
 							Context: map[string]string{
 								"foo":  "baz",
 								"fizz": "bozz",
@@ -1006,7 +1004,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 							NamespaceKey: namespace.Key,
 							FlagKey:      "test",
-							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							EntityId:     uuid.NewString(),
 							Context: map[string]string{
 								"first":  "segment",
 								"second": "another-segment",
@@ -1026,7 +1024,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 							NamespaceKey: namespace.Key,
 							FlagKey:      "test",
-							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							EntityId:     uuid.NewString(),
 							Context: map[string]string{
 								"fizz": "buzz",
 							},
@@ -1043,7 +1041,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 							NamespaceKey: namespace.Key,
 							FlagKey:      "disabled",
-							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							EntityId:     uuid.NewString(),
 							Context:      map[string]string{},
 						})
 						require.NoError(t, err)
@@ -1058,7 +1056,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 							NamespaceKey: namespace.Key,
 							FlagKey:      "unknown_flag",
-							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							EntityId:     uuid.NewString(),
 							Context:      map[string]string{},
 						})
 
@@ -1071,7 +1069,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				t.Run("Compatibility", func(t *testing.T) {
 					// ensure we can leverage new and old evaluation paths and produce consistent results
 					t.Run("new API to legacy API", func(t *testing.T) {
-						entity := uuid.Must(uuid.NewV4()).String()
+						entity := uuid.NewString()
 
 						t.Run("successful with new evaluation API", func(t *testing.T) {
 							result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
@@ -1111,7 +1109,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					})
 
 					t.Run("legacy API to new API", func(t *testing.T) {
-						entity := uuid.Must(uuid.NewV4()).String()
+						entity := uuid.NewString()
 
 						t.Run("successful with legacy evaluation API", func(t *testing.T) {
 							result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
@@ -1240,7 +1238,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 								{
 									NamespaceKey: namespace.Key,
 									FlagKey:      "test",
-									EntityId:     uuid.Must(uuid.NewV4()).String(),
+									EntityId:     uuid.NewString(),
 									Context: map[string]string{
 										"foo":  "baz",
 										"fizz": "bozz",

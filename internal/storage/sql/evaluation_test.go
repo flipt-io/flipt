@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/ext"
@@ -906,7 +906,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	b.ResetTimer()
 
 	for _, flagKey := range flagKeys {
-		entityId := uuid.Must(uuid.NewV4()).String()
+		entityId := uuid.NewString()
 		ereq := &flipt.EvaluationRequest{
 			FlagKey:  flagKey,
 			EntityId: entityId,
@@ -939,7 +939,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	for _, flagKey := range []string{"flag_boolean", "another_boolean_flag"} {
 		breq := &rpcevaluation.EvaluationRequest{
 			FlagKey:  flagKey,
-			EntityId: uuid.Must(uuid.NewV4()).String(),
+			EntityId: uuid.NewString(),
 		}
 
 		b.Run(fmt.Sprintf("boolean-evaluation-%s", flagKey), func(b *testing.B) {

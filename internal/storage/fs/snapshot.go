@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"go.flipt.io/flipt/core/validation"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
@@ -351,7 +351,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			segment.Constraints = append(segment.Constraints, &flipt.Constraint{
 				NamespaceKey: namespaceKey,
 				SegmentKey:   segment.Key,
-				Id:           uuid.Must(uuid.NewV4()).String(),
+				Id:           uuid.NewString(),
 				Operator:     constraint.Operator,
 				Property:     constraint.Property,
 				Type:         flipt.ComparisonType(constraintType),
@@ -385,7 +385,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			}
 
 			variant := &flipt.Variant{
-				Id:           uuid.Must(uuid.NewV4()).String(),
+				Id:           uuid.NewString(),
 				NamespaceKey: namespaceKey,
 				Key:          v.Key,
 				Name:         v.Name,
@@ -409,7 +409,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			rank := int32(i + 1)
 			rule := &flipt.Rule{
 				NamespaceKey: namespaceKey,
-				Id:           uuid.Must(uuid.NewV4()).String(),
+				Id:           uuid.NewString(),
 				FlagKey:      f.Key,
 				Rank:         rank,
 				CreatedAt:    ss.now,
@@ -481,7 +481,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 					return errs.ErrInvalidf("flag %s/%s rule %d references unknown variant %q", doc.Namespace, flag.Key, rank, d.VariantKey)
 				}
 
-				id := uuid.Must(uuid.NewV4()).String()
+				id := uuid.NewString()
 				rule.Distributions = append(rule.Distributions, &flipt.Distribution{
 					Id:        id,
 					Rollout:   d.Rollout,
@@ -514,7 +514,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			}
 
 			flagRollout := &flipt.Rollout{
-				Id:           uuid.Must(uuid.NewV4()).String(),
+				Id:           uuid.NewString(),
 				Rank:         rank,
 				FlagKey:      f.Key,
 				NamespaceKey: namespaceKey,

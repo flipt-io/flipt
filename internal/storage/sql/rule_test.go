@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
@@ -584,7 +584,7 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 	t := s.T()
 
-	namespace := uuid.Must(uuid.NewV4()).String()
+	namespace := uuid.NewString()
 
 	ctx := context.Background()
 	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{

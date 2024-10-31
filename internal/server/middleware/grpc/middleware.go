@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -98,7 +98,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 		startTime := time.Now().UTC()
 
 		// set request ID if not present
-		requestID := uuid.Must(uuid.NewV4()).String()
+		requestID := uuid.NewString()
 		if r, ok := req.(RequestIdentifiable); ok {
 			requestID = r.SetRequestIDIfNotBlank(requestID)
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
@@ -50,7 +50,7 @@ func main() {
 		t.URL = fmt.Sprintf("%s/evaluate/v1/variant", fliptAddr)
 
 		variantEvaluation := Evaluation{
-			EntityId: uuid.Must(uuid.NewV4()).String(),
+			EntityId: uuid.NewString(),
 			FlagKey:  "flag_010",
 			Context: map[string]string{
 				"in_segment": "baz",
@@ -73,7 +73,7 @@ func main() {
 		t.URL = fmt.Sprintf("%s/evaluate/v1/boolean", fliptAddr)
 
 		booleanEvaluation := Evaluation{
-			EntityId: uuid.Must(uuid.NewV4()).String(),
+			EntityId: uuid.NewString(),
 			FlagKey:  "flag_boolean",
 			Context: map[string]string{
 				"in_segment": "baz",
