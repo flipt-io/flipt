@@ -21,28 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-          android: true
-          dotnet: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v6
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default unit export --path coverage.txt
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v4.6.0
@@ -111,25 +95,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-          android: true
-          dotnet: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - name: Run Migration Tests
         uses: dagger/dagger-for-github@v6
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default migration
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
