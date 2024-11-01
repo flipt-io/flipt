@@ -23,28 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - name: Run CLI Tests
         uses: dagger/dagger-for-github@v6
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default cli
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
   test:
     name: Integration Tests
@@ -79,21 +63,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Run Integration Tests
@@ -102,7 +71,6 @@ jobs:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default integration --cases ${{ matrix.test }}
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4
@@ -120,25 +88,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - name: Run UI Tests
         uses: dagger/dagger-for-github@v6
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default ui
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
