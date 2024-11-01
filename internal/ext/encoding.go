@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Encoding string
@@ -18,7 +18,9 @@ const (
 func (e Encoding) NewEncoder(w io.Writer) EncodeCloser {
 	switch e {
 	case EncodingYML, EncodingYAML:
-		return yaml.NewEncoder(w)
+		enc := yaml.NewEncoder(w)
+		enc.SetIndent(2)
+		return enc
 	case EncodingJSON:
 		return NopCloseEncoder{json.NewEncoder(w)}
 	}

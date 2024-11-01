@@ -478,33 +478,33 @@ exit $?`,
 
 const (
 	expectedFliptYAML = `flags:
-- key: zUFtS7D0UyMeueYu
-  name: UAoZRksg94r1iipa
-  type: VARIANT_FLAG_TYPE
-  description: description
-  enabled: true
-  variants:
-  - key: NGxfcVffpMhBz9n8
-    name: fhDHQ7rcxvoaWbHw
-  - key: sDGD6NvfCRyaQUn3
-  rules:
-  - segment: 08UoVJ96LhZblPEx
-    distributions:
-    - variant: NGxfcVffpMhBz9n8
-      rollout: 100
+  - key: zUFtS7D0UyMeueYu
+    name: UAoZRksg94r1iipa
+    type: VARIANT_FLAG_TYPE
+    description: description
+    enabled: true
+    variants:
+      - key: NGxfcVffpMhBz9n8
+        name: fhDHQ7rcxvoaWbHw
+      - key: sDGD6NvfCRyaQUn3
+    rules:
+      - segment: 08UoVJ96LhZblPEx
+        distributions:
+          - variant: NGxfcVffpMhBz9n8
+            rollout: 100
 segments:
-- key: 08UoVJ96LhZblPEx
-  name: 2oS8SHbrxyFkRg1a
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  - type: STRING_COMPARISON_TYPE
-    property: fizz
-    operator: neq
-    value: buzz
+  - key: 08UoVJ96LhZblPEx
+    name: 2oS8SHbrxyFkRg1a
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
 `
 
 	expectedYAMLStreamOutput = `version: "1.4"
@@ -517,67 +517,67 @@ namespace:
   key: foo
   name: foo
 flags:
-- key: zUFtS7D0UyMeueYu
-  name: UAoZRksg94r1iipa
-  type: VARIANT_FLAG_TYPE
-  description: description
-  enabled: true
-  variants:
-  - key: NGxfcVffpMhBz9n8
-    name: fhDHQ7rcxvoaWbHw
-  - key: sDGD6NvfCRyaQUn3
-  rules:
-  - segment: 08UoVJ96LhZblPEx
-    distributions:
-    - variant: NGxfcVffpMhBz9n8
-      rollout: 100
+  - key: zUFtS7D0UyMeueYu
+    name: UAoZRksg94r1iipa
+    type: VARIANT_FLAG_TYPE
+    description: description
+    enabled: true
+    variants:
+      - key: NGxfcVffpMhBz9n8
+        name: fhDHQ7rcxvoaWbHw
+      - key: sDGD6NvfCRyaQUn3
+    rules:
+      - segment: 08UoVJ96LhZblPEx
+        distributions:
+          - variant: NGxfcVffpMhBz9n8
+            rollout: 100
 segments:
-- key: 08UoVJ96LhZblPEx
-  name: 2oS8SHbrxyFkRg1a
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  - type: STRING_COMPARISON_TYPE
-    property: fizz
-    operator: neq
-    value: buzz
-  match_type: ALL_MATCH_TYPE
+  - key: 08UoVJ96LhZblPEx
+    name: 2oS8SHbrxyFkRg1a
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
+    match_type: ALL_MATCH_TYPE
 ---
 namespace:
   key: bar
   name: bar
 flags:
-- key: zUFtS7D0UyMeueYu
-  name: UAoZRksg94r1iipa
-  type: VARIANT_FLAG_TYPE
-  description: description
-  enabled: true
-  variants:
-  - key: NGxfcVffpMhBz9n8
-    name: fhDHQ7rcxvoaWbHw
-  - key: sDGD6NvfCRyaQUn3
-  rules:
-  - segment: 08UoVJ96LhZblPEx
-    distributions:
-    - variant: NGxfcVffpMhBz9n8
-      rollout: 100
+  - key: zUFtS7D0UyMeueYu
+    name: UAoZRksg94r1iipa
+    type: VARIANT_FLAG_TYPE
+    description: description
+    enabled: true
+    variants:
+      - key: NGxfcVffpMhBz9n8
+        name: fhDHQ7rcxvoaWbHw
+      - key: sDGD6NvfCRyaQUn3
+    rules:
+      - segment: 08UoVJ96LhZblPEx
+        distributions:
+          - variant: NGxfcVffpMhBz9n8
+            rollout: 100
 segments:
-- key: 08UoVJ96LhZblPEx
-  name: 2oS8SHbrxyFkRg1a
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  - type: STRING_COMPARISON_TYPE
-    property: fizz
-    operator: neq
-    value: buzz
-  match_type: ALL_MATCH_TYPE
+  - key: 08UoVJ96LhZblPEx
+    name: 2oS8SHbrxyFkRg1a
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
+    match_type: ALL_MATCH_TYPE
 `
 
 	expectedFliptSortedOutput = `version: "1.4"
@@ -586,52 +586,52 @@ namespace:
   name: foo
   description: foo namespace
 flags:
-- key: FLag2
-  name: FLag2
-  type: BOOLEAN_FLAG_TYPE
-  description: a boolean flag
-  enabled: false
-- key: flag1
-  name: flag1
-  type: VARIANT_FLAG_TYPE
-  description: description
-  enabled: true
-  variants:
-  - key: foo
-  - key: variant1
-    name: variant1
-  rules:
-  - segment: segment1
+  - key: FLag2
+    name: FLag2
+    type: BOOLEAN_FLAG_TYPE
+    description: a boolean flag
+    enabled: false
+  - key: flag1
+    name: flag1
+    type: VARIANT_FLAG_TYPE
+    description: description
+    enabled: true
+    variants:
+      - key: foo
+      - key: variant1
+        name: variant1
+    rules:
+      - segment: segment1
 segments:
-- key: segment1
-  name: segment1
-  description: description
-  match_type: ANY_MATCH_TYPE
+  - key: segment1
+    name: segment1
+    description: description
+    match_type: ANY_MATCH_TYPE
 ---
 namespace:
   key: bar
   name: bar
   description: bar namespace
 flags:
-- key: flag2
-  name: flag2
-  type: BOOLEAN_FLAG_TYPE
-  description: a boolean flag
-  enabled: false
+  - key: flag2
+    name: flag2
+    type: BOOLEAN_FLAG_TYPE
+    description: a boolean flag
+    enabled: false
 segments:
-- key: segment1
-  name: segment1
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  match_type: ALL_MATCH_TYPE
-- key: segment2
-  name: segment2
-  description: description
-  match_type: ANY_MATCH_TYPE
+  - key: segment1
+    name: segment1
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+    match_type: ALL_MATCH_TYPE
+  - key: segment2
+    name: segment2
+    description: description
+    match_type: ANY_MATCH_TYPE
 `
 	expectedFliptSortedAllNamespacesOutput = `version: "1.4"
 namespace:
@@ -639,25 +639,25 @@ namespace:
   name: bar
   description: bar namespace
 flags:
-- key: flag2
-  name: flag2
-  type: BOOLEAN_FLAG_TYPE
-  description: a boolean flag
-  enabled: false
+  - key: flag2
+    name: flag2
+    type: BOOLEAN_FLAG_TYPE
+    description: a boolean flag
+    enabled: false
 segments:
-- key: segment1
-  name: segment1
-  description: description
-  constraints:
-  - type: STRING_COMPARISON_TYPE
-    property: foo
-    operator: eq
-    value: baz
-  match_type: ALL_MATCH_TYPE
-- key: segment2
-  name: segment2
-  description: description
-  match_type: ANY_MATCH_TYPE
+  - key: segment1
+    name: segment1
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+    match_type: ALL_MATCH_TYPE
+  - key: segment2
+    name: segment2
+    description: description
+    match_type: ANY_MATCH_TYPE
 ---
 namespace:
   key: default
@@ -669,26 +669,26 @@ namespace:
   name: foo
   description: foo namespace
 flags:
-- key: FLag2
-  name: FLag2
-  type: BOOLEAN_FLAG_TYPE
-  description: a boolean flag
-  enabled: false
-- key: flag1
-  name: flag1
-  type: VARIANT_FLAG_TYPE
-  description: description
-  enabled: true
-  variants:
-  - key: foo
-  - key: variant1
-    name: variant1
-  rules:
-  - segment: segment1
+  - key: FLag2
+    name: FLag2
+    type: BOOLEAN_FLAG_TYPE
+    description: a boolean flag
+    enabled: false
+  - key: flag1
+    name: flag1
+    type: VARIANT_FLAG_TYPE
+    description: description
+    enabled: true
+    variants:
+      - key: foo
+      - key: variant1
+        name: variant1
+    rules:
+      - segment: segment1
 segments:
-- key: segment1
-  name: segment1
-  description: description
-  match_type: ANY_MATCH_TYPE
+  - key: segment1
+    name: segment1
+    description: description
+    match_type: ANY_MATCH_TYPE
 `
 )

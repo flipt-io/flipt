@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type initCommand struct {
@@ -136,7 +136,7 @@ func newConfigCommand() *cobra.Command {
 		editCmd = &editCommand{}
 	)
 
-	var init = &cobra.Command{
+	init := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Flipt configuration",
 		RunE:  initCmd.run,
@@ -144,7 +144,7 @@ func newConfigCommand() *cobra.Command {
 
 	init.Flags().BoolVarP(&initCmd.force, "force", "y", false, "Overwrite existing configuration file")
 
-	var edit = &cobra.Command{
+	edit := &cobra.Command{
 		Use:   "edit",
 		Short: "Edit Flipt configuration",
 		RunE:  editCmd.run,

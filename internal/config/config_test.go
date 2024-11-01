@@ -22,7 +22,7 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/memblob"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestJSONSchema(t *testing.T) {
@@ -578,7 +578,8 @@ func TestLoad(t *testing.T) {
 								},
 							},
 						},
-					}}
+					},
+				}
 				return cfg
 			},
 		},
@@ -1526,17 +1527,17 @@ func readYAMLIntoEnv(t *testing.T, path string) [][2]string {
 	configFile, err := os.ReadFile(path)
 	require.NoError(t, err)
 
-	var config map[any]any
+	var config map[string]any
 	err = yaml.Unmarshal(configFile, &config)
 	require.NoError(t, err)
 
 	return getEnvVars("flipt", config)
 }
 
-func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
+func getEnvVars(prefix string, v map[string]any) (vals [][2]string) {
 	for key, value := range v {
 		switch v := value.(type) {
-		case map[any]any:
+		case map[string]any:
 			vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), v)...)
 		case []any:
 			builder := strings.Builder{}
@@ -1789,13 +1790,11 @@ func TestGetConfigFile(t *testing.T) {
 	}
 }
 
-var (
-	// add any struct tags to match their camelCase equivalents here.
-	camelCaseMatchers = map[string]string{
-		"requireTLS":   "requireTLS",
-		"discoveryURL": "discoveryURL",
-	}
-)
+// add any struct tags to match their camelCase equivalents here.
+var camelCaseMatchers = map[string]string{
+	"requireTLS":   "requireTLS",
+	"discoveryURL": "discoveryURL",
+}
 
 func TestStructTags(t *testing.T) {
 	configType := reflect.TypeOf(Config{})
