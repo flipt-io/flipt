@@ -1,14 +1,16 @@
 -- Flags
 ------------------
-
+BEGIN;
 -- Add column namespace_key with a default value
 ALTER TABLE flags ADD COLUMN namespace_key VARCHAR(255) NOT NULL DEFAULT 'default';
 
 -- Add foreign key constraint on namespace_key column referencing key column of namespaces table
 ALTER TABLE flags ADD FOREIGN KEY (namespace_key) REFERENCES namespaces(key) ON DELETE CASCADE;
-
+COMMIT;
 -- Drop primary key constraint and add a new composite primary key on namespace_key and key columns
+BEGIN;
 ALTER TABLE flags ALTER PRIMARY KEY USING COLUMNS (namespace_key, key);
+COMMIT;
 DROP INDEX IF EXISTS flags_key_key CASCADE;
 
 -- Variants
@@ -31,15 +33,17 @@ ALTER TABLE variants ADD FOREIGN KEY (namespace_key, flag_key) REFERENCES flags(
 
 -- Segments
 ------------------
-
+BEGIN;
 -- Add column namespace_key with a default value
 ALTER TABLE segments ADD COLUMN namespace_key VARCHAR(255) NOT NULL DEFAULT 'default';
 
 -- Add foreign key constraint on namespace_key column referencing key column of namespaces table
 ALTER TABLE segments ADD FOREIGN KEY (namespace_key) REFERENCES namespaces(key) ON DELETE CASCADE;
-
+COMMIT;
 -- Drop primary key constraint and add a new composite primary key on namespace_key and key columns
+BEGIN;
 ALTER TABLE segments ALTER PRIMARY KEY USING COLUMNS (namespace_key, key);
+COMMIT;
 DROP INDEX IF EXISTS segments_key_key CASCADE;
 
 -- Constraints
@@ -62,5 +66,5 @@ ALTER TABLE rules ADD COLUMN namespace_key VARCHAR(255) NOT NULL DEFAULT 'defaul
 
 -- Add foreign key constraint on namespace_key column referencing key column of namespaces table
 ALTER TABLE rules ADD FOREIGN KEY (namespace_key) REFERENCES namespaces(key) ON DELETE CASCADE;
-ALTER TABLE rules ADD FOREIGN KEY (namespace_key, flag_key) REFERENCES flags(namespace_key, key) ON DELETE CASCADE;
+ALTER TABLE rules ADD CONSTRAINT fk_namespace_key_ref_segments FOREIGN KEY (namespace_key, flag_key) REFERENCES flags(namespace_key, key) ON DELETE CASCADE;
 ALTER TABLE rules ADD FOREIGN KEY (namespace_key, segment_key) REFERENCES segments(namespace_key, key) ON DELETE CASCADE;
