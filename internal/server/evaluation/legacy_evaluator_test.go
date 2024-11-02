@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1160,6 +1160,7 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 	assert.False(t, resp.Match)
 	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
+
 func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
@@ -1944,7 +1945,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 
 	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
-		EntityId: uuid.Must(uuid.NewV4()).String(),
+		EntityId: uuid.NewString(),
 		Context: map[string]string{
 			"premium_user": "true",
 		},
@@ -2561,7 +2562,7 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 
 	resp, err := s.Evaluate(context.TODO(), enabledFlag, &evaluation.EvaluationRequest{
 		FlagKey:  "foo",
-		EntityId: uuid.Must(uuid.NewV4()).String(),
+		EntityId: uuid.NewString(),
 		Context: map[string]string{
 			"premium_user": "true",
 		},

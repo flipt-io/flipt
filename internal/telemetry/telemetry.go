@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
@@ -200,7 +200,7 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 		}
 	)
 
-	var dbProtocol = r.cfg.Database.Protocol.String()
+	dbProtocol := r.cfg.Database.Protocol.String()
 
 	if dbProtocol == "" && r.cfg.Database.URL != "" {
 		dbProtocol = "unknown"
@@ -311,17 +311,8 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 }
 
 func newState() state {
-	var uid string
-
-	u, err := uuid.NewV4()
-	if err != nil {
-		uid = "unknown"
-	} else {
-		uid = u.String()
-	}
-
 	return state{
 		Version: version,
-		UUID:    uid,
+		UUID:    uuid.NewString(),
 	}
 }

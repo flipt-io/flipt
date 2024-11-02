@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
@@ -49,12 +49,12 @@ func (s *DBTestSuite) TestListNamespaces() {
 
 	reqs := []*flipt.CreateNamespaceRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -92,17 +92,17 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 
 	reqs := []*flipt.CreateNamespaceRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -186,17 +186,17 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 
 	reqs := []*flipt.CreateNamespaceRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},

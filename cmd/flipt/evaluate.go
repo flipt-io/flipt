@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -44,7 +44,7 @@ func newEvaluateCommand() *cobra.Command {
 	cmd.Flags().StringVarP(
 		&c.entityID,
 		"entity-id", "e",
-		uuid.Must(uuid.NewV4()).String(),
+		uuid.NewString(),
 		"evaluation request entity id.",
 	)
 	cmd.Flags().StringVarP(

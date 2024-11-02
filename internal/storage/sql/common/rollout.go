@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
@@ -62,7 +62,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, ns storage
 
 	switch rollout.Type {
 	case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
-		var segmentRule = &flipt.Rollout_Segment{
+		segmentRule := &flipt.Rollout_Segment{
 			Segment: &flipt.RolloutSegment{},
 		}
 
@@ -97,12 +97,10 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, ns storage
 			}
 		}()
 
-		var segmentKeys = []string{}
+		segmentKeys := []string{}
 
 		for rows.Next() {
-			var (
-				segmentKey string
-			)
+			var segmentKey string
 
 			if err := rows.Scan(&segmentKey); err != nil {
 				return nil, err
@@ -123,7 +121,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, ns storage
 
 		rollout.Rule = segmentRule
 	case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
-		var thresholdRule = &flipt.Rollout_Threshold{
+		thresholdRule := &flipt.Rollout_Threshold{
 			Threshold: &flipt.RolloutThreshold{},
 		}
 
@@ -237,7 +235,6 @@ func (s *Store) ListRollouts(ctx context.Context, req *storage.ListRequest[stora
 			Join("rollout_segment_references AS rsr ON (rs.id = rsr.rollout_segment_id)").
 			Where(sq.Eq{"rollout_id": allRuleIds}).
 			QueryContext(ctx)
-
 		if err != nil {
 			return results, err
 		}
@@ -312,7 +309,6 @@ func (s *Store) ListRollouts(ctx context.Context, req *storage.ListRequest[stora
 			From(tableRolloutPercentages).
 			Where(sq.Eq{"rollout_id": allRuleIds}).
 			QueryContext(ctx)
-
 		if err != nil {
 			return results, err
 		}
@@ -405,7 +401,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	var (
 		now     = flipt.Now()
 		rollout = &flipt.Rollout{
-			Id:           uuid.Must(uuid.NewV4()).String(),
+			Id:           uuid.NewString(),
 			NamespaceKey: r.NamespaceKey,
 			FlagKey:      r.FlagKey,
 			Rank:         r.Rank,
@@ -450,13 +446,13 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	switch r.GetRule().(type) {
 	case *flipt.CreateRolloutRequest_Segment:
 		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
-		rolloutSegmentId := uuid.Must(uuid.NewV4()).String()
+		rolloutSegmentId := uuid.NewString()
 
-		var segmentRule = r.GetSegment()
+		segmentRule := r.GetSegment()
 
 		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
 
-		var segmentOperator = segmentRule.SegmentOperator
+		segmentOperator := segmentRule.SegmentOperator
 		if len(segmentKeys) == 1 {
 			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
 		}
@@ -496,12 +492,12 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	case *flipt.CreateRolloutRequest_Threshold:
 		rollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
 
-		var thresholdRule = r.GetThreshold()
+		thresholdRule := r.GetThreshold()
 
 		if _, err := s.builder.Insert(tableRolloutPercentages).
 			RunWith(tx).
 			Columns("id", "rollout_id", "namespace_key", "percentage", "\"value\"").
-			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, thresholdRule.Percentage, thresholdRule.Value).
+			Values(uuid.NewString(), rollout.Id, rollout.NamespaceKey, thresholdRule.Percentage, thresholdRule.Value).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
@@ -578,11 +574,11 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			return nil, err
 		}
 
-		var segmentRule = r.GetSegment()
+		segmentRule := r.GetSegment()
 
 		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
 
-		var segmentOperator = segmentRule.SegmentOperator
+		segmentOperator := segmentRule.SegmentOperator
 		if len(segmentKeys) == 1 {
 			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
 		}
@@ -637,7 +633,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			return nil, err
 		}
 
-		var thresholdRule = r.GetThreshold()
+		thresholdRule := r.GetThreshold()
 
 		if _, err := s.builder.Update(tableRolloutPercentages).
 			RunWith(tx).

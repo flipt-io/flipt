@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/authn"
@@ -37,12 +37,10 @@ type Option func(*Store)
 // NewStore instantiates a new in-memory implementation of storage.AuthenticationStore
 func NewStore(opts ...Option) *Store {
 	store := &Store{
-		byID:    map[string]*rpcauth.Authentication{},
-		byToken: map[string]*rpcauth.Authentication{},
-		now:     rpcflipt.Now,
-		generateID: func() string {
-			return uuid.Must(uuid.NewV4()).String()
-		},
+		byID:          map[string]*rpcauth.Authentication{},
+		byToken:       map[string]*rpcauth.Authentication{},
+		now:           rpcflipt.Now,
+		generateID:    uuid.NewString,
 		generateToken: authn.GenerateRandomToken,
 	}
 

@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -361,7 +361,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 	var (
 		now  = flipt.Now()
 		rule = &flipt.Rule{
-			Id:              uuid.Must(uuid.NewV4()).String(),
+			Id:              uuid.NewString(),
 			NamespaceKey:    r.NamespaceKey,
 			FlagKey:         r.FlagKey,
 			Rank:            r.Rank,
@@ -453,7 +453,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		}
 	}()
 
-	var segmentOperator = r.SegmentOperator
+	segmentOperator := r.SegmentOperator
 	if len(segmentKeys) == 1 {
 		segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
 	}
@@ -619,7 +619,8 @@ func (s *Store) distributionValidationHelper(ctx context.Context, distributionRe
 	GetNamespaceKey() string
 	GetVariantId() string
 	GetRuleId() string
-}) error {
+},
+) error {
 	var count int
 	if err := s.builder.Select("COUNT(*)").
 		From("rules").
@@ -658,7 +659,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	var (
 		now = flipt.Now()
 		d   = &flipt.Distribution{
-			Id:        uuid.Must(uuid.NewV4()).String(),
+			Id:        uuid.NewString(),
 			RuleId:    r.RuleId,
 			VariantId: r.VariantId,
 			Rollout:   r.Rollout,

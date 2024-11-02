@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	errs "go.flipt.io/flipt/errors"
@@ -494,7 +494,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	var (
 		now = flipt.Now()
 		v   = &flipt.Variant{
-			Id:           uuid.Must(uuid.NewV4()).String(),
+			Id:           uuid.NewString(),
 			NamespaceKey: r.NamespaceKey,
 			FlagKey:      r.FlagKey,
 			Key:          r.Key,
