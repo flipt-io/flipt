@@ -4,13 +4,12 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 	"net/http"
 	"text/template"
 
-	flipt "go.flipt.io/flipt-grpc"
+	flipt "go.flipt.io/flipt-grpc/evaluation"
 
 	"google.golang.org/grpc"
 )
@@ -43,30 +42,25 @@ func main() {
 
 	log.Printf("connected to Flipt server at: %s", fliptServer)
 
-	client := flipt.NewFliptClient(conn)
+	client := flipt.NewEvaluationServiceClient(conn)
 
 	t := template.Must(template.ParseFiles("./tmpl/basic.html"))
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		flag, err := client.GetFlag(context.Background(), &flipt.GetFlagRequest{
-			Key: flagKey,
+		result, err := client.Boolean(r.Context(), &flipt.EvaluationRequest{
+			FlagKey:  flagKey,
+			EntityId: "hello-service",
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if flag == nil {
-			http.Error(w, "flag not found", http.StatusNotFound)
-			return
-		}
-
-		log.Printf("got flag: %v", flag)
+		log.Printf("got flag evaluation: %v", result)
 
 		data := data{
-			FlagKey:     flag.Key,
-			FlagName:    flag.Name,
-			FlagEnabled: flag.Enabled,
+			FlagKey:     flagKey,
+			FlagEnabled: result.Enabled,
 		}
 
 		if err := t.Execute(w, data); err != nil {
