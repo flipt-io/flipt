@@ -118,7 +118,7 @@ export function DefaultRollout(props: RolloutsProps) {
 
               <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                 <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="bg-white flex w-full flex-col overflow-y-scroll">
+                  <Form className="bg-white flex w-full flex-col">
                     <div className="w-full flex-1">
                       <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                         <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
