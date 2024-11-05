@@ -68,7 +68,7 @@ func NewHTTPServer(
 		evaluateAPI     = gateway.NewGatewayServeMux(logger)
 		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion), runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier))
 		analyticsAPI    = gateway.NewGatewayServeMux(logger)
-		ofrepAPI        = gateway.NewGatewayServeMux(logger, runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)))
+		ofrepAPI        = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptNamespace), runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)))
 		httpPort        = cfg.Server.HTTPPort
 	)
 

@@ -68,12 +68,10 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			var (
-				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
-					called++
-					return nil, nil
-				})
-			)
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+				called++
+				return nil, nil
+			})
 
 			_, _ = ValidationUnaryInterceptor(context.Background(), req, nil, spyHandler)
 			assert.Equal(t, wantCalled, called)
@@ -144,11 +142,9 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			var (
-				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
-					return nil, wantErr
-				})
-			)
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, wantErr
+			})
 
 			_, err := ErrorUnaryInterceptor(context.Background(), nil, nil, spyHandler)
 			if wantErr != nil {
@@ -292,7 +288,6 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 				assert.NotEmpty(t, resp.GetRequestId())
 			} else {
 				assert.Equal(t, test.requestID, resp.GetRequestId())
-
 			}
 
 			assert.NotZero(t, resp.GetTimestamp())
@@ -1662,4 +1657,14 @@ func TestForwardFliptAcceptServerVersion(t *testing.T) {
 	md = ForwardFliptAcceptServerVersion(ctx, req)
 	assert.Equal(t, []string{"v1.32.0"}, md.Get(fliptAcceptServerVersionHeaderKey))
 	assert.Equal(t, []string{"value"}, md.Get("key"))
+}
+
+func TestForwardFliptNamespace(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	md := ForwardFliptNamespace(context.Background(), req)
+	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
+	req.Header.Add(fliptNamespaceHeaderKey, "extra-namespace")
+
+	md = ForwardFliptNamespace(context.Background(), req)
+	assert.Equal(t, []string{"extra-namespace"}, md.Get(fliptNamespaceHeaderKey))
 }
