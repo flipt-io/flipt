@@ -21,21 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
-
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v6
         with:
@@ -86,26 +71,29 @@ jobs:
           npm run test
         working-directory: ui
 
+  install:
+    name: "Test Install Script"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          path: install.sh
+
+      - name: Install
+        run: |
+          chmod +x ./install.sh
+          ./install.sh
+
   migration:
     name: "Tests (Migration)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          # Runs quick, run rm in background
-          tool-cache: true
-
-          # These run slower as use apt to uninstall packages
-          # Turned on by default, so we disable them
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
-          swap-storage: false
 
       - name: Run Migration Tests
         uses: dagger/dagger-for-github@v6
@@ -113,4 +101,3 @@ jobs:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source .:default migration
-          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}

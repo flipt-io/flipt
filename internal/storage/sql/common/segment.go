@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -408,7 +408,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		operator = strings.ToLower(r.Operator)
 		now      = flipt.Now()
 		c        = &flipt.Constraint{
-			Id:           uuid.Must(uuid.NewV4()).String(),
+			Id:           uuid.NewString(),
 			NamespaceKey: r.NamespaceKey,
 			SegmentKey:   r.SegmentKey,
 			Type:         r.Type,

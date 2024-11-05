@@ -2,14 +2,14 @@ version: "3"
 
 services:
   crdb:
-    image: cockroachdb/cockroach:latest-v21.2
+    image: cockroachdb/cockroach:latest-v24.2
     networks:
       - flipt_network
     ports:
-     - "26257:26257"
-    command: start-single-node --insecure --accept-sql-without-tls --single-node
+      - "26257:26257"
+    command: start-single-node --insecure --accept-sql-without-tls
     volumes:
-     - "${PWD}/data:/cockroach/cockroach-data"
+      - "${PWD}/data:/cockroach/cockroach-data"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
       interval: 3s
@@ -17,7 +17,7 @@ services:
       retries: 5
 
   flipt:
-    build: .
+    image: flipt/flipt:latest
     depends_on:
       crdb:
         condition: service_healthy

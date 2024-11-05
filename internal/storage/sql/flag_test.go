@@ -14,7 +14,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -103,13 +103,13 @@ func (s *DBTestSuite) TestListFlags() {
 
 	reqs := []*flipt.CreateFlagRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -145,14 +145,14 @@ func (s *DBTestSuite) TestListFlagsNamespace() {
 	reqs := []*flipt.CreateFlagRequest{
 		{
 			NamespaceKey: s.namespace,
-			Key:          uuid.Must(uuid.NewV4()).String(),
+			Key:          uuid.NewString(),
 			Name:         "foo",
 			Description:  "bar",
 			Enabled:      true,
 		},
 		{
 			NamespaceKey: s.namespace,
-			Key:          uuid.Must(uuid.NewV4()).String(),
+			Key:          uuid.NewString(),
 			Name:         "foo",
 			Description:  "bar",
 		},
@@ -181,18 +181,18 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 
 	reqs := []*flipt.CreateFlagRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
@@ -278,18 +278,18 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	reqs := []*flipt.CreateFlagRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
@@ -383,7 +383,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 	t := s.T()
 
-	namespace := uuid.Must(uuid.NewV4()).String()
+	namespace := uuid.NewString()
 
 	ctx := context.Background()
 	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
@@ -786,7 +786,6 @@ func (s *DBTestSuite) TestUpdateFlag_DefaultVariant() {
 	})
 
 	t.Run("update flag with default variant in different namespace", func(t *testing.T) {
-
 		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 			NamespaceKey: s.namespace,
 			Key:          t.Name(),
@@ -1761,7 +1760,7 @@ func BenchmarkListFlags(b *testing.B) {
 	for i := 0; i < 1000; i++ {
 		reqs := []*flipt.CreateFlagRequest{
 			{
-				Key:     uuid.Must(uuid.NewV4()).String(),
+				Key:     uuid.NewString(),
 				Name:    fmt.Sprintf("foo_%d", i),
 				Enabled: true,
 			},
@@ -1775,7 +1774,7 @@ func BenchmarkListFlags(b *testing.B) {
 			for j := 0; j < 10; j++ {
 				v, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 					FlagKey: f.Key,
-					Key:     uuid.Must(uuid.NewV4()).String(),
+					Key:     uuid.NewString(),
 					Name:    fmt.Sprintf("variant_%d", j),
 				})
 

@@ -13,7 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -102,7 +102,7 @@ func (s *DBTestSuite) TestGetSegment_WithConstraint() {
 
 	// ensure we support older versions of Flipt where constraints have NULL descriptions.
 	_, err = s.db.DB.Exec(fmt.Sprintf(`INSERT INTO constraints (id, segment_key, type, property, operator, value) VALUES ('%s', '%s', 1, 'foo', 'eq', 'bar');`,
-		uuid.Must(uuid.NewV4()).String(),
+		uuid.NewString(),
 		segment.Key))
 
 	require.NoError(t, err)
@@ -128,12 +128,12 @@ func (s *DBTestSuite) TestListSegments() {
 
 	reqs := []*flipt.CreateSegmentRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -165,13 +165,13 @@ func (s *DBTestSuite) TestListSegmentsNamespace() {
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			NamespaceKey: s.namespace,
-			Key:          uuid.Must(uuid.NewV4()).String(),
+			Key:          uuid.NewString(),
 			Name:         "foo",
 			Description:  "bar",
 		},
 		{
 			NamespaceKey: s.namespace,
-			Key:          uuid.Must(uuid.NewV4()).String(),
+			Key:          uuid.NewString(),
 			Name:         "foo",
 			Description:  "bar",
 		},
@@ -199,17 +199,17 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 
 	reqs := []*flipt.CreateSegmentRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -270,17 +270,17 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 
 	reqs := []*flipt.CreateSegmentRequest{
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
 		{
-			Key:         uuid.Must(uuid.NewV4()).String(),
+			Key:         uuid.NewString(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -363,7 +363,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 	t := s.T()
 
-	namespace := uuid.Must(uuid.NewV4()).String()
+	namespace := uuid.NewString()
 
 	ctx := context.Background()
 	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
@@ -1304,7 +1304,7 @@ func BenchmarkListSegments(b *testing.B) {
 	for i := 0; i < 1000; i++ {
 		reqs := []*flipt.CreateSegmentRequest{
 			{
-				Key:  uuid.Must(uuid.NewV4()).String(),
+				Key:  uuid.NewString(),
 				Name: fmt.Sprintf("foo_%d", i),
 			},
 		}

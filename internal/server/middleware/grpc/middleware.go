@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -98,7 +98,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 		startTime := time.Now().UTC()
 
 		// set request ID if not present
-		requestID := uuid.Must(uuid.NewV4()).String()
+		requestID := uuid.NewString()
 		if r, ok := req.(RequestIdentifiable); ok {
 			requestID = r.SetRequestIDIfNotBlank(requestID)
 
@@ -318,6 +318,8 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 // x-flipt-accept-server-version represents the maximum version of the flipt server that the client can handle.
 const fliptAcceptServerVersionHeaderKey = "x-flipt-accept-server-version"
 
+const fliptNamespaceHeaderKey = "x-flipt-namespace"
+
 type fliptAcceptServerVersionContextKey struct{}
 
 // WithFliptAcceptServerVersion sets the flipt version in the context.
@@ -366,13 +368,23 @@ func FliptAcceptServerVersionUnaryInterceptor(logger *zap.Logger) grpc.UnaryServ
 // ForwardFliptAcceptServerVersion extracts the "x-flipt-accept-server-version"" header from an HTTP request
 // and forwards them as grpc metadata entries.
 func ForwardFliptAcceptServerVersion(ctx context.Context, req *http.Request) metadata.MD {
+	return forwardHeader(ctx, req, fliptAcceptServerVersionHeaderKey)
+}
+
+// ForwardFliptNamespace extracts the "x-flipt-namespace" header from an HTTP request
+// and forwards them as grpc metadata entries.
+func ForwardFliptNamespace(ctx context.Context, req *http.Request) metadata.MD {
+	return forwardHeader(ctx, req, fliptNamespaceHeaderKey)
+}
+
+func forwardHeader(ctx context.Context, req *http.Request, headerKey string) metadata.MD {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		md = metadata.MD{}
 	}
-	values := req.Header.Values(fliptAcceptServerVersionHeaderKey)
+	values := req.Header.Values(headerKey)
 	if len(values) > 0 {
-		md[fliptAcceptServerVersionHeaderKey] = values
+		md[headerKey] = values
 	}
 	return md
 }

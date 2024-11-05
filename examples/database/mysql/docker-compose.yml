@@ -10,11 +10,16 @@ services:
       - MYSQL_USER=mysql
       - MYSQL_PASSWORD=password
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
 
   flipt:
-    build: .
+    image: flipt/flipt:latest
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
@@ -23,7 +28,7 @@ services:
       - FLIPT_DB_URL=mysql://mysql:password@mysql:3306/flipt
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_META_TELEMETRY_ENABLED=false
-    command: ["./tmp/wait-for-it.sh", "mysql:3306", "--", "./flipt", "--force-migrate"]
+    command: ["/flipt", "--force-migrate"]
 
 networks:
   flipt_network:

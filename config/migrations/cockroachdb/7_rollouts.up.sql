@@ -20,9 +20,10 @@ CREATE TABLE IF NOT EXISTS rollout_thresholds (
 
 CREATE TABLE IF NOT EXISTS rollout_segments (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
-  namespace_key VARCHAR(255) NOT NULL REFERENCES namespaces ON DELETE CASCADE,
+  namespace_key VARCHAR(255) NOT NULL,
   rollout_id VARCHAR(255) NOT NULL REFERENCES rollouts ON DELETE CASCADE,
   segment_key VARCHAR(255) NOT NULL,
   value BOOLEAN DEFAULT FALSE NOT NULL,
-  FOREIGN KEY (namespace_key, segment_key) REFERENCES segments (namespace_key, key) ON DELETE CASCADE
+  CONSTRAINT fk_namespace_key_ref_namespaces FOREIGN KEY (namespace_key) REFERENCES namespaces ON DELETE CASCADE,
+  CONSTRAINT fk_namespace_key_ref_segments FOREIGN KEY (namespace_key, segment_key) REFERENCES segments (namespace_key, key) ON DELETE CASCADE
 );

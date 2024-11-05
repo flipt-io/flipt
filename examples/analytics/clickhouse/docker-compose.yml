@@ -14,11 +14,14 @@ services:
       - flipt_network
     environment:
       - CLICKHOUSE_DB=flipt_analytics
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
 
   flipt:
-    build: .
+    image: flipt/flipt:latest
     depends_on:
-      - clickhouse
+      clickhouse:
+        condition: service_healthy
     ports:
       - "8080:8080"
     networks:
@@ -29,14 +32,7 @@ services:
       - FLIPT_ANALYTICS_STORAGE_CLICKHOUSE_ENABLED=true
       - FLIPT_ANALYTICS_STORAGE_CLICKHOUSE_URL=clickhouse://clickhouse:9000/flipt_analytics
       - FLIPT_META_TELEMETRY_ENABLED=false
-    command:
-      [
-        "./tmp/wait-for-it.sh",
-        "clickhouse:9000",
-        "--",
-        "./flipt",
-        "--force-migrate",
-      ]
+    command: ["/flipt", "--force-migrate"]
 
 networks:
   flipt_network:

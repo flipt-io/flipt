@@ -13,7 +13,7 @@ To run this example application you'll need:
 
 ## Running the Example
 
-1. Run `docker-compose up` from this directory
+1. Run `docker compose up` from this directory
 1. Open the Flipt UI (default: [http://localhost:8080](http://localhost:8080))
 1. Open the example UI at [http://localhost:8000](http://localhost:8000)
 1. Switch back to the Flipt UI

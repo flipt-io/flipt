@@ -1,8 +1,8 @@
-ARG GO_VERSION=1.20
+ARG GO_VERSION=1.23
 
 FROM golang:${GO_VERSION}-alpine
 
-RUN apk update && apk add --no-cache git
+RUN apk add --no-cache git
 
 WORKDIR /example
 COPY . .

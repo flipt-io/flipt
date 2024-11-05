@@ -8,7 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
@@ -46,9 +46,7 @@ func NewStore(driver storagesql.Driver, builder sq.StatementBuilderType, logger 
 			now := time.Now().UTC().Truncate(time.Microsecond)
 			return timestamppb.New(now)
 		},
-		generateID: func() string {
-			return uuid.Must(uuid.NewV4()).String()
-		},
+		generateID:    uuid.NewString,
 		generateToken: storageauth.GenerateRandomToken,
 	}
 
