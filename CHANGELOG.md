@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.51.1](https://github.com/flipt-io/flipt/releases/tag/v1.51.1) - 2024-11-05
+
+### Changed
+
+- replace gofrs/uuid with google/uuid (#3576)
+- `examples`: bump examples with recent changes (#3575)
+- update attachment messaging and size to allow 1mb (#3595)
+
+### Fixed
+
+- pin goreleaser to v2.3.x to fix arm release (#3598)
+- devcontainer update go version to 1.23 (#3597)
+- `ui`: remove unnecessary scrolls for quick edit forms (#3592)
+- `ofrep`: forward x-flipt-namespace http header from grpc-gateway to (#3591)
+- `cockroachdb`: rework migrations for cockroachdb v23 and v24 (#3573)
+- use user's home for sqlite db if no preferred location (#3570)
+
 ## [v1.51.0](https://github.com/flipt-io/flipt/releases/tag/v1.51.0) - 2024-10-28
 
 ### Changed
