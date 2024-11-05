@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - replace gofrs/uuid with google/uuid (#3576)
 - `examples`: bump examples with recent changes (#3575)
+- update attachment messaging and size to allow 1mb (#3595)
 
 ### Fixed
 
+- pin goreleaser to v2.3.x to fix arm release (#3598)
+- devcontainer update go version to 1.23 (#3597)
 - `ui`: remove unnecessary scrolls for quick edit forms (#3592)
 - `ofrep`: forward x-flipt-namespace http header from grpc-gateway to (#3591)
 - `cockroachdb`: rework migrations for cockroachdb v23 and v24 (#3573)
