@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	maxJsonStringSize = 10000
-	entityPropertyKey = "entityId"
+	maxJsonStringSizeKB = 1000
+	entityPropertyKey   = "entityId"
 )
 
 // Validator validates types
@@ -32,9 +32,9 @@ func validateJsonParameter(jsonValue string, parameterName string) error {
 		return errors.InvalidFieldError(parameterName, "must be a json string")
 	}
 
-	if len(bytes) > maxJsonStringSize {
+	if len(bytes) > (maxJsonStringSizeKB * 1024) {
 		return errors.InvalidFieldError(parameterName,
-			fmt.Sprintf("must be less than %d KB", maxJsonStringSize),
+			fmt.Sprintf("must be less than %d KB", maxJsonStringSizeKB),
 		)
 	}
 
