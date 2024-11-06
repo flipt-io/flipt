@@ -32,11 +32,11 @@ function NavItem(props: NavItemProps) {
       to={to}
       className={({ isActive }) =>
         cls(
-          'group nightwind-prevent text-white flex items-center rounded-md px-2 py-2 text-sm font-medium',
+          'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white dark:text-black',
           {
-            'bg-gray-800 md:text-gray-700 md:bg-gray-50 md:dark:text-gray-50 md:dark:bg-gray-700':
+            'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
               isActive,
-            'hover:bg-gray-700 md:text-gray-600 md:hover:text-gray-700 md:hover:bg-gray-50 md:dark:text-gray-400 md:dark:hover:text-gray-300 md:dark:hover:bg-gray-700':
+            'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
               !isActive
           }
         )
@@ -44,7 +44,7 @@ function NavItem(props: NavItemProps) {
       onClick={onClick}
     >
       <Icon
-        className="nightwind-prevent text-white mr-3 h-6 w-6 flex-shrink-0 md:text-gray-500 md:dark:text-gray-400"
+        className="mr-3 h-6 w-6 flex-shrink-0 text-white dark:text-black md:text-gray-500 md:dark:text-gray-400"
         aria-hidden="true"
       />
       {name}
@@ -137,7 +137,7 @@ export default function Nav(props: NavProps) {
             }}
           />
         ))}
-        <div className="text-gray-400 flex space-x-1 px-3 pt-2 text-xs">
+        <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-400">
           <span className="flex-shrink-0">Command Mode:</span>
           <div className="flex-shrink-0">
             <kbd className="text-gray-400">ctrl</kbd> +{' '}

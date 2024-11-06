@@ -215,10 +215,10 @@ export default function Console() {
   return (
     <>
       <div className="relative flex flex-col">
-        <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
+        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
           Console
         </h1>
-        <p className="text-gray-500 mt-2 text-sm">
+        <p className="mt-2 text-sm text-gray-500">
           See the results of your flag evaluations and debug any issues
         </p>
       </div>
@@ -240,7 +240,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="flagKey"
-                            className="text-gray-700 block text-sm font-medium"
+                            className="block text-sm font-medium text-gray-700"
                           >
                             Flag Key
                           </label>
@@ -257,7 +257,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="entityId"
-                            className="text-gray-700 block text-sm font-medium"
+                            className="block text-sm font-medium text-gray-700"
                           >
                             Entity ID
                           </label>
@@ -277,18 +277,18 @@ export default function Console() {
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <ArrowPathIcon className="text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500" />
+                              <ArrowPathIcon className="m-auto h-5 w-5 justify-center align-middle text-gray-400 transition-opacity duration-300 ease-in-out hover:text-gray-500" />
                             </button>
                           </div>
                         </div>
                         <div className="col-span-3">
                           <label
                             htmlFor="context"
-                            className="text-gray-700 block text-sm font-medium"
+                            className="block text-sm font-medium text-gray-700"
                           >
                             Request Context
                           </label>
-                          <div className="nightwind-prevent mt-1 text-sm">
+                          <div className="mt-1 text-sm">
                             <ContextEditor
                               id="context"
                               setValue={(v) => {
@@ -337,7 +337,7 @@ export default function Console() {
             </div>
             <div className="mt-10 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
-                <pre className="nightwind-prevent bg-[#1a1b26] p-2 text-sm md:h-full">
+                <pre className="bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
                     <p className="text-red-400">{response}</p>
                   ) : (

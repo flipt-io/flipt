@@ -130,7 +130,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 <div className="col-span-2">
                   <label
                     htmlFor="name"
-                    className="text-gray-700 block text-sm font-medium"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Name
                   </label>
@@ -160,7 +160,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 <div className="col-span-2">
                   <label
                     htmlFor="key"
-                    className="text-gray-700 block text-sm font-medium"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Key
                   </label>
@@ -195,7 +195,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       >
                         <CheckIcon
                           className={cls(
-                            'nightwind-prevent text-green-400 invisible absolute m-auto h-5 w-5 justify-center align-middle opacity-0 transition-opacity duration-300 ease-in-out',
+                            'invisible absolute m-auto h-5 w-5 justify-center align-middle text-green-400 opacity-0 transition-opacity duration-300 ease-in-out',
                             {
                               'visible opacity-100': keyCopied
                             }
@@ -203,7 +203,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         />
                         <ClipboardDocumentIcon
                           className={cls(
-                            'text-gray-300 visible m-auto h-5 w-5 justify-center align-middle opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
+                            'visible m-auto h-5 w-5 justify-center align-middle text-gray-300 opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
                             {
                               'invisible opacity-0': keyCopied
                             }
@@ -216,7 +216,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                 <div className="col-span-3">
                   <label
                     htmlFor="type"
-                    className="text-gray-700 block text-sm font-medium"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Type
                   </label>
@@ -235,7 +235,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                               name="type"
                               type="radio"
                               disabled={!isNew || readOnly}
-                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                               onChange={() => {
                                 formik.setFieldValue('type', flagType.id);
                                 formik.setFieldValue('enabled', false);
@@ -247,7 +247,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           <div className="ml-3 text-sm">
                             <label
                               htmlFor={flagType.id}
-                              className="text-gray-700 font-medium"
+                              className="font-medium text-gray-700"
                             >
                               {flagType.name}
                             </label>
@@ -267,12 +267,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   <div className="flex justify-between">
                     <label
                       htmlFor="description"
-                      className="text-gray-700 block text-sm font-medium"
+                      className="block text-sm font-medium text-gray-700"
                     >
                       Description
                     </label>
                     <span
-                      className="text-gray-500 text-xs"
+                      className="text-xs text-gray-500"
                       id="description-optional"
                     >
                       Optional

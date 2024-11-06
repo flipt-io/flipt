@@ -27,14 +27,14 @@ export default function ReadOnly() {
 
   return (
     <span
-      className="nightwind-prevent text-white inline-flex items-center gap-x-1.5 rounded-md px-3 py-1 text-xs font-medium"
+      className="inline-flex items-center gap-x-1.5 rounded-md px-3 py-1 text-xs font-medium text-white dark:text-black"
       title={`Backed by ${titleCase(
         config.storage?.type || 'unknown'
       )} Storage`}
     >
       {config.storage?.type == 'git' && (
         <span
-          className="nightwind-prevent text-violet-200 max-w-32 truncate font-medium"
+          className="max-w-32 truncate font-medium text-violet-200"
           title={`ref: ${config.storage?.git?.ref} repo: ${config.storage?.git?.repository}`}
         >
           {config.storage?.git?.ref}

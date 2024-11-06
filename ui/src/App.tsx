@@ -1,5 +1,4 @@
 import loadable from '@loadable/component';
-import nightwind from 'nightwind/helper';
 import formbricks from '@formbricks/js/website';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
@@ -169,10 +168,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (theme === Theme.SYSTEM) {
-      nightwind.enable(systemPrefersDark);
+    if ((theme === Theme.SYSTEM && systemPrefersDark) || theme === Theme.DARK) {
+      document.documentElement.classList.add('dark');
     } else {
-      nightwind.enable(theme === Theme.DARK);
+      document.documentElement.classList.remove('dark');
     }
   }, [theme, systemPrefersDark]);
 
@@ -192,7 +191,6 @@ export default function App() {
         <title>{title}</title>
         <link rel="icon" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script dangerouslySetInnerHTML={{ __html: nightwind.init() }} />
       </Helmet>
       <SessionProvider>
         <RouterProvider router={router} />
