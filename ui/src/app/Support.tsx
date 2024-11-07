@@ -16,9 +16,9 @@ const supportItems: SupportItemProps[] = [
     children: (
       <Link
         to="/onboarding"
-        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
       >
-        <span className="text-gray-700 text-sm">Let&apos;s Go</span>
+        <span className="text-sm text-gray-700">Let&apos;s Go</span>
       </Link>
     ),
     icon: BookOpenIcon
@@ -28,10 +28,10 @@ const supportItems: SupportItemProps[] = [
     description: 'Get support from the community',
     children: (
       <a
-        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="https://github.com/flipt-io/flipt/issues/new/choose"
       >
-        <span className="text-gray-700 text-sm">Create GitHub Issue</span>
+        <span className="text-sm text-gray-700">Create GitHub Issue</span>
       </a>
     ),
     icon: ExclamationCircleIcon
@@ -41,10 +41,10 @@ const supportItems: SupportItemProps[] = [
     description: 'Ask a question in our Discord community',
     children: (
       <a
-        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="https://www.flipt.io/discord"
       >
-        <span className="text-gray-700 text-sm">Join Discord Server</span>
+        <span className="text-sm text-gray-700">Join Discord Server</span>
       </a>
     ),
     icon: ChatBubbleBottomCenterIcon
@@ -54,10 +54,10 @@ const supportItems: SupportItemProps[] = [
     description: 'Send an email to our shared inbox',
     children: (
       <a
-        className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="mailto:dev@flipt.io?subject=Support Inquiry"
       >
-        <span className="text-gray-700 text-sm">Send Email</span>
+        <span className="text-sm text-gray-700">Send Email</span>
       </a>
     ),
     icon: EnvelopeIcon
@@ -74,13 +74,13 @@ interface SupportItemProps {
 function SupportItem(props: SupportItemProps) {
   const { title, description, children, icon: Icon } = props;
   return (
-    <div className="border-gray-200 flex h-full w-full flex-col items-stretch space-y-4 rounded-md border p-6">
+    <div className="flex h-full w-full flex-col items-stretch space-y-4 rounded-md border border-gray-200 p-6">
       <div className="sm:shrink-0">
         <div className="flex items-center space-x-2">
-          <Icon className="text-gray-400 h-6 w-6" />
-          <h3 className="text-gray-900 text-base font-semibold">{title}</h3>
+          <Icon className="h-6 w-6 text-gray-400" />
+          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
         </div>
-        <p className="text-gray-500 pt-1 text-sm leading-5">{description}</p>
+        <p className="pt-1 text-sm leading-5 text-gray-500">{description}</p>
       </div>
       <div className="mt-4 flex grow items-end sm:mt-0">{children}</div>
     </div>
@@ -92,23 +92,23 @@ export default function Support() {
     <>
       <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
+          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
             Support
           </h1>
-          <p className="text-gray-500 mt-2 text-sm">
+          <p className="mt-2 text-sm text-gray-500">
             How to get help with Flipt
           </p>
         </div>
         <div className="mt-4">
           <a
-            className="text-white bg-violet-500 mb-1 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm hover:bg-violet-600 hover:cursor-pointer focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
+            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:cursor-pointer hover:bg-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
             target="_blank"
             rel="noreferrer"
             href="https://www.flipt.io/docs?utm_source=app"
           >
             <span>Documentation</span>
             <ArrowUpRightIcon
-              className="text-white -mr-1.5 ml-1 h-3 w-3"
+              className="-mr-1.5 ml-1 h-3 w-3 text-white"
               aria-hidden="true"
             />
           </a>

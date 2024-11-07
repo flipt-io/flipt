@@ -16,7 +16,7 @@ export default function Loading(props: LoadingProps) {
     >
       <div
         className={cls(
-          'border-violet-300 h-5 w-5 animate-spin rounded-full border-b-2',
+          'h-5 w-5 animate-spin rounded-full border-b-2 border-violet-300',
           {
             'border-white-300': isPrimary
           }

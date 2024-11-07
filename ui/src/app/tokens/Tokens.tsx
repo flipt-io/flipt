@@ -103,7 +103,7 @@ export default function Tokens() {
             deletingTokens && deletingTokens.length === 1 ? (
               <>
                 Are you sure you want to delete the token{' '}
-                <span className="text-violet-500 font-medium">
+                <span className="font-medium text-violet-500">
                   {deletingTokens[0].name}
                 </span>
                 ? This action cannot be undone.
@@ -134,10 +134,10 @@ export default function Tokens() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="text-gray-700 text-xl font-semibold">
+            <h3 className="text-xl font-semibold text-gray-700">
               Static Tokens
             </h3>
-            <p className="text-gray-500 mt-2 text-sm">
+            <p className="mt-2 text-sm text-gray-500">
               Static tokens are used to authenticate with the API
             </p>
           </div>
@@ -145,7 +145,7 @@ export default function Tokens() {
             <div className="mt-4">
               <Button variant="primary" onClick={() => setShowTokenForm(true)}>
                 <PlusIcon
-                  className="text-white -ml-1.5 mr-1 h-5 w-5"
+                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
                   aria-hidden="true"
                 />
                 <span>New Token</span>
@@ -173,10 +173,10 @@ export default function Tokens() {
         ) : (
           <div className="mt-8 flex flex-col text-center">
             <Well>
-              <p className="text-gray-600 text-sm">
+              <p className="text-sm text-gray-600">
                 Token Authentication Disabled
               </p>
-              <p className="text-gray-500 mt-4 text-sm">
+              <p className="mt-4 text-sm text-gray-500">
                 See the configuration{' '}
                 <a
                   className="text-violet-500"

@@ -195,14 +195,14 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="bg-white flex h-full w-full flex-col">
+          <Form className="flex h-full w-full flex-col bg-white">
             <div className="w-full flex-1">
               <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
                     <label
                       htmlFor="segmentKeys"
-                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -230,7 +230,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         )}
                       />
                       {rule.segments.length === 0 ? (
-                        <div className="text-red-500 mt-1 text-sm">
+                        <div className="mt-1 text-sm text-red-500">
                           Segment is missing
                         </div>
                       ) : null}
@@ -245,7 +245,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                 name="operator"
                                 type="radio"
                                 className={cls(
-                                  'text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400',
+                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
                                   { 'cursor-not-allowed': readOnly }
                                 )}
                                 onChange={() => {
@@ -269,7 +269,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                             <div>
                               <label
                                 htmlFor={segmentOperator.id}
-                                className="text-gray-700 block text-sm"
+                                className="block text-sm text-gray-700"
                               >
                                 {segmentOperator.name}{' '}
                                 <span className="font-light">
@@ -286,7 +286,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                   <div>
                     <label
                       htmlFor="ruleType"
-                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Type
                     </label>
@@ -305,7 +305,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                               <div className="text-sm">
                                 <label
                                   htmlFor={dist.id}
-                                  className="text-gray-700 font-medium"
+                                  className="font-medium text-gray-700"
                                 >
                                   {dist.name}
                                 </label>
@@ -340,7 +340,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       <div>
                         <label
                           htmlFor="variantKey"
-                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                         >
                           Variants
                         </label>
@@ -359,7 +359,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
-                                        className="text-gray-600 block truncate text-right text-sm sm:mt-px sm:pr-2 sm:pt-2"
+                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
                                       >
                                         {dist.variant.key}
                                       </label>
@@ -369,9 +369,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         key={index}
                                         type="number"
                                         className={cls(
-                                          'text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
+                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
                                           {
-                                            'text-gray-500 bg-gray-100 cursor-not-allowed':
+                                            'cursor-not-allowed bg-gray-100 text-gray-500':
                                               readOnly
                                           }
                                         )}
@@ -398,7 +398,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       )}
                     />
                     {formik.touched.rollouts && formik.errors.rollouts && (
-                      <p className="text-gray-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
+                      <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
                         Multi-variate rules must have distributions that add up
                         to 100% or less.
                       </p>

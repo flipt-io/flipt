@@ -155,14 +155,14 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       }}
     >
       {(formik) => (
-        <Form className="bg-white flex h-full w-full flex-col">
+        <Form className="flex h-full w-full flex-col bg-white">
           <div className="w-full flex-1">
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
               {rollout.type === RolloutType.THRESHOLD ? (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                   <label
                     htmlFor="percentage"
-                    className="text-gray-900 mb-2 block text-sm font-medium"
+                    className="mb-2 block text-sm font-medium text-gray-900"
                   >
                     Percentage
                   </label>
@@ -170,10 +170,10 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="bg-gray-200 hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle dark:bg-gray-700 sm:block"
+                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-700 sm:block"
                   />
                   <div className="relative">
-                    <div className="text-black pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
                       %
                     </div>
                     <Input
@@ -191,7 +191,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   <div>
                     <label
                       htmlFor="segmentKeys"
-                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -229,7 +229,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 name="operator"
                                 type="radio"
                                 className={cls(
-                                  'text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400',
+                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
                                   { 'cursor-not-allowed': readOnly }
                                 )}
                                 onChange={() => {
@@ -253,7 +253,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                             <div>
                               <label
                                 htmlFor={segmentOperator.id}
-                                className="text-gray-700 block text-sm"
+                                className="block text-sm text-gray-700"
                               >
                                 {segmentOperator.name}{' '}
                                 <span className="font-light">
@@ -270,7 +270,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                 <label
                   htmlFor="value"
-                  className="text-gray-900 mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-gray-900"
                 >
                   Value
                 </label>
@@ -284,7 +284,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   ]}
                   className={cls(
                     'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
-                    { 'text-gray-500 bg-gray-100 cursor-not-allowed': readOnly }
+                    { 'cursor-not-allowed bg-gray-100 text-gray-500': readOnly }
                   )}
                   disabled={readOnly}
                 />

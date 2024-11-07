@@ -421,7 +421,7 @@ export default function Rollouts(props: RolloutsProps) {
                 into place.
               </p>
             </div>
-            <div className="dark:pattern-bg-solidwhite dark:pattern-bg-gray-solid pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 lg:p-6">
+            <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
               {rollouts && rollouts.length > 0 && (
                 <DndContext
                   sensors={sensors}

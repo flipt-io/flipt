@@ -71,7 +71,7 @@ function IndeterminateCheckbox({
       ref={ref}
       className={
         className +
-        ' text-purple-600 bg-gray-100 border-gray-300 h-4 w-4 cursor-pointer rounded focus:ring-purple-500'
+        ' h-4 w-4 cursor-pointer rounded border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500'
       }
       {...rest}
     />
@@ -249,7 +249,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
                           <div
                             className="group inline-flex cursor-pointer"
@@ -261,7 +261,7 @@ export default function TokenTable(props: TokenTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
+                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon
@@ -283,7 +283,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
                           {header.isPlaceholder
                             ? null
@@ -297,7 +297,7 @@ export default function TokenTable(props: TokenTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

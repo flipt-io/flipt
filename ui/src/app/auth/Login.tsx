@@ -124,7 +124,7 @@ function InnerLoginButtons() {
             <div key={provider.name}>
               <a
                 href="#"
-                className="bg-white text-gray-500 border-gray-300 inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm hover:text-violet-500 hover:shadow-violet-300"
+                className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:text-violet-500 hover:shadow-violet-300"
                 onClick={(e) => {
                   e.preventDefault();
                   authorize(provider.authorize_url);
@@ -145,10 +145,10 @@ function InnerLoginButtons() {
       {providers.length === 0 && (
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-gray-900 text-base font-semibold leading-6">
+            <h3 className="text-base font-semibold leading-6 text-gray-900">
               No Providers
             </h3>
-            <div className="text-gray-500 mt-2 max-w-xl text-sm">
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
               <p>
                 Authentication is set to{' '}
                 <span className="font-medium">required</span>, however, there
@@ -159,7 +159,7 @@ function InnerLoginButtons() {
             <div className="mt-3 text-sm leading-6">
               <a
                 href="https://www.flipt.io/docs/configuration/authentication"
-                className="text-violet-600 font-semibold hover:text-violet-500"
+                className="font-semibold text-violet-600 hover:text-violet-500"
               >
                 Configuring Authentication
                 <span aria-hidden="true"> &rarr;</span>
@@ -181,7 +181,7 @@ function InnerLogin() {
 
   return (
     <>
-      <div className="bg-white flex min-h-screen flex-col justify-center sm:px-6 lg:px-8">
+      <div className="flex min-h-screen flex-col justify-center bg-white sm:px-6 lg:px-8">
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -192,7 +192,7 @@ function InnerLogin() {
                 height={512}
                 className="m-auto h-20 w-20"
               />
-              <h2 className="text-gray-900 mt-6 text-center text-3xl font-bold tracking-tight">
+              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
                 Login to Flipt
               </h2>
             </div>

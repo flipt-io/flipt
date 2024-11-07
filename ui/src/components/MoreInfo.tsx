@@ -15,10 +15,10 @@ export default function MoreInfo(props: MoreInfoProps) {
         href={href}
         target="_blank"
         rel="noreferrer"
-        className="group text-gray-500 inline-flex items-center hover:text-gray-600"
+        className="group inline-flex items-center text-gray-500 hover:text-gray-600"
       >
         <QuestionMarkCircleIcon
-          className="text-gray-300 -ml-1 h-4 w-4 group-hover:text-gray-400"
+          className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
           aria-hidden="true"
         />
         <span className="ml-1">{children}</span>

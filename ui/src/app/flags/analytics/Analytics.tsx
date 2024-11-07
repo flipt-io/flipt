@@ -165,8 +165,8 @@ export default function Analytics() {
       ) : (
         <div className="flex flex-col text-center">
           <Well>
-            <p className="text-gray-600 text-sm">Analytics Disabled</p>
-            <p className="text-gray-500 mt-4 text-sm">
+            <p className="text-sm text-gray-600">Analytics Disabled</p>
+            <p className="mt-4 text-sm text-gray-500">
               See the configuration{' '}
               <a
                 className="text-violet-500"

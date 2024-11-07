@@ -49,10 +49,10 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="body-font text-gray-700 sticky top-[100vh]">
+    <footer className="body-font sticky top-[100vh] text-gray-700">
       <div className="mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
         <div className="container mx-auto flex flex-col items-center space-x-4 sm:flex-row">
-          <p className="text-gray-500 mt-4 text-xs sm:mt-0">
+          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
             <span className="hidden sm:inline">
               {ref() && (
                 <>
@@ -68,7 +68,7 @@ export default function Footer() {
               reserved.
             </span>
           </p>
-          <p className="text-gray-500 mt-4 text-xs sm:mt-0">
+          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
             <span className="hidden sm:inline">
               <a
                 target="_blank"
@@ -80,7 +80,7 @@ export default function Footer() {
               </a>
             </span>
           </p>
-          <p className="text-gray-500 mt-4 text-xs sm:mt-0">
+          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
             <span className="hidden sm:inline">
               <a
                 target="_blank"

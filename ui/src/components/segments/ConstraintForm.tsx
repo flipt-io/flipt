@@ -121,7 +121,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
         >
           Value
         </label>
@@ -147,7 +147,7 @@ function ConstraintValueArrayInput(props: ConstraintArrayInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
         >
           Values
         </label>
@@ -207,17 +207,17 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
         >
           Value
         </label>
-        <span className="text-gray-400 text-xs" id="value-tz">
+        <span className="text-xs text-gray-400" id="value-tz">
           <Link
             to="/settings"
-            className="group text-gray-400 inline-flex items-center hover:text-gray-500"
+            className="group inline-flex items-center text-gray-400 hover:text-gray-500"
           >
             <QuestionMarkCircleIcon
-              className="text-gray-300 -ml-1 h-4 w-4 group-hover:text-gray-400"
+              className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
               aria-hidden="true"
             />
             <span className="ml-1">
@@ -362,12 +362,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       validationSchema={validationSchema}
     >
       {(formik) => (
-        <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
           <div className="flex-1">
             <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-gray-900 text-lg font-medium">
+                  <Dialog.Title className="text-lg font-medium text-gray-900">
                     {title}
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#constraints">
@@ -393,7 +393,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="type"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Type
                   </label>
@@ -437,7 +437,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     <div>
                       <label
                         htmlFor="property"
-                        className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                       >
                         Property
                       </label>
@@ -452,7 +452,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="operator"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Operator
                   </label>
@@ -497,12 +497,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="description"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-gray-400 text-xs"
+                    className="text-xs text-gray-400"
                     id="description-optional"
                   >
                     Optional
@@ -514,7 +514,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
+          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

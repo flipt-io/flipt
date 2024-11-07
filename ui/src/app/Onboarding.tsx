@@ -119,10 +119,10 @@ function OnboardingTile(props: OnboardingTileProps) {
     >
       <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
         {Icon && (
-          <Icon className="text-gray-700 h-6 w-6 origin-left transform-gpu transition-all duration-300 ease-in-out group-hover:scale-50" />
+          <Icon className="h-6 w-6 origin-left transform-gpu text-gray-700 transition-all duration-300 ease-in-out group-hover:scale-50" />
         )}
-        <h3 className="text-gray-700 text-lg font-semibold">{name}</h3>
-        <p className="text-gray-500 max-w-lg">{description}</p>
+        <h3 className="text-lg font-semibold text-gray-700">{name}</h3>
+        <p className="max-w-lg text-gray-500">{description}</p>
       </div>
       <div
         className={cls(
@@ -133,7 +133,7 @@ function OnboardingTile(props: OnboardingTileProps) {
           href={href || '/#/onboarding'}
           target="_blank"
           rel="noreferrer"
-          className="text-gray-500 flex flex-row space-x-1 px-2 py-1 hover:text-gray-700 sm:px-3 sm:py-2"
+          className="flex flex-row space-x-1 px-2 py-1 text-gray-500 hover:text-gray-700 sm:px-3 sm:py-2"
         >
           <span className="flex">{cta || 'Learn More'}</span>
           <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
@@ -156,10 +156,10 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
     <>
       <div className="flex flex-row justify-between pb-5 sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
+          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
             Onboarding
           </h1>
-          <p className="text-gray-500 mt-2 text-sm">
+          <p className="mt-2 text-sm text-gray-500">
             Here are some things to help you get started with Flipt
           </p>
         </div>
@@ -187,10 +187,10 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
       </div>
       <div className="mt-12 flex flex-row justify-between pb-5 sm:mt-16 sm:items-center">
         <div className="flex flex-col">
-          <h2 className="text-gray-900 text-xl font-bold leading-7 sm:truncate sm:text-2xl">
+          <h2 className="text-xl font-bold leading-7 text-gray-900 sm:truncate sm:text-2xl">
             More Resources
           </h2>
-          <p className="text-gray-500 mt-2 text-sm">
+          <p className="mt-2 text-sm text-gray-500">
             Once you&apos;re up and running, here are a few more resources
           </p>
         </div>

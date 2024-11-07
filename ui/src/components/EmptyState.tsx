@@ -31,17 +31,17 @@ export default function EmptyState(props: EmptyStateProps) {
     >
       {Icon && onClick && (
         <Icon
-          className="text-violet-200 mx-auto h-12 w-12"
+          className="mx-auto h-12 w-12 text-violet-200"
           aria-hidden="true"
         />
       )}
       {text && (
-        <span className="text-gray-900 mt-2 block text-sm font-medium">
+        <span className="mt-2 block text-sm font-medium text-gray-900">
           {text}
         </span>
       )}
       {secondaryText && (
-        <span className="text-gray-400 mt-2 block text-sm">
+        <span className="mt-2 block text-sm text-gray-400">
           {secondaryText}
         </span>
       )}
