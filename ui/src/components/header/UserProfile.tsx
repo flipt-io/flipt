@@ -35,7 +35,7 @@ export default function UserProfile(props: UserProfileProps) {
   return (
     <Menu as="div" className="relative ml-3">
       <div>
-        <Menu.Button className="nightwind-prevent bg-white flex max-w-xs items-center rounded-full text-sm ring-1 ring-white hover:ring-2 hover:ring-violet-500/80 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-2">
+        <Menu.Button className="flex max-w-xs items-center rounded-full bg-white text-sm ring-1 ring-white hover:ring-2 hover:ring-violet-500/80 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-2 dark:bg-black dark:ring-black">
           <span className="sr-only">Open user menu</span>
           {user.imgURL && (
             <img
@@ -48,7 +48,7 @@ export default function UserProfile(props: UserProfileProps) {
           )}
           {!user.imgURL && (
             <UserCircleIcon
-              className="nightwind-prevent text-gray-800 h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full text-gray-800"
               aria-hidden="true"
             />
           )}
@@ -63,21 +63,21 @@ export default function UserProfile(props: UserProfileProps) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           {(user.name || user.login) && (
             <Menu.Item disabled>
               {({ active }) => (
                 <span
                   className={cls(
-                    'border-gray-200 flex flex-col border-b px-4 py-2',
+                    'flex flex-col border-b border-gray-200 px-4 py-2',
                     { 'bg-gray-100': active }
                   )}
                 >
-                  <span className="text-gray-600 flex-1 text-sm">
+                  <span className="flex-1 text-sm text-gray-600">
                     {user.name}
                   </span>
                   {user.login && (
-                    <span className="text-gray-400 text-xs">{user.login}</span>
+                    <span className="text-xs text-gray-400">{user.login}</span>
                   )}
                 </span>
               )}
@@ -91,7 +91,7 @@ export default function UserProfile(props: UserProfileProps) {
                   e.preventDefault();
                   logout();
                 }}
-                className={cls('text-gray-700 block px-4 py-2 text-sm', {
+                className={cls('block px-4 py-2 text-sm text-gray-700', {
                   'bg-gray-100': active
                 })}
               >

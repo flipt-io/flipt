@@ -89,7 +89,7 @@ export default function Flag() {
           panelMessage={
             <>
               Are you sure you want to delete the flag{' '}
-              <span className="text-violet-500 font-medium">{flag.key}</span>?
+              <span className="font-medium text-violet-500">{flag.key}</span>?
               This action cannot be undone.
             </>
           }
@@ -113,7 +113,7 @@ export default function Flag() {
           panelMessage={
             <>
               Copy the flag{' '}
-              <span className="text-violet-500 font-medium">{flag.key}</span> to
+              <span className="font-medium text-violet-500">{flag.key}</span> to
               the namespace:
             </>
           }
@@ -136,16 +136,16 @@ export default function Flag() {
       {/* flag header / actions */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
             {flag.name}
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
             <div
               title={inTimezone(flag.createdAt)}
-              className="text-gray-500 mt-2 flex items-center text-sm"
+              className="mt-2 flex items-center text-sm text-gray-500"
             >
               <CalendarIcon
-                className="text-gray-400 mr-1.5 h-5 w-5 flex-shrink-0"
+                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
                 aria-hidden="true"
               />
               Created{' '}
@@ -187,7 +187,7 @@ export default function Flag() {
         <div className="my-5">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
-              <p className="text-gray-500 mt-1 text-sm">
+              <p className="mt-1 text-sm text-gray-500">
                 Basic information about the flag and its status.
               </p>
               <MoreInfo
@@ -204,7 +204,7 @@ export default function Flag() {
         </div>
         <>
           <div className="mt-3 flex flex-row sm:mt-5">
-            <div className="border-gray-200 border-b-2">
+            <div className="border-b-2 border-gray-200">
               <nav className="-mb-px flex space-x-8">
                 {flag.type === FlagType.VARIANT ? (
                   <>
@@ -217,8 +217,8 @@ export default function Flag() {
                           cls(
                             'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
                             {
-                              'text-violet-600 border-violet-500': isActive,
-                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                              'border-violet-500 text-violet-600': isActive,
+                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
                                 !isActive
                             }
                           )
@@ -239,8 +239,8 @@ export default function Flag() {
                           cls(
                             'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
                             {
-                              'text-violet-600 border-violet-500': isActive,
-                              'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                              'border-violet-500 text-violet-600': isActive,
+                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
                                 !isActive
                             }
                           )

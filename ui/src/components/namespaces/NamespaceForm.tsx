@@ -74,12 +74,12 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
       validationSchema={namespaceValidationSchema}
     >
       {(formik) => (
-        <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
           <div className="flex-1">
             <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-gray-900 text-lg font-medium">
+                  <Dialog.Title className="text-lg font-medium text-gray-900">
                     {title}
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#namespaces">
@@ -103,7 +103,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Name
                   </label>
@@ -136,7 +136,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="key"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Key
                   </label>
@@ -157,12 +157,12 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="description"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-gray-400 text-xs"
+                    className="text-xs text-gray-400"
                     id="description-optional"
                   >
                     Optional
@@ -174,7 +174,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
+          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button onClick={() => setOpen(false)}>Cancel</Button>
               <Button

@@ -87,12 +87,12 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
       }}
     >
       {(formik) => (
-        <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
           <div className="flex-1">
             <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-gray-900 text-lg font-medium">
+                  <Dialog.Title className="text-lg font-medium text-gray-900">
                     New Token
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/authentication/methods#static-token">
@@ -118,7 +118,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Name
                   </label>
@@ -131,12 +131,12 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="description"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-gray-400 text-xs"
+                    className="text-xs text-gray-400"
                     id="description-optional"
                   >
                     Optional
@@ -150,11 +150,11 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="expires"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Expires On
                   </label>
-                  <span className="text-gray-400 text-xs" id="expires-optional">
+                  <span className="text-xs text-gray-400" id="expires-optional">
                     Optional
                   </span>
                 </div>
@@ -171,11 +171,11 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="expires"
-                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                   >
                     Namespace
                   </label>
-                  <span className="text-gray-400 text-xs" id="expires-optional">
+                  <span className="text-xs text-gray-400" id="expires-optional">
                     Optional
                   </span>
                 </div>
@@ -186,7 +186,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                         id="namespaced"
                         name="namespaced"
                         type="checkbox"
-                        className="text-violet-600 border-gray-300 h-4 w-4 rounded focus:ring-violet-600"
+                        className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-600"
                         onChange={(e) => {
                           setNamespaceScoped(e.target.checked);
                           formik.setFieldValue(
@@ -199,7 +199,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                     <div className="ml-3 text-sm leading-6">
                       <label
                         htmlFor="namespaced"
-                        className="text-gray-700 font-medium"
+                        className="font-medium text-gray-700"
                       >
                         Scope this token to a single namespace
                       </label>
@@ -227,7 +227,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
+          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

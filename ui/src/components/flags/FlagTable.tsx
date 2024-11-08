@@ -85,8 +85,8 @@ export default function FlagTable(props: FlagTableProps) {
           <span
             className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 ${
               info.getValue()
-                ? 'text-green-600 bg-green-100'
-                : 'text-gray-500 bg-gray-100'
+                ? 'bg-green-100 text-green-600'
+                : 'bg-gray-100 text-gray-500'
             }`}
           >
             {info.getValue() ? 'Enabled' : 'Disabled'}
@@ -189,7 +189,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                   >
                     <div
                       className="group inline-flex cursor-pointer"
@@ -201,7 +201,7 @@ export default function FlagTable(props: FlagTableProps) {
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                      <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
+                      <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
                         {{
                           asc: (
                             <ChevronUpIcon
@@ -223,7 +223,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                   >
                     {header.isPlaceholder
                       ? null

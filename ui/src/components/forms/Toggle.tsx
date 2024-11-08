@@ -21,13 +21,13 @@ export default function Toggle(props: ToggleProps) {
       <span className="flex flex-grow flex-col">
         <Switch.Label
           as="span"
-          className="text-gray-900 text-sm font-medium"
+          className="text-sm font-medium text-gray-900"
           passive
         >
           {label}
         </Switch.Label>
         {description && (
-          <Switch.Description as="span" className="text-gray-500 text-sm">
+          <Switch.Description as="span" className="text-sm text-gray-500">
             {description}
           </Switch.Description>
         )}
@@ -41,7 +41,7 @@ export default function Toggle(props: ToggleProps) {
           onChange && onChange(e);
         }}
         className={cls(
-          'bg-violet-200 relative inline-flex h-6 w-11 items-center rounded-full hover:cursor-pointer focus:ring-0',
+          'relative inline-flex h-6 w-11 items-center rounded-full bg-violet-200 hover:cursor-pointer focus:ring-0',
           {
             'bg-green-400': checked,
             'hover:cursor-not-allowed': disabled
@@ -51,7 +51,7 @@ export default function Toggle(props: ToggleProps) {
         <span className="sr-only">Enable</span>
         <span
           className={cls(
-            'bg-white inline-block h-4 w-4 translate-x-1 transform rounded-full ring-0 transition',
+            'inline-block h-4 w-4 translate-x-1 transform rounded-full bg-white ring-0 transition',
             {
               'translate-x-6': checked
             }

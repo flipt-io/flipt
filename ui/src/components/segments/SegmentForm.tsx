@@ -112,7 +112,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-2">
                 <label
                   htmlFor="name"
-                  className="text-gray-700 block text-sm font-medium"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Name
                 </label>
@@ -138,7 +138,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-2">
                 <label
                   htmlFor="key"
-                  className="text-gray-700 block text-sm font-medium"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Key
                 </label>
@@ -173,7 +173,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                     >
                       <CheckIcon
                         className={cls(
-                          'nightwind-prevent text-green-400 absolute m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out',
+                          'absolute m-auto h-5 w-5 justify-center align-middle text-green-400 transition-opacity duration-300 ease-in-out',
                           {
                             'visible opacity-100': keyCopied,
                             'invisible opacity-0': !keyCopied
@@ -182,7 +182,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                       />
                       <ClipboardDocumentIcon
                         className={cls(
-                          'text-gray-300 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-400',
+                          'm-auto h-5 w-5 justify-center align-middle text-gray-300 transition-opacity duration-300 ease-in-out hover:text-gray-400',
                           {
                             'visible opacity-100': !keyCopied,
                             'invisible opacity-0': keyCopied
@@ -196,7 +196,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-3">
                 <label
                   htmlFor="matchType"
-                  className="text-gray-700 block text-sm font-medium"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Match Type
                 </label>
@@ -215,7 +215,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                             name="matchType"
                             type="radio"
                             disabled={readOnly}
-                            className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                             onChange={() => {
                               formik.setFieldValue('matchType', matchType.id);
                             }}
@@ -226,7 +226,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                         <div className="ml-3 text-sm">
                           <label
                             htmlFor={matchType.id}
-                            className="text-gray-700 font-medium"
+                            className="font-medium text-gray-700"
                           >
                             {matchType.name}
                           </label>
@@ -246,12 +246,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                 <div className="flex justify-between">
                   <label
                     htmlFor="description"
-                    className="text-gray-700 block text-sm font-medium"
+                    className="block text-sm font-medium text-gray-700"
                   >
                     Description
                   </label>
                   <span
-                    className="text-gray-500 text-xs"
+                    className="text-xs text-gray-500"
                     id="description-optional"
                   >
                     Optional

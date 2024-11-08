@@ -21,11 +21,11 @@ export default function ErrorLayout() {
         </div>
         <div className="mx-auto max-w-xl py-16 sm:py-24">
           <div className="text-center">
-            <h1 className="text-gray-900 mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
               Error
             </h1>
             {error && error.message && (
-              <p className="text-gray-500 mt-2 text-lg">{error.message}</p>
+              <p className="mt-2 text-lg text-gray-500">{error.message}</p>
             )}
           </div>
 
@@ -36,7 +36,7 @@ export default function ErrorLayout() {
                 e.preventDefault();
                 navigate(-1);
               }}
-              className="text-violet-600 text-base font-medium hover:text-violet-500"
+              className="text-base font-medium text-violet-600 hover:text-violet-500"
             >
               <span aria-hidden="true">&larr; </span>
               Go Back

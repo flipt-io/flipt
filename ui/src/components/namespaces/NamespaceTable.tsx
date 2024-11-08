@@ -223,7 +223,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
                           <div
                             className="group inline-flex cursor-pointer"
@@ -235,7 +235,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
+                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon
@@ -257,7 +257,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
                           {header.isPlaceholder
                             ? null
@@ -271,7 +271,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

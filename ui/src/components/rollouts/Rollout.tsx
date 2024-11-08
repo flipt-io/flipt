@@ -39,14 +39,14 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
-      className={`${className} bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
-      <div className="bg-white border-gray-200 w-full border-b p-2">
+      <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}
             className={cls(
-              'text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex',
+              'hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex',
               {
                 'hover:cursor-not-allowed': readOnly,
                 'hover:cursor-move': !readOnly
@@ -57,7 +57,7 @@ const Rollout = forwardRef(
             {rollout.rank}
           </span>
           <h3
-            className={cls('text-gray-700 text-sm font-normal leading-6', {
+            className={cls('text-sm font-normal leading-6 text-gray-700', {
               'hover:cursor-not-allowed': readOnly,
               'hover:cursor-move': !readOnly
             })}
@@ -68,7 +68,7 @@ const Rollout = forwardRef(
           <Menu as="div" className="hidden sm:flex">
             <Menu.Button
               data-testid="rollout-menu-button"
-              className="text-gray-600 ml-4 block hover:text-gray-900"
+              className="ml-4 block text-gray-600 hover:text-gray-900"
             >
               <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
             </Menu.Button>
@@ -82,7 +82,7 @@ const Rollout = forwardRef(
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                <Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
                   <Menu.Item>
                     {({ active }) => (
                       <a
@@ -92,7 +92,7 @@ const Rollout = forwardRef(
                           onEdit && onEdit();
                         }}
                         className={cls(
-                          'text-gray-900 block px-3 py-1 text-sm leading-6',
+                          'block px-3 py-1 text-sm leading-6 text-gray-900',
                           { 'bg-gray-50': active }
                         )}
                       >
@@ -109,7 +109,7 @@ const Rollout = forwardRef(
                           onDelete && onDelete();
                         }}
                         className={cls(
-                          'text-gray-900 block px-3 py-1 text-sm leading-6',
+                          'block px-3 py-1 text-sm leading-6 text-gray-900',
                           { 'bg-gray-50': active }
                         )}
                       >
@@ -127,7 +127,7 @@ const Rollout = forwardRef(
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
           {rollout.description && (
             <div className="flex pb-4 pt-2">
-              <p className="text-gray-600 text-sm font-light">
+              <p className="text-sm font-light text-gray-600">
                 {rollout.description}
               </p>
             </div>

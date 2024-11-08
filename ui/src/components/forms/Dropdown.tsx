@@ -26,10 +26,10 @@ export default function Dropdown(props: DropdownProps) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <Menu.Button className="bg-white text-gray-700 mb-1 inline-flex w-full justify-center gap-x-1.5 rounded-md px-4 py-2 text-sm font-semibold shadow-sm ring-2 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-violet-300">
+        <Menu.Button className="mb-1 inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-2 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-violet-300">
           {label}
           <ChevronDownIcon
-            className="text-gray-400 -mr-1 h-5 w-5"
+            className="-mr-1 h-5 w-5 text-gray-400"
             aria-hidden="true"
           />
         </Menu.Button>
@@ -44,7 +44,7 @@ export default function Dropdown(props: DropdownProps) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           {actions.map((action) => (
             <div className="py-1" key={action.id}>
               {!action.disabled && (
@@ -57,7 +57,7 @@ export default function Dropdown(props: DropdownProps) {
                         action.className,
                         active
                           ? (action.activeClassName ??
-                              'text-gray-900 bg-gray-100')
+                              'bg-gray-100 text-gray-900')
                           : (action.inActiveClassName ?? 'text-gray-700')
                       )}
                       onClick={(e) => {
@@ -68,7 +68,7 @@ export default function Dropdown(props: DropdownProps) {
                     >
                       {action.icon && (
                         <action.icon
-                          className="text-gray-400 mr-3 h-5 w-5 group-hover:text-gray-500"
+                          className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
                           aria-hidden="true"
                         />
                       )}
@@ -86,13 +86,13 @@ export default function Dropdown(props: DropdownProps) {
                         action.className,
                         active
                           ? (action.activeClassName ??
-                              'text-gray-700 bg-gray-100')
+                              'bg-gray-100 text-gray-700')
                           : (action.inActiveClassName ?? 'text-gray-500')
                       )}
                     >
                       {action.icon && (
                         <action.icon
-                          className="text-gray-300 mr-3 h-5 w-5 group-hover:text-gray-400"
+                          className="mr-3 h-5 w-5 text-gray-300 group-hover:text-gray-400"
                           aria-hidden="true"
                         />
                       )}

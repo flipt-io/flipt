@@ -126,11 +126,11 @@ export function DefaultVariant(props: RulesProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-              <div className="bg-white border-gray-200 w-full border-b p-2">
+            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+              <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                  <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
-                  <h3 className="text-gray-700 text-sm font-normal leading-6">
+                  <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
+                  <h3 className="text-sm font-normal leading-6 text-gray-700">
                     Default Rule
                   </h3>
                   <span className="hidden h-4 w-4 justify-end sm:flex" />
@@ -138,14 +138,14 @@ export function DefaultVariant(props: RulesProps) {
               </div>
 
               <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                <p className="text-gray-600 text-center text-sm font-light">
+                <p className="text-center text-sm font-light text-gray-600">
                   This is the default value that will be returned if no other
                   rules match.
                 </p>
               </div>
               <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                 <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="bg-white flex w-full flex-col">
+                  <Form className="flex w-full flex-col bg-white">
                     <div className="w-full flex-1">
                       <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                         {flag.variants && flag.variants.length > 0 && (
@@ -373,7 +373,7 @@ export default function Rules() {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="text-violet-500 font-medium">
+              <span className="font-medium text-violet-500">
                 {' '}
                 position {deletingRule?.rank}
               </span>
@@ -409,7 +409,7 @@ export default function Rules() {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="text-gray-500 mt-1 text-sm">
+            <p className="mt-1 text-sm text-gray-500">
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>
@@ -423,7 +423,7 @@ export default function Rules() {
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
                 <PlusIcon
-                  className="text-white -ml-1.5 mr-1 h-5 w-5"
+                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
                   aria-hidden="true"
                 />
                 New Rule
@@ -435,18 +435,18 @@ export default function Rules() {
           {(rules && rules.length > 0) || showDefaultVariant ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-gray-700 text-sm font-light">
+                <p className="text-sm font-light text-gray-700">
                   Rules are evaluated in order from{' '}
                   <span className="font-semibold">top to bottom</span>. The
                   first rule that matches will be applied.
                 </p>
-                <p className="text-gray-700 text-sm font-light">
+                <p className="text-sm font-light text-gray-700">
                   Rules can be rearranged by clicking on a rule header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   it into place.
                 </p>
               </div>
-              <div className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900 lg:w-3/4 lg:p-6">
+              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:w-3/4 lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}

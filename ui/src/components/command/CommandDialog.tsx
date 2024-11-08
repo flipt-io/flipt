@@ -41,7 +41,7 @@ function CommandItem(props: CommandItemProps) {
       <div className="flex flex-grow flex-col">
         <span className="font-semibold">{item.name}</span>
         {item.description && (
-          <span className="text-gray-500 truncate text-xs">
+          <span className="truncate text-xs text-gray-500">
             {item.description}
           </span>
         )}
@@ -142,11 +142,11 @@ export default function CommandMenu() {
       onClose={setOpen}
       className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]"
     >
-      <Dialog.Overlay className="bg-gray-500 fixed inset-0 bg-opacity-75" />
-      <Dialog.Panel className="bg-white mx-auto max-w-xl transform rounded-xl p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+      <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75" />
+      <Dialog.Panel className="mx-auto max-w-xl transform rounded-xl bg-white p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
         <Command
           loop
-          className="text-black relative mx-auto flex max-w-2xl flex-col rounded-lg"
+          className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-black"
           onKeyDown={(e) => {
             if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
               e.preventDefault();
@@ -154,14 +154,14 @@ export default function CommandMenu() {
             }
           }}
         >
-          <div className="border-slate-500 flex items-center text-lg font-medium">
+          <div className="flex items-center border-slate-500 text-lg font-medium">
             <div className="relative w-full">
               <MagnifyingGlassIcon
-                className="text-gray-400 pointer-events-none absolute left-4 top-3.5 h-5 w-5"
+                className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
                 aria-hidden="true"
               />
               <Command.Input
-                className="text-gray-900 bg-gray-100 h-12 w-full rounded-md border-0 px-4 py-2.5 pl-11 pr-4 focus:ring-0 sm:text-sm"
+                className="h-12 w-full rounded-md border-0 bg-gray-100 px-4 py-2.5 pl-11 pr-4 text-gray-900 focus:ring-0 sm:text-sm"
                 value={search}
                 onValueChange={setSearch}
               />
@@ -169,7 +169,7 @@ export default function CommandMenu() {
           </div>
 
           <Command.List className="flex max-h-96 flex-col overflow-y-auto py-2 text-sm">
-            <Command.Empty className="text-gray-700 mt-4 px-4 text-sm">
+            <Command.Empty className="mt-4 px-4 text-sm text-gray-700">
               No results found
             </Command.Empty>
 
@@ -177,7 +177,7 @@ export default function CommandMenu() {
               <>
                 <Command.Item
                   disabled={true}
-                  className="text-gray-600 px-4 py-2.5 font-semibold"
+                  className="px-4 py-2.5 font-semibold text-gray-600"
                 >
                   Switch Namespace
                 </Command.Item>
@@ -211,7 +211,7 @@ export default function CommandMenu() {
               <>
                 <Command.Item
                   disabled={true}
-                  className="text-gray-600 px-4 py-2.5 font-semibold"
+                  className="px-4 py-2.5 font-semibold text-gray-600"
                 >
                   Change Theme
                 </Command.Item>
@@ -286,7 +286,7 @@ export default function CommandMenu() {
                   />
                 )}
 
-                <Command.Separator className="border-gray-200 my-2 border-t" />
+                <Command.Separator className="my-2 border-t border-gray-200" />
                 {nonNamespacedRoutes.map((item) => (
                   <CommandItem
                     key={item.name}

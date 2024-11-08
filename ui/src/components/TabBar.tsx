@@ -14,7 +14,7 @@ export default function TabBar(props: TabBarProps) {
 
   return (
     <div className="mt-3 flex flex-row sm:mt-5">
-      <div className="border-gray-200 border-b-2">
+      <div className="border-b-2 border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <NavLink
@@ -25,8 +25,8 @@ export default function TabBar(props: TabBarProps) {
                 cls(
                   'whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium',
                   {
-                    'text-violet-600 border-violet-500': isActive,
-                    'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300':
+                    'border-violet-500 text-violet-600': isActive,
+                    'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
                       !isActive
                   }
                 )

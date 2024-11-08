@@ -74,7 +74,7 @@ export default function Tags(props: TagsProps) {
             {tags.map((tag, i) => (
               <li
                 key={tag}
-                className="text-gray-900 bg-gray-200 flex flex-row items-center justify-center rounded px-2 py-0.5 text-sm"
+                className="flex flex-row items-center justify-center rounded bg-gray-200 px-2 py-0.5 text-sm text-gray-900"
               >
                 <span className="max-w-32 truncate" title={String(tag)}>
                   {tag}
@@ -95,7 +95,7 @@ export default function Tags(props: TagsProps) {
         <div className="relative flex w-full">
           <input
             className={cls(
-              'text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md shadow-sm focus:border-violet-300 disabled:text-gray-500 disabled:bg-gray-100 disabled:border-gray-200 focus:ring-violet-300 disabled:cursor-not-allowed sm:text-sm',
+              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
               {
                 'border-red-400': hasError
               }
@@ -109,7 +109,7 @@ export default function Tags(props: TagsProps) {
             }}
           />
           <button
-            className="z-1 border-1 bg-white text-gray-500 border-violet-300 !absolute right-1 top-1 select-none rounded border px-4 py-1.5 text-center align-middle text-xs font-bold"
+            className="z-1 border-1 !absolute right-1 top-1 select-none rounded border border-violet-300 bg-white px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500"
             type="button"
             onClick={addTag}
           >
@@ -118,7 +118,7 @@ export default function Tags(props: TagsProps) {
         </div>
       </div>
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="text-red-500 mt-1 text-sm">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
       ) : null}
     </>
   );
