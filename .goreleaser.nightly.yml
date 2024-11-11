@@ -9,17 +9,17 @@ changelog:
   disable: true
 
 docker_manifests:
-  - version_template: "flipt/flipt:nightly"
+  - name_template: "flipt/flipt:nightly"
     image_templates:
       - "flipt/flipt:v{{ incpatch .Version }}-nightly-amd64"
       - "flipt/flipt:v{{ incpatch .Version }}-nightly-arm64"
 
-  - version_template: "markphelps/flipt:nightly"
+  - name_template: "markphelps/flipt:nightly"
     image_templates:
       - "flipt/flipt:v{{ incpatch .Version }}-nightly-amd64"
       - "flipt/flipt:v{{ incpatch .Version }}-nightly-arm64"
 
-  - version_template: "ghcr.io/flipt-io/flipt:nightly"
+  - name_template: "ghcr.io/flipt-io/flipt:nightly"
     image_templates:
       - "ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-amd64"
       - "ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-arm64"
