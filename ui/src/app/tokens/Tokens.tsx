@@ -1,4 +1,3 @@
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { useMemo, useRef, useState } from 'react';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import {
@@ -6,7 +5,7 @@ import {
   useListTokensQuery
 } from '~/app/tokens/tokensApi';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -143,13 +142,12 @@ export default function Tokens() {
           </div>
           {tokenAuthEnabled && tokens?.length > 0 && (
             <div className="mt-4">
-              <Button variant="primary" onClick={() => setShowTokenForm(true)}>
-                <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                  aria-hidden="true"
-                />
-                <span>New Token</span>
-              </Button>
+              <ButtonWithPlus
+                variant="primary"
+                onClick={() => setShowTokenForm(true)}
+              >
+                New Token
+              </ButtonWithPlus>
             </div>
           )}
         </div>

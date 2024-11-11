@@ -1,9 +1,8 @@
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
@@ -88,7 +87,7 @@ export default function Namespaces() {
             </p>
           </div>
           <div className="mt-4">
-            <Button
+            <ButtonWithPlus
               variant="primary"
               disabled={readOnly}
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
@@ -97,12 +96,8 @@ export default function Namespaces() {
                 setShowNamespaceForm(true);
               }}
             >
-              <PlusIcon
-                className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                aria-hidden="true"
-              />
-              <span>New Namespace</span>
-            </Button>
+              New Namespace
+            </ButtonWithPlus>
           </div>
         </div>
 

@@ -7,7 +7,6 @@ import {
 } from '~/app/flags/rulesApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import TextButton from '~/components/forms/buttons/TextButton';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
@@ -26,6 +25,7 @@ import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
 import { cls } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
+import { TextButton } from '~/components/forms/buttons/Button';
 
 type QuickEditRuleFormProps = {
   flag: IFlag;

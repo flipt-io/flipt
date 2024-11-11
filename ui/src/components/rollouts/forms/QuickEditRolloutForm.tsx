@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import TextButton from '~/components/forms/buttons/TextButton';
+import { TextButton } from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';

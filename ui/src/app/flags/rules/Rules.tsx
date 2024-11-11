@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -27,7 +27,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus, TextButton } from '~/components/forms/buttons/Button';
 
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -50,7 +50,6 @@ import {
 } from '~/types/Variant';
 import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
 import { INamespace } from '~/types/Namespace';
-import TextButton from '~/components/forms/buttons/TextButton';
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
 
 type RulesProps = {
@@ -415,19 +414,15 @@ export default function Rules() {
           </div>
           {((rules && rules.length > 0) || showDefaultVariant) && (
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <Button
+              <ButtonWithPlus
                 variant="primary"
                 type="button"
                 onClick={() => setShowRuleForm(true)}
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
-                <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                  aria-hidden="true"
-                />
                 New Rule
-              </Button>
+              </ButtonWithPlus>
             </div>
           )}
         </div>

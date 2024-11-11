@@ -1,8 +1,9 @@
-import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
+import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
-import { cls, truncateKey } from '~/utils/helpers';
+import { truncateKey } from '~/utils/helpers';
+import { ButtonIcon } from './buttons/Button';
 
 type SegmentPickerProps = {
   readonly?: boolean;
@@ -97,31 +98,17 @@ export default function SegmentsPicker({
             />
           </div>
           {editing && parentSegments.length - 1 === index ? (
-            <div>
-              <button
-                type="button"
-                className={cls('mt-2 text-gray-400 hover:text-gray-500', {
-                  'hover:text-gray-400': readonly
-                })}
-                onClick={() => setEditing(false)}
-                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
-                disabled={readonly}
-              >
-                <PlusSmallIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
+            <ButtonIcon
+              icon={faPlus}
+              onClick={() => setEditing(false)}
+              disabled={readonly}
+            />
           ) : (
-            <div>
-              <button
-                type="button"
-                className="mt-2 text-gray-400 hover:text-gray-500"
-                onClick={() => handleSegmentRemove(index)}
-                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
-                disabled={readonly}
-              >
-                <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
+            <ButtonIcon
+              icon={faMinus}
+              onClick={() => handleSegmentRemove(index)}
+              disabled={readonly}
+            />
           )}
         </div>
       ))}
