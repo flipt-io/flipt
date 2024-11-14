@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -26,7 +26,7 @@ import {
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus, TextButton } from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
@@ -41,7 +41,6 @@ import { INamespace } from '~/types/Namespace';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
 import Select from '~/components/forms/Select';
-import TextButton from '~/components/forms/buttons/TextButton';
 import Loading from '~/components/Loading';
 import { cls } from '~/utils/helpers';
 
@@ -153,7 +152,7 @@ export function DefaultRollout(props: RolloutsProps) {
                       </div>
                     </div>
                     <div className="flex-shrink-0 py-1">
-                      <div className="flex justify-end space-x-3">
+                      <div className="flex justify-end space-x-2">
                         <TextButton
                           disabled={formik.isSubmitting || readOnly}
                           onClick={() => {
@@ -389,7 +388,7 @@ export default function Rollouts(props: RolloutsProps) {
             </p>
           </div>
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            <Button
+            <ButtonWithPlus
               variant="primary"
               type="button"
               disabled={readOnly}
@@ -399,12 +398,8 @@ export default function Rollouts(props: RolloutsProps) {
                 setShowRolloutForm(true);
               }}
             >
-              <PlusIcon
-                className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                aria-hidden="true"
-              />
-              <span>New Rollout</span>
-            </Button>
+              New Rollout
+            </ButtonWithPlus>
           </div>
         </div>
         <div className="mt-10">

@@ -1,4 +1,3 @@
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useDeleteVariantMutation } from '~/app/flags/flagsApi';
@@ -6,7 +5,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import VariantForm from '~/components/variants/forms/VariantForm';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
@@ -84,7 +83,7 @@ export default function Variants({ flag }: VariantsProps) {
           </div>
           {flag.variants && flag.variants.length > 0 && (
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <Button
+              <ButtonWithPlus
                 variant="primary"
                 type="button"
                 disabled={readOnly}
@@ -94,12 +93,8 @@ export default function Variants({ flag }: VariantsProps) {
                   setShowVariantForm(true);
                 }}
               >
-                <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                  aria-hidden="true"
-                />
-                <span>New Variant</span>
-              </Button>
+                New Variant
+              </ButtonWithPlus>
             </div>
           )}
         </div>

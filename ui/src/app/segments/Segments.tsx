@@ -1,4 +1,3 @@
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,7 +5,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
 import { useError } from '~/data/hooks/error';
 
@@ -43,17 +42,13 @@ export default function Segments() {
         </div>
         <div className="mt-4">
           <Link to={`${path}/new`}>
-            <Button
+            <ButtonWithPlus
               variant="primary"
               disabled={readOnly}
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
             >
-              <PlusIcon
-                className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                aria-hidden="true"
-              />
-              <span>New Segment</span>
-            </Button>
+              New Segment
+            </ButtonWithPlus>
           </Link>
         </div>
       </div>
