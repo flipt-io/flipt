@@ -214,7 +214,10 @@ import "strings"
 		local?: path: string | *"."
 		git?: {
 			repository:         string
-			backend?:           *"memory" | "local"
+			backend?:           {
+				type: *"memory" | "local"
+				path?: string
+			}
 			ref?:               string | *"main"
 			ref_type?:          *"static" | "semver"
 			directory?:         string
