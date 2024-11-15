@@ -725,9 +725,18 @@
               "type": "string"
             },
             "backend": {
-              "type": "string",
-              "enum": ["memory", "local"],
-              "default": "local"
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["memory", "local"],
+                  "default": "memory"
+                },
+                "path": {
+                  "type": "string"
+                }
+              }
             },
             "ref": {
               "type": "string",
