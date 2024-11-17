@@ -3,41 +3,42 @@ import {
   BarElement,
   CategoryScale,
   LinearScale,
-  ArcElement,
   TimeScale,
   TimeSeriesScale,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  PointElement,
+  LineElement,
+  Filler
 } from 'chart.js';
 import { useMemo } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import { useSelector } from 'react-redux';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
 import { useTimezone } from '~/data/hooks/timezone';
 import { Timezone } from '~/types/Preferences';
 
 ChartJS.register(
-  ArcElement,
-  BarElement,
   CategoryScale,
   LinearScale,
   TimeScale,
   TimeSeriesScale,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  PointElement,
+  LineElement,
+  Filler
 );
 
-const timeFormat = 'yyyy-MM-dd HH:mm:ss';
-
-type BarGraphProps = {
+type GraphProps = {
   flagKey: string;
   timestamps: string[];
   values: number[];
 };
 
-export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
+export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
   const timezone = useSelector(selectTimezone);
   const { inTimezone } = useTimezone();
 
@@ -52,8 +53,8 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
   const xLabel = isUTC ? 'Time (UTC)' : 'Time (Local)';
 
   return (
-    <div className="h-[90vh]">
-      <Bar
+    <div className="h-[40vh]">
+      <Line
         data={{
           labels: formattedTimestamps,
           datasets: [
@@ -62,7 +63,8 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
               data: values,
               backgroundColor: 'rgba(167,139,250,0.6)',
               borderColor: 'rgba(167,139,250,1)',
-              borderWidth: 1
+              borderWidth: 1,
+              fill: true
             }
           ]
         }}
@@ -73,7 +75,7 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
               type: 'timeseries',
               time: {
                 displayFormats: {
-                  minute: timeFormat
+                  minute: 'HH:mm'
                 }
               },
               ticks: {
@@ -86,9 +88,33 @@ export function BarGraph({ flagKey, timestamps, values }: BarGraphProps) {
               }
             },
             y: {
+              beginAtZero: true,
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 5
+              },
               title: {
                 display: true,
                 text: 'Evaluations'
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: false
+            },
+            legend: {
+              display: false
+            },
+            tooltip: {
+              displayColors: false,
+              callbacks: {
+                title: function (tooltipItem) {
+                  return formattedTimestamps[tooltipItem[0].dataIndex];
+                },
+                label: function (tooltipItem) {
+                  return tooltipItem.formattedValue;
+                }
               }
             }
           }

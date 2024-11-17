@@ -1452,6 +1452,22 @@
                 }
               },
               "title": "Clickhouse"
+            },
+            "prometheus": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "additionalProperties": false,
+                  "default": false
+                },
+                "url": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "title": "Prometheus"
             }
           }
         },

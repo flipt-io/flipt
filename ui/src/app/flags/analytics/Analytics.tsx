@@ -113,7 +113,7 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mx-12 my-12">
+    <div className="mb-12">
       {config.analyticsEnabled ? (
         <>
           <>
@@ -124,7 +124,7 @@ export default function Analytics() {
               }}
             >
               {() => (
-                <div className="z-10 flex justify-center space-x-2 md:absolute md:right-24 md:justify-end">
+                <div className="right-24 z-10 flex justify-end space-x-2 md:absolute">
                   <Combobox<FilterableDurations>
                     id="durationValue"
                     name="durationValue"
