@@ -9,8 +9,8 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"go.flipt.io/flipt/internal/config"
+	panalytics "go.flipt.io/flipt/internal/server/analytics"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.uber.org/zap"
 )
 
@@ -92,20 +92,11 @@ func connect(clickhouseConfig config.ClickhouseConfig) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error) {
-	fromTime, err := time.Parse(time.DateTime, req.From)
-	if err != nil {
-		return nil, nil, err
+func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
+	step := &Step{
+		intervalValue: req.StepMinutes,
+		intervalStep:  "MINUTE",
 	}
-
-	toTime, err := time.Parse(time.DateTime, req.To)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	duration := toTime.Sub(fromTime)
-
-	step := getStepFromDuration(duration)
 
 	rows, err := c.Conn.QueryContext(ctx, fmt.Sprintf(`
 		SELECT
@@ -121,8 +112,8 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 		WITH FILL FROM toStartOfInterval(toDateTime('%[2]s', 'UTC'),  INTERVAL %[4]d %[5]s) TO timestamp_add(toStartOfInterval(toDateTime('%[3]s', 'UTC'), INTERVAL %[4]d %[5]s), INTERVAL %[4]d %[5]s) STEP INTERVAL %[4]d %[5]s
 	`,
 		counterAggregatedAnalyticsTable,
-		fromTime.UTC().Format(time.DateTime),
-		toTime.UTC().Format(time.DateTime),
+		req.From.UTC().Format(time.DateTime),
+		req.To.UTC().Format(time.DateTime),
 		step.intervalValue,
 		step.intervalStep,
 	),
@@ -165,22 +156,6 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 // Close will close the DB connection.
 func (c *Client) Close() error {
 	return c.Conn.Close()
-}
-
-// getStepFromDuration is a utility function that translates the duration passed in from the client
-// to determine the interval steps we should use for the Clickhouse query.
-func getStepFromDuration(from time.Duration) *Step {
-	if from <= 4*time.Hour {
-		return &Step{
-			intervalValue: 1,
-			intervalStep:  "MINUTE",
-		}
-	}
-
-	return &Step{
-		intervalValue: 15,
-		intervalStep:  "MINUTE",
-	}
 }
 
 func (c *Client) String() string {

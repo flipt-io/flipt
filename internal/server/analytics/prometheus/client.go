@@ -10,12 +10,16 @@ import (
 	promapi "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/rpc/flipt/analytics"
+	panalytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.uber.org/zap"
 )
 
+type prometheusClient interface {
+	QueryRange(ctx context.Context, query string, r promapi.Range, opts ...promapi.Option) (model.Value, promapi.Warnings, error)
+}
+
 type client struct {
-	promClient promapi.API
+	promClient prometheusClient
 	logger     *zap.Logger
 }
 
@@ -30,40 +34,17 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 	return &client{promClient: promClient, logger: logger}, nil
 }
 
-func (c *client) getStepFromDuration(duration time.Duration) int {
-	switch {
-	case duration >= 12*time.Hour:
-		return 15
-	case duration >= 4*time.Hour:
-		return 5
-	default:
-		return 1
-	}
-}
-
-func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error) {
-	fromTime, err := time.Parse(time.DateTime, req.From)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	toTime, err := time.Parse(time.DateTime, req.To)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	step := c.getStepFromDuration(toTime.Sub(fromTime))
+func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	query := fmt.Sprintf(
 		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm]))`,
-		req.GetNamespaceKey(),
-		req.GetFlagKey(),
-		step,
+		req.NamespaceKey,
+		req.FlagKey,
+		req.StepMinutes,
 	)
-	toTime = toTime.Add(time.Duration(step) * time.Minute)
 	r := promapi.Range{
-		Start: fromTime,
-		End:   toTime,
-		Step:  time.Duration(step) * time.Minute,
+		Start: req.From.UTC(),
+		End:   req.To.UTC(),
+		Step:  time.Duration(req.StepMinutes) * time.Minute,
 	}
 	data, warnings, err := c.promClient.QueryRange(ctx, query, r)
 	if err != nil {
