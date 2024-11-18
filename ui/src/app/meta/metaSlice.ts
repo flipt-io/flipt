@@ -50,7 +50,8 @@ export const metaSlice = createSlice({
         state.config = action.payload;
         state.config.status = LoadingStatus.SUCCEEDED;
         state.config.analyticsEnabled =
-          action.payload.analytics.storage.clickhouse.enabled ?? false;
+          action.payload.analytics.storage.clickhouse?.enabled ||
+          action.payload.analytics.storage.prometheus?.enabled;
         if (action.payload.storage?.readOnly === undefined) {
           state.config.storage.readOnly =
             action.payload.storage?.type &&

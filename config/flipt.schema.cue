@@ -427,6 +427,10 @@ import "strings"
 				enabled?: bool | *false
 				url?:     string | *""
 			}
+			prometheus?: {
+				enabled?: bool | *false
+				url?:     string | *""
+			}
 		}
 		buffer?: {
 			capacity?:     int

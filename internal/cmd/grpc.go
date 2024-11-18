@@ -26,6 +26,7 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
+	"go.flipt.io/flipt/internal/server/analytics/prometheus"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/kafka"
 	"go.flipt.io/flipt/internal/server/audit/log"
@@ -311,26 +312,33 @@ func NewGRPCServer(
 	server.onShutdown(authShutdown)
 
 	if cfg.Analytics.Enabled() {
-		client, err := clickhouse.New(logger, cfg, forceMigrate)
-		if err != nil {
-			return nil, fmt.Errorf("connecting to clickhouse: %w", err)
+		var client analytics.Client
+		if cfg.Analytics.Storage.Clickhouse.Enabled {
+			client, err := clickhouse.New(logger, cfg, forceMigrate)
+			if err != nil {
+				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
+			}
+
+			analyticsExporter := analytics.NewAnalyticsSinkSpanExporter(logger, client)
+			tracingProvider.RegisterSpanProcessor(
+				tracesdk.NewBatchSpanProcessor(
+					analyticsExporter,
+					tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
+			)
+			server.onShutdown(func(ctx context.Context) error {
+				return analyticsExporter.Shutdown(ctx)
+			})
+		} else if cfg.Analytics.Storage.Prometheus.Enabled {
+			client, err = prometheus.New(logger, cfg)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		analyticssrv := analytics.New(logger, client)
 		register.Add(analyticssrv)
-
-		analyticsExporter := analytics.NewAnalyticsSinkSpanExporter(logger, client)
-		tracingProvider.RegisterSpanProcessor(
-			tracesdk.NewBatchSpanProcessor(
-				analyticsExporter,
-				tracesdk.WithBatchTimeout(cfg.Analytics.Buffer.FlushPeriod)),
-		)
-
 		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 
-		server.onShutdown(func(ctx context.Context) error {
-			return analyticsExporter.Shutdown(ctx)
-		})
 	}
 
 	// initialize servers

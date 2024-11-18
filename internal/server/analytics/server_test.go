@@ -12,7 +12,7 @@ import (
 
 type testClient struct{}
 
-func (t *testClient) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) ([]string, []float32, error) {
+func (t *testClient) GetFlagEvaluationsCount(ctx context.Context, req *FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	return []string{"2000-01-01 00:00:00", "2000-01-01 00:01:00", "2000-01-01 00:02:00"}, []float32{20.0, 30.0, 40.0}, nil
 }
 

@@ -23,12 +23,17 @@ type AnalyticsConfig struct {
 // AnalyticsStorageConfig is a collection of configuration option for storage backends.
 type AnalyticsStorageConfig struct {
 	Clickhouse ClickhouseConfig `json:"clickhouse,omitempty" mapstructure:"clickhouse" yaml:"clickhouse,omitempty"`
+	Prometheus PrometheusConfig `json:"prometheus,omitempty" mapstructure:"prometheus" yaml:"prometheus,omitempty"`
 }
 
 func (a *AnalyticsStorageConfig) String() string {
 	// TODO: make this more dynamic if we add more storage options
 	if a.Clickhouse.Enabled {
 		return "clickhouse"
+	}
+
+	if a.Prometheus.Enabled {
+		return "prometheus"
 	}
 	return ""
 }
@@ -40,7 +45,7 @@ type ClickhouseConfig struct {
 }
 
 func (a *AnalyticsConfig) Enabled() bool {
-	return a.Storage.Clickhouse.Enabled
+	return a.Storage.Clickhouse.Enabled || a.Storage.Prometheus.Enabled
 }
 
 // Options returns the connection option details for Clickhouse.
@@ -53,11 +58,21 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 	return options, nil
 }
 
+// PrometheusConfig defines the connection details for connecting Flipt to Prometheus.
+type PrometheusConfig struct {
+	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL     string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
+}
+
 //nolint:unparam
 func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("analytics", map[string]any{
 		"storage": map[string]any{
 			"clickhouse": map[string]any{
+				"enabled": "false",
+				"url":     "",
+			},
+			"prometheus": map[string]any{
 				"enabled": "false",
 				"url":     "",
 			},

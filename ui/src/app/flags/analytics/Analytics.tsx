@@ -8,7 +8,7 @@ import 'chartjs-adapter-date-fns';
 import { addMinutes, format, parseISO } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
-import { BarGraph } from '~/components/graphs';
+import { Graph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
@@ -113,7 +113,7 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mx-12 my-12">
+    <div className="mb-12">
       {config.analyticsEnabled ? (
         <>
           <>
@@ -124,7 +124,7 @@ export default function Analytics() {
               }}
             >
               {() => (
-                <div className="z-10 flex justify-center space-x-2 md:absolute md:right-24 md:justify-end">
+                <div className="right-24 z-10 flex justify-end space-x-2 md:absolute">
                   <Combobox<FilterableDurations>
                     id="durationValue"
                     name="durationValue"
@@ -155,7 +155,7 @@ export default function Analytics() {
             </Formik>
           </>
           <div className="md:relative md:top-12">
-            <BarGraph
+            <Graph
               timestamps={flagEvaluationCount.timestamps || []}
               values={flagEvaluationCount.values || []}
               flagKey={flag.key}

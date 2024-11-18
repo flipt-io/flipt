@@ -1,0 +1,28 @@
+services:
+  prometheus:
+    networks:
+      - flipt_network
+    image: prom/prometheus:latest
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+  flipt:
+    image: flipt/flipt:latest
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - flipt_network
+    restart: always
+    environment:
+      - FLIPT_LOG_LEVEL=info
+      - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_ENABLED=true
+      - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_URL=http://prometheus:9090
+      - FLIPT_META_TELEMETRY_ENABLED=false
+    command: ["/flipt", "--force-migrate"]
+
+networks:
+  flipt_network:

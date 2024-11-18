@@ -1,99 +1,95 @@
-package analytics_test
+package analytics
 
 import (
 	"context"
-	"os"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-	panalytics "go.flipt.io/flipt/internal/server/analytics"
-	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
-	analyticstesting "go.flipt.io/flipt/internal/server/analytics/testing"
 	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.uber.org/zap/zaptest"
 )
 
-type AnalyticsDBTestSuite struct {
-	suite.Suite
-	client *clickhouse.Client
-}
-
-func TestAnalyticsDBTestSuite(t *testing.T) {
-	if os.Getenv("FLIPT_ANALYTICS_DATABASE_PROTOCOL") == "" {
-		t.Skip("please provide an analytics database protocol to run tests")
+func TestGetStepFromDuration(t *testing.T) {
+	cases := []struct {
+		name     string
+		duration time.Duration
+		want     int
+	}{
+		{
+			name:     "1 hour duration",
+			duration: time.Hour,
+			want:     1,
+		},
+		{
+			name:     "4 hour duration",
+			duration: 4 * time.Hour,
+			want:     5,
+		},
+		{
+			name:     "12 hour duration",
+			duration: 12 * time.Hour,
+			want:     15,
+		},
+		{
+			name:     "24 hour duration",
+			duration: 24 * time.Hour,
+			want:     30,
+		},
 	}
-	suite.Run(t, new(AnalyticsDBTestSuite))
-}
 
-func (a *AnalyticsDBTestSuite) SetupSuite() {
-	setup := func() error {
-		db, err := analyticstesting.Open()
-		if err != nil {
-			return err
-		}
-
-		c := &clickhouse.Client{
-			Conn: db.DB,
-		}
-
-		a.client = c
-
-		return nil
-	}
-
-	a.Require().NoError(setup())
-}
-
-func (a *AnalyticsDBTestSuite) TestAnalyticsMutationAndQuery() {
-	t := a.T()
-
-	now := time.Now().UTC()
-	for i := 0; i < 5; i++ {
-		err := a.client.IncrementFlagEvaluationCounts(context.TODO(), []*panalytics.EvaluationResponse{
-			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
-			},
-			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
-			},
-			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
-			},
-			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
-			},
-			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
-			},
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			step := getStepFromDuration(tt.duration)
+			assert.Equal(t, tt.want, step)
 		})
-		require.NoError(t, err)
 	}
+}
 
-	_, values, err := a.client.GetFlagEvaluationsCount(context.TODO(), &analytics.GetFlagEvaluationsCountRequest{
-		NamespaceKey: "default",
-		FlagKey:      "flag1",
-		From:         now.Add(-time.Hour).Format(time.DateTime),
-		To:           now.Format(time.DateTime),
+func TestGetFlagEvaluationsCountWithInvalidInput(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	client := NewMockClient(t)
+	service := New(logger, client)
+
+	_, err := service.GetFlagEvaluationsCount(context.Background(), &analytics.GetFlagEvaluationsCountRequest{
+		NamespaceKey: "bar",
+		FlagKey:      "foo",
 	})
-	require.NoError(t, err)
+	require.Error(t, err)
+	_, err = service.GetFlagEvaluationsCount(context.Background(), &analytics.GetFlagEvaluationsCountRequest{
+		NamespaceKey: "bar",
+		FlagKey:      "foo",
+		From:         time.Now().Format(time.DateTime),
+	})
+	require.Error(t, err)
+}
 
-	assert.Len(t, values, 1)
-	assert.InDelta(t, 25, values[0], 0.0)
+func TestGetFlagEvaluationsCountClientError(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	client := NewMockClient(t)
+
+	ctx := context.Background()
+
+	client.EXPECT().GetFlagEvaluationsCount(ctx, &FlagEvaluationsCountRequest{
+		NamespaceKey: "bar",
+		FlagKey:      "foo",
+		From:         time.Date(2022, 6, 9, 11, 0, 0, 0, time.UTC),
+		To:           time.Date(2022, 6, 9, 11, 30, 0, 0, time.UTC),
+		StepMinutes:  1,
+	}).Return(nil, nil, errors.New("client error"))
+
+	service := New(logger, client)
+	from := "2022-06-09 11:00:00"
+	to := "2022-06-09 11:30:00"
+	_, err := service.GetFlagEvaluationsCount(ctx, &analytics.GetFlagEvaluationsCountRequest{
+		NamespaceKey: "bar",
+		FlagKey:      "foo",
+		From:         from,
+		To:           to,
+	})
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "client error")
 }

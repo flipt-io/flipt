@@ -26,5 +26,17 @@ func TestAnalyticsClickhouseConfiguration(t *testing.T) {
 	_, err = cfg.Storage.Clickhouse.Options()
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "parse dsn address failed")
+}
 
+func TestAnalyticsPrometheusConfiguration(t *testing.T) {
+	cfg := &AnalyticsConfig{
+		Storage: AnalyticsStorageConfig{
+			Prometheus: PrometheusConfig{
+				Enabled: true,
+				URL:     "http://localhost:9090",
+			},
+		},
+	}
+	assert.True(t, cfg.Enabled())
+	assert.Equal(t, "prometheus", cfg.Storage.String())
 }
