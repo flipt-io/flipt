@@ -52,11 +52,11 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20240305195513-547d54e7c251
-	github.com/open-policy-agent/opa v0.69.0
+	github.com/open-policy-agent/opa v0.70.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
@@ -305,7 +305,7 @@ require (
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/term v0.26.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
-	golang.org/x/time v0.6.0 // indirect
+	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	google.golang.org/api v0.197.0 // indirect
 	google.golang.org/genproto v0.0.0-20240903143218-8af14fe29dc1 // indirect
