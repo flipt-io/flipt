@@ -37,7 +37,7 @@ type GraphProps = {
   values: number[];
 };
 
-export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
+export function Graph({ flagKey, timestamps, values }: GraphProps) {
   const timezone = useSelector(selectTimezone);
   const { inTimezone } = useTimezone();
 
@@ -60,7 +60,7 @@ export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
             {
               label: flagKey,
               data: values,
-              backgroundColor: 'rgba(167,139,250,0.6)',
+              backgroundColor: 'rgba(167,139,250,0.5)',
               borderColor: 'rgba(167,139,250,1)',
               borderWidth: 1,
               fill: true
@@ -74,7 +74,11 @@ export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
               type: 'timeseries',
               time: {
                 displayFormats: {
-                  minute: 'HH:mm'
+                  millisecond: 'HH:mm',
+                  second: 'HH:mm',
+                  minute: 'HH:mm',
+                  hour: 'HH:mm',
+                  day: 'HH:mm'
                 }
               },
               ticks: {
@@ -84,6 +88,9 @@ export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
               title: {
                 display: true,
                 text: xLabel
+              },
+              grid: {
+                display: false
               }
             },
             y: {
@@ -95,6 +102,9 @@ export function BarGraph({ flagKey, timestamps, values }: GraphProps) {
               title: {
                 display: true,
                 text: 'Evaluations'
+              },
+              grid: {
+                color: 'rgba(167,142,247,0.3)'
               }
             }
           },

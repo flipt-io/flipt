@@ -8,7 +8,7 @@ import 'chartjs-adapter-date-fns';
 import { addMinutes, format, parseISO } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
-import { BarGraph } from '~/components/graphs';
+import { Graph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
@@ -155,7 +155,7 @@ export default function Analytics() {
             </Formik>
           </>
           <div className="md:relative md:top-12">
-            <BarGraph
+            <Graph
               timestamps={flagEvaluationCount.timestamps || []}
               values={flagEvaluationCount.values || []}
               flagKey={flag.key}

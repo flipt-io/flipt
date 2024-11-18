@@ -36,7 +36,7 @@ func TestGetStepFromDuration(t *testing.T) {
 		{
 			name:     "24 hour duration",
 			duration: 24 * time.Hour,
-			want:     15,
+			want:     30,
 		},
 	}
 

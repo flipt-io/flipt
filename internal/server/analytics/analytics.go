@@ -42,6 +42,8 @@ func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 // to determine the interval steps we should use in minutes
 func getStepFromDuration(duration time.Duration) int {
 	switch {
+	case duration >= 24*time.Hour:
+		return 30
 	case duration >= 12*time.Hour:
 		return 15
 	case duration >= 4*time.Hour:

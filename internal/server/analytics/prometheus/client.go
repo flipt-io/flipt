@@ -36,14 +36,14 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm]))`,
+		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm])) or vector(0)`,
 		req.NamespaceKey,
 		req.FlagKey,
 		req.StepMinutes,
 	)
 	r := promapi.Range{
 		Start: req.From.UTC(),
-		End:   req.To.UTC(),
+		End:   req.To.Add(time.Duration(req.StepMinutes) * time.Minute).UTC(),
 		Step:  time.Duration(req.StepMinutes) * time.Minute,
 	}
 	data, warnings, err := c.promClient.QueryRange(ctx, query, r)

@@ -46,10 +46,10 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="bar", flag="foo"}[1m]))`,
+			`sum(increase(flipt_evaluations_requests_total{namespace="bar", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
-				End:   to,
+				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
 		).Return(data, promapi.Warnings{"test Warnings"}, nil)
@@ -75,10 +75,10 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("no data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="no-data", flag="foo"}[1m]))`,
+			`sum(increase(flipt_evaluations_requests_total{namespace="no-data", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
-				End:   to,
+				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
 		).Return(&model.Scalar{}, nil, nil)
@@ -102,10 +102,10 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("wrong data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="wrong-data", flag="foo"}[1m]))`,
+			`sum(increase(flipt_evaluations_requests_total{namespace="wrong-data", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
-				End:   to,
+				End:   to.Add(time.Minute),
 				Step:  time.Minute,
 			},
 		).Return(&model.Matrix{}, nil, nil)
@@ -129,11 +129,11 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="error", flag="foo"}[1m]))`,
+			`sum(increase(flipt_evaluations_requests_total{namespace="error", flag="foo"}[5m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
-				End:   to,
-				Step:  time.Minute,
+				End:   to.Add(5 * time.Minute),
+				Step:  5 * time.Minute,
 			},
 		).Return(nil, nil, errors.New("failed to query"))
 
@@ -147,7 +147,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 			FlagKey:      "foo",
 			From:         from,
 			To:           to,
-			StepMinutes:  1,
+			StepMinutes:  5,
 		})
 
 		require.Error(t, err)
