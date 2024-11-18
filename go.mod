@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	cloud.google.com/go/storage v1.45.0
-	cuelang.org/go v0.10.0
+	cuelang.org/go v0.10.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.29.0
