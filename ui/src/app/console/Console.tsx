@@ -1,6 +1,5 @@
 import { json } from '@codemirror/lang-json';
-import { ArrowPathIcon } from '@heroicons/react/20/solid';
-import { CodeBracketIcon, CommandLineIcon } from '@heroicons/react/24/outline';
+import { CodeIcon, SquareTerminalIcon, RefreshCwIcon } from 'lucide-react';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
@@ -15,7 +14,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectCurrentRef } from '~/app/refs/refsSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/ui/button';
 import Combobox from '~/components/forms/Combobox';
 import Dropdown from '~/components/forms/Dropdown';
 import Input from '~/components/forms/Input';
@@ -268,17 +267,18 @@ export default function Console() {
                               id="entityId"
                               type="text"
                             />
-                            <button
+                            <Button
                               aria-label="New Entity ID"
                               title="New Entity ID"
-                              className="hidden md:block"
+                              variant="ghost"
+                              size="icon"
                               onClick={(e) => {
                                 e.preventDefault();
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <ArrowPathIcon className="m-auto h-5 w-5 justify-center align-middle text-gray-400 transition-opacity duration-300 ease-in-out hover:text-gray-500" />
-                            </button>
+                              <RefreshCwIcon className="text-gray-400" />
+                            </Button>
                           </div>
                         </div>
                         <div className="col-span-3">
@@ -298,36 +298,35 @@ export default function Console() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex justify-end">
-                        <div className="absolute">
-                          <Dropdown
-                            label="Copy"
-                            actions={[
-                              {
-                                id: 'curl',
-                                disabled: !(formik.dirty && formik.isValid),
-                                label: 'Curl Request',
-                                onClick: () => handleCopyAsCurl(formik.values),
-                                icon: CodeBracketIcon
-                              },
-                              {
-                                id: 'cli',
-                                disabled: !(formik.dirty && formik.isValid),
-                                label: 'Flipt CLI',
-                                onClick: () => handleCopyAsCli(formik.values),
-                                icon: CommandLineIcon
-                              }
-                            ]}
-                          />
-                          <Button
-                            variant="primary"
-                            className="ml-3"
-                            type="submit"
-                            disabled={!(formik.dirty && formik.isValid)}
-                          >
-                            Evaluate
-                          </Button>
-                        </div>
+                      <div className="flex justify-end gap-2">
+                        <Dropdown
+                          disabled={!(formik.dirty && formik.isValid)}
+                          label="Copy"
+                          side="top"
+                          actions={[
+                            {
+                              id: 'curl',
+                              disabled: !(formik.dirty && formik.isValid),
+                              label: 'Curl Request',
+                              onClick: () => handleCopyAsCurl(formik.values),
+                              icon: CodeIcon
+                            },
+                            {
+                              id: 'cli',
+                              disabled: !(formik.dirty && formik.isValid),
+                              label: 'Flipt CLI',
+                              onClick: () => handleCopyAsCli(formik.values),
+                              icon: SquareTerminalIcon
+                            }
+                          ]}
+                        />
+                        <Button
+                          variant="default"
+                          type="submit"
+                          disabled={!(formik.dirty && formik.isValid)}
+                        >
+                          Evaluate
+                        </Button>
                       </div>
                     </div>
                     <ResetOnNamespaceChange namespace={namespace} />

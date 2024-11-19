@@ -1,8 +1,4 @@
-import {
-  CalendarIcon,
-  DocumentDuplicateIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline';
+import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -249,16 +245,15 @@ export default function Segment() {
                 label: 'Copy to Namespace',
                 disabled: readOnly || namespaces.length < 2,
                 onClick: () => setShowCopySegmentModal(true),
-                icon: DocumentDuplicateIcon
+                icon: FilesIcon
               },
               {
                 id: 'delete',
                 label: 'Delete',
                 disabled: readOnly,
                 onClick: () => setShowDeleteSegmentModal(true),
-                icon: TrashIcon,
-                activeClassName: readOnly ? 'text-red-500' : 'text-red-700',
-                inActiveClassName: readOnly ? 'text-red-400' : 'text-red-600'
+                icon: Trash2Icon,
+                variant: 'destructive'
               }
             ]}
           />

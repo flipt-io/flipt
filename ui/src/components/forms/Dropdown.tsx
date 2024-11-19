@@ -1,110 +1,70 @@
-import { Menu, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { Fragment } from 'react';
 import { Icon } from '~/types/Icon';
-import { cls } from '~/utils/helpers';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '~/components/ui/dropdown-menu';
 
-type DropdownAction = {
+import { ChevronDown } from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '~/lib/utils';
+
+const dropdownVariants = cva('', {
+  variants: {
+    variant: {
+      default: 'text-secondary-foreground',
+      destructive: 'text-destructive focus:bg-destructive focus:text-white'
+    }
+  },
+  defaultVariants: {
+    variant: 'default'
+  }
+});
+
+interface DropdownAction extends VariantProps<typeof dropdownVariants> {
   id: string;
   label: string;
   icon?: Icon;
   onClick: () => void;
   disabled?: boolean;
-  title?: string;
-  className?: string;
-  activeClassName?: string;
-  inActiveClassName?: string;
-};
+}
 
 type DropdownProps = {
   label: string;
   actions: DropdownAction[];
+  disabled?: boolean;
+  side?: 'top' | 'bottom';
 };
 
 export default function Dropdown(props: DropdownProps) {
-  const { label, actions } = props;
+  const { label, actions, disabled, side } = props;
   return (
-    <Menu as="div" className="relative inline-block text-left">
-      <div>
-        <Menu.Button className="mb-1 inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-2 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-violet-300">
-          {label}
-          <ChevronDownIcon
-            className="-mr-1 h-5 w-5 text-gray-400"
-            aria-hidden="true"
-          />
-        </Menu.Button>
-      </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" disabled={disabled}>
+          {label} <ChevronDown />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side={side || 'bottom'}>
+        {actions.map((action) => (
+          <>
+            {action.variant === 'destructive' && <DropdownMenuSeparator />}
 
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          {actions.map((action) => (
-            <div className="py-1" key={action.id}>
-              {!action.disabled && (
-                <Menu.Item key={action.id}>
-                  {({ active, close }) => (
-                    <a
-                      href="#"
-                      className={cls(
-                        'group flex items-center px-4 py-2 text-sm',
-                        action.className,
-                        active
-                          ? (action.activeClassName ??
-                              'bg-gray-100 text-gray-900')
-                          : (action.inActiveClassName ?? 'text-gray-700')
-                      )}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        action.onClick();
-                        close();
-                      }}
-                    >
-                      {action.icon && (
-                        <action.icon
-                          className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                          aria-hidden="true"
-                        />
-                      )}
-                      {action.label}
-                    </a>
-                  )}
-                </Menu.Item>
-              )}
-              {action.disabled && (
-                <Menu.Item key={action.id}>
-                  {({ active }) => (
-                    <span
-                      className={cls(
-                        'group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed',
-                        action.className,
-                        active
-                          ? (action.activeClassName ??
-                              'bg-gray-100 text-gray-700')
-                          : (action.inActiveClassName ?? 'text-gray-500')
-                      )}
-                    >
-                      {action.icon && (
-                        <action.icon
-                          className="mr-3 h-5 w-5 text-gray-300 group-hover:text-gray-400"
-                          aria-hidden="true"
-                        />
-                      )}
-                      {action.label}
-                    </span>
-                  )}
-                </Menu.Item>
-              )}
-            </div>
-          ))}
-        </Menu.Items>
-      </Transition>
-    </Menu>
+            <DropdownMenuItem
+              itemID={action.id}
+              onClick={action.onClick}
+              disabled={action.disabled}
+              className={cn(dropdownVariants({ variant: action.variant }))}
+            >
+              {action.icon && <action.icon />}
+              {action.label}
+            </DropdownMenuItem>
+          </>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
