@@ -156,7 +156,7 @@ export default function Flag() {
             label="Actions"
             actions={[
               {
-                id: 'copy',
+                id: 'flag-copy',
                 label: 'Copy to Namespace',
                 disabled: readOnly || namespaces.length < 2,
                 onClick: () => {
@@ -165,7 +165,7 @@ export default function Flag() {
                 icon: FilesIcon
               },
               {
-                id: 'delete',
+                id: 'flag-delete',
                 label: 'Delete',
                 disabled: readOnly,
                 onClick: () => setShowDeleteFlagModal(true),

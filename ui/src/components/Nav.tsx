@@ -30,6 +30,7 @@ function NavItem(props: NavItemProps) {
     <NavLink
       key={name}
       to={to}
+      aria-label={name}
       className={({ isActive }) =>
         cls(
           'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white dark:text-black',

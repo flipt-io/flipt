@@ -6,9 +6,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '~/components/ui/dropdown-menu';
+import { Fragment } from 'react';
 
-import { ChevronDown } from 'lucide-react';
-import { Button } from '~/components/ui/button';
+import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
+import { Button, ButtonSize, ButtonVariant } from '~/components/ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '~/lib/utils';
 
@@ -37,32 +38,54 @@ type DropdownProps = {
   actions: DropdownAction[];
   disabled?: boolean;
   side?: 'top' | 'bottom';
+  kind?: 'dots';
 };
 
 export default function Dropdown(props: DropdownProps) {
-  const { label, actions, disabled, side } = props;
+  const { label, actions, disabled, side, kind } = props;
+  let BtnIcon = ChevronDown;
+  let variant: ButtonVariant = 'outline';
+  let size: ButtonSize = 'default';
+
+  if (kind === 'dots') {
+    variant = 'ghost';
+    size = 'icon';
+    BtnIcon = EllipsisVerticalIcon;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={disabled}>
-          {label} <ChevronDown />
+        <Button
+          role="button"
+          disabled={disabled}
+          variant={variant}
+          size={size}
+          type="button"
+        >
+          {label} <BtnIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side={side || 'bottom'}>
-        {actions.map((action) => (
-          <>
-            {action.variant === 'destructive' && <DropdownMenuSeparator />}
+      <DropdownMenuContent align="end" side={side || 'bottom'} key="actions">
+        {actions.map((action, i) => (
+          <Fragment key={i}>
+            {action.variant === 'destructive' && i != 0 && (
+              <DropdownMenuSeparator />
+            )}
 
             <DropdownMenuItem
-              itemID={action.id}
-              onClick={action.onClick}
+              onSelect={(e) => {
+                e.preventDefault();
+                action.onClick();
+              }}
               disabled={action.disabled}
+              area-label={action.label}
               className={cn(dropdownVariants({ variant: action.variant }))}
             >
               {action.icon && <action.icon />}
               {action.label}
             </DropdownMenuItem>
-          </>
+          </Fragment>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

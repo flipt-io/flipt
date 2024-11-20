@@ -241,14 +241,14 @@ export default function Segment() {
             label="Actions"
             actions={[
               {
-                id: 'copy',
+                id: 'segment-copy',
                 label: 'Copy to Namespace',
                 disabled: readOnly || namespaces.length < 2,
                 onClick: () => setShowCopySegmentModal(true),
                 icon: FilesIcon
               },
               {
-                id: 'delete',
+                id: 'segement-delete',
                 label: 'Delete',
                 disabled: readOnly,
                 onClick: () => setShowDeleteSegmentModal(true),

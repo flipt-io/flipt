@@ -159,7 +159,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   />
                   {!isNew && (
                     <button
-                      aria-label="Copy"
+                      aria-label="Copy to clipboard"
                       title="Copy to Clipboard"
                       className="hidden md:block"
                       onClick={(e) => {
