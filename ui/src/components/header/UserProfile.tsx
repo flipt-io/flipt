@@ -38,7 +38,7 @@ export default function UserProfile(props: UserProfileProps) {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           size="icon"

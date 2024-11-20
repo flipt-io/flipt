@@ -55,17 +55,17 @@ export default function Dropdown(props: DropdownProps) {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           role="button"
-          disabled={disabled}
           variant={variant}
           size={size}
           type="button"
           data-testid={props['data-testid']}
         >
-          {label} <BtnIcon />
+          {label}
+          <BtnIcon aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side={side || 'bottom'} key="actions">
@@ -76,14 +76,15 @@ export default function Dropdown(props: DropdownProps) {
             )}
 
             <DropdownMenuItem
-              onSelect={(e) => {
-                action.onClick();
+              onSelect={() => {
+                if (!action.disabled) {
+                  action.onClick();
+                }
               }}
               disabled={action.disabled}
-              aria-label={action.label}
               className={cn(dropdownVariants({ variant: action.variant }))}
             >
-              {action.icon && <action.icon />}
+              {action.icon && <action.icon aria-hidden="true" />}
               {action.label}
             </DropdownMenuItem>
           </Fragment>
