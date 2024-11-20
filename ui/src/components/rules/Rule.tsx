@@ -63,7 +63,7 @@ const Rule = forwardRef(
             Rule
           </h3>
           <Dropdown
-            data-testid="rollout-menu-button"
+            data-testid="rule-menu-button"
             label=""
             kind="dots"
             disabled={readOnly}

@@ -39,6 +39,7 @@ type DropdownProps = {
   disabled?: boolean;
   side?: 'top' | 'bottom';
   kind?: 'dots';
+  'data-testid'?: string;
 };
 
 export default function Dropdown(props: DropdownProps) {
@@ -62,6 +63,7 @@ export default function Dropdown(props: DropdownProps) {
           variant={variant}
           size={size}
           type="button"
+          data-testid={props['data-testid']}
         >
           {label} <BtnIcon />
         </Button>
@@ -75,11 +77,10 @@ export default function Dropdown(props: DropdownProps) {
 
             <DropdownMenuItem
               onSelect={(e) => {
-                e.preventDefault();
                 action.onClick();
               }}
               disabled={action.disabled}
-              area-label={action.label}
+              aria-label={action.label}
               className={cn(dropdownVariants({ variant: action.variant }))}
             >
               {action.icon && <action.icon />}
