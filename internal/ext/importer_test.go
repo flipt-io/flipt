@@ -1101,6 +1101,21 @@ func TestImport(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "import with flag complex metadata",
+			path: "testdata/import_flag_complex_metadata",
+			expected: &mockCreator{
+				createflagReqs: []*flipt.CreateFlagRequest{
+					{
+						NamespaceKey: "default",
+						Key:          "test",
+						Name:         "test",
+						Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Metadata:     newStruct(t, map[string]any{"args": map[string]any{"name": "value"}}),
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
