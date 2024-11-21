@@ -31,7 +31,7 @@ export default function Button(props: ButtonProps) {
         !disabled && onClick && onClick(e);
       }}
       className={cls(
-        'cursor-hand mb-1 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-offset-1',
+        'cursor-hand inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-offset-1',
         className,
         {
           'cursor-not-allowed': disabled,

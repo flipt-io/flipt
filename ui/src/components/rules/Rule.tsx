@@ -1,10 +1,9 @@
-import { Menu, Transition } from '@headlessui/react';
-import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
-import { forwardRef, Fragment, Ref } from 'react';
+import { forwardRef, Ref } from 'react';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
 import { cls } from '~/utils/helpers';
+import Dropdown from '~/components/forms/Dropdown';
 import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
@@ -63,45 +62,23 @@ const Rule = forwardRef(
           >
             Rule
           </h3>
-          <Menu as="div" className="hidden sm:flex">
-            <Menu.Button
-              data-testid="rule-menu-button"
-              className="ml-4 block text-gray-600 hover:text-gray-900"
-            >
-              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-            </Menu.Button>
-            {!readOnly && (
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onDelete && onDelete();
-                        }}
-                        className={cls(
-                          'block px-3 py-1 text-sm leading-6 text-gray-900',
-                          { 'bg-gray-50': active }
-                        )}
-                      >
-                        Delete
-                      </a>
-                    )}
-                  </Menu.Item>
-                </Menu.Items>
-              </Transition>
-            )}
-          </Menu>
+          <Dropdown
+            data-testid="rule-menu-button"
+            label=""
+            kind="dots"
+            disabled={readOnly}
+            actions={[
+              {
+                id: 'rule-delete',
+                disabled: readOnly,
+                label: 'Delete',
+                variant: 'destructive',
+                onClick: () => {
+                  onDelete && onDelete();
+                }
+              }
+            ]}
+          />
         </div>
       </div>
       <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">

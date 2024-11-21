@@ -131,19 +131,17 @@ test.describe('Segments - Read Only', () => {
   test('can not delete segment', async ({ page }) => {
     await page.getByRole('link', { name: 'test-segment' }).click();
     await page.getByRole('button', { name: 'Actions' }).click();
-    await page.getByRole('menuitem', { name: 'Delete' }).click();
     // assert nothing happens
-    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeHidden();
+    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeDisabled();
   });
 
   test('can not copy segment to new namespace', async ({ page }) => {
     await page.getByRole('link', { name: 'test-segment' }).click();
 
     await page.getByRole('button', { name: 'Actions' }).click();
-    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
     // assert nothing happens
     await expect(
       page.getByRole('menuitem', { name: 'Copy to Namespace' })
-    ).toBeHidden();
+    ).toBeDisabled();
   });
 });

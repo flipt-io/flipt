@@ -1,8 +1,4 @@
-import {
-  CalendarIcon,
-  DocumentDuplicateIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline';
+import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import 'chartjs-adapter-date-fns';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -160,22 +156,21 @@ export default function Flag() {
             label="Actions"
             actions={[
               {
-                id: 'copy',
+                id: 'flag-copy',
                 label: 'Copy to Namespace',
                 disabled: readOnly || namespaces.length < 2,
                 onClick: () => {
                   setShowCopyFlagModal(true);
                 },
-                icon: DocumentDuplicateIcon
+                icon: FilesIcon
               },
               {
-                id: 'delete',
+                id: 'flag-delete',
                 label: 'Delete',
                 disabled: readOnly,
                 onClick: () => setShowDeleteFlagModal(true),
-                icon: TrashIcon,
-                activeClassName: readOnly ? 'text-red-500' : 'text-red-700',
-                inActiveClassName: readOnly ? 'text-red-400' : 'text-red-600'
+                icon: Trash2Icon,
+                variant: 'destructive'
               }
             ]}
           />
