@@ -79,6 +79,22 @@ test.describe('Rollouts', () => {
       page.getByRole('button', { name: 'Threshold Rollout' })
     ).toBeHidden();
   });
+
+  test('can create segment with rollout', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-boolean' }).click();
+    await page.getByRole('button', { name: 'New Rollout' }).click();
+    await page.getByLabel('New Rollout').getByLabel('Segment').check();
+    await page
+      .getByLabel('New Rollout')
+      .locator('#segmentKey-0-select-button')
+      .click();
+    await page.getByLabel('New Rollout').getByText('Test Rule').click();
+    await page
+      .getByLabel('New Rollout')
+      .getByRole('button', { name: 'Create' })
+      .click();
+    await expect(page.getByText('Successfully created rollout')).toBeVisible();
+  });
 });
 
 test.describe('Rollouts - Read Only', () => {
@@ -101,5 +117,9 @@ test.describe('Rollouts - Read Only', () => {
     await expect(
       page.getByRole('button', { name: 'New Rollout' })
     ).toBeDisabled();
+  });
+
+  test('cannot delete rollout', async ({ page }) => {
+    await expect(page.getByTestId('rollout-menu-button').nth(0)).toBeDisabled();
   });
 });

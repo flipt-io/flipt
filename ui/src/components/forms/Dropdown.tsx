@@ -59,6 +59,7 @@ export default function Dropdown(props: DropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button
           role="button"
+          disabled={disabled}
           variant={variant}
           size={size}
           type="button"

@@ -136,14 +136,12 @@ test.describe('Rules - Read Only', () => {
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('rule-menu-button').nth(0).click();
-    await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
+    await expect(page.getByTestId('rule-menu-button').nth(0)).toBeDisabled();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('rule-menu-button').nth(0).click();
-    await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
+    await expect(page.getByTestId('rule-menu-button').nth(0)).toBeDisabled();
   });
 });

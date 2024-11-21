@@ -69,7 +69,7 @@ const Rule = forwardRef(
             disabled={readOnly}
             actions={[
               {
-                id: 'rollout-delete',
+                id: 'rule-delete',
                 disabled: readOnly,
                 label: 'Delete',
                 variant: 'destructive',
