@@ -1,0 +1,15 @@
+# exported by Flipt (v1.51.1) on 2024-11-21T11:39:38Z
+
+version: "1.4"
+namespace:
+  key: default
+  name: Default
+  description: Default namespace
+flags:
+  - key: test
+    name: test
+    type: BOOLEAN_FLAG_TYPE
+    enabled: false
+    metadata:
+      args:
+        name: value

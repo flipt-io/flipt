@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type Encoding string
@@ -44,7 +45,7 @@ func (n NopCloseEncoder) Close() error { return nil }
 func (e Encoding) NewDecoder(r io.Reader) Decoder {
 	switch e {
 	case EncodingYML, EncodingYAML:
-		return yaml.NewDecoder(r)
+		return yamlv3.NewDecoder(r)
 	case EncodingJSON:
 		return json.NewDecoder(r)
 	}
