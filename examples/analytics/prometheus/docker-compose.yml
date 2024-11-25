@@ -5,8 +5,12 @@ services:
     image: prom/prometheus:latest
     volumes:
       - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./web-config.yml:/etc/prometheus/web-config.yml"
     ports:
       - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.config.file=/etc/prometheus/web-config.yml
   flipt:
     image: flipt/flipt:latest
     depends_on:
@@ -21,6 +25,7 @@ services:
       - FLIPT_LOG_LEVEL=info
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_ENABLED=true
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_URL=http://prometheus:9090
+      - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_AUTH_TOKEN='Basic YWRtaW46dGVzdA=='
       - FLIPT_META_TELEMETRY_ENABLED=false
     command: ["/flipt", "--force-migrate"]
 

@@ -1465,6 +1465,10 @@
                 "url": {
                   "type": "string",
                   "default": ""
+                },
+                "auth_token": {
+                  "type": "string",
+                  "default": ""
                 }
               },
               "title": "Prometheus"

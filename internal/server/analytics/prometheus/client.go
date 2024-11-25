@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"net/http"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
@@ -26,6 +27,12 @@ type client struct {
 func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 	apiClient, err := api.NewClient(api.Config{
 		Address: cfg.Analytics.Storage.Prometheus.URL,
+		RoundTripper: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+			if cfg.Analytics.Storage.Prometheus.AuthToken != "" {
+				r.Header.Set("Authorization", cfg.Analytics.Storage.Prometheus.AuthToken)
+			}
+			return api.DefaultRoundTripper.RoundTrip(r)
+		}),
 	})
 	if err != nil {
 		return nil, err
@@ -75,4 +82,10 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 
 func (c *client) String() string {
 	return "prometheus"
+}
+
+type roundTripFunc func(r *http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
 }
