@@ -184,7 +184,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 				return false
 			}
 
-			if userTeamsByOrg == nil {
+			if len(s.config.Methods.Github.Method.AllowedTeams) == 0 {
 				return true
 			}
 
@@ -303,7 +303,7 @@ func parseOrgsForMetadata(orgs map[string]bool) (string, error) {
 	for org := range orgs {
 		orgList = append(orgList, org)
 	}
-	
+
 	orgListJson, err := json.Marshal(orgList)
 	if err != nil {
 		return "", err

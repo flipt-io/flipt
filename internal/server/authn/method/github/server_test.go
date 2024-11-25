@@ -95,6 +95,27 @@ func Test_Server(t *testing.T) {
 			Reply(200).
 			JSON(map[string]any{"name": "fliptuser", "email": "user@flipt.io", "avatar_url": "https://thispicture.com", "id": 1234567890})
 
+		gock.New("https://api.github.com").
+			MatchHeader("Authorization", "Bearer AccessToken").
+			MatchHeader("Accept", "application/vnd.github+json").
+			Get("/user/orgs").
+			Reply(200).
+			JSON([]githubSimpleOrganization{{Login: "flipt-io"}})
+
+		gock.New("https://api.github.com").
+			MatchHeader("Authorization", "Bearer AccessToken").
+			MatchHeader("Accept", "application/vnd.github+json").
+			Get("/user/teams").
+			Reply(200).
+			JSON([]githubSimpleTeam{
+				{
+					Slug: "flipt-team",
+					Organization: githubSimpleOrganization{
+						Login: "flipt-io",
+					},
+				},
+			})
+
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		require.NoError(t, err)
 
@@ -108,6 +129,8 @@ func Test_Server(t *testing.T) {
 			"io.flipt.auth.github.picture": "https://thispicture.com",
 			"io.flipt.auth.picture":        "https://thispicture.com",
 			"io.flipt.auth.github.sub":     "1234567890",
+			"io.flipt.auth.github.orgs":    "[\"flipt-io\"]",
+			"io.flipt.auth.github.teams":   "{\"flipt-io\":[\"flipt-team\"]}",
 		}, callback.Authentication.Metadata)
 	})
 
@@ -138,6 +161,20 @@ func Test_Server(t *testing.T) {
 			Get("/user/orgs").
 			Reply(200).
 			JSON([]githubSimpleOrganization{{Login: "flipt-io"}})
+
+		gock.New("https://api.github.com").
+			MatchHeader("Authorization", "Bearer AccessToken").
+			MatchHeader("Accept", "application/vnd.github+json").
+			Get("/user/teams").
+			Reply(200).
+			JSON([]githubSimpleTeam{
+				{
+					Slug: "flipt-team",
+					Organization: githubSimpleOrganization{
+						Login: "flipt-io",
+					},
+				},
+			})
 
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		require.NoError(t, err)
@@ -171,6 +208,20 @@ func Test_Server(t *testing.T) {
 			Get("/user/orgs").
 			Reply(200).
 			JSON([]githubSimpleOrganization{{Login: "flipt-io"}})
+
+		gock.New("https://api.github.com").
+			MatchHeader("Authorization", "Bearer AccessToken").
+			MatchHeader("Accept", "application/vnd.github+json").
+			Get("/user/teams").
+			Reply(200).
+			JSON([]githubSimpleTeam{
+				{
+					Slug: "flipt-team",
+					Organization: githubSimpleOrganization{
+						Login: "flipt-io",
+					},
+				},
+			})
 
 		_, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 		assert.ErrorContains(t, err, "request was not authenticated")
