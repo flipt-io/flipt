@@ -43,6 +43,8 @@ const (
 	storageMetadataGithubPicture           = "io.flipt.auth.github.picture"
 	storageMetadataGithubSub               = "io.flipt.auth.github.sub"
 	storageMetadataGitHubPreferredUsername = "io.flipt.auth.github.preferred_username"
+	storageMetadataGitHubOrgs              = "io.flipt.auth.github.orgs"
+	storageMetadataGithubTeams             = "io.flipt.auth.github.teams"
 )
 
 // Server is an Github server side handler.
@@ -165,20 +167,18 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	set(method.StorageMetadataName, githubUserResponse.Name)
 	set(method.StorageMetadataPicture, githubUserResponse.AvatarURL)
 
-	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
-		userOrgs, err := getUserOrgs(ctx, token, apiURL)
-		if err != nil {
-			return nil, err
-		}
+	userOrgs, err := getUserOrgs(ctx, token, apiURL)
+	if err != nil {
+		return nil, err
+	}
 
-		var userTeamsByOrg map[string]map[string]bool
-		if len(s.config.Methods.Github.Method.AllowedTeams) != 0 {
-			userTeamsByOrg, err = getUserTeamsByOrg(ctx, token, apiURL)
-			if err != nil {
-				return nil, err
-			}
-		}
+	var userTeamsByOrg map[string]map[string]bool
+	userTeamsByOrg, err = getUserTeamsByOrg(ctx, token, apiURL)
+	if err != nil {
+		return nil, err
+	}
 
+	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 { // authn
 		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
 			if !userOrgs[org] {
 				return false
@@ -198,6 +198,18 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 			return nil, errors.ErrUnauthenticatedf("request was not authenticated")
 		}
 	}
+
+	orgs, err := parseOrgsForMetadata(userOrgs)
+	if err != nil {
+		return nil, err
+	}
+	set(storageMetadataGitHubOrgs, orgs)
+
+	teams, err := parseTeamsForMetadata(userTeamsByOrg)
+	if err != nil {
+		return nil, err
+	}
+	set(storageMetadataGithubTeams, teams)
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_GITHUB,
@@ -284,4 +296,35 @@ func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token, apiURL string) 
 	}
 
 	return teamsByOrg, nil
+}
+
+func parseOrgsForMetadata(orgs map[string]bool) (string, error) {
+	orgList := make([]string, 0)
+	for org := range orgs {
+		orgList = append(orgList, org)
+	}
+	
+	orgListJson, err := json.Marshal(orgList)
+	if err != nil {
+		return "", err
+	}
+	return string(orgListJson), nil
+}
+
+func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool) (string, error) {
+	teamsByOrg := make(map[string][]string)
+	for org, teams := range userTeamsByOrg {
+		teamList := make([]string, 0)
+		for team := range teams {
+			teamList = append(teamList, team)
+		}
+		teamsByOrg[org] = teamList
+	}
+
+	teams, err := json.Marshal(teamsByOrg)
+	if err != nil {
+		return "", err
+	}
+
+	return string(teams), nil
 }
