@@ -17,7 +17,7 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 import {
   useDeleteRuleMutation,
   useListRulesQuery,

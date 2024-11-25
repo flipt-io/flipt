@@ -1,7 +1,7 @@
 import { Formik } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';

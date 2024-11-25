@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import { createHashRouter, redirect, RouterProvider } from 'react-router-dom';
+import { createHashRouter, redirect, RouterProvider } from 'react-router';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
