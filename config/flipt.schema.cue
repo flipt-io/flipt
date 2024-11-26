@@ -430,7 +430,7 @@ import "strings"
 			prometheus?: {
 				enabled?: bool | *false
 				url?:     string | *""
-				auth_token?:   string | *""
+				headers?: [string]: string
 			}
 		}
 		buffer?: {

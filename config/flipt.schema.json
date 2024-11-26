@@ -1466,9 +1466,9 @@
                   "type": "string",
                   "default": ""
                 },
-                "auth_token": {
-                  "type": "string",
-                  "default": ""
+                "headers": {
+                  "type": ["object", "null"],
+                  "additionalProperties": { "type": "string" }
                 }
               },
               "title": "Prometheus"

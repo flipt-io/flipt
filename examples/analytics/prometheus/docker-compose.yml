@@ -13,6 +13,8 @@ services:
       - --web.config.file=/etc/prometheus/web-config.yml
   flipt:
     image: flipt/flipt:latest
+    volumes:
+      - "./flipt-config.yml:/etc/flipt/config/default.yml"
     depends_on:
       prometheus:
         condition: service_healthy
@@ -25,7 +27,7 @@ services:
       - FLIPT_LOG_LEVEL=info
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_ENABLED=true
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_URL=http://prometheus:9090
-      - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_AUTH_TOKEN='Basic YWRtaW46dGVzdA=='
+      - PROMETHEUS_AUTH_TOKEN='Basic YWRtaW46dGVzdA=='
       - FLIPT_META_TELEMETRY_ENABLED=false
     command: ["/flipt", "--force-migrate"]
 

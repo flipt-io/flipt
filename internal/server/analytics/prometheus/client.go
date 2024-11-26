@@ -28,8 +28,8 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 	apiClient, err := api.NewClient(api.Config{
 		Address: cfg.Analytics.Storage.Prometheus.URL,
 		RoundTripper: roundTripFunc(func(r *http.Request) (*http.Response, error) {
-			if cfg.Analytics.Storage.Prometheus.AuthToken != "" {
-				r.Header.Set("Authorization", cfg.Analytics.Storage.Prometheus.AuthToken)
+			for k, v := range cfg.Analytics.Storage.Prometheus.Headers {
+				r.Header.Set(k, v)
 			}
 			return api.DefaultRoundTripper.RoundTrip(r)
 		}),
