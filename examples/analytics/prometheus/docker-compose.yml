@@ -10,7 +10,7 @@ services:
       - "9090:9090"
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-      # - --web.config.file=/etc/prometheus/web-config.yml
+      - --web.config.file=/etc/prometheus/web-config.yml
   flipt:
     image: flipt/flipt:latest
     volumes:
@@ -26,7 +26,7 @@ services:
       - FLIPT_LOG_LEVEL=info
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_ENABLED=true
       - FLIPT_ANALYTICS_STORAGE_PROMETHEUS_URL=http://prometheus:9090
-      # - PROMETHEUS_AUTH_TOKEN='Basic YWRtaW46dGVzdA=='
+      - PROMETHEUS_AUTH_TOKEN=Basic YWRtaW46dGVzdA==
       - FLIPT_META_TELEMETRY_ENABLED=false
     command: ["/flipt", "--force-migrate"]
 
