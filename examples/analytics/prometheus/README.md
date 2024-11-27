@@ -1,12 +1,12 @@
 <p align="center">
-    <img src="../../images/logos/clickhouse.svg" alt="ClickHouse" width=150 height=150 />
+    <img src="../../images/logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
 </p>
 
-# ClickHouse Example
+# Prometheus Example
 
-Flipt supports storing and querying flag evaluation data by leveraging [ClickHouse](https://clickhouse.com/) as the backend data store. 
+Flipt supports storing and querying flag evaluation data by leveraging [Prometheus](https://prometheus.io/) as the backend data store. 
 
-This example demonstrates how to use Flipt with ClickHouse to store and query flag evaluation data.
+This example demonstrates how to use Flipt with Prometheus to store and query flag evaluation data.
 
 !['Analytics Example'](../../images/analytics.png)
 
