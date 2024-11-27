@@ -3,6 +3,21 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.52.1](https://github.com/flipt-io/flipt/releases/tag/v1.52.1) - 2024-11-27
+
+### Added
+
+- `analytics`: allow to set Authorization header for prometheus (#3656)
+
+### Changed
+
+- remove extra line in changelog to make linter happy (#3655)
+
+### Fixed
+
+- `ui`: tweak flag tabs to have the same layout (#3659)
+- `config`: incorrect json serialization tag (#3658)
+
 ## [v1.52.0](https://github.com/flipt-io/flipt/releases/tag/v1.52.0) - 2024-11-25
 
 ### Added
