@@ -122,15 +122,13 @@ func Test_Server(t *testing.T) {
 		assert.NotEmpty(t, callback.ClientToken)
 		assert.Equal(t, auth.Method_METHOD_GITHUB, callback.Authentication.Method)
 		assert.Equal(t, map[string]string{
-			"io.flipt.auth.github.email":   "user@flipt.io",
-			"io.flipt.auth.email":          "user@flipt.io",
-			"io.flipt.auth.github.name":    "fliptuser",
-			"io.flipt.auth.name":           "fliptuser",
-			"io.flipt.auth.github.picture": "https://thispicture.com",
-			"io.flipt.auth.picture":        "https://thispicture.com",
-			"io.flipt.auth.github.sub":     "1234567890",
-			"io.flipt.auth.github.orgs":    "[\"flipt-io\"]",
-			"io.flipt.auth.github.teams":   "{\"flipt-io\":[\"flipt-team\"]}",
+			"io.flipt.auth.github.email":         "user@flipt.io",
+			"io.flipt.auth.email":                "user@flipt.io",
+			"io.flipt.auth.github.name":          "fliptuser",
+			"io.flipt.auth.name":                 "fliptuser",
+			"io.flipt.auth.github.picture":       "https://thispicture.com",
+			"io.flipt.auth.picture":              "https://thispicture.com",
+			"io.flipt.auth.github.sub":           "1234567890",
 		}, callback.Authentication.Metadata)
 	})
 
