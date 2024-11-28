@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
@@ -63,11 +64,11 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 	}
 
 	m, ok := data.(model.Matrix)
-	if !ok || len(m) != 1 {
+	if !ok || len(m) == 0 {
 		return nil, nil, fmt.Errorf("unexpected data type returned from prometheus")
 	}
 
-	v := m[0]
+	v := m[len(m)-1]
 	var (
 		timestamps = make([]string, len(v.Values))
 		values     = make([]float32, len(v.Values))
@@ -77,6 +78,20 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 		timestamps[i] = time.UnixMilli(int64(vv.Timestamp)).Format(time.DateTime)
 		values[i] = float32(math.Round(float64(vv.Value)))
 	}
+
+	// Prometheus returns one data series for our query with vector(0).
+	// Victoria Metrics returns one or two data series: one for the actual data and one for
+	// the vector(0). The actual data has only points with non-zero values or may absent at all
+	// if there is no data. The vector(0) has only points with zero values. We need to combine it
+	for i := len(m) - 2; i >= 0; i-- {
+		for _, vv := range m[i].Values {
+			t := time.UnixMilli(int64(vv.Timestamp)).Format(time.DateTime)
+			if i := slices.Index(timestamps, t); i != -1 {
+				values[i] += float32(math.Round(float64(vv.Value)))
+			}
+		}
+	}
+
 	return timestamps, values, nil
 }
 
