@@ -332,12 +332,6 @@ func Test_Server(t *testing.T) {
 						Login: "flipt-io",
 					},
 				},
-				{
-					Slug: "test-flipt-team",
-					Organization: githubSimpleOrganization{
-						Login: "flipt-io",
-					},
-				},
 			})
 
 		callback, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
@@ -354,7 +348,7 @@ func Test_Server(t *testing.T) {
 			"io.flipt.auth.picture":              "https://thispicture.com",
 			"io.flipt.auth.github.sub":           "1234567890",
 			"io.flipt.auth.github.organizations": "[\"flipt-io\"]",
-			"io.flipt.auth.github.teams":         "{\"flipt-io\":[\"flipt-team\",\"test-flipt-team\"]}",
+			"io.flipt.auth.github.teams":         "{\"flipt-io\":[\"flipt-team\"]}",
 		}, callback.Authentication.Metadata)
 	})
 

@@ -312,17 +312,17 @@ func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[strin
 }
 
 func parseOrgsForMetadata(orgs map[string]bool, allowedOrgs []string) (string, error) {
-	if len(allowedOrgs) != 0 { // if present then convert to list of string and return
-		allowedOrgsJson, err := json.Marshal(allowedOrgs)
-		if err != nil {
-			return "", err
-		}
-		return string(allowedOrgsJson), nil
-	}
-
 	orgList := make([]string, 0)
-	for org := range orgs {
-		orgList = append(orgList, org)
+	if len(allowedOrgs) == 0 {
+		for org := range orgs {
+			orgList = append(orgList, org)
+		}
+	} else {
+		for _, org := range allowedOrgs {
+			if orgs[org] {
+				orgList = append(orgList, org)
+			}
+		}
 	}
 
 	orgListJson, err := json.Marshal(orgList)
@@ -333,34 +333,15 @@ func parseOrgsForMetadata(orgs map[string]bool, allowedOrgs []string) (string, e
 }
 
 func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, allowedTeams map[string][]string) (string, error) {
-	if len(allowedTeams) != 0 { // if present then convert map[string][]string to string and return
-		allowedTeamsJson, err := json.Marshal(allowedTeams)
-		if err != nil {
-			return "", err
-		}
-		return string(allowedTeamsJson), nil	
-	}
-
 	teamsByOrg := make(map[string][]string)
-	if len(allowedOrgs) != 0 { // if allowed orgs are present then only return teams for those orgs
-		for _, allowedOrg := range allowedOrgs {
-			teams, ok := userTeamsByOrg[allowedOrg]
-			if ok {
-				teamList := make([]string, 0)
-				for team := range teams {
-					teamList = append(teamList, team)
-				}
-				teamsByOrg[allowedOrg] = teamList
-			}
-		}
-	} else {
-		for org, teams := range userTeamsByOrg {
-			teamList := make([]string, 0)
-			for team := range teams {
-				teamList = append(teamList, team)
-			}
-			teamsByOrg[org] = teamList
-		}
+
+	switch {
+	case len(allowedTeams) != 0:
+		filterTeamsByAllowedTeams(userTeamsByOrg, allowedTeams, teamsByOrg)
+	case len(allowedOrgs) != 0:
+		filterTeamsByAllowedOrgs(userTeamsByOrg, allowedOrgs, teamsByOrg)
+	default:
+		copyAllTeams(userTeamsByOrg, teamsByOrg)
 	}
 
 	teams, err := json.Marshal(teamsByOrg)
@@ -369,4 +350,34 @@ func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrg
 	}
 
 	return string(teams), nil
+}
+
+func filterTeamsByAllowedTeams(userTeamsByOrg map[string]map[string]bool, allowedTeams map[string][]string, teamsByOrg map[string][]string) {
+	for org, teams := range allowedTeams {
+		if _, exists := userTeamsByOrg[org]; exists {
+			for _, team := range teams {
+				if userTeamsByOrg[org][team] {
+					teamsByOrg[org] = append(teamsByOrg[org], team)
+				}
+			}
+		}
+	}
+}
+
+func filterTeamsByAllowedOrgs(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, teamsByOrg map[string][]string) {
+	for _, allowedOrg := range allowedOrgs {
+		if teams, ok := userTeamsByOrg[allowedOrg]; ok {
+			for team := range teams {
+				teamsByOrg[allowedOrg] = append(teamsByOrg[allowedOrg], team)
+			}
+		}
+	}
+}
+
+func copyAllTeams(userTeamsByOrg map[string]map[string]bool, teamsByOrg map[string][]string) {
+	for org, teams := range userTeamsByOrg {
+		for team := range teams {
+			teamsByOrg[org] = append(teamsByOrg[org], team)
+		}
+	}
 }
