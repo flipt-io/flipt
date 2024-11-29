@@ -83,7 +83,7 @@ test.describe('Namespaces', () => {
     await page.getByRole('button', { name: 'Default' }).click();
     await page.getByText('no delete').click();
 
-    await page.getByRole('button', { name: 'Create Flag' }).click();
+    await page.getByRole('button', { name: 'New Flag' }).click();
     await page.getByLabel('Name').fill('foo');
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();

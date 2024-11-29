@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import EmptyState from '~/components/EmptyState';
-import FlagTable from '~/components/flags/FlagTable';
-import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import { useError } from '~/data/hooks/error';
 import { useListFlagsQuery } from './flagsApi';
+import { Plus } from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import FlagTable from '~/components/flags/FlagTable';
+import Guide from '~/components/ui/guide';
+import { PageHeader } from '~/components/ui/page';
 
 export default function Flags() {
   const namespace = useSelector(selectCurrentNamespace);
@@ -17,50 +19,32 @@ export default function Flags() {
   const flags = data?.flags || [];
 
   const navigate = useNavigate();
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const readOnly = useSelector(selectReadonly);
 
   useEffect(() => {
     if (error) {
       setError(error);
-      return;
     }
-    clearError();
-  }, [clearError, error, setError]);
+  }, [error, setError]);
 
   return (
     <>
-      <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
-            Flags
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Flags represent features that you can easily enable or disable
-          </p>
-        </div>
-        <div className="mt-4">
-          <Link to={`${path}/new`}>
-            <ButtonWithPlus
-              variant="primary"
-              disabled={readOnly}
-              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-            >
-              New Flag
-            </ButtonWithPlus>
-          </Link>
-        </div>
-      </div>
-      <div className="mt-4 flex flex-col">
+      <PageHeader title="Flags">
+        <Button onClick={() => navigate(`${path}/new`)} disabled={readOnly}>
+          <Plus />
+          New Flag
+        </Button>
+      </PageHeader>
+      <div className="flex flex-col gap-1 py-2">
         {flags && flags.length > 0 ? (
           <FlagTable flags={flags} />
         ) : (
-          <EmptyState
-            text="Create Flag"
-            disabled={readOnly}
-            onClick={() => navigate(`${path}/new`)}
-          />
+          <Guide className="mt-6">
+            Flags enable you to control and roll out new functionality
+            dynamically. Create a new flag to get started.
+          </Guide>
         )}
       </div>
     </>

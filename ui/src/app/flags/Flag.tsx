@@ -26,6 +26,7 @@ import {
 } from './flagsApi';
 import { FlagType } from '~/types/Flag';
 import { cls } from '~/utils/helpers';
+import { PageHeader } from '~/components/ui/page';
 
 const variantFlagTabs = [
   { name: 'Variants', to: '' },
@@ -130,50 +131,45 @@ export default function Flag() {
       </Modal>
 
       {/* flag header / actions */}
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            {flag.name}
-          </h2>
-          <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div
-              title={inTimezone(flag.createdAt)}
-              className="mt-2 flex items-center text-sm text-gray-500"
-            >
-              <CalendarIcon
-                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                aria-hidden="true"
-              />
-              Created{' '}
-              {formatDistanceToNowStrict(parseISO(flag.createdAt), {
-                addSuffix: true
-              })}
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-none">
-          <Dropdown
-            label="Actions"
-            actions={[
-              {
-                id: 'flag-copy',
-                label: 'Copy to Namespace',
-                disabled: readOnly || namespaces.length < 2,
-                onClick: () => {
-                  setShowCopyFlagModal(true);
-                },
-                icon: FilesIcon
+      <PageHeader title={flag.name}>
+        <Dropdown
+          label="Actions"
+          actions={[
+            {
+              id: 'flag-copy',
+              label: 'Copy to Namespace',
+              disabled: readOnly || namespaces.length < 2,
+              onClick: () => {
+                setShowCopyFlagModal(true);
               },
-              {
-                id: 'flag-delete',
-                label: 'Delete',
-                disabled: readOnly,
-                onClick: () => setShowDeleteFlagModal(true),
-                icon: Trash2Icon,
-                variant: 'destructive'
-              }
-            ]}
-          />
+              icon: FilesIcon
+            },
+            {
+              id: 'flag-delete',
+              label: 'Delete',
+              disabled: readOnly,
+              onClick: () => setShowDeleteFlagModal(true),
+              icon: Trash2Icon,
+              variant: 'destructive'
+            }
+          ]}
+        />
+      </PageHeader>
+      <div className="flex items-center justify-between">
+        <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+          <div
+            title={inTimezone(flag.createdAt)}
+            className="mt-2 flex items-center text-sm text-gray-500"
+          >
+            <CalendarIcon
+              className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+              aria-hidden="true"
+            />
+            Created{' '}
+            {formatDistanceToNowStrict(parseISO(flag.createdAt), {
+              addSuffix: true
+            })}
+          </div>
         </div>
       </div>
 
