@@ -170,7 +170,7 @@ func Test_Server(t *testing.T) {
 		}, callback.Authentication.Metadata)
 	})
 
-	t.Run("store all allowed orgs to metadata", func(t *testing.T) {
+	t.Run("store all allowed orgs that matches orgs of the user to metadata", func(t *testing.T) {
 		ctx := context.Background()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
@@ -179,7 +179,7 @@ func Test_Server(t *testing.T) {
 				ClientId:             "githubid",
 				RedirectAddress:      "test.flipt.io",
 				Scopes:               []string{"read:org"},
-				AllowedOrganizations: []string{"flipt-io"},
+				AllowedOrganizations: []string{"flipt-io", "flipt-io-2"},
 			},
 		})
 
@@ -223,7 +223,7 @@ func Test_Server(t *testing.T) {
 		}, callback.Authentication.Metadata)
 	})
 
-	t.Run("store all allowed teams to metadata", func(t *testing.T) {
+	t.Run("store all allowed teams that matches teams of the user to metadata", func(t *testing.T) {
 		ctx := context.Background()
 		client := newTestServer(t, config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 			Enabled: true,
@@ -234,7 +234,7 @@ func Test_Server(t *testing.T) {
 				Scopes:               []string{"read:org"},
 				AllowedOrganizations: []string{"flipt-io"},
 				AllowedTeams: map[string][]string{
-					"flipt-io": {"flipt-team"},
+					"flipt-io": {"flipt-team", "flipt-team-2"},
 				},
 			},
 		})
