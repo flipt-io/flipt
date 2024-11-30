@@ -1,9 +1,7 @@
-import { Formik } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
-import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
 import { addMinutes, format, parseISO } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
@@ -13,6 +11,7 @@ import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectConfig } from '~/app/meta/metaSlice';
+import Listbox from '~/components/forms/Listbox';
 
 type AnalyticsProps = {
   flag: IFlag;
@@ -60,8 +59,9 @@ const durations: FilterableDurations[] = [
 ];
 
 export default function Analytics() {
-  const [selectedDuration, setSelectedDuration] =
-    useState<FilterableDurations | null>(durations[0]);
+  const [selectedDuration, setSelectedDuration] = useState<FilterableDurations>(
+    durations[0]
+  );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
 
   const { flag } = useOutletContext<AnalyticsProps>();
@@ -102,10 +102,6 @@ export default function Analytics() {
     };
   }, [getFlagEvaluationCount]);
 
-  const initialValues = {
-    durationValue: selectedDuration?.key
-  };
-
   // Set the polling interval to 0 every time we change
   // durations.
   useEffect(() => {
@@ -113,48 +109,38 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mb-12">
+    <div className="mt-2">
       {config.analyticsEnabled ? (
         <>
-          <>
-            <Formik
-              initialValues={initialValues}
-              onSubmit={async function () {
-                console.error('not implemented');
-              }}
-            >
-              {() => (
-                <div className="right-24 z-10 flex justify-end space-x-2 md:absolute">
-                  <Combobox<FilterableDurations>
-                    id="durationValue"
-                    name="durationValue"
-                    placeholder="Select duration"
-                    values={durations}
-                    selected={selectedDuration}
-                    setSelected={setSelectedDuration}
-                  />
-                  <div className="mt-2">
-                    {pollingInterval !== 0 ? (
-                      <>
-                        <PauseIcon
-                          className="h-5 w-5"
-                          onClick={() => setPollingInterval(0)}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <PlayIcon
-                          className="h-5 w-5"
-                          onClick={() => setPollingInterval(3000)}
-                        />
-                      </>
-                    )}
-                  </div>
-                </div>
+          <div className="sm:flex sm:items-center">
+            <div className="sm:flex-auto">
+              <p className="mt-1 text-sm text-gray-500">
+                Track and measure the impact in real-time.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Listbox<FilterableDurations>
+                id="durationValue"
+                name="durationValue"
+                values={durations}
+                selected={selectedDuration}
+                setSelected={setSelectedDuration}
+                className="-mt-2 w-32"
+              />
+              {pollingInterval !== 0 ? (
+                <PauseIcon
+                  className="h-5 w-5 text-gray-500"
+                  onClick={() => setPollingInterval(0)}
+                />
+              ) : (
+                <PlayIcon
+                  className="h-5 w-5 text-gray-500"
+                  onClick={() => setPollingInterval(3000)}
+                />
               )}
-            </Formik>
-          </>
-          <div className="md:relative md:top-12">
+            </div>
+          </div>
+          <div className="mt-10">
             <Graph
               timestamps={flagEvaluationCount.timestamps || []}
               values={flagEvaluationCount.values || []}
@@ -163,7 +149,7 @@ export default function Analytics() {
           </div>
         </>
       ) : (
-        <div className="flex flex-col text-center">
+        <div className="mt-10 flex flex-col text-center">
           <Well>
             <p className="text-sm text-gray-600">Analytics Disabled</p>
             <p className="mt-4 text-sm text-gray-500">

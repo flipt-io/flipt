@@ -7,3 +7,4 @@ For more information on the different analytics configurations, see the [Analyti
 ## Contents
 
 * [Clickhouse Example](clickhouse/README.md)
+* [Prometheus Example](prometheus/README.md)

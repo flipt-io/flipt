@@ -430,6 +430,7 @@ import "strings"
 			prometheus?: {
 				enabled?: bool | *false
 				url?:     string | *""
+				headers?: [string]: string
 			}
 		}
 		buffer?: {

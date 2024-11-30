@@ -479,7 +479,7 @@ func (a AuthenticationMethodOIDCConfig) validate() error {
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
 	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
+	ClientID        string   `json:"-" mapstructure:"client_id" yaml:"-"`
 	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Nonce           string   `json:"nonce,omitempty" mapstructure:"nonce" yaml:"nonce,omitempty"`

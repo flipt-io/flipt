@@ -379,10 +379,9 @@ export default function Rollouts(props: RolloutsProps) {
       )}
 
       {/* rollouts */}
-      <div className="mt-10 w-full">
+      <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="font-medium leading-6 text-gray-900">Rollouts</h3>
             <p className="mt-1 text-sm text-gray-500">
               Return boolean values based on rules you define
             </p>
