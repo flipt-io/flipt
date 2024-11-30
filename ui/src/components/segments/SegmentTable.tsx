@@ -30,7 +30,7 @@ type SegmentTableProps = {
 function Details({ item }: { item: ISegment }) {
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span>{segmentMatchTypeToLabel(item.matchType)}</span>
+      <span>Matches {segmentMatchTypeToLabel(item.matchType)}</span>
       <span className="hidden sm:block">•</span>
       <span className="hidden sm:block">
         Created{' '}

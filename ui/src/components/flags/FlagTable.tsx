@@ -177,7 +177,7 @@ export default function FlagTable(props: FlagTableProps) {
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
-                  <div className="font-semibold">{item.name}</div>
+                  <div className="truncate font-semibold">{item.name}</div>
                   <Badge variant="outlinemuted" className="hidden sm:block">
                     {item.key}
                   </Badge>
