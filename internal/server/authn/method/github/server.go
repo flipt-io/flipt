@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"golang.org/x/exp/maps"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -63,9 +65,9 @@ func NewServer(
 	store storageauth.Store,
 	config config.AuthenticationConfig,
 ) *Server {
-	serverURL := githubServer
-	if config.Methods.Github.Method.ServerURL != "" {
-		serverURL = config.Methods.Github.Method.ServerURL
+	serverURL := config.Methods.Github.Method.ServerURL
+	if serverURL == "" {
+		serverURL = githubServer
 	}
 
 	return &Server{
@@ -95,9 +97,9 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 }
 
 func callbackURL(host string) string {
-	// strip trailing slash from host
-	host = strings.TrimSuffix(host, "/")
-	return host + "/auth/v1/method/github/callback"
+	// nolint:gocritic
+	u, _ := url.JoinPath(strings.TrimSuffix(host, "/"), "auth/v1/method/github/callback")
+	return u
 }
 
 // AuthorizeURL will return a URL for the client to redirect to for completion of the OAuth flow with GitHub.
@@ -182,7 +184,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 			return nil, err
 		}
 
-		if err := authnOrgsAndTeams(userOrgs, userTeamsByOrg, s.config); err != nil {
+		if err := authnOrgsAndTeams(userOrgs, userTeamsByOrg, s.config.Methods.Github.Method); err != nil {
 			return nil, err
 		}
 
@@ -225,40 +227,36 @@ type githubSimpleTeam struct {
 
 // api calls Github API, decodes and stores successful response in the value pointed to by v.
 func api(ctx context.Context, token *oauth2.Token, apiURL string, endpoint endpoint, v any) error {
-	c := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	userReq, err := http.NewRequestWithContext(ctx, "GET", apiURL+string(endpoint), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL+string(endpoint), nil)
 	if err != nil {
 		return err
 	}
 
-	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
-	userReq.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	req.Header.Set("Accept", "application/vnd.github+json")
 
-	resp, err := c.Do(userReq)
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		resp.Body.Close()
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("github %s info response status: %q", userReq.URL.Path, resp.Status)
+		return fmt.Errorf("github %s info response status: %q", req.URL.Path, resp.Status)
 	}
+
 	return json.NewDecoder(resp.Body).Decode(v)
 }
 
+// getUserOrgs returns a map of organizations that the user is in.
 func getUserOrgs(ctx context.Context, token *oauth2.Token, apiURL string) (map[string]bool, error) {
 	var response []githubSimpleOrganization
 	if err := api(ctx, token, apiURL, githubUserOrganizations, &response); err != nil {
 		return nil, err
 	}
 
-	orgs := make(map[string]bool)
+	orgs := make(map[string]bool, len(response))
 	for _, org := range response {
 		orgs[org.Login] = true
 	}
@@ -266,6 +264,7 @@ func getUserOrgs(ctx context.Context, token *oauth2.Token, apiURL string) (map[s
 	return orgs, nil
 }
 
+// getUserTeamsByOrg returns a map of organizations to teams that the user is in.
 func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token, apiURL string) (map[string]map[string]bool, error) {
 	var response []githubSimpleTeam
 	if err := api(ctx, token, apiURL, githubUserTeams, &response); err != nil {
@@ -286,37 +285,44 @@ func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token, apiURL string) 
 	return teamsByOrg, nil
 }
 
-func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[string]bool, config config.AuthenticationConfig) error {
-	if len(config.Methods.Github.Method.AllowedOrganizations) != 0 {
-		if !slices.ContainsFunc(config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
-			if !orgs[org] {
-				return false
+// authnOrgsAndTeams checks if the user is authenticated based on the allowed organizations and teams.
+func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[string]bool, config config.AuthenticationMethodGithubConfig) error {
+	if len(config.AllowedOrganizations) == 0 {
+		return nil
+	}
+
+	for _, org := range config.AllowedOrganizations {
+		if !orgs[org] {
+			continue
+		}
+
+		// If no teams are specified, any user in the org is allowed
+		if len(config.AllowedTeams) == 0 {
+			return nil
+		}
+
+		// Check if user is in any of the allowed teams for this org
+		var (
+			allowedTeams = config.AllowedTeams[org]
+			userTeams    = userTeamsByOrg[org]
+		)
+
+		for _, team := range allowedTeams {
+			if userTeams[team] {
+				return nil
 			}
-
-			if len(config.Methods.Github.Method.AllowedTeams) == 0 {
-				return true
-			}
-
-			allowedTeams := config.Methods.Github.Method.AllowedTeams[org]
-			userTeams := userTeamsByOrg[org]
-
-			return slices.ContainsFunc(allowedTeams, func(team string) bool {
-				return userTeams[team]
-			})
-		}) {
-			return errors.ErrUnauthenticatedf("request was not authenticated")
 		}
 	}
 
-	return nil
+	return errors.ErrUnauthenticatedf("request was not authenticated")
 }
 
+// parseOrgsForMetadata returns a JSON encoded list of organizations that the user is in.
 func parseOrgsForMetadata(orgs map[string]bool, allowedOrgs []string) (string, error) {
-	orgList := make([]string, 0)
+	var orgList []string
+
 	if len(allowedOrgs) == 0 {
-		for org := range orgs {
-			orgList = append(orgList, org)
-		}
+		orgList = maps.Keys(orgs)
 	} else {
 		for _, org := range allowedOrgs {
 			if orgs[org] {
@@ -325,59 +331,57 @@ func parseOrgsForMetadata(orgs map[string]bool, allowedOrgs []string) (string, e
 		}
 	}
 
-	orgListJson, err := json.Marshal(orgList)
+	out, err := json.Marshal(orgList)
 	if err != nil {
 		return "", err
 	}
-	return string(orgListJson), nil
+
+	return string(out), nil
 }
 
+// parseTeamsForMetadata returns a JSON encoded list of teams that the user is in.
 func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, allowedTeams map[string][]string) (string, error) {
 	teamsByOrg := make(map[string][]string)
 
-	switch {
-	case len(allowedTeams) != 0:
-		filterTeamsByAllowedTeams(userTeamsByOrg, allowedTeams, teamsByOrg)
-	case len(allowedOrgs) != 0:
-		filterTeamsByAllowedOrgs(userTeamsByOrg, allowedOrgs, teamsByOrg)
-	default:
-		copyAllTeams(userTeamsByOrg, teamsByOrg)
-	}
-
-	teams, err := json.Marshal(teamsByOrg)
-	if err != nil {
-		return "", err
-	}
-
-	return string(teams), nil
-}
-
-func filterTeamsByAllowedTeams(userTeamsByOrg map[string]map[string]bool, allowedTeams map[string][]string, teamsByOrg map[string][]string) {
-	for org, teams := range allowedTeams {
-		if _, exists := userTeamsByOrg[org]; exists {
-			for _, team := range teams {
-				if userTeamsByOrg[org][team] {
-					teamsByOrg[org] = append(teamsByOrg[org], team)
+	// Helper to add teams for an org
+	addTeamsForOrg := func(org string, filterTeams []string) {
+		if teams, exists := userTeamsByOrg[org]; exists {
+			if len(filterTeams) == 0 {
+				// Add all teams
+				teamsByOrg[org] = maps.Keys(teams)
+			} else {
+				// Add only allowed teams
+				for _, team := range filterTeams {
+					if teams[team] {
+						teamsByOrg[org] = append(teamsByOrg[org], team)
+					}
 				}
 			}
 		}
 	}
-}
 
-func filterTeamsByAllowedOrgs(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, teamsByOrg map[string][]string) {
-	for _, allowedOrg := range allowedOrgs {
-		if teams, ok := userTeamsByOrg[allowedOrg]; ok {
-			for team := range teams {
-				teamsByOrg[allowedOrg] = append(teamsByOrg[allowedOrg], team)
-			}
+	switch {
+	case len(allowedTeams) != 0:
+		// Filter by specific teams within orgs
+		for org, teams := range allowedTeams {
+			addTeamsForOrg(org, teams)
+		}
+	case len(allowedOrgs) != 0:
+		// Filter by allowed orgs only
+		for _, org := range allowedOrgs {
+			addTeamsForOrg(org, nil)
+		}
+	default:
+		// No filtering, add all teams
+		for org := range userTeamsByOrg {
+			addTeamsForOrg(org, nil)
 		}
 	}
-}
 
-func copyAllTeams(userTeamsByOrg map[string]map[string]bool, teamsByOrg map[string][]string) {
-	for org, teams := range userTeamsByOrg {
-		for team := range teams {
-			teamsByOrg[org] = append(teamsByOrg[org], team)
-		}
+	out, err := json.Marshal(teamsByOrg)
+	if err != nil {
+		return "", err
 	}
+
+	return string(out), nil
 }
