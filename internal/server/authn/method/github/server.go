@@ -182,7 +182,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 			return nil, err
 		}
 
-		if err = authnOrgsAndTeams(userOrgs, userTeamsByOrg, s.config); err != nil {
+		if err := authnOrgsAndTeams(userOrgs, userTeamsByOrg, s.config); err != nil {
 			return nil, err
 		}
 
