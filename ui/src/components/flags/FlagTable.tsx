@@ -22,12 +22,13 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Search } from '~/components/ui/search';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import Guide from '~/components/ui/guide';
+import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
 
 type FlagTableProps = {
   flags: IFlag[];
 };
 
-function Details({ item }: { item: IFlag }) {
+function FlagDetails({ item }: { item: IFlag }) {
   const enabled = item.type === FlagType.BOOLEAN || item.enabled;
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -35,7 +36,14 @@ function Details({ item }: { item: IFlag }) {
         {enabled ? 'Enabled' : 'Disabled'}
       </Badge>
       <span>•</span>
-      <span>{flagTypeToLabel(item.type)}</span>
+      <span className="flex items-center gap-1">
+        {item.type === FlagType.BOOLEAN ? (
+          <ToggleLeftIcon className="h-4 w-4" />
+        ) : (
+          <VariableIcon className="h-4 w-4" />
+        )}
+        {flagTypeToLabel(item.type)}
+      </span>
       <span className="hidden sm:block">•</span>
       <span className="hidden sm:block">
         Created{' '}
@@ -187,7 +195,7 @@ export default function FlagTable(props: FlagTableProps) {
             <div className="line-clamp-2 text-xs text-secondary-foreground">
               {item.description}
             </div>
-            <Details item={item} />
+            <FlagDetails item={item} />
           </button>
         );
       })}

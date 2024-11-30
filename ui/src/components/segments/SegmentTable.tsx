@@ -27,7 +27,7 @@ type SegmentTableProps = {
   segments: ISegment[];
 };
 
-function Details({ item }: { item: ISegment }) {
+function SegmentDetails({ item }: { item: ISegment }) {
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <span>Matches {segmentMatchTypeToLabel(item.matchType)}</span>
@@ -176,7 +176,7 @@ export default function SegmentTable(props: SegmentTableProps) {
             <div className="line-clamp-2 text-xs text-secondary-foreground">
               {item.description}
             </div>
-            <Details item={item} />
+            <SegmentDetails item={item} />
           </button>
         );
       })}
