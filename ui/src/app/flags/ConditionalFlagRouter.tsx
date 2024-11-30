@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 import { FlagType, IFlag } from '~/types/Flag';
 import Variants from '~/components/variants/Variants';
 import Rollouts from '~/components/rollouts/Rollouts';

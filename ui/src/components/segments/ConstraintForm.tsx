@@ -5,7 +5,7 @@ import { addMinutes, format, formatISO, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';

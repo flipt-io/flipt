@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
   useParams
-} from 'react-router-dom';
+} from 'react-router';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import Loading from '~/components/Loading';

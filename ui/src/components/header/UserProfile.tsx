@@ -2,7 +2,7 @@ import { UserCircleIcon } from '@heroicons/react/24/solid';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { User } from '~/types/auth/User';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { expireAuthSelf } from '~/data/api';
 import {
   DropdownMenu,

@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import Pagination from '~/components/Pagination';
