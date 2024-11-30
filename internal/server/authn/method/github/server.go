@@ -43,6 +43,8 @@ const (
 	storageMetadataGithubPicture           = "io.flipt.auth.github.picture"
 	storageMetadataGithubSub               = "io.flipt.auth.github.sub"
 	storageMetadataGitHubPreferredUsername = "io.flipt.auth.github.preferred_username"
+	storageMetadataGitHubOrganiztions      = "io.flipt.auth.github.organizations"
+	storageMetadataGithubTeams             = "io.flipt.auth.github.teams"
 )
 
 // Server is an Github server side handler.
@@ -165,38 +167,36 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	set(method.StorageMetadataName, githubUserResponse.Name)
 	set(method.StorageMetadataPicture, githubUserResponse.AvatarURL)
 
-	if len(s.config.Methods.Github.Method.AllowedOrganizations) != 0 {
+	if slices.Contains(s.config.Methods.Github.Method.Scopes, "read:org") {
+		allowedOrgs := s.config.Methods.Github.Method.AllowedOrganizations
+		allowedTeams := s.config.Methods.Github.Method.AllowedTeams
+
 		userOrgs, err := getUserOrgs(ctx, token, apiURL)
 		if err != nil {
 			return nil, err
 		}
 
 		var userTeamsByOrg map[string]map[string]bool
-		if len(s.config.Methods.Github.Method.AllowedTeams) != 0 {
-			userTeamsByOrg, err = getUserTeamsByOrg(ctx, token, apiURL)
-			if err != nil {
-				return nil, err
-			}
+		userTeamsByOrg, err = getUserTeamsByOrg(ctx, token, apiURL)
+		if err != nil {
+			return nil, err
 		}
 
-		if !slices.ContainsFunc(s.config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
-			if !userOrgs[org] {
-				return false
-			}
-
-			if userTeamsByOrg == nil {
-				return true
-			}
-
-			allowedTeams := s.config.Methods.Github.Method.AllowedTeams[org]
-			userTeams := userTeamsByOrg[org]
-
-			return slices.ContainsFunc(allowedTeams, func(team string) bool {
-				return userTeams[team]
-			})
-		}) {
-			return nil, errors.ErrUnauthenticatedf("request was not authenticated")
+		if err := authnOrgsAndTeams(userOrgs, userTeamsByOrg, s.config); err != nil {
+			return nil, err
 		}
+
+		orgs, err := parseOrgsForMetadata(userOrgs, allowedOrgs)
+		if err != nil {
+			return nil, err
+		}
+		set(storageMetadataGitHubOrganiztions, orgs)
+
+		teams, err := parseTeamsForMetadata(userTeamsByOrg, allowedOrgs, allowedTeams)
+		if err != nil {
+			return nil, err
+		}
+		set(storageMetadataGithubTeams, teams)
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
@@ -284,4 +284,100 @@ func getUserTeamsByOrg(ctx context.Context, token *oauth2.Token, apiURL string) 
 	}
 
 	return teamsByOrg, nil
+}
+
+func authnOrgsAndTeams(orgs map[string]bool, userTeamsByOrg map[string]map[string]bool, config config.AuthenticationConfig) error {
+	if len(config.Methods.Github.Method.AllowedOrganizations) != 0 {
+		if !slices.ContainsFunc(config.Methods.Github.Method.AllowedOrganizations, func(org string) bool {
+			if !orgs[org] {
+				return false
+			}
+
+			if len(config.Methods.Github.Method.AllowedTeams) == 0 {
+				return true
+			}
+
+			allowedTeams := config.Methods.Github.Method.AllowedTeams[org]
+			userTeams := userTeamsByOrg[org]
+
+			return slices.ContainsFunc(allowedTeams, func(team string) bool {
+				return userTeams[team]
+			})
+		}) {
+			return errors.ErrUnauthenticatedf("request was not authenticated")
+		}
+	}
+
+	return nil
+}
+
+func parseOrgsForMetadata(orgs map[string]bool, allowedOrgs []string) (string, error) {
+	orgList := make([]string, 0)
+	if len(allowedOrgs) == 0 {
+		for org := range orgs {
+			orgList = append(orgList, org)
+		}
+	} else {
+		for _, org := range allowedOrgs {
+			if orgs[org] {
+				orgList = append(orgList, org)
+			}
+		}
+	}
+
+	orgListJson, err := json.Marshal(orgList)
+	if err != nil {
+		return "", err
+	}
+	return string(orgListJson), nil
+}
+
+func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, allowedTeams map[string][]string) (string, error) {
+	teamsByOrg := make(map[string][]string)
+
+	switch {
+	case len(allowedTeams) != 0:
+		filterTeamsByAllowedTeams(userTeamsByOrg, allowedTeams, teamsByOrg)
+	case len(allowedOrgs) != 0:
+		filterTeamsByAllowedOrgs(userTeamsByOrg, allowedOrgs, teamsByOrg)
+	default:
+		copyAllTeams(userTeamsByOrg, teamsByOrg)
+	}
+
+	teams, err := json.Marshal(teamsByOrg)
+	if err != nil {
+		return "", err
+	}
+
+	return string(teams), nil
+}
+
+func filterTeamsByAllowedTeams(userTeamsByOrg map[string]map[string]bool, allowedTeams map[string][]string, teamsByOrg map[string][]string) {
+	for org, teams := range allowedTeams {
+		if _, exists := userTeamsByOrg[org]; exists {
+			for _, team := range teams {
+				if userTeamsByOrg[org][team] {
+					teamsByOrg[org] = append(teamsByOrg[org], team)
+				}
+			}
+		}
+	}
+}
+
+func filterTeamsByAllowedOrgs(userTeamsByOrg map[string]map[string]bool, allowedOrgs []string, teamsByOrg map[string][]string) {
+	for _, allowedOrg := range allowedOrgs {
+		if teams, ok := userTeamsByOrg[allowedOrg]; ok {
+			for team := range teams {
+				teamsByOrg[allowedOrg] = append(teamsByOrg[allowedOrg], team)
+			}
+		}
+	}
+}
+
+func copyAllTeams(userTeamsByOrg map[string]map[string]bool, teamsByOrg map[string][]string) {
+	for org, teams := range userTeamsByOrg {
+		for team := range teams {
+			teamsByOrg[org] = append(teamsByOrg[org], team)
+		}
+	}
 }
