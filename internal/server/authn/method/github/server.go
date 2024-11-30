@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -96,7 +97,9 @@ func (s *Server) SkipsAuthentication(ctx context.Context) bool {
 }
 
 func callbackURL(host string) string {
-	return strings.TrimSuffix(host, "/") + "/auth/v1/method/github/callback"
+	// nolint:gocritic
+	u, _ := url.JoinPath(strings.TrimSuffix(host, "/"), "auth/v1/method/github/callback")
+	return u
 }
 
 // AuthorizeURL will return a URL for the client to redirect to for completion of the OAuth flow with GitHub.
@@ -357,6 +360,7 @@ func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrg
 		}
 	}
 
+	// nolint:gocritic
 	if len(allowedTeams) != 0 {
 		// Filter by specific teams within orgs
 		for org, teams := range allowedTeams {
