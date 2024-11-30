@@ -360,18 +360,18 @@ func parseTeamsForMetadata(userTeamsByOrg map[string]map[string]bool, allowedOrg
 		}
 	}
 
-	// nolint:gocritic
-	if len(allowedTeams) != 0 {
+	switch {
+	case len(allowedTeams) != 0:
 		// Filter by specific teams within orgs
 		for org, teams := range allowedTeams {
 			addTeamsForOrg(org, teams)
 		}
-	} else if len(allowedOrgs) != 0 {
+	case len(allowedOrgs) != 0:
 		// Filter by allowed orgs only
 		for _, org := range allowedOrgs {
 			addTeamsForOrg(org, nil)
 		}
-	} else {
+	default:
 		// No filtering, add all teams
 		for org := range userTeamsByOrg {
 			addTeamsForOrg(org, nil)
