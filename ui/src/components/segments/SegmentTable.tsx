@@ -13,7 +13,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useTimezone } from '~/data/hooks/timezone';
-import { ISegment, segmentMatchTypeToLabel } from '~/types/Segment';
+import {
+  ISegment,
+  SegmentMatchType,
+  segmentMatchTypeToLabel
+} from '~/types/Segment';
 import { cn } from '~/lib/utils';
 import { Badge } from '~/components/ui/badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -22,15 +26,23 @@ import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import Guide from '~/components/ui/guide';
 import { useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
+import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 
 type SegmentTableProps = {
   segments: ISegment[];
 };
 
-function Details({ item }: { item: ISegment }) {
+function SegmentDetails({ item }: { item: ISegment }) {
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span>{segmentMatchTypeToLabel(item.matchType)}</span>
+      <span className="flex items-center gap-1">
+        {item.matchType === SegmentMatchType.ALL ? (
+          <SigmaIcon className="h-4 w-4" />
+        ) : (
+          <AsteriskIcon className="h-4 w-4" />
+        )}
+        Matches {segmentMatchTypeToLabel(item.matchType)}
+      </span>
       <span className="hidden sm:block">•</span>
       <span className="hidden sm:block">
         Created{' '}
@@ -166,7 +178,7 @@ export default function SegmentTable(props: SegmentTableProps) {
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
-                  <div className="font-semibold">{item.name}</div>
+                  <div className="truncate font-semibold">{item.name}</div>
                   <Badge variant="outlinemuted" className="hidden sm:block">
                     {item.key}
                   </Badge>
@@ -176,7 +188,7 @@ export default function SegmentTable(props: SegmentTableProps) {
             <div className="line-clamp-2 text-xs text-secondary-foreground">
               {item.description}
             </div>
-            <Details item={item} />
+            <SegmentDetails item={item} />
           </button>
         );
       })}

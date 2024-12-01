@@ -37,7 +37,7 @@ export default function Flags() {
           New Flag
         </Button>
       </PageHeader>
-      <div className="flex flex-col gap-1 py-2">
+      <div className="flex flex-col gap-1 space-y-2 py-2">
         {flags && flags.length > 0 ? (
           <FlagTable flags={flags} />
         ) : (
