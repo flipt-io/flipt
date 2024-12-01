@@ -66,7 +66,11 @@ export default function UserProfile(props: UserProfileProps) {
       <DropdownMenuContent align="end">
         {(user.name || user.login) && (
           <>
-            <DropdownMenuItem disabled key="userinfo">
+            <DropdownMenuItem
+              disabled
+              key="userinfo"
+              className="flex flex-col items-start gap-0"
+            >
               {user.name}
               {user.login && <span className="text-xs">{user.login}</span>}
             </DropdownMenuItem>
