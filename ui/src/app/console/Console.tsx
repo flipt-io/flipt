@@ -36,6 +36,7 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
+import { PageHeader } from '~/components/ui/page';
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -213,14 +214,10 @@ export default function Console() {
 
   return (
     <>
-      <div className="relative flex flex-col">
-        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
-          Console
-        </h1>
-        <p className="mt-2 text-sm text-gray-500">
-          See the results of your flag evaluations and debug any issues
-        </p>
-      </div>
+      <PageHeader title="Console" />
+      <p className="mt-2 text-sm text-gray-500">
+        See the results of your flag evaluations and debug any issues
+      </p>
       <div className="flex flex-col md:flex-row">
         {flags.length > 0 && (
           <>

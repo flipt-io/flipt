@@ -1,12 +1,14 @@
+import { Plus } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import EmptyState from '~/components/EmptyState';
-import { ButtonWithPlus } from '~/components/forms/buttons/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
+import { Button } from '~/components/ui/button';
+import Guide from '~/components/ui/guide';
+import { PageHeader } from '~/components/ui/page';
 import { useError } from '~/data/hooks/error';
 
 export default function Segments() {
@@ -17,7 +19,7 @@ export default function Segments() {
   const { data, error } = useListSegmentsQuery(namespace.key);
   const segments = data?.segments || [];
   const navigate = useNavigate();
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const readOnly = useSelector(selectReadonly);
 
@@ -26,41 +28,23 @@ export default function Segments() {
       setError(error);
       return;
     }
-    clearError();
-  }, [clearError, error, setError]);
+  }, [error, setError]);
 
   return (
     <>
-      <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
-            Segments
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Segments enable request targeting based on defined criteria
-          </p>
-        </div>
-        <div className="mt-4">
-          <Link to={`${path}/new`}>
-            <ButtonWithPlus
-              variant="primary"
-              disabled={readOnly}
-              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-            >
-              New Segment
-            </ButtonWithPlus>
-          </Link>
-        </div>
-      </div>
-      <div className="mt-4 flex flex-col">
+      <PageHeader title="Segments">
+        <Button onClick={() => navigate(`${path}/new`)} disabled={readOnly}>
+          <Plus />
+          New Segment
+        </Button>
+      </PageHeader>
+      <div className="flex flex-col gap-1 space-y-2 py-2">
         {segments && segments.length > 0 ? (
           <SegmentTable segments={segments} />
         ) : (
-          <EmptyState
-            text="Create Segment"
-            disabled={readOnly}
-            onClick={() => navigate(`${path}/new`)}
-          />
+          <Guide className="mt-6">
+            Segments enable request targeting based on defined criteria.
+          </Guide>
         )}
       </div>
     </>
