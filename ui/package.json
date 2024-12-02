@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.1",
-    "@codemirror/lint": "^6.8.2",
+    "@codemirror/lint": "^6.8.4",
     "@codemirror/search": "^6.5.7",
     "@codemirror/state": "^6.4.1",
     "@codemirror/view": "^6.35.0",
