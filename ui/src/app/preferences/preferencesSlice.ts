@@ -37,6 +37,10 @@ export const preferencesSlice = createSlice({
       if (!currentPreference.theme) {
         state.theme = action.payload.ui.defaultTheme;
       }
+
+      if (!currentPreference.timezone) {
+        state.timezone = Timezone.LOCAL;
+      }
     });
   }
 });
