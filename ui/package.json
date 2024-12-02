@@ -27,7 +27,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^1.7.19",
-    "@heroicons/react": "^2.1.5",
+    "@heroicons/react": "^2.2.0",
     "@loadable/component": "^5.16.4",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
     "@radix-ui/react-select": "^2.1.2",
