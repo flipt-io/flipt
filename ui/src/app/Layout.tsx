@@ -85,8 +85,8 @@ function InnerLayout() {
             href="https://docs.flipt.io/cloud/overview"
           />
         )}
-        <main className="flex px-6 py-10">
-          <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <main className="flex sm:pt-4">
+          <div className="mx-auto w-full max-w-7xl overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

@@ -4,7 +4,7 @@ app:
   env: Development # (required)
   host: http://localhost:8080 # (required)
   openApiConf:
-    filePath: openapi.yml # (required)
+    filePath: openapi.yaml # (required)
 
 # -- Customized Configuration for GraphQL/SOAP/OpenAPI, add here --
 # Configuration Docs: https://docs.stackhawk.com/hawkscan/configuration/

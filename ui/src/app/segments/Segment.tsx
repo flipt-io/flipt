@@ -35,6 +35,7 @@ import {
   constraintTypeToLabel,
   IConstraint
 } from '~/types/Constraint';
+import { PageHeader } from '~/components/ui/page';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {
@@ -215,54 +216,49 @@ export default function Segment() {
       </Modal>
 
       {/* segment header / delete button */}
+      <PageHeader title={segment.name}>
+        <Dropdown
+          label="Actions"
+          actions={[
+            {
+              id: 'segment-copy',
+              label: 'Copy to Namespace',
+              disabled: readOnly || namespaces.length < 2,
+              onClick: () => setShowCopySegmentModal(true),
+              icon: FilesIcon
+            },
+            {
+              id: 'segement-delete',
+              label: 'Delete',
+              disabled: readOnly,
+              onClick: () => setShowDeleteSegmentModal(true),
+              icon: Trash2Icon,
+              variant: 'destructive'
+            }
+          ]}
+        />
+      </PageHeader>
       <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            {segment.name}
-          </h2>
-          <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div
-              title={inTimezone(segment.createdAt)}
-              className="mt-2 flex items-center text-sm text-gray-500"
-            >
-              <CalendarIcon
-                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                aria-hidden="true"
-              />
-              Created{' '}
-              {formatDistanceToNowStrict(parseISO(segment.createdAt), {
-                addSuffix: true
-              })}
-            </div>
+        <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+          <div
+            title={inTimezone(segment.createdAt)}
+            className="mt-2 flex items-center text-sm text-gray-500"
+          >
+            <CalendarIcon
+              className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+              aria-hidden="true"
+            />
+            Created{' '}
+            {formatDistanceToNowStrict(parseISO(segment.createdAt), {
+              addSuffix: true
+            })}
           </div>
-        </div>
-        <div className="flex flex-none">
-          <Dropdown
-            label="Actions"
-            actions={[
-              {
-                id: 'segment-copy',
-                label: 'Copy to Namespace',
-                disabled: readOnly || namespaces.length < 2,
-                onClick: () => setShowCopySegmentModal(true),
-                icon: FilesIcon
-              },
-              {
-                id: 'segement-delete',
-                label: 'Delete',
-                disabled: readOnly,
-                onClick: () => setShowDeleteSegmentModal(true),
-                icon: Trash2Icon,
-                variant: 'destructive'
-              }
-            ]}
-          />
         </div>
       </div>
 
       <div className="flex flex-col">
         {/* segment details */}
-        <div className="mb-5 mt-10">
+        <div className="b-5">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
               <p className="mt-1 text-sm text-gray-500">

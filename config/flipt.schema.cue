@@ -1,6 +1,7 @@
 package flipt
 
 import "strings"
+import "list"
 
 #FliptSpec: {
 	// flipt-schema-v1
@@ -296,7 +297,7 @@ import "strings"
 	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "warn"]
-	_#all: _#lower + [for x in _#lower {strings.ToUpper(x)}]
+	_#all: list.Concat([_#lower, [for x in _#lower {strings.ToUpper(x)}]])
 	#log: {
 		file?:       string
 		encoding?:   *"console" | "json"

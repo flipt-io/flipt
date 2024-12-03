@@ -1,17 +1,12 @@
 import MoreInfo from '~/components/MoreInfo';
 import SegmentForm from '~/components/segments/SegmentForm';
+import { PageHeader } from '~/components/ui/page';
 
 export default function NewSegment() {
   return (
     <>
-      <div className="lg:flex lg:items-center lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-semibold leading-6 text-gray-900">
-            New Segment
-          </h2>
-        </div>
-      </div>
-      <div className="my-10">
+      <PageHeader title="New Segment" />
+      <div className="my-6">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
             <p className="mt-2 text-sm text-gray-500">
