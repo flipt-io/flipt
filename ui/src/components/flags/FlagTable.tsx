@@ -42,7 +42,6 @@ function FlagDetails({ item }: { item: IFlag }) {
       <Badge variant={enabled ? 'enabled' : 'muted'}>
         {enabled ? 'Enabled' : 'Disabled'}
       </Badge>
-      <span>•</span>
       <span className="flex items-center gap-1">
         {item.type === FlagType.BOOLEAN ? (
           <ToggleLeftIcon className="h-4 w-4" />
