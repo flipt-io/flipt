@@ -8,9 +8,8 @@ import {
   Row,
   useReactTable
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
@@ -27,12 +26,17 @@ import Guide from '~/components/ui/guide';
 import { useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
+import { useError } from '~/data/hooks/error';
+import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
+import { INamespaceBase } from '~/types/Namespace';
+import { TableSkeleton } from '~/components/ui/table-skeleton';
 
 type SegmentTableProps = {
-  segments: ISegment[];
+  namespace: INamespaceBase;
 };
 
 function SegmentDetails({ item }: { item: ISegment }) {
+  const { inTimezone } = useTimezone();
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1">
@@ -44,29 +48,75 @@ function SegmentDetails({ item }: { item: ISegment }) {
         Matches {segmentMatchTypeToLabel(item.matchType)}
       </span>
       <span className="hidden sm:block">•</span>
-      <span className="hidden sm:block">
+      <time className="hidden sm:block" title={inTimezone(item.createdAt)}>
         Created{' '}
         {formatDistanceToNowStrict(parseISO(item.createdAt), {
           addSuffix: true
         })}
-      </span>
+      </time>
       <span>•</span>
-      <span>
+      <time title={inTimezone(item.updatedAt)}>
         Updated{' '}
         {formatDistanceToNowStrict(parseISO(item.updatedAt), {
           addSuffix: true
         })}
-      </span>
+      </time>
     </div>
   );
 }
+
+const columnHelper = createColumnHelper<ISegment>();
+
+const columns = [
+  columnHelper.accessor('key', {
+    header: 'Key',
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor('name', {
+    header: 'Name',
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor('matchType', {
+    header: 'Match Type',
+    cell: (info) => segmentMatchTypeToLabel(info.getValue())
+  }),
+  columnHelper.accessor('description', {
+    header: 'Description',
+    enableSorting: false,
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor((row) => row.createdAt, {
+    header: 'Created',
+    id: 'createdAt',
+    sortingFn: (
+      rowA: Row<ISegment>,
+      rowB: Row<ISegment>,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _columnId: string
+    ): number =>
+      new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
+        ? 1
+        : -1
+  }),
+  columnHelper.accessor((row) => row.updatedAt, {
+    header: 'Updated',
+    id: 'updatedAt',
+    sortingFn: (
+      rowA: Row<ISegment>,
+      rowB: Row<ISegment>,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _columnId: string
+    ): number =>
+      new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
+        ? 1
+        : -1
+  })
+];
+
 export default function SegmentTable(props: SegmentTableProps) {
-  const { segments } = props;
+  const { namespace } = props;
 
   const dispatch = useDispatch();
-
-  const namespace = useSelector(selectCurrentNamespace);
-  const { inTimezone } = useTimezone();
 
   const path = `/namespaces/${namespace.key}/segments`;
   const navigate = useNavigate();
@@ -78,55 +128,9 @@ export default function SegmentTable(props: SegmentTableProps) {
 
   const [filter, setFilter] = useState<string>('');
 
-  const columnHelper = createColumnHelper<ISegment>();
-
-  const columns = [
-    columnHelper.accessor('key', {
-      header: 'Key',
-      cell: (info) => info.getValue()
-    }),
-    columnHelper.accessor('name', {
-      header: 'Name',
-      cell: (info) => info.getValue()
-    }),
-    columnHelper.accessor('matchType', {
-      header: 'Match Type',
-      cell: (info) => segmentMatchTypeToLabel(info.getValue())
-    }),
-    columnHelper.accessor('description', {
-      header: 'Description',
-      enableSorting: false,
-      cell: (info) => info.getValue()
-    }),
-    columnHelper.accessor((row) => inTimezone(row.createdAt), {
-      header: 'Created',
-      id: 'createdAt',
-      sortingFn: (
-        rowA: Row<ISegment>,
-        rowB: Row<ISegment>,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _columnId: string
-      ): number =>
-        new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
-          ? 1
-          : -1
-    }),
-    columnHelper.accessor((row) => inTimezone(row.updatedAt), {
-      header: 'Updated',
-      id: 'updatedAt',
-      sortingFn: (
-        rowA: Row<ISegment>,
-        rowB: Row<ISegment>,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _columnId: string
-      ): number =>
-        new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
-          ? 1
-          : -1
-    })
-  ];
-
   const sorting = useSelector(selectSorting);
+  const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
+  const segments = data?.segments || [];
   const table = useReactTable({
     data: segments,
     columns,
@@ -149,6 +153,17 @@ export default function SegmentTable(props: SegmentTableProps) {
     getFilteredRowModel: getFilteredRowModel()
   });
 
+  const { setError } = useError();
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
+
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -161,8 +176,14 @@ export default function SegmentTable(props: SegmentTableProps) {
           <DataTableViewOptions table={table} />
         </div>
       </div>
-      {table.getRowCount() === 0 && (
+      {table.getRowCount() === 0 && filter.length !== 0 && (
         <Guide>No segments matched your search.</Guide>
+      )}
+      {table.getRowCount() === 0 && filter.length === 0 && (
+        <Guide className="mt-6">
+          Segments enable request targeting based on defined criteria. Create
+          new segment to get started.
+        </Guide>
       )}
       {table.getRowModel().rows.map((row) => {
         const item = row.original;
