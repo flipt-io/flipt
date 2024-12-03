@@ -1422,6 +1422,9 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 		var configMap map[string]any
 		require.NoError(t, json.Unmarshal(config.Data, &configMap))
 
+		// Add check for password fields
+		assert.False(t, checkForPasswordFields(configMap), "Configuration contains a field named 'password'")
+
 		for _, name := range []string{
 			"log",
 			"ui",
@@ -1468,4 +1471,18 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 func namespaceIsDefault(ns string) bool {
 	return ns == "" || ns == "default"
+}
+
+func checkForPasswordFields(data map[string]any) bool {
+	for key, value := range data {
+		if key == "password" {
+			return true
+		}
+		if nestedMap, ok := value.(map[string]any); ok {
+			if checkForPasswordFields(nestedMap) {
+				return true
+			}
+		}
+	}
+	return false
 }
