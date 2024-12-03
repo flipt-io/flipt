@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.52.2](https://github.com/flipt-io/flipt/releases/tag/v1.52.2) - 2024-12-03
+
+### Fixed
+
+- dont return db url in meta/config response (#3681)
+
 ## [v1.52.1](https://github.com/flipt-io/flipt/releases/tag/v1.52.1) - 2024-11-27
 
 ### Added
