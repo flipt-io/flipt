@@ -17,11 +17,7 @@ import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
-import {
-  fetchConfigAsync,
-  fetchInfoAsync,
-  selectConfig
-} from './meta/metaSlice';
+import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
@@ -62,7 +58,6 @@ function InnerLayout() {
 
   useEffect(() => {
     dispatch(fetchInfoAsync());
-    dispatch(fetchConfigAsync());
   }, [dispatch]);
 
   if (!session) {

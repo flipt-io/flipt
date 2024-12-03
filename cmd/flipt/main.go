@@ -335,6 +335,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		UpdateAvailable:  releaseInfo.UpdateAvailable,
 		OS:               goOS,
 		Arch:             goArch,
+		Authentication:   cfg.Authentication.Required,
+		Storage:          cfg.Storage.Type,
+		StorageInfo:      cfg.Storage.Info(),
+		AnalyticsEnabled: cfg.Analytics.Enabled(),
+		UITheme:          string(cfg.UI.DefaultTheme),
+		UITopbarColor:    cfg.UI.Topbar.Color,
 	}
 
 	if cfg.Meta.TelemetryEnabled {
