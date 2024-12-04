@@ -38,7 +38,7 @@ const links = [
 
 export default function NotFoundLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-background">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="flex-shrink-0 pt-16">
           <Link to="/">

@@ -22,7 +22,7 @@ export function Notification(props: NotificationProps) {
     <>
       <div
         aria-live="assertive"
-        className="pointer-events-none fixed inset-0 z-10 flex items-end px-4 py-6 sm:items-start sm:p-4"
+        className="z-11 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-4"
       >
         <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
           <Transition
@@ -35,7 +35,7 @@ export function Notification(props: NotificationProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="bg-backgroung pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="p-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
@@ -56,12 +56,12 @@ export function Notification(props: NotificationProps) {
                         href={info.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-md bg-white text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-none"
+                        className="rounded-md bg-background text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-none"
                       >
                         Check It Out
                       </a>
                       <a
-                        className="rounded-md bg-white text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none"
+                        className="rounded-md bg-background text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none"
                         onClick={(e) => {
                           e.preventDefault();
                           setShow(false);
@@ -75,7 +75,7 @@ export function Notification(props: NotificationProps) {
                   <div className="ml-4 flex flex-shrink-0">
                     <button
                       type="button"
-                      className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                      className="inline-flex rounded-md bg-background text-gray-400 hover:text-gray-500 focus:outline-none"
                       onClick={() => {
                         setShow(false);
                         markSeen();
@@ -122,8 +122,8 @@ export default function Notifications(props: NotificationsProps) {
         className="without-ring relative rounded-full text-violet-100"
       >
         {newNotifications && (
-          <span className="absolute right-0 top-0 flex h-2 w-2">
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-100"></span>
+          <span className="absolute right-0 top-0 flex h-3 w-3">
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-violet-100"></span>
           </span>
         )}
         <span className="sr-only">View notifications</span>

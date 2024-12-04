@@ -125,8 +125,8 @@ export function DefaultVariant(props: RulesProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
+            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
                   <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
                   <h3 className="text-sm font-normal leading-6 text-gray-700">
@@ -144,7 +144,7 @@ export function DefaultVariant(props: RulesProps) {
               </div>
               <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                 <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col bg-white">
+                  <Form className="flex w-full flex-col">
                     <div className="w-full flex-1">
                       <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                         {flag.variants && flag.variants.length > 0 && (

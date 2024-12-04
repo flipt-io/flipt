@@ -51,7 +51,7 @@ export default function Toggle(props: ToggleProps) {
         <span className="sr-only">Enable</span>
         <span
           className={cls(
-            'inline-block h-4 w-4 translate-x-1 transform rounded-full bg-white ring-0 transition',
+            'inline-block h-4 w-4 translate-x-1 transform rounded-full bg-background ring-0 transition',
             {
               'translate-x-6': checked
             }

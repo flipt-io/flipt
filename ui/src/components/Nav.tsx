@@ -33,7 +33,7 @@ function NavItem(props: NavItemProps) {
       aria-label={name}
       className={({ isActive }) =>
         cls(
-          'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white dark:text-black',
+          'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
           {
             'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
               isActive,
