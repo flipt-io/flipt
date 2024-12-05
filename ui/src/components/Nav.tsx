@@ -45,7 +45,7 @@ function NavItem(props: NavItemProps) {
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 flex-shrink-0 text-white dark:text-black md:text-gray-500 md:dark:text-gray-400"
+        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
         aria-hidden="true"
       />
       {name}
