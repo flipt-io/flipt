@@ -45,6 +45,16 @@ type StorageConfig struct {
 	ReadOnly *bool                `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
+func (c *StorageConfig) Info() map[string]string {
+	if c.Type == GitStorageType {
+		return map[string]string{
+			"repository": c.Git.Repository,
+			"ref":        c.Git.Ref,
+		}
+	}
+	return nil
+}
+
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	switch v.GetString("storage.type") {
 	case string(LocalStorageType):
