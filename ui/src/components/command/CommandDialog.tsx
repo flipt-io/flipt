@@ -143,10 +143,10 @@ export default function CommandMenu() {
       className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]"
     >
       <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75" />
-      <Dialog.Panel className="mx-auto max-w-xl transform rounded-xl bg-white p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+      <Dialog.Panel className="mx-auto max-w-xl transform rounded-xl bg-background p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
         <Command
           loop
-          className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-black"
+          className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground"
           onKeyDown={(e) => {
             if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
               e.preventDefault();

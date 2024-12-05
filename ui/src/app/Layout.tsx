@@ -76,7 +76,7 @@ function InnerLayout() {
   return (
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-white md:pl-64">
+      <div className="flex min-h-screen flex-col bg-background md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner
@@ -85,7 +85,7 @@ function InnerLayout() {
             href="https://docs.flipt.io/cloud/overview"
           />
         )}
-        <main className="flex sm:pt-4">
+        <main className="flex pt-1 sm:pt-4">
           <div className="mx-auto w-full max-w-7xl overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>

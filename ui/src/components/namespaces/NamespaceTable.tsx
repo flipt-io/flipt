@@ -271,7 +271,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-200 bg-background">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

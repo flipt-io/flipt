@@ -85,7 +85,7 @@ export default function Combobox<T extends IFilterable>(
           </div>
           {open && (
             <C.Options
-              className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-white sm:text-sm"
+              className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
               id={`${id}-select-options`}
               static={openOptions}
             >

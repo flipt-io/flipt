@@ -43,7 +43,7 @@ export default function UserProfile(props: UserProfileProps) {
         <Button
           size="icon"
           aria-label="Open user menu"
-          className="h-7 w-7 rounded-full ring-2 ring-white ring-offset-0 hover:ring-primary/80 focus:ring-primary/80 dark:bg-black"
+          className="h-7 w-7 rounded-full ring-2 ring-white ring-offset-0 hover:ring-primary/80 focus:ring-primary/80"
         >
           {user.imgURL && (
             <img

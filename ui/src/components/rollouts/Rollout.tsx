@@ -38,9 +38,9 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
-      <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
+      <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}
