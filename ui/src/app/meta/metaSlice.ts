@@ -47,18 +47,18 @@ export const metaSlice = createSlice({
         state.info = action.payload;
         state.config.status = LoadingStatus.SUCCEEDED;
         state.config.analyticsEnabled =
-          action.payload.analyticsEnabled || false;
+          action.payload.analytics?.enabled || false;
         if (action.payload.storage !== undefined) {
-          state.config.storage.type = action.payload.storage;
-          state.config.storage.git = action.payload.storageInfo;
+          state.config.storage.type = action.payload.storage?.type;
+          state.config.storage.git = action.payload.storage?.metadata;
           state.config.storage.readOnly =
             action.payload.storage &&
-            action.payload.storage !== StorageType.DATABASE;
+            action.payload.storage.type !== StorageType.DATABASE;
         }
         state.config.ui = {
-          defaultTheme: action.payload.uiTheme || Theme.SYSTEM,
+          defaultTheme: action.payload.ui?.Theme || Theme.SYSTEM,
           topbar: {
-            color: action.payload.uiTopbarColor || ''
+            color: action.payload.ui?.TopbarColor || ''
           }
         };
       });

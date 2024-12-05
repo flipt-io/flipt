@@ -324,24 +324,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
-	info := info.Flipt{
-		Commit:           commit,
-		BuildDate:        date,
-		GoVersion:        goVersion,
-		Version:          version,
-		LatestVersion:    releaseInfo.LatestVersion,
-		LatestVersionURL: releaseInfo.LatestVersionURL,
-		IsRelease:        isRelease,
-		UpdateAvailable:  releaseInfo.UpdateAvailable,
-		OS:               goOS,
-		Arch:             goArch,
-		Authentication:   cfg.Authentication.Required,
-		Storage:          cfg.Storage.Type,
-		StorageInfo:      cfg.Storage.Info(),
-		AnalyticsEnabled: cfg.Analytics.Enabled(),
-		UITheme:          string(cfg.UI.DefaultTheme),
-		UITopbarColor:    cfg.UI.Topbar.Color,
-	}
+	info := info.New(
+		info.WithBuild(commit, date, goVersion, version, isRelease),
+		info.WithLatestRelease(releaseInfo),
+		info.WithOS(goOS, goArch),
+		info.WithConfig(cfg),
+	)
 
 	if cfg.Meta.TelemetryEnabled {
 		logger := logger.With(zap.String("component", "telemetry"))

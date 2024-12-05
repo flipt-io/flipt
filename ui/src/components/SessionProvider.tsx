@@ -46,7 +46,7 @@ export default function SessionProvider({
       }
 
       if (session && info) {
-        clearSessionIfNecessary(info.authentication);
+        clearSessionIfNecessary(info.authentication?.required);
         if (session) {
           return;
         }
