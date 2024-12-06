@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An enterprise-ready, GRPC powered, GitOps enabled, CloudNative, feature management solution</p>
+<p align="center">An enterprise-ready, GitOps enabled, CloudNative, feature management solution</p>
 
 <hr />
 
@@ -45,8 +45,8 @@
     <h4>
         <a href="https://www.flipt.io/docs/introduction">Docs</a> •
         <a href="http://www.flipt.io">Website</a> •
-        <a href="http://www.flipt.io/blog">Blog</a> •
-        <a href="https://features.flipt.io/">Feedback</a> •
+        <a href="http://blog.flipt.io">Blog</a> •
+        <a href="https://community.flipt.io/">Feedback</a> •
         <a href="#contributing">Contributing</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
@@ -80,10 +80,11 @@ Want the best of Flipt without the hassle of running it yourself? Check out [Fli
 
 - Fully managed Flipt service
 - Multiple Environments
-- Your Data in Your GitHub Repositories
+- Your Data in [Your GitHub Repositories](https://docs.flipt.io/cloud/features/git-backed-storage)
+- [Approval Workflows](https://docs.flipt.io/cloud/features/approval-workflows) for All Changes
 - Automatic Upgrades
-- SSO / SAML Authentication
-- Granular Access Control
+- Authn: [Google, GitHub, SSO / SAML](https://docs.flipt.io/cloud/features/authentication)
+- Authz: [Granular Access Control with RBAC](https://docs.flipt.io/cloud/features/rbac)
 
 ## Use cases
 
@@ -103,7 +104,7 @@ Flipt supports use cases such as:
 - 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis, ClickHouse... Flipt supports it all.
+- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis, ClickHouse, Prometheus, OpenTelemetry, and more.
 
 <br clear="both"/>
 
