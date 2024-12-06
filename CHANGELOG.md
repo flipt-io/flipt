@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.53.0](https://github.com/flipt-io/flipt/releases/tag/v1.53.0) - 2024-12-06
+
+### Added
+
+- `ui`: new table view for flags and segments (#3664)
+
+### Changed
+
+- `ui`: stop using /meta/config endpoint (#3684)
+- `ui`: use black as black, white as white (#3687)
+- `github auth`: pass org and teams to metadata (#3654)
+
+### Fixed
+
+- `ui`: use table skeleton while flags or segments are loading (#3682)
+- `ui`: use local timezone as default (#3680)
+- `ui`: fix layout for user name and login (#3666)
+- `analytics`: support Victoria Metrics with Prometheus storage (#3663)
+
 ## [v1.52.2](https://github.com/flipt-io/flipt/releases/tag/v1.52.2) - 2024-12-03
 
 ### Fixed
