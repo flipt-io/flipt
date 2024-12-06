@@ -8,7 +8,7 @@ import {
   Row,
   useReactTable
 } from '@tanstack/react-table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
@@ -138,7 +138,7 @@ export default function FlagTable(props: FlagTableProps) {
   const sorting = useSelector(selectSorting);
 
   const { data, isLoading, error } = useListFlagsQuery(namespace.key);
-  const flags = data?.flags || [];
+  const flags = useMemo(() => data?.flags || [], [data]);
 
   const { setError } = useError();
   useEffect(() => {
