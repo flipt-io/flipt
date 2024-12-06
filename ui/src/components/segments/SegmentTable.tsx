@@ -8,7 +8,7 @@ import {
   Row,
   useReactTable
 } from '@tanstack/react-table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -130,7 +130,7 @@ export default function SegmentTable(props: SegmentTableProps) {
 
   const sorting = useSelector(selectSorting);
   const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
-  const segments = data?.segments || [];
+  const segments = useMemo(() => data?.segments || [], [data]);
   const table = useReactTable({
     data: segments,
     columns,
