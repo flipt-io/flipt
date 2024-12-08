@@ -75,7 +75,7 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 	)
 
 	for i, vv := range v.Values {
-		timestamps[i] = time.UnixMilli(int64(vv.Timestamp)).Format(time.DateTime)
+		timestamps[i] = time.UnixMilli(int64(vv.Timestamp)).UTC().Format(time.RFC3339)
 		values[i] = float32(math.Round(float64(vv.Value)))
 	}
 
@@ -85,7 +85,7 @@ func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.Fl
 	// if there is no data. The vector(0) has only points with zero values. We need to combine it
 	for i := len(m) - 2; i >= 0; i-- {
 		for _, vv := range m[i].Values {
-			t := time.UnixMilli(int64(vv.Timestamp)).Format(time.DateTime)
+			t := time.UnixMilli(int64(vv.Timestamp)).UTC().Format(time.RFC3339)
 			if i := slices.Index(timestamps, t); i != -1 {
 				values[i] += float32(math.Round(float64(vv.Value)))
 			}
