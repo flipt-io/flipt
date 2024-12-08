@@ -9,12 +9,12 @@ import (
 
 // GetFlagEvaluationsCount is the implemented RPC method that will return aggregated flag evaluation counts.
 func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) (*analytics.GetFlagEvaluationsCountResponse, error) {
-	fromTime, err := time.Parse(time.DateTime, req.From)
+	fromTime, err := time.Parse(time.RFC3339, req.From)
 	if err != nil {
 		return nil, err
 	}
 
-	toTime, err := time.Parse(time.DateTime, req.To)
+	toTime, err := time.Parse(time.RFC3339, req.To)
 	if err != nil {
 		return nil, err
 	}
