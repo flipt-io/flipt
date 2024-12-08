@@ -22,13 +22,11 @@ type InterceptorOptions struct {
 	skippedServers []any
 }
 
-var (
-	// methods which should always skip authorization
-	skippedMethods = map[string]any{
-		"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
-		"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
-	}
-)
+// methods which should always skip authorization
+var skippedMethods = map[string]any{
+	"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
+	"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
+}
 
 func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
 	// if we skip authentication then we must skip authorization
@@ -95,10 +93,25 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				"request":        request,
 				"authentication": auth,
 			})
-
 			if err != nil {
 				logger.Error("unauthorized", zap.Error(err))
 				return ctx, errUnauthorized
+			}
+
+			if info.FullMethod == flipt.Flipt_ListNamespaces_FullMethodName {
+				namespaces, err := policyVerifier.Namespaces(ctx, map[string]any{
+					"request":        request,
+					"authentication": auth,
+				})
+
+				logger.Debug("policy namespaces evaluation", zap.Any("namespaces", namespaces), zap.Error(err))
+				if err == nil && len(namespaces) > 0 {
+					// if user has no access to `default` namespace the api call to list namespaces
+					// will return unauthorized error even if user has access to other namespaces.
+					// This is a workaround to allow user to list namespaces in this case.
+					ctx = context.WithValue(ctx, authz.ViewableNamespacesKey, namespaces)
+				}
+				continue
 			}
 
 			if !allowed {
