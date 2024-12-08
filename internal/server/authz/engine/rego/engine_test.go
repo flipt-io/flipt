@@ -29,7 +29,7 @@ func TestEngine_NewEngine(t *testing.T) {
 }
 
 func TestEngine_IsAllowed(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name     string
 		input    string
 		expected bool
@@ -224,7 +224,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 }
 
 func TestEngine_IsAuthMethod(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name     string
 		input    authrpc.Method
 		expected bool

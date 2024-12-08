@@ -25,6 +25,10 @@ func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any
 	return v.isAllowed, v.wantErr
 }
 
+func (v *mockPolicyVerifier) Namespaces(_ context.Context, _ map[string]any) ([]string, error) {
+	return nil, errors.ErrUnsupported
+}
+
 func (v *mockPolicyVerifier) Shutdown(_ context.Context) error {
 	return nil
 }
@@ -38,16 +42,14 @@ func (s *mockServer) SkipsAuthorization(ctx context.Context) bool {
 	return s.skipsAuthz
 }
 
-var (
-	adminAuth = &authrpc.Authentication{
-		Metadata: map[string]string{
-			"io.flipt.auth.role": "admin",
-		},
-	}
-)
+var adminAuth = &authrpc.Authentication{
+	Metadata: map[string]string{
+		"io.flipt.auth.role": "admin",
+	},
+}
 
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name             string
 		server           any
 		req              any
@@ -126,7 +128,6 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			var (
 				logger  = zap.NewNop()
 				allowed = false
