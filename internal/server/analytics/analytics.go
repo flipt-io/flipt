@@ -11,12 +11,20 @@ import (
 func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) (*analytics.GetFlagEvaluationsCountResponse, error) {
 	fromTime, err := time.Parse(time.RFC3339, req.From)
 	if err != nil {
-		return nil, err
+		var innerErr error
+		fromTime, innerErr = time.Parse(time.DateTime, req.From)
+		if innerErr != nil {
+			return nil, err
+		}
 	}
 
 	toTime, err := time.Parse(time.RFC3339, req.To)
 	if err != nil {
-		return nil, err
+		var innerErr error
+		toTime, innerErr = time.Parse(time.DateTime, req.To)
+		if innerErr != nil {
+			return nil, err
+		}
 	}
 
 	r := &FlagEvaluationsCountRequest{
