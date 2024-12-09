@@ -98,12 +98,12 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				return ctx, errUnauthorized
 			}
 
-			// FIXME: This is proof of concept
 			if info.FullMethod == flipt.Flipt_ListNamespaces_FullMethodName {
 				namespaces, err := policyVerifier.Namespaces(ctx, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})
+
 				logger.Debug("policy namespaces evaluation", zap.Any("namespaces", namespaces), zap.Error(err))
 				if err == nil && len(namespaces) > 0 {
 					// if user has no access to `default` namespace the api call to list namespaces

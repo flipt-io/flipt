@@ -15,9 +15,10 @@ import (
 )
 
 type mockPolicyVerifier struct {
-	isAllowed bool
-	wantErr   error
-	input     map[string]any
+	isAllowed          bool
+	wantErr            error
+	input              map[string]any
+	viewableNamespaces []string
 }
 
 func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
@@ -26,6 +27,9 @@ func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any
 }
 
 func (v *mockPolicyVerifier) Namespaces(_ context.Context, _ map[string]any) ([]string, error) {
+	if v.viewableNamespaces != nil {
+		return v.viewableNamespaces, nil
+	}
 	return nil, errors.ErrUnsupported
 }
 
@@ -50,14 +54,16 @@ var adminAuth = &authrpc.Authentication{
 
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
 	tests := []struct {
-		name             string
-		server           any
-		req              any
-		authn            *authrpc.Authentication
-		validatorAllowed bool
-		validatorErr     error
-		wantAllowed      bool
-		authzInput       map[string]any
+		name               string
+		server             any
+		req                any
+		authn              *authrpc.Authentication
+		validatorAllowed   bool
+		validatorErr       error
+		wantAllowed        bool
+		authzInput         map[string]any
+		viewableNamespaces []string
+		serverFullMethod   string
 	}{
 		{
 			name:  "allowed",
@@ -124,6 +130,22 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			validatorErr: errors.New("error"),
 			wantAllowed:  false,
 		},
+		{
+			name:               "list namespaces",
+			authn:              adminAuth,
+			req:                &flipt.ListNamespaceRequest{},
+			wantAllowed:        true,
+			viewableNamespaces: []string{"special"},
+			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Resource: flipt.ResourceNamespace,
+					Action:   flipt.ActionRead,
+					Status:   flipt.StatusSuccess,
+				},
+				"authentication": adminAuth,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -140,14 +162,16 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 
 				srv           = &grpc.UnaryServerInfo{Server: &mockServer{}}
 				policyVerfier = &mockPolicyVerifier{
-					isAllowed: tt.validatorAllowed,
-					wantErr:   tt.validatorErr,
+					isAllowed:          tt.validatorAllowed,
+					wantErr:            tt.validatorErr,
+					viewableNamespaces: tt.viewableNamespaces,
 				}
 			)
 
 			if tt.server != nil {
 				srv.Server = tt.server
 			}
+			srv.FullMethod = tt.serverFullMethod
 
 			_, err := AuthorizationRequiredInterceptor(logger, policyVerfier)(ctx, tt.req, srv, handler)
 
