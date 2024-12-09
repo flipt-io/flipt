@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
-import { addMinutes, format, parseISO } from 'date-fns';
+import { addMinutes } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { Graph } from '~/components/graphs';
@@ -16,8 +16,6 @@ import Listbox from '~/components/forms/Listbox';
 type AnalyticsProps = {
   flag: IFlag;
 };
-
-const timeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 interface IDuration {
   value: number;
@@ -71,23 +69,17 @@ export default function Analytics() {
 
   const d = new Date();
   d.setSeconds(0);
-  const nowISO = parseISO(d.toISOString());
+  d.setMilliseconds(0);
 
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
     {
       namespaceKey: namespace.key,
       flagKey: flag.key,
-      from: format(
-        addMinutes(
-          addMinutes(
-            nowISO,
-            selectedDuration?.value ? selectedDuration.value * -1 : -60
-          ),
-          nowISO.getTimezoneOffset()
-        ),
-        timeFormat
-      ),
-      to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
+      from: addMinutes(
+        d,
+        selectedDuration?.value ? selectedDuration.value * -1 : -60
+      ).toISOString(),
+      to: d.toISOString()
     },
     {
       pollingInterval,
@@ -97,8 +89,8 @@ export default function Analytics() {
 
   const flagEvaluationCount = useMemo(() => {
     return {
-      timestamps: getFlagEvaluationCount.data?.timestamps,
-      values: getFlagEvaluationCount.data?.values
+      timestamps: getFlagEvaluationCount.data?.timestamps || [],
+      values: getFlagEvaluationCount.data?.values || []
     };
   }, [getFlagEvaluationCount]);
 
@@ -142,8 +134,8 @@ export default function Analytics() {
           </div>
           <div className="mt-10">
             <Graph
-              timestamps={flagEvaluationCount.timestamps || []}
-              values={flagEvaluationCount.values || []}
+              timestamps={flagEvaluationCount.timestamps}
+              values={flagEvaluationCount.values}
               flagKey={flag.key}
             />
           </div>
