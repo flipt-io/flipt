@@ -96,9 +96,9 @@ func (e *Engine) Namespaces(ctx context.Context, input map[string]interface{}) (
 	if !ok {
 		return nil, fmt.Errorf("unexpected result type: %T", values)
 	}
-	var namespaces []string
-	for _, ns := range values {
-		namespaces = append(namespaces, fmt.Sprintf("%s", ns))
+	namespaces := make([]string, len(values))
+	for i, ns := range values {
+		namespaces[i] = fmt.Sprintf("%s", ns)
 	}
 	return namespaces, nil
 }
