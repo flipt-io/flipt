@@ -312,13 +312,11 @@ func NewGRPCServer(
 	server.onShutdown(authShutdown)
 
 	if cfg.Analytics.Enabled() {
-		var client analytics.Client
 		if cfg.Analytics.Storage.Clickhouse.Enabled {
 			client, err := clickhouse.New(logger, cfg, forceMigrate)
 			if err != nil {
 				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
 			}
-
 			analyticsExporter := analytics.NewAnalyticsSinkSpanExporter(logger, client)
 			tracingProvider.RegisterSpanProcessor(
 				tracesdk.NewBatchSpanProcessor(
@@ -328,17 +326,18 @@ func NewGRPCServer(
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
 			})
+			analyticssrv := analytics.New(logger, client)
+			register.Add(analyticssrv)
+			logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 		} else if cfg.Analytics.Storage.Prometheus.Enabled {
-			client, err = prometheus.New(logger, cfg)
+			client, err := prometheus.New(logger, cfg)
 			if err != nil {
 				return nil, err
 			}
+			analyticssrv := analytics.New(logger, client)
+			register.Add(analyticssrv)
+			logger.Debug("analytics enabled", zap.String("database", client.String()))
 		}
-
-		analyticssrv := analytics.New(logger, client)
-		register.Add(analyticssrv)
-		logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
-
 	}
 
 	// initialize servers

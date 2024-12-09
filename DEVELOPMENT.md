@@ -13,7 +13,7 @@ Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
 - [SQLite](https://sqlite.org/index.html)
-- [Go 1.20+](https://golang.org/doc/install)
+- [Go 1.23+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
@@ -58,7 +58,7 @@ Then run `pre-commit install` to install the git hook.
 
 ## Go
 
-Flipt is built with Go 1.20+.
+Flipt is built with Go 1.23+.
 
 ## Bootstrap
 
@@ -151,4 +151,6 @@ To use it for developing Flipt, you'll first need to install it. See the devenv 
 
 Once you have devenv installed, you can run `devenv up` from the root of this repository to start a development environment.
 
-This will start a Docker container with the Flipt server running on port `8080` and the UI development server running on port `5173`.
+This will start a development environment with the Flipt server running on port `8080` and the UI development server running on port `5173`.
+
+![devenv](./.github/images/devenv.png)
