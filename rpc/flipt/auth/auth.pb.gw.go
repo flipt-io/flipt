@@ -10,6 +10,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -25,487 +26,398 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
+var (
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
+)
 
 func request_PublicAuthenticationService_ListAuthenticationMethods_0(ctx context.Context, marshaler runtime.Marshaler, client PublicAuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := client.ListAuthenticationMethods(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_PublicAuthenticationService_ListAuthenticationMethods_0(ctx context.Context, marshaler runtime.Marshaler, server PublicAuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.ListAuthenticationMethods(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_AuthenticationService_GetAuthenticationSelf_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := client.GetAuthenticationSelf(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationService_GetAuthenticationSelf_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetAuthenticationSelf(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_AuthenticationService_GetAuthentication_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetAuthenticationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetAuthenticationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["id"]
+	val, ok := pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-
 	msg, err := client.GetAuthentication(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationService_GetAuthentication_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetAuthenticationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetAuthenticationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["id"]
+	val, ok := pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-
 	msg, err := server.GetAuthentication(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationService_ListAuthentications_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_AuthenticationService_ListAuthentications_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_AuthenticationService_ListAuthentications_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListAuthenticationsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListAuthenticationsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationService_ListAuthentications_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListAuthentications(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationService_ListAuthentications_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListAuthenticationsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListAuthenticationsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationService_ListAuthentications_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListAuthentications(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_AuthenticationService_DeleteAuthentication_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteAuthenticationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq DeleteAuthenticationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["id"]
+	val, ok := pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-
 	msg, err := client.DeleteAuthentication(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationService_DeleteAuthentication_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteAuthenticationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq DeleteAuthenticationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["id"]
+	val, ok := pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-
 	protoReq.Id, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-
 	msg, err := server.DeleteAuthentication(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationService_ExpireAuthenticationSelf_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_AuthenticationService_ExpireAuthenticationSelf_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_AuthenticationService_ExpireAuthenticationSelf_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ExpireAuthenticationSelfRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ExpireAuthenticationSelfRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationService_ExpireAuthenticationSelf_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ExpireAuthenticationSelf(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationService_ExpireAuthenticationSelf_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ExpireAuthenticationSelfRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ExpireAuthenticationSelfRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationService_ExpireAuthenticationSelf_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ExpireAuthenticationSelf(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodTokenServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateTokenRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq CreateTokenRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.CreateToken(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodTokenServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateTokenRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq CreateTokenRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.CreateToken(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
+var filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AuthorizeURLRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq AuthorizeURLRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["provider"]
+	val, ok := pathParams["provider"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-
 	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_AuthorizeURL_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.AuthorizeURL(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodOIDCServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AuthorizeURLRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq AuthorizeURLRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["provider"]
+	val, ok := pathParams["provider"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-
 	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_AuthorizeURL_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.AuthorizeURL(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
+var filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CallbackRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq CallbackRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["provider"]
+	val, ok := pathParams["provider"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-
 	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_Callback_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.Callback(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodOIDCServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CallbackRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq CallbackRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["provider"]
+	val, ok := pathParams["provider"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-
 	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOIDCService_Callback_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.Callback(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodKubernetesServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq VerifyServiceAccountRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq VerifyServiceAccountRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.VerifyServiceAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodKubernetesServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq VerifyServiceAccountRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq VerifyServiceAccountRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.VerifyServiceAccount(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationMethodGithubService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_AuthenticationMethodGithubService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_AuthenticationMethodGithubService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodGithubServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AuthorizeURLRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq AuthorizeURLRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodGithubService_AuthorizeURL_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.AuthorizeURL(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodGithubService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodGithubServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AuthorizeURLRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq AuthorizeURLRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodGithubService_AuthorizeURL_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.AuthorizeURL(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_AuthenticationMethodGithubService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_AuthenticationMethodGithubService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_AuthenticationMethodGithubService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodGithubServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CallbackRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq CallbackRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodGithubService_Callback_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.Callback(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AuthenticationMethodGithubService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, server AuthenticationMethodGithubServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CallbackRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq CallbackRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodGithubService_Callback_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.Callback(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterPublicAuthenticationServiceHandlerServer registers the http handlers for service PublicAuthenticationService to "mux".
@@ -514,16 +426,13 @@ func local_request_AuthenticationMethodGithubService_Callback_0(ctx context.Cont
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterPublicAuthenticationServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server PublicAuthenticationServiceServer) error {
-
-	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -535,9 +444,7 @@ func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -549,16 +456,13 @@ func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationServiceServer) error {
-
-	mux.Handle("GET", pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -570,20 +474,15 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_GetAuthenticationSelf_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationService_GetAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_GetAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -595,20 +494,15 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_GetAuthentication_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationService_ListAuthentications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_ListAuthentications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ListAuthentications", runtime.WithHTTPPathPattern("/auth/v1/tokens"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ListAuthentications", runtime.WithHTTPPathPattern("/auth/v1/tokens"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -620,20 +514,15 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_ListAuthentications_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("DELETE", pattern_AuthenticationService_DeleteAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodDelete, pattern_AuthenticationService_DeleteAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/DeleteAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/DeleteAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -645,20 +534,15 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_DeleteAuthentication_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("PUT", pattern_AuthenticationService_ExpireAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPut, pattern_AuthenticationService_ExpireAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self/expire"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self/expire"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -670,9 +554,7 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_ExpireAuthenticationSelf_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -684,16 +566,13 @@ func RegisterAuthenticationServiceHandlerServer(ctx context.Context, mux *runtim
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodTokenServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodTokenServiceServer) error {
-
-	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodTokenService/CreateToken", runtime.WithHTTPPathPattern("/auth/v1/method/token"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodTokenService/CreateToken", runtime.WithHTTPPathPattern("/auth/v1/method/token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -705,9 +584,7 @@ func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, 
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodTokenService_CreateToken_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -719,16 +596,13 @@ func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, 
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodOIDCServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodOIDCServiceServer) error {
-
-	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/authorize"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -740,20 +614,15 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodOIDCService_AuthorizeURL_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/callback"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -765,9 +634,7 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodOIDCService_Callback_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -779,16 +646,13 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodKubernetesServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodKubernetesServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodKubernetesServiceServer) error {
-
-	mux.Handle("POST", pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount", runtime.WithHTTPPathPattern("/auth/v1/method/kubernetes/serviceaccount"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount", runtime.WithHTTPPathPattern("/auth/v1/method/kubernetes/serviceaccount"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -800,9 +664,7 @@ func RegisterAuthenticationMethodKubernetesServiceHandlerServer(ctx context.Cont
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -814,16 +676,13 @@ func RegisterAuthenticationMethodKubernetesServiceHandlerServer(ctx context.Cont
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodGithubServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAuthenticationMethodGithubServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodGithubServiceServer) error {
-
-	mux.Handle("GET", pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/github/authorize"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/github/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -835,20 +694,15 @@ func RegisterAuthenticationMethodGithubServiceHandlerServer(ctx context.Context,
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodGithubService_AuthorizeURL_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationMethodGithubService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodGithubService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/github/callback"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/github/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -860,9 +714,7 @@ func RegisterAuthenticationMethodGithubServiceHandlerServer(ctx context.Context,
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodGithubService_Callback_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -889,7 +741,6 @@ func RegisterPublicAuthenticationServiceHandlerFromEndpoint(ctx context.Context,
 			}
 		}()
 	}()
-
 	return RegisterPublicAuthenticationServiceHandler(ctx, mux, conn)
 }
 
@@ -905,14 +756,11 @@ func RegisterPublicAuthenticationServiceHandler(ctx context.Context, mux *runtim
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "PublicAuthenticationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterPublicAuthenticationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client PublicAuthenticationServiceClient) error {
-
-	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -923,11 +771,8 @@ func RegisterPublicAuthenticationServiceHandlerClient(ctx context.Context, mux *
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
@@ -960,7 +805,6 @@ func RegisterAuthenticationServiceHandlerFromEndpoint(ctx context.Context, mux *
 			}
 		}()
 	}()
-
 	return RegisterAuthenticationServiceHandler(ctx, mux, conn)
 }
 
@@ -976,14 +820,11 @@ func RegisterAuthenticationServiceHandler(ctx context.Context, mux *runtime.Serv
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AuthenticationServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationServiceClient) error {
-
-	mux.Handle("GET", pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_GetAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -994,18 +835,13 @@ func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_GetAuthenticationSelf_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationService_GetAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_GetAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/GetAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1016,18 +852,13 @@ func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_GetAuthentication_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationService_ListAuthentications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationService_ListAuthentications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ListAuthentications", runtime.WithHTTPPathPattern("/auth/v1/tokens"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ListAuthentications", runtime.WithHTTPPathPattern("/auth/v1/tokens"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1038,18 +869,13 @@ func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_ListAuthentications_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("DELETE", pattern_AuthenticationService_DeleteAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodDelete, pattern_AuthenticationService_DeleteAuthentication_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/DeleteAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/DeleteAuthentication", runtime.WithHTTPPathPattern("/auth/v1/tokens/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1060,18 +886,13 @@ func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_DeleteAuthentication_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("PUT", pattern_AuthenticationService_ExpireAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPut, pattern_AuthenticationService_ExpireAuthenticationSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self/expire"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf", runtime.WithHTTPPathPattern("/auth/v1/self/expire"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1082,35 +903,24 @@ func RegisterAuthenticationServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationService_ExpireAuthenticationSelf_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 var (
-	pattern_AuthenticationService_GetAuthenticationSelf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "self"}, ""))
-
-	pattern_AuthenticationService_GetAuthentication_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"auth", "v1", "tokens", "id"}, ""))
-
-	pattern_AuthenticationService_ListAuthentications_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "tokens"}, ""))
-
-	pattern_AuthenticationService_DeleteAuthentication_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"auth", "v1", "tokens", "id"}, ""))
-
+	pattern_AuthenticationService_GetAuthenticationSelf_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "self"}, ""))
+	pattern_AuthenticationService_GetAuthentication_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"auth", "v1", "tokens", "id"}, ""))
+	pattern_AuthenticationService_ListAuthentications_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "tokens"}, ""))
+	pattern_AuthenticationService_DeleteAuthentication_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"auth", "v1", "tokens", "id"}, ""))
 	pattern_AuthenticationService_ExpireAuthenticationSelf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "self", "expire"}, ""))
 )
 
 var (
-	forward_AuthenticationService_GetAuthenticationSelf_0 = runtime.ForwardResponseMessage
-
-	forward_AuthenticationService_GetAuthentication_0 = runtime.ForwardResponseMessage
-
-	forward_AuthenticationService_ListAuthentications_0 = runtime.ForwardResponseMessage
-
-	forward_AuthenticationService_DeleteAuthentication_0 = runtime.ForwardResponseMessage
-
+	forward_AuthenticationService_GetAuthenticationSelf_0    = runtime.ForwardResponseMessage
+	forward_AuthenticationService_GetAuthentication_0        = runtime.ForwardResponseMessage
+	forward_AuthenticationService_ListAuthentications_0      = runtime.ForwardResponseMessage
+	forward_AuthenticationService_DeleteAuthentication_0     = runtime.ForwardResponseMessage
 	forward_AuthenticationService_ExpireAuthenticationSelf_0 = runtime.ForwardResponseMessage
 )
 
@@ -1135,7 +945,6 @@ func RegisterAuthenticationMethodTokenServiceHandlerFromEndpoint(ctx context.Con
 			}
 		}()
 	}()
-
 	return RegisterAuthenticationMethodTokenServiceHandler(ctx, mux, conn)
 }
 
@@ -1151,14 +960,11 @@ func RegisterAuthenticationMethodTokenServiceHandler(ctx context.Context, mux *r
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AuthenticationMethodTokenServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodTokenServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodTokenServiceClient) error {
-
-	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodTokenService/CreateToken", runtime.WithHTTPPathPattern("/auth/v1/method/token"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodTokenService/CreateToken", runtime.WithHTTPPathPattern("/auth/v1/method/token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1169,11 +975,8 @@ func RegisterAuthenticationMethodTokenServiceHandlerClient(ctx context.Context, 
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodTokenService_CreateToken_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
@@ -1206,7 +1009,6 @@ func RegisterAuthenticationMethodOIDCServiceHandlerFromEndpoint(ctx context.Cont
 			}
 		}()
 	}()
-
 	return RegisterAuthenticationMethodOIDCServiceHandler(ctx, mux, conn)
 }
 
@@ -1222,14 +1024,11 @@ func RegisterAuthenticationMethodOIDCServiceHandler(ctx context.Context, mux *ru
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AuthenticationMethodOIDCServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodOIDCServiceClient) error {
-
-	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/authorize"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1240,18 +1039,13 @@ func RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx context.Context, m
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodOIDCService_AuthorizeURL_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationMethodOIDCService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodOIDCService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/callback"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodOIDCService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/oidc/{provider}/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1262,24 +1056,19 @@ func RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx context.Context, m
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodOIDCService_Callback_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 var (
 	pattern_AuthenticationMethodOIDCService_AuthorizeURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "authorize"}, ""))
-
-	pattern_AuthenticationMethodOIDCService_Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "callback"}, ""))
+	pattern_AuthenticationMethodOIDCService_Callback_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "method", "oidc", "provider", "callback"}, ""))
 )
 
 var (
 	forward_AuthenticationMethodOIDCService_AuthorizeURL_0 = runtime.ForwardResponseMessage
-
-	forward_AuthenticationMethodOIDCService_Callback_0 = runtime.ForwardResponseMessage
+	forward_AuthenticationMethodOIDCService_Callback_0     = runtime.ForwardResponseMessage
 )
 
 // RegisterAuthenticationMethodKubernetesServiceHandlerFromEndpoint is same as RegisterAuthenticationMethodKubernetesServiceHandler but
@@ -1303,7 +1092,6 @@ func RegisterAuthenticationMethodKubernetesServiceHandlerFromEndpoint(ctx contex
 			}
 		}()
 	}()
-
 	return RegisterAuthenticationMethodKubernetesServiceHandler(ctx, mux, conn)
 }
 
@@ -1319,14 +1107,11 @@ func RegisterAuthenticationMethodKubernetesServiceHandler(ctx context.Context, m
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AuthenticationMethodKubernetesServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodKubernetesServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodKubernetesServiceClient) error {
-
-	mux.Handle("POST", pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_AuthenticationMethodKubernetesService_VerifyServiceAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount", runtime.WithHTTPPathPattern("/auth/v1/method/kubernetes/serviceaccount"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount", runtime.WithHTTPPathPattern("/auth/v1/method/kubernetes/serviceaccount"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1337,11 +1122,8 @@ func RegisterAuthenticationMethodKubernetesServiceHandlerClient(ctx context.Cont
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
@@ -1374,7 +1156,6 @@ func RegisterAuthenticationMethodGithubServiceHandlerFromEndpoint(ctx context.Co
 			}
 		}()
 	}()
-
 	return RegisterAuthenticationMethodGithubServiceHandler(ctx, mux, conn)
 }
 
@@ -1390,14 +1171,11 @@ func RegisterAuthenticationMethodGithubServiceHandler(ctx context.Context, mux *
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AuthenticationMethodGithubServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAuthenticationMethodGithubServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodGithubServiceClient) error {
-
-	mux.Handle("GET", pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodGithubService_AuthorizeURL_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/github/authorize"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/AuthorizeURL", runtime.WithHTTPPathPattern("/auth/v1/method/github/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1408,18 +1186,13 @@ func RegisterAuthenticationMethodGithubServiceHandlerClient(ctx context.Context,
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodGithubService_AuthorizeURL_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_AuthenticationMethodGithubService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AuthenticationMethodGithubService_Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/github/callback"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.AuthenticationMethodGithubService/Callback", runtime.WithHTTPPathPattern("/auth/v1/method/github/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1430,22 +1203,17 @@ func RegisterAuthenticationMethodGithubServiceHandlerClient(ctx context.Context,
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AuthenticationMethodGithubService_Callback_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 var (
 	pattern_AuthenticationMethodGithubService_AuthorizeURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"auth", "v1", "method", "github", "authorize"}, ""))
-
-	pattern_AuthenticationMethodGithubService_Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"auth", "v1", "method", "github", "callback"}, ""))
+	pattern_AuthenticationMethodGithubService_Callback_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"auth", "v1", "method", "github", "callback"}, ""))
 )
 
 var (
 	forward_AuthenticationMethodGithubService_AuthorizeURL_0 = runtime.ForwardResponseMessage
-
-	forward_AuthenticationMethodGithubService_Callback_0 = runtime.ForwardResponseMessage
+	forward_AuthenticationMethodGithubService_Callback_0     = runtime.ForwardResponseMessage
 )
