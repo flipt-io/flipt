@@ -10,6 +10,7 @@ package analytics
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -24,101 +25,80 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
-
 var (
-	filter_AnalyticsService_GetFlagEvaluationsCount_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "flag_key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
 )
 
+var filter_AnalyticsService_GetFlagEvaluationsCount_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "flag_key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
 func request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Context, marshaler runtime.Marshaler, client AnalyticsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFlagEvaluationsCountRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetFlagEvaluationsCountRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["namespace_key"]
+	val, ok := pathParams["namespace_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
 	}
-
 	protoReq.NamespaceKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace_key", err)
 	}
-
 	val, ok = pathParams["flag_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "flag_key")
 	}
-
 	protoReq.FlagKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AnalyticsService_GetFlagEvaluationsCount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetFlagEvaluationsCount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Context, marshaler runtime.Marshaler, server AnalyticsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFlagEvaluationsCountRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetFlagEvaluationsCountRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["namespace_key"]
+	val, ok := pathParams["namespace_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
 	}
-
 	protoReq.NamespaceKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace_key", err)
 	}
-
 	val, ok = pathParams["flag_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "flag_key")
 	}
-
 	protoReq.FlagKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AnalyticsService_GetFlagEvaluationsCount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetFlagEvaluationsCount(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterAnalyticsServiceHandlerServer registers the http handlers for service AnalyticsService to "mux".
@@ -127,16 +107,13 @@ func local_request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Contex
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAnalyticsServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AnalyticsServiceServer) error {
-
-	mux.Handle("GET", pattern_AnalyticsService_GetFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AnalyticsService_GetFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -148,9 +125,7 @@ func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AnalyticsService_GetFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -177,7 +152,6 @@ func RegisterAnalyticsServiceHandlerFromEndpoint(ctx context.Context, mux *runti
 			}
 		}()
 	}()
-
 	return RegisterAnalyticsServiceHandler(ctx, mux, conn)
 }
 
@@ -193,14 +167,11 @@ func RegisterAnalyticsServiceHandler(ctx context.Context, mux *runtime.ServeMux,
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "AnalyticsServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AnalyticsServiceClient) error {
-
-	mux.Handle("GET", pattern_AnalyticsService_GetFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_AnalyticsService_GetFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -211,11 +182,8 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_AnalyticsService_GetFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 

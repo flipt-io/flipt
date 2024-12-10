@@ -98,7 +98,7 @@ func (req *GetNamespaceRequest) Request() []Request {
 }
 
 func (req *ListNamespaceRequest) Request() []Request {
-	return []Request{NewRequest(ResourceNamespace, ActionRead)}
+	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNamespace(""))}
 }
 
 func (req *CreateNamespaceRequest) Request() []Request {
