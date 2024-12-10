@@ -606,6 +606,21 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name:    "empty instance name when jira integration is enabled",
+			path:    "./testdata/experimental/jira_empty_instance_name.yml",
+			wantErr: errors.New("instance name cannot be empty when jira integration is enabled"),
+		},
+		{
+			name:    "empty oauth client id when jira integration is enabled",
+			path:    "./testdata/experimental/jira_empty_oauth_client_id.yml",
+			wantErr: errors.New("invalid oauth parameters for jira integration"),
+		},
+		{
+			name:    "empty oauth client secret when jira integration is enabled",
+			path:    "./testdata/experimental/jira_empty_oauth_client_secret.yml",
+			wantErr: errors.New("invalid oauth parameters for jira integration"),
+		},
+		{
 			name:    "authentication github requires read:org scope when allowing orgs",
 			path:    "./testdata/authentication/github_missing_org_scope.yml",
 			wantErr: errors.New("provider \"github\": field \"scopes\": must contain read:org when allowed_organizations is not empty"),
@@ -935,6 +950,17 @@ func TestLoad(t *testing.T) {
 						Data: &AuthorizationSourceLocalConfig{
 							Path:         "/path/to/policy/data.json",
 							PollInterval: time.Minute,
+						},
+					},
+				}
+
+				cfg.Experimental.Jira = Jira{
+					Enabled:      true,
+					InstanceName: "INSTANCE_NAME",
+					Authentication: JiraAuthentication{
+						OAuth: JiraOauth{
+							ClientID:     "CLIENT_ID",
+							ClientSecret: "CLIENT_SECRET",
 						},
 					},
 				}
