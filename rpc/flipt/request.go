@@ -49,6 +49,12 @@ type Request struct {
 	Status    Status   `json:"status"`
 }
 
+func WithNoNamespace() func(*Request) {
+	return func(r *Request) {
+		r.Namespace = ""
+	}
+}
+
 func WithNamespace(ns string) func(*Request) {
 	return func(r *Request) {
 		if ns != "" {
@@ -98,7 +104,7 @@ func (req *GetNamespaceRequest) Request() []Request {
 }
 
 func (req *ListNamespaceRequest) Request() []Request {
-	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNamespace(""))}
+	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNoNamespace())}
 }
 
 func (req *CreateNamespaceRequest) Request() []Request {
