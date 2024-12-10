@@ -8,5 +8,7 @@ import (
 
 func TestListNamespaceRequest_Request(t *testing.T) {
 	req := &ListNamespaceRequest{}
-	assert.Equal(t, []Request{NewRequest(ResourceNamespace, ActionRead)}, req.Request())
+	expected := NewRequest(ResourceNamespace, ActionRead)
+	expected.Namespace = ""
+	assert.Equal(t, []Request{expected}, req.Request())
 }
