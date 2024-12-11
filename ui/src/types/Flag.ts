@@ -18,6 +18,12 @@ export function flagTypeToLabel(flagType: FlagType): string {
   }
 }
 
+export interface IFlagMetadata {
+  key: string;
+  value: string | boolean | number;
+  type: 'string' | 'boolean' | 'number';
+}
+
 export interface IFlagBase {
   key: string;
   type: FlagType;
@@ -25,6 +31,7 @@ export interface IFlagBase {
   enabled: boolean;
   description: string;
   defaultVariant?: IVariant;
+  metadata?: IFlagMetadata[];
 }
 
 export interface IFlag extends IFlagBase {
