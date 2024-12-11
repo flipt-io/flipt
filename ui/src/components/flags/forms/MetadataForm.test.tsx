@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MetadataForm } from '../MetadataForm';
-import { IFlagMetadata } from '~/types/Flag';
+import { IFlagMetadata } from '../../../../types/Flag';
 
 describe('MetadataForm', () => {
   const mockOnChange = jest.fn();
