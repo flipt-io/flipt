@@ -27,4 +27,4 @@ dist-ssr
 /playwright/.cache/
 .packagehash
 /screenshots/
-.env
+.envcoverage
