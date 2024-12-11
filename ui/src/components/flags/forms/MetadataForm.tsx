@@ -78,9 +78,12 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
   const handleChange = async (index: number, field: keyof IFlagMetadata, value: unknown): Promise<void> => {
     const newEntries = [...entries];
     if (field === 'key' && typeof value === 'string') {
-      value = stringAsKey(value);
-    }
-    if (field === 'type' && typeof value === 'string') {
+      const formattedKey = stringAsKey(value);
+      newEntries[index] = {
+        ...newEntries[index],
+        key: formattedKey
+      };
+    } else if (field === 'type' && typeof value === 'string') {
       newEntries[index] = {
         ...newEntries[index],
         type: value as 'string' | 'boolean' | 'number',
@@ -112,6 +115,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
               className={`w-full ${error ? 'border-red-500' : ''}`}
               aria-invalid={!!error}
               aria-errormessage={`value-error-${index}`}
+              aria-label="Value"
             >
               <SelectValue placeholder="Select a value" />
             </SelectTrigger>
@@ -131,6 +135,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
             aria-invalid={!!error}
             aria-errormessage={`value-error-${index}`}
             disabled={disabled}
+            data-testid={`metadata-value-${index}`}
           />
         );
       default:
@@ -143,6 +148,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
             aria-invalid={!!error}
             aria-errormessage={`value-error-${index}`}
             disabled={disabled}
+            data-testid={`metadata-value-${index}`}
           />
         );
     }
@@ -166,6 +172,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
                 aria-invalid={!!keyError}
                 aria-errormessage={`key-error-${index}`}
                 disabled={disabled}
+                data-testid={`metadata-key-${index}`}
               />
               {keyError && (
                 <p className="mt-1 text-sm text-red-500" id={`key-error-${index}`}>
@@ -184,6 +191,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
                   className={`w-full ${typeError ? 'border-red-500' : ''}`}
                   aria-invalid={!!typeError}
                   aria-errormessage={`type-error-${index}`}
+                  data-testid={`metadata-type-${index}`}
                 >
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
@@ -213,8 +221,9 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
               onClick={() => handleRemove(index)}
               disabled={disabled}
               className="mt-1"
+              aria-label="Remove metadata entry"
             >
-              <TrashIcon className="h-5 w-5 text-gray-500" />
+              <TrashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
             </Button>
           </div>
         );
