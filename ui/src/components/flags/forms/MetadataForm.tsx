@@ -31,11 +31,18 @@ export interface MetadataFormProps {
   disabled?: boolean;
 }
 
-export function MetadataForm({ metadata = [], onChange, disabled = false }: MetadataFormProps): JSX.Element {
+export function MetadataForm({
+  metadata = [],
+  onChange,
+  disabled = false
+}: MetadataFormProps): JSX.Element {
   const [entries, setEntries] = useState<IFlagMetadata[]>(metadata);
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
 
-  const validateEntry = async (entry: IFlagMetadata, index: number): Promise<boolean> => {
+  const validateEntry = async (
+    entry: IFlagMetadata,
+    index: number
+  ): Promise<boolean> => {
     try {
       await metadataValidationSchema.validate(entry, { abortEarly: false });
       const newErrors = { ...errors };
@@ -75,7 +82,11 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
     onChange(newEntries);
   };
 
-  const handleChange = async (index: number, field: keyof IFlagMetadata, value: unknown): Promise<void> => {
+  const handleChange = async (
+    index: number,
+    field: keyof IFlagMetadata,
+    value: unknown
+  ): Promise<void> => {
     const newEntries = [...entries];
     if (field === 'key' && typeof value === 'string') {
       const formattedKey = stringAsKey(value);
@@ -161,7 +172,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
         const typeError = errors[index]?.type;
 
         return (
-          <div key={index} className="flex gap-4 items-start">
+          <div key={index} className="items-start gap-4">
             <div className="flex-1">
               <Input
                 type="text"
@@ -175,7 +186,10 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
                 data-testid={`metadata-key-${index}`}
               />
               {keyError && (
-                <p className="mt-1 text-sm text-red-500" id={`key-error-${index}`}>
+                <p
+                  className="mt-1 text-sm text-red-500"
+                  id={`key-error-${index}`}
+                >
                   {keyError}
                 </p>
               )}
@@ -204,7 +218,10 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
                 </SelectContent>
               </Select>
               {typeError && (
-                <p className="mt-1 text-sm text-red-500" id={`type-error-${index}`}>
+                <p
+                  className="mt-1 text-sm text-red-500"
+                  id={`type-error-${index}`}
+                >
                   {typeError}
                 </p>
               )}
@@ -236,7 +253,7 @@ export function MetadataForm({ metadata = [], onChange, disabled = false }: Meta
         disabled={disabled}
         className="w-full"
       >
-        <PlusIcon className="h-5 w-5 mr-2" />
+        <PlusIcon className="mr-2 h-5 w-5" />
         Add Metadata
       </Button>
     </div>
