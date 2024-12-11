@@ -171,11 +171,17 @@ describe('MetadataForm', () => {
   });
 
   it('should disable all inputs when disabled prop is true', async () => {
-    const metadata: IFlagMetadata[] = [];
     await act(async () => {
       render(
-        <MetadataForm metadata={metadata} onChange={mockOnChange} disabled />
+        <MetadataForm metadata={[]} onChange={mockOnChange} disabled />
       );
+      // Add a metadata entry first
+      fireEvent.click(screen.getByText('Add Metadata'));
+    });
+
+    // Wait for the form to update
+    await waitFor(() => {
+      expect(screen.getByTestId('metadata-key-0')).toBeInTheDocument();
     });
 
     const input = screen.getByTestId('metadata-key-0');
