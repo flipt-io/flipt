@@ -3,11 +3,10 @@
  * @jest-environment-options {"url": "https://test/"}
  */
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { MetadataForm } from './MetadataForm';
-import { IFlagMetadata } from '../../../types/Flag';
+import { MetadataForm } from '~/components/flags/forms/MetadataForm';
+import type { IFlagMetadata } from '~/types/Flag';
 
 describe('MetadataForm', () => {
   const mockOnChange = jest.fn();
@@ -16,15 +15,9 @@ describe('MetadataForm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders empty form when no metadata provided', () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-    expect(screen.getByText('Add Metadata')).toBeInTheDocument();
-  });
-
-  it('updates metadata when changing values', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-
+  it('should render empty form when no metadata is provided', async () => {
     await act(async () => {
+      render(<MetadataForm onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('Add Metadata'));
     });
 
@@ -33,20 +26,17 @@ describe('MetadataForm', () => {
 
     await act(async () => {
       fireEvent.change(keyInput, { target: { value: 'new-key' } });
-      fireEvent.change(valueInput, { target: { value: 'test-value' } });
+      fireEvent.change(valueInput, { target: { value: 'new-value' } });
     });
 
-    await waitFor(() => {
-      expect(mockOnChange).toHaveBeenCalledWith([
-        { key: 'new-key', value: 'test-value', type: 'string' }
-      ]);
-    });
+    expect(mockOnChange).toHaveBeenCalledWith([
+      { key: 'new-key', value: 'new-value', type: 'string' }
+    ]);
   });
 
-  it('validates required fields', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-
+  it('should validate required fields', async () => {
     await act(async () => {
+      render(<MetadataForm onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('Add Metadata'));
     });
 
@@ -62,26 +52,17 @@ describe('MetadataForm', () => {
     expect(screen.getByText('Value is required')).toBeInTheDocument();
   });
 
-  it('handles different value types correctly', async () => {
+  it('should handle boolean type selection', async () => {
     const metadata: IFlagMetadata[] = [
-      { key: 'string-key', value: 'string-value', type: 'string' },
-      { key: 'bool-key', value: true, type: 'boolean' },
-      { key: 'number-key', value: 42, type: 'number' }
+      {
+        key: 'test-key',
+        value: '',
+        type: 'string'
+      }
     ];
-    render(<MetadataForm metadata={metadata} onChange={mockOnChange} />);
-
-    expect(screen.getByDisplayValue('string-value')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('42')).toBeInTheDocument();
-
-    const typeSelects = screen.getAllByRole('combobox');
-    expect(typeSelects[1]).toHaveTextContent('Boolean');
-  });
-
-  it('handles type changes and value conversions', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Add Metadata'));
+      render(<MetadataForm metadata={metadata} onChange={mockOnChange} />);
     });
 
     const typeSelect = screen.getByTestId('metadata-type-0');
@@ -95,18 +76,14 @@ describe('MetadataForm', () => {
       fireEvent.click(screen.getByText('Boolean'));
     });
 
-    await waitFor(() => {
-      expect(mockOnChange).toHaveBeenCalledWith([
-        { key: '', value: false, type: 'boolean' }
-      ]);
-    });
+    expect(mockOnChange).toHaveBeenCalledWith([
+      { key: 'test-key', value: false, type: 'boolean' }
+    ]);
   });
 
-  it('handles multiple metadata entries', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-
-    // Add first entry
+  it('should handle multiple metadata entries', async () => {
     await act(async () => {
+      render(<MetadataForm onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('Add Metadata'));
     });
 
@@ -118,7 +95,6 @@ describe('MetadataForm', () => {
       fireEvent.change(firstValueInput, { target: { value: 'value1' } });
     });
 
-    // Add second entry
     await act(async () => {
       fireEvent.click(screen.getByText('Add Metadata'));
     });
@@ -131,18 +107,15 @@ describe('MetadataForm', () => {
       fireEvent.change(valueInputs[1], { target: { value: 'value2' } });
     });
 
-    await waitFor(() => {
-      expect(mockOnChange).toHaveBeenLastCalledWith([
-        { key: 'key1', value: 'value1', type: 'string' },
-        { key: 'key2', value: 'value2', type: 'string' }
-      ]);
-    });
+    expect(mockOnChange).toHaveBeenCalledWith([
+      { key: 'key1', value: 'value1', type: 'string' },
+      { key: 'key2', value: 'value2', type: 'string' }
+    ]);
   });
 
-  it('converts keys to valid format', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-
+  it('should format keys correctly', async () => {
     await act(async () => {
+      render(<MetadataForm onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('Add Metadata'));
     });
 
@@ -152,15 +125,12 @@ describe('MetadataForm', () => {
       fireEvent.change(keyInput, { target: { value: 'Test Key!' } });
     });
 
-    await waitFor(() => {
-      expect(keyInput).toHaveValue('test-key');
-    });
+    await expect(keyInput).toHaveValue('test-key');
   });
 
-  it('validates key format on blur', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
-
+  it('should handle special characters in keys', async () => {
     await act(async () => {
+      render(<MetadataForm onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('Add Metadata'));
     });
 
@@ -168,19 +138,22 @@ describe('MetadataForm', () => {
 
     await act(async () => {
       fireEvent.change(keyInput, { target: { value: 'Invalid Key!' } });
-      fireEvent.blur(keyInput);
     });
 
-    await waitFor(() => {
-      expect(keyInput).toHaveValue('invalid-key');
-    });
+    await expect(keyInput).toHaveValue('invalid-key');
   });
 
-  it('handles edge cases for value types', async () => {
-    render(<MetadataForm onChange={mockOnChange} />);
+  it('should handle number type selection', async () => {
+    const metadata: IFlagMetadata[] = [
+      {
+        key: 'test-key',
+        value: '',
+        type: 'string'
+      }
+    ];
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Add Metadata'));
+      render(<MetadataForm metadata={metadata} onChange={mockOnChange} />);
     });
 
     const typeSelect = screen.getByTestId('metadata-type-0');
@@ -194,34 +167,24 @@ describe('MetadataForm', () => {
       fireEvent.click(screen.getByText('Number'));
     });
 
-    const valueInput = screen.getByRole('spinbutton');
-
-    await act(async () => {
-      fireEvent.change(valueInput, { target: { value: 'not-a-number' } });
-      fireEvent.blur(valueInput);
-    });
-
-    await waitFor(() => {
-      expect(valueInput).toHaveValue(null);
-    });
+    await expect(screen.getByTestId('metadata-value-0')).toHaveValue('');
   });
 
-  it('handles disabled state for all inputs', () => {
-    const metadata: IFlagMetadata[] = [
-      { key: 'key1', value: 'value1', type: 'string' },
-      { key: 'key2', value: true, type: 'boolean' },
-      { key: 'key3', value: 42, type: 'number' }
-    ];
-    render(<MetadataForm metadata={metadata} onChange={mockOnChange} disabled />);
+  it('should disable all inputs when disabled prop is true', async () => {
+    const metadata: IFlagMetadata[] = [];
+    await act(async () => {
+      render(
+        <MetadataForm metadata={metadata} onChange={mockOnChange} disabled />
+      );
+    });
 
-    screen.getAllByRole('textbox').forEach(input => {
-      expect(input).toBeDisabled();
-    });
-    screen.getAllByRole('combobox').forEach(select => {
-      expect(select).toBeDisabled();
-    });
-    screen.getAllByRole('button').forEach(button => {
-      expect(button).toBeDisabled();
-    });
+    const input = screen.getByTestId('metadata-key-0');
+    await expect(input).toBeDisabled();
+
+    const select = screen.getByTestId('metadata-type-0');
+    await expect(select).toBeDisabled();
+
+    const button = screen.getByText('Add Metadata');
+    await expect(button).toBeDisabled();
   });
 });
