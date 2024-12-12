@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"slices"
 	"sync"
 
@@ -45,6 +46,7 @@ type SnapshotStore struct {
 	refTypeTag        bool
 	referenceResolver referenceResolver
 	directory         string
+	path              string
 	auth              transport.AuthMethod
 	insecureSkipTLS   bool
 	caBundle          []byte
@@ -120,6 +122,7 @@ func WithDirectory(directory string) containers.Option[SnapshotStore] {
 // The provided path is location for the dotgit folder.
 func WithFilesystemStorage(path string) containers.Option[SnapshotStore] {
 	return func(ss *SnapshotStore) {
+		ss.path = path
 		fs := osfs.New(path)
 		ss.storage = filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
 	}
@@ -145,6 +148,19 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		return nil, err
 	}
 
+	empty := true
+	// if the path is set then we need to check if the directory is empty before
+	// attempting to clone the repository
+	if store.path != "" {
+		entries, err := os.ReadDir(store.path)
+		if empty = err != nil || len(entries) == 0; empty {
+			// either the directory is empty or we failed to read it
+			if err != nil && !os.IsNotExist(err) {
+				return nil, fmt.Errorf("failed to read directory: %w", err)
+			}
+		}
+	}
+
 	if !plumbing.IsHash(store.baseRef) {
 		// if the base ref is not an explicit SHA then
 		// attempt to clone either the explicit branch
@@ -163,9 +179,16 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 			cloneOpts.SingleBranch = true
 		}
 
-		store.repo, err = git.Clone(store.storage, nil, cloneOpts)
-		if err != nil {
-			return nil, fmt.Errorf("performing initial clone: %w", err)
+		if empty {
+			store.repo, err = git.Clone(store.storage, nil, cloneOpts)
+			if err != nil {
+				return nil, fmt.Errorf("performing initial clone: %w", err)
+			}
+		} else {
+			store.repo, err = git.Open(store.storage, nil)
+			if err != nil {
+				return nil, fmt.Errorf("opening existing repository: %w", err)
+			}
 		}
 
 		// do an initial fetch to setup remote tracking branches
@@ -174,11 +197,18 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		}
 	} else {
 		// fetch single reference
-		store.repo, err = git.InitWithOptions(store.storage, nil, git.InitOptions{
-			DefaultBranch: plumbing.Main,
-		})
-		if err != nil {
-			return nil, err
+		if empty {
+			store.repo, err = git.InitWithOptions(store.storage, nil, git.InitOptions{
+				DefaultBranch: plumbing.Main,
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			store.repo, err = git.Open(store.storage, nil)
+			if err != nil {
+				return nil, fmt.Errorf("opening existing repository: %w", err)
+			}
 		}
 
 		if _, err = store.repo.CreateRemote(&config.RemoteConfig{
