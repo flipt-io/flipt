@@ -54,9 +54,22 @@ export const selectNamespaces = createSelector(
 
 export const selectCurrentNamespace = createSelector(
   [(state: RootState) => state.namespaces],
-  (namespaces) =>
-    namespaces.namespaces[namespaces.currentNamespace] ||
-    ({ key: 'default', name: 'Default', description: '' } as INamespace)
+  (state) => {
+    if (state.namespaces[state.currentNamespace]) {
+      return state.namespaces[state.currentNamespace];
+    }
+
+    if (state.namespaces.default) {
+      return state.namespaces.default;
+    }
+
+    const ns = Object.keys(state.namespaces);
+    if (ns.length > 0) {
+      return state.namespaces[ns[0]];
+    }
+
+    return { key: 'default', name: 'Default', description: '' } as INamespace;
+  }
 );
 
 export const namespaceApi = createApi({
