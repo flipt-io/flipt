@@ -220,6 +220,7 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 		io      = importPackage(g, "io")
 		bytes   = importPackage(g, "bytes")
 		pkgfmt  = importPackage(g, "fmt")
+		errors  = importPackage(g, "errors")
 
 		netURL  = importPackage(g, "net/url")
 		netHTTP = importPackage(g, "net/http")
@@ -242,6 +243,19 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 			setValues  []string
 			hasMessage bool
 		)
+
+		for _, field := range method.Input.Fields {
+			if _, ok := inPath[field]; ok {
+				switch field.Desc.Kind() {
+				case protoreflect.StringKind:
+					val := "v." + field.GoName
+					g.P("if ", val, " == \"\" {")
+					g.P(`return nil, `, errors("New"), fmt.Sprintf(`("field %s: cannot be empty")`, field.Desc.JSONName()))
+					g.P("}")
+				default:
+				}
+			}
+		}
 
 		for _, field := range method.Input.Fields {
 			if _, ok := inPath[field]; !ok {
