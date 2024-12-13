@@ -85,10 +85,12 @@ func Harness(t *testing.T, fn func(t *testing.T, opts TestOpts)) {
 		t.Fatal(err)
 	}
 
-	fn(t, TestOpts{
-		URL:        u,
-		References: *fliptReferences,
-		Token:      *fliptToken,
+	t.Run(u.Scheme, func(t *testing.T) {
+		fn(t, TestOpts{
+			URL:        u,
+			References: *fliptReferences,
+			Token:      *fliptToken,
+		})
 	})
 }
 
@@ -96,6 +98,21 @@ type TestOpts struct {
 	URL        *url.URL
 	References bool
 	Token      string
+}
+
+func (o TestOpts) Namespaces() NamespaceExpectations {
+	if p := o.Protocol(); p == ProtocolGRPC {
+		return NamespaceExpectations{
+			{Key: "", Expected: DefaultNamespace},
+			{Key: DefaultNamespace, Expected: DefaultNamespace},
+			{Key: ProductionNamespace, Expected: ProductionNamespace},
+		}
+	}
+
+	return NamespaceExpectations{
+		{Key: DefaultNamespace, Expected: DefaultNamespace},
+		{Key: ProductionNamespace, Expected: ProductionNamespace},
+	}
 }
 
 func (o TestOpts) Protocol() Protocol {
