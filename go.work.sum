@@ -261,6 +261,7 @@ cloud.google.com/go/gkemulticloud v1.4.1/go.mod h1:KRvPYcx53bztNwNInrezdfNF+wwUo
 cloud.google.com/go/grafeas v0.3.4/go.mod h1:A5m316hcG+AulafjAbPKXBO/+I5itU4LOdKO2R/uDIc=
 cloud.google.com/go/grafeas v0.3.6/go.mod h1:to6ECAPgRO2xeqD8ISXHc70nObJuaKZThreQOjeOH3o=
 cloud.google.com/go/grafeas v0.3.10/go.mod h1:Mz/AoXmxNhj74VW0fz5Idc3kMN2VZMi4UT5+UPx5Pq0=
+cloud.google.com/go/grafeas v0.3.11/go.mod h1:dcQyG2+T4tBgG0MvJAh7g2wl/xHV2w+RZIqivwuLjNg=
 cloud.google.com/go/gsuiteaddons v1.6.6/go.mod h1:JmAp1/ojGgHtSe5d6ZPkOwJbYP7An7DRBkhSJ1aer8I=
 cloud.google.com/go/gsuiteaddons v1.6.11/go.mod h1:U7mk5PLBzDpHhgHv5aJkuvLp9RQzZFpa8hgWAB+xVIk=
 cloud.google.com/go/gsuiteaddons v1.7.0/go.mod h1:/B1L8ANPbiSvxCgdSwqH9CqHIJBzTt6v50fPr3vJCtg=
@@ -1774,6 +1775,7 @@ github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaD
 gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b/go.mod h1:T3BPAOm2cqquPa0MKWeNkmOM5RQsRhkrwMWonFMN7fE=
 go.einride.tech/aip v0.66.0/go.mod h1:qAhMsfT7plxBX+Oy7Huol6YUvZ0ZzdUz26yZsQwfl1M=
 go.einride.tech/aip v0.67.1/go.mod h1:ZGX4/zKw8dcgzdLsrvpOOGxfxI2QSk12SlP7d6c0/XI=
+go.einride.tech/aip v0.68.0/go.mod h1:7y9FF8VtPWqpxuAxl0KQWqaULxW4zFIesD6zF5RIHHg=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.4/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=
@@ -1938,6 +1940,8 @@ golang.org/x/crypto v0.25.0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/
 golang.org/x/crypto v0.26.0/go.mod h1:GY7jblb9wI+FOo5y8/S2oY4zWP07AkOJ4+jxCqdqn54=
 golang.org/x/crypto v0.27.0/go.mod h1:1Xngt8kV6Dvbssa53Ziq6Eqn0HqbZi5Z6R0ZpwQzt70=
 golang.org/x/crypto v0.28.0/go.mod h1:rmgy+3RHxRZMyY0jjAJShp2zgEdOqj2AO7U0pYmeQ7U=
+golang.org/x/crypto v0.31.0 h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=
+golang.org/x/crypto v0.31.0/go.mod h1:kDsLvtWBEx7MV9tJOj9bnXsPbxwJQ6csT/x4KIN4Ssk=
 golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5/go.mod h1:4M0jN8W1tt0AVLNr8HDosyJCDCDuyL9N9+3m7wDWgKw=
 golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc/go.mod h1:V1LtkGg67GoY2N1AnLN78QLrzxkLyJw7RJb1gzOOz9w=
@@ -2454,6 +2458,7 @@ modernc.org/zappy v1.0.0/go.mod h1:hHe+oGahLVII/aTTyWK/b53VDHMAGCBYYeZ9sn83HC4=
 oras.land/oras-go v1.2.0 h1:yoKosVIbsPoFMqAIFHTnrmOuafHal+J/r+I5bdbVWu4=
 oras.land/oras-go v1.2.0/go.mod h1:pFNs7oHp2dYsYMSS82HaX5l4mpnGO7hbpPN6EWH2ltc=
 oras.land/oras-go/v2 v2.3.1/go.mod h1:5AQXVEu1X/FKp1F9DMOb5ZItZBOa0y5dha0yCm4NR9c=
+rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.14/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.15/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.22/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
