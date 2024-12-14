@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import {
   useDeleteTokensMutation,
@@ -68,9 +68,11 @@ export default function Tokens() {
     [tokensQuery]
   );
 
-  if (tokensQuery.isError) {
-    setError(tokensQuery.error);
-  }
+  useEffect(() => {
+    if (tokensQuery.isError) {
+      setError(tokensQuery.error);
+    }
+  }, [tokensQuery, setError]);
 
   if (tokensQuery.isLoading) {
     return <Loading />;
