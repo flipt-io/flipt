@@ -215,7 +215,6 @@ export default function Segment() {
         />
       </Modal>
 
-      {/* segment header / delete button */}
       <PageHeader title={segment.name}>
         <Dropdown
           label="Actions"
@@ -238,188 +237,158 @@ export default function Segment() {
           ]}
         />
       </PageHeader>
-      <div className="flex items-center justify-between">
-        <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-          <div
-            title={inTimezone(segment.createdAt)}
-            className="mt-2 flex items-center text-sm text-gray-500"
-          >
-            <CalendarIcon
-              className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-              aria-hidden="true"
-            />
-            Created{' '}
-            {formatDistanceToNowStrict(parseISO(segment.createdAt), {
-              addSuffix: true
-            })}
-          </div>
+
+      <div className="mb-8 space-y-4">
+        <div className="flex items-center text-sm text-gray-500">
+          <CalendarIcon className="mr-1.5 h-5 w-5 text-gray-400" />
+          Created{' '}
+          {formatDistanceToNowStrict(parseISO(segment.createdAt), {
+            addSuffix: true
+          })}
         </div>
+
+        <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
+          Learn more about segments
+        </MoreInfo>
       </div>
 
-      <div className="flex flex-col">
-        {/* segment details */}
-        <div className="b-5">
-          <div className="md:grid md:grid-cols-3 md:gap-6">
-            <div className="md:col-span-1">
-              <p className="mt-1 text-sm text-gray-500">
-                Basic information about the segment
-              </p>
-              <MoreInfo
-                className="mt-5"
-                href="https://www.flipt.io/docs/concepts#segments"
-              >
-                Learn more about segments
-              </MoreInfo>
-            </div>
-            <div className="mt-5 md:col-span-2 md:mt-0">
-              <SegmentForm segment={segment} />
-            </div>
+      <div className="mb-8">
+        <SegmentForm segment={segment} />
+      </div>
+
+      <div>
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h3 className="font-medium leading-6 text-gray-900">Constraints</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Determine if a request matches a segment
+            </p>
           </div>
+          {segment.constraints && segment.constraints.length > 0 && (
+            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+              <Button
+                variant="primary"
+                type="button"
+                disabled={readOnly}
+                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+                onClick={() => {
+                  setEditingConstraint(null);
+                  setShowConstraintForm(true);
+                }}
+              >
+                New Constraint
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* constraints */}
-        <div className="mt-10">
-          <div>
-            <div className="sm:flex sm:items-center">
-              <div className="sm:flex-auto">
-                <h3 className="font-medium leading-6 text-gray-900">
-                  Constraints
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Determine if a request matches a segment
-                </p>
-              </div>
-              {segment.constraints && segment.constraints.length > 0 && (
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                  <Button
-                    variant="primary"
-                    type="button"
-                    disabled={readOnly}
-                    title={
-                      readOnly ? 'Not allowed in Read-Only mode' : undefined
-                    }
-                    onClick={() => {
-                      setEditingConstraint(null);
-                      setShowConstraintForm(true);
-                    }}
+        <div className="my-10">
+          {segment.constraints && segment.constraints.length > 0 ? (
+            <table className="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                   >
-                    New Constraint
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="my-10">
-              {segment.constraints && segment.constraints.length > 0 ? (
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                      >
-                        Property
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
-                      >
-                        Type
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
-                      >
-                        Operator
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
-                      >
-                        Value
-                      </th>
-                      <th
-                        scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
-                      >
-                        Description
-                      </th>
-                      <th
-                        scope="col"
-                        className="relative pb-3.5 pl-3 pr-4 sm:pr-6"
-                      >
-                        <span className="sr-only">Edit</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {segment.constraints.map((constraint) => (
-                      <tr key={constraint.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
-                          {constraint.property}
-                        </td>
-                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                          {constraintTypeToLabel(constraint.type)}
-                        </td>
-                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {ConstraintOperators[constraint.operator]}
-                        </td>
-                        <td className="hidden whitespace-normal px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          <ConstraintValue constraint={constraint} />
-                        </td>
-                        <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraint.description}
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          {!readOnly && (
-                            <>
-                              <a
-                                href="#"
-                                className="pr-2 text-violet-600 hover:text-violet-900"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setEditingConstraint(constraint);
-                                  setShowConstraintForm(true);
-                                }}
-                              >
-                                Edit
-                                <span className="sr-only">
-                                  , {constraint.property}
-                                </span>
-                              </a>
-                              <span aria-hidden="true"> | </span>
-                              <a
-                                href="#"
-                                className="pl-2 text-violet-600 hover:text-violet-900"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setDeletingConstraint(constraint);
-                                  setShowDeleteConstraintModal(true);
-                                }}
-                              >
-                                Delete
-                                <span className="sr-only">
-                                  , {constraint.property}
-                                </span>
-                              </a>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <EmptyState
-                  text="New Constraint"
-                  disabled={readOnly}
-                  onClick={() => {
-                    setEditingConstraint(null);
-                    setShowConstraintForm(true);
-                  }}
-                />
-              )}
-            </div>
-          </div>
+                    Property
+                  </th>
+                  <th
+                    scope="col"
+                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                  >
+                    Type
+                  </th>
+                  <th
+                    scope="col"
+                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  >
+                    Operator
+                  </th>
+                  <th
+                    scope="col"
+                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  >
+                    Value
+                  </th>
+                  <th
+                    scope="col"
+                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                  >
+                    Description
+                  </th>
+                  <th scope="col" className="relative pb-3.5 pl-3 pr-4 sm:pr-6">
+                    <span className="sr-only">Edit</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {segment.constraints.map((constraint) => (
+                  <tr key={constraint.id}>
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
+                      {constraint.property}
+                    </td>
+                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                      {constraintTypeToLabel(constraint.type)}
+                    </td>
+                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                      {ConstraintOperators[constraint.operator]}
+                    </td>
+                    <td className="hidden whitespace-normal px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                      <ConstraintValue constraint={constraint} />
+                    </td>
+                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                      {constraint.description}
+                    </td>
+                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                      {!readOnly && (
+                        <>
+                          <a
+                            href="#"
+                            className="pr-2 text-violet-600 hover:text-violet-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setEditingConstraint(constraint);
+                              setShowConstraintForm(true);
+                            }}
+                          >
+                            Edit
+                            <span className="sr-only">
+                              , {constraint.property}
+                            </span>
+                          </a>
+                          <span aria-hidden="true"> | </span>
+                          <a
+                            href="#"
+                            className="pl-2 text-violet-600 hover:text-violet-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setDeletingConstraint(constraint);
+                              setShowDeleteConstraintModal(true);
+                            }}
+                          >
+                            Delete
+                            <span className="sr-only">
+                              , {constraint.property}
+                            </span>
+                          </a>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <EmptyState
+              text="New Constraint"
+              disabled={readOnly}
+              onClick={() => {
+                setEditingConstraint(null);
+                setShowConstraintForm(true);
+              }}
+            />
+          )}
         </div>
       </div>
     </>
