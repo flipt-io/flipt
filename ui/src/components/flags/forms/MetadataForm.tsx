@@ -219,25 +219,27 @@ export function MetadataForm({
       case 'primitive':
         return (
           <div className="flex gap-2">
-            <Select
-              value={entry.subtype || 'string'}
-              onValueChange={(type) =>
-                handlePrimitiveTypeChange(
-                  index,
-                  type as 'string' | 'number' | 'boolean'
-                )
-              }
-              disabled={disabled || !entry.isNew}
-            >
-              <SelectTrigger className="w-24">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="string">String</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="boolean">Boolean</SelectItem>
-              </SelectContent>
-            </Select>
+            {entry.isNew && (
+              <Select
+                value={entry.subtype || 'string'}
+                onValueChange={(type) =>
+                  handlePrimitiveTypeChange(
+                    index,
+                    type as 'string' | 'number' | 'boolean'
+                  )
+                }
+                disabled={disabled}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="string">String</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                  <SelectItem value="boolean">Boolean</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             {entry.subtype === 'boolean' ? (
               <Select
                 value={String(entry.value)}
@@ -348,35 +350,37 @@ export function MetadataForm({
               )}
             </div>
 
-            <div className="w-32">
-              <Select
-                value={entry.type}
-                onValueChange={(value) => handleChange(index, 'type', value)}
-                disabled={disabled || !entry.isNew}
-              >
-                <SelectTrigger
-                  className={cls('w-full', typeError ? 'border-red-500' : '')}
-                  aria-invalid={!!typeError}
-                  aria-errormessage={`type-error-${index}`}
-                  data-testid={`metadata-type-${index}`}
+            {entry.isNew && (
+              <div className="w-32">
+                <Select
+                  value={entry.type}
+                  onValueChange={(value) => handleChange(index, 'type', value)}
+                  disabled={disabled}
                 >
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="primitive">Primitive</SelectItem>
-                  <SelectItem value="object">Object</SelectItem>
-                  <SelectItem value="array">Array</SelectItem>
-                </SelectContent>
-              </Select>
-              {typeError && (
-                <p
-                  className="mt-1 text-sm text-red-500"
-                  id={`type-error-${index}`}
-                >
-                  {typeError}
-                </p>
-              )}
-            </div>
+                  <SelectTrigger
+                    className={cls('w-full', typeError ? 'border-red-500' : '')}
+                    aria-invalid={!!typeError}
+                    aria-errormessage={`type-error-${index}`}
+                    data-testid={`metadata-type-${index}`}
+                  >
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primitive">Primitive</SelectItem>
+                    <SelectItem value="object">Object</SelectItem>
+                    <SelectItem value="array">Array</SelectItem>
+                  </SelectContent>
+                </Select>
+                {typeError && (
+                  <p
+                    className="mt-1 text-sm text-red-500"
+                    id={`type-error-${index}`}
+                  >
+                    {typeError}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex-1">{renderValueInput(entry, index)}</div>
 
