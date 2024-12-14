@@ -172,7 +172,7 @@ export default function Flag() {
       </div>
 
       {/* Form Section - Full Width */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-screen-md">
         <FlagForm flag={flag} />
       </div>
 

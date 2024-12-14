@@ -12,7 +12,7 @@ export default function NewSegment() {
         </MoreInfo>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8 max-w-screen-md">
         <SegmentForm />
       </div>
     </>
