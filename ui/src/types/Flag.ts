@@ -21,8 +21,8 @@ export function flagTypeToLabel(flagType: FlagType): string {
 export interface IFlagMetadata {
   key: string;
   value: any;
-  type: 'primitive' | 'object';
-  primitiveType?: 'string' | 'number' | 'boolean';
+  type: 'primitive' | 'object' | 'array';
+  subtype?: 'string' | 'number' | 'boolean';
   isNew?: boolean;
 }
 

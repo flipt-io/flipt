@@ -10,12 +10,20 @@ type JsonEditorProps = {
   value: string;
   setValue(value: string): void;
   disabled?: boolean;
+  strict?: boolean;
+  height?: string;
 };
 
 export const JsonEditor: React.FC<JsonEditorProps> = (
   props: JsonEditorProps
 ) => {
-  const { value = '{}', setValue, disabled = false } = props;
+  const {
+    value = '{}',
+    setValue,
+    disabled = false,
+    strict = true,
+    height = '50vh'
+  } = props;
   const onChange = React.useCallback(
     (val: any, _: any) => {
       setValue(val);
@@ -25,8 +33,8 @@ export const JsonEditor: React.FC<JsonEditorProps> = (
   return (
     <CodeMirror
       value={value}
-      height="50vh"
-      extensions={[json(), lintGutter(), linter(parseLinter())]}
+      height={height}
+      extensions={[json(), linter(parseLinter(strict))]}
       onChange={onChange}
       readOnly={disabled}
       basicSetup={{

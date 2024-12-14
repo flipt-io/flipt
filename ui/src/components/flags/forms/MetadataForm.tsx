@@ -17,12 +17,13 @@ import { JsonEditor } from '~/components/json/JsonEditor';
 const metadataValidationSchema = Yup.object({
   key: Yup.string().required('Key is required'),
   value: Yup.mixed().required('Value is required'),
-  type: Yup.string().oneOf(['primitive', 'object']).required()
+  type: Yup.string().oneOf(['primitive', 'object', 'array']).required()
 });
 
 const VALUE_TYPES = [
   { id: 'primitive', name: 'Primitive' },
-  { id: 'object', name: 'Object' }
+  { id: 'object', name: 'Object' },
+  { id: 'array', name: 'Array' }
 ] as const;
 
 export interface MetadataFormProps {
@@ -83,7 +84,7 @@ export function MetadataForm({
         key: '',
         value: '',
         type: 'primitive',
-        primitiveType: 'string',
+        subtype: 'string',
         isNew: true
       } as IFlagMetadata
     ];
@@ -112,35 +113,29 @@ export function MetadataForm({
       const formattedKey = stringAsKey(value);
       newEntries[index] = {
         ...entry,
-        key: formattedKey,
-        isNew: entry.value === '' ? entry.isNew : false
+        key: formattedKey
       };
     } else if (field === 'type' && typeof value === 'string') {
       const currentValue = entry.value;
       let newValue: any = null;
 
       if (value === 'object') {
-        if (typeof currentValue === 'string') {
-          try {
-            newValue = JSON.parse(currentValue);
-          } catch {
-            newValue = {};
-          }
-        } else if (typeof currentValue === 'object') {
-          newValue = currentValue;
-        } else {
-          newValue = {};
-        }
+        newValue =
+          typeof currentValue === 'object' && !Array.isArray(currentValue)
+            ? currentValue
+            : {};
+      } else if (value === 'array') {
+        newValue = Array.isArray(currentValue) ? currentValue : [];
       } else {
         newValue =
-          typeof currentValue === 'object'
-            ? JSON.stringify(currentValue)
+          Array.isArray(currentValue) || typeof currentValue === 'object'
+            ? ''
             : currentValue;
       }
 
       newEntries[index] = {
         ...entry,
-        type: value as 'primitive' | 'object',
+        type: value as 'primitive' | 'object' | 'array',
         value: newValue
       };
     } else if (field === 'value') {
@@ -164,8 +159,7 @@ export function MetadataForm({
 
       newEntries[index] = {
         ...entry,
-        value: validValue,
-        isNew: entry.key === '' ? entry.isNew : false
+        value: validValue
       };
     }
 
@@ -178,6 +172,29 @@ export function MetadataForm({
     const error = errors[index]?.value;
 
     switch (entry.type) {
+      case 'array':
+        const arrayValue = Array.isArray(entry.value)
+          ? JSON.stringify(entry.value)
+          : '[]';
+        return (
+          <JsonEditor
+            id={`metadata-value-${index}`}
+            value={arrayValue}
+            setValue={(v) => {
+              try {
+                const parsed = JSON.parse(v);
+                if (Array.isArray(parsed)) {
+                  handleChange(index, 'value', parsed);
+                }
+              } catch (e) {
+                // Handle invalid JSON
+              }
+            }}
+            disabled={disabled || !entry.isNew}
+            strict={false}
+            height="20vh"
+          />
+        );
       case 'object':
         const value =
           typeof entry.value === 'object'
@@ -187,15 +204,25 @@ export function MetadataForm({
           <JsonEditor
             id={`metadata-value-${index}`}
             value={value}
-            setValue={(v) => handleChange(index, 'value', v)}
+            setValue={(v) => {
+              try {
+                const parsed = JSON.parse(v);
+                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                  handleChange(index, 'value', parsed);
+                }
+              } catch (e) {
+                // Handle invalid JSON
+              }
+            }}
             disabled={disabled || !entry.isNew}
+            height="20vh"
           />
         );
       case 'primitive':
         return (
           <div className="flex gap-2">
             <Select
-              value={entry.primitiveType || 'string'}
+              value={entry.subtype || 'string'}
               onValueChange={(type) =>
                 handlePrimitiveTypeChange(
                   index,
@@ -213,7 +240,7 @@ export function MetadataForm({
                 <SelectItem value="boolean">Boolean</SelectItem>
               </SelectContent>
             </Select>
-            {entry.primitiveType === 'boolean' ? (
+            {entry.subtype === 'boolean' ? (
               <Select
                 value={String(entry.value)}
                 onValueChange={(v) =>
@@ -221,7 +248,7 @@ export function MetadataForm({
                 }
                 disabled={disabled || !entry.isNew}
               >
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="flex-1 disabled:opacity-75">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -231,10 +258,13 @@ export function MetadataForm({
               </Select>
             ) : (
               <Input
-                type={entry.primitiveType === 'number' ? 'number' : 'text'}
+                type={entry.subtype === 'number' ? 'number' : 'text'}
                 value={entry.value?.toString() ?? ''}
                 onChange={(e) => handleChange(index, 'value', e.target.value)}
-                className={cls('flex-1', error ? 'border-red-500' : '')}
+                className={cls(
+                  'flex-1 disabled:opacity-75',
+                  error ? 'border-red-500' : ''
+                )}
                 aria-invalid={!!error}
                 aria-errormessage={`value-error-${index}`}
                 disabled={disabled || !entry.isNew}
@@ -283,7 +313,7 @@ export function MetadataForm({
     const newEntries = [...entries];
     newEntries[index] = {
       ...entry,
-      primitiveType: type,
+      subtype: type,
       value: newValue
     };
 
@@ -305,7 +335,10 @@ export function MetadataForm({
                 value={entry.key}
                 onChange={(e) => handleChange(index, 'key', e.target.value)}
                 placeholder="Key"
-                className={cls('w-48', keyError ? 'border-red-500' : '')}
+                className={cls(
+                  'w-48 disabled:opacity-75',
+                  keyError ? 'border-red-500' : ''
+                )}
                 aria-invalid={!!keyError}
                 aria-errormessage={`key-error-${index}`}
                 disabled={disabled || !entry.isNew}
@@ -389,8 +422,17 @@ function objectToMetadataArray(obj: Record<string, any>): IFlagMetadata[] {
       return {
         key,
         type: 'primitive',
-        primitiveType: 'string',
+        subtype: 'string',
         value: '',
+        isNew: false
+      };
+    }
+
+    if (Array.isArray(value)) {
+      return {
+        key,
+        type: 'array',
+        value,
         isNew: false
       };
     }
@@ -404,15 +446,31 @@ function objectToMetadataArray(obj: Record<string, any>): IFlagMetadata[] {
       };
     }
 
-    let primitiveType: 'string' | 'number' | 'boolean' = 'string';
-    if (typeof value === 'number') primitiveType = 'number';
-    if (typeof value === 'boolean') primitiveType = 'boolean';
+    let subtype: 'string' | 'number' | 'boolean' = 'string';
+
+    if (typeof value === 'string') {
+      // Try parsing as number first
+      if (!isNaN(Number(value)) && value.trim() !== '') {
+        subtype = 'number';
+      }
+      // Try parsing as boolean if it's exactly 'true' or 'false'
+      else if (
+        value.toLowerCase() === 'true' ||
+        value.toLowerCase() === 'false'
+      ) {
+        subtype = 'boolean';
+      }
+    } else if (typeof value === 'number') {
+      subtype = 'number';
+    } else if (typeof value === 'boolean') {
+      subtype = 'boolean';
+    }
 
     return {
       key,
       type: 'primitive',
-      primitiveType,
-      value: value,
+      subtype,
+      value,
       isNew: false
     };
   });

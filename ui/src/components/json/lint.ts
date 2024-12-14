@@ -13,12 +13,12 @@ function getJsonErrorPosition(error: SyntaxError, doc: Text): number {
 }
 
 export const parseLinter =
-  () =>
+  (strict: boolean = true) =>
   (view: EditorView): Diagnostic[] => {
     const doc = view.state.doc;
     try {
       const data = JSON.parse(doc.toString());
-      if (Array.isArray(data) || typeof data !== 'object') {
+      if (strict && Array.isArray(data)) {
         return [
           {
             from: 0,
@@ -28,24 +28,40 @@ export const parseLinter =
           }
         ];
       }
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value !== 'string') {
-          const keyCursor = new SearchCursor(doc, `"${key}"`);
-          const keyPosition = keyCursor.next().value;
-          const valueCursor = new SearchCursor(
-            doc,
-            JSON.stringify(value),
-            keyPosition.to
-          );
-          const pos = valueCursor.next().value;
-          return [
-            {
-              from: pos.from,
-              message: 'JSON: expected string value',
-              severity: 'error',
-              to: pos.to
-            }
-          ];
+      if (!Array.isArray(data) && typeof data !== 'object') {
+        return [
+          {
+            from: 0,
+            message: 'JSON: unexpected type',
+            severity: 'error',
+            to: doc.length
+          }
+        ];
+      }
+      if (!Array.isArray(data)) {
+        for (const [key, value] of Object.entries(data)) {
+          if (typeof value !== 'string') {
+            const keyCursor = new SearchCursor(doc, `"${key}"`);
+            const keyMatch = keyCursor.next();
+            if (!keyMatch?.value) continue;
+
+            const valueCursor = new SearchCursor(
+              doc,
+              JSON.stringify(value),
+              keyMatch.value.to
+            );
+            const valueMatch = valueCursor.next();
+            if (!valueMatch?.value) continue;
+
+            return [
+              {
+                from: valueMatch.value.from,
+                message: 'JSON: expected string value',
+                severity: 'error',
+                to: valueMatch.value.to
+              }
+            ];
+          }
         }
       }
     } catch (e) {
