@@ -15,7 +15,7 @@ import {
 } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
 import React, { HTMLProps, useEffect, useState } from 'react';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { IAuthToken } from '~/types/auth/Token';

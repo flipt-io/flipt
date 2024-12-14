@@ -9,9 +9,9 @@ import {
 import { Fragment } from 'react';
 
 import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
-import { Button, ButtonSize, ButtonVariant } from '~/components/ui/button';
+import { Button } from '~/components/Button';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '~/lib/utils';
+import { cls } from '~/utils/helpers';
 
 const dropdownVariants = cva('', {
   variants: {
@@ -45,23 +45,20 @@ type DropdownProps = {
 export default function Dropdown(props: DropdownProps) {
   const { label, actions, disabled, side, kind } = props;
   let BtnIcon = ChevronDown;
-  let variant: ButtonVariant = 'outline';
-  let size: ButtonSize = 'default';
+  let variant: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost' =
+    'secondary';
 
   if (kind === 'dots') {
     variant = 'ghost';
-    size = 'icon';
     BtnIcon = EllipsisVerticalIcon;
   }
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          role="button"
           disabled={disabled}
           variant={variant}
-          size={size}
           type="button"
           data-testid={props['data-testid']}
         >
@@ -69,7 +66,7 @@ export default function Dropdown(props: DropdownProps) {
           <BtnIcon aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side={side || 'bottom'} key="actions">
+      <DropdownMenuContent align="end" side={side || 'bottom'}>
         {actions.map((action, i) => (
           <Fragment key={i}>
             {action.variant === 'destructive' && i != 0 && (
@@ -83,7 +80,7 @@ export default function Dropdown(props: DropdownProps) {
                 }
               }}
               disabled={action.disabled}
-              className={cn(dropdownVariants({ variant: action.variant }))}
+              className={cls(dropdownVariants({ variant: action.variant }))}
             >
               {action.icon && <action.icon aria-hidden="true" />}
               {action.label}

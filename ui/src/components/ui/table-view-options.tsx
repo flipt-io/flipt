@@ -1,8 +1,8 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Table } from '@tanstack/react-table';
-import { ArrowDownNarrowWide, ArrowUpNarrowWide } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 
-import { Button } from '~/components/ui/button';
+import { Button } from '~/components/Button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,12 +25,11 @@ export function DataTableViewOptions<TData>({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto h-8 capitalize lg:flex"
+          variant="ghost"
+          className="-ml-3 h-8 data-[state=open]:bg-accent"
         >
-          {sorting?.desc ? <ArrowUpNarrowWide /> : <ArrowDownNarrowWide />}
-          {sorting ? sortingColumn?.columnDef.header?.toString() : 'Sort'}
+          <SlidersHorizontal className="mr-2 h-4 w-4" />
+          View
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[150px]">
