@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+
 import { useState } from 'react';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import * as Yup from 'yup';
@@ -19,6 +21,78 @@ const metadataValidationSchema = Yup.object({
   value: Yup.mixed().required('Value is required'),
   type: Yup.string().oneOf(['primitive', 'object', 'array']).required()
 });
+
+function objectToMetadataArray(obj: Record<string, any>): IFlagMetadata[] {
+  return Object.entries(obj).map(([key, value]) => {
+    if (value === null || value === undefined) {
+      return {
+        key,
+        type: 'primitive',
+        subtype: 'string',
+        value: '',
+        isNew: false
+      };
+    }
+
+    if (Array.isArray(value)) {
+      return {
+        key,
+        type: 'array',
+        value,
+        isNew: false
+      };
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      return {
+        key,
+        type: 'object',
+        value,
+        isNew: false
+      };
+    }
+
+    let subtype: 'string' | 'number' | 'boolean' = 'string';
+
+    if (typeof value === 'string') {
+      // Try parsing as number first
+      if (!isNaN(Number(value)) && value.trim() !== '') {
+        subtype = 'number';
+      } else if (
+        // Try parsing as boolean if it's exactly 'true' or 'false'
+        value.toLowerCase() === 'true' ||
+        value.toLowerCase() === 'false'
+      ) {
+        subtype = 'boolean';
+      }
+    } else if (typeof value === 'number') {
+      subtype = 'number';
+    } else if (typeof value === 'boolean') {
+      subtype = 'boolean';
+    }
+
+    return {
+      key,
+      type: 'primitive',
+      subtype,
+      value,
+      isNew: false
+    };
+  });
+}
+
+function metadataArrayToObject(metadata: IFlagMetadata[]): Record<string, any> {
+  return metadata.reduce(
+    (acc, { key, value }) => {
+      if (key) {
+        // Only include entries with non-empty keys
+        acc[key] = value;
+      }
+      return acc;
+    },
+    {} as Record<string, any>
+  );
+}
 
 export interface MetadataFormProps {
   metadata?: Record<string, any>;
@@ -66,9 +140,48 @@ export function MetadataForm({
     }
   };
 
+  const getPrimitiveType = (value: any): 'string' | 'number' | 'boolean' =>
+    typeof value === 'number'
+      ? 'number'
+      : typeof value === 'boolean'
+        ? 'boolean'
+        : 'string';
+
   const handleMetadataChange = (newEntries: IFlagMetadata[]) => {
     setEntries(newEntries);
     onChange(metadataArrayToObject(newEntries));
+  };
+
+  const handlePrimitiveTypeChange = (
+    index: number,
+    type: 'string' | 'number' | 'boolean'
+  ) => {
+    const entry = entries[index];
+    let newValue: any;
+
+    switch (type) {
+      case 'number':
+        newValue = !isNaN(Number(entry.value)) ? Number(entry.value) : 0;
+        break;
+      case 'boolean':
+        newValue = Boolean(entry.value);
+        break;
+      case 'string':
+        newValue = String(entry.value);
+        break;
+      default:
+        newValue = entry.value;
+    }
+
+    const newEntries = [...entries];
+    newEntries[index] = {
+      ...entry,
+      subtype: type,
+      value: newValue
+    };
+
+    setEntries(newEntries);
+    handleMetadataChange(newEntries);
   };
 
   const handleAdd = () => {
@@ -276,47 +389,6 @@ export function MetadataForm({
     }
   };
 
-  // Helper function to determine primitive type
-  const getPrimitiveType = (value: any): 'string' | 'number' | 'boolean' =>
-    typeof value === 'number'
-      ? 'number'
-      : typeof value === 'boolean'
-        ? 'boolean'
-        : 'string';
-
-  // Handler for primitive type changes
-  const handlePrimitiveTypeChange = (
-    index: number,
-    type: 'string' | 'number' | 'boolean'
-  ) => {
-    const entry = entries[index];
-    let newValue: any;
-
-    switch (type) {
-      case 'number':
-        newValue = !isNaN(Number(entry.value)) ? Number(entry.value) : 0;
-        break;
-      case 'boolean':
-        newValue = Boolean(entry.value);
-        break;
-      case 'string':
-        newValue = String(entry.value);
-        break;
-      default:
-        newValue = entry.value;
-    }
-
-    const newEntries = [...entries];
-    newEntries[index] = {
-      ...entry,
-      subtype: type,
-      value: newValue
-    };
-
-    setEntries(newEntries);
-    handleMetadataChange(newEntries);
-  };
-
   return (
     <div className="space-y-4">
       {entries.map((entry, index) => {
@@ -409,78 +481,5 @@ export function MetadataForm({
         Add Metadata
       </Button>
     </div>
-  );
-}
-
-function objectToMetadataArray(obj: Record<string, any>): IFlagMetadata[] {
-  return Object.entries(obj).map(([key, value]) => {
-    if (value === null || value === undefined) {
-      return {
-        key,
-        type: 'primitive',
-        subtype: 'string',
-        value: '',
-        isNew: false
-      };
-    }
-
-    if (Array.isArray(value)) {
-      return {
-        key,
-        type: 'array',
-        value,
-        isNew: false
-      };
-    }
-
-    if (typeof value === 'object' && value !== null) {
-      return {
-        key,
-        type: 'object',
-        value,
-        isNew: false
-      };
-    }
-
-    let subtype: 'string' | 'number' | 'boolean' = 'string';
-
-    if (typeof value === 'string') {
-      // Try parsing as number first
-      if (!isNaN(Number(value)) && value.trim() !== '') {
-        subtype = 'number';
-      }
-      // Try parsing as boolean if it's exactly 'true' or 'false'
-      else if (
-        value.toLowerCase() === 'true' ||
-        value.toLowerCase() === 'false'
-      ) {
-        subtype = 'boolean';
-      }
-    } else if (typeof value === 'number') {
-      subtype = 'number';
-    } else if (typeof value === 'boolean') {
-      subtype = 'boolean';
-    }
-
-    return {
-      key,
-      type: 'primitive',
-      subtype,
-      value,
-      isNew: false
-    };
-  });
-}
-
-function metadataArrayToObject(metadata: IFlagMetadata[]): Record<string, any> {
-  return metadata.reduce(
-    (acc, { key, value }) => {
-      if (key) {
-        // Only include entries with non-empty keys
-        acc[key] = value;
-      }
-      return acc;
-    },
-    {} as Record<string, any>
   );
 }

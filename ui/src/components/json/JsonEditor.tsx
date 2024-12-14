@@ -1,5 +1,5 @@
 import { json } from '@codemirror/lang-json';
-import { linter, lintGutter } from '@codemirror/lint';
+import { linter } from '@codemirror/lint';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
