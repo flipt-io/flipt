@@ -178,7 +178,7 @@ export default function Flag() {
 
       {/* Tabs Section */}
       <div className="mt-3">
-        <nav className="space-x-4 border-b border-gray-200">
+        <nav className="space-x-4">
           {flag.type === FlagType.VARIANT ? (
             <>
               {variantFlagTabs.map((tab) => (
