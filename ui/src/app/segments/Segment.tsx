@@ -69,7 +69,6 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
 
 export default function Segment() {
   let { segmentKey } = useParams();
-  const { inTimezone } = useTimezone();
 
   const [showConstraintForm, setShowConstraintForm] = useState<boolean>(false);
   const [editingConstraint, setEditingConstraint] =

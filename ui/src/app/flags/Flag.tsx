@@ -18,7 +18,6 @@ import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { useTimezone } from '~/data/hooks/timezone';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
@@ -41,7 +40,6 @@ const booleanFlagTabs = [
 
 export default function Flag() {
   let { flagKey } = useParams();
-  const { inTimezone } = useTimezone();
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
