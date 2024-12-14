@@ -20,12 +20,6 @@ const metadataValidationSchema = Yup.object({
   type: Yup.string().oneOf(['primitive', 'object', 'array']).required()
 });
 
-const VALUE_TYPES = [
-  { id: 'primitive', name: 'Primitive' },
-  { id: 'object', name: 'Object' },
-  { id: 'array', name: 'Array' }
-] as const;
-
 export interface MetadataFormProps {
   metadata?: Record<string, any>;
   onChange: (metadata: Record<string, any>) => void;
@@ -185,9 +179,11 @@ export function MetadataForm({
                 const parsed = JSON.parse(v);
                 if (Array.isArray(parsed)) {
                   handleChange(index, 'value', parsed);
+                } else {
+                  console.warn('Invalid array format:', parsed);
                 }
               } catch (e) {
-                // Handle invalid JSON
+                console.warn('Invalid JSON:', e);
               }
             }}
             disabled={disabled || !entry.isNew}
@@ -209,9 +205,11 @@ export function MetadataForm({
                 const parsed = JSON.parse(v);
                 if (typeof parsed === 'object' && !Array.isArray(parsed)) {
                   handleChange(index, 'value', parsed);
+                } else {
+                  console.warn('Invalid object format:', parsed);
                 }
               } catch (e) {
-                // Handle invalid JSON
+                console.warn('Invalid JSON:', e);
               }
             }}
             disabled={disabled || !entry.isNew}
@@ -277,16 +275,12 @@ export function MetadataForm({
   };
 
   // Helper function to determine primitive type
-  const getPrimitiveType = (value: any): 'string' | 'number' | 'boolean' => {
-    switch (typeof value) {
-      case 'number':
-        return 'number';
-      case 'boolean':
-        return 'boolean';
-      default:
-        return 'string';
-    }
-  };
+  const getPrimitiveType = (value: any): 'string' | 'number' | 'boolean' =>
+    typeof value === 'number'
+      ? 'number'
+      : typeof value === 'boolean'
+        ? 'boolean'
+        : 'string';
 
   // Handler for primitive type changes
   const handlePrimitiveTypeChange = (
@@ -369,11 +363,9 @@ export function MetadataForm({
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {VALUE_TYPES.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="primitive">Primitive</SelectItem>
+                  <SelectItem value="object">Object</SelectItem>
+                  <SelectItem value="array">Array</SelectItem>
                 </SelectContent>
               </Select>
               {typeError && (
