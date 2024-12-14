@@ -22,7 +22,7 @@ export const parseLinter =
         return [
           {
             from: 0,
-            message: 'Request Context: unexpected array',
+            message: 'JSON: unexpected array',
             severity: 'error',
             to: doc.length
           }
@@ -41,7 +41,7 @@ export const parseLinter =
           return [
             {
               from: pos.from,
-              message: 'Request Context: expected string value',
+              message: 'JSON: expected string value',
               severity: 'error',
               to: pos.to
             }

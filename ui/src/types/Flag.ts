@@ -20,8 +20,10 @@ export function flagTypeToLabel(flagType: FlagType): string {
 
 export interface IFlagMetadata {
   key: string;
-  value: string | boolean | number;
-  type: 'string' | 'boolean' | 'number';
+  value: any;
+  type: 'primitive' | 'object';
+  primitiveType?: 'string' | 'number' | 'boolean';
+  isNew?: boolean;
 }
 
 export interface IFlagBase {
@@ -31,7 +33,7 @@ export interface IFlagBase {
   enabled: boolean;
   description: string;
   defaultVariant?: IVariant;
-  metadata?: IFlagMetadata[];
+  metadata?: Record<string, any>;
 }
 
 export interface IFlag extends IFlagBase {

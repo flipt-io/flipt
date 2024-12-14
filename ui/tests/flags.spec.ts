@@ -246,8 +246,14 @@ test.describe('Flags - Read Only', () => {
 
   test('can not edit metadata', async ({ page }) => {
     await page.getByRole('link', { name: 'test-flag' }).click();
-    await expect(page.getByRole('button', { name: 'Add Metadata' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Edit Metadata' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Delete Metadata' })).toBeDisabled();
+    await expect(
+      page.getByRole('button', { name: 'Add Metadata' })
+    ).toBeDisabled();
+    await expect(
+      page.getByRole('button', { name: 'Edit Metadata' })
+    ).toBeDisabled();
+    await expect(
+      page.getByRole('button', { name: 'Delete Metadata' })
+    ).toBeDisabled();
   });
 });

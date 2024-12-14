@@ -39,13 +39,7 @@ const flagTypes = [
 const flagValidationSchema = Yup.object({
   key: keyValidation,
   name: requiredValidation,
-  metadata: Yup.array().of(
-    Yup.object({
-      key: Yup.string().required('Key is required'),
-      value: Yup.mixed().required('Value is required'),
-      type: Yup.string().oneOf(['string', 'boolean', 'number']).required()
-    })
-  )
+  metadata: Yup.object()
 });
 
 export default function FlagForm(props: { flag?: IFlag }) {
@@ -69,14 +63,14 @@ export default function FlagForm(props: { flag?: IFlag }) {
     if (isNew) {
       return createFlag({
         namespaceKey: namespace.key,
-        values: values
+        values
       }).unwrap();
     }
 
     return updateFlag({
       namespaceKey: namespace.key,
       flagKey: flag?.key,
-      values: values
+      values
     }).unwrap();
   };
 
@@ -87,7 +81,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
     type: flag?.type || FlagType.VARIANT,
     enabled: flag?.enabled || false,
     defaultVariant: flag?.defaultVariant,
-    metadata: flag?.metadata || []
+    metadata: flag?.metadata || {}
   };
 
   const [keyCopied, setKeyCopied] = useState(false);
@@ -302,14 +296,19 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     >
                       Metadata
                     </label>
-                    <span className="text-xs text-gray-500" id="metadata-optional">
+                    <span
+                      className="text-xs text-gray-500"
+                      id="metadata-optional"
+                    >
                       Optional
                     </span>
                   </div>
                   <div className="mt-1">
                     <MetadataForm
                       metadata={formik.values.metadata}
-                      onChange={(metadata) => formik.setFieldValue('metadata', metadata)}
+                      onChange={(metadata) =>
+                        formik.setFieldValue('metadata', metadata)
+                      }
                       disabled={readOnly}
                     />
                   </div>

@@ -11,33 +11,37 @@ import {
   SelectTrigger,
   SelectValue
 } from '~/components/ui/select';
-import { stringAsKey } from '~/utils/helpers';
+import { cls, stringAsKey } from '~/utils/helpers';
+import { JsonEditor } from '~/components/json/JsonEditor';
 
 const metadataValidationSchema = Yup.object({
   key: Yup.string().required('Key is required'),
   value: Yup.mixed().required('Value is required'),
-  type: Yup.string().oneOf(['string', 'boolean', 'number']).required()
+  type: Yup.string().oneOf(['primitive', 'object']).required()
 });
 
 const VALUE_TYPES = [
-  { id: 'string', name: 'String' },
-  { id: 'boolean', name: 'Boolean' },
-  { id: 'number', name: 'Number' }
+  { id: 'primitive', name: 'Primitive' },
+  { id: 'object', name: 'Object' }
 ] as const;
 
 export interface MetadataFormProps {
-  metadata?: IFlagMetadata[];
-  onChange: (metadata: IFlagMetadata[]) => void;
+  metadata?: Record<string, any>;
+  onChange: (metadata: Record<string, any>) => void;
   disabled?: boolean;
 }
 
 export function MetadataForm({
-  metadata = [],
+  metadata = {},
   onChange,
   disabled = false
 }: MetadataFormProps): JSX.Element {
-  const [entries, setEntries] = useState<IFlagMetadata[]>(metadata);
-  const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+  const [entries, setEntries] = useState<IFlagMetadata[]>(
+    objectToMetadataArray(metadata)
+  );
+  const [errors, setErrors] = useState<Record<number, Record<string, string>>>(
+    {}
+  );
 
   const validateEntry = async (
     entry: IFlagMetadata,
@@ -52,25 +56,39 @@ export function MetadataForm({
     } catch (err) {
       if (err instanceof Yup.ValidationError) {
         const newErrors = { ...errors };
-        newErrors[index] = err.inner.reduce((acc, curr) => {
-          if (curr.path) {
-            acc[curr.path] = curr.message;
-          }
-          return acc;
-        }, {} as Record<string, string>);
+        newErrors[index] = err.inner.reduce(
+          (acc, curr) => {
+            if (curr.path) {
+              acc[curr.path] = curr.message;
+            }
+            return acc;
+          },
+          {} as Record<string, string>
+        );
         setErrors(newErrors);
       }
       return false;
     }
   };
 
+  const handleMetadataChange = (newEntries: IFlagMetadata[]) => {
+    setEntries(newEntries);
+    onChange(metadataArrayToObject(newEntries));
+  };
+
   const handleAdd = () => {
     const newEntries = [
       ...entries,
-      { key: '', value: '', type: 'string' } as IFlagMetadata
+      {
+        key: '',
+        value: '',
+        type: 'primitive',
+        primitiveType: 'string',
+        isNew: true
+      } as IFlagMetadata
     ];
     setEntries(newEntries);
-    onChange(newEntries);
+    handleMetadataChange(newEntries);
   };
 
   const handleRemove = (index: number) => {
@@ -79,7 +97,7 @@ export function MetadataForm({
     delete newErrors[index];
     setErrors(newErrors);
     setEntries(newEntries);
-    onChange(newEntries);
+    handleMetadataChange(newEntries);
   };
 
   const handleChange = async (
@@ -88,81 +106,189 @@ export function MetadataForm({
     value: unknown
   ): Promise<void> => {
     const newEntries = [...entries];
+    const entry = newEntries[index];
+
     if (field === 'key' && typeof value === 'string') {
       const formattedKey = stringAsKey(value);
       newEntries[index] = {
-        ...newEntries[index],
-        key: formattedKey
+        ...entry,
+        key: formattedKey,
+        isNew: entry.value === '' ? entry.isNew : false
       };
     } else if (field === 'type' && typeof value === 'string') {
+      const currentValue = entry.value;
+      let newValue: any = null;
+
+      if (value === 'object') {
+        if (typeof currentValue === 'string') {
+          try {
+            newValue = JSON.parse(currentValue);
+          } catch {
+            newValue = {};
+          }
+        } else if (typeof currentValue === 'object') {
+          newValue = currentValue;
+        } else {
+          newValue = {};
+        }
+      } else {
+        newValue =
+          typeof currentValue === 'object'
+            ? JSON.stringify(currentValue)
+            : currentValue;
+      }
+
       newEntries[index] = {
-        ...newEntries[index],
-        type: value as 'string' | 'boolean' | 'number',
-        value: value === 'boolean' ? false : ''
+        ...entry,
+        type: value as 'primitive' | 'object',
+        value: newValue
       };
-    } else {
+    } else if (field === 'value') {
+      let validValue: any;
+      if (entry.type === 'primitive') {
+        const primitiveType = getPrimitiveType(entry.value);
+        if (typeof value === 'string') {
+          if (primitiveType === 'string') {
+            validValue = value;
+          } else if (primitiveType === 'boolean') {
+            validValue = value.toLowerCase() === 'true';
+          } else if (primitiveType === 'number') {
+            validValue = !isNaN(Number(value)) ? Number(value) : 0;
+          }
+        } else {
+          validValue = value;
+        }
+      } else {
+        validValue = typeof value === 'object' ? value : null;
+      }
+
       newEntries[index] = {
-        ...newEntries[index],
-        [field]: value
+        ...entry,
+        value: validValue,
+        isNew: entry.key === '' ? entry.isNew : false
       };
     }
+
     setEntries(newEntries);
     await validateEntry(newEntries[index], index);
-    onChange(newEntries);
+    handleMetadataChange(newEntries);
   };
 
   const renderValueInput = (entry: IFlagMetadata, index: number) => {
     const error = errors[index]?.value;
 
     switch (entry.type) {
-      case 'boolean':
+      case 'object':
+        const value =
+          typeof entry.value === 'object'
+            ? JSON.stringify(entry.value)
+            : entry.value;
         return (
-          <Select
-            value={entry.value.toString()}
-            onValueChange={(value) => handleChange(index, 'value', value === 'true')}
-            disabled={disabled}
-          >
-            <SelectTrigger
-              className={`w-full ${error ? 'border-red-500' : ''}`}
-              aria-invalid={!!error}
-              aria-errormessage={`value-error-${index}`}
-              aria-label="Value"
+          <JsonEditor
+            id={`metadata-value-${index}`}
+            value={value}
+            setValue={(v) => handleChange(index, 'value', v)}
+            disabled={disabled || !entry.isNew}
+          />
+        );
+      case 'primitive':
+        return (
+          <div className="flex gap-2">
+            <Select
+              value={entry.primitiveType || 'string'}
+              onValueChange={(type) =>
+                handlePrimitiveTypeChange(
+                  index,
+                  type as 'string' | 'number' | 'boolean'
+                )
+              }
+              disabled={disabled || !entry.isNew}
             >
-              <SelectValue placeholder="Select a value" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">True</SelectItem>
-              <SelectItem value="false">False</SelectItem>
-            </SelectContent>
-          </Select>
-        );
-      case 'number':
-        return (
-          <Input
-            type="number"
-            value={entry.value.toString()}
-            onChange={(e) => handleChange(index, 'value', parseFloat(e.target.value))}
-            className={error ? 'border-red-500' : ''}
-            aria-invalid={!!error}
-            aria-errormessage={`value-error-${index}`}
-            disabled={disabled}
-            data-testid={`metadata-value-${index}`}
-          />
-        );
-      default:
-        return (
-          <Input
-            type="text"
-            value={entry.value.toString()}
-            onChange={(e) => handleChange(index, 'value', e.target.value)}
-            className={error ? 'border-red-500' : ''}
-            aria-invalid={!!error}
-            aria-errormessage={`value-error-${index}`}
-            disabled={disabled}
-            data-testid={`metadata-value-${index}`}
-          />
+              <SelectTrigger className="w-24">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="string">String</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+                <SelectItem value="boolean">Boolean</SelectItem>
+              </SelectContent>
+            </Select>
+            {entry.primitiveType === 'boolean' ? (
+              <Select
+                value={String(entry.value)}
+                onValueChange={(v) =>
+                  handleChange(index, 'value', v === 'true')
+                }
+                disabled={disabled || !entry.isNew}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">True</SelectItem>
+                  <SelectItem value="false">False</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                type={entry.primitiveType === 'number' ? 'number' : 'text'}
+                value={entry.value?.toString() ?? ''}
+                onChange={(e) => handleChange(index, 'value', e.target.value)}
+                className={cls('flex-1', error ? 'border-red-500' : '')}
+                aria-invalid={!!error}
+                aria-errormessage={`value-error-${index}`}
+                disabled={disabled || !entry.isNew}
+                data-testid={`metadata-value-${index}`}
+              />
+            )}
+          </div>
         );
     }
+  };
+
+  // Helper function to determine primitive type
+  const getPrimitiveType = (value: any): 'string' | 'number' | 'boolean' => {
+    switch (typeof value) {
+      case 'number':
+        return 'number';
+      case 'boolean':
+        return 'boolean';
+      default:
+        return 'string';
+    }
+  };
+
+  // Handler for primitive type changes
+  const handlePrimitiveTypeChange = (
+    index: number,
+    type: 'string' | 'number' | 'boolean'
+  ) => {
+    const entry = entries[index];
+    let newValue: any;
+
+    switch (type) {
+      case 'number':
+        newValue = !isNaN(Number(entry.value)) ? Number(entry.value) : 0;
+        break;
+      case 'boolean':
+        newValue = Boolean(entry.value);
+        break;
+      case 'string':
+        newValue = String(entry.value);
+        break;
+      default:
+        newValue = entry.value;
+    }
+
+    const newEntries = [...entries];
+    newEntries[index] = {
+      ...entry,
+      primitiveType: type,
+      value: newValue
+    };
+
+    setEntries(newEntries);
+    handleMetadataChange(newEntries);
   };
 
   return (
@@ -172,17 +298,17 @@ export function MetadataForm({
         const typeError = errors[index]?.type;
 
         return (
-          <div key={index} className="items-start gap-4">
-            <div className="flex-1">
+          <div key={index} className="flex items-start gap-4">
+            <div>
               <Input
                 type="text"
                 value={entry.key}
                 onChange={(e) => handleChange(index, 'key', e.target.value)}
                 placeholder="Key"
-                className={keyError ? 'border-red-500' : ''}
+                className={cls('w-48', keyError ? 'border-red-500' : '')}
                 aria-invalid={!!keyError}
                 aria-errormessage={`key-error-${index}`}
-                disabled={disabled}
+                disabled={disabled || !entry.isNew}
                 data-testid={`metadata-key-${index}`}
               />
               {keyError && (
@@ -199,10 +325,10 @@ export function MetadataForm({
               <Select
                 value={entry.type}
                 onValueChange={(value) => handleChange(index, 'type', value)}
-                disabled={disabled}
+                disabled={disabled || !entry.isNew}
               >
                 <SelectTrigger
-                  className={`w-full ${typeError ? 'border-red-500' : ''}`}
+                  className={cls('w-full', typeError ? 'border-red-500' : '')}
                   aria-invalid={!!typeError}
                   aria-errormessage={`type-error-${index}`}
                   data-testid={`metadata-type-${index}`}
@@ -227,9 +353,7 @@ export function MetadataForm({
               )}
             </div>
 
-            <div className="flex-1">
-              {renderValueInput(entry, index)}
-            </div>
+            <div className="flex-1">{renderValueInput(entry, index)}</div>
 
             <Button
               type="button"
@@ -237,7 +361,6 @@ export function MetadataForm({
               size="icon"
               onClick={() => handleRemove(index)}
               disabled={disabled}
-              className="mt-1"
               aria-label="Remove metadata entry"
             >
               <TrashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
@@ -257,5 +380,53 @@ export function MetadataForm({
         Add Metadata
       </Button>
     </div>
+  );
+}
+
+function objectToMetadataArray(obj: Record<string, any>): IFlagMetadata[] {
+  return Object.entries(obj).map(([key, value]) => {
+    if (value === null || value === undefined) {
+      return {
+        key,
+        type: 'primitive',
+        primitiveType: 'string',
+        value: '',
+        isNew: false
+      };
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      return {
+        key,
+        type: 'object',
+        value,
+        isNew: false
+      };
+    }
+
+    let primitiveType: 'string' | 'number' | 'boolean' = 'string';
+    if (typeof value === 'number') primitiveType = 'number';
+    if (typeof value === 'boolean') primitiveType = 'boolean';
+
+    return {
+      key,
+      type: 'primitive',
+      primitiveType,
+      value: value,
+      isNew: false
+    };
+  });
+}
+
+function metadataArrayToObject(metadata: IFlagMetadata[]): Record<string, any> {
+  return metadata.reduce(
+    (acc, { key, value }) => {
+      if (key) {
+        // Only include entries with non-empty keys
+        acc[key] = value;
+      }
+      return acc;
+    },
+    {} as Record<string, any>
   );
 }

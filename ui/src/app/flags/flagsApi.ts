@@ -128,7 +128,6 @@ export const flagsApi = createApi({
 
         if (to.flagKey) {
           data.key = to.flagKey;
-          data.metadata = data.metadata || [];
         }
         // first create the flag
         resp = await baseQuery({
