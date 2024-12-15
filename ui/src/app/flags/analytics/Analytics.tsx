@@ -101,7 +101,7 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 max-w-screen-lg">
       {config.analyticsEnabled ? (
         <>
           <div className="sm:flex sm:items-center">
@@ -141,10 +141,10 @@ export default function Analytics() {
           </div>
         </>
       ) : (
-        <div className="mt-10 flex flex-col text-center">
+        <div className="mt-10">
           <Well>
-            <p className="text-sm text-gray-600">Analytics Disabled</p>
-            <p className="mt-4 text-sm text-gray-500">
+            <p>Analytics Disabled</p>
+            <p className="mt-4">
               See the configuration{' '}
               <a
                 className="text-violet-500"

@@ -272,7 +272,6 @@ export default function Rules() {
       const size = rule.segmentKeys ? rule.segmentKeys.length : 0;
 
       // Combine both segment and segments for legacy purposes.
-      // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
       for (let i = 0; i < size; i++) {
         const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
         const segment = segments.find(
@@ -409,7 +408,11 @@ export default function Rules() {
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <p className="mt-1 text-sm text-gray-500">
-              Enable rich targeting and segmentation for evaluating your flags
+              Rules are evaluated in order from top to bottom.
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              Rules can be rearranged by clicking on the header and dragging and
+              dropping it into place.
             </p>
           </div>
           {((rules && rules.length > 0) || showDefaultVariant) && (
@@ -428,20 +431,8 @@ export default function Rules() {
         </div>
         <div className="mt-10">
           {(rules && rules.length > 0) || showDefaultVariant ? (
-            <div className="flex lg:space-x-5">
-              <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm font-light text-gray-700">
-                  Rules are evaluated in order from{' '}
-                  <span className="font-semibold">top to bottom</span>. The
-                  first rule that matches will be applied.
-                </p>
-                <p className="text-sm font-light text-gray-700">
-                  Rules can be rearranged by clicking on a rule header and{' '}
-                  <span className="font-semibold">dragging and dropping</span>{' '}
-                  it into place.
-                </p>
-              </div>
-              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:w-3/4 lg:p-6">
+            <div className="flex">
+              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}
