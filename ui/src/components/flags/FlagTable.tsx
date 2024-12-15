@@ -10,10 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Pagination from '~/components/Pagination';
-import Searchbox from '~/components/Searchbox';
+import { Link, useNavigate } from 'react-router';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
@@ -31,7 +28,7 @@ import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '../Well';
+import Well from '~/components/Well';
 
 type FlagTableProps = {
   namespace: INamespaceBase;

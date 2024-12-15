@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Plus } from 'lucide-react';

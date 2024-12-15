@@ -10,8 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { Link, useNavigate } from 'react-router';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
@@ -24,14 +23,13 @@ import { Badge } from '~/components/ui/badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Search } from '~/components/ui/search';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import { Link, useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '../Well';
+import Well from '~/components/Well';
 
 type SegmentTableProps = {
   namespace: INamespaceBase;
