@@ -170,13 +170,13 @@ export default function Flag() {
       </div>
 
       {/* Form Section - Full Width */}
-      <div className="mb-8 max-w-screen-md">
+      <div className="mb-8">
         <FlagForm flag={flag} />
       </div>
 
       {/* Tabs Section */}
-      <div className="mt-3">
-        <nav className="space-x-4">
+      <div>
+        <nav className="mb-8 space-x-4">
           {flag.type === FlagType.VARIANT ? (
             <>
               {variantFlagTabs.map((tab) => (

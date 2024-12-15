@@ -251,7 +251,7 @@ export default function Segment() {
         </MoreInfo>
       </div>
 
-      <div className="mb-8 max-w-screen-md">
+      <div className="mb-8">
         <SegmentForm segment={segment} />
       </div>
 
@@ -260,7 +260,7 @@ export default function Segment() {
           <div className="sm:flex-auto">
             <h3 className="font-medium leading-6 text-gray-900">Constraints</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Determine if a request matches a segment
+              Determine if a request matches a segment.
             </p>
           </div>
           {segment.constraints && segment.constraints.length > 0 && (

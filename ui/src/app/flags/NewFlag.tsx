@@ -12,7 +12,7 @@ export default function NewFlag() {
         </MoreInfo>
       </div>
 
-      <div className="mb-8 max-w-screen-md">
+      <div className="mb-8">
         <FlagForm />
       </div>
     </>

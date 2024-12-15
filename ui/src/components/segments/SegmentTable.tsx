@@ -22,14 +22,14 @@ import { Badge } from '~/components/ui/badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Search } from '~/components/ui/search';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import Guide from '~/components/ui/guide';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
+import Well from '../Well';
 
 type SegmentTableProps = {
   namespace: INamespaceBase;
@@ -177,13 +177,21 @@ export default function SegmentTable(props: SegmentTableProps) {
         </div>
       </div>
       {table.getRowCount() === 0 && filter.length !== 0 && (
-        <Guide>No segments matched your search.</Guide>
+        <Well>
+          <p>No segments matched your search.</p>
+        </Well>
       )}
       {table.getRowCount() === 0 && filter.length === 0 && (
-        <Guide className="mt-6">
-          Segments enable request targeting based on defined criteria. Create
-          new segment to get started.
-        </Guide>
+        <Well>
+          <p>
+            Segments enable request targeting based on defined criteria. Create
+            a{' '}
+            <Link className="text-violet-500" to={`${path}/new`}>
+              new segment
+            </Link>{' '}
+            to get started.
+          </p>
+        </Well>
       )}
       {table.getRowModel().rows.map((row) => {
         const item = row.original;

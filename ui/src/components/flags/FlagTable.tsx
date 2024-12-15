@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
@@ -24,11 +24,11 @@ import { Badge } from '~/components/ui/badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Search } from '~/components/ui/search';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import Guide from '~/components/ui/guide';
 import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
+import Well from '../Well';
 
 type FlagTableProps = {
   namespace: INamespaceBase;
@@ -186,13 +186,21 @@ export default function FlagTable(props: FlagTableProps) {
         </div>
       </div>
       {table.getRowCount() === 0 && filter.length === 0 && (
-        <Guide>
-          Flags enable you to control and roll out new functionality
-          dynamically. Create a new flag to get started.
-        </Guide>
+        <Well>
+          <p>
+            Flags enable you to control and roll out new functionality
+            dynamically. Create a{' '}
+            <Link className="text-violet-500" to={`${path}/new`}>
+              new flag
+            </Link>{' '}
+            to get started.
+          </p>
+        </Well>
       )}
       {table.getRowCount() === 0 && filter.length > 0 && (
-        <Guide>No flags matched your search.</Guide>
+        <Well>
+          <p>No flags matched your search.</p>
+        </Well>
       )}
       {table.getRowModel().rows.map((row) => {
         const item = row.original;

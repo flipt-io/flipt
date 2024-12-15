@@ -78,7 +78,7 @@ export default function Variants({ flag }: VariantsProps) {
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <p className="mt-1 text-sm text-gray-500">
-              Return different values based on rules you define
+              Return different values based on rules you define.
             </p>
           </div>
           {flag.variants && flag.variants.length > 0 && (
