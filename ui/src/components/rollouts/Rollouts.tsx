@@ -228,7 +228,6 @@ export default function Rollouts(props: RolloutsProps) {
 
   const rollouts = useMemo(() => {
     // Combine both segmentKey and segmentKeys for legacy purposes.
-    // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
     return rolloutsRules.map((rollout) => {
       if (rollout.segment) {
         let segmentKeys: string[] = [];
@@ -383,7 +382,12 @@ export default function Rollouts(props: RolloutsProps) {
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <p className="mt-1 text-sm text-gray-500">
-              Return boolean values based on rules you define
+              Return boolean values based on rules you define. Rules are
+              evaluated in order from top to bottom.
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              Rules can be rearranged by clicking on the header and dragging and
+              dropping it into place.
             </p>
           </div>
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -402,19 +406,7 @@ export default function Rollouts(props: RolloutsProps) {
           </div>
         </div>
         <div className="mt-10">
-          <div className="flex lg:space-x-5">
-            <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-              <p className="text-sm font-light text-gray-700">
-                Rollout rules are evaluated in order from{' '}
-                <span className="font-semibold">top to bottom</span>. The first
-                rule that matches will be applied.
-              </p>
-              <p className="text-sm font-light text-gray-700">
-                Rollouts can be rearranged by clicking on a rollout header and{' '}
-                <span className="font-semibold">dragging and dropping</span> it
-                into place.
-              </p>
-            </div>
+          <div className="flex">
             <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
               {rollouts && rollouts.length > 0 && (
                 <DndContext
