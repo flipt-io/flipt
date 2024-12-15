@@ -35,9 +35,9 @@ export default function Button(props: ButtonProps) {
         className,
         {
           'cursor-not-allowed': disabled,
-          'border border-transparent bg-violet-400 text-white shadow-sm enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
+          'border border-transparent bg-violet-400 text-background shadow-sm enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
             variant === 'primary',
-          'border border-violet-300 bg-white text-gray-500 shadow-sm enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
+          'border border-violet-300 bg-background text-gray-500 shadow-sm enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
             variant === 'secondary',
           'border-violet-300 text-violet-600 enabled:hover:bg-violet-100 enabled:focus:ring-violet-500':
             variant === 'soft',
@@ -58,7 +58,7 @@ export const ButtonWithPlus = (props: ButtonProps) => {
     <Button {...props}>
       <FontAwesomeIcon
         icon={faPlus}
-        className="-ml-1.5 mr-1.5 h-4 w-4 text-gray-200"
+        className="-ml-1.5 mr-1.5 h-4 w-4 text-background"
         aria-hidden="true"
       />
       {props.children}

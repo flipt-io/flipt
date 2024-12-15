@@ -97,8 +97,8 @@ export function DefaultRollout(props: RolloutsProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
+            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
                   <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
                   <h3 className="text-sm font-normal leading-6 text-gray-700">
@@ -117,7 +117,7 @@ export function DefaultRollout(props: RolloutsProps) {
 
               <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                 <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col bg-white">
+                  <Form className="flex w-full flex-col">
                     <div className="w-full flex-1">
                       <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                         <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
@@ -228,7 +228,6 @@ export default function Rollouts(props: RolloutsProps) {
 
   const rollouts = useMemo(() => {
     // Combine both segmentKey and segmentKeys for legacy purposes.
-    // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
     return rolloutsRules.map((rollout) => {
       if (rollout.segment) {
         let segmentKeys: string[] = [];
@@ -379,12 +378,16 @@ export default function Rollouts(props: RolloutsProps) {
       )}
 
       {/* rollouts */}
-      <div className="mt-10 w-full">
+      <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="font-medium leading-6 text-gray-900">Rollouts</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Return boolean values based on rules you define
+              Return boolean values based on rules you define. Rules are
+              evaluated in order from top to bottom.
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              Rules can be rearranged by clicking on the header and dragging and
+              dropping it into place.
             </p>
           </div>
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -403,19 +406,7 @@ export default function Rollouts(props: RolloutsProps) {
           </div>
         </div>
         <div className="mt-10">
-          <div className="flex lg:space-x-5">
-            <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-              <p className="text-sm font-light text-gray-700">
-                Rollout rules are evaluated in order from{' '}
-                <span className="font-semibold">top to bottom</span>. The first
-                rule that matches will be applied.
-              </p>
-              <p className="text-sm font-light text-gray-700">
-                Rollouts can be rearranged by clicking on a rollout header and{' '}
-                <span className="font-semibold">dragging and dropping</span> it
-                into place.
-              </p>
-            </div>
+          <div className="flex">
             <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
               {rollouts && rollouts.length > 0 && (
                 <DndContext

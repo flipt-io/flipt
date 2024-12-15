@@ -195,7 +195,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="flex h-full w-full flex-col bg-white">
+          <Form className="flex h-full w-full flex-col">
             <div className="w-full flex-1">
               <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">

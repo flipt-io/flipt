@@ -45,6 +45,16 @@ type StorageConfig struct {
 	ReadOnly *bool                `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
+func (c *StorageConfig) Info() map[string]string {
+	if c.Type == GitStorageType {
+		return map[string]string{
+			"repository": c.Git.Repository,
+			"ref":        c.Git.Ref,
+		}
+	}
+	return nil
+}
+
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	switch v.GetString("storage.type") {
 	case string(LocalStorageType):
@@ -354,7 +364,7 @@ type StorageOCIConfig struct {
 	// BundlesDirectory is the root directory in which Flipt will store and access local feature bundles.
 	BundlesDirectory string `json:"bundlesDirectory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
 	// Authentication configures authentication credentials for accessing the target registry
-	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
+	Authentication *OCIAuthentication `json:"-" mapstructure:"authentication" yaml:"-"`
 	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 	// ManifestVersion defines which OCI Manifest version to use.
 	ManifestVersion OCIManifestVersion `json:"manifestVersion,omitempty" mapstructure:"manifest_version" yaml:"manifest_version,omitempty"`

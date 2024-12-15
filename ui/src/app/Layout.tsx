@@ -17,11 +17,7 @@ import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
-import {
-  fetchConfigAsync,
-  fetchInfoAsync,
-  selectConfig
-} from './meta/metaSlice';
+import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
@@ -62,7 +58,6 @@ function InnerLayout() {
 
   useEffect(() => {
     dispatch(fetchInfoAsync());
-    dispatch(fetchConfigAsync());
   }, [dispatch]);
 
   if (!session) {
@@ -76,7 +71,7 @@ function InnerLayout() {
   return (
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-white md:pl-64">
+      <div className="flex min-h-screen flex-col bg-background md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner
@@ -85,8 +80,8 @@ function InnerLayout() {
             href="https://docs.flipt.io/cloud/overview"
           />
         )}
-        <main className="flex px-6 py-10">
-          <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <main className="flex pt-1 sm:pt-4">
+          <div className="mx-auto w-full max-w-screen-lg overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

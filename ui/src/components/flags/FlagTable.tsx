@@ -1,7 +1,5 @@
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -10,43 +8,128 @@ import {
   Row,
   useReactTable
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
+import { DataTablePagination } from '~/components/ui/table-pagination';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
-import { truncateKey } from '~/utils/helpers';
-import { selectSorting, setSorting } from '~/app/flags/flagsApi';
-
-function flagDefaultValue(flag: IFlag): string {
-  switch (flag.type) {
-    case FlagType.BOOLEAN:
-      return flag.enabled ? 'True' : 'False';
-    case FlagType.VARIANT:
-      return flag.defaultVariant?.key || '';
-    default:
-      return '';
-  }
-}
+import {
+  selectSorting,
+  setSorting,
+  useListFlagsQuery
+} from '~/app/flags/flagsApi';
+import { cn } from '~/lib/utils';
+import { Badge } from '~/components/ui/badge';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { Search } from '~/components/ui/search';
+import { DataTableViewOptions } from '~/components/ui/table-view-options';
+import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
+import { useError } from '~/data/hooks/error';
+import { INamespaceBase } from '~/types/Namespace';
+import { TableSkeleton } from '~/components/ui/table-skeleton';
+import Well from '../Well';
 
 type FlagTableProps = {
-  flags: IFlag[];
+  namespace: INamespaceBase;
 };
 
-export default function FlagTable(props: FlagTableProps) {
-  const { flags } = props;
-
-  const dispatch = useDispatch();
-
-  const namespace = useSelector(selectCurrentNamespace);
+function FlagDetails({ item }: { item: IFlag }) {
+  const enabled = item.type === FlagType.BOOLEAN || item.enabled;
   const { inTimezone } = useTimezone();
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Badge variant={enabled ? 'enabled' : 'muted'}>
+        {enabled ? 'Enabled' : 'Disabled'}
+      </Badge>
+      <span className="flex items-center gap-1">
+        {item.type === FlagType.BOOLEAN ? (
+          <ToggleLeftIcon className="h-4 w-4" />
+        ) : (
+          <VariableIcon className="h-4 w-4" />
+        )}
+        {flagTypeToLabel(item.type)}
+      </span>
+      <span className="hidden sm:block">•</span>
+      <time className="hidden sm:block" title={inTimezone(item.createdAt)}>
+        Created{' '}
+        {formatDistanceToNowStrict(parseISO(item.createdAt), {
+          addSuffix: true
+        })}
+      </time>
+      <span>•</span>
+      <time title={inTimezone(item.updatedAt)}>
+        Updated{' '}
+        {formatDistanceToNowStrict(parseISO(item.updatedAt), {
+          addSuffix: true
+        })}
+      </time>
+    </div>
+  );
+}
+
+const columnHelper = createColumnHelper<IFlag>();
+
+const columns = [
+  columnHelper.accessor('key', {
+    header: 'Key',
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor('name', {
+    header: 'Name',
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor('description', {
+    header: 'Description',
+    enableSorting: false,
+    cell: (info) => info.getValue()
+  }),
+  columnHelper.accessor((row) => row, {
+    header: 'Evaluation',
+    enableSorting: false,
+    cell: (info) => (info.getValue() ? 'Enabled' : 'Disabled')
+  }),
+  columnHelper.accessor('type', {
+    header: 'Type',
+    cell: (info) => flagTypeToLabel(info.getValue())
+  }),
+  columnHelper.accessor((row) => row.createdAt, {
+    header: 'Created',
+    id: 'createdAt',
+    sortingFn: (
+      rowA: Row<IFlag>,
+      rowB: Row<IFlag>,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _columnId: string
+    ): number =>
+      new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
+        ? 1
+        : -1
+  }),
+  columnHelper.accessor((row) => row.updatedAt, {
+    header: 'Updated',
+    id: 'updatedAt',
+    sortingFn: (
+      rowA: Row<IFlag>,
+      rowB: Row<IFlag>,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _columnId: string
+    ): number =>
+      new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
+        ? 1
+        : -1
+  })
+];
+
+export default function FlagTable(props: FlagTableProps) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const namespace = props.namespace;
 
   const path = `/namespaces/${namespace.key}/flags`;
-
-  const searchThreshold = 10;
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -55,104 +138,18 @@ export default function FlagTable(props: FlagTableProps) {
 
   const [filter, setFilter] = useState<string>('');
 
-  const columnHelper = createColumnHelper<IFlag>();
-
-  const columns = [
-    columnHelper.accessor('key', {
-      header: 'Key',
-      cell: (info) => (
-        <Link to={`${path}/${info.getValue()}`} className="text-violet-500">
-          {truncateKey(info.getValue())}
-        </Link>
-      ),
-      meta: {
-        className:
-          'truncate whitespace-nowrap py-4 px-3 text-sm font-medium text-gray-900'
-      }
-    }),
-    columnHelper.accessor('name', {
-      header: 'Name',
-      cell: (info) => info.getValue(),
-      meta: {
-        className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-      }
-    }),
-    columnHelper.accessor(
-      (row) => row.type === FlagType.BOOLEAN || row.enabled,
-      {
-        header: 'Evaluation',
-        cell: (info) => (
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 ${
-              info.getValue()
-                ? 'bg-green-100 text-green-600'
-                : 'bg-gray-100 text-gray-500'
-            }`}
-          >
-            {info.getValue() ? 'Enabled' : 'Disabled'}
-          </span>
-        ),
-        meta: {
-          className: 'whitespace-nowrap py-4 px-3 text-sm'
-        }
-      }
-    ),
-    columnHelper.accessor('type', {
-      header: 'Type',
-      cell: (info) => flagTypeToLabel(info.getValue()),
-      meta: {
-        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
-      }
-    }),
-    columnHelper.accessor((row) => row, {
-      header: 'Default Value',
-      cell: (info) => flagDefaultValue(info.getValue()),
-      meta: {
-        className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-600'
-      }
-    }),
-    columnHelper.accessor('description', {
-      header: 'Description',
-      cell: (info) => info.getValue(),
-      meta: {
-        className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-      }
-    }),
-    columnHelper.accessor((row) => inTimezone(row.createdAt), {
-      header: 'Created',
-      id: 'createdAt',
-      meta: {
-        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-      },
-      sortingFn: (
-        rowA: Row<IFlag>,
-        rowB: Row<IFlag>,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _columnId: string
-      ): number =>
-        new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
-          ? 1
-          : -1
-    }),
-    columnHelper.accessor((row) => inTimezone(row.updatedAt), {
-      header: 'Updated',
-      id: 'updatedAt',
-      meta: {
-        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-      },
-      sortingFn: (
-        rowA: Row<IFlag>,
-        rowB: Row<IFlag>,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _columnId: string
-      ): number =>
-        new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
-          ? 1
-          : -1
-    })
-  ];
-
   const sorting = useSelector(selectSorting);
+
+  const { data, isLoading, error } = useListFlagsQuery(namespace.key);
+  const flags = useMemo(() => data?.flags || [], [data]);
+
+  const { setError } = useError();
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
+
   const table = useReactTable({
     data: flags,
     columns,
@@ -175,92 +172,68 @@ export default function FlagTable(props: FlagTableProps) {
     getFilteredRowModel: getFilteredRowModel()
   });
 
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
   return (
     <>
-      {flags.length >= searchThreshold && (
-        <Searchbox className="mb-4" value={filter ?? ''} onChange={setFilter} />
+      <div className="flex items-center justify-between">
+        <div className="flex flex-1 items-center justify-between space-x-2">
+          <Search
+            value={filter ?? ''}
+            onChange={setFilter}
+            className="h-8 w-[150px] flex-grow text-xs lg:w-[250px]"
+          />
+          <DataTableViewOptions table={table} />
+        </div>
+      </div>
+      {table.getRowCount() === 0 && filter.length === 0 && (
+        <Well>
+          <p>
+            Flags enable you to control and roll out new functionality
+            dynamically. Create a{' '}
+            <Link className="text-violet-500" to={`${path}/new`}>
+              new flag
+            </Link>{' '}
+            to get started.
+          </p>
+        </Well>
       )}
-      <table className="divide-y divide-gray-300">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) =>
-                header.column.getCanSort() ? (
-                  <th
-                    key={header.id}
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                  >
-                    <div
-                      className="group inline-flex cursor-pointer"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
-                        {{
-                          asc: (
-                            <ChevronUpIcon
-                              className="h-5 w-5"
-                              aria-hidden="true"
-                            />
-                          ),
-                          desc: (
-                            <ChevronDownIcon
-                              className="h-5 w-5"
-                              aria-hidden="true"
-                            />
-                          )
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </span>
-                    </div>
-                  </th>
-                ) : (
-                  <th
-                    key={header.id}
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </th>
-                )
-              )}
-            </tr>
-          ))}
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className={cell.column.columnDef?.meta?.className}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Pagination
-        currentPage={table.getState().pagination.pageIndex + 1}
-        totalCount={table.getFilteredRowModel().rows.length}
-        pageSize={pagination.pageSize}
-        onPageChange={(page: number, size: number) => {
-          table.setPageIndex(page - 1);
-          table.setPageSize(size);
-        }}
-      />
+      {table.getRowCount() === 0 && filter.length > 0 && (
+        <Well>
+          <p>No flags matched your search.</p>
+        </Well>
+      )}
+      {table.getRowModel().rows.map((row) => {
+        const item = row.original;
+        return (
+          <button
+            role="link"
+            key={row.id}
+            className={cn(
+              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
+            )}
+            onClick={() => navigate(`${path}/${item.key}`)}
+          >
+            <div className="flex w-full flex-col gap-1">
+              <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <div className="truncate font-semibold">{item.name}</div>
+                  <Badge variant="outlinemuted" className="hidden sm:block">
+                    {item.key}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <div className="line-clamp-2 text-xs text-secondary-foreground">
+              {item.description}
+            </div>
+            <FlagDetails item={item} />
+          </button>
+        );
+      })}
+      <DataTablePagination table={table} />
     </>
   );
 }

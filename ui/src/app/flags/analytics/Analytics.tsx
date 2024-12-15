@@ -1,11 +1,9 @@
-import { Formik } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
-import Combobox from '~/components/forms/Combobox';
 import 'chartjs-adapter-date-fns';
-import { addMinutes, format, parseISO } from 'date-fns';
+import { addMinutes } from 'date-fns';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { IFlag } from '~/types/Flag';
 import { Graph } from '~/components/graphs';
@@ -13,12 +11,11 @@ import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectConfig } from '~/app/meta/metaSlice';
+import Listbox from '~/components/forms/Listbox';
 
 type AnalyticsProps = {
   flag: IFlag;
 };
-
-const timeFormat = 'yyyy-MM-dd HH:mm:ss';
 
 interface IDuration {
   value: number;
@@ -60,8 +57,9 @@ const durations: FilterableDurations[] = [
 ];
 
 export default function Analytics() {
-  const [selectedDuration, setSelectedDuration] =
-    useState<FilterableDurations | null>(durations[0]);
+  const [selectedDuration, setSelectedDuration] = useState<FilterableDurations>(
+    durations[0]
+  );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
 
   const { flag } = useOutletContext<AnalyticsProps>();
@@ -71,23 +69,17 @@ export default function Analytics() {
 
   const d = new Date();
   d.setSeconds(0);
-  const nowISO = parseISO(d.toISOString());
+  d.setMilliseconds(0);
 
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
     {
       namespaceKey: namespace.key,
       flagKey: flag.key,
-      from: format(
-        addMinutes(
-          addMinutes(
-            nowISO,
-            selectedDuration?.value ? selectedDuration.value * -1 : -60
-          ),
-          nowISO.getTimezoneOffset()
-        ),
-        timeFormat
-      ),
-      to: format(addMinutes(nowISO, nowISO.getTimezoneOffset()), timeFormat)
+      from: addMinutes(
+        d,
+        selectedDuration?.value ? selectedDuration.value * -1 : -60
+      ).toISOString(),
+      to: d.toISOString()
     },
     {
       pollingInterval,
@@ -97,14 +89,10 @@ export default function Analytics() {
 
   const flagEvaluationCount = useMemo(() => {
     return {
-      timestamps: getFlagEvaluationCount.data?.timestamps,
-      values: getFlagEvaluationCount.data?.values
+      timestamps: getFlagEvaluationCount.data?.timestamps || [],
+      values: getFlagEvaluationCount.data?.values || []
     };
   }, [getFlagEvaluationCount]);
-
-  const initialValues = {
-    durationValue: selectedDuration?.key
-  };
 
   // Set the polling interval to 0 every time we change
   // durations.
@@ -113,60 +101,50 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mb-12">
+    <div className="mt-2 max-w-screen-lg">
       {config.analyticsEnabled ? (
         <>
-          <>
-            <Formik
-              initialValues={initialValues}
-              onSubmit={async function () {
-                console.error('not implemented');
-              }}
-            >
-              {() => (
-                <div className="right-24 z-10 flex justify-end space-x-2 md:absolute">
-                  <Combobox<FilterableDurations>
-                    id="durationValue"
-                    name="durationValue"
-                    placeholder="Select duration"
-                    values={durations}
-                    selected={selectedDuration}
-                    setSelected={setSelectedDuration}
-                  />
-                  <div className="mt-2">
-                    {pollingInterval !== 0 ? (
-                      <>
-                        <PauseIcon
-                          className="h-5 w-5"
-                          onClick={() => setPollingInterval(0)}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <PlayIcon
-                          className="h-5 w-5"
-                          onClick={() => setPollingInterval(3000)}
-                        />
-                      </>
-                    )}
-                  </div>
-                </div>
+          <div className="sm:flex sm:items-center">
+            <div className="sm:flex-auto">
+              <p className="mt-1 text-sm text-gray-500">
+                Track and measure the impact in real-time.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Listbox<FilterableDurations>
+                id="durationValue"
+                name="durationValue"
+                values={durations}
+                selected={selectedDuration}
+                setSelected={setSelectedDuration}
+                className="-mt-2 w-32"
+              />
+              {pollingInterval !== 0 ? (
+                <PauseIcon
+                  className="h-5 w-5 text-gray-500"
+                  onClick={() => setPollingInterval(0)}
+                />
+              ) : (
+                <PlayIcon
+                  className="h-5 w-5 text-gray-500"
+                  onClick={() => setPollingInterval(3000)}
+                />
               )}
-            </Formik>
-          </>
-          <div className="md:relative md:top-12">
+            </div>
+          </div>
+          <div className="mt-10">
             <Graph
-              timestamps={flagEvaluationCount.timestamps || []}
-              values={flagEvaluationCount.values || []}
+              timestamps={flagEvaluationCount.timestamps}
+              values={flagEvaluationCount.values}
               flagKey={flag.key}
             />
           </div>
         </>
       ) : (
-        <div className="flex flex-col text-center">
+        <div className="mt-10">
           <Well>
-            <p className="text-sm text-gray-600">Analytics Disabled</p>
-            <p className="mt-4 text-sm text-gray-500">
+            <p>Analytics Disabled</p>
+            <p className="mt-4">
               See the configuration{' '}
               <a
                 className="text-violet-500"

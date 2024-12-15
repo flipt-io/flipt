@@ -47,7 +47,7 @@ export default function Sidebar(props: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-950 pb-4 pt-5 dark:bg-white">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-black pb-4 pt-5">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -60,12 +60,12 @@ export default function Sidebar(props: SidebarProps) {
                   <div className="absolute right-0 top-0 -mr-12 pt-2">
                     <button
                       type="button"
-                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white dark:focus:ring-black"
+                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                       onClick={() => setSidebarOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
                       <XMarkIcon
-                        className="h-6 w-6 text-white dark:text-black"
+                        className="h-6 w-6 text-white"
                         aria-hidden="true"
                       />
                     </button>
@@ -99,7 +99,7 @@ export default function Sidebar(props: SidebarProps) {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
           <div
-            className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pb-1 pt-2 dark:border-b dark:border-b-white/20 dark:bg-white"
+            className="relative flex h-16 flex-shrink-0 items-center bg-black px-4 pb-1 pt-2 dark:border-b dark:border-b-background/20"
             style={topbarStyle}
           >
             <Link to="/">

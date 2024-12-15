@@ -155,7 +155,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       }}
     >
       {(formik) => (
-        <Form className="flex h-full w-full flex-col bg-white">
+        <Form className="flex h-full w-full flex-col">
           <div className="w-full flex-1">
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
               {rollout.type === RolloutType.THRESHOLD ? (

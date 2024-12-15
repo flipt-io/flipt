@@ -93,7 +93,7 @@ export default function Preferences() {
                   <span
                     aria-hidden="true"
                     className={cls(
-                      'inline-block h-5 w-5 translate-x-0 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      'inline-block h-5 w-5 translate-x-0 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out',
                       {
                         'translate-x-5': isUTC
                       }

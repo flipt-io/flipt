@@ -1465,6 +1465,10 @@
                 "url": {
                   "type": "string",
                   "default": ""
+                },
+                "headers": {
+                  "type": ["object", "null"],
+                  "additionalProperties": { "type": "string" }
                 }
               },
               "title": "Prometheus"

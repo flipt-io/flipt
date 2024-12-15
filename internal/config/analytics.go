@@ -60,8 +60,9 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 
 // PrometheusConfig defines the connection details for connecting Flipt to Prometheus.
 type PrometheusConfig struct {
-	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	URL     string `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
+	Enabled bool              `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	URL     string            `json:"-" mapstructure:"url" yaml:"-"`
+	Headers map[string]string `json:"-" mapstructure:"headers" yaml:"-"`
 }
 
 //nolint:unparam

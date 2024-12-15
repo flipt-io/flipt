@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getConfig, getInfo } from '~/data/api';
+import { getInfo } from '~/data/api';
 import { IConfig, IInfo, LoadingStatus, StorageType } from '~/types/Meta';
 import { Theme } from '~/types/Preferences';
 
@@ -40,23 +40,27 @@ export const metaSlice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      .addCase(fetchInfoAsync.fulfilled, (state, action) => {
-        state.info = action.payload;
-      })
-      .addCase(fetchConfigAsync.pending, (state, _action) => {
+      .addCase(fetchInfoAsync.pending, (state, _action) => {
         state.config.status = LoadingStatus.LOADING;
       })
-      .addCase(fetchConfigAsync.fulfilled, (state, action) => {
-        state.config = action.payload;
+      .addCase(fetchInfoAsync.fulfilled, (state, action) => {
+        state.info = action.payload;
         state.config.status = LoadingStatus.SUCCEEDED;
         state.config.analyticsEnabled =
-          action.payload.analytics.storage.clickhouse?.enabled ||
-          action.payload.analytics.storage.prometheus?.enabled;
-        if (action.payload.storage?.readOnly === undefined) {
+          action.payload.analytics?.enabled || false;
+        if (action.payload.storage !== undefined) {
+          state.config.storage.type = action.payload.storage?.type;
+          state.config.storage.git = action.payload.storage?.metadata;
           state.config.storage.readOnly =
-            action.payload.storage?.type &&
-            action.payload.storage?.type !== StorageType.DATABASE;
+            action.payload.storage &&
+            action.payload.storage.type !== StorageType.DATABASE;
         }
+        state.config.ui = {
+          defaultTheme: action.payload.ui?.Theme || Theme.SYSTEM,
+          topbar: {
+            color: action.payload.ui?.TopbarColor || ''
+          }
+        };
       });
   }
 });
@@ -70,13 +74,5 @@ export const fetchInfoAsync = createAsyncThunk('meta/fetchInfo', async () => {
   const response = await getInfo();
   return response;
 });
-
-export const fetchConfigAsync = createAsyncThunk(
-  'meta/fetchConfig',
-  async () => {
-    const response = await getConfig();
-    return response;
-  }
-);
 
 export default metaSlice.reducer;

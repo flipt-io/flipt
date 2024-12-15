@@ -18,7 +18,6 @@ import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { useTimezone } from '~/data/hooks/timezone';
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
@@ -26,6 +25,7 @@ import {
 } from './flagsApi';
 import { FlagType } from '~/types/Flag';
 import { cls } from '~/utils/helpers';
+import { PageHeader } from '~/components/ui/page';
 
 const variantFlagTabs = [
   { name: 'Variants', to: '' },
@@ -40,7 +40,6 @@ const booleanFlagTabs = [
 
 export default function Flag() {
   let { flagKey } = useParams();
-  const { inTimezone } = useTimezone();
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
@@ -130,127 +129,95 @@ export default function Flag() {
       </Modal>
 
       {/* flag header / actions */}
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            {flag.name}
-          </h2>
-          <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div
-              title={inTimezone(flag.createdAt)}
-              className="mt-2 flex items-center text-sm text-gray-500"
-            >
-              <CalendarIcon
-                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                aria-hidden="true"
-              />
-              Created{' '}
-              {formatDistanceToNowStrict(parseISO(flag.createdAt), {
-                addSuffix: true
-              })}
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-none">
-          <Dropdown
-            label="Actions"
-            actions={[
-              {
-                id: 'flag-copy',
-                label: 'Copy to Namespace',
-                disabled: readOnly || namespaces.length < 2,
-                onClick: () => {
-                  setShowCopyFlagModal(true);
-                },
-                icon: FilesIcon
+      <PageHeader title={flag.name}>
+        <Dropdown
+          label="Actions"
+          actions={[
+            {
+              id: 'flag-copy',
+              label: 'Copy to Namespace',
+              disabled: readOnly || namespaces.length < 2,
+              onClick: () => {
+                setShowCopyFlagModal(true);
               },
-              {
-                id: 'flag-delete',
-                label: 'Delete',
-                disabled: readOnly,
-                onClick: () => setShowDeleteFlagModal(true),
-                icon: Trash2Icon,
-                variant: 'destructive'
-              }
-            ]}
-          />
+              icon: FilesIcon
+            },
+            {
+              id: 'flag-delete',
+              label: 'Delete',
+              disabled: readOnly,
+              onClick: () => setShowDeleteFlagModal(true),
+              icon: Trash2Icon,
+              variant: 'destructive'
+            }
+          ]}
+        />
+      </PageHeader>
+
+      {/* Info Section */}
+      <div className="mb-8 space-y-4">
+        <div className="flex items-center text-sm text-gray-500">
+          <CalendarIcon className="mr-1.5 h-5 w-5 text-gray-400" />
+          Created{' '}
+          {formatDistanceToNowStrict(parseISO(flag.createdAt), {
+            addSuffix: true
+          })}
         </div>
+
+        <MoreInfo href="https://www.flipt.io/docs/concepts#flags">
+          Learn more about flags
+        </MoreInfo>
       </div>
 
-      <div className="flex flex-col">
-        {/* flag details */}
-        <div className="my-5">
-          <div className="md:grid md:grid-cols-3 md:gap-6">
-            <div className="md:col-span-1">
-              <p className="mt-1 text-sm text-gray-500">
-                Basic information about the flag and its status.
-              </p>
-              <MoreInfo
-                className="mt-5"
-                href="https://www.flipt.io/docs/concepts#flags"
-              >
-                Learn more about flags
-              </MoreInfo>
-            </div>
-            <div className="mt-5 md:col-span-2 md:mt-0">
-              <FlagForm flag={flag} />
-            </div>
-          </div>
-        </div>
-        <>
-          <div className="mt-3 flex flex-row sm:mt-5">
-            <div className="border-b-2 border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                {flag.type === FlagType.VARIANT ? (
-                  <>
-                    {variantFlagTabs.map((tab) => (
-                      <NavLink
-                        end
-                        key={tab.name}
-                        to={tab.to}
-                        className={({ isActive }) =>
-                          cls(
-                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                            {
-                              'border-violet-500 text-violet-600': isActive,
-                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
-                                !isActive
-                            }
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {booleanFlagTabs.map((tab) => (
-                      <NavLink
-                        end
-                        key={tab.name}
-                        to={tab.to}
-                        className={({ isActive }) =>
-                          cls(
-                            'whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                            {
-                              'border-violet-500 text-violet-600': isActive,
-                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
-                                !isActive
-                            }
-                          )
-                        }
-                      >
-                        {tab.name}
-                      </NavLink>
-                    ))}
-                  </>
-                )}
-              </nav>
-            </div>
-          </div>
-          <Outlet context={{ flag }} />
-        </>
+      {/* Form Section - Full Width */}
+      <div className="mb-8">
+        <FlagForm flag={flag} />
+      </div>
+
+      {/* Tabs Section */}
+      <div>
+        <nav className="mb-8 space-x-4">
+          {flag.type === FlagType.VARIANT ? (
+            <>
+              {variantFlagTabs.map((tab) => (
+                <NavLink
+                  end
+                  key={tab.name}
+                  to={tab.to}
+                  className={({ isActive }) =>
+                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
+                      'border-violet-500 text-violet-600': isActive,
+                      'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
+                        !isActive
+                    })
+                  }
+                >
+                  {tab.name}
+                </NavLink>
+              ))}
+            </>
+          ) : (
+            <>
+              {booleanFlagTabs.map((tab) => (
+                <NavLink
+                  end
+                  key={tab.name}
+                  to={tab.to}
+                  className={({ isActive }) =>
+                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
+                      'border-violet-500 text-violet-600': isActive,
+                      'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
+                        !isActive
+                    })
+                  }
+                >
+                  {tab.name}
+                </NavLink>
+              ))}
+            </>
+          )}
+        </nav>
+        <Outlet context={{ flag }} />
       </div>
     </>
   );

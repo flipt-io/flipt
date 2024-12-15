@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../../images/logos/clickhouse.svg" alt="MySQL" width=150 height=150 />
+    <img src="../../images/logos/clickhouse.svg" alt="ClickHouse" width=150 height=150 />
 </p>
 
 # ClickHouse Example
@@ -8,7 +8,7 @@ Flipt supports storing and querying flag evaluation data by leveraging [ClickHou
 
 This example demonstrates how to use Flipt with ClickHouse to store and query flag evaluation data.
 
-!['ClickHouse Example'](../../images/clickhouse.png)
+!['Analytics Example'](../../images/analytics.png)
 
 ## Requirements
 

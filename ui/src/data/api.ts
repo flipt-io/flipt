@@ -191,7 +191,3 @@ async function getMeta(path: string) {
 export async function getInfo() {
   return getMeta('/info');
 }
-
-export async function getConfig() {
-  return getMeta('/config');
-}

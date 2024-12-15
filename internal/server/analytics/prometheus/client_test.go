@@ -3,6 +3,8 @@ package prometheus
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -16,12 +18,35 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("x-app-key") != "1234" {
+			t.Error("missing or invalid x-app-key header")
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(`{
+       "status":"success",
+       "data":{
+          "resultType":"matrix",
+          "result":[{"metric":{},"values":[[1732699504.975,"0"]]}]
+       }}`))
+		if err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
 	logger := zaptest.NewLogger(t)
 	cfg := config.Default()
-	cfg.Analytics.Storage.Prometheus.URL = "http://prometheus:9090"
+	cfg.Analytics.Storage.Prometheus.URL = srv.URL
+	cfg.Analytics.Storage.Prometheus.Headers = map[string]string{
+		"x-app-key": "1234",
+	}
 	s, err := New(logger, cfg)
 	require.NoError(t, err)
 	assert.Equal(t, "prometheus", s.String())
+	_, _, err = s.GetFlagEvaluationsCount(context.Background(), &panalytics.FlagEvaluationsCountRequest{})
+	require.NoError(t, err)
 
 	cfg.Analytics.Storage.Prometheus.URL = "\t"
 	_, err = New(logger, cfg)
@@ -70,6 +95,52 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, labels, 2)
 		assert.Len(t, values, 2)
+	})
+
+	t.Run("success with victoria metrics", func(t *testing.T) {
+		data := model.Matrix{
+			{
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.Add(1 * time.Minute).UnixMilli()), Value: 1},
+					{Timestamp: model.Time(from.Add(4 * time.Minute).UnixMilli()), Value: 4},
+				},
+			},
+			{
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.Add(1 * time.Minute).UnixMilli()), Value: 0},
+					{Timestamp: model.Time(from.Add(2 * time.Minute).UnixMilli()), Value: 0},
+					{Timestamp: model.Time(from.Add(3 * time.Minute).UnixMilli()), Value: 0},
+					{Timestamp: model.Time(from.Add(4 * time.Minute).UnixMilli()), Value: 0},
+				},
+			},
+		}
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{namespace="victoria", flag="metrics"}[1m])) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		labels, values, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
+			NamespaceKey: "victoria",
+			FlagKey:      "metrics",
+			From:         from,
+			To:           to,
+			StepMinutes:  1,
+		})
+
+		require.NoError(t, err)
+		assert.Len(t, labels, 4)
+		assert.Len(t, values, 4)
+		assert.Equal(t, []float32{1, 0, 0, 4}, values)
 	})
 
 	t.Run("no data type", func(t *testing.T) {

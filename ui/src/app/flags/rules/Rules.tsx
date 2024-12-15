@@ -125,8 +125,8 @@ export function DefaultVariant(props: RulesProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-white shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 bg-white p-2">
+            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
                   <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
                   <h3 className="text-sm font-normal leading-6 text-gray-700">
@@ -144,7 +144,7 @@ export function DefaultVariant(props: RulesProps) {
               </div>
               <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                 <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col bg-white">
+                  <Form className="flex w-full flex-col">
                     <div className="w-full flex-1">
                       <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                         {flag.variants && flag.variants.length > 0 && (
@@ -272,7 +272,6 @@ export default function Rules() {
       const size = rule.segmentKeys ? rule.segmentKeys.length : 0;
 
       // Combine both segment and segments for legacy purposes.
-      // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
       for (let i = 0; i < size; i++) {
         const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
         const segment = segments.find(
@@ -409,7 +408,11 @@ export default function Rules() {
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <p className="mt-1 text-sm text-gray-500">
-              Enable rich targeting and segmentation for evaluating your flags
+              Rules are evaluated in order from top to bottom.
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              Rules can be rearranged by clicking on the header and dragging and
+              dropping it into place.
             </p>
           </div>
           {((rules && rules.length > 0) || showDefaultVariant) && (
@@ -428,20 +431,8 @@ export default function Rules() {
         </div>
         <div className="mt-10">
           {(rules && rules.length > 0) || showDefaultVariant ? (
-            <div className="flex lg:space-x-5">
-              <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm font-light text-gray-700">
-                  Rules are evaluated in order from{' '}
-                  <span className="font-semibold">top to bottom</span>. The
-                  first rule that matches will be applied.
-                </p>
-                <p className="text-sm font-light text-gray-700">
-                  Rules can be rearranged by clicking on a rule header and{' '}
-                  <span className="font-semibold">dragging and dropping</span>{' '}
-                  it into place.
-                </p>
-              </div>
-              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:w-3/4 lg:p-6">
+            <div className="flex">
+              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}

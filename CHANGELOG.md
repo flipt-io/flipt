@@ -3,6 +3,72 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.53.1](https://github.com/flipt-io/flipt/releases/tag/v1.53.1) - 2024-12-09
+
+### Fixed
+
+- `analytics`: prevent panic with clickhouse setup (#3694)
+- `analytics`: use rfc3339 for timestamps (#3695)
+
+## [v1.53.0](https://github.com/flipt-io/flipt/releases/tag/v1.53.0) - 2024-12-06
+
+### Added
+
+- `ui`: new table view for flags and segments (#3664)
+
+### Changed
+
+- `ui`: stop using /meta/config endpoint (#3684)
+- `ui`: use black as black, white as white (#3687)
+- `github auth`: pass org and teams to metadata (#3654)
+
+### Fixed
+
+- `ui`: use table skeleton while flags or segments are loading (#3682)
+- `ui`: use local timezone as default (#3680)
+- `ui`: fix layout for user name and login (#3666)
+- `analytics`: support Victoria Metrics with Prometheus storage (#3663)
+
+## [v1.52.2](https://github.com/flipt-io/flipt/releases/tag/v1.52.2) - 2024-12-03
+
+### Fixed
+
+- dont return db url in meta/config response (#3681)
+
+## [v1.52.1](https://github.com/flipt-io/flipt/releases/tag/v1.52.1) - 2024-11-27
+
+### Added
+
+- `analytics`: allow to set Authorization header for prometheus (#3656)
+
+### Changed
+
+- remove extra line in changelog to make linter happy (#3655)
+
+### Fixed
+
+- `ui`: tweak flag tabs to have the same layout (#3659)
+- `config`: incorrect json serialization tag (#3658)
+
+## [v1.52.0](https://github.com/flipt-io/flipt/releases/tag/v1.52.0) - 2024-11-25
+
+### Added
+
+- `analytics`: use Prometheus as source for analytics to display chart (#3619)
+
+### Changed
+
+- `ui`: rework dropdown component (#3634)
+- `ui`: remove some duplication with buttons (#3615)
+- `nightly`: fix goreleaser configuration for nightly (#3614)
+- `ui`: remove nightwind as dependency (#3599)
+
+### Fixed
+
+- `import`: import flags with complex metadata (#3639)
+- `config`: update schema for git storage backend property (#3617)
+- `ui`: use dark scheme for browser built-in inputs/scrolls in dark mode (#3601)
+
 ## [v1.51.1](https://github.com/flipt-io/flipt/releases/tag/v1.51.1) - 2024-11-05
 
 ### Changed
