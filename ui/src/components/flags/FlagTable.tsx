@@ -177,11 +177,7 @@ export default function FlagTable(props: FlagTableProps) {
     <>
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center justify-between">
-          <Searchbox
-            value={filter ?? ''}
-            onChange={setFilter}
-            className="mb-6"
-          />
+          <Searchbox value={filter ?? ''} onChange={setFilter} />
           <DataTableViewOptions table={table} />
         </div>
       </div>
