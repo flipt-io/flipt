@@ -43,7 +43,7 @@ type DropdownProps = {
 };
 
 export default function Dropdown(props: DropdownProps) {
-  const { label, actions, disabled = true, side, kind } = props;
+  const { label, actions, disabled = false, side, kind } = props;
   let BtnIcon = ChevronDown;
   let variant: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost' =
     'secondary';
