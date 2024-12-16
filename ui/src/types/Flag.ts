@@ -17,7 +17,6 @@ export function flagTypeToLabel(flagType: FlagType): string {
       return 'Unknown';
   }
 }
-
 export interface IFlagBase {
   key: string;
   type: FlagType;
@@ -28,8 +27,7 @@ export interface IFlagBase {
 }
 
 export interface IFlag extends IFlagBase {
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string;  updatedAt: string;
   variants?: IVariant[];
 }
 
