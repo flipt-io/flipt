@@ -5,7 +5,6 @@ package http
 import (
 	bytes "bytes"
 	context "context"
-	errors "errors"
 	fmt "fmt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	_go "go.flipt.io/flipt/sdk/go"
@@ -97,9 +96,6 @@ func (x *authenticationServiceClient) GetAuthenticationSelf(ctx context.Context,
 
 func (x *authenticationServiceClient) GetAuthentication(ctx context.Context, v *auth.GetAuthenticationRequest, _ ...grpc.CallOption) (*auth.Authentication, error) {
 	var body io.Reader
-	if v.Id == "" {
-		return nil, errors.New("field id: cannot be empty")
-	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/tokens/%v", v.Id), body)
 	if err != nil {
@@ -157,9 +153,6 @@ func (x *authenticationServiceClient) ListAuthentications(ctx context.Context, v
 
 func (x *authenticationServiceClient) DeleteAuthentication(ctx context.Context, v *auth.DeleteAuthenticationRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	if v.Id == "" {
-		return nil, errors.New("field id: cannot be empty")
-	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/auth/v1/tokens/%v", v.Id), body)
 	if err != nil {
@@ -279,9 +272,6 @@ type authenticationMethodOIDCServiceClient struct {
 
 func (x *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest, _ ...grpc.CallOption) (*auth.AuthorizeURLResponse, error) {
 	var body io.Reader
-	if v.Provider == "" {
-		return nil, errors.New("field provider: cannot be empty")
-	}
 	values := url.Values{}
 	values.Set("state", v.State)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oidc/%v/authorize", v.Provider), body)
@@ -310,9 +300,6 @@ func (x *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context
 
 func (x *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, v *auth.CallbackRequest, _ ...grpc.CallOption) (*auth.CallbackResponse, error) {
 	var body io.Reader
-	if v.Provider == "" {
-		return nil, errors.New("field provider: cannot be empty")
-	}
 	values := url.Values{}
 	values.Set("code", v.Code)
 	values.Set("state", v.State)
