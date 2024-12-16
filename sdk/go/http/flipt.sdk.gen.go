@@ -86,6 +86,9 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 
 func (x *FliptClient) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
 	var body io.Reader
+	if v.Key == "" {
+		v.Key = "default"
+	}
 	values := url.Values{}
 	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
@@ -209,6 +212,9 @@ func (x *FliptClient) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamesp
 
 func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.Key == "" {
+		v.Key = "default"
+	}
 	values := url.Values{}
 	values.Set("force", fmt.Sprintf("%v", v.Force))
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
@@ -237,6 +243,9 @@ func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamesp
 
 func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ...grpc.CallOption) (*flipt.Flag, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
@@ -265,6 +274,9 @@ func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ..
 
 func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _ ...grpc.CallOption) (*flipt.FlagList, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
@@ -360,6 +372,9 @@ func (x *FliptClient) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest
 
 func (x *FliptClient) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
@@ -451,6 +466,9 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 
 func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/variants/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
@@ -478,6 +496,9 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 
 func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ...grpc.CallOption) (*flipt.Rule, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
@@ -506,6 +527,9 @@ func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ..
 
 func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _ ...grpc.CallOption) (*flipt.RuleList, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
@@ -633,6 +657,9 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 
 func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
@@ -660,6 +687,9 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 
 func (x *FliptClient) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest, _ ...grpc.CallOption) (*flipt.Rollout, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
@@ -688,6 +718,9 @@ func (x *FliptClient) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest
 
 func (x *FliptClient) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest, _ ...grpc.CallOption) (*flipt.RolloutList, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("pageToken", v.PageToken)
@@ -782,6 +815,9 @@ func (x *FliptClient) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutR
 
 func (x *FliptClient) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
@@ -905,6 +941,9 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 
 func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDistributionRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("variantId", v.VariantId)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions/%v", v.NamespaceKey, v.FlagKey, v.RuleId, v.Id), body)
@@ -933,6 +972,9 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 
 func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest, _ ...grpc.CallOption) (*flipt.Segment, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("reference", v.Reference)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
@@ -961,6 +1003,9 @@ func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest
 
 func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequest, _ ...grpc.CallOption) (*flipt.SegmentList, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
@@ -1056,6 +1101,9 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 
 func (x *FliptClient) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
@@ -1147,6 +1195,9 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 
 func (x *FliptClient) DeleteConstraint(ctx context.Context, v *flipt.DeleteConstraintRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	if v.NamespaceKey == "" {
+		v.NamespaceKey = "default"
+	}
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v/constraints/%v", v.NamespaceKey, v.SegmentKey, v.Id), body)
 	if err != nil {
