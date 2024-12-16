@@ -28,7 +28,7 @@ import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '../Well';
+import Well from '~/components/Well';
 
 type FlagTableProps = {
   namespace: INamespaceBase;
@@ -180,7 +180,7 @@ export default function FlagTable(props: FlagTableProps) {
           <Searchbox
             value={filter ?? ''}
             onChange={setFilter}
-            className="text-xs"
+            className="mb-6"
           />
           <DataTableViewOptions table={table} />
         </div>

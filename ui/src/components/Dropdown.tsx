@@ -63,7 +63,7 @@ export default function Dropdown(props: DropdownProps) {
           data-testid={props['data-testid']}
         >
           {label}
-          <BtnIcon aria-hidden="true" />
+          <BtnIcon className="ml-1 h-4 w-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side={side || 'bottom'}>

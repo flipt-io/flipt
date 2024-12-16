@@ -33,7 +33,7 @@ export default function Searchbox(props: SearchboxProps) {
     <div
       className={`${className} flex flex-1 items-center justify-center lg:justify-start`}
     >
-      <div className="lg:max-w-s w-full max-w-lg">
+      <div className="lg:max-w-s w-full max-w-md">
         <label htmlFor="search" className="sr-only">
           Search
         </label>

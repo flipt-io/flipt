@@ -29,7 +29,7 @@ import { useError } from '~/data/hooks/error';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '../Well';
+import Well from '~/components/Well';
 
 type SegmentTableProps = {
   namespace: INamespaceBase;
@@ -171,7 +171,7 @@ export default function SegmentTable(props: SegmentTableProps) {
           <Searchbox
             value={filter ?? ''}
             onChange={setFilter}
-            className="text-xs"
+            className="mb-6"
           />
           <DataTableViewOptions table={table} />
         </div>
