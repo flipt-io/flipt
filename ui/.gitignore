@@ -28,3 +28,4 @@ dist-ssr
 .packagehash
 /screenshots/
 .env
+coverage
