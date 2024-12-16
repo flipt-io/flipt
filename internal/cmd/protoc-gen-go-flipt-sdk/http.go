@@ -253,7 +253,6 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 				pathDefaults = fc.PathDefaults
 			}
 		}
-		fmt.Fprintln(os.Stderr, pathDefaults)
 
 		for _, field := range method.Input.Fields {
 			if _, ok := inPath[field]; ok {
