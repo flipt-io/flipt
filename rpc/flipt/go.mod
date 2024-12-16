@@ -8,7 +8,7 @@ require (
 	github.com/google/gnostic-models v0.6.9
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	go.flipt.io/flipt/errors v1.45.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576
