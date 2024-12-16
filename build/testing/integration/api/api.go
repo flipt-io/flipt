@@ -100,7 +100,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 		assert.Equal(t, "Some kind of description", updated.Description)
 	})
 
-	for i, namespace := range opts.Namespaces() {
+	for i, namespace := range integration.Namespaces {
 		t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
 			t.Run("Flags and Variants", func(t *testing.T) {
 				t.Log("Create a new enabled flag with key \"test\".")
@@ -1355,7 +1355,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 			})
 		})
 
-		if i < len(opts.Namespaces())-1 {
+		if i < len(integration.Namespaces)-1 {
 			// this is lame I know, but its for the cache to attempt to ensure
 			// evictions between each loop iteration so that we don't polute
 			// the state between runs

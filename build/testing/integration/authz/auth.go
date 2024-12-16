@@ -285,325 +285,243 @@ func GetNamespace(in *flipt.GetNamespaceRequest) clientCall {
 		in.Key = "default"
 	}
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().GetNamespace(ctx, in); err != nil {
-			return fmt.Errorf("GetNamespace: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().GetNamespace(ctx, in)
+		return fmt.Errorf("GetNamespace: %w", err)
 	}
 }
 
 func ListNamespaces(in *flipt.ListNamespaceRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().ListNamespaces(ctx, in); err != nil {
-			return fmt.Errorf("ListNamespaces: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().ListNamespaces(ctx, in)
+		return fmt.Errorf("ListNamespaces: %w", err)
 	}
 }
 
 func CreateNamespace(in *flipt.CreateNamespaceRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateNamespace(ctx, in); err != nil {
-			return fmt.Errorf("CreateNamespace: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateNamespace(ctx, in)
+		return fmt.Errorf("CreateNamespace: %w", err)
 	}
 }
 
 func UpdateNamespace(in *flipt.UpdateNamespaceRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateNamespace(ctx, in); err != nil {
-			return fmt.Errorf("UpdateNamespace: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateNamespace(ctx, in)
+		return fmt.Errorf("UpdateNamespace: %w", err)
 	}
 }
 
 func DeleteNamespace(in *flipt.DeleteNamespaceRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteNamespace(ctx, in); err != nil {
-			return fmt.Errorf("DeleteNamespace: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteNamespace: %w", s.Flipt().DeleteNamespace(ctx, in))
 	}
 }
 
 func GetFlag(in *flipt.GetFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().GetFlag(ctx, in); err != nil {
-			return fmt.Errorf("GetFlag: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().GetFlag(ctx, in)
+		return fmt.Errorf("GetFlag: %w", err)
 	}
 }
 
 func ListFlags(in *flipt.ListFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().ListFlags(ctx, in); err != nil {
-			return fmt.Errorf("ListFlags: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().ListFlags(ctx, in)
+		return fmt.Errorf("ListFlags: %w", err)
 	}
 }
 
 func CreateFlag(in *flipt.CreateFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateFlag(ctx, in); err != nil {
-			return fmt.Errorf("CreateFlag: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateFlag(ctx, in)
+		return fmt.Errorf("CreateFlag: %w", err)
 	}
 }
 
 func UpdateFlag(in *flipt.UpdateFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateFlag(ctx, in); err != nil {
-			return fmt.Errorf("UpdateFlag: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateFlag(ctx, in)
+		return fmt.Errorf("UpdateFlag: %w", err)
 	}
 }
 
 func DeleteFlag(in *flipt.DeleteFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteFlag(ctx, in); err != nil {
-			return fmt.Errorf("DeleteFlag: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteFlag: %w", s.Flipt().DeleteFlag(ctx, in))
 	}
 }
 
 func CreateVariant(in *flipt.CreateVariantRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateVariant(ctx, in); err != nil {
-			return fmt.Errorf("CreateVariant: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateVariant(ctx, in)
+		return fmt.Errorf("CreateVariant: %w", err)
 	}
 }
 
 func UpdateVariant(in *flipt.UpdateVariantRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateVariant(ctx, in); err != nil {
-			return fmt.Errorf("UpdateVariant: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateVariant(ctx, in)
+		return fmt.Errorf("UpdateVariant: %w", err)
 	}
 }
 
 func DeleteVariant(in *flipt.DeleteVariantRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteVariant(ctx, in); err != nil {
-			return fmt.Errorf("DeleteVariant: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteVariant: %w", s.Flipt().DeleteVariant(ctx, in))
 	}
 }
 
 func GetRule(in *flipt.GetRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().GetRule(ctx, in); err != nil {
-			return fmt.Errorf("GetRule: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().GetRule(ctx, in)
+		return fmt.Errorf("GetRule: %w", err)
 	}
 }
 
 func ListRules(in *flipt.ListRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().ListRules(ctx, in); err != nil {
-			return fmt.Errorf("ListRules: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().ListRules(ctx, in)
+		return fmt.Errorf("ListRules: %w", err)
 	}
 }
 
 func CreateRule(in *flipt.CreateRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateRule(ctx, in); err != nil {
-			return fmt.Errorf("CreateRule: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateRule(ctx, in)
+		return fmt.Errorf("CreateRule: %w", err)
 	}
 }
 
 func UpdateRule(in *flipt.UpdateRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateRule(ctx, in); err != nil {
-			return fmt.Errorf("UpdateRule: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateRule(ctx, in)
+		return fmt.Errorf("UpdateRule: %w", err)
 	}
 }
 
 func DeleteRule(in *flipt.DeleteRuleRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteRule(ctx, in); err != nil {
-			return fmt.Errorf("DeleteRule: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteRule: %w", s.Flipt().DeleteRule(ctx, in))
 	}
 }
 
 func OrderRules(in *flipt.OrderRulesRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().OrderRules(ctx, in); err != nil {
-			return fmt.Errorf("OrderRules: %w", err)
-		}
-		return nil
+		return fmt.Errorf("OrderRules: %w", s.Flipt().OrderRules(ctx, in))
 	}
 }
 
 func CreateDistribution(in *flipt.CreateDistributionRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateDistribution(ctx, in); err != nil {
-			return fmt.Errorf("CreateDistribution: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateDistribution(ctx, in)
+		return fmt.Errorf("CreateDistribution: %w", err)
 	}
 }
 
 func UpdateDistribution(in *flipt.UpdateDistributionRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateDistribution(ctx, in); err != nil {
-			return fmt.Errorf("UpdateDistribution: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateDistribution(ctx, in)
+		return fmt.Errorf("UpdateDistribution: %w", err)
 	}
 }
 
 func DeleteDistribution(in *flipt.DeleteDistributionRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteDistribution(ctx, in); err != nil {
-			return fmt.Errorf("DeleteDistribution: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteDistribution: %w", s.Flipt().DeleteDistribution(ctx, in))
 	}
 }
 
 func CreateRollout(in *flipt.CreateRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateRollout(ctx, in); err != nil {
-			return fmt.Errorf("CreateRollout: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateRollout(ctx, in)
+		return fmt.Errorf("CreateRollout: %w", err)
 	}
 }
 
 func UpdateRollout(in *flipt.UpdateRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateRollout(ctx, in); err != nil {
-			return fmt.Errorf("UpdateRollout: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateRollout(ctx, in)
+		return fmt.Errorf("UpdateRollout: %w", err)
 	}
 }
 
 func DeleteRollout(in *flipt.DeleteRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteRollout(ctx, in); err != nil {
-			return fmt.Errorf("DeleteRollout: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteRollout: %w", s.Flipt().DeleteRollout(ctx, in))
 	}
 }
 
 func OrderRollouts(in *flipt.OrderRolloutsRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().OrderRollouts(ctx, in); err != nil {
-			return fmt.Errorf("OrderRollouts: %w", err)
-		}
-		return nil
+		return fmt.Errorf("OrderRollouts: %w", s.Flipt().OrderRollouts(ctx, in))
 	}
 }
 
 func GetRollout(in *flipt.GetRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().GetRollout(ctx, in); err != nil {
-			return fmt.Errorf("GetRollout: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().GetRollout(ctx, in)
+		return fmt.Errorf("GetRollout: %w", err)
 	}
 }
 
 func ListRollouts(in *flipt.ListRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().ListRollouts(ctx, in); err != nil {
-			return fmt.Errorf("ListRollouts: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().ListRollouts(ctx, in)
+		return fmt.Errorf("ListRollouts: %w", err)
 	}
 }
 
 func GetSegment(in *flipt.GetSegmentRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().GetSegment(ctx, in); err != nil {
-			return fmt.Errorf("GetSegment: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().GetSegment(ctx, in)
+		return fmt.Errorf("GetSegment: %w", err)
 	}
 }
 
 func ListSegments(in *flipt.ListSegmentRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().ListSegments(ctx, in); err != nil {
-			return fmt.Errorf("ListSegments: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().ListSegments(ctx, in)
+		return fmt.Errorf("ListSegments: %w", err)
 	}
 }
 
 func CreateSegment(in *flipt.CreateSegmentRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateSegment(ctx, in); err != nil {
-			return fmt.Errorf("CreateSegment: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateSegment(ctx, in)
+		return fmt.Errorf("CreateSegment: %w", err)
 	}
 }
 
 func UpdateSegment(in *flipt.UpdateSegmentRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateSegment(ctx, in); err != nil {
-			return fmt.Errorf("UpdateSegment: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateSegment(ctx, in)
+		return fmt.Errorf("UpdateSegment: %w", err)
 	}
 }
 
 func DeleteSegment(in *flipt.DeleteSegmentRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteSegment(ctx, in); err != nil {
-			return fmt.Errorf("DeleteSegment: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteSegment: %w", s.Flipt().DeleteSegment(ctx, in))
 	}
 }
 
 func CreateConstraint(in *flipt.CreateConstraintRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().CreateConstraint(ctx, in); err != nil {
-			return fmt.Errorf("CreateConstraint: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().CreateConstraint(ctx, in)
+		return fmt.Errorf("CreateConstraint: %w", err)
 	}
 }
 
 func UpdateConstraint(in *flipt.UpdateConstraintRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if _, err := s.Flipt().UpdateConstraint(ctx, in); err != nil {
-			return fmt.Errorf("UpdateConstraint: %w", err)
-		}
-		return nil
+		_, err := s.Flipt().UpdateConstraint(ctx, in)
+		return fmt.Errorf("UpdateConstraint: %w", err)
 	}
 }
 
 func DeleteConstraint(in *flipt.DeleteConstraintRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		if err := s.Flipt().DeleteConstraint(ctx, in); err != nil {
-			return fmt.Errorf("DeleteConstraint: %w", err)
-		}
-		return nil
+		return fmt.Errorf("DeleteConstraint: %w", s.Flipt().DeleteConstraint(ctx, in))
 	}
 }
 
