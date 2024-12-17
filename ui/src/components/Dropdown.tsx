@@ -54,7 +54,7 @@ export default function Dropdown(props: DropdownProps) {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild disabled={disabled}>
         <Button
           disabled={disabled}
