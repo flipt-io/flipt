@@ -1,7 +1,6 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Table } from '@tanstack/react-table';
 import { SlidersHorizontal } from 'lucide-react';
-
 import { Button } from '~/components/Button';
 import {
   DropdownMenu,
@@ -16,11 +15,6 @@ interface DataTableViewOptionsProps<TData> {
 export function DataTableViewOptions<TData>({
   table
 }: DataTableViewOptionsProps<TData>) {
-  const sorting = table.getState().sorting[0];
-
-  const sortingColumn = table
-    .getAllFlatColumns()
-    .find((e) => e.id === sorting?.id);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
