@@ -6,7 +6,7 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Listbox from '~/components/forms/Listbox';
 import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
 import { useError } from '~/data/hooks/error';

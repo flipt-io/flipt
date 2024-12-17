@@ -17,7 +17,6 @@ export function flagTypeToLabel(flagType: FlagType): string {
       return 'Unknown';
   }
 }
-
 export interface IFlagBase {
   key: string;
   type: FlagType;

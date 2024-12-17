@@ -3,7 +3,7 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
 import { cls } from '~/utils/helpers';
-import Dropdown from '~/components/forms/Dropdown';
+import Dropdown from '~/components/Dropdown';
 import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
