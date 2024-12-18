@@ -41,8 +41,9 @@ export default function UserProfile(props: UserProfileProps) {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
+          variant="link"
           aria-label="Open user menu"
-          className="h-7 w-7 rounded-full ring-2 ring-white ring-offset-0 hover:ring-primary/80 focus:ring-primary/80"
+          className="h-6 w-6 rounded-full ring-2 ring-white ring-offset-0 hover:ring-primary/80 focus:ring-primary/80"
         >
           {user.imgURL && (
             <img
