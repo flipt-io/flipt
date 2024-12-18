@@ -1,6 +1,6 @@
 import { Dialog } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import { useError } from '~/data/hooks/error';
 
 type DeletePanelProps = {

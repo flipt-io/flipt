@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -129,6 +130,69 @@ func Latest(module string, includePre bool) error {
 
 	fmt.Println(latest)
 
+	return nil
+}
+
+func GenerateReleaseNotes(version string) error {
+	defer chdirRoot()()
+
+	// check if sed is installed
+	_, err := exec.Command("which", "sed").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("sed is not installed")
+	}
+
+	// if on macos use ghead instead of head
+	head := "head"
+	// get the os
+	os := runtime.GOOS
+	if os == "darwin" {
+		head = "ghead"
+	}
+
+	// check if ghead is installed
+	_, err = exec.Command("which", head).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s is not installed", head)
+	}
+
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("sed -e '/^## \\[%s\\]/,/^## / ! d' ../CHANGELOG.md | %s --lines -2", version, head))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	tmpl := `
+%s
+## Installation
+
+### Homebrew :beer:
+
+` + "```bash" + `
+brew install flipt-io/brew/flipt
+` + "```" + `
+
+### Docker Images :whale:
+
+` + "```bash" + `
+docker pull docker.flipt.io/flipt/flipt:v{{ .Tag }}
+` + "```" + `
+
+` + "```bash" + `
+docker pull ghcr.io/flipt-io/flipt:v{{ .Tag }}
+` + "```" + `
+
+## Thank you!
+
+We hope you :heart: this release! Feel free to open issues/discussions or reach out to us on Discord if you have any questions or feedback.
+
+- [Discord](https://flipt.io/discord)
+- [Github Discussions](https://github.com/flipt-io/flipt/discussions)
+- [Github Issues](https://github.com/flipt-io/flipt/issues)
+- [Newsletter](https://www.flipt.io/#newsletter)
+`
+
+	fmt.Printf(tmpl, string(out))
 	return nil
 }
 

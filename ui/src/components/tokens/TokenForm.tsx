@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { selectNamespaces } from '~/app/namespaces/namespacesSlice';
 import { useCreateTokenMutation } from '~/app/tokens/tokensApi';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Listbox from '~/components/forms/Listbox';
 import Loading from '~/components/Loading';

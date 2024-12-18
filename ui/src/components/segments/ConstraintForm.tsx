@@ -13,7 +13,7 @@ import {
   useCreateConstraintMutation,
   useUpdateConstraintMutation
 } from '~/app/segments/segmentsApi';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Tags from '~/components/forms/Tags';

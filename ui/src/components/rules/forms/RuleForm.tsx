@@ -7,7 +7,7 @@ import { Link } from 'react-router';
 import * as Yup from 'yup';
 import { useCreateRuleMutation } from '~/app/flags/rulesApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';

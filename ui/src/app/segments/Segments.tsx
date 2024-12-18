@@ -1,10 +1,9 @@
-import { Plus } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
+import { ButtonWithPlus } from '~/components/Button';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import SegmentTable from '~/components/segments/SegmentTable';
-import { Button } from '~/components/ui/button';
 import { PageHeader } from '~/components/ui/page';
 
 export default function Segments() {
@@ -19,10 +18,13 @@ export default function Segments() {
   return (
     <>
       <PageHeader title="Segments">
-        <Button onClick={() => navigate(`${path}/new`)} disabled={readOnly}>
-          <Plus />
+        <ButtonWithPlus
+          variant="primary"
+          onClick={() => navigate(`${path}/new`)}
+          disabled={readOnly}
+        >
           New Segment
-        </Button>
+        </ButtonWithPlus>
       </PageHeader>
       <div className="flex flex-col gap-1 space-y-2 py-2">
         <SegmentTable namespace={namespace} />

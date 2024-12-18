@@ -16,8 +16,8 @@ import {
 } from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
-import Dropdown from '~/components/forms/Dropdown';
+import { Button } from '~/components/Button';
+import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';

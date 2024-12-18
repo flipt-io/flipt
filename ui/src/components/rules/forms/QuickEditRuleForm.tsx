@@ -25,7 +25,7 @@ import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
 import { cls } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
-import { TextButton } from '~/components/forms/buttons/Button';
+import { TextButton } from '~/components/Button';
 
 type QuickEditRuleFormProps = {
   flag: IFlag;

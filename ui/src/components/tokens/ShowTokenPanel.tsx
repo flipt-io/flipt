@@ -5,7 +5,7 @@ import {
   LockClosedIcon
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import { IAuthTokenSecret } from '~/types/auth/Token';
 import { cls, copyTextToClipboard } from '~/utils/helpers';
 

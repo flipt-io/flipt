@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import EmptyState from '~/components/EmptyState';
-import { ButtonWithPlus } from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';

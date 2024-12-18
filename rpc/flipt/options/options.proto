@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package flipt.options;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/options";
+
+extend google.protobuf.MethodOptions {
+  FliptClient flipt_client = 36485937;
+}
+
+message FliptClient {
+  map<string, string> path_defaults = 1;
+}

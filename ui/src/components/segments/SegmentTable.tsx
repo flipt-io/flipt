@@ -18,10 +18,10 @@ import {
   SegmentMatchType,
   segmentMatchTypeToLabel
 } from '~/types/Segment';
-import { cn } from '~/lib/utils';
-import { Badge } from '~/components/ui/badge';
+import { cls } from '~/utils/helpers';
+import { Badge } from '~/components/Badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { Search } from '~/components/ui/search';
+import Searchbox from '~/components/Searchbox';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
@@ -167,12 +167,8 @@ export default function SegmentTable(props: SegmentTableProps) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center justify-between space-x-2">
-          <Search
-            value={filter ?? ''}
-            onChange={setFilter}
-            className="h-8 w-[150px] flex-grow text-xs lg:w-[250px]"
-          />
+        <div className="flex flex-1 items-center justify-between">
+          <Searchbox value={filter ?? ''} onChange={setFilter} />
           <DataTableViewOptions table={table} />
         </div>
       </div>
@@ -199,7 +195,7 @@ export default function SegmentTable(props: SegmentTableProps) {
           <button
             role="link"
             key={row.id}
-            className={cn(
+            className={cls(
               'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
             )}
             onClick={() => navigate(`${path}/${item.key}`)}

@@ -10,7 +10,7 @@ import {
 } from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';

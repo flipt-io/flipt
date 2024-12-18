@@ -10,7 +10,7 @@ import {
   useCreateSegmentMutation,
   useUpdateSegmentMutation
 } from '~/app/segments/segmentsApi';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';

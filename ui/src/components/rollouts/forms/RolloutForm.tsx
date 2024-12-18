@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useCreateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';

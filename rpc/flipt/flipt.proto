@@ -8,6 +8,7 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "gnostic/openapi/v3/annotations.proto";
+import "options/options.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt";
 
@@ -510,6 +511,7 @@ service Flipt {
   rpc GetNamespace(GetNamespaceRequest) returns (Namespace) {
     option (google.api.http) = {get: "/api/v1/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getNamespace" tags: ["NamespacesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "key", value: "default"}};
   }
   rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {
     option (google.api.http) = {get: "/api/v1/namespaces"};
@@ -522,133 +524,166 @@ service Flipt {
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {
     option (google.api.http) = {put: "/api/v1/namespaces/{key}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateNamespace" tags: ["NamespacesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "key", value: "default"}};
   }
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteNamespace" tags: ["NamespacesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "key", value: "default"}};
   }
   rpc GetFlag(GetFlagRequest) returns (Flag) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getFlag" tags: ["FlagsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc ListFlags(ListFlagRequest) returns (FlagList) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listFlags" tags: ["FlagsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateFlag(CreateFlagRequest) returns (Flag) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createFlag" tags: ["FlagsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{key}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateFlag" tags: ["FlagsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteFlag" tags: ["FlagsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateVariant(CreateVariantRequest) returns (Variant) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createVariant" tags: ["VariantsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateVariant" tags: ["VariantsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteVariant" tags: ["VariantsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc GetRule(GetRuleRequest) returns (Rule) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getRule" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc ListRules(ListRuleRequest) returns (RuleList) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listRules" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateRule(CreateRuleRequest) returns (Rule) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createRule" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateRule" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/order" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "orderRules" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteRule" tags: ["RulesService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc GetRollout(GetRolloutRequest) returns (Rollout) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getRollout" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listRollouts" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createRollout" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateRollout" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteRollout" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc OrderRollouts(OrderRolloutsRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "orderRollouts" tags: ["RolloutsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createDistribution" tags: ["DistributionsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateDistribution" tags: ["DistributionsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/flags/{flag_key}/rules/{rule_id}/distributions/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteDistribution" tags: ["DistributionsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc GetSegment(GetSegmentRequest) returns (Segment) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/segments/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getSegment" tags: ["SegmentsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc ListSegments(ListSegmentRequest) returns (SegmentList) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/segments"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listSegments" tags: ["SegmentsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateSegment(CreateSegmentRequest) returns (Segment) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/segments" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createSegment" tags: ["SegmentsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/segments/{key}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateSegment" tags: ["SegmentsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/segments/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteSegment" tags: ["SegmentsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {
     option (google.api.http) = {post: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "createConstraint" tags: ["ConstraintsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {
     option (google.api.http) = {put: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}" body: "*"};
     option (gnostic.openapi.v3.operation) = {operation_id: "updateConstraint" tags: ["ConstraintsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
   rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteConstraint" tags: ["ConstraintsService"]};
+    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
   }
 }

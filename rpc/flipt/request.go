@@ -42,7 +42,7 @@ const (
 )
 
 type Request struct {
-	Namespace string   `json:"namespace"`
+	Namespace string   `json:"namespace,omitempty"`
 	Resource  Resource `json:"resource"`
 	Subject   Subject  `json:"subject"`
 	Action    Action   `json:"action"`

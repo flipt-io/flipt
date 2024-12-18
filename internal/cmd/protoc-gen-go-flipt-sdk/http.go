@@ -3,14 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
+	"go.flipt.io/flipt/rpc/flipt/options"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"sigs.k8s.io/yaml"
 )
 
@@ -243,8 +246,27 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 			hasMessage bool
 		)
 
+		var pathDefaults map[string]string
+		if opts, ok := method.Desc.Options().(*descriptorpb.MethodOptions); ok {
+			fc, ok := proto.GetExtension(opts, options.E_FliptClient).(*options.FliptClient)
+			if ok && fc != nil {
+				pathDefaults = fc.PathDefaults
+			}
+		}
+
 		for _, field := range method.Input.Fields {
-			if _, ok := inPath[field]; !ok {
+			if _, ok := inPath[field]; ok {
+				// set default for any string path variables
+				if def, ok := pathDefaults[string(field.Desc.Name())]; ok {
+					switch field.Desc.Kind() {
+					case protoreflect.StringKind:
+						val := "v." + field.GoName
+						g.P("if ", val, " == \"\" {")
+						g.P(val, " = ", strconv.Quote(def))
+						g.P("}")
+					}
+				}
+			} else {
 				switch field.Desc.Kind() {
 				case protoreflect.StringKind:
 					val := "v." + field.GoName

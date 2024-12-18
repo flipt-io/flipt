@@ -15,14 +15,22 @@ import (
 )
 
 type mockPolicyVerifier struct {
-	isAllowed bool
-	wantErr   error
-	input     map[string]any
+	isAllowed          bool
+	wantErr            error
+	input              map[string]any
+	viewableNamespaces []string
 }
 
 func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
 	v.input = input
 	return v.isAllowed, v.wantErr
+}
+
+func (v *mockPolicyVerifier) Namespaces(_ context.Context, _ map[string]any) ([]string, error) {
+	if v.viewableNamespaces != nil {
+		return v.viewableNamespaces, nil
+	}
+	return nil, errors.ErrUnsupported
 }
 
 func (v *mockPolicyVerifier) Shutdown(_ context.Context) error {
@@ -38,24 +46,24 @@ func (s *mockServer) SkipsAuthorization(ctx context.Context) bool {
 	return s.skipsAuthz
 }
 
-var (
-	adminAuth = &authrpc.Authentication{
-		Metadata: map[string]string{
-			"io.flipt.auth.role": "admin",
-		},
-	}
-)
+var adminAuth = &authrpc.Authentication{
+	Metadata: map[string]string{
+		"io.flipt.auth.role": "admin",
+	},
+}
 
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
-	var tests = []struct {
-		name             string
-		server           any
-		req              any
-		authn            *authrpc.Authentication
-		validatorAllowed bool
-		validatorErr     error
-		wantAllowed      bool
-		authzInput       map[string]any
+	tests := []struct {
+		name               string
+		server             any
+		req                any
+		authn              *authrpc.Authentication
+		validatorAllowed   bool
+		validatorErr       error
+		wantAllowed        bool
+		authzInput         map[string]any
+		viewableNamespaces []string
+		serverFullMethod   string
 	}{
 		{
 			name:  "allowed",
@@ -122,11 +130,26 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			validatorErr: errors.New("error"),
 			wantAllowed:  false,
 		},
+		{
+			name:               "list namespaces",
+			authn:              adminAuth,
+			req:                &flipt.ListNamespaceRequest{},
+			wantAllowed:        true,
+			viewableNamespaces: []string{"special"},
+			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			authzInput: map[string]any{
+				"request": flipt.Request{
+					Resource: flipt.ResourceNamespace,
+					Action:   flipt.ActionRead,
+					Status:   flipt.StatusSuccess,
+				},
+				"authentication": adminAuth,
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			var (
 				logger  = zap.NewNop()
 				allowed = false
@@ -139,14 +162,16 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 
 				srv           = &grpc.UnaryServerInfo{Server: &mockServer{}}
 				policyVerfier = &mockPolicyVerifier{
-					isAllowed: tt.validatorAllowed,
-					wantErr:   tt.validatorErr,
+					isAllowed:          tt.validatorAllowed,
+					wantErr:            tt.validatorErr,
+					viewableNamespaces: tt.viewableNamespaces,
 				}
 			)
 
 			if tt.server != nil {
 				srv.Server = tt.server
 			}
+			srv.FullMethod = tt.serverFullMethod
 
 			_, err := AuthorizationRequiredInterceptor(logger, policyVerfier)(ctx, tt.req, srv, handler)
 

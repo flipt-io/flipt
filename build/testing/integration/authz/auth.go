@@ -281,9 +281,6 @@ func (s clientCallSet) assert(t *testing.T, ctx context.Context, client sdk.SDK)
 type clientCall func(*testing.T, context.Context, sdk.SDK) error
 
 func GetNamespace(in *flipt.GetNamespaceRequest) clientCall {
-	if in.GetNamespaceKey() == "" {
-		in.Key = "default"
-	}
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
 		_, err := s.Flipt().GetNamespace(ctx, in)
 		return fmt.Errorf("GetNamespace: %w", err)
