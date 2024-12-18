@@ -36,9 +36,10 @@ type DataSource CachedSource[map[string]any]
 type Engine struct {
 	logger *zap.Logger
 
-	mu    sync.RWMutex
-	query rego.PreparedEvalQuery
-	store storage.Store
+	mu              sync.RWMutex
+	queryAllow      rego.PreparedEvalQuery
+	queryNamespaces rego.PreparedEvalQuery
+	store           storage.Store
 
 	policySource PolicySource
 	policyHash   source.Hash
@@ -144,7 +145,7 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	defer e.mu.RUnlock()
 
 	e.logger.Debug("evaluating policy", zap.Any("input", input))
-	results, err := e.query.Eval(ctx, rego.EvalInput(input))
+	results, err := e.queryAllow.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, err
 	}
@@ -158,6 +159,25 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 
 func (e *Engine) Shutdown(_ context.Context) error {
 	return nil
+}
+
+func (e *Engine) Namespaces(ctx context.Context, input map[string]any) ([]string, error) {
+	results, err := e.queryNamespaces.Eval(ctx, rego.EvalInput(input))
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, errors.New("no results found")
+	}
+	values, ok := results[0].Expressions[0].Value.([]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type: %T", results[0].Expressions[0].Value)
+	}
+	namespaces := make([]string, len(values))
+	for i, ns := range values {
+		namespaces[i] = fmt.Sprintf("%s", ns)
+	}
+	return namespaces, nil
 }
 
 func poll(ctx context.Context, d time.Duration, fn func()) {
@@ -186,15 +206,29 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return fmt.Errorf("getting policy definition: %w", err)
 	}
 
+	m := rego.Module("policy.rego", string(policy))
+	s := rego.Store(e.store)
+
 	r := rego.New(
 		rego.Query("data.flipt.authz.v1.allow"),
-		rego.Module("policy.rego", string(policy)),
-		rego.Store(e.store),
+		m,
+		s,
 	)
 
-	query, err := r.PrepareForEval(ctx)
+	queryAllow, err := r.PrepareForEval(ctx)
 	if err != nil {
-		return fmt.Errorf("preparing policy: %w", err)
+		return fmt.Errorf("preparing policy allow: %w", err)
+	}
+
+	r = rego.New(
+		rego.Query("data.flipt.authz.v1.viewable_namespaces"),
+		m,
+		s,
+	)
+
+	queryNamespaces, err := r.PrepareForEval(ctx)
+	if err != nil {
+		return fmt.Errorf("preparing policy namespaces: %w", err)
 	}
 
 	e.mu.Lock()
@@ -204,7 +238,8 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return nil
 	}
 	e.policyHash = hash
-	e.query = query
+	e.queryAllow = queryAllow
+	e.queryNamespaces = queryNamespaces
 
 	return nil
 }

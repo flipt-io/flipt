@@ -2,6 +2,7 @@ package bundle
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -75,13 +76,31 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 		Path:  "flipt/authz/v1/allow",
 		Input: input,
 	})
-
 	if err != nil {
 		return false, err
 	}
 
 	allow, _ := dec.Result.(bool)
 	return allow, nil
+}
+
+func (e *Engine) Namespaces(ctx context.Context, input map[string]interface{}) ([]string, error) {
+	dec, err := e.opa.Decision(ctx, sdk.DecisionOptions{
+		Path:  "flipt/authz/v1/viewable_namespaces",
+		Input: input,
+	})
+	if err != nil {
+		return nil, err
+	}
+	values, ok := dec.Result.([]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type: %T", values)
+	}
+	namespaces := make([]string, len(values))
+	for i, ns := range values {
+		namespaces[i] = fmt.Sprintf("%s", ns)
+	}
+	return namespaces, nil
 }
 
 func (e *Engine) Shutdown(ctx context.Context) error {
