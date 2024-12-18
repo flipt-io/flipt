@@ -124,7 +124,7 @@ func TestListNamespaces_WithAuthz(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.WithValue(context.TODO(), authz.ViewableNamespacesKey, tt.viewable)
+			ctx := context.WithValue(context.TODO(), authz.NamespacesKey, tt.viewable)
 
 			got, err := s.ListNamespaces(ctx, &flipt.ListNamespaceRequest{
 				Offset: 10,

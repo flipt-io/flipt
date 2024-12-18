@@ -37,7 +37,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 		return nil, err
 	}
 
-	viewableNamespaces, ok := ctx.Value(authz.ViewableNamespacesKey).([]string)
+	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
 	if viewableNamespaces != nil && ok {
 		filtered := make([]*flipt.Namespace, 0)
 		for _, n := range namespaces {

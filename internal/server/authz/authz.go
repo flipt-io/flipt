@@ -13,4 +13,4 @@ type Verifier interface {
 
 type contextKey string
 
-const ViewableNamespacesKey contextKey = "viewable_namespaces"
+const NamespacesKey contextKey = "namespaces"
