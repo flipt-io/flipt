@@ -27,7 +27,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
-import { ButtonWithPlus, TextButton } from '~/components/forms/buttons/Button';
+import { ButtonWithPlus, TextButton } from '~/components/Button';
 
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';

@@ -1,4 +1,5 @@
-import { UserCircleIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { Button } from '~/components/Button';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { User } from '~/types/auth/User';
@@ -11,7 +12,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '~/components/ui/dropdown-menu';
-import { Button } from '~/components/ui/button';
 
 type UserProfileProps = {
   user: User;
@@ -41,7 +41,6 @@ export default function UserProfile(props: UserProfileProps) {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          size="icon"
           aria-label="Open user menu"
           className="h-7 w-7 rounded-full ring-2 ring-white ring-offset-0 hover:ring-primary/80 focus:ring-primary/80"
         >

@@ -1,4 +1,4 @@
-import Combobox from '~/components/forms/Combobox';
+import Combobox from '~/components/Combobox';
 import { FilterableVariant, IVariant } from '~/types/Variant';
 
 type SingleDistributionFormInputProps = {

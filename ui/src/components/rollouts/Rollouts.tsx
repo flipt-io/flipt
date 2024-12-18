@@ -26,7 +26,7 @@ import {
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import { ButtonWithPlus, TextButton } from '~/components/forms/buttons/Button';
+import { ButtonWithPlus, TextButton } from '~/components/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
