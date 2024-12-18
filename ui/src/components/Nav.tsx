@@ -6,7 +6,7 @@ import {
   UsersIcon
 } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
-import { NavLink, useMatches } from 'react-router-dom';
+import { NavLink, useMatches } from 'react-router';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { cls } from '~/utils/helpers';
 import NamespaceListbox from './namespaces/NamespaceListbox';

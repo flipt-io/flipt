@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import logoFlag from '~/assets/logo-flag.png';
 import Loading from '~/components/Loading';

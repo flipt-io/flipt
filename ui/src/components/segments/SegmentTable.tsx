@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
@@ -22,7 +23,6 @@ import { Badge } from '~/components/Badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Searchbox from '~/components/Searchbox';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import { Link, useNavigate } from 'react-router-dom';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';

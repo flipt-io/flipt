@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
