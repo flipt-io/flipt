@@ -359,7 +359,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(flag.NamespaceKey, flag.Key), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Len(t, evaluationDistributions, 2)
@@ -464,7 +464,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(flag.NamespaceKey, flag.Key), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Len(t, evaluationDistributions, 2)
@@ -561,7 +561,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(flag.NamespaceKey, flag.Key), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Len(t, evaluationDistributions, 2)
@@ -603,7 +603,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err = s.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rule.Id))
+	evaluationDistributions, err = s.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(flag.NamespaceKey, flag.Key), storage.NewID(rule.Id))
 	require.NoError(t, err)
 
 	assert.Len(t, evaluationDistributions, 2)

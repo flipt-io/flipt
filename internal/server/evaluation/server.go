@@ -14,7 +14,7 @@ import (
 type Storer interface {
 	GetFlag(ctx context.Context, flag storage.ResourceRequest) (*flipt.Flag, error)
 	GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID storage.IDRequest) ([]*storage.EvaluationDistribution, error)
+	GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, ruleID storage.IDRequest) ([]*storage.EvaluationDistribution, error)
 	GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error)
 }
 

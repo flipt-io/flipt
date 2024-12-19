@@ -194,7 +194,7 @@ type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
 	// Note: Rules MUST be returned in order by Rank
 	GetEvaluationRules(ctx context.Context, flag ResourceRequest) ([]*EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, rule IDRequest) ([]*EvaluationDistribution, error)
+	GetEvaluationDistributions(ctx context.Context, flag ResourceRequest, rule IDRequest) ([]*EvaluationDistribution, error)
 	// GetEvaluationRollouts returns rollouts applicable to namespaceKey + flagKey provided
 	// Note: Rollouts MUST be returned in order by rank
 	GetEvaluationRollouts(ctx context.Context, flag ResourceRequest) ([]*EvaluationRollout, error)
