@@ -38,7 +38,7 @@ func (e *evaluationStoreMock) GetEvaluationRules(ctx context.Context, flag stora
 	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
 }
 
-func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, ruleID storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
 	args := e.Called(ctx, ruleID)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }

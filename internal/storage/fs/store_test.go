@@ -203,7 +203,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	id := storage.NewID("id")
 	storeMock.On("GetEvaluationDistributions", mock.Anything, id).Return([]*storage.EvaluationDistribution{}, nil)
 
-	_, err := ss.GetEvaluationDistributions(context.TODO(), id)
+	_, err := ss.GetEvaluationDistributions(context.TODO(), storage.NewResource("", "flag"), id)
 	require.NoError(t, err)
 }
 
