@@ -2,8 +2,8 @@ package data
 
 import (
 	"context"
-	"crypto/sha1" //nolint:gosec
-
+	//nolint:gosec
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/blang/semver/v4"
@@ -123,7 +123,6 @@ var (
 )
 
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
-
 	var (
 		namespaceKey = r.Key
 		reference    = r.Reference
@@ -264,7 +263,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 							rule.Segments = append(rule.Segments, ss)
 						}
 
-						distributions, err := srv.store.GetEvaluationDistributions(ctx, storage.NewID(r.ID, storage.WithReference(reference)))
+						distributions, err := srv.store.GetEvaluationDistributions(ctx, storage.NewResource(f.NamespaceKey, f.Key), storage.NewID(r.ID, storage.WithReference(reference)))
 						if err != nil {
 							return nil, fmt.Errorf("getting distributions for rule %q: %w", r.ID, err)
 						}

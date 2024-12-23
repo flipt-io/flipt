@@ -246,7 +246,7 @@ func (m *StoreMock) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
 }
 
-func (m *StoreMock) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+func (m *StoreMock) GetEvaluationDistributions(ctx context.Context, r storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
 	args := m.Called(ctx, rule)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }

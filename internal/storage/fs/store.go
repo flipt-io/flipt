@@ -154,9 +154,9 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceReq
 	})
 }
 
-func (s *Store) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) (dists []*storage.EvaluationDistribution, err error) {
+func (s *Store) GetEvaluationDistributions(ctx context.Context, r storage.ResourceRequest, rule storage.IDRequest) (dists []*storage.EvaluationDistribution, err error) {
 	return dists, s.viewer.View(ctx, rule.Reference, func(ss storage.ReadOnlyStore) error {
-		dists, err = ss.GetEvaluationDistributions(ctx, rule)
+		dists, err = ss.GetEvaluationDistributions(ctx, r, rule)
 		return err
 	})
 }
