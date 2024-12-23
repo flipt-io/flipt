@@ -31,6 +31,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-migrate/migrate/v4 v4.18.1
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-containerregistry v0.20.2
 	github.com/google/go-github/v66 v66.0.0
@@ -199,7 +200,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -209,7 +209,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
