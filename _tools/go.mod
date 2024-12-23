@@ -11,7 +11,7 @@ require (
 	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.28.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.0
 )
 
 require (
