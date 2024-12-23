@@ -444,6 +444,16 @@ import "list"
 		cloud?: {
 			enabled?: bool | *false
 		}
+        jira?: {
+            enabled?: bool | *false
+            instance_name: string
+            authentication: {
+                oauth: {
+                    client_id: string
+                    client_secret: string
+                }
+            }
+        }
 	}
 
 	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
