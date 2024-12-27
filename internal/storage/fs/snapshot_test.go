@@ -62,7 +62,6 @@ func TestSnapshotFromFS_Invalid(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestWalkDocuments(t *testing.T) {
@@ -633,7 +632,7 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
-			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rules.Results[0].Id))
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey), storage.NewID(rules.Results[0].Id))
 
 			require.NoError(t, err)
 
@@ -1587,7 +1586,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
-			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewID(rules.Results[0].Id))
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), storage.NewResource(tc.namespace, tc.flagKey), storage.NewID(rules.Results[0].Id))
 
 			require.NoError(t, err)
 
@@ -1780,7 +1779,7 @@ func TestFS_YAML_Stream(t *testing.T) {
 
 	// 3 namespaces including default
 	assert.Len(t, ns.Results, 3)
-	var namespaces = make([]string, 0, len(ns.Results))
+	namespaces := make([]string, 0, len(ns.Results))
 
 	for _, n := range ns.Results {
 		namespaces = append(namespaces, n.Key)
