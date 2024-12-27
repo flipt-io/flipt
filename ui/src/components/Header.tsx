@@ -38,7 +38,7 @@ export default function Header(props: HeaderProps) {
         style={topbarStyle}
       >
         <div className="flex flex-1" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-2">
           {/* read-only mode */}
           {readOnly && <ReadOnly />}
 

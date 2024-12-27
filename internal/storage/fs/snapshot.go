@@ -782,7 +782,7 @@ func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 	return rules, nil
 }
 
-func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
 	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
 		return []*storage.EvaluationDistribution{}, nil

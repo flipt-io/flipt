@@ -17,7 +17,7 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router';
 import {
   useDeleteRuleMutation,
   useListRulesQuery,
@@ -27,7 +27,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
-import { ButtonWithPlus, TextButton } from '~/components/forms/buttons/Button';
+import { ButtonWithPlus, TextButton } from '~/components/Button';
 
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';

@@ -3,14 +3,14 @@ import 'chartjs-adapter-date-fns';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useParams } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
 import FlagForm from '~/components/flags/forms/FlagForm';
-import Dropdown from '~/components/forms/Dropdown';
+import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';

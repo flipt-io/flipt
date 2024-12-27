@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import logoLight from '~/assets/logo-light.png';
 import Nav from './Nav';
 import { useSelector } from 'react-redux';

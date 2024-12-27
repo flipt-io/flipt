@@ -31,6 +31,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/meta"
 	"go.flipt.io/flipt/ui"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -140,6 +141,12 @@ func NewHTTPServer(
 
 	r.Group(func(r chi.Router) {
 		r.Use(removeTrailingSlash)
+
+		if cfg.Tracing.Enabled {
+			r.Use(func(handler http.Handler) http.Handler {
+				return otelhttp.NewHandler(handler, "grpc-gateway")
+			})
+		}
 
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")

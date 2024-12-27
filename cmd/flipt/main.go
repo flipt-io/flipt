@@ -23,6 +23,7 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -420,6 +421,9 @@ func initMetaStateDir(cfg *config.Config) error {
 // clientConn constructs and configures a client connection to the underlying gRPC server.
 func clientConn(ctx context.Context, cfg *config.Config) (*grpc.ClientConn, error) {
 	opts := []grpc.DialOption{grpc.WithBlock()}
+	if cfg.Tracing.Enabled {
+		opts = append(opts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	}
 	switch cfg.Server.Protocol {
 	case config.HTTPS:
 		creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")

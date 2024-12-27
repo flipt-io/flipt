@@ -5,7 +5,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import VariantForm from '~/components/variants/forms/VariantForm';
-import { ButtonWithPlus } from '~/components/forms/buttons/Button';
+import { ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';

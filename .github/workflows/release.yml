@@ -145,12 +145,23 @@ jobs:
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
           installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
 
+      - name: Install Mage
+        uses: magefile/mage-action@v3
+        with:
+          # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
+          version: v1.14.0
+          install-only: true
+
+      - name: Generate Release Notes
+        run: |
+          mage release:notes ${{ github.ref_name }} > release-notes.md
+
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
           version: "~> v2.3.0"
-          args: release --clean
+          args: release --clean --release-notes-tmpl release-notes.md
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -159,11 +170,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
 
         # TODO: see if we can wire up the `release-tag-latest` workflow to run
         # after release with the same tag

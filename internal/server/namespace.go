@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"slices"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -28,17 +30,30 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 		return nil, err
 	}
 
-	resp := flipt.NamespaceList{
-		Namespaces: results.Results,
-	}
+	namespaces := results.Results
 
 	total, err := s.store.CountNamespaces(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	resp.TotalCount = int32(total)
-	resp.NextPageToken = results.NextPageToken
+	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
+	if viewableNamespaces != nil && ok {
+		filtered := make([]*flipt.Namespace, 0)
+		for _, n := range namespaces {
+			if slices.Contains(viewableNamespaces, n.Key) {
+				filtered = append(filtered, n)
+			}
+		}
+		namespaces = filtered
+		total = uint64(len(filtered))
+	}
+
+	resp := flipt.NamespaceList{
+		Namespaces:    namespaces,
+		TotalCount:    int32(total),
+		NextPageToken: results.NextPageToken,
+	}
 
 	s.logger.Debug("list namespaces", zap.Stringer("response", &resp))
 	return &resp, nil

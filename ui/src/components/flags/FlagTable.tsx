@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { DataTablePagination } from '~/components/ui/table-pagination';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
@@ -19,16 +19,16 @@ import {
   setSorting,
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
-import { cn } from '~/lib/utils';
-import { Badge } from '~/components/ui/badge';
+import { cls } from '~/utils/helpers';
+import { Badge } from '~/components/Badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { Search } from '~/components/ui/search';
+import Searchbox from '~/components/Searchbox';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
 import { useError } from '~/data/hooks/error';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '../Well';
+import Well from '~/components/Well';
 
 type FlagTableProps = {
   namespace: INamespaceBase;
@@ -176,12 +176,8 @@ export default function FlagTable(props: FlagTableProps) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center justify-between space-x-2">
-          <Search
-            value={filter ?? ''}
-            onChange={setFilter}
-            className="h-8 w-[150px] flex-grow text-xs lg:w-[250px]"
-          />
+        <div className="flex flex-1 items-center justify-between">
+          <Searchbox value={filter ?? ''} onChange={setFilter} />
           <DataTableViewOptions table={table} />
         </div>
       </div>
@@ -208,7 +204,7 @@ export default function FlagTable(props: FlagTableProps) {
           <button
             role="link"
             key={row.id}
-            className={cn(
+            className={cls(
               'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
             )}
             onClick={() => navigate(`${path}/${item.key}`)}

@@ -42,11 +42,17 @@ const (
 )
 
 type Request struct {
-	Namespace string   `json:"namespace"`
+	Namespace string   `json:"namespace,omitempty"`
 	Resource  Resource `json:"resource"`
 	Subject   Subject  `json:"subject"`
 	Action    Action   `json:"action"`
 	Status    Status   `json:"status"`
+}
+
+func WithNoNamespace() func(*Request) {
+	return func(r *Request) {
+		r.Namespace = ""
+	}
 }
 
 func WithNamespace(ns string) func(*Request) {
@@ -98,7 +104,7 @@ func (req *GetNamespaceRequest) Request() []Request {
 }
 
 func (req *ListNamespaceRequest) Request() []Request {
-	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNamespace(""))}
+	return []Request{NewRequest(ResourceNamespace, ActionRead, WithNoNamespace())}
 }
 
 func (req *CreateNamespaceRequest) Request() []Request {

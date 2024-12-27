@@ -6,7 +6,7 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Icon } from '~/types/Icon';
 
 const supportItems: SupportItemProps[] = [

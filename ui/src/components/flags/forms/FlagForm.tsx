@@ -2,7 +2,7 @@ import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 import {
   useCreateFlagMutation,
@@ -10,7 +10,7 @@ import {
 } from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';

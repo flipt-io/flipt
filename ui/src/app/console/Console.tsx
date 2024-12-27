@@ -5,7 +5,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
@@ -14,9 +14,9 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectCurrentRef } from '~/app/refs/refsSlice';
 import { JsonEditor } from '~/components/json/JsonEditor';
 import EmptyState from '~/components/EmptyState';
-import { Button } from '~/components/ui/button';
-import Combobox from '~/components/forms/Combobox';
-import Dropdown from '~/components/forms/Dropdown';
+import { Button } from '~/components/Button';
+import Combobox from '~/components/Combobox';
+import Dropdown from '~/components/Dropdown';
 import Input from '~/components/forms/Input';
 import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
@@ -268,13 +268,12 @@ export default function Console() {
                               aria-label="New Entity ID"
                               title="New Entity ID"
                               variant="ghost"
-                              size="icon"
                               onClick={(e) => {
                                 e.preventDefault();
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <RefreshCwIcon className="text-gray-400" />
+                              <RefreshCwIcon className="h-4 w-4 text-gray-400" />
                             </Button>
                           </div>
                         </div>
@@ -319,7 +318,7 @@ export default function Console() {
                           ]}
                         />
                         <Button
-                          variant="default"
+                          variant="primary"
                           type="submit"
                           disabled={!(formik.dirty && formik.isValid)}
                         >

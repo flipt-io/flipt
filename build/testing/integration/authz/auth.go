@@ -434,6 +434,7 @@ func CreateRollout(in *flipt.CreateRolloutRequest) clientCall {
 		return fmt.Errorf("CreateRollout: %w", err)
 	}
 }
+
 func UpdateRollout(in *flipt.UpdateRolloutRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
 		_, err := s.Flipt().UpdateRollout(ctx, in)

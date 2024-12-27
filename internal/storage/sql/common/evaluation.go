@@ -32,7 +32,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceReq
 		SegmentOperator flipt.SegmentOperator
 	}
 
-	var rmMap = make(map[string]*RuleMeta)
+	rmMap := make(map[string]*RuleMeta)
 
 	ruleIDs := make([]string, 0)
 	for ruleMetaRows.Next() {
@@ -197,7 +197,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flag storage.ResourceReq
 	return rules, nil
 }
 
-func (s *Store) GetEvaluationDistributions(ctx context.Context, rule storage.IDRequest) (_ []*storage.EvaluationDistribution, err error) {
+func (s *Store) GetEvaluationDistributions(ctx context.Context, r storage.ResourceRequest, rule storage.IDRequest) (_ []*storage.EvaluationDistribution, err error) {
 	rows, err := s.builder.Select("d.id, d.rule_id, d.variant_id, d.rollout, v.\"key\", v.attachment").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").

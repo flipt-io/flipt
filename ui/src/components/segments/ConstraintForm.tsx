@@ -5,7 +5,7 @@ import { addMinutes, format, formatISO, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
@@ -13,7 +13,7 @@ import {
   useCreateConstraintMutation,
   useUpdateConstraintMutation
 } from '~/app/segments/segmentsApi';
-import Button from '~/components/forms/buttons/Button';
+import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Tags from '~/components/forms/Tags';

@@ -2,7 +2,7 @@ import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
@@ -16,8 +16,8 @@ import {
 } from '~/app/segments/segmentsApi';
 import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/buttons/Button';
-import Dropdown from '~/components/forms/Dropdown';
+import { Button } from '~/components/Button';
+import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
