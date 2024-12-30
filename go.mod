@@ -15,7 +15,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.35.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.6
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.36.6
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.38.0
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.27.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
 	github.com/blang/semver/v4 v4.0.0
