@@ -51,7 +51,7 @@
     "react-helmet": "^6.1.0",
     "react-redux": "^9.1.2",
     "react-router": "^7.0.1",
-    "tailwind-merge": "^2.5.4",
+    "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "yup": "^1.6.1",
