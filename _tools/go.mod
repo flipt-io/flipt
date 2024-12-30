@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/bufbuild/buf v1.46.0
 	github.com/golangci/golangci-lint v1.61.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
 	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.28.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
@@ -193,7 +193,7 @@ require (
 	github.com/polyfloyd/go-errorlint v1.6.0 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.60.1 // indirect
+	github.com/prometheus/common v0.61.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect
@@ -263,7 +263,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.32.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
@@ -282,9 +282,9 @@ require (
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
-	google.golang.org/grpc v1.68.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241219192143-6b3ec007d9bb // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241219192143-6b3ec007d9bb // indirect
+	google.golang.org/grpc v1.69.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
