@@ -1,4 +1,4 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
