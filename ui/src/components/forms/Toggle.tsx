@@ -18,24 +18,27 @@ export default function Toggle(props: ToggleProps) {
   return (
     <div className="flex items-center justify-between">
       <span className="flex flex-grow flex-col">
-        <span className="text-sm font-medium text-gray-900">{label}</span>
+        <span
+          className="text-sm font-medium text-gray-900"
+          id={'switch-label:' + id}
+        >
+          {label}
+        </span>
         {description && (
           <span className="text-sm text-gray-500">{description}</span>
         )}
       </span>
       <Switch
         disabled={disabled}
-        aria-readonly
         checked={checked}
+        aria-labelledby={'switch-label:' + id}
         id={id}
         {...field}
         onCheckedChange={(e: boolean) => {
           onChange && onChange(e);
         }}
         className="data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-violet-200"
-      >
-        <span className="sr-only">Enable</span>
-      </Switch>
+      />
     </div>
   );
 }

@@ -60,7 +60,10 @@ export default function Preferences() {
               />
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
-              <span className="text-sm font-bold text-gray-500">
+              <span
+                className="text-sm font-bold text-gray-500"
+                id="label-switch-tmz"
+              >
                 UTC Timezone
                 <p className="mt-2 text-xs font-normal">
                   Display dates and times in UTC timezone
@@ -72,7 +75,7 @@ export default function Preferences() {
               <dd className="sm:col-span-2 sm:mt-0 sm:text-right">
                 <Switch
                   checked={isUTC}
-                  aria-readonly
+                  aria-labelledby="label-switch-tmz"
                   onCheckedChange={() => {
                     dispatch(
                       timezoneChanged(isUTC ? Timezone.LOCAL : Timezone.UTC)
