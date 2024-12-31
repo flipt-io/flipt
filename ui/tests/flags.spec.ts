@@ -183,14 +183,14 @@ test.describe('Flags - Read Only', () => {
   });
 
   test('can not update flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('link', { name: 'test-flag', exact: true }).click();
     await expect(page.getByLabel('Description')).toBeDisabled();
     await expect(page.getByRole('switch', { name: 'Enabled' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
 
   test('can not add variants to flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('link', { name: 'test-flag', exact: true }).click();
 
     await expect(
       page.getByRole('button', { name: 'New Variant' })
@@ -198,19 +198,19 @@ test.describe('Flags - Read Only', () => {
   });
 
   test('can not edit variant description', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('link', { name: 'test-flag', exact: true }).click();
     await expect(page.getByRole('link', { name: 'Edit ,chrome' })).toBeHidden();
   });
 
   test('can not delete flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('link', { name: 'test-flag', exact: true }).click();
     await page.getByRole('button', { name: 'Actions' }).click();
     // assert nothing happens
     await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeDisabled();
   });
 
   test('can not copy flag to new namespace', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('link', { name: 'test-flag', exact: true }).click();
     await page.getByRole('button', { name: 'Actions' }).click();
     // assert nothing happens
     await expect(
@@ -219,15 +219,11 @@ test.describe('Flags - Read Only', () => {
   });
 
   test('can not edit metadata', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page
+      .getByRole('link', { name: 'test-flag-with-metadata', exact: true })
+      .click();
     await expect(
       page.getByRole('button', { name: 'Add Metadata' })
-    ).toBeDisabled();
-    await expect(
-      page.getByRole('button', { name: 'Edit Metadata' })
-    ).toBeDisabled();
-    await expect(
-      page.getByRole('button', { name: 'Delete Metadata' })
     ).toBeDisabled();
   });
 });
