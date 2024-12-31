@@ -1,13 +1,16 @@
-package flipt
+package gateway
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
 
-	grpc_gateway_v1 "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/golang/protobuf/jsonpb"
 	grpc_gateway_v2 "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 var _ grpc_gateway_v2.Marshaler = &V1toV2MarshallerAdapter{}
@@ -22,16 +25,18 @@ var _ grpc_gateway_v2.Marshaler = &V1toV2MarshallerAdapter{}
 //
 // TODO: remove this custom marshaller for Flipt API v2 as we want to use the default v2 marshaller directly.
 type V1toV2MarshallerAdapter struct {
-	*grpc_gateway_v1.JSONPb
+	*grpc_gateway_v2.JSONPb
 	logger *zap.Logger
 }
 
 func NewV1toV2MarshallerAdapter(logger *zap.Logger) *V1toV2MarshallerAdapter {
-	return &V1toV2MarshallerAdapter{&grpc_gateway_v1.JSONPb{OrigName: false, EmitDefaults: true}, logger}
+	return &V1toV2MarshallerAdapter{&grpc_gateway_v2.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true},
+	}, logger}
 }
 
-func (m *V1toV2MarshallerAdapter) ContentType(_ interface{}) string {
-	return m.JSONPb.ContentType()
+func (m *V1toV2MarshallerAdapter) ContentType(v interface{}) string {
+	return "application/json"
 }
 
 func (m *V1toV2MarshallerAdapter) Marshal(v interface{}) ([]byte, error) {
@@ -41,16 +46,28 @@ func (m *V1toV2MarshallerAdapter) Marshal(v interface{}) ([]byte, error) {
 // decoderInterceptor intercepts and modifies the outbound error return value for
 // inputs that fail to unmarshal against the protobuf.
 type decoderInterceptor struct {
-	grpc_gateway_v1.Decoder
-	logger *zap.Logger
+	grpc_gateway_v2.Decoder
+	logger       *zap.Logger
+	unmarshaller protojson.UnmarshalOptions
 }
 
 func (c *decoderInterceptor) Decode(v interface{}) error {
-	err := c.Decoder.Decode(v)
+	var err error
+	if pt, ok := v.(protoiface.MessageV1); ok {
+		unmarshaler := &jsonpb.Unmarshaler{AllowUnknownFields: !c.unmarshaller.DiscardUnknown}
+		// Decode into bytes for marshalling
+		var b json.RawMessage
+		if err := c.Decoder.Decode(&b); err != nil {
+			return err
+		}
+		err = unmarshaler.Unmarshal(bytes.NewBuffer(b), pt)
+	} else {
+		err = c.Decoder.Decode(v)
+	}
 	if err != nil {
 		c.logger.Debug("JSON decoding failed for inputs", zap.Error(err))
-
-		if _, ok := err.(*json.UnmarshalTypeError); ok {
+		var uerr *json.UnmarshalTypeError
+		if errors.As(err, &uerr) {
 			return errors.New("invalid values for key(s) in json body")
 		}
 
@@ -61,7 +78,7 @@ func (c *decoderInterceptor) Decode(v interface{}) error {
 }
 
 func (m *V1toV2MarshallerAdapter) NewDecoder(r io.Reader) grpc_gateway_v2.Decoder {
-	return &decoderInterceptor{Decoder: m.JSONPb.NewDecoder(r), logger: m.logger}
+	return &decoderInterceptor{Decoder: json.NewDecoder(r), logger: m.logger, unmarshaller: m.JSONPb.UnmarshalOptions}
 }
 
 func (m *V1toV2MarshallerAdapter) NewEncoder(w io.Writer) grpc_gateway_v2.Encoder {
