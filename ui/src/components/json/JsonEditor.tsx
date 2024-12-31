@@ -12,6 +12,7 @@ type JsonEditorProps = {
   disabled?: boolean;
   strict?: boolean;
   height?: string;
+  'data-testid'?: string;
 };
 
 export const JsonEditor: React.FC<JsonEditorProps> = (
@@ -22,7 +23,8 @@ export const JsonEditor: React.FC<JsonEditorProps> = (
     setValue,
     disabled = false,
     strict = true,
-    height = '50vh'
+    height = '50vh',
+    'data-testid': dataTestId
   } = props;
   const onChange = React.useCallback(
     (val: any, _: any) => {
@@ -45,6 +47,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = (
         highlightActiveLine: true
       }}
       theme={tokyoNight}
+      data-testid={dataTestId}
     />
   );
 };

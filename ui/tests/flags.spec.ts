@@ -135,57 +135,31 @@ test.describe('Flags', () => {
   test('can create flag with metadata', async ({ page }) => {
     await page.getByRole('button', { name: 'New Flag' }).click();
     await page.getByLabel('Name').fill('Test Flag With Metadata');
-    await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Add Metadata' }).click();
-    await page.getByLabel('Key').fill('version');
-    await page.getByLabel('Value').fill('1.0.0');
+    await page.getByTestId('metadata-key-0').fill('foo');
+    await page.getByTestId('metadata-value-0').fill('bar');
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-1').fill('baz');
+    await page.getByTestId('metadata-type-1').click();
+    await page.getByLabel('Object').getByText('Object').click();
+    await page
+      .getByTestId('metadata-value-1')
+      .getByRole('textbox')
+      .fill('{"foo":"bar","baz":{"boz":"1"}}');
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created flag')).toBeVisible();
-    await expect(page.getByText('version: 1.0.0')).toBeVisible();
-  });
-
-  test('can update flag metadata', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag-with-metadata' }).click();
-    await page.getByRole('button', { name: 'Edit Metadata' }).click();
-    await page.getByLabel('Value').fill('2.0.0');
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(page.getByText('version: 2.0.0')).toBeVisible();
+    await expect(
+      page.getByTestId('metadata-value-0').getByRole('textbox')
+    ).toHaveText('{"baz":{"boz":"1"},"foo":"bar"}');
+    await expect(page.getByTestId('metadata-value-1')).toBeDisabled();
   });
 
   test('can delete flag metadata', async ({ page }) => {
     await page.getByRole('link', { name: 'test-flag-with-metadata' }).click();
-    await page.getByRole('button', { name: 'Delete Metadata' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(page.getByText('version: 2.0.0')).not.toBeVisible();
-  });
-
-  test('can add different metadata types', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag-with-metadata' }).click();
-
-    // Add string metadata
-    await page.getByRole('button', { name: 'Add Metadata' }).click();
-    await page.getByLabel('Key').fill('environment');
-    await page.getByLabel('Value').fill('production');
-    await page.getByRole('button', { name: 'Add' }).click();
-
-    // Add boolean metadata
-    await page.getByRole('button', { name: 'Add Metadata' }).click();
-    await page.getByLabel('Key').fill('active');
-    await page.getByRole('combobox', { name: 'Type' }).selectOption('boolean');
-    await page.getByLabel('Value').check();
-    await page.getByRole('button', { name: 'Add' }).click();
-
-    // Add number metadata
-    await page.getByRole('button', { name: 'Add Metadata' }).click();
-    await page.getByLabel('Key').fill('priority');
-    await page.getByRole('combobox', { name: 'Type' }).selectOption('number');
-    await page.getByLabel('Value').fill('1');
-    await page.getByRole('button', { name: 'Add' }).click();
-
+    await page.getByLabel('Remove metadata entry').first().click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(page.getByTestId('metadata-value-0')).toBeDisabled();
   });
 });
 

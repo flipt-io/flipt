@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import * as Yup from 'yup';
 import type { IFlagMetadata } from '~/types/Flag';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
+import { Button } from '~/components/Button';
+import Input from '~/components/forms/Input';
 import {
   Select,
   SelectContent,
@@ -327,6 +327,8 @@ export function MetadataForm({
             }}
             disabled={disabled || !entry.isNew}
             height="20vh"
+            data-testid={`metadata-value-${index}`}
+            strict={false}
           />
         );
       case 'primitive':
@@ -342,6 +344,7 @@ export function MetadataForm({
                   )
                 }
                 disabled={disabled}
+                data-testid={`metadata-subtype-${index}`}
               >
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="Type" />
@@ -360,6 +363,7 @@ export function MetadataForm({
                   handleChange(index, 'value', v === 'true')
                 }
                 disabled={disabled || !entry.isNew}
+                data-testid={`metadata-value-${index}`}
               >
                 <SelectTrigger className="flex-1 disabled:opacity-75">
                   <SelectValue />
@@ -371,6 +375,8 @@ export function MetadataForm({
               </Select>
             ) : (
               <Input
+                id={`metadata-value-${index}`}
+                name={`metadata-value-${index}`}
                 type={entry.subtype === 'number' ? 'number' : 'text'}
                 value={entry.value?.toString() ?? ''}
                 onChange={(e) => handleChange(index, 'value', e.target.value)}
@@ -399,6 +405,8 @@ export function MetadataForm({
           <div key={index} className="flex items-start gap-4">
             <div>
               <Input
+                id={`metadata-key-${index}`}
+                name={`metadata-key-${index}`}
                 type="text"
                 value={entry.key}
                 onChange={(e) => handleChange(index, 'key', e.target.value)}
@@ -459,7 +467,6 @@ export function MetadataForm({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
               onClick={() => handleRemove(index)}
               disabled={disabled}
               aria-label="Remove metadata entry"
@@ -472,7 +479,7 @@ export function MetadataForm({
 
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         onClick={handleAdd}
         disabled={disabled}
         className="w-full"

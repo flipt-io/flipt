@@ -40,7 +40,7 @@ export const parseLinter =
       }
       if (!Array.isArray(data)) {
         for (const [key, value] of Object.entries(data)) {
-          if (typeof value !== 'string') {
+          if (strict && typeof value !== 'string') {
             const keyCursor = new SearchCursor(doc, `"${key}"`);
             const keyMatch = keyCursor.next();
             if (!keyMatch?.value) continue;
