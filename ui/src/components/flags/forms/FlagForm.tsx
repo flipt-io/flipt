@@ -20,6 +20,7 @@ import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
 
 const flagTypes = [
   {
@@ -304,13 +305,21 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     </span>
                   </div>
                   <div className="mt-1">
-                    <MetadataForm
+                    <MetadataFormErrorBoundary
                       metadata={formik.values.metadata}
                       onChange={(metadata) =>
                         formik.setFieldValue('metadata', metadata)
                       }
                       disabled={readOnly}
-                    />
+                    >
+                      <MetadataForm
+                        metadata={formik.values.metadata}
+                        onChange={(metadata) =>
+                          formik.setFieldValue('metadata', metadata)
+                        }
+                        disabled={readOnly}
+                      />
+                    </MetadataFormErrorBoundary>
                   </div>
                 </div>
               </div>
