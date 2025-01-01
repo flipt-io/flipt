@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import * as Yup from 'yup';
 import type { IFlagMetadata } from '~/types/Flag';
@@ -98,12 +98,14 @@ export interface MetadataFormProps {
   metadata?: Record<string, any>;
   onChange: (metadata: Record<string, any>) => void;
   disabled?: boolean;
+  onErrorChange?: (hasErrors: boolean) => void;
 }
 
 export function MetadataForm({
   metadata = {},
   onChange,
-  disabled = false
+  disabled = false,
+  onErrorChange
 }: MetadataFormProps): JSX.Element {
   const [entries, setEntries] = useState<IFlagMetadata[]>(
     objectToMetadataArray(metadata)
@@ -112,11 +114,33 @@ export function MetadataForm({
     {}
   );
 
+  useEffect(() => {
+    const hasErrors = Object.keys(errors).length > 0;
+    onErrorChange?.(hasErrors);
+  }, [errors, onErrorChange]);
+
   const validateEntry = async (
     entry: IFlagMetadata,
-    index: number
+    index: number,
+    allEntries: IFlagMetadata[]
   ): Promise<boolean> => {
     try {
+      // First check for duplicate keys
+      const duplicateKey = allEntries.some(
+        (e, i) => i !== index && e.key === entry.key && entry.key !== ''
+      );
+
+      if (duplicateKey) {
+        const newErrors = { ...errors };
+        newErrors[index] = {
+          ...newErrors[index],
+          key: 'Key must be unique'
+        };
+        setErrors(newErrors);
+        return false;
+      }
+
+      // Then proceed with the existing validation
       await metadataValidationSchema.validate(entry, { abortEarly: false });
       const newErrors = { ...errors };
       delete newErrors[index];
@@ -271,7 +295,7 @@ export function MetadataForm({
     }
 
     setEntries(newEntries);
-    await validateEntry(newEntries[index], index);
+    await validateEntry(newEntries[index], index, newEntries);
     handleMetadataChange(newEntries);
   };
 

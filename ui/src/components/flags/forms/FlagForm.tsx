@@ -86,6 +86,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
   };
 
   const [keyCopied, setKeyCopied] = useState(false);
+  const [hasMetadataErrors, setHasMetadataErrors] = useState(false);
 
   return (
     <Formik
@@ -318,6 +319,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           formik.setFieldValue('metadata', metadata)
                         }
                         disabled={readOnly}
+                        onErrorChange={setHasMetadataErrors}
                       />
                     </MetadataFormErrorBoundary>
                   </div>
@@ -334,7 +336,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                   disabled={
                     !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
-                    readOnly
+                    readOnly ||
+                    hasMetadataErrors
                   }
                 >
                   {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}

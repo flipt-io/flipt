@@ -161,6 +161,18 @@ test.describe('Flags', () => {
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(page.getByTestId('metadata-value-0')).toBeDisabled();
   });
+
+  test('can not update flag with duplicate metadata keys', async ({ page }) => {
+    await page.getByRole('link', { name: 'metadata-flag' }).click();
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-1').fill('foo');
+    await page.getByTestId('metadata-value-1').fill('bar');
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-2').fill('foo');
+    await page.getByTestId('metadata-value-2').fill('baz');
+    await expect(page.getByText('Key must be unique')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
+  });
 });
 
 test.describe('Flags - Read Only', () => {
