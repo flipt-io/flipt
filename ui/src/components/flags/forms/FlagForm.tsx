@@ -14,11 +14,13 @@ import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';
+import { MetadataForm } from '~/components/flags/forms/MetadataForm';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
 
 const flagTypes = [
   {
@@ -37,7 +39,8 @@ const flagTypes = [
 
 const flagValidationSchema = Yup.object({
   key: keyValidation,
-  name: requiredValidation
+  name: requiredValidation,
+  metadata: Yup.object()
 });
 
 export default function FlagForm(props: { flag?: IFlag }) {
@@ -61,14 +64,14 @@ export default function FlagForm(props: { flag?: IFlag }) {
     if (isNew) {
       return createFlag({
         namespaceKey: namespace.key,
-        values: values
+        values
       }).unwrap();
     }
 
     return updateFlag({
       namespaceKey: namespace.key,
       flagKey: flag?.key,
-      values: values
+      values
     }).unwrap();
   };
 
@@ -78,10 +81,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
     description: flag?.description || '',
     type: flag?.type || FlagType.VARIANT,
     enabled: flag?.enabled || false,
-    defaultVariant: flag?.defaultVariant
+    defaultVariant: flag?.defaultVariant,
+    metadata: flag?.metadata || {}
   };
 
   const [keyCopied, setKeyCopied] = useState(false);
+  const [hasMetadataErrors, setHasMetadataErrors] = useState(false);
 
   return (
     <Formik
@@ -285,6 +290,40 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     disabled={readOnly}
                   />
                 </div>
+                <div className="col-span-3">
+                  <div className="flex justify-between">
+                    <label
+                      htmlFor="metadata"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Metadata
+                    </label>
+                    <span
+                      className="text-xs text-gray-500"
+                      id="metadata-optional"
+                    >
+                      Optional
+                    </span>
+                  </div>
+                  <div className="mt-1">
+                    <MetadataFormErrorBoundary
+                      metadata={formik.values.metadata}
+                      onChange={(metadata) =>
+                        formik.setFieldValue('metadata', metadata)
+                      }
+                      disabled={readOnly}
+                    >
+                      <MetadataForm
+                        metadata={formik.values.metadata}
+                        onChange={(metadata) =>
+                          formik.setFieldValue('metadata', metadata)
+                        }
+                        disabled={readOnly}
+                        onErrorChange={setHasMetadataErrors}
+                      />
+                    </MetadataFormErrorBoundary>
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end">
                 <Button type="button" onClick={() => navigate(-1)}>
@@ -297,7 +336,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                   disabled={
                     !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
-                    readOnly
+                    readOnly ||
+                    hasMetadataErrors
                   }
                 >
                   {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}

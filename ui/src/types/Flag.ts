@@ -17,6 +17,15 @@ export function flagTypeToLabel(flagType: FlagType): string {
       return 'Unknown';
   }
 }
+
+export interface IFlagMetadata {
+  key: string;
+  value: any;
+  type: 'primitive' | 'object' | 'array';
+  subtype?: 'string' | 'number' | 'boolean';
+  isNew?: boolean;
+}
+
 export interface IFlagBase {
   key: string;
   type: FlagType;
@@ -24,6 +33,7 @@ export interface IFlagBase {
   enabled: boolean;
   description: string;
   defaultVariant?: IVariant;
+  metadata?: Record<string, any>;
 }
 
 export interface IFlag extends IFlagBase {

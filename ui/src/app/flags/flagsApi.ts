@@ -91,9 +91,9 @@ export const flagsApi = createApi({
       { namespaceKey: string; flagKey: string; values: IFlagBase }
     >({
       query({ namespaceKey, flagKey, values }) {
-        // create new object 'values' to remap defaultVariant to defaultVariantId
         const update = {
           defaultVariantId: values.defaultVariant?.id || null,
+          metadata: values.metadata || [],
           ...values
         };
         delete update.defaultVariant;

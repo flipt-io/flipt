@@ -12,7 +12,7 @@ import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { selectCurrentRef } from '~/app/refs/refsSlice';
-import { ContextEditor } from '~/components/console/ContextEditor';
+import { JsonEditor } from '~/components/json/JsonEditor';
 import EmptyState from '~/components/EmptyState';
 import { Button } from '~/components/Button';
 import Combobox from '~/components/Combobox';
@@ -285,8 +285,9 @@ export default function Console() {
                             Request Context
                           </label>
                           <div className="mt-1 text-sm">
-                            <ContextEditor
+                            <JsonEditor
                               id="context"
+                              value={formik.values.context}
                               setValue={(v) => {
                                 formik.setFieldValue('context', v);
                               }}

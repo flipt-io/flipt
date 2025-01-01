@@ -1,19 +1,31 @@
 import { json } from '@codemirror/lang-json';
-import { linter, lintGutter } from '@codemirror/lint';
+import { linter } from '@codemirror/lint';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
 import { parseLinter } from './lint';
 
-type ContextEditorProps = {
+type JsonEditorProps = {
   id: string;
+  value: string;
   setValue(value: string): void;
+  disabled?: boolean;
+  strict?: boolean;
+  height?: string;
+  'data-testid'?: string;
 };
 
-export const ContextEditor: React.FC<ContextEditorProps> = (
-  props: ContextEditorProps
+export const JsonEditor: React.FC<JsonEditorProps> = (
+  props: JsonEditorProps
 ) => {
-  const { setValue } = props;
+  const {
+    value = '{}',
+    setValue,
+    disabled = false,
+    strict = true,
+    height = '50vh',
+    'data-testid': dataTestId
+  } = props;
   const onChange = React.useCallback(
     (val: any, _: any) => {
       setValue(val);
@@ -22,10 +34,11 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
   );
   return (
     <CodeMirror
-      value="{}"
-      height="50vh"
-      extensions={[json(), lintGutter(), linter(parseLinter())]}
+      value={value}
+      height={height}
+      extensions={[json(), linter(parseLinter(strict))]}
       onChange={onChange}
+      readOnly={disabled}
       basicSetup={{
         lineNumbers: false,
         foldGutter: false,
@@ -34,6 +47,7 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
         highlightActiveLine: true
       }}
       theme={tokyoNight}
+      data-testid={dataTestId}
     />
   );
 };

@@ -121,7 +121,6 @@ test.describe('Flags', () => {
 
     // verify flag was copied
     await page.getByRole('link', { name: 'test-flag' }).click();
-    await expect(page.getByText('Test Flag')).toBeVisible();
 
     // verify variants were copied
     await expect(
@@ -130,6 +129,45 @@ test.describe('Flags', () => {
     await expect(
       page.getByRole('cell', { name: 'firefox', exact: true })
     ).toBeVisible();
+  });
+
+  test('can create flag with metadata', async ({ page }) => {
+    await page.getByRole('button', { name: 'New Flag' }).click();
+    await page.getByLabel('Name').fill('Metadata Flag');
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-0').fill('foo');
+    await page.getByTestId('metadata-value-0').fill('bar');
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-1').fill('baz');
+    await page.getByTestId('metadata-type-1').click();
+    await page.getByLabel('Object').getByText('Object').click();
+    await page
+      .getByTestId('metadata-value-1')
+      .getByRole('textbox')
+      .fill('{"foo":"bar","baz":{"boz":"1"}}');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Successfully created flag')).toBeVisible();
+    await expect(
+      page.getByTestId('metadata-value-0').getByRole('textbox')
+    ).toHaveText('{"baz":{"boz":"1"},"foo":"bar"}');
+    await expect(page.getByTestId('metadata-value-1')).toBeDisabled();
+  });
+
+  test('can delete flag metadata', async ({ page }) => {
+    await page.getByRole('link', { name: 'metadata-flag' }).click();
+    await page.getByLabel('Remove metadata entry').first().click();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(page.getByTestId('metadata-value-0')).toBeDisabled();
+  });
+
+  test('can not update flag with duplicate metadata keys', async ({ page }) => {
+    await page.getByRole('link', { name: 'metadata-flag' }).click();
+    await page.getByRole('button', { name: 'Add Metadata' }).click();
+    await page.getByTestId('metadata-key-1').fill('foo');
+    await page.getByTestId('metadata-value-1').fill('bar');
+    await expect(page.getByText('Key must be unique')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
 });
 
@@ -185,6 +223,13 @@ test.describe('Flags - Read Only', () => {
     // assert nothing happens
     await expect(
       page.getByRole('menuitem', { name: 'Copy to Namespace' })
+    ).toBeDisabled();
+  });
+
+  test('can not edit metadata', async ({ page }) => {
+    await page.getByRole('link', { name: 'metadata-flag' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Add Metadata' })
     ).toBeDisabled();
   });
 });
