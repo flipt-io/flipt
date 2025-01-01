@@ -3,6 +3,29 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.54.0](https://github.com/flipt-io/flipt/releases/tag/v1.54.0) - 2025-01-01
+
+### Added
+
+- add UI support for flag metadata (#3717)
+
+### Changed
+
+- `ui`: replace headlessui Switch with radix-ui (#3774)
+- `cache`: use namespace.version as part of cache key (#3743)
+- `ui`: make flags/segments views take up more screen space (#3726)
+
+### Fixed
+
+- otel http parent propogation (#3758)
+- `ui`: fix the user profile icon (#3741)
+- `authz`: support namespaces filtering (#3692)
+- `sdk/go`: ensure empty string cannot be passed as path parameters (#3722)
+- remove default namespace as a requirement to list namespaces  (#3716)
+- `ui`: use useEffect for error when tokens could not be fetch (#3723)
+- `ui`: use available namespace as selected before default fallback (#3719)
+- remove default namespace as a requirement to list namespaces (#3711)
+
 ## [v1.53.2](https://github.com/flipt-io/flipt/releases/tag/v1.53.2) - 2024-12-12
 
 ### Fixed
