@@ -166,11 +166,6 @@ test.describe('Flags', () => {
     await page.getByRole('button', { name: 'Add Metadata' }).click();
     await page.getByTestId('metadata-key-1').fill('foo');
     await page.getByTestId('metadata-value-1').fill('bar');
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await page.getByRole('button', { name: 'Add Metadata' }).click();
-    await page.getByTestId('metadata-key-2').fill('foo');
-    await page.getByTestId('metadata-value-2').fill('baz');
     await expect(page.getByText('Key must be unique')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
