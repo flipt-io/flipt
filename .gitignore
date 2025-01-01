@@ -58,3 +58,5 @@ build/mage_output_file.go
 
 *.rego
 !**/**/testdata/*.rego
+
+release-notes.md
