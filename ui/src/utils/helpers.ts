@@ -25,16 +25,18 @@ export function titleCase(str: string) {
 }
 
 export function stringAsKey(str: string) {
-  // Convert to lowercase and replace special characters with hyphens
-  let temp = str
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-');
+  return str.split(/\s+/).join('-');
 
-  // Remove leading and trailing hyphens
-  temp = temp.replace(/^-+|-+$/g, '');
+  // // Auto generated keys  should not begin or end in a hyphen
+  // if (temp.charAt(0) == "-") {
+  //   temp = temp.slice(1);
+  // }
 
-  return temp;
+  // if (temp.charAt(temp.length - 1) == "-") {
+  //   temp = temp.slice(0, -1);
+  // }
+
+  // return temp;
 }
 
 export function truncateKey(str: string, len: number = 25): string {
