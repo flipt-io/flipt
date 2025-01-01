@@ -154,7 +154,7 @@ jobs:
 
       - name: Generate Release Notes
         run: |
-          mage release:notes ${{ github.ref_name }} > release-notes.md
+          mage -d build release:notes ${{ github.ref_name }} > release-notes.md
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
