@@ -67,10 +67,14 @@ export const rolloutsApi = createApi({
       }
     >({
       query({ namespaceKey, flagKey, rolloutId, values }) {
+        const update = {
+          ...values,
+          metadata: values.metadata && Object.keys(values.metadata).length === 0 ? {} : values.metadata
+        };
         return {
           url: `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`,
           method: 'PUT',
-          body: values
+          body: update
         };
       },
       invalidatesTags: (_result, _error, arg) => [rolloutTag(arg)]
