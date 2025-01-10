@@ -93,7 +93,7 @@ export const flagsApi = createApi({
       query({ namespaceKey, flagKey, values }) {
         const update = {
           defaultVariantId: values.defaultVariant?.id || null,
-          metadata: values.metadata || [],
+          metadata: values.metadata || undefined,
           ...values
         };
         delete update.defaultVariant;
