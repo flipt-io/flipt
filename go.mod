@@ -16,7 +16,7 @@ require (
 	github.com/XSAM/otelsql v0.36.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.6
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.38.0
-	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.27.8
+	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.29.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.11.0
@@ -25,7 +25,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-git/go-billy/v5 v5.6.1
-	github.com/go-git/go-git/v5 v5.13.0
+	github.com/go-git/go-git/v5 v5.13.1
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-sql-driver/mysql v1.8.1
@@ -48,7 +48,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mitchellh/mapstructure v1.5.0
@@ -87,7 +87,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.30.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.32.0
-	go.opentelemetry.io/otel/exporters/prometheus v0.54.0
+	go.opentelemetry.io/otel/exporters/prometheus v0.55.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.31.0
 	go.opentelemetry.io/otel/metric v1.33.0
 	go.opentelemetry.io/otel/sdk v1.33.0
@@ -98,7 +98,7 @@ require (
 	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 	golang.org/x/net v0.33.0
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.25.0
 	golang.org/x/sync v0.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241230172942-26aa7a208def
 	google.golang.org/grpc v1.69.2
