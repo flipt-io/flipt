@@ -2,7 +2,7 @@
 
 ARG BINARY=flipt
 
-FROM alpine:3.21.0
+FROM alpine:3.21.2
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
