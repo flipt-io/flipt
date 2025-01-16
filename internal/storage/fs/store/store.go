@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	"oras.land/oras-go/v2"
 
@@ -254,8 +253,6 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 	}
 
 	if prefix != "" {
-		// ensure prefix is a valid prefix
-		prefix = strings.TrimPrefix(prefix, "/") + "/"
 		bucket = blob.PrefixedBucket(bucket, prefix)
 	}
 
