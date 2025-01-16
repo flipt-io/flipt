@@ -253,9 +253,9 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		return nil, err
 	}
 
-	// ensure prefix is a valid prefix
-	prefix = strings.TrimPrefix(prefix, "/") + "/"
 	if prefix != "" {
+		// ensure prefix is a valid prefix
+		prefix = strings.TrimPrefix(prefix, "/") + "/"
 		bucket = blob.PrefixedBucket(bucket, prefix)
 	}
 
