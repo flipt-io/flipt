@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.54.2](https://github.com/flipt-io/flipt/releases/tag/v1.54.2) - 2025-01-17
 
+### Changed
+
+- `ui`: remove cloud references (#3810)
+
 ### Fixed
 
 - Handling bucket prefix (for GCP) (#3808)
