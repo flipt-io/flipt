@@ -26,6 +26,7 @@ import {
 import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
 import { selectDismissedBanner } from './events/eventSlice';
+import { StarIcon } from '@heroicons/react/20/solid';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -75,9 +76,10 @@ function InnerLayout() {
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner
-            title="Introducing Flipt Cloud"
-            description="Fully managed Flipt. Multiple Environments. Integrated with your Git Repositories."
-            href="https://docs.flipt.io/cloud/overview"
+            title="Like Flipt? Give us a star on GitHub!"
+            description="It really means a lot to us. Thank you!"
+            href="https://github.com/flipt-io/flipt"
+            icon={<StarIcon className="mx-2 inline h-3 w-3" />}
           />
         )}
         <main className="flex pt-1 sm:pt-4">

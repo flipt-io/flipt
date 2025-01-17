@@ -3,7 +3,6 @@ import {
   AcademicCapIcon,
   BookOpenIcon,
   ChatBubbleLeftIcon,
-  CloudIcon,
   CodeBracketIcon,
   CommandLineIcon,
   PuzzlePieceIcon,
@@ -23,14 +22,6 @@ const gettingStartedTiles = [
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
     href: 'https://docs.flipt.io/introduction'
-  },
-  {
-    icon: CloudIcon,
-    name: 'Introducing Flipt Cloud',
-    className: 'sm:col-span-2',
-    description:
-      'Learn about our SaaS offering that integrates with your Git repositories and can be used alongside your existing Flipt instances',
-    href: 'https://docs.flipt.io/cloud/overview'
   },
   {
     icon: CommandLineIcon,
