@@ -6,10 +6,11 @@ type BannerProps = {
   title: string;
   description: string;
   href: string;
+  icon?: React.ReactNode;
 };
 
 export default function Banner(props: BannerProps) {
-  const { title, description, href } = props;
+  const { title, description, href, icon } = props;
 
   const dispatch = useDispatch();
 
@@ -18,13 +19,17 @@ export default function Banner(props: BannerProps) {
       <p className="text-sm leading-6 text-white">
         <a href={href}>
           <strong className="font-semibold">{title}</strong>
-          <svg
-            viewBox="0 0 2 2"
-            className="mx-2 inline h-0.5 w-0.5 fill-current"
-            aria-hidden="true"
-          >
-            <circle cx={1} cy={1} r={1} />
-          </svg>
+          {icon ? (
+            icon
+          ) : (
+            <svg
+              viewBox="0 0 2 2"
+              className="mx-2 inline h-0.5 w-0.5 fill-current"
+              aria-hidden="true"
+            >
+              <circle cx={1} cy={1} r={1} />
+            </svg>
+          )}
           {description}&nbsp;
           <span aria-hidden="true">&rarr;</span>
         </a>
