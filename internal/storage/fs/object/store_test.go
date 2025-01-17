@@ -219,17 +219,15 @@ flags:
 
 		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("production"))
-			if err != nil {
-				return err
-			}
+			require.NoError(t, err)
 
 			_, err = s.GetFlag(context.TODO(), storage.NewResource("production", "foo"))
-			if err != nil {
-				return err
-			}
+			require.NoError(t, err)
 
 			_, err = s.GetNamespace(context.TODO(), storage.NewNamespace("prefix"))
-			return err
+			require.NoError(t, err)
+
+			return nil
 		}))
 	})
 
@@ -242,6 +240,8 @@ flags:
 		bucket, err := OpenBucket(ctx, u)
 		require.NoError(t, err)
 
+		bucket = gcblob.PrefixedBucket(bucket, "prefix/")
+
 		t.Cleanup(func() { _ = bucket.Close() })
 
 		writeTestDataToBucket(t, ctx, bucket)
@@ -253,7 +253,6 @@ flags:
 			zaptest.NewLogger(t),
 			u.Scheme,
 			bucket,
-			WithPrefix("prefix"),
 		)
 		require.NoError(t, err)
 
@@ -265,8 +264,7 @@ flags:
 		// however, both should be empty
 		require.NoError(t, store.View(ctx, func(s storage.ReadOnlyStore) error {
 			_, err := s.GetNamespace(ctx, storage.NewNamespace("production"))
-			require.Error(t, err, "should not exist in prefixed bucket")
-
+			require.NoError(t, err)
 			_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 			require.Error(t, err, "flag should not be defined yet")
 
