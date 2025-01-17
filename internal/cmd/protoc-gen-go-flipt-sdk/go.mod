@@ -3,8 +3,8 @@ module go.flipt.io/protoc-gen-go-flipt-sdk
 go 1.22
 
 require (
-	google.golang.org/genproto/googleapis/api v0.0.0-20241219192143-6b3ec007d9bb
-	google.golang.org/protobuf v1.36.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20241230172942-26aa7a208def
+	google.golang.org/protobuf v1.36.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
