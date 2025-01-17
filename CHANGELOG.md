@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.54.2](https://github.com/flipt-io/flipt/releases/tag/v1.54.2) - 2025-01-17
+
+### Fixed
+
+- Handling bucket prefix (for GCP) (#3808)
+
 ## [v1.54.1](https://github.com/flipt-io/flipt/releases/tag/v1.54.1) - 2025-01-10
 
 ### Fixed
