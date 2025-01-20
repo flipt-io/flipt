@@ -2,7 +2,9 @@ package kafka
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"reflect"
 
 	"github.com/hamba/avro/v2"
 	"github.com/twmb/franz-go/pkg/sr"
@@ -29,12 +31,25 @@ func (a *avroEncoder) Schema() sr.Schema {
 func (a *avroEncoder) Encode(v any) ([]byte, error) {
 	if event, ok := v.(audit.Event); ok {
 		var e audit.Event
-		var err error
 		event.CopyInto(&e)
-		e.Payload, err = event.PayloadToMap()
+		payload, err := event.PayloadToMap()
 		if err != nil {
 			return nil, err
 		}
+
+		for k, v := range payload {
+			t := reflect.TypeOf(v)
+			switch t.Kind() {
+			case reflect.Map, reflect.Slice, reflect.Array, reflect.Struct:
+				data, err := json.Marshal(v)
+				if err != nil {
+					return nil, err
+				}
+				payload[k] = string(data)
+			}
+		}
+
+		e.Payload = payload
 		buf := &bytes.Buffer{}
 		encoder := avro.NewEncoderForSchema(a.schema, buf)
 		err = encoder.Encode(e)

@@ -32,10 +32,26 @@ func TestEncoding(t *testing.T) {
 			}),
 		},
 		{
-			"rollout",
+			"rollout-threshold",
 			audit.NewRollout(&flipt.Rollout{
 				Description:  "this description",
 				NamespaceKey: "default",
+				Rule: &flipt.Rollout_Threshold{
+					Threshold: &flipt.RolloutThreshold{},
+				},
+			}),
+		},
+		{
+			"rollout-segment",
+			audit.NewRollout(&flipt.Rollout{
+				Description:  "this description",
+				NamespaceKey: "default",
+				Rule: &flipt.Rollout_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+						SegmentKeys:     []string{"segment-key", "some"},
+					},
+				},
 			}),
 		},
 		{
@@ -48,6 +64,14 @@ func TestEncoding(t *testing.T) {
 		{
 			"nil",
 			nil,
+		},
+		{
+			"segment",
+			audit.NewSegment(&flipt.Segment{
+				NamespaceKey: "default",
+				Key:          "segment-key",
+				Constraints:  []*flipt.Constraint{{Id: "constraint-id"}},
+			}),
 		},
 	}
 
@@ -70,5 +94,4 @@ func TestEncoding(t *testing.T) {
 			})
 		}
 	}
-
 }
