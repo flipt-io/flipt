@@ -122,7 +122,7 @@ func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
 
 	var (
 		redisAddr   = os.Getenv("REDIS_HOST")
-		redisCancel = func(context.Context) error { return nil }
+		redisCancel = func(context.Context, ...testcontainers.TerminateOption) error { return nil }
 	)
 
 	if redisAddr == "" {
