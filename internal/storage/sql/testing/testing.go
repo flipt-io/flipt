@@ -14,7 +14,6 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/config/migrations"
@@ -57,14 +56,10 @@ func Open() (*Database, error) {
 	var proto config.DatabaseProtocol
 
 	switch os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL") {
-	case "cockroachdb", "cockroach":
-		proto = config.DatabaseCockroachDB
 	case "postgres":
 		proto = config.DatabasePostgres
 	case "mysql":
 		proto = config.DatabaseMySQL
-	case "libsql":
-		proto = config.DatabaseLibSQL
 	default:
 		proto = config.DatabaseSQLite
 	}
@@ -96,17 +91,6 @@ func Open() (*Database, error) {
 			cleanup = func() {
 				_ = os.Remove(dbPath)
 			}
-		case config.DatabaseLibSQL:
-			dbPath := createTempDBPath()
-			cfg.Database.URL = "libsql://file:" + dbPath
-			cleanup = func() {
-				_ = os.Remove(dbPath)
-			}
-		case config.DatabaseCockroachDB:
-			useTestContainer = true
-			username = "root"
-			password = ""
-			dbName = "defaultdb"
 		default:
 			useTestContainer = true
 			username = "flipt"
@@ -204,12 +188,10 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 	)
 
 	switch driver {
-	case fliptsql.SQLite, fliptsql.LibSQL:
+	case fliptsql.SQLite:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 	case fliptsql.Postgres:
 		dr, err = pg.WithInstance(db, &pg.Config{})
-	case fliptsql.CockroachDB:
-		dr, err = cockroachdb.WithInstance(db, &cockroachdb.Config{})
 	case fliptsql.MySQL:
 		dr, err = ms.WithInstance(db, &ms.Config{})
 
@@ -257,20 +239,6 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 				"POSTGRES_PASSWORD": "password",
 				"POSTGRES_DB":       "flipt_test",
 			},
-		}
-	case config.DatabaseCockroachDB:
-		port = nat.Port("26257/tcp")
-		req = testcontainers.ContainerRequest{
-			Image:        "cockroachdb/cockroach:latest-v21.2",
-			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
-				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port.Port())
-			}),
-			Env: map[string]string{
-				"COCKROACH_USER":     "root",
-				"COCKROACH_DATABASE": "defaultdb",
-			},
-			Cmd: []string{"start-single-node", "--insecure"},
 		}
 	case config.DatabaseMySQL:
 		port = nat.Port("3306/tcp")

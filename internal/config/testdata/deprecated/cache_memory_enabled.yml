@@ -1,4 +1,0 @@
-cache:
-  memory:
-    enabled: true
-    expiration: -1s

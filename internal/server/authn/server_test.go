@@ -64,7 +64,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(true)))
+	rpcauth.RegisterAuthenticationServiceServer(server, authn.NewServer(logger, store))
 
 	go func() {
 		errC <- server.Serve(listener)

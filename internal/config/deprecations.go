@@ -8,11 +8,8 @@ import (
 type deprecated string
 
 var (
-	deprecateAuthenticationExcludeMetdata deprecated = "authentication.exclude.metadata"
 	// fields that are deprecated along with their messages
-	deprecatedFields = map[deprecated]string{
-		deprecateAuthenticationExcludeMetdata: "This feature never worked as intended. Metadata can no longer be excluded from authentication (when required).",
-	}
+	deprecatedFields = map[deprecated]string{}
 )
 
 const (

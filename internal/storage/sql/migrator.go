@@ -8,7 +8,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
-	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -19,12 +18,10 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      15,
-	LibSQL:      15, // libsql driver uses the same migrations as sqlite3
-	Postgres:    16,
-	MySQL:       15,
-	CockroachDB: 13,
-	Clickhouse:  3,
+	SQLite:     15,
+	Postgres:   16,
+	MySQL:      15,
+	Clickhouse: 3,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -45,12 +42,10 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	var dr database.Driver
 
 	switch driver {
-	case SQLite, LibSQL:
+	case SQLite:
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
 		dr, err = pgx.WithInstance(sql, &pgx.Config{})
-	case CockroachDB:
-		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
 	case MySQL:
 		dr, err = mysql.WithInstance(sql, &mysql.Config{})
 	}

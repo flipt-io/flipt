@@ -63,16 +63,6 @@ func (c *TracingConfig) validate() error {
 	return nil
 }
 
-func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.GetString("tracing.exporter") == TracingJaeger.String() && v.GetBool("tracing.enabled") {
-		deprecations = append(deprecations, "tracing.exporter.jaeger")
-	}
-
-	return deprecations
-}
-
 // IsZero returns true if the tracing config is not enabled.
 // This is used for marshalling to YAML for `config init`.
 func (c TracingConfig) IsZero() bool {

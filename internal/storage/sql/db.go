@@ -14,7 +14,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/mattn/go-sqlite3"
-	"github.com/tursodatabase/libsql-client-go/libsql"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
@@ -84,7 +83,7 @@ func BuilderFor(db *sql.DB, driver Driver, preparedStatementsEnabled bool) sq.St
 	}
 
 	builder := sq.StatementBuilder.RunWith(brdb)
-	if driver == Postgres || driver == CockroachDB {
+	if driver == Postgres {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 
@@ -123,15 +122,9 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	case SQLite:
 		dr = &sqlite3.SQLiteDriver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
-	case LibSQL:
-		dr = &libsql.Driver{}
-		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
 	case Postgres:
 		dr = newAdaptedPostgresDriver(d)
 		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
-	case CockroachDB:
-		dr = newAdaptedPostgresDriver(d)
-		attrs = []attribute.KeyValue{semconv.DBSystemCockroachdb}
 	case MySQL:
 		dr = &mysql.MySQLDriver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemMySQL}
@@ -164,7 +157,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 
 	// if we're using sqlite, we need to set always set the max open connections to 1
 	// see: https://github.com/mattn/go-sqlite3/issues/274
-	if d == SQLite || d == LibSQL {
+	if d == SQLite {
 		maxOpenConn = 1
 	}
 
@@ -196,21 +189,17 @@ func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 
 var (
 	driverToString = map[Driver]string{
-		SQLite:      "sqlite3",
-		LibSQL:      "libsql",
-		Postgres:    "postgres",
-		MySQL:       "mysql",
-		CockroachDB: "cockroachdb",
-		Clickhouse:  "clickhouse",
+		SQLite:     "sqlite3",
+		Postgres:   "postgres",
+		MySQL:      "mysql",
+		Clickhouse: "clickhouse",
 	}
 
 	stringToDriver = map[string]Driver{
-		"sqlite3":     SQLite,
-		"libsql":      LibSQL,
-		"pgx":         Postgres,
-		"mysql":       MySQL,
-		"cockroachdb": CockroachDB,
-		"clickhouse":  Clickhouse,
+		"sqlite3":    SQLite,
+		"pgx":        Postgres,
+		"mysql":      MySQL,
+		"clickhouse": Clickhouse,
 	}
 )
 
@@ -222,9 +211,6 @@ func (d Driver) String() string {
 }
 
 func (d Driver) Migrations() string {
-	if d == LibSQL {
-		return "sqlite3"
-	}
 	return d.String()
 }
 
@@ -236,10 +222,6 @@ const (
 	Postgres
 	// MySQL ...
 	MySQL
-	// CockroachDB ...
-	CockroachDB
-	// LibSQL ...
-	LibSQL
 	// Clickhouse ...
 	Clickhouse
 )
@@ -283,7 +265,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 
 	v := url.Query()
 	switch driver {
-	case Postgres, CockroachDB:
+	case Postgres:
 		if opts.sslDisabled {
 			v.Set("sslmode", "disable")
 		}
@@ -297,7 +279,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 		if !opts.migrate {
 			v.Set("sql_mode", "ANSI")
 		}
-	case SQLite, LibSQL:
+	case SQLite:
 		if url.Scheme != "http" && url.Scheme != "https" {
 			v.Set("cache", "shared")
 			v.Set("mode", "rwc")

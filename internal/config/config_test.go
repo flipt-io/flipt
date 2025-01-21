@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
-	"go.flipt.io/flipt/internal/oci"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/memblob"
 	"gopkg.in/yaml.v2"
@@ -156,16 +155,6 @@ func TestDatabaseProtocol(t *testing.T) {
 			name:     "sqlite",
 			protocol: DatabaseSQLite,
 			want:     "sqlite",
-		},
-		{
-			name:     "cockroachdb",
-			protocol: DatabaseCockroachDB,
-			want:     "cockroachdb",
-		},
-		{
-			name:     "libsql",
-			protocol: DatabaseLibSQL,
-			want:     "libsql",
 		},
 	}
 
@@ -771,7 +760,6 @@ func TestLoad(t *testing.T) {
 						Capacity:    10,
 						FlushPeriod: 3 * time.Minute,
 					},
-					Events: []string{"*:*"},
 				}
 
 				cfg.Log = LogConfig{
@@ -1197,107 +1185,6 @@ func TestLoad(t *testing.T) {
 				}
 				return cfg
 			},
-		},
-		{
-			name: "OCI config provided",
-			path: "./testdata/storage/oci_provided.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type:     oci.AuthenticationTypeStatic,
-							Username: "foo",
-							Password: "bar",
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided full",
-			path: "./testdata/storage/oci_provided_full.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type:     oci.AuthenticationTypeStatic,
-							Username: "foo",
-							Password: "bar",
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.0",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided AWS ECR",
-			path: "./testdata/storage/oci_provided_aws_ecr.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type: oci.AuthenticationTypeAWSECR,
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided with no authentication",
-			path: "./testdata/storage/oci_provided_no_auth.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						PollInterval:     5 * time.Minute,
-						ManifestVersion:  "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name:    "OCI config provided with invalid authentication type",
-			path:    "./testdata/storage/oci_provided_invalid_auth.yml",
-			wantErr: errors.New("oci authentication type is not supported"),
-		},
-		{
-			name:    "OCI invalid no repository",
-			path:    "./testdata/storage/oci_invalid_no_repo.yml",
-			wantErr: errors.New("oci storage repository must be specified"),
-		},
-		{
-			name:    "OCI invalid unexpected scheme",
-			path:    "./testdata/storage/oci_invalid_unexpected_scheme.yml",
-			wantErr: errors.New("validating OCI configuration: unexpected repository scheme: \"unknown\" should be one of [http|https|flipt]"),
-		},
-		{
-			name:    "OCI invalid wrong manifest version",
-			path:    "./testdata/storage/oci_invalid_manifest_version.yml",
-			wantErr: errors.New("wrong manifest version, it should be 1.0 or 1.1"),
 		},
 		{
 			name:    "storage readonly config invalid",

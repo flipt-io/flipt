@@ -30,9 +30,9 @@ func (d Driver) AdaptError(err error) error {
 	}
 
 	switch d {
-	case SQLite, LibSQL:
+	case SQLite:
 		return adaptSQLiteError(err)
-	case CockroachDB, Postgres:
+	case Postgres:
 		return adaptPostgresError(err)
 	case MySQL:
 		return adaptMySQLError(err)

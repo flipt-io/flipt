@@ -91,7 +91,6 @@ func authenticationGRPC(
 	logger *zap.Logger,
 	cfg *config.Config,
 	forceMigrate bool,
-	tokenDeletedEnabled bool,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
@@ -105,7 +104,7 @@ func authenticationGRPC(
 	// FS backends are configured.
 	// All that is required to establish a connection for authentication is to either make auth required
 	// or configure at-least one authentication method (e.g. enable token method).
-	if !authCfg.Enabled() && (cfg.Storage.Type != config.DatabaseStorageType) {
+	if !authCfg.Enabled() {
 		return grpcRegisterers{
 			public.NewServer(logger, authCfg),
 			authn.NewServer(logger, storageauthmemory.NewStore()),
@@ -126,7 +125,7 @@ func authenticationGRPC(
 	}
 
 	var (
-		authServer   = authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled))
+		authServer   = authn.NewServer(logger, store)
 		publicServer = public.NewServer(logger, authCfg)
 
 		register = grpcRegisterers{

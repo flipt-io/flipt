@@ -141,13 +141,10 @@ func exec() error {
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(newMigrateCommand())
-	rootCmd.AddCommand(newExportCommand())
-	rootCmd.AddCommand(newImportCommand())
 	rootCmd.AddCommand(newValidateCommand())
 	rootCmd.AddCommand(newConfigCommand())
 	rootCmd.AddCommand(newCompletionCommand())
 	rootCmd.AddCommand(newDocCommand())
-	rootCmd.AddCommand(newBundleCommand())
 	rootCmd.AddCommand(newEvaluateCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())

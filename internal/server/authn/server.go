@@ -99,13 +99,6 @@ type Server struct {
 
 type Option func(*Server)
 
-// WithAuditLoggingEnabled sets the option for enabling audit logging for the auth server.
-func WithAuditLoggingEnabled(enabled bool) Option {
-	return func(s *Server) {
-		s.enableAuditLogging = enabled
-	}
-}
-
 func NewServer(logger *zap.Logger, store storageauth.Store, opts ...Option) *Server {
 	s := &Server{
 		logger: logger,

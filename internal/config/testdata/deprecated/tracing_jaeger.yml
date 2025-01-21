@@ -1,3 +1,0 @@
-tracing:
-  enabled: true
-  exporter: "jaeger"

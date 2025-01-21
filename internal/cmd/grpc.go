@@ -45,9 +45,6 @@ import (
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	fsstore "go.flipt.io/flipt/internal/storage/fs/store"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/internal/storage/sql/mysql"
-	"go.flipt.io/flipt/internal/storage/sql/postgres"
-	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.flipt.io/flipt/internal/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
@@ -129,33 +126,9 @@ func NewGRPCServer(
 
 	var store storage.Store
 
-	switch cfg.Storage.Type {
-	case "", config.DatabaseStorageType:
-		db, builder, driver, dbShutdown, err := getDB(ctx, logger, cfg, forceMigrate)
-		if err != nil {
-			return nil, err
-		}
-
-		server.onShutdown(dbShutdown)
-
-		switch driver {
-		case fliptsql.SQLite, fliptsql.LibSQL:
-			store = sqlite.NewStore(db, builder, logger)
-		case fliptsql.Postgres, fliptsql.CockroachDB:
-			store = postgres.NewStore(db, builder, logger)
-		case fliptsql.MySQL:
-			store = mysql.NewStore(db, builder, logger)
-		default:
-			return nil, fmt.Errorf("unsupported driver: %s", driver)
-		}
-
-		logger.Debug("database driver configured", zap.Stringer("driver", driver))
-	default:
-		// otherwise, attempt to configure a declarative backend store
-		store, err = fsstore.NewStore(ctx, logger, cfg)
-		if err != nil {
-			return nil, err
-		}
+	store, err = fsstore.NewStore(ctx, logger, cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	logger.Debug("store enabled", zap.Stringer("store", store))
@@ -279,29 +252,11 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(ofrepsrv, cfg.Authentication.Exclude.OFREP)
 
-	var checker audit.EventPairChecker = &audit.NoOpChecker{}
-
-	// We have to check if audit logging is enabled here for informing the authentication service that
-	// the user would like to receive token:deleted events.
-	if cfg.Audit.Enabled() {
-		var err error
-		checker, err = audit.NewChecker(cfg.Audit.Events)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var tokenDeletedEnabled bool
-	if checker != nil {
-		tokenDeletedEnabled = checker.Check("token:deleted")
-	}
-
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
 		forceMigrate,
-		tokenDeletedEnabled,
 		authnOpts...,
 	)
 	if err != nil {
@@ -420,7 +375,7 @@ func NewGRPCServer(
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
-		interceptors = append(interceptors, middlewaregrpc.AuditEventUnaryInterceptor(logger, checker))
+		interceptors = append(interceptors, middlewaregrpc.AuditEventUnaryInterceptor(logger))
 
 		spanExporter := audit.NewSinkSpanExporter(logger, sinks)
 
@@ -430,7 +385,6 @@ func NewGRPCServer(
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
-			zap.Strings("events", checker.Events()),
 		)
 
 		server.onShutdown(func(ctx context.Context) error {

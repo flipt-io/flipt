@@ -623,7 +623,7 @@ func Default() *Config {
 		},
 
 		Storage: StorageConfig{
-			Type: DatabaseStorageType,
+			Type: LocalStorageType,
 		},
 
 		Meta: MetaConfig{
@@ -653,7 +653,6 @@ func Default() *Config {
 				Capacity:    2,
 				FlushPeriod: 2 * time.Minute,
 			},
-			Events: []string{"*:*"},
 		},
 
 		Analytics: AnalyticsConfig{
