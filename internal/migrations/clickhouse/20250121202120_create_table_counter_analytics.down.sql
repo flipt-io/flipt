@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS flipt_counter_analytics;
