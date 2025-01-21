@@ -12,15 +12,15 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"go.flipt.io/flipt/config/migrations"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/migrations"
 	"go.uber.org/zap"
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:     15,
-	Postgres:   16,
-	MySQL:      15,
+	SQLite:     2,
+	Postgres:   2,
+	MySQL:      2,
 	Clickhouse: 3,
 }
 

@@ -39,15 +39,6 @@ func init() {
 		return nil, err
 	}
 
-	// register libsql driver with dburl
-	dburl.Register(dburl.Scheme{
-		Driver:    "libsql",
-		Generator: dburl.GenOpaque,
-		Transport: 0,
-		Opaque:    true,
-		Aliases:   []string{"libsql", "http", "https"},
-		Override:  "file",
-	})
 	// drop references to lib/pq and relay on pgx
 	dburl.Unregister("postgres")
 	dburl.RegisterAlias("pgx", "postgres")
@@ -63,7 +54,7 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 
 	sql, driver, err := open(cfg, options)
 	if err != nil {
-		return nil, 0, err
+		return nil, "", err
 	}
 
 	err = otelsql.RegisterDBStatsMetrics(sql,
@@ -108,7 +99,7 @@ func WithMigrate(o *Options) {
 func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	d, url, err := parse(cfg, opts)
 	if err != nil {
-		return nil, 0, err
+		return nil, "", err
 	}
 
 	driverName := fmt.Sprintf("instrumented-%s", d)
@@ -145,7 +136,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 
 	db, err := sql.Open(driverName, url.DSN)
 	if err != nil {
-		return nil, 0, fmt.Errorf("opening db for driver: %s %w", d, err)
+		return nil, "", fmt.Errorf("opening db for driver: %s %w", d, err)
 	}
 
 	db.SetMaxIdleConns(cfg.Database.MaxIdleConn)
@@ -176,7 +167,7 @@ func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 	if cfg.Analytics.Storage.Clickhouse.Enabled {
 		clickhouseOptions, err := cfg.Analytics.Storage.Clickhouse.Options()
 		if err != nil {
-			return nil, 0, err
+			return nil, "", err
 		}
 
 		db := clickhouse.OpenDB(clickhouseOptions)
@@ -184,17 +175,10 @@ func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
 		return db, Clickhouse, nil
 	}
 
-	return nil, 0, errors.New("no analytics db provided")
+	return nil, "", errors.New("no analytics db provided")
 }
 
 var (
-	driverToString = map[Driver]string{
-		SQLite:     "sqlite3",
-		Postgres:   "postgres",
-		MySQL:      "mysql",
-		Clickhouse: "clickhouse",
-	}
-
 	stringToDriver = map[string]Driver{
 		"sqlite3":    SQLite,
 		"pgx":        Postgres,
@@ -204,10 +188,10 @@ var (
 )
 
 // Driver represents a database driver
-type Driver uint8
+type Driver string
 
 func (d Driver) String() string {
-	return driverToString[d]
+	return string(d)
 }
 
 func (d Driver) Migrations() string {
@@ -215,15 +199,10 @@ func (d Driver) Migrations() string {
 }
 
 const (
-	_ Driver = iota
-	// SQLite ...
-	SQLite
-	// Postgres ...
-	Postgres
-	// MySQL ...
-	MySQL
-	// Clickhouse ...
-	Clickhouse
+	SQLite     Driver = "sqlite3"
+	Postgres   Driver = "postgres"
+	MySQL      Driver = "mysql"
+	Clickhouse Driver = "clickhouse"
 )
 
 func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
@@ -255,12 +234,12 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 
 	url, err := dburl.Parse(u)
 	if err != nil {
-		return 0, nil, fmt.Errorf("error parsing url: %w", err)
+		return "", nil, fmt.Errorf("error parsing url: %w", err)
 	}
 
 	driver := stringToDriver[url.UnaliasedDriver]
-	if driver == 0 {
-		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
+	if driver == "" {
+		return "", nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
 	}
 
 	v := url.Query()

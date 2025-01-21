@@ -16,8 +16,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.flipt.io/flipt/config/migrations"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/migrations"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 
 	ms "github.com/golang-migrate/migrate/v4/database/mysql"
