@@ -44,6 +44,7 @@ func NewSink(ctx context.Context, logger *zap.Logger, cfg config.KafkaSinkConfig
 		logLevel = zap.InfoLevel
 	}
 	opts := []kgo.Opt{
+		kgo.AllowAutoTopicCreation(),
 		kgo.SeedBrokers(cfg.BootstrapServers...),
 		kgo.DefaultProduceTopic(cfg.Topic),
 		kgo.WithLogger(kzap.New(logger, kzap.AtomicLevel(zap.NewAtomicLevelAt(logLevel)))),
