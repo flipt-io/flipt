@@ -42,11 +42,3 @@ func fliptSDK(address, token string) (*sdk.SDK, error) {
 	s := sdk.New(transport, opts...)
 	return &s, nil
 }
-
-func fliptClient(address, token string) (*sdk.Flipt, error) {
-	s, err := fliptSDK(address, token)
-	if err != nil {
-		return nil, err
-	}
-	return s.Flipt(), nil
-}

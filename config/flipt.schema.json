@@ -2,14 +2,14 @@
   "$schema": "http://json-schema.org/draft/2019-09/schema#",
   "id": "flipt.schema.json",
   "type": "object",
-  "title": "flipt-schema-v1",
+  "title": "flipt-schema-v2",
   "description": "Flipt config file is a YAML file defining how to configure the Flipt application.",
 
   "properties": {
     "version": {
       "type": "string",
-      "enum": ["1.0"],
-      "default": "1.0"
+      "enum": ["2.0"],
+      "default": "2.0"
     },
     "audit": {
       "$ref": "#/definitions/audit"
@@ -23,14 +23,8 @@
     "cache": {
       "$ref": "#/definitions/cache"
     },
-    "cloud": {
-      "$ref": "#/definitions/cloud"
-    },
     "cors": {
       "$ref": "#/definitions/cors"
-    },
-    "db": {
-      "$ref": "#/definitions/db"
     },
     "diagnostics": {
       "$ref": "#/definitions/diagnostics"
@@ -135,15 +129,6 @@
               "required": [],
               "title": "Token",
               "additionalProperties": false
-            },
-            "cloud": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                }
-              }
             },
             "oidc": {
               "type": "object",
@@ -569,31 +554,6 @@
       "required": [],
       "title": "Cache"
     },
-    "cloud": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "host": {
-          "type": "string",
-          "default": "flipt.cloud"
-        },
-        "organization": {
-          "type": "string"
-        },
-        "gateway": {
-          "type": "string"
-        },
-        "authentication": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "api_key": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
     "cors": {
       "type": "object",
       "additionalProperties": false,
@@ -613,9 +573,6 @@
             "Authorization",
             "Content-Type",
             "X-CSRF-Token",
-            "X-Fern-Language",
-            "X-Fern-SDK-Name",
-            "X-Fern-SDK-Version",
             "X-Flipt-Namespace",
             "X-Flipt-Accept-Server-Version"
           ]
@@ -642,65 +599,64 @@
       "required": [],
       "title": "Diagnostics"
     },
-    "db": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "url": {
-          "type": "string",
-          "default": "file:/var/opt/flipt/flipt.db"
-        },
-        "protocol": {
-          "type": "string",
-          "enum": [
-            "cockroach",
-            "cockroachdb",
-            "file",
-            "mysql",
-            "postgres",
-            "sqlite"
-          ]
-        },
-        "host": {
-          "type": "string"
-        },
-        "port": {
-          "type": "integer"
-        },
-        "name": {
-          "type": "string"
-        },
-        "user": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "max_idle_conn": {
-          "type": "integer",
-          "default": 2
-        },
-        "max_open_conn": {
-          "type": "integer"
-        },
-        "conn_max_lifetime": {
-          "oneOf": [{ "type": "integer" }, { "type": "string" }]
-        },
-        "prepared_statements_enabled": {
-          "type": "boolean"
-        }
-      },
-      "required": [],
-      "title": "DB"
-    },
+
     "storage": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "url": {
+              "type": "string",
+              "default": "file:/var/opt/flipt/flipt.db"
+            },
+            "protocol": {
+              "type": "string",
+              "enum": [
+                "file",
+                "mysql",
+                "postgres",
+                "sqlite"
+              ]
+            },
+            "host": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "user": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "max_idle_conn": {
+              "type": "integer",
+              "default": 2
+            },
+            "max_open_conn": {
+              "type": "integer"
+            },
+            "conn_max_lifetime": {
+              "oneOf": [{ "type": "integer" }, { "type": "string" }]
+            },
+            "prepared_statements_enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "title": "Authentication"
+        },
         "type": {
           "type": "string",
-          "enum": ["database", "git", "local", "object", "oci"],
-          "default": "database"
+          "enum": ["git", "local", "object"],
+          "default": "local"
         },
         "read_only": {
           "type": "boolean",
@@ -930,49 +886,6 @@
             }
           },
           "title": "Object"
-        },
-        "oci": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "repository": {
-              "type": "string"
-            },
-            "bundles_directory": {
-              "type": "string"
-            },
-            "authentication": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "enum": ["static", "aws-ecr"],
-                  "default": "static"
-                },
-                "username": { "type": "string" },
-                "password": { "type": "string" }
-              }
-            },
-            "poll_interval": {
-              "oneOf": [
-                {
-                  "type": "string",
-                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-                },
-                {
-                  "type": "integer"
-                }
-              ],
-              "default": "1m"
-            },
-            "manifest_version": {
-              "type": "string",
-              "enum": ["1.0", "1.1"],
-              "default": "1.1"
-            }
-          },
-          "title": "OCI"
         }
       },
       "required": [],
@@ -1106,20 +1019,6 @@
         "grpc_conn_max_age_grace": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-        },
-        "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "port": {
-              "type": "integer",
-              "default": 8443
-            }
-          }
         }
       },
       "required": [],
@@ -1245,11 +1144,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": true,
-          "deprecated": true
-        },
         "default_theme": {
           "type": "string",
           "enum": ["light", "dark", "system"],
@@ -1347,17 +1241,6 @@
               },
               "title": "Webhook"
             },
-            "cloud": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                }
-              },
-              "title": "Cloud"
-            },
             "kafka": {
               "type": "object",
               "additionalProperties": false,
@@ -1421,10 +1304,6 @@
               "default": "2m"
             }
           }
-        },
-        "events": {
-          "type": "array",
-          "default": ["*:*"]
         }
       },
       "title": "Audit"
@@ -1495,16 +1374,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        }
       },
       "title": "Experimental"
     }

@@ -47,7 +47,9 @@
 </div>
 
 > [!IMPORTANT]  
-> This branch is a work in progress for a v2 version of Flipt. This is not a stable release and should not be used in production. The v2 branch is a major refactor of the codebase with the goal of support Git and object storage as the primary storage backends.
+> This branch is a work in progress for a v2 version of Flipt. This is not a stable release and should not be used in production. The v2 branch is a major refactor of the codebase with the goal of support Git and object storage as the primary storage backends. See [PLAN.md](PLAN.md) for more information.
+
+<br clear="both"/>
 
 [Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
 

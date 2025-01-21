@@ -18,6 +18,18 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: version
+    attributes:
+      label: Major Version
+      description: Select the major version of Flipt that this bug is relevant to.
+      multiple: false
+      options:
+        - v1
+        - v2
+      validations:
+        required: true
+
   - type: textarea
     id: version-info
     attributes:
@@ -61,13 +73,5 @@ body:
 
         - OS
         - Config file used
-        - Database used (SQLite, MySQL, Postgres, etc.)
+        - Storage backend used (Filesystem, Database, Object, Git, OCI, etc.)
         - Screenshots
-        - Exported data from the database (see below)
-
-  - type: markdown
-    attributes:
-      value: |
-        **Attach an Export**
-
-        If the bug could be best shown with a specific set of data, please export your data by running `flipt export > export.yml` and then attach the YAML file to this issue. ❤️

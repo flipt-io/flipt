@@ -39,11 +39,6 @@ jobs:
       matrix:
         test:
           [
-            "api/sqlite",
-            "api/libsql",
-            "api/postgres",
-            "api/mysql",
-            "api/cockroach",
             "api/cache",
             "api/cachetls",
             "api/snapshot",
@@ -51,7 +46,6 @@ jobs:
             "fs/git",
             "fs/local",
             "fs/s3",
-            "fs/oci",
             "fs/azblob",
             "fs/gcs",
             "import/export",
