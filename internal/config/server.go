@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
 	"time"
 
@@ -69,36 +68,15 @@ func (c *ServerConfig) validate() error {
 }
 
 // Scheme is either HTTP or HTTPS.
-// TODO: can we use a string instead?
-type Scheme uint
+type Scheme string
 
 func (s Scheme) String() string {
-	return schemeToString[s]
-}
-
-func (s Scheme) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.String())
-}
-
-func (s Scheme) MarshalYAML() (interface{}, error) {
-	return s.String(), nil
+	return string(s)
 }
 
 const (
-	HTTP Scheme = iota
-	HTTPS
-)
-
-var (
-	schemeToString = map[Scheme]string{
-		HTTP:  "http",
-		HTTPS: "https",
-	}
-
-	stringToScheme = map[string]Scheme{
-		"http":  HTTP,
-		"https": HTTPS,
-	}
+	HTTP  Scheme = "http"
+	HTTPS Scheme = "https"
 )
 
 type CloudServerConfig struct {

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -14,16 +13,18 @@ var (
 	_ validator = (*DatabaseConfig)(nil)
 )
 
+// DatabaseProtocol represents a database protocol
+type DatabaseProtocol string
+
 const (
-	// database protocol enum
-	_ DatabaseProtocol = iota
-	// DatabaseSQLite ...
-	DatabaseSQLite
-	// DatabasePostgres ...
-	DatabasePostgres
-	// DatabaseMySQL ...
-	DatabaseMySQL
+	DatabaseSQLite   DatabaseProtocol = "sqlite"
+	DatabasePostgres DatabaseProtocol = "postgres"
+	DatabaseMySQL    DatabaseProtocol = "mysql"
 )
+
+func (d DatabaseProtocol) String() string {
+	return string(d)
+}
 
 // DatabaseConfig contains fields, which configure the various relational database backends.
 //
@@ -70,7 +71,7 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) error {
 
 func (c *DatabaseConfig) validate() (err error) {
 	if c.URL == "" {
-		if c.Protocol == 0 {
+		if c.Protocol == "" {
 			return errFieldRequired("db.protocol")
 		}
 
@@ -85,29 +86,3 @@ func (c *DatabaseConfig) validate() (err error) {
 
 	return
 }
-
-// DatabaseProtocol represents a database protocol
-type DatabaseProtocol uint8
-
-func (d DatabaseProtocol) String() string {
-	return databaseProtocolToString[d]
-}
-
-func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
-	return json.Marshal(d.String())
-}
-
-var (
-	databaseProtocolToString = map[DatabaseProtocol]string{
-		DatabaseSQLite:   "sqlite",
-		DatabasePostgres: "postgres",
-		DatabaseMySQL:    "mysql",
-	}
-
-	stringToDatabaseProtocol = map[string]DatabaseProtocol{
-		"file":     DatabaseSQLite,
-		"sqlite":   DatabaseSQLite,
-		"postgres": DatabasePostgres,
-		"mysql":    DatabaseMySQL,
-	}
-)

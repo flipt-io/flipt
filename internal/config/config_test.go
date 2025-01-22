@@ -57,9 +57,6 @@ func TestScheme(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, scheme.String())
-			json, err := scheme.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -90,9 +87,6 @@ func TestCacheBackend(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, backend.String())
-			json, err := backend.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -128,9 +122,6 @@ func TestTracingExporter(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, exporter.String())
-			json, err := exporter.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -166,9 +157,6 @@ func TestDatabaseProtocol(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, protocol.String())
-			json, err := protocol.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -199,9 +187,6 @@ func TestLogEncoding(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, encoding.String())
-			json, err := encoding.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }

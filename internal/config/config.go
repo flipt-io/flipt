@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	Version   = "1.0"
+	Version   = "2.0"
 	EnvPrefix = "FLIPT"
 )
 
@@ -36,10 +36,6 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 	stringToEnvsubstHookFunc(),
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
-	stringToEnumHookFunc(stringToCacheBackend),
-	stringToEnumHookFunc(stringToTracingExporter),
-	stringToEnumHookFunc(stringToScheme),
-	stringToEnumHookFunc(stringToDatabaseProtocol),
 	stringToEnumHookFunc(stringToAuthMethod),
 }
 
