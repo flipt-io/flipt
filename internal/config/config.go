@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	Version   = "1.0"
+	Version   = "2.0"
 	EnvPrefix = "FLIPT"
 )
 
@@ -36,10 +36,6 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 	stringToEnvsubstHookFunc(),
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
-	stringToEnumHookFunc(stringToCacheBackend),
-	stringToEnumHookFunc(stringToTracingExporter),
-	stringToEnumHookFunc(stringToScheme),
-	stringToEnumHookFunc(stringToDatabaseProtocol),
 	stringToEnumHookFunc(stringToAuthMethod),
 }
 
@@ -62,7 +58,6 @@ type Config struct {
 	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
-	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
 	Diagnostics    DiagnosticConfig     `json:"diagnostics,omitempty" mapstructure:"diagnostics" yaml:"diagnostics,omitempty"`
 	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental" yaml:"experimental,omitempty"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
@@ -518,13 +513,6 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 
 // Default is the base config used when no configuration is explicit provided.
 func Default() *Config {
-	dbRoot, err := defaultDatabaseRoot()
-	if err != nil {
-		panic(err)
-	}
-
-	dbPath := filepath.ToSlash(filepath.Join(dbRoot, "flipt.db"))
-
 	return &Config{
 		Log: LogConfig{
 			Level:     "INFO",
@@ -549,9 +537,6 @@ func Default() *Config {
 				"Authorization",
 				"Content-Type",
 				"X-CSRF-Token",
-				"X-Fern-Language",
-				"X-Fern-SDK-Name",
-				"X-Fern-SDK-Version",
 				"X-Flipt-Namespace",
 				"X-Flipt-Accept-Server-Version",
 			},
@@ -616,14 +601,8 @@ func Default() *Config {
 			},
 		},
 
-		Database: DatabaseConfig{
-			URL:                       "file:" + dbPath,
-			MaxIdleConn:               2,
-			PreparedStatementsEnabled: true,
-		},
-
 		Storage: StorageConfig{
-			Type: DatabaseStorageType,
+			Type: LocalStorageType,
 		},
 
 		Meta: MetaConfig{
@@ -653,7 +632,6 @@ func Default() *Config {
 				Capacity:    2,
 				FlushPeriod: 2 * time.Minute,
 			},
-			Events: []string{"*:*"},
 		},
 
 		Analytics: AnalyticsConfig{

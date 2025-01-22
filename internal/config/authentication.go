@@ -202,14 +202,6 @@ func (c *AuthenticationConfig) validate() error {
 	return nil
 }
 
-func (c *AuthenticationConfig) deprecations(v *viper.Viper) []deprecated {
-	if v.Get("authentication.exclude.metadata") != nil {
-		return []deprecated{deprecateAuthenticationExcludeMetdata}
-	}
-
-	return nil
-}
-
 func getHostname(rawurl string) (string, error) {
 	if !strings.Contains(rawurl, "://") {
 		rawurl = "http://" + rawurl

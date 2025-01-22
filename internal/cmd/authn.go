@@ -13,7 +13,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/cap/jwt"
-	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
@@ -29,8 +28,6 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storageauthcache "go.flipt.io/flipt/internal/storage/authn/cache"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
-	authsql "go.flipt.io/flipt/internal/storage/authn/sql"
-	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -47,42 +44,6 @@ func getAuthStore(
 		shutdown                   = func(context.Context) error { return nil }
 	)
 
-	if cfg.Authentication.RequiresDatabase() {
-		_, builder, driver, dbShutdown, err := getDB(ctx, logger, cfg, forceMigrate)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		store = authsql.NewStore(driver, builder, logger)
-		shutdown = dbShutdown
-
-		if cfg.Authentication.ShouldRunCleanup() {
-			var (
-				oplock  = oplocksql.New(logger, driver, builder)
-				cleanup = cleanup.NewAuthenticationService(
-					logger,
-					oplock,
-					store,
-					cfg.Authentication,
-				)
-			)
-
-			cleanup.Run(ctx)
-
-			dbShutdown := shutdown
-			shutdown = func(ctx context.Context) error {
-				logger.Info("shutting down authentication cleanup service...")
-
-				if err := cleanup.Shutdown(ctx); err != nil {
-					_ = dbShutdown(ctx)
-					return err
-				}
-
-				return dbShutdown(ctx)
-			}
-		}
-	}
-
 	return store, shutdown, nil
 }
 
@@ -91,7 +52,6 @@ func authenticationGRPC(
 	logger *zap.Logger,
 	cfg *config.Config,
 	forceMigrate bool,
-	tokenDeletedEnabled bool,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
@@ -105,7 +65,7 @@ func authenticationGRPC(
 	// FS backends are configured.
 	// All that is required to establish a connection for authentication is to either make auth required
 	// or configure at-least one authentication method (e.g. enable token method).
-	if !authCfg.Enabled() && (cfg.Storage.Type != config.DatabaseStorageType) {
+	if !authCfg.Enabled() {
 		return grpcRegisterers{
 			public.NewServer(logger, authCfg),
 			authn.NewServer(logger, storageauthmemory.NewStore()),
@@ -126,7 +86,7 @@ func authenticationGRPC(
 	}
 
 	var (
-		authServer   = authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled))
+		authServer   = authn.NewServer(logger, store)
 		publicServer = public.NewServer(logger, authCfg)
 
 		register = grpcRegisterers{

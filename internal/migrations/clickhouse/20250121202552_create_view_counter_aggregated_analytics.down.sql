@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS flipt_counter_aggregated_analytics_mv;

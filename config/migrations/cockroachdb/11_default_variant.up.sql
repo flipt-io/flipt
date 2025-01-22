@@ -1,1 +1,0 @@
-ALTER TABLE flags ADD COLUMN default_variant_id VARCHAR(255) REFERENCES variants(id) ON DELETE SET NULL;

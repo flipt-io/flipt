@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -59,40 +58,16 @@ func (c CacheConfig) IsZero() bool {
 }
 
 // CacheBackend is either memory or redis
-// TODO: can we use a string here instead?
-type CacheBackend uint8
-
-func (c CacheBackend) String() string {
-	return cacheBackendToString[c]
-}
-
-func (c CacheBackend) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.String())
-}
-
-func (c CacheBackend) MarshalYAML() (interface{}, error) {
-	return c.String(), nil
-}
+type CacheBackend string
 
 const (
-	_ CacheBackend = iota
-	// CacheMemory ...
-	CacheMemory
-	// CacheRedis ...
-	CacheRedis
+	CacheMemory CacheBackend = "memory"
+	CacheRedis  CacheBackend = "redis"
 )
 
-var (
-	cacheBackendToString = map[CacheBackend]string{
-		CacheMemory: "memory",
-		CacheRedis:  "redis",
-	}
-
-	stringToCacheBackend = map[string]CacheBackend{
-		"memory": CacheMemory,
-		"redis":  CacheRedis,
-	}
-)
+func (c CacheBackend) String() string {
+	return string(c)
+}
 
 // MemoryCacheConfig contains fields, which configure in-memory caching.
 type MemoryCacheConfig struct {

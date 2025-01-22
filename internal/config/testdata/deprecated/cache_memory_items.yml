@@ -1,4 +1,0 @@
-cache:
-  memory:
-    enabled: false
-    items: 500

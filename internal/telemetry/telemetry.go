@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.uber.org/zap"
@@ -32,9 +31,8 @@ type ping struct {
 }
 
 type storage struct {
-	Type     string `json:"type,omitempty"`
-	Database string `json:"database,omitempty"`
-	Cache    string `json:"cache,omitempty"`
+	Type  string `json:"type,omitempty"`
+	Cache string `json:"cache,omitempty"`
 }
 
 type audit struct {
@@ -200,21 +198,8 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 		}
 	)
 
-	dbProtocol := r.cfg.Database.Protocol.String()
-
-	if dbProtocol == "" && r.cfg.Database.URL != "" {
-		dbProtocol = "unknown"
-
-		url, err := dburl.Parse(r.cfg.Database.URL)
-		if err == nil {
-			// just swallow the error, we don't want to fail telemetry reporting
-			dbProtocol = url.Scheme
-		}
-	}
-
 	flipt.Storage = &storage{
-		Type:     string(r.cfg.Storage.Type),
-		Database: dbProtocol,
+		Type: string(r.cfg.Storage.Type),
 	}
 
 	// only report cache if enabled

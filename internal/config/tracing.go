@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -63,16 +62,6 @@ func (c *TracingConfig) validate() error {
 	return nil
 }
 
-func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.GetString("tracing.exporter") == TracingJaeger.String() && v.GetBool("tracing.enabled") {
-		deprecations = append(deprecations, "tracing.exporter.jaeger")
-	}
-
-	return deprecations
-}
-
 // IsZero returns true if the tracing config is not enabled.
 // This is used for marshalling to YAML for `config init`.
 func (c TracingConfig) IsZero() bool {
@@ -80,44 +69,17 @@ func (c TracingConfig) IsZero() bool {
 }
 
 // TracingExporter represents the supported tracing exporters.
-// TODO: can we use a string here instead?
-type TracingExporter uint8
-
-func (e TracingExporter) String() string {
-	return tracingExporterToString[e]
-}
-
-func (e TracingExporter) MarshalJSON() ([]byte, error) {
-	return json.Marshal(e.String())
-}
-
-func (e TracingExporter) MarshalYAML() (interface{}, error) {
-	return e.String(), nil
-}
+type TracingExporter string
 
 const (
-	_ TracingExporter = iota
-	// TracingJaeger ...
-	TracingJaeger
-	// TracingZipkin ...
-	TracingZipkin
-	// TracingOTLP ...
-	TracingOTLP
+	TracingJaeger TracingExporter = "jaeger"
+	TracingZipkin TracingExporter = "zipkin"
+	TracingOTLP   TracingExporter = "otlp"
 )
 
-var (
-	tracingExporterToString = map[TracingExporter]string{
-		TracingJaeger: "jaeger",
-		TracingZipkin: "zipkin",
-		TracingOTLP:   "otlp",
-	}
-
-	stringToTracingExporter = map[string]TracingExporter{
-		"jaeger": TracingJaeger,
-		"zipkin": TracingZipkin,
-		"otlp":   TracingOTLP,
-	}
-)
+func (e TracingExporter) String() string {
+	return string(e)
+}
 
 type TracingPropagator string
 

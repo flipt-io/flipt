@@ -3,12 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
-	"go.flipt.io/flipt/internal/oci"
 )
 
 var (
@@ -19,11 +16,9 @@ var (
 type StorageType string
 
 const (
-	DatabaseStorageType = StorageType("database")
-	LocalStorageType    = StorageType("local")
-	GitStorageType      = StorageType("git")
-	ObjectStorageType   = StorageType("object")
-	OCIStorageType      = StorageType("oci")
+	LocalStorageType  = StorageType("local")
+	GitStorageType    = StorageType("git")
+	ObjectStorageType = StorageType("object")
 )
 
 type ObjectSubStorageType string
@@ -37,12 +32,10 @@ const (
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type     StorageType          `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Local    *StorageLocalConfig  `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	Git      *StorageGitConfig    `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
-	Object   *StorageObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
-	OCI      *StorageOCIConfig    `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
-	ReadOnly *bool                `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
+	Type   StorageType          `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Local  *StorageLocalConfig  `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Git    *StorageGitConfig    `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
+	Object *StorageObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
 }
 
 func (c *StorageConfig) Info() map[string]string {
@@ -83,22 +76,6 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 			v.SetDefault("storage.object.googlecloud.poll_interval", "1m")
 		}
 
-	case string(OCIStorageType):
-		v.SetDefault("storage.oci.poll_interval", "30s")
-		v.SetDefault("storage.oci.manifest_version", "1.1")
-
-		dir, err := DefaultBundleDir()
-		if err != nil {
-			return err
-		}
-
-		v.SetDefault("storage.oci.bundles_directory", dir)
-
-		if v.GetString("storage.oci.authentication.username") != "" ||
-			v.GetString("storage.oci.authentication.password") != "" {
-			v.SetDefault("storage.oci.authentication.type", oci.AuthenticationTypeStatic)
-		}
-
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -135,27 +112,6 @@ func (c *StorageConfig) validate() error {
 		if err := c.Object.validate(); err != nil {
 			return err
 		}
-	case OCIStorageType:
-		if c.OCI.Repository == "" {
-			return errors.New("oci storage repository must be specified")
-		}
-
-		if c.OCI.ManifestVersion != OCIManifestVersion10 && c.OCI.ManifestVersion != OCIManifestVersion11 {
-			return errors.New("wrong manifest version, it should be 1.0 or 1.1")
-		}
-
-		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
-			return fmt.Errorf("validating OCI configuration: %w", err)
-		}
-
-		if c.OCI.Authentication != nil && !c.OCI.Authentication.Type.IsValid() {
-			return errors.New("oci authentication type is not supported")
-		}
-	}
-
-	// setting read only mode is only supported with database storage
-	if c.ReadOnly != nil && !*c.ReadOnly && c.Type != DatabaseStorageType {
-		return errors.New("setting read only mode is only supported with database storage")
 	}
 
 	return nil
@@ -345,48 +301,4 @@ func (a SSHAuth) validate() (err error) {
 	}
 
 	return nil
-}
-
-type OCIManifestVersion string
-
-const (
-	OCIManifestVersion10 OCIManifestVersion = "1.0"
-	OCIManifestVersion11 OCIManifestVersion = "1.1"
-)
-
-// StorageOCIConfig provides configuration support for StorageOCIConfig target registries as a backend store for Flipt.
-type StorageOCIConfig struct {
-	// Repository is the target repository and reference to track.
-	// It should be in the form [<registry>/]<bundle>[:<tag>].
-	// When the registry is omitted, the bundle is referenced via the local bundle store.
-	// Tag defaults to 'latest' when not supplied.
-	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
-	// BundlesDirectory is the root directory in which Flipt will store and access local feature bundles.
-	BundlesDirectory string `json:"bundlesDirectory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
-	// Authentication configures authentication credentials for accessing the target registry
-	Authentication *OCIAuthentication `json:"-" mapstructure:"authentication" yaml:"-"`
-	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	// ManifestVersion defines which OCI Manifest version to use.
-	ManifestVersion OCIManifestVersion `json:"manifestVersion,omitempty" mapstructure:"manifest_version" yaml:"manifest_version,omitempty"`
-}
-
-// OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
-type OCIAuthentication struct {
-	Type     oci.AuthenticationType `json:"-" mapstructure:"type" yaml:"-"`
-	Username string                 `json:"-" mapstructure:"username" yaml:"-"`
-	Password string                 `json:"-" mapstructure:"password" yaml:"-"`
-}
-
-func DefaultBundleDir() (string, error) {
-	dir, err := Dir()
-	if err != nil {
-		return "", err
-	}
-
-	bundlesDir := filepath.Join(dir, "bundles")
-	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
-		return "", fmt.Errorf("creating image directory: %w", err)
-	}
-
-	return bundlesDir, nil
 }

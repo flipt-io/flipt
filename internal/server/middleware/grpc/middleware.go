@@ -237,7 +237,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 }
 
 // AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
-func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.EventPairChecker) grpc.UnaryServerInterceptor {
+func AuditEventUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var requests []flipt.Request
 		r, ok := req.(flipt.Requester)
@@ -254,13 +254,9 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 
 		defer func() {
 			for _, event := range events {
-				eventPair := fmt.Sprintf("%s:%s", event.Type, event.Action)
 
-				exists := eventPairChecker.Check(eventPair)
-				if exists {
-					span := trace.SpanFromContext(ctx)
-					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
-				}
+				span := trace.SpanFromContext(ctx)
+				span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
 			}
 		}()
 

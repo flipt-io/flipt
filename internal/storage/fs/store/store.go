@@ -7,19 +7,15 @@ import (
 	"os"
 	"strconv"
 
-	"oras.land/oras-go/v2"
-
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/oci"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	"go.flipt.io/flipt/internal/storage/fs/object"
-	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	"go.uber.org/zap"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/azureblob"
@@ -128,45 +124,6 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (_ st
 		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
 	case config.ObjectStorageType:
 		return newObjectStore(ctx, cfg, logger)
-	case config.OCIStorageType:
-		var opts []containers.Option[oci.StoreOptions]
-		if auth := cfg.Storage.OCI.Authentication; auth != nil {
-			opt, err := oci.WithCredentials(
-				auth.Type,
-				auth.Username,
-				auth.Password,
-			)
-			if err != nil {
-				return nil, err
-			}
-			opts = append(opts, opt)
-		}
-
-		// The default is the 1.1 version, this is why we don't need to check it in here.
-		if cfg.Storage.OCI.ManifestVersion == config.OCIManifestVersion10 {
-			opts = append(opts, oci.WithManifestVersion(oras.PackManifestVersion1_0))
-		}
-
-		ocistore, err := oci.NewStore(logger, cfg.Storage.OCI.BundlesDirectory, opts...)
-		if err != nil {
-			return nil, err
-		}
-
-		ref, err := oci.ParseReference(cfg.Storage.OCI.Repository)
-		if err != nil {
-			return nil, err
-		}
-
-		snapStore, err := storageoci.NewSnapshotStore(ctx, logger, ocistore, ref,
-			storageoci.WithPollOptions(
-				storagefs.WithInterval(cfg.Storage.OCI.PollInterval),
-			),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		return storagefs.NewStore(storagefs.NewSingleReferenceStore(logger, snapStore)), nil
 	}
 
 	return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)

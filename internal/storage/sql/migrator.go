@@ -8,23 +8,14 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
-	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"go.flipt.io/flipt/config/migrations"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/migrations"
 	"go.uber.org/zap"
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      15,
-	LibSQL:      15, // libsql driver uses the same migrations as sqlite3
-	Postgres:    16,
-	MySQL:       15,
-	CockroachDB: 13,
-	Clickhouse:  3,
+	Clickhouse: 3,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -33,35 +24,6 @@ type Migrator struct {
 	driver   Driver
 	logger   *zap.Logger
 	migrator *migrate.Migrate
-}
-
-// NewMigrator creates a new Migrator
-func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := open(cfg, Options{migrate: true})
-	if err != nil {
-		return nil, fmt.Errorf("opening db: %w", err)
-	}
-
-	var dr database.Driver
-
-	switch driver {
-	case SQLite, LibSQL:
-		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
-	case Postgres:
-		dr, err = pgx.WithInstance(sql, &pgx.Config{})
-	case CockroachDB:
-		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
-	case MySQL:
-		dr, err = mysql.WithInstance(sql, &mysql.Config{})
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
-	}
-
-	logger.Debug("using driver", zap.String("driver", driver.String()))
-
-	return migratorHelper(logger, sql, driver, dr)
 }
 
 func migratorHelper(logger *zap.Logger, db *sql.DB, driver Driver, databaseDriver database.Driver) (*Migrator, error) {
@@ -167,18 +129,6 @@ func (m *Migrator) Up(force bool) error {
 // Drop drops the database
 func (m *Migrator) Drop() error {
 	m.logger.Debug("running drop ...")
-
-	switch m.driver {
-	case SQLite:
-		// disable foreign keys for sqlite to avoid errors when dropping tables
-		// https://www.sqlite.org/foreignkeys.html#fk_enable
-		// we dont need to worry about re-enabling them since we're dropping the db
-		// and the connection will be closed
-		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF")
-	case MySQL:
-		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
-		_, _ = m.db.Exec("SET FOREIGN_KEY_CHECKS = 0;")
-	}
 
 	if err := m.migrator.Drop(); err != nil {
 		return fmt.Errorf("dropping: %w", err)

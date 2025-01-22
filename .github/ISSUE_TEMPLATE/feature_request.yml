@@ -1,12 +1,14 @@
 name: Feature request
-description: Suggest an idea for this project
-labels: ["enhancement"]
+description: Suggest an idea for this project (v2)
+labels: ["enhancement", "v2"]
 
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this feature request!
+
+        Please note that new features will only be added to the v2 version of Flipt.
 
   - type: textarea
     id: problem
@@ -26,6 +28,12 @@ body:
     validations:
       required: true
 
+  - type: checkbox
+    id: v2-only
+    attributes:
+      label: I understand that this feature will only be added to the v2 version of Flipt
+      required: true
+
   - type: checkboxes
     id: search
     attributes:
@@ -39,18 +47,3 @@ body:
     attributes:
       label: Additional Context
       description: Add any other context about the feature request here.
-      placeholder: |
-        Examples:
-
-        - OS
-        - Config file used
-        - Database used (SQLite, MySQL, Postgres, etc.)
-        - Screenshots
-        - Exported data from the database (see below)
-
-  - type: markdown
-    attributes:
-      value: |
-        **Attach an Export**
-
-        If your feature request could be best shown with a specific set of data, please export your data by running `flipt export > export.yml` and then attach the YAML file to this issue. ❤️

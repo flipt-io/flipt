@@ -11,7 +11,6 @@ func TestStorageConfigInfo(t *testing.T) {
 		config   StorageConfig
 		expected map[string]string
 	}{
-		{StorageConfig{Type: DatabaseStorageType}, nil},
 		{StorageConfig{Type: GitStorageType, Git: &StorageGitConfig{Repository: "repo1", Ref: "v1.0.0"}}, map[string]string{
 			"ref": "v1.0.0", "repository": "repo1",
 		}},

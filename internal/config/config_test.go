@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
-	"go.flipt.io/flipt/internal/oci"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/memblob"
 	"gopkg.in/yaml.v2"
@@ -58,9 +57,6 @@ func TestScheme(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, scheme.String())
-			json, err := scheme.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -91,9 +87,6 @@ func TestCacheBackend(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, backend.String())
-			json, err := backend.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -129,57 +122,6 @@ func TestTracingExporter(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, exporter.String())
-			json, err := exporter.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
-		})
-	}
-}
-
-func TestDatabaseProtocol(t *testing.T) {
-	tests := []struct {
-		name     string
-		protocol DatabaseProtocol
-		want     string
-	}{
-		{
-			name:     "postgres",
-			protocol: DatabasePostgres,
-			want:     "postgres",
-		},
-		{
-			name:     "mysql",
-			protocol: DatabaseMySQL,
-			want:     "mysql",
-		},
-		{
-			name:     "sqlite",
-			protocol: DatabaseSQLite,
-			want:     "sqlite",
-		},
-		{
-			name:     "cockroachdb",
-			protocol: DatabaseCockroachDB,
-			want:     "cockroachdb",
-		},
-		{
-			name:     "libsql",
-			protocol: DatabaseLibSQL,
-			want:     "libsql",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			protocol = tt.protocol
-			want     = tt.want
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, want, protocol.String())
-			json, err := protocol.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -210,9 +152,6 @@ func TestLogEncoding(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, encoding.String())
-			json, err := encoding.MarshalJSON()
-			require.NoError(t, err)
-			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -430,24 +369,6 @@ func TestLoad(t *testing.T) {
 				cfg.Tracing.Exporter = TracingOTLP
 				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
 				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
-				return cfg
-			},
-		},
-		{
-			name: "database key/value",
-			path: "./testdata/database.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Database = DatabaseConfig{
-					Protocol:                  DatabaseMySQL,
-					Host:                      "localhost",
-					Port:                      3306,
-					User:                      "flipt",
-					Password:                  "s3cr3t!",
-					Name:                      "flipt",
-					MaxIdleConn:               2,
-					PreparedStatementsEnabled: true,
-				}
 				return cfg
 			},
 		},
@@ -771,7 +692,6 @@ func TestLoad(t *testing.T) {
 						Capacity:    10,
 						FlushPeriod: 3 * time.Minute,
 					},
-					Events: []string{"*:*"},
 				}
 
 				cfg.Log = LogConfig{
@@ -846,14 +766,6 @@ func TestLoad(t *testing.T) {
 							},
 						},
 					},
-				}
-
-				cfg.Database = DatabaseConfig{
-					URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
-					MaxIdleConn:               10,
-					MaxOpenConn:               50,
-					ConnMaxLifetime:           30 * time.Minute,
-					PreparedStatementsEnabled: true,
 				}
 
 				cfg.Meta = MetaConfig{
@@ -1199,107 +1111,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "OCI config provided",
-			path: "./testdata/storage/oci_provided.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type:     oci.AuthenticationTypeStatic,
-							Username: "foo",
-							Password: "bar",
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided full",
-			path: "./testdata/storage/oci_provided_full.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type:     oci.AuthenticationTypeStatic,
-							Username: "foo",
-							Password: "bar",
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.0",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided AWS ECR",
-			path: "./testdata/storage/oci_provided_aws_ecr.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						Authentication: &OCIAuthentication{
-							Type: oci.AuthenticationTypeAWSECR,
-						},
-						PollInterval:    5 * time.Minute,
-						ManifestVersion: "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "OCI config provided with no authentication",
-			path: "./testdata/storage/oci_provided_no_auth.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: OCIStorageType,
-					OCI: &StorageOCIConfig{
-						Repository:       "some.target/repository/abundle:latest",
-						BundlesDirectory: "/tmp/bundles",
-						PollInterval:     5 * time.Minute,
-						ManifestVersion:  "1.1",
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name:    "OCI config provided with invalid authentication type",
-			path:    "./testdata/storage/oci_provided_invalid_auth.yml",
-			wantErr: errors.New("oci authentication type is not supported"),
-		},
-		{
-			name:    "OCI invalid no repository",
-			path:    "./testdata/storage/oci_invalid_no_repo.yml",
-			wantErr: errors.New("oci storage repository must be specified"),
-		},
-		{
-			name:    "OCI invalid unexpected scheme",
-			path:    "./testdata/storage/oci_invalid_unexpected_scheme.yml",
-			wantErr: errors.New("validating OCI configuration: unexpected repository scheme: \"unknown\" should be one of [http|https|flipt]"),
-		},
-		{
-			name:    "OCI invalid wrong manifest version",
-			path:    "./testdata/storage/oci_invalid_manifest_version.yml",
-			wantErr: errors.New("wrong manifest version, it should be 1.0 or 1.1"),
-		},
-		{
 			name:    "storage readonly config invalid",
 			path:    "./testdata/storage/invalid_readonly.yml",
 			wantErr: errors.New("setting read only mode is only supported with database storage"),
@@ -1573,10 +1384,7 @@ func TestMarshalYAML(t *testing.T) {
 			name: "defaults",
 			path: "./testdata/marshal/yaml/default.yml",
 			cfg: func() *Config {
-				cfg := Default()
-				// override the database URL to a file path for testing
-				cfg.Database.URL = "file:/tmp/flipt/flipt.db"
-				return cfg
+				return Default()
 			},
 		},
 	}
