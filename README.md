@@ -66,26 +66,6 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
-## Flipt Cloud
-
-Want the best of Flipt without the hassle of running it yourself? Check out [Flipt Cloud](https://docs.flipt.io/cloud).
-
-<p align="center">
-    <a href="https://docs.flipt.io/cloud" title="Flipt Cloud">
-      <img src="./.github/images/flipt-cloud.svg" alt="Flipt Cloud" />
-    </a>
-</p>
-
-### Features
-
-- Fully managed Flipt service
-- Multiple Environments
-- Your Data in [Your GitHub Repositories](https://docs.flipt.io/cloud/features/git-backed-storage)
-- [Approval Workflows](https://docs.flipt.io/cloud/features/approval-workflows) for All Changes
-- Automatic Upgrades
-- Authn: [Google, GitHub, SSO / SAML](https://docs.flipt.io/cloud/features/authentication)
-- Authz: [Granular Access Control with RBAC](https://docs.flipt.io/cloud/features/rbac)
-
 ## Use cases
 
 Flipt supports use cases such as:

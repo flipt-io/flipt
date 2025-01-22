@@ -21,6 +21,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/fs/object"
 	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	"go.uber.org/zap"
+	"gocloud.dev/blob"
 	"gocloud.dev/blob/azureblob"
 	"gocloud.dev/blob/gcsblob"
 	"gocloud.dev/blob/s3blob"
@@ -179,6 +180,7 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		scheme     string
 		bucketName string
 		values     = url.Values{}
+		prefix     string
 	)
 	// keep this as a case statement in anticipation of
 	// more object types in the future
@@ -196,14 +198,13 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 		}
 
 		if ocfg.S3.Prefix != "" {
-			values.Set("prefix", ocfg.S3.Prefix)
+			prefix = ocfg.S3.Prefix
 		}
 
 		opts = append(opts,
 			object.WithPollOptions(
 				storagefs.WithInterval(ocfg.S3.PollInterval),
 			),
-			object.WithPrefix(ocfg.S3.Prefix),
 		)
 	case config.AZBlobObjectSubStorageType:
 		scheme = azureblob.Scheme
@@ -226,15 +227,15 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 	case config.GSBlobObjectSubStorageType:
 		scheme = gcsblob.Scheme
 		bucketName = ocfg.GS.Bucket
+
 		if ocfg.GS.Prefix != "" {
-			values.Set("prefix", ocfg.GS.Prefix)
+			prefix = ocfg.GS.Prefix
 		}
 
 		opts = append(opts,
 			object.WithPollOptions(
 				storagefs.WithInterval(ocfg.GS.PollInterval),
 			),
-			object.WithPrefix(ocfg.GS.Prefix),
 		)
 	default:
 		return nil, fmt.Errorf("unexpected object storage subtype: %q", ocfg.Type)
@@ -249,6 +250,10 @@ func newObjectStore(ctx context.Context, cfg *config.Config, logger *zap.Logger)
 	bucket, err := object.OpenBucket(ctx, u)
 	if err != nil {
 		return nil, err
+	}
+
+	if prefix != "" {
+		bucket = blob.PrefixedBucket(bucket, prefix)
 	}
 
 	snap, err := object.NewSnapshotStore(ctx, logger, scheme, bucket, opts...)

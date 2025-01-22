@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"strings"
 	"sync"
 	"time"
 
@@ -26,7 +25,6 @@ type SnapshotStore struct {
 	logger   *zap.Logger
 	scheme   string
 	bucket   *gcblob.Bucket
-	prefix   string
 	pollOpts []containers.Option[storagefs.Poller]
 
 	mu   sync.RWMutex
@@ -56,13 +54,6 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, scheme string, bu
 	go s.Poll()
 
 	return s, nil
-}
-
-// WithPrefix configures the prefix for object store
-func WithPrefix(prefix string) containers.Option[SnapshotStore] {
-	return func(s *SnapshotStore) {
-		s.prefix = prefix
-	}
 }
 
 // WithPollOptions configures the poller options used when periodically updating snapshot state
@@ -105,9 +96,7 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 		return nil, err
 	}
 
-	iterator := s.bucket.List(&gcblob.ListOptions{
-		Prefix: s.prefix,
-	})
+	iterator := s.bucket.List(&gcblob.ListOptions{})
 
 	var files []fs.File
 	for {
@@ -119,18 +108,17 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 			return nil, err
 		}
 
-		key := strings.TrimPrefix(item.Key, s.prefix)
-		if !idx.Match(key) {
+		if !idx.Match(item.Key) {
 			continue
 		}
 
-		rd, err := s.bucket.NewReader(ctx, s.prefix+key, &gcblob.ReaderOptions{})
+		rd, err := s.bucket.NewReader(ctx, item.Key, &gcblob.ReaderOptions{})
 		if err != nil {
 			return nil, err
 		}
 
 		files = append(files, NewFile(
-			key,
+			item.Key,
 			item.Size,
 			rd,
 			item.ModTime,
@@ -142,7 +130,7 @@ func (s *SnapshotStore) build(ctx context.Context) (*storagefs.Snapshot, error) 
 }
 
 func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, error) {
-	rd, err := s.bucket.NewReader(ctx, s.prefix+storagefs.IndexFileName, &gcblob.ReaderOptions{})
+	rd, err := s.bucket.NewReader(ctx, storagefs.IndexFileName, &gcblob.ReaderOptions{})
 
 	if err != nil {
 		if gcerrors.Code(err) != gcerrors.NotFound {
@@ -161,5 +149,4 @@ func (s *SnapshotStore) getIndex(ctx context.Context) (*storagefs.FliptIndex, er
 	}
 
 	return idx, nil
-
 }
