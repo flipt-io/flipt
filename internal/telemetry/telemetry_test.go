@@ -96,104 +96,17 @@ func TestPing(t *testing.T) {
 	}{
 		{
 			name: "basic",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-			},
+
 			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with db url",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					URL: "sqlite:///foo.db",
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with unknown db url",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					URL: "foo:///foo.db",
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "unknown",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with cache not enabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Cache: config.CacheConfig{
-					Enabled: false,
-					Backend: config.CacheRedis,
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with cache",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Cache: config.CacheConfig{
-					Enabled: true,
-					Backend: config.CacheRedis,
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-					"cache":    "redis",
-				},
+				"version":      "1.0.0",
+				"os":           "linux",
+				"arch":         "amd64",
 				"experimental": experimental,
 			},
 		},
 		{
 			name: "with auth not enabled",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Authentication: config.AuthenticationConfig{
 					Required: false,
 					Methods: config.AuthenticationMethods{
@@ -204,21 +117,16 @@ func TestPing(t *testing.T) {
 				},
 			},
 			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"version":      "1.0.0",
+				"os":           "linux",
+				"arch":         "amd64",
+				"storage":      map[string]any{},
 				"experimental": experimental,
 			},
 		},
 		{
 			name: "with auth",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Authentication: config.AuthenticationConfig{
 					Required: false,
 					Methods: config.AuthenticationMethods{
@@ -232,9 +140,7 @@ func TestPing(t *testing.T) {
 				"version": "1.0.0",
 				"os":      "linux",
 				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"storage": map[string]any{},
 				"authentication": map[string]any{
 					"methods": []any{
 						"token",
@@ -244,170 +150,24 @@ func TestPing(t *testing.T) {
 			},
 		},
 		{
-			name: "with audit logfile disabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Audit: config.AuditConfig{
-					Sinks: config.SinksConfig{
-						Log: config.LogSinkConfig{
-							Enabled: false,
-						},
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with audit logfile enabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Audit: config.AuditConfig{
-					Sinks: config.SinksConfig{
-						Log: config.LogSinkConfig{
-							Enabled: true,
-						},
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"audit": map[string]any{
-					"sinks": []any{
-						"log",
-					},
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with audit webhook disabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Audit: config.AuditConfig{
-					Sinks: config.SinksConfig{
-						Webhook: config.WebhookSinkConfig{
-							Enabled: false,
-						},
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with audit webhook enabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Audit: config.AuditConfig{
-					Sinks: config.SinksConfig{
-						Webhook: config.WebhookSinkConfig{
-							Enabled: true,
-						},
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"audit": map[string]any{
-					"sinks": []any{
-						"webhook",
-					},
-				},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with audit logfile and webhook enabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Audit: config.AuditConfig{
-					Sinks: config.SinksConfig{
-						Log: config.LogSinkConfig{
-							Enabled: true,
-						},
-						Webhook: config.WebhookSinkConfig{
-							Enabled: true,
-						},
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
-				"audit": map[string]any{
-					"sinks": []any{
-						"log", "webhook",
-					},
-				},
-				"experimental": experimental,
-			},
-		},
-		{
 			name: "with tracing not enabled",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Tracing: config.TracingConfig{
 					Enabled:  false,
 					Exporter: config.TracingOTLP,
 				},
 			},
 			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"version":      "1.0.0",
+				"os":           "linux",
+				"arch":         "amd64",
+				"storage":      map[string]any{},
 				"experimental": experimental,
 			},
 		},
 		{
 			name: "with tracing enabled",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Tracing: config.TracingConfig{
 					Enabled:  true,
 					Exporter: config.TracingOTLP,
@@ -417,9 +177,7 @@ func TestPing(t *testing.T) {
 				"version": "1.0.0",
 				"os":      "linux",
 				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"storage": map[string]any{},
 				"tracing": map[string]any{
 					"exporter": "otlp",
 				},
@@ -429,9 +187,6 @@ func TestPing(t *testing.T) {
 		{
 			name: "with analytics not enabled",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Analytics: config.AnalyticsConfig{
 					Storage: config.AnalyticsStorageConfig{
 						Clickhouse: config.ClickhouseConfig{
@@ -442,21 +197,16 @@ func TestPing(t *testing.T) {
 				},
 			},
 			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"version":      "1.0.0",
+				"os":           "linux",
+				"arch":         "amd64",
+				"storage":      map[string]any{},
 				"experimental": experimental,
 			},
 		},
 		{
 			name: "with analytics enabled",
 			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
 				Analytics: config.AnalyticsConfig{
 					Storage: config.AnalyticsStorageConfig{
 						Clickhouse: config.ClickhouseConfig{
@@ -470,9 +220,7 @@ func TestPing(t *testing.T) {
 				"version": "1.0.0",
 				"os":      "linux",
 				"arch":    "amd64",
-				"storage": map[string]any{
-					"database": "sqlite",
-				},
+				"storage": map[string]any{},
 				"analytics": map[string]any{
 					"storage": "clickhouse",
 				},

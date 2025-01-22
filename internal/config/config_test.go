@@ -126,41 +126,6 @@ func TestTracingExporter(t *testing.T) {
 	}
 }
 
-func TestDatabaseProtocol(t *testing.T) {
-	tests := []struct {
-		name     string
-		protocol DatabaseProtocol
-		want     string
-	}{
-		{
-			name:     "postgres",
-			protocol: DatabasePostgres,
-			want:     "postgres",
-		},
-		{
-			name:     "mysql",
-			protocol: DatabaseMySQL,
-			want:     "mysql",
-		},
-		{
-			name:     "sqlite",
-			protocol: DatabaseSQLite,
-			want:     "sqlite",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			protocol = tt.protocol
-			want     = tt.want
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, want, protocol.String())
-		})
-	}
-}
-
 func TestLogEncoding(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -404,24 +369,6 @@ func TestLoad(t *testing.T) {
 				cfg.Tracing.Exporter = TracingOTLP
 				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
 				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
-				return cfg
-			},
-		},
-		{
-			name: "database key/value",
-			path: "./testdata/database.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Database = DatabaseConfig{
-					Protocol:                  DatabaseMySQL,
-					Host:                      "localhost",
-					Port:                      3306,
-					User:                      "flipt",
-					Password:                  "s3cr3t!",
-					Name:                      "flipt",
-					MaxIdleConn:               2,
-					PreparedStatementsEnabled: true,
-				}
 				return cfg
 			},
 		},
@@ -819,14 +766,6 @@ func TestLoad(t *testing.T) {
 							},
 						},
 					},
-				}
-
-				cfg.Database = DatabaseConfig{
-					URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
-					MaxIdleConn:               10,
-					MaxOpenConn:               50,
-					ConnMaxLifetime:           30 * time.Minute,
-					PreparedStatementsEnabled: true,
 				}
 
 				cfg.Meta = MetaConfig{
@@ -1445,10 +1384,7 @@ func TestMarshalYAML(t *testing.T) {
 			name: "defaults",
 			path: "./testdata/marshal/yaml/default.yml",
 			cfg: func() *Config {
-				cfg := Default()
-				// override the database URL to a file path for testing
-				cfg.Database.URL = "file:/tmp/flipt/flipt.db"
-				return cfg
+				return Default()
 			},
 		},
 	}

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -15,7 +14,6 @@ import (
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
-	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -44,7 +42,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	fsstore "go.flipt.io/flipt/internal/storage/fs/store"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
@@ -566,57 +563,6 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 	})
 
 	return cacher, cacheFunc, cacheErr
-}
-
-var (
-	dbOnce  sync.Once
-	db      *sql.DB
-	builder sq.StatementBuilderType
-	driver  fliptsql.Driver
-	dbFunc  errFunc = func(context.Context) error { return nil }
-	dbErr   error
-)
-
-func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, sq.StatementBuilderType, fliptsql.Driver, errFunc, error) {
-	dbOnce.Do(func() {
-		migrator, err := fliptsql.NewMigrator(*cfg, logger)
-		if err != nil {
-			dbErr = err
-			return
-		}
-
-		if err := migrator.Up(forceMigrate); err != nil {
-			migrator.Close()
-			dbErr = err
-			return
-		}
-
-		migrator.Close()
-
-		db, driver, err = fliptsql.Open(*cfg)
-		if err != nil {
-			dbErr = fmt.Errorf("opening db: %w", err)
-			return
-		}
-
-		logger.Debug("constructing builder", zap.Bool("prepared_statements", cfg.Database.PreparedStatementsEnabled))
-
-		builder = fliptsql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
-
-		dbFunc = func(context.Context) error {
-			return db.Close()
-		}
-
-		if driver == fliptsql.SQLite && cfg.Database.MaxOpenConn > 1 {
-			logger.Warn("ignoring config.db.max_open_conn due to driver limitation (sqlite)", zap.Int("attempted_max_conn", cfg.Database.MaxOpenConn))
-		}
-
-		if err := db.PingContext(ctx); err != nil {
-			dbErr = fmt.Errorf("pinging db: %w", err)
-		}
-	})
-
-	return db, builder, driver, dbFunc, dbErr
 }
 
 // getStringSlice receives any slice which the underline member type is "string"

@@ -13,7 +13,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/cap/jwt"
-	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
@@ -29,8 +28,6 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storageauthcache "go.flipt.io/flipt/internal/storage/authn/cache"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
-	authsql "go.flipt.io/flipt/internal/storage/authn/sql"
-	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -46,42 +43,6 @@ func getAuthStore(
 		store    storageauth.Store = storageauthmemory.NewStore()
 		shutdown                   = func(context.Context) error { return nil }
 	)
-
-	if cfg.Authentication.RequiresDatabase() {
-		_, builder, driver, dbShutdown, err := getDB(ctx, logger, cfg, forceMigrate)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		store = authsql.NewStore(driver, builder, logger)
-		shutdown = dbShutdown
-
-		if cfg.Authentication.ShouldRunCleanup() {
-			var (
-				oplock  = oplocksql.New(logger, driver, builder)
-				cleanup = cleanup.NewAuthenticationService(
-					logger,
-					oplock,
-					store,
-					cfg.Authentication,
-				)
-			)
-
-			cleanup.Run(ctx)
-
-			dbShutdown := shutdown
-			shutdown = func(ctx context.Context) error {
-				logger.Info("shutting down authentication cleanup service...")
-
-				if err := cleanup.Shutdown(ctx); err != nil {
-					_ = dbShutdown(ctx)
-					return err
-				}
-
-				return dbShutdown(ctx)
-			}
-		}
-	}
 
 	return store, shutdown, nil
 }
