@@ -12,8 +12,7 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 - Support GitOps workflows completely, including write operations
 - Maintain compatibility with the current Flipt Evaluation APIs
 - Consolidate some configuration options and remove some that are no longer needed
-- Maintain authentication mechanisms and storing authentication records in a database
-- Support other authentication backends such as in-memory and Redis
+- Support authentication backends such as in-memory and Redis only
 - Create new declarative API for managing flag configuration
 - Remove legacy evaluation APIs
 - Make UI improvements where needed
@@ -23,7 +22,6 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 
 ### Non-Goals
 
-- Support non-authentication operations to database backends
 - Maintain compatibility with the current Flipt Management APIs
 - Maintain backward compatibility with configuration files from v1
 - Change v1 base types (flags, segments, etc) as this would require new evaluation APIs
@@ -33,7 +31,7 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 - [ ] Implement new declarative API for managing flag configuration
 - [ ] Update UI to support new API
 - [ ] Remove legacy evaluation APIs
-- [ ] Remove database dependencies for storing flag state
+- [ ] Remove database dependencies except for analytics
 - [ ] Implement Redis and in-memory authentication backends
 - [ ] Refactor and consolidate configuration options
 - [ ] Fix and improve unit test coverage
