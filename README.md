@@ -33,9 +33,6 @@
     <a href="https://flipt.io/discord">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
-    <a href="https://github.com/orgs/flipt-io/projects/4">
-        <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
-    </a>
     <a href="https://twitter.com/flipt_io">
         <img src="https://img.shields.io/twitter/follow/flipt_io?label=Follow" alt="Flipt Twitter" />
     </a>
@@ -65,6 +62,9 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
     <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
+
+> [!NOTE]
+> We are actively working on a new version of Flipt that is Git-native with more features and less dependencies. Help us shape the future of Flipt by adding your thoughts to our [tracking issue](https://github.com/flipt-io/flipt/issues/3828).
 
 ## Use cases
 
@@ -119,13 +119,6 @@ Not sure how to get started? You can:
   - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
   - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
   - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
-
-- Looking for issues by effort? We've got you covered:
-  - [XS](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axs)
-  - [Small](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Asm)
-  - [Medium](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Amd)
-  - [Large](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Alg)
-  - [XL](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Axl)
 
 Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
