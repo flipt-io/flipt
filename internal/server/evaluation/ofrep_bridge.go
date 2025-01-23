@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/internal/server/ofrep"
-	"go.uber.org/zap"
 
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 
@@ -23,8 +22,6 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
-	s.logger.Debug("OFREPFlagEvaluation", zap.Any("input", input))
-
 	flag, err := s.store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
 	if err != nil {
 		return ofrep.EvaluationBridgeOutput{}, err

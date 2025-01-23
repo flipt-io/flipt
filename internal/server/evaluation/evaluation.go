@@ -31,8 +31,6 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	s.logger.Debug("VariantEvaluation", zap.Stringer("request", r))
-
 	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
@@ -242,8 +240,6 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
-	s.logger.Debug("BooleanEvaluation", zap.Stringer("request", r))
-
 	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
@@ -397,8 +393,6 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 // Batch takes in a list of *evaluation.EvaluationRequest and returns their respective responses.
 func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
-	s.logger.Debug("EvaluateBatch", zap.Any("request", b))
-
 	resp := &rpcevaluation.BatchEvaluationResponse{
 		Responses: make([]*rpcevaluation.EvaluationResponse, 0, len(b.Requests)),
 	}

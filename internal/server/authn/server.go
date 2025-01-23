@@ -122,8 +122,6 @@ func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 // GetAuthenticationSelf returns the Authentication which was derived from the request context.
 func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*auth.Authentication, error) {
 	if auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx); auth != nil {
-		s.logger.Debug("GetAuthenticationSelf", zap.String("id", auth.Id))
-
 		return auth, nil
 	}
 
@@ -132,14 +130,11 @@ func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*
 
 // GetAuthentication returns the Authentication identified by the supplied id.
 func (s *Server) GetAuthentication(ctx context.Context, r *auth.GetAuthenticationRequest) (*auth.Authentication, error) {
-	s.logger.Debug("GetAuthentication", zap.String("id", r.Id))
-
 	return s.store.GetAuthenticationByID(ctx, r.Id)
 }
 
 // ListAuthentications produces a set of authentications for the provided method filter and pagination parameters.
 func (s *Server) ListAuthentications(ctx context.Context, r *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
-	s.logger.Debug("ListAuthentications", zap.Any("request", r))
 	req := &storage.ListRequest[storageauth.ListAuthenticationsPredicate]{
 		QueryParams: storage.QueryParams{
 			Limit:     uint64(r.Limit),
@@ -166,8 +161,6 @@ func (s *Server) ListAuthentications(ctx context.Context, r *auth.ListAuthentica
 
 // DeleteAuthentication deletes the authentication with the supplied ID.
 func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error) {
-	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
-
 	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(req.Id)))
 }
 
@@ -176,8 +169,6 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 // If the expire_at is greater than the current expiry time, the expiry time is extended.
 func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
 	if auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx); auth != nil {
-		s.logger.Debug("ExpireAuthentication", zap.String("id", auth.Id))
-
 		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
 			req.ExpiresAt = flipt.Now()
 		}

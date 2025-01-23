@@ -129,8 +129,6 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 		ifNoneMatch  string
 	)
 
-	srv.logger.Debug("EvaluationSnapshotNamespace", zap.String("namespace", namespaceKey), zap.String("reference", reference))
-
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
 		// get If-None-Match header from request
