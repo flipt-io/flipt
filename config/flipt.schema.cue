@@ -17,6 +17,7 @@ import "list"
 	authorization?:  #authorization
 	cors?:           #cors
 	diagnostics?:    #diagnostics
+	environments?:   #environments
 	storage?:        #storage
 	log?:            #log
 	meta?:           #meta
@@ -177,20 +178,14 @@ import "list"
 		}
 	}
 
-	#environments: [Name=string]: {
+	#environments: [string]: {
 		default:   bool | *false
 		storage:   string
 		directory: string | *""
 	}
 
-	#storage: [Name=string]: {
-		// remote is the target upstream remote.
-		// configuring this property ensures that changes (writes)
-		// to flipt metadata configuration are pushed to the upstream
-		// before returning the response to the caller.
+	#storage: [string]: {
 		remote?: string
-		// backend configures whether or not the target repository is
-		// managed entirely in-memory or on the local disk.
 		backend?: {
 			type:  *"memory" | "local"
 			path?: string
@@ -200,7 +195,7 @@ import "list"
 		ca_cert_path?:      string
 		ca_cert_bytes?:     string
 		insecure_skip_tls?: bool | *false
-		authentication?:    ({
+		authentication?: ({
 			basic: {
 				username: string
 				password: string
@@ -220,8 +215,6 @@ import "list"
 				private_key_bytes: string
 			}
 		})
-		// publishers configures destinations for the storage engine
-		// to publish when new version of state become available
 		publishers?: {
 			object?: {
 				type: "s3" | "azblob" | "googlecloud" | *""
@@ -293,7 +286,6 @@ import "list"
 
 	#tracing: {
 		enabled?:        bool | *false
-		exporter?:       *"otlp"
 		sampling_ratio?: float & >=0 & <=1 | *1
 		propagators?: [
 			..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none",
