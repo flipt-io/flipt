@@ -26,7 +26,6 @@ import (
 	authmiddlewarehttp "go.flipt.io/flipt/internal/server/authn/middleware/http"
 	"go.flipt.io/flipt/internal/server/authn/public"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
-	storageauthcache "go.flipt.io/flipt/internal/storage/authn/cache"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -75,14 +74,6 @@ func authenticationGRPC(
 	store, shutdown, err := getAuthStore(ctx, logger, cfg, forceMigrate)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-
-	if cfg.Cache.Enabled {
-		cacher, _, err := getCache(ctx, cfg)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		store = storageauthcache.NewStore(store, cacher, logger)
 	}
 
 	var (

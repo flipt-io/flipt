@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -14,9 +13,6 @@ import (
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
-	"go.flipt.io/flipt/internal/cache"
-	"go.flipt.io/flipt/internal/cache/memory"
-	"go.flipt.io/flipt/internal/cache/redis"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
@@ -25,11 +21,6 @@ import (
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/analytics/prometheus"
-	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/audit/kafka"
-	"go.flipt.io/flipt/internal/server/audit/log"
-	"go.flipt.io/flipt/internal/server/audit/template"
-	"go.flipt.io/flipt/internal/server/audit/webhook"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
@@ -40,7 +31,6 @@ import (
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
-	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	fsstore "go.flipt.io/flipt/internal/storage/fs/store"
 	"go.flipt.io/flipt/internal/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -62,8 +52,6 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
-
-	goredis_cache "github.com/go-redis/cache/v9"
 )
 
 type grpcRegister interface {
@@ -183,7 +171,7 @@ func NewGRPCServer(
 
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
 
-		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
+		logger.Debug("otel tracing enabled")
 	}
 
 	// base inteceptors
@@ -204,31 +192,13 @@ func NewGRPCServer(
 		middlewaregrpc.ErrorUnaryInterceptor,
 	}
 
-	if cfg.Cache.Enabled {
-		var (
-			cacher        cache.Cacher
-			cacheShutdown errFunc
-			err           error
-		)
-		cacher, cacheShutdown, err = getCache(ctx, cfg)
-		if err != nil {
-			return nil, err
-		}
-
-		server.onShutdown(cacheShutdown)
-
-		store = storagecache.NewStore(store, cacher, logger)
-
-		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
-	}
-
 	var (
 		fliptsrv    = fliptserver.New(logger, store)
 		metasrv     = metadata.New(cfg, info)
 		evalsrv     = evaluation.New(logger, store)
 		evaldatasrv = evaluationdata.New(logger, store)
 		healthsrv   = health.NewServer()
-		ofrepsrv    = ofrep.New(logger, cfg.Cache, evalsrv, store)
+		ofrepsrv    = ofrep.New(logger, evalsrv, store)
 	)
 
 	var (
@@ -313,81 +283,6 @@ func NewGRPCServer(
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)
-
-	// audit sinks configuration
-	sinks := make([]audit.Sink, 0)
-
-	if cfg.Audit.Sinks.Log.Enabled {
-		opts := []log.Option{}
-		if cfg.Audit.Sinks.Log.File != "" {
-			opts = append(opts, log.WithPath(cfg.Audit.Sinks.Log.File))
-		}
-
-		if cfg.Audit.Sinks.Log.Encoding != "" {
-			opts = append(opts, log.WithEncoding(cfg.Audit.Sinks.Log.Encoding))
-		} else {
-			// inherit the global log encoding if not specified
-			opts = append(opts, log.WithEncoding(cfg.Log.Encoding))
-		}
-
-		logFileSink, err := log.NewSink(opts...)
-		if err != nil {
-			return nil, fmt.Errorf("creating audit log sink: %w", err)
-		}
-
-		sinks = append(sinks, logFileSink)
-	}
-
-	if cfg.Audit.Sinks.Webhook.Enabled {
-		maxBackoffDuration := 15 * time.Second
-		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
-			maxBackoffDuration = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
-		}
-
-		var webhookSink audit.Sink
-
-		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
-		// than 0 for the webhook.
-		if cfg.Audit.Sinks.Webhook.URL != "" {
-			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, maxBackoffDuration))
-		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
-			webhookSink, err = template.NewSink(logger, cfg.Audit.Sinks.Webhook.Templates, maxBackoffDuration)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		sinks = append(sinks, webhookSink)
-	}
-
-	if cfg.Audit.Sinks.Kafka.Enabled {
-		kafkaCfg := cfg.Audit.Sinks.Kafka
-		kafkaSink, err := kafka.NewSink(ctx, logger, kafkaCfg)
-		if err != nil {
-			return nil, err
-		}
-		sinks = append(sinks, kafkaSink)
-	}
-
-	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
-	// and if the slice has a non-zero length, add the audit sink interceptor
-	if len(sinks) > 0 {
-		interceptors = append(interceptors, middlewaregrpc.AuditEventUnaryInterceptor(logger))
-
-		spanExporter := audit.NewSinkSpanExporter(logger, sinks)
-
-		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(spanExporter, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
-
-		logger.Debug("audit sinks enabled",
-			zap.Stringers("sinks", sinks),
-			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
-			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
-		)
-
-		server.onShutdown(func(ctx context.Context) error {
-			return spanExporter.Shutdown(ctx)
-		})
-	}
 
 	server.onShutdown(func(ctx context.Context) error {
 		return tracingProvider.Shutdown(ctx)
@@ -521,48 +416,6 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 	})
 
 	return validator, authzFunc, authzErr
-}
-
-var (
-	cacheOnce sync.Once
-	cacher    cache.Cacher
-	cacheFunc errFunc = func(context.Context) error { return nil }
-	cacheErr  error
-)
-
-func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, error) {
-	cacheOnce.Do(func() {
-		switch cfg.Cache.Backend {
-		case config.CacheMemory:
-			cacher = memory.NewCache(cfg.Cache)
-		case config.CacheRedis:
-			rdb, err := redis.NewClient(cfg.Cache.Redis)
-			if err != nil {
-				cacheErr = err
-				return
-			}
-			cacheFunc = func(_ context.Context) error {
-				return rdb.Close()
-			}
-
-			status := rdb.Ping(ctx)
-			if status == nil {
-				cacheErr = errors.New("connecting to redis: no status")
-				return
-			}
-
-			if status.Err() != nil {
-				cacheErr = fmt.Errorf("connecting to redis: %w", status.Err())
-				return
-			}
-
-			cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
-				Redis: rdb,
-			}))
-		}
-	})
-
-	return cacher, cacheFunc, cacheErr
 }
 
 // getStringSlice receives any slice which the underline member type is "string"

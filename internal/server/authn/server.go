@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/authn/method"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/audit"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -43,7 +43,7 @@ func GetActorFromAuthentication(authentication *auth.Authentication, ip string) 
 			Email:          firstNonEmptyString(authentication.Metadata[method.StorageMetadataEmail], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.email", m)]),
 			Name:           firstNonEmptyString(authentication.Metadata[method.StorageMetadataName], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.name", m)]),
 			Picture:        firstNonEmptyString(authentication.Metadata[method.StorageMetadataPicture], authentication.Metadata[fmt.Sprintf("io.flipt.auth.%s.picture", m)]),
-			IP:             ip,
+			Ip:             ip,
 		}
 	}
 
@@ -59,7 +59,7 @@ func GetActorFromAuthentication(authentication *auth.Authentication, ip string) 
 		authName := strings.ToLower(strings.TrimPrefix(authentication.Method.String(), "METHOD_"))
 		return &audit.Actor{
 			Authentication: authName,
-			IP:             ip,
+			Ip:             ip,
 		}
 	}
 }
@@ -81,7 +81,7 @@ func ActorFromContext(ctx context.Context) *audit.Actor {
 
 	return &audit.Actor{
 		Authentication: "none",
-		IP:             ipAddress,
+		Ip:             ipAddress,
 	}
 }
 
@@ -91,8 +91,6 @@ func ActorFromContext(ctx context.Context) *audit.Actor {
 type Server struct {
 	logger *zap.Logger
 	store  storageauth.Store
-
-	enableAuditLogging bool
 
 	auth.UnimplementedAuthenticationServiceServer
 }
@@ -166,23 +164,6 @@ func (s *Server) ListAuthentications(ctx context.Context, r *auth.ListAuthentica
 // DeleteAuthentication deletes the authentication with the supplied ID.
 func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
-
-	if s.enableAuditLogging {
-		actor := ActorFromContext(ctx)
-
-		a, err := s.GetAuthentication(ctx, &auth.GetAuthenticationRequest{
-			Id: req.Id,
-		})
-		if err != nil {
-			s.logger.Error("failed to get authentication for audit events", zap.Error(err))
-			return nil, err
-		}
-		if a.Method == auth.Method_METHOD_TOKEN {
-			request := flipt.NewRequest(flipt.ResourceAuthentication, flipt.ActionDelete, flipt.WithSubject(flipt.SubjectToken))
-			event := audit.NewEvent(request, actor, a.Metadata)
-			event.AddToSpan(ctx)
-		}
-	}
 
 	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(req.Id)))
 }

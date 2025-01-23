@@ -61,52 +61,12 @@ func TestScheme(t *testing.T) {
 	}
 }
 
-func TestCacheBackend(t *testing.T) {
-	tests := []struct {
-		name    string
-		backend CacheBackend
-		want    string
-	}{
-		{
-			name:    "memory",
-			backend: CacheMemory,
-			want:    "memory",
-		},
-		{
-			name:    "redis",
-			backend: CacheRedis,
-			want:    "redis",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			backend = tt.backend
-			want    = tt.want
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, want, backend.String())
-		})
-	}
-}
-
 func TestTracingExporter(t *testing.T) {
 	tests := []struct {
 		name     string
 		exporter TracingExporter
 		want     string
 	}{
-		{
-			name:     "jaeger",
-			exporter: TracingJaeger,
-			want:     "jaeger",
-		},
-		{
-			name:     "zipkin",
-			exporter: TracingZipkin,
-			want:     "zipkin",
-		},
 		{
 			name:     "otlp",
 			exporter: TracingOTLP,
@@ -199,19 +159,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated tracing jaeger",
-			path: "./testdata/deprecated/tracing_jaeger.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Tracing.Enabled = true
-				cfg.Tracing.Exporter = TracingJaeger
-				return cfg
-			},
-			warnings: []string{
-				"\"tracing.exporter.jaeger\" is deprecated and will be removed in a future release.",
-			},
-		},
-		{
 			name: "deprecated authentication excluding metadata",
 			path: "./testdata/deprecated/authentication_excluding_metadata.yml",
 			expected: func() *Config {
@@ -223,99 +170,6 @@ func TestLoad(t *testing.T) {
 			warnings: []string{
 				"\"authentication.exclude.metadata\" is deprecated and will be removed in a future release. This feature never worked as intended. Metadata can no longer be excluded from authentication (when required).",
 			},
-		},
-		{
-			name: "cache no backend set",
-			path: "./testdata/cache/default.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = 30 * time.Minute
-				return cfg
-			},
-		},
-		{
-			name: "cache memory",
-			path: "./testdata/cache/memory.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = 5 * time.Minute
-				cfg.Cache.Memory.EvictionInterval = 10 * time.Minute
-				return cfg
-			},
-		},
-		{
-			name: "cache redis",
-			path: "./testdata/cache/redis.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
-				cfg.Cache.TTL = time.Minute
-				cfg.Cache.Redis.Host = "localhost"
-				cfg.Cache.Redis.Port = 6378
-				cfg.Cache.Redis.RequireTLS = true
-				cfg.Cache.Redis.DB = 1
-				cfg.Cache.Redis.Password = "s3cr3t!"
-				cfg.Cache.Redis.PoolSize = 50
-				cfg.Cache.Redis.MinIdleConn = 2
-				cfg.Cache.Redis.ConnMaxIdleTime = 10 * time.Minute
-				cfg.Cache.Redis.NetTimeout = 500 * time.Millisecond
-				return cfg
-			},
-		},
-		{
-			name: "cache redis with username",
-			path: "./testdata/cache/redis-username.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
-				cfg.Cache.Redis.Username = "app"
-				cfg.Cache.Redis.Password = "s3cr3t!"
-				return cfg
-			},
-		},
-		{
-			name: "cache redis with insecure skip verify tls",
-			path: "./testdata/cache/redis-tls-insecure.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
-				cfg.Cache.Redis.InsecureSkipTLS = true
-				return cfg
-			},
-		},
-		{
-			name: "cache redis with ca path bundle",
-			path: "./testdata/cache/redis-ca-path.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
-				cfg.Cache.Redis.CaCertPath = "internal/config/testdata/ca.pem"
-				return cfg
-			},
-		},
-		{
-			name: "cache redis with ca bytes bundle",
-			path: "./testdata/cache/redis-ca-bytes.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
-				cfg.Cache.Redis.CaCertBytes = "pemblock\n"
-				return cfg
-			},
-		},
-		{
-			name:    "cache redis with ca path and bytes bundle",
-			path:    "./testdata/cache/redis-ca-invalid.yml",
-			wantErr: errors.New("please provide exclusively one of ca_cert_bytes or ca_cert_path"),
 		},
 		{
 			name: "metrics disabled",
@@ -339,17 +193,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "tracing zipkin",
-			path: "./testdata/tracing/zipkin.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Tracing.Enabled = true
-				cfg.Tracing.Exporter = TracingZipkin
-				cfg.Tracing.Zipkin.Endpoint = "http://localhost:9999/api/v2/spans"
-				return cfg
-			},
-		},
-		{
 			name:    "tracing with wrong sampling ration",
 			path:    "./testdata/tracing/wrong_sampling_ratio.yml",
 			wantErr: errors.New("sampling ratio should be a number between 0 and 1"),
@@ -366,7 +209,6 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Tracing.SamplingRatio = 0.5
 				cfg.Tracing.Enabled = true
-				cfg.Tracing.Exporter = TracingOTLP
 				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
 				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
 				return cfg
@@ -680,20 +522,6 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 
-				cfg.Audit = AuditConfig{
-					Sinks: SinksConfig{
-						Log: LogSinkConfig{
-							Enabled: true,
-							File:    "/path/to/logs.txt",
-						},
-						Kafka: KafkaSinkConfig{Encoding: "protobuf"},
-					},
-					Buffer: BufferConfig{
-						Capacity:    10,
-						FlushPeriod: 3 * time.Minute,
-					},
-				}
-
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",
@@ -712,13 +540,6 @@ func TestLoad(t *testing.T) {
 					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
 				}
 
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = 1 * time.Minute
-				cfg.Cache.Memory = MemoryCacheConfig{
-					EvictionInterval: 5 * time.Minute,
-				}
-
 				cfg.Server = ServerConfig{
 					Host:      "127.0.0.1",
 					Protocol:  HTTPS,
@@ -731,18 +552,10 @@ func TestLoad(t *testing.T) {
 
 				cfg.Tracing = TracingConfig{
 					Enabled:       true,
-					Exporter:      TracingOTLP,
 					SamplingRatio: 1,
 					Propagators: []TracingPropagator{
 						TracingPropagatorTraceContext,
 						TracingPropagatorBaggage,
-					},
-					Jaeger: JaegerTracingConfig{
-						Host: "localhost",
-						Port: 6831,
-					},
-					Zipkin: ZipkinTracingConfig{
-						Endpoint: "http://localhost:9411/api/v2/spans",
 					},
 					OTLP: OTLPTracingConfig{
 						Endpoint: "localhost:4318",
@@ -864,30 +677,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:    "buffer size invalid capacity",
-			path:    "./testdata/audit/invalid_buffer_capacity.yml",
-			wantErr: errors.New("buffer capacity below 2 or above 10"),
-		},
-		{
-			name:    "flush period invalid",
-			path:    "./testdata/audit/invalid_flush_period.yml",
-			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
-		},
-		{
-			name: "file not specified",
-			path: "./testdata/audit/enable_without_file.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Audit.Sinks.Log.Enabled = true
-				return cfg
-			},
-		},
-		{
-			name:    "url or template not specified",
-			path:    "./testdata/audit/invalid_webhook_url_or_template_not_provided.yml",
-			wantErr: errors.New("url or template(s) not provided"),
-		},
-		{
 			name: "local config provided",
 			path: "./testdata/storage/local_provided.yml",
 			expected: func() *Config {
@@ -900,37 +689,6 @@ func TestLoad(t *testing.T) {
 				}
 				return cfg
 			},
-		},
-		{
-			name: "audit kafka valid",
-			path: "./testdata/audit/valid_kafka.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Audit.Sinks.Kafka.Enabled = true
-				cfg.Audit.Sinks.Kafka.Topic = "audit-topic"
-				cfg.Audit.Sinks.Kafka.BootstrapServers = []string{"kafka-srv1", "kafka-srv2"}
-				cfg.Audit.Sinks.Kafka.Encoding = "protobuf"
-				cfg.Audit.Sinks.Kafka.Authentication = &KafkaAuthenticationConfig{
-					Username: "user",
-					Password: "passwd",
-				}
-				cfg.Audit.Sinks.Kafka.SchemaRegistry = &KafkaSchemaRegistryConfig{
-					URL: "http://registry",
-				}
-				cfg.Audit.Sinks.Kafka.RequireTLS = true
-				cfg.Audit.Sinks.Kafka.InsecureSkipTLS = true
-				return cfg
-			},
-		},
-		{
-			name:    "audit kafka invalid topic",
-			path:    "./testdata/audit/invalid_kafka_topic.yml",
-			wantErr: errors.New("kafka topic not provided"),
-		},
-		{
-			name:    "audit kafka invalid bootstrap servers",
-			path:    "./testdata/audit/invalid_kafka_servers.yml",
-			wantErr: errors.New("kafka bootstrap_servers not provided"),
 		},
 		{
 			name: "git config provided",

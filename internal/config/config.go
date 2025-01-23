@@ -53,10 +53,8 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 // any errors derived from the resulting state of the configuration.
 type Config struct {
 	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty" yaml:"version,omitempty"`
-	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
 	Authorization  AuthorizationConfig  `json:"authorization,omitempty" mapstructure:"authorization" yaml:"authorization,omitempty"`
-	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
 	Diagnostics    DiagnosticConfig     `json:"diagnostics,omitempty" mapstructure:"diagnostics" yaml:"diagnostics,omitempty"`
 	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental" yaml:"experimental,omitempty"`
@@ -511,6 +509,13 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 	}
 }
 
+// BufferConfig holds configuration for the buffering of sending the audit
+// events to the sinks.
+type BufferConfig struct {
+	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity" yaml:"capacity,omitempty"`
+	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period" yaml:"flush_period,omitempty"`
+}
+
 // Default is the base config used when no configuration is explicit provided.
 func Default() *Config {
 	return &Config{
@@ -542,26 +547,6 @@ func Default() *Config {
 			},
 		},
 
-		Cache: CacheConfig{
-			Enabled: false,
-			Backend: CacheMemory,
-			TTL:     1 * time.Minute,
-			Memory: MemoryCacheConfig{
-				EvictionInterval: 5 * time.Minute,
-			},
-			Redis: RedisCacheConfig{
-				Host:            "localhost",
-				Port:            6379,
-				RequireTLS:      false,
-				Password:        "",
-				DB:              0,
-				PoolSize:        0,
-				MinIdleConn:     0,
-				ConnMaxIdleTime: 0,
-				NetTimeout:      0,
-			},
-		},
-
 		Diagnostics: DiagnosticConfig{
 			Profiling: ProfilingDiagnosticConfig{
 				Enabled: true,
@@ -583,18 +568,10 @@ func Default() *Config {
 
 		Tracing: TracingConfig{
 			Enabled:       false,
-			Exporter:      TracingJaeger,
 			SamplingRatio: 1,
 			Propagators: []TracingPropagator{
 				TracingPropagatorTraceContext,
 				TracingPropagatorBaggage,
-			},
-			Jaeger: JaegerTracingConfig{
-				Host: "localhost",
-				Port: 6831,
-			},
-			Zipkin: ZipkinTracingConfig{
-				Endpoint: "http://localhost:9411/api/v2/spans",
 			},
 			OTLP: OTLPTracingConfig{
 				Endpoint: "localhost:4317",
@@ -615,22 +592,6 @@ func Default() *Config {
 			Session: AuthenticationSession{
 				TokenLifetime: 24 * time.Hour,
 				StateLifetime: 10 * time.Minute,
-			},
-		},
-
-		Audit: AuditConfig{
-			Sinks: SinksConfig{
-				Log: LogSinkConfig{
-					Enabled: false,
-					File:    "",
-				},
-				Kafka: KafkaSinkConfig{
-					Encoding: "protobuf",
-				},
-			},
-			Buffer: BufferConfig{
-				Capacity:    2,
-				FlushPeriod: 2 * time.Minute,
 			},
 		},
 

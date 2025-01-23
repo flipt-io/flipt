@@ -3,7 +3,6 @@ package ofrep
 import (
 	"context"
 
-	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -43,20 +42,18 @@ type Storer interface {
 // Server servers the methods used by the OpenFeature Remote Evaluation Protocol.
 // It will be used only with gRPC Gateway as there's no specification for gRPC itself.
 type Server struct {
-	logger   *zap.Logger
-	cacheCfg config.CacheConfig
-	bridge   Bridge
-	store    Storer
+	logger *zap.Logger
+	bridge Bridge
+	store  Storer
 	ofrep.UnimplementedOFREPServiceServer
 }
 
 // New constructs a new Server.
-func New(logger *zap.Logger, cacheCfg config.CacheConfig, bridge Bridge, store Storer) *Server {
+func New(logger *zap.Logger, bridge Bridge, store Storer) *Server {
 	return &Server{
-		logger:   logger,
-		cacheCfg: cacheCfg,
-		bridge:   bridge,
-		store:    store,
+		logger: logger,
+		bridge: bridge,
+		store:  store,
 	}
 }
 

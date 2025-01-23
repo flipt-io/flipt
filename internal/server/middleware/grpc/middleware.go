@@ -12,11 +12,8 @@ import (
 	"github.com/google/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/analytics"
-	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/authn"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -233,81 +230,6 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 		}
 
 		return handler(ctx, req)
-	}
-}
-
-// AuditEventUnaryInterceptor captures events and adds them to the trace span to be consumed downstream.
-func AuditEventUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var requests []flipt.Request
-		r, ok := req.(flipt.Requester)
-
-		if !ok {
-			return handler(ctx, req)
-		}
-
-		requests = r.Request()
-
-		var events []*audit.Event
-
-		actor := authn.ActorFromContext(ctx)
-
-		defer func() {
-			for _, event := range events {
-
-				span := trace.SpanFromContext(ctx)
-				span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
-			}
-		}()
-
-		resp, err := handler(ctx, req)
-		for _, request := range requests {
-			if err != nil {
-				var uerr errs.ErrUnauthorized
-				if errors.As(err, &uerr) {
-					request.Status = flipt.StatusDenied
-					events = append(events, audit.NewEvent(request, actor, nil))
-				}
-
-				continue
-			}
-
-			// Delete and Order request(s) have to be handled separately because they do not
-			// return the concrete type but rather an *empty.Empty response.
-			if request.Action == flipt.ActionDelete {
-				events = append(events, audit.NewEvent(request, actor, r))
-				continue
-			}
-
-			switch r := req.(type) {
-			case *flipt.OrderRulesRequest, *flipt.OrderRolloutsRequest:
-				events = append(events, audit.NewEvent(request, actor, r))
-				continue
-			}
-
-			switch r := resp.(type) {
-			case *flipt.Flag:
-				events = append(events, audit.NewEvent(request, actor, audit.NewFlag(r)))
-			case *flipt.Variant:
-				events = append(events, audit.NewEvent(request, actor, audit.NewVariant(r)))
-			case *flipt.Segment:
-				events = append(events, audit.NewEvent(request, actor, audit.NewSegment(r)))
-			case *flipt.Distribution:
-				events = append(events, audit.NewEvent(request, actor, audit.NewDistribution(r)))
-			case *flipt.Constraint:
-				events = append(events, audit.NewEvent(request, actor, audit.NewConstraint(r)))
-			case *flipt.Namespace:
-				events = append(events, audit.NewEvent(request, actor, audit.NewNamespace(r)))
-			case *flipt.Rollout:
-				events = append(events, audit.NewEvent(request, actor, audit.NewRollout(r)))
-			case *flipt.Rule:
-				events = append(events, audit.NewEvent(request, actor, audit.NewRule(r)))
-			case *auth.CreateTokenResponse:
-				events = append(events, audit.NewEvent(request, actor, r.Authentication.Metadata))
-			}
-		}
-
-		return resp, err
 	}
 }
 

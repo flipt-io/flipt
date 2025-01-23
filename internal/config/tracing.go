@@ -16,30 +16,20 @@ var (
 // output destinations.
 type TracingConfig struct {
 	Enabled       bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
-	Exporter      TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
 	Propagators   []TracingPropagator `json:"propagators,omitempty" mapstructure:"propagators" yaml:"propagators,omitempty"`
 	SamplingRatio float64             `json:"samplingRatio,omitempty" mapstructure:"sampling_ratio" yaml:"sampling_ratio,omitempty"`
-	Jaeger        JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
-	Zipkin        ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
 	OTLP          OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
 		"enabled":        false,
-		"exporter":       TracingJaeger,
 		"sampling_ratio": 1,
 		"propagators": []TracingPropagator{
 			TracingPropagatorTraceContext,
 			TracingPropagatorBaggage,
 		},
-		"jaeger": map[string]any{
-			"host": "localhost",
-			"port": 6831,
-		},
-		"zipkin": map[string]any{
-			"endpoint": "http://localhost:9411/api/v2/spans",
-		},
+
 		"otlp": map[string]any{
 			"endpoint": "localhost:4317",
 		},
@@ -72,9 +62,7 @@ func (c TracingConfig) IsZero() bool {
 type TracingExporter string
 
 const (
-	TracingJaeger TracingExporter = "jaeger"
-	TracingZipkin TracingExporter = "zipkin"
-	TracingOTLP   TracingExporter = "otlp"
+	TracingOTLP TracingExporter = "otlp"
 )
 
 func (e TracingExporter) String() string {

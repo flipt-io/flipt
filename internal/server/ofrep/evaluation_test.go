@@ -17,7 +17,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/internal/common"
-	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -39,7 +38,7 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		}
 		bridge := NewMockBridge(t)
 		store := common.NewMockStore(t)
-		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+		s := New(zaptest.NewLogger(t), bridge, store)
 
 		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
 			FlagKey:      flagKey,
@@ -82,7 +81,7 @@ func TestEvaluateFlag_Success(t *testing.T) {
 		}
 		bridge := NewMockBridge(t)
 		store := common.NewMockStore(t)
-		s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+		s := New(zaptest.NewLogger(t), bridge, store)
 
 		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{
 			FlagKey:      flagKey,
@@ -151,7 +150,7 @@ func TestEvaluateFlag_Failure(t *testing.T) {
 			ctx := context.TODO()
 			bridge := NewMockBridge(t)
 			store := &common.StoreMock{}
-			s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+			s := New(zaptest.NewLogger(t), bridge, store)
 			if tc.req.Key != "" {
 				bridge.On("OFREPFlagEvaluation", ctx, mock.Anything).Return(EvaluationBridgeOutput{}, tc.err)
 			}
@@ -177,7 +176,7 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 	}}
 	bridge := NewMockBridge(t)
 	store := &common.StoreMock{}
-	s := New(zaptest.NewLogger(t), config.CacheConfig{}, bridge, store)
+	s := New(zaptest.NewLogger(t), bridge, store)
 
 	t.Run("with flags in the evaluation request", func(t *testing.T) {
 		bridge.On("OFREPFlagEvaluation", ctx, EvaluationBridgeInput{

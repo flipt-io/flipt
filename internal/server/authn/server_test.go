@@ -36,7 +36,7 @@ func TestActorFromContext(t *testing.T) {
 
 	actor := authn.ActorFromContext(ctx)
 
-	assert.Equal(t, ipAddress, actor.IP)
+	assert.Equal(t, ipAddress, actor.Ip)
 	assert.Equal(t, authentication, actor.Authentication)
 }
 
