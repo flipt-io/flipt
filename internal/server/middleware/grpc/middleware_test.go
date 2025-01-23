@@ -196,27 +196,6 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 		resp      response
 	}{
 		{
-			name:      "flipt.EvaluationRequest without request ID",
-			requestID: "",
-			req: &flipt.EvaluationRequest{
-				FlagKey: "foo",
-			},
-			resp: &flipt.EvaluationResponse{
-				FlagKey: "foo",
-			},
-		},
-		{
-			name:      "flipt.EvaluationRequest with request ID",
-			requestID: "bar",
-			req: &flipt.EvaluationRequest{
-				FlagKey:   "foo",
-				RequestId: "bar",
-			},
-			resp: &flipt.EvaluationResponse{
-				FlagKey: "foo",
-			},
-		},
-		{
 			name:      "Variant evaluation.EvaluationRequest without request ID",
 			requestID: "",
 			req: &evaluation.EvaluationRequest{
@@ -285,70 +264,6 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 			assert.NotZero(t, resp.GetRequestDurationMillis())
 		})
 	}
-}
-
-func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
-	var (
-		req = &flipt.BatchEvaluationRequest{
-			Requests: []*flipt.EvaluationRequest{
-				{
-					FlagKey: "foo",
-				},
-			},
-		}
-
-		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
-			return &flipt.BatchEvaluationResponse{
-				Responses: []*flipt.EvaluationResponse{
-					{
-						FlagKey: "foo",
-					},
-				},
-			}, nil
-		}
-
-		info = &grpc.UnaryServerInfo{
-			FullMethod: "FakeMethod",
-		}
-	)
-
-	got, err := EvaluationUnaryInterceptor(false)(context.Background(), req, info, handler)
-	require.NoError(t, err)
-
-	assert.NotNil(t, got)
-
-	resp, ok := got.(*flipt.BatchEvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-	assert.NotEmpty(t, resp.Responses)
-	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
-	// check that the requestID was created and set
-	assert.NotEmpty(t, resp.RequestId)
-	assert.NotZero(t, resp.RequestDurationMillis)
-
-	req = &flipt.BatchEvaluationRequest{
-		RequestId: "bar",
-		Requests: []*flipt.EvaluationRequest{
-			{
-				FlagKey: "foo",
-			},
-		},
-	}
-
-	got, err = EvaluationUnaryInterceptor(false)(context.Background(), req, info, handler)
-	require.NoError(t, err)
-
-	assert.NotNil(t, got)
-
-	resp, ok = got.(*flipt.BatchEvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-	assert.NotEmpty(t, resp.Responses)
-	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
-	assert.NotNil(t, resp.Responses[0].Timestamp)
-	// check that the requestID was propagated
-	assert.NotEmpty(t, resp.RequestId)
-	assert.Equal(t, "bar", resp.RequestId)
 }
 
 func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {

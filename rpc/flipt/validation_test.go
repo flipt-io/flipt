@@ -21,41 +21,6 @@ func largeJSONString() string {
 	return fmt.Sprintf("%s%s%s", prefix, string(b), suffix)
 }
 
-func TestValidate_EvaluationRequest(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *EvaluationRequest
-		wantErr error
-	}{
-		{
-			name:    "emptyFlagKey",
-			req:     &EvaluationRequest{FlagKey: "", EntityId: "entityID"},
-			wantErr: errors.EmptyFieldError("flagKey"),
-		},
-		{
-			name:    "emptyEntityId",
-			req:     &EvaluationRequest{FlagKey: "flagKey", EntityId: ""},
-			wantErr: errors.EmptyFieldError("entityId"),
-		},
-		{
-			name: "valid",
-			req:  &EvaluationRequest{FlagKey: "flagKey", EntityId: "entityId"},
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			req     = tt.req
-			wantErr = tt.wantErr
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			err := req.Validate()
-			assert.Equal(t, wantErr, err)
-		})
-	}
-}
-
 func TestValidate_GetFlagRequest(t *testing.T) {
 	tests := []struct {
 		name    string

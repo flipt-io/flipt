@@ -12,52 +12,6 @@ import "options/options.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt";
 
-message EvaluationRequest {
-  string request_id = 1;
-  string flag_key = 2;
-  string entity_id = 3;
-  map<string, string> context = 4;
-  string namespace_key = 5;
-}
-
-message BatchEvaluationRequest {
-  string request_id = 1;
-  repeated EvaluationRequest requests = 2;
-  bool exclude_not_found = 3;
-  string namespace_key = 4;
-}
-
-message BatchEvaluationResponse {
-  string request_id = 1;
-  repeated EvaluationResponse responses = 2;
-  double request_duration_millis = 3;
-}
-
-message EvaluationResponse {
-  string request_id = 1;
-  string entity_id = 2;
-  map<string, string> request_context = 3;
-  bool match = 4;
-  string flag_key = 5;
-  string segment_key = 6 [deprecated = true];
-  google.protobuf.Timestamp timestamp = 7;
-  string value = 8;
-  double request_duration_millis = 9;
-  string attachment = 10;
-  EvaluationReason reason = 11;
-  string namespace_key = 12;
-  repeated string segment_keys = 13;
-}
-
-enum EvaluationReason {
-  UNKNOWN_EVALUATION_REASON = 0;
-  FLAG_DISABLED_EVALUATION_REASON = 1;
-  FLAG_NOT_FOUND_EVALUATION_REASON = 2;
-  MATCH_EVALUATION_REASON = 3;
-  ERROR_EVALUATION_REASON = 4;
-  DEFAULT_EVALUATION_REASON = 5;
-}
-
 message Namespace {
   string key = 1;
   string name = 2;
@@ -502,12 +456,6 @@ message DeleteDistributionRequest {
 }
 
 service Flipt {
-  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
-    option deprecated = true;
-  }
-  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
-    option deprecated = true;
-  }
   rpc GetNamespace(GetNamespaceRequest) returns (Namespace) {
     option (google.api.http) = {get: "/api/v1/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getNamespace" tags: ["NamespacesService"]};
