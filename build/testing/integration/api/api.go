@@ -893,92 +893,6 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				})
 			})
 
-			t.Run("Legacy", func(t *testing.T) {
-				t.Run("Evaluation", func(t *testing.T) {
-					t.Log(`Successful match.`)
-
-					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-						NamespaceKey: namespace.Key,
-						FlagKey:      "test",
-						EntityId:     uuid.NewString(),
-						Context: map[string]string{
-							"foo":  "baz",
-							"fizz": "bozz",
-						},
-					})
-					require.NoError(t, err)
-
-					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKey)
-					assert.Equal(t, "one", result.Value)
-					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-
-					t.Log(`Unsuccessful match.`)
-
-					result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-						NamespaceKey: namespace.Key,
-						FlagKey:      "test",
-						EntityId:     uuid.NewString(),
-						Context: map[string]string{
-							"fizz": "buzz",
-						},
-					})
-					require.NoError(t, err)
-
-					assert.False(t, result.Match, "Evaluation should not have matched.")
-				})
-
-				t.Run("Batch Evaluation", func(t *testing.T) {
-					t.Log(`Successful match.`)
-
-					results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-						NamespaceKey: namespace.Key,
-						Requests: []*flipt.EvaluationRequest{
-							{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     uuid.NewString(),
-								Context: map[string]string{
-									"foo":  "baz",
-									"fizz": "bozz",
-								},
-							},
-						},
-					})
-					require.NoError(t, err)
-
-					require.Len(t, results.Responses, 1)
-					result := results.Responses[0]
-
-					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKey)
-					assert.Equal(t, "one", result.Value)
-					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-
-					t.Log(`Unsuccessful match.`)
-
-					results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-						NamespaceKey: namespace.Key,
-						Requests: []*flipt.EvaluationRequest{
-							{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     uuid.NewString(),
-								Context: map[string]string{
-									"fizz": "buzz",
-								},
-							},
-						},
-					})
-					require.NoError(t, err)
-
-					require.Len(t, results.Responses, 1)
-					result = results.Responses[0]
-
-					assert.False(t, result.Match, "Evaluation should not have matched.")
-				})
-			})
-
 			t.Run("Evaluation", func(t *testing.T) {
 				t.Run("Variant", func(t *testing.T) {
 					t.Run("successful match (rank 1)", func(t *testing.T) {
@@ -1063,89 +977,6 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 						msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace.Expected)
 						require.EqualError(t, err, msg)
 						require.Nil(t, result)
-					})
-				})
-
-				t.Run("Compatibility", func(t *testing.T) {
-					// ensure we can leverage new and old evaluation paths and produce consistent results
-					t.Run("new API to legacy API", func(t *testing.T) {
-						entity := uuid.NewString()
-
-						t.Run("successful with new evaluation API", func(t *testing.T) {
-							result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     entity,
-								Context: map[string]string{
-									"foo":  "baz",
-									"fizz": "bozz",
-								},
-							})
-							require.NoError(t, err)
-
-							require.True(t, result.Match, "Evaluation should have matched.")
-							assert.Contains(t, result.SegmentKeys, "everyone")
-							assert.Equal(t, "one", result.VariantKey)
-							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-						})
-
-						t.Run("successful with legacy evaluation API", func(t *testing.T) {
-							result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     entity,
-								Context: map[string]string{
-									"foo":  "baz",
-									"fizz": "bozz",
-								},
-							})
-							require.NoError(t, err)
-
-							require.True(t, result.Match, "Evaluation should have matched.")
-							assert.Equal(t, "everyone", result.SegmentKey)
-							assert.Equal(t, "one", result.Value)
-							assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-						})
-					})
-
-					t.Run("legacy API to new API", func(t *testing.T) {
-						entity := uuid.NewString()
-
-						t.Run("successful with legacy evaluation API", func(t *testing.T) {
-							result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     entity,
-								Context: map[string]string{
-									"foo":  "baz",
-									"fizz": "bozz",
-								},
-							})
-							require.NoError(t, err)
-
-							require.True(t, result.Match, "Evaluation should have matched.")
-							assert.Equal(t, "everyone", result.SegmentKey)
-							assert.Equal(t, "one", result.Value)
-							assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-						})
-
-						t.Run("successful with new evaluation API", func(t *testing.T) {
-							result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
-								NamespaceKey: namespace.Key,
-								FlagKey:      "test",
-								EntityId:     entity,
-								Context: map[string]string{
-									"foo":  "baz",
-									"fizz": "bozz",
-								},
-							})
-							require.NoError(t, err)
-
-							require.True(t, result.Match, "Evaluation should have matched.")
-							assert.Contains(t, result.SegmentKeys, "everyone")
-							assert.Equal(t, "one", result.VariantKey)
-							assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-						})
 					})
 				})
 
@@ -1357,7 +1188,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 		if i < len(integration.Namespaces)-1 {
 			// this is lame I know, but its for the cache to attempt to ensure
-			// evictions between each loop iteration so that we don't polute
+			// evictions between each loop iteration so that we don't pollute
 			// the state between runs
 			// we could always thread something in to trigger this just
 			// for the cache tests this impacts things too much
