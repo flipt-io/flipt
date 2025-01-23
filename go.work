@@ -10,5 +10,6 @@ use (
 	./errors
 	./internal/cmd/protoc-gen-go-flipt-sdk
 	./rpc/flipt
+	./rpc/v2/environments
 	./sdk/go
 )
