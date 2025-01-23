@@ -1,5 +1,0 @@
-audit:
-  sinks:
-    kafka:
-      enabled: true
-

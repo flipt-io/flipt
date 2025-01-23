@@ -5,27 +5,17 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/config"
-	analytics1 "go.flipt.io/flipt/internal/storage/analytics"
+	"go.flipt.io/flipt/internal/storage/analytics"
 	"go.uber.org/zap"
 )
 
-const (
-	analytics = "analytics"
-)
-
-var database string
-
-func runMigrations(cfg *config.Config, logger *zap.Logger, database string) error {
+func runMigrations(cfg *config.Config, logger *zap.Logger) error {
 	var (
-		migrator *analytics1.Migrator
+		migrator *analytics.Migrator
 		err      error
 	)
 
-	if database != analytics {
-		return fmt.Errorf("database %s not supported", database)
-	}
-
-	migrator, err = analytics1.NewMigrator(*cfg, logger)
+	migrator, err = analytics.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -54,7 +44,7 @@ func newMigrateCommand() *cobra.Command {
 				_ = logger.Sync()
 			}()
 
-			if err := runMigrations(cfg, logger, database); err != nil {
+			if err := runMigrations(cfg, logger); err != nil {
 				return err
 			}
 
@@ -63,6 +53,5 @@ func newMigrateCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	cmd.Flags().StringVar(&database, "database", "analytics", "string to denote which database type to migrate")
 	return cmd
 }
