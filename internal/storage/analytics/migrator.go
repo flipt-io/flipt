@@ -1,4 +1,4 @@
-package sql
+package analytics
 
 import (
 	"database/sql"
@@ -47,9 +47,9 @@ func migratorHelper(logger *zap.Logger, db *sql.DB, driver Driver, databaseDrive
 	}, nil
 }
 
-// NewAnalyticsMigrator returns a migrator for analytics databases
-func NewAnalyticsMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := openAnalytics(cfg)
+// NewMigrator returns a migrator for analytics databases
+func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
+	sql, driver, err := open(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}

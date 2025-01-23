@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/storage/sql"
+	analytics1 "go.flipt.io/flipt/internal/storage/analytics"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +17,7 @@ var database string
 
 func runMigrations(cfg *config.Config, logger *zap.Logger, database string) error {
 	var (
-		migrator *sql.Migrator
+		migrator *analytics1.Migrator
 		err      error
 	)
 
@@ -25,7 +25,7 @@ func runMigrations(cfg *config.Config, logger *zap.Logger, database string) erro
 		return fmt.Errorf("database %s not supported", database)
 	}
 
-	migrator, err = sql.NewAnalyticsMigrator(*cfg, logger)
+	migrator, err = analytics1.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}

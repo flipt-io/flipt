@@ -9,8 +9,8 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"go.flipt.io/flipt/internal/config"
-	panalytics "go.flipt.io/flipt/internal/server/analytics"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/internal/server/analytics"
+	analyticsstorage "go.flipt.io/flipt/internal/storage/analytics"
 	"go.uber.org/zap"
 )
 
@@ -65,7 +65,7 @@ func New(logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*Client, er
 
 // runMigrations will run migrations for clickhouse if enabled from the client.
 func runMigrations(logger *zap.Logger, cfg *config.Config, forceMigrate bool) error {
-	m, err := fliptsql.NewAnalyticsMigrator(*cfg, logger)
+	m, err := analyticsstorage.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func connect(clickhouseConfig config.ClickhouseConfig) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
+func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	step := &Step{
 		intervalValue: req.StepMinutes,
 		intervalStep:  "MINUTE",
