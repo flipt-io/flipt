@@ -1,4 +1,4 @@
-package configuration
+package environments
 
 import (
 	"go.flipt.io/flipt/rpc/flipt"
@@ -28,6 +28,11 @@ func (r *ListResourcesRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(resourceFrom(r), flipt.ActionRead, flipt.WithNamespace(r.Namespace))}
 }
 
+// GetTypeUrl delegates to the underlying payloads GetTypeUrl method.
+func (r *UpdateResourceRequest) GetTypeUrl() string {
+	return r.Payload.GetTypeUrl()
+}
+
 func (r *UpdateResourceRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(resourceFrom(r), flipt.ActionUpdate, flipt.WithNamespace(r.Namespace))}
 }
@@ -36,40 +41,8 @@ func (r *DeleteResourceRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(resourceFrom(r), flipt.ActionDelete, flipt.WithNamespace(r.Namespace))}
 }
 
-func (r *ListEnvironmentsRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *GetCurrentEnvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *BranchEnvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *ListEnvironmentBranchesRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *ProposeEvironmentRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *ListEnvironmentChangesRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *ListCurrentEnvironmentChangesRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceEnvironment, flipt.ActionRead)}
-}
-
-func (r *NotifySourceRequest) Request() []flipt.Request {
-	return []flipt.Request{}
-}
-
 func resourceFrom(t typed) flipt.Resource {
-	switch t.GetType() {
+	switch t.GetTypeUrl() {
 	case "flipt.core.Flag":
 		return flipt.ResourceFlag
 	case "flipt.core.Segment":
