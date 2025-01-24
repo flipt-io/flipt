@@ -42,7 +42,7 @@ func (c *TracingConfig) validate() error {
 
 	for _, propagator := range c.Propagators {
 		if !propagator.isValid() {
-			return errString("tracing", "invalid propagator option: %s", propagator)
+			return errString("tracing", "invalid propagator option: "+string(propagator))
 		}
 	}
 

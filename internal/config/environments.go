@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -54,7 +53,7 @@ type EnvironmentConfig struct {
 
 func (e *EnvironmentConfig) validate() error {
 	if e.Name == "" {
-		return errors.New("name is required")
+		return errFieldRequired("", "name")
 	}
 	return nil
 }

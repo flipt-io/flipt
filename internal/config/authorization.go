@@ -147,7 +147,7 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 	}
 
 	if a.PollInterval <= 0 {
-		return errFieldWrap("authorization", "poll_interval", errPositiveNonZeroDuration)
+		return errFieldPositiveDuration("authorization", "poll_interval")
 	}
 
 	return nil

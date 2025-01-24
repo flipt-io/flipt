@@ -152,11 +152,11 @@ func (c *AuthenticationConfig) validate() error {
 		}
 
 		if info.Cleanup.Interval <= 0 {
-			return errFieldWrap("authentication", "cleanup_interval", errPositiveNonZeroDuration)
+			return errFieldPositiveDuration("authentication", "cleanup_interval")
 		}
 
 		if info.Cleanup.GracePeriod <= 0 {
-			return errFieldWrap("authentication", "cleanup_grace_period", errPositiveNonZeroDuration)
+			return errFieldPositiveDuration("authentication", "cleanup_grace_period")
 		}
 	}
 

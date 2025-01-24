@@ -223,12 +223,12 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "authentication token negative interval",
 			path:    "./testdata/authentication/token_negative_interval.yml",
-			wantErr: errors.New("authentication: cleanup_interval positive non-zero duration required"),
+			wantErr: errors.New("authentication: cleanup_interval must be a positive non-zero duration"),
 		},
 		{
 			name:    "authentication token zero grace_period",
 			path:    "./testdata/authentication/token_zero_grace_period.yml",
-			wantErr: errors.New("authentication: cleanup_grace_period positive non-zero duration required"),
+			wantErr: errors.New("authentication: cleanup_grace_period must be a positive non-zero duration"),
 		},
 		{
 			name: "authentication token with provided bootstrap token",
