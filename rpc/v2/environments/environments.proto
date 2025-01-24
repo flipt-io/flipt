@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package environments;
+
+import "google/protobuf/any.proto";
+
+option go_package = "go.flipt.io/flipt/rpc/v2/environments";
+
+service EnvironmentsService {
+  rpc GetNamespace(GetNamespaceRequest) returns (NamespaceResponse) {}
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {}
+  rpc CreateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {}
+  rpc UpdateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {}
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {}
+
+  rpc GetResource(GetResourceRequest) returns (ResourceResponse) {}
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {}
+  rpc CreateResource(UpdateResourceRequest) returns (ResourceResponse) {}
+  rpc UpdateResource(UpdateResourceRequest) returns (ResourceResponse) {}
+  rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
+}
+
+/* Namespace */
+
+message Namespace {
+  string environment = 1;
+  string key = 2;
+  string name = 3;
+  optional string description = 4;
+  optional bool protected = 5;
+}
+
+message GetNamespaceRequest {
+  string environment = 1;
+  string key = 2;
+}
+
+message NamespaceResponse {
+  Namespace namespace = 1;
+  string revision = 100;
+}
+
+message ListNamespacesRequest {
+  string environment = 1;
+}
+
+message ListNamespacesResponse {
+  repeated Namespace items = 1;
+  string revision = 100;
+}
+
+message UpdateNamespaceRequest {
+  string environment = 1;
+  string key = 2;
+  string name = 3;
+  optional string description = 4;
+  optional bool protected = 5;
+  string revision = 100;
+}
+
+message DeleteNamespaceRequest {
+  string environment = 1;
+  string key = 2;
+  string revision = 100;
+}
+
+message DeleteNamespaceResponse {
+  string revision = 100;
+}
+
+/* Resource */
+
+message GetResourceRequest {
+  string environment = 1;
+  string namespace = 2;
+  string type_url = 3;
+  string key = 4;
+}
+
+message Resource {
+  string environment = 1;
+  string namespace = 2;
+  string key = 3;
+  google.protobuf.Any payload = 5;
+}
+
+message ResourceResponse {
+  Resource resource = 1;
+  string revision = 100;
+}
+
+message ListResourcesRequest {
+  string environment = 1;
+  string namespace = 2;
+  string type_url = 3;
+}
+
+message ListResourcesResponse {
+  repeated Resource resources = 1;
+  string revision = 100;
+}
+
+message UpdateResourceRequest {
+  string environment = 1;
+  string namespace = 2;
+  string key = 3;
+  google.protobuf.Any payload = 4;
+  string revision = 100;
+}
+
+message DeleteResourceRequest {
+  // type is the fully-qualified protobuf message name
+  string environment = 1;
+  string namespace = 2;
+  string type_url = 3;
+  string key = 4;
+  string revision = 100;
+}
+
+message DeleteResourceResponse {
+  string revision = 100;
+}

@@ -7,7 +7,7 @@
 package ofrep
 
 import (
-	_ "github.com/google/gnostic-models/openapiv3"
+	_ "github.com/google/gnostic/openapiv3"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
