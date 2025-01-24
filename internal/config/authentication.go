@@ -617,11 +617,11 @@ func (a AuthenticationMethodJWTConfig) info(_ context.Context) AuthenticationMet
 func (a AuthenticationMethodJWTConfig) validate() error {
 	setFields := nonEmpty([]string{a.JWKSURL, a.PublicKeyFile})
 	if setFields < 1 {
-		return fmt.Errorf("authentication: one of jwks_url or public_key_file is required")
+		return errString("authentication", "one of jwks_url or public_key_file is required")
 	}
 
 	if setFields > 1 {
-		return fmt.Errorf("authentication: only one of jwks_url or public_key_file can be set")
+		return errString("authentication", "only one of jwks_url or public_key_file can be set")
 	}
 
 	if a.JWKSURL != "" {

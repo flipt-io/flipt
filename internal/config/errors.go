@@ -5,8 +5,6 @@ import (
 	"fmt"
 )
 
-const fieldErrFmt = "%s: %s %w"
-
 var (
 	// errValidationRequired is returned when a required value is
 	// either not supplied or supplied with empty value.
@@ -15,14 +13,17 @@ var (
 	errPositiveNonZeroDuration = errors.New("positive non-zero duration required")
 )
 
+// errFieldWrap wraps an error with a field name and type.
 func errFieldWrap(typ, field string, err error) error {
-	return fmt.Errorf(fieldErrFmt, typ, field, err)
+	return fmt.Errorf("%s: %s %w", typ, field, err)
 }
 
+// errFieldRequired returns a required field error with a field name and type.
 func errFieldRequired(typ, field string) error {
 	return errFieldWrap(typ, field, errValidationRequired)
 }
 
-func err(typ, msg string, args ...any) error {
+// errString returns an error with a type and message.
+func errString(typ, msg string, args ...any) error {
 	return fmt.Errorf("%s: %s", typ, fmt.Sprintf(msg, args...))
 }

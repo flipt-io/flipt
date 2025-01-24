@@ -399,7 +399,7 @@ func (c *Config) validate() error {
 	}
 
 	if c.Authorization.Required && !c.Authentication.Required {
-		return err("authorization", "requires authentication to also be required")
+		return errString("authorization", "requires authentication to also be required")
 	}
 
 	return nil

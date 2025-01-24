@@ -37,12 +37,12 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 
 func (c *TracingConfig) validate() error {
 	if c.SamplingRatio < 0 || c.SamplingRatio > 1 {
-		return err("tracing", "sampling ratio should be a number between 0 and 1")
+		return errString("tracing", "sampling ratio should be a number between 0 and 1")
 	}
 
 	for _, propagator := range c.Propagators {
 		if !propagator.isValid() {
-			return err("tracing", "invalid propagator option: %s", propagator)
+			return errString("tracing", "invalid propagator option: %s", propagator)
 		}
 	}
 
