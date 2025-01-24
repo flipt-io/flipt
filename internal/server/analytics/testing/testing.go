@@ -14,7 +14,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/internal/migrations"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
+	fliptsql "go.flipt.io/flipt/internal/storage/analytics"
 )
 
 type Database struct {

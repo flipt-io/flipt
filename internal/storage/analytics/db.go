@@ -1,4 +1,4 @@
-package sql
+package analytics
 
 import (
 	"database/sql"
@@ -9,9 +9,9 @@ import (
 	"go.flipt.io/flipt/internal/config"
 )
 
-// openAnalytics is a convenience function of providing a database.sql instance for
+// open is a convenience function of providing a database.sql instance for
 // an analytics database.
-func openAnalytics(cfg config.Config) (*sql.DB, Driver, error) {
+func open(cfg config.Config) (*sql.DB, Driver, error) {
 	if cfg.Analytics.Storage.Clickhouse.Enabled {
 		clickhouseOptions, err := cfg.Analytics.Storage.Clickhouse.Options()
 		if err != nil {

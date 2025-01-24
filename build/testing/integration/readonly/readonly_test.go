@@ -361,56 +361,6 @@ func TestReadOnly(t *testing.T) {
 					})
 				})
 
-				t.Run("Legacy", func(t *testing.T) {
-					t.Run("Evaluate", func(t *testing.T) {
-						response, err := sdk.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-							NamespaceKey: namespace.Key,
-							FlagKey:      "flag_001",
-							EntityId:     "some-fixed-entity-id",
-							Context: map[string]string{
-								"in_segment": "segment_005",
-							},
-						})
-						require.NoError(t, err)
-
-						assert.True(t, response.Match)
-						assert.Equal(t, "variant_002", response.Value)
-						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
-					})
-
-					t.Run("BatchEvaluate", func(t *testing.T) {
-						response, err := sdk.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-							NamespaceKey: namespace.Key,
-							Requests: []*flipt.EvaluationRequest{
-								{
-									FlagKey:  "flag_001",
-									EntityId: "some-fixed-entity-id",
-									Context: map[string]string{
-										"in_segment": "segment_005",
-									},
-								},
-								{
-									FlagKey:  "flag_002",
-									EntityId: "some-fixed-entity-id",
-									Context: map[string]string{
-										"in_segment": "segment_006",
-									},
-								},
-							},
-						})
-						require.NoError(t, err)
-						require.Len(t, response.Responses, 2)
-
-						assert.True(t, response.Responses[0].Match)
-						assert.Equal(t, "variant_002", response.Responses[0].Value)
-						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[0].Reason)
-
-						assert.True(t, response.Responses[1].Match)
-						assert.Equal(t, "variant_001", response.Responses[1].Value)
-						assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[1].Reason)
-					})
-				})
-
 				t.Run("Evaluation", func(t *testing.T) {
 					t.Run("Variant", func(t *testing.T) {
 						t.Run("match", func(t *testing.T) {

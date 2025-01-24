@@ -1,3 +1,0 @@
-cache:
-  enabled: true
-  ttl: 30m

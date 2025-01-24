@@ -20,8 +20,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Flipt_Evaluate_FullMethodName           = "/flipt.Flipt/Evaluate"
-	Flipt_BatchEvaluate_FullMethodName      = "/flipt.Flipt/BatchEvaluate"
 	Flipt_GetNamespace_FullMethodName       = "/flipt.Flipt/GetNamespace"
 	Flipt_ListNamespaces_FullMethodName     = "/flipt.Flipt/ListNamespaces"
 	Flipt_CreateNamespace_FullMethodName    = "/flipt.Flipt/CreateNamespace"
@@ -64,10 +62,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FliptClient interface {
-	// Deprecated: Do not use.
-	Evaluate(ctx context.Context, in *EvaluationRequest, opts ...grpc.CallOption) (*EvaluationResponse, error)
-	// Deprecated: Do not use.
-	BatchEvaluate(ctx context.Context, in *BatchEvaluationRequest, opts ...grpc.CallOption) (*BatchEvaluationResponse, error)
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	ListNamespaces(ctx context.Context, in *ListNamespaceRequest, opts ...grpc.CallOption) (*NamespaceList, error)
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
@@ -112,28 +106,6 @@ type fliptClient struct {
 
 func NewFliptClient(cc grpc.ClientConnInterface) FliptClient {
 	return &fliptClient{cc}
-}
-
-// Deprecated: Do not use.
-func (c *fliptClient) Evaluate(ctx context.Context, in *EvaluationRequest, opts ...grpc.CallOption) (*EvaluationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EvaluationResponse)
-	err := c.cc.Invoke(ctx, Flipt_Evaluate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Deprecated: Do not use.
-func (c *fliptClient) BatchEvaluate(ctx context.Context, in *BatchEvaluationRequest, opts ...grpc.CallOption) (*BatchEvaluationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchEvaluationResponse)
-	err := c.cc.Invoke(ctx, Flipt_BatchEvaluate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *fliptClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error) {
@@ -500,10 +472,6 @@ func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraint
 // All implementations must embed UnimplementedFliptServer
 // for forward compatibility.
 type FliptServer interface {
-	// Deprecated: Do not use.
-	Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error)
-	// Deprecated: Do not use.
-	BatchEvaluate(context.Context, *BatchEvaluationRequest) (*BatchEvaluationResponse, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*Namespace, error)
 	ListNamespaces(context.Context, *ListNamespaceRequest) (*NamespaceList, error)
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*Namespace, error)
@@ -550,12 +518,6 @@ type FliptServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFliptServer struct{}
 
-func (UnimplementedFliptServer) Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Evaluate not implemented")
-}
-func (UnimplementedFliptServer) BatchEvaluate(context.Context, *BatchEvaluationRequest) (*BatchEvaluationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BatchEvaluate not implemented")
-}
 func (UnimplementedFliptServer) GetNamespace(context.Context, *GetNamespaceRequest) (*Namespace, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNamespace not implemented")
 }
@@ -683,42 +645,6 @@ func RegisterFliptServer(s grpc.ServiceRegistrar, srv FliptServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Flipt_ServiceDesc, srv)
-}
-
-func _Flipt_Evaluate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EvaluationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FliptServer).Evaluate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Flipt_Evaluate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).Evaluate(ctx, req.(*EvaluationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Flipt_BatchEvaluate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchEvaluationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FliptServer).BatchEvaluate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Flipt_BatchEvaluate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).BatchEvaluate(ctx, req.(*BatchEvaluationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Flipt_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1376,14 +1302,6 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "flipt.Flipt",
 	HandlerType: (*FliptServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Evaluate",
-			Handler:    _Flipt_Evaluate_Handler,
-		},
-		{
-			MethodName: "BatchEvaluate",
-			Handler:    _Flipt_BatchEvaluate_Handler,
-		},
 		{
 			MethodName: "GetNamespace",
 			Handler:    _Flipt_GetNamespace_Handler,

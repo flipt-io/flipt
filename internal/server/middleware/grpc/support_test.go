@@ -2,14 +2,11 @@ package grpc_middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/stretchr/testify/mock"
-	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt/auth"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -43,45 +40,4 @@ func (a *authStoreMock) DeleteAuthentications(ctx context.Context, r *storageaut
 
 func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	return nil
-}
-
-type auditSinkSpy struct {
-	sendAuditsCalled int
-	events           []audit.Event
-	fmt.Stringer
-}
-
-func (a *auditSinkSpy) SendAudits(ctx context.Context, es []audit.Event) error {
-	a.sendAuditsCalled++
-	a.events = append(a.events, es...)
-	return nil
-}
-
-func (a *auditSinkSpy) String() string {
-	return "auditSinkSpy"
-}
-
-func (a *auditSinkSpy) Close() error { return nil }
-
-type auditExporterSpy struct {
-	audit.EventExporter
-	sinkSpy *auditSinkSpy
-}
-
-func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
-	aspy := &auditSinkSpy{events: make([]audit.Event, 0)}
-	as := []audit.Sink{aspy}
-
-	return &auditExporterSpy{
-		EventExporter: audit.NewSinkSpanExporter(logger, as),
-		sinkSpy:       aspy,
-	}
-}
-
-func (a *auditExporterSpy) GetSendAuditsCalled() int {
-	return a.sinkSpy.sendAuditsCalled
-}
-
-func (a *auditExporterSpy) GetEvents() []audit.Event {
-	return a.sinkSpy.events
 }

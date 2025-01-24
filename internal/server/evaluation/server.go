@@ -20,18 +20,16 @@ type Storer interface {
 
 // Server serves the Flipt evaluate v2 gRPC Server.
 type Server struct {
-	logger    *zap.Logger
-	store     Storer
-	evaluator *Evaluator
+	logger *zap.Logger
+	store  Storer
 	evaluation.UnimplementedEvaluationServiceServer
 }
 
 // New is constructs a new Server.
 func New(logger *zap.Logger, store Storer) *Server {
 	return &Server{
-		logger:    logger,
-		store:     store,
-		evaluator: NewEvaluator(logger, store),
+		logger: logger,
+		store:  store,
 	}
 }
 

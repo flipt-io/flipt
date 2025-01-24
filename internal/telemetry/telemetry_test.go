@@ -150,41 +150,6 @@ func TestPing(t *testing.T) {
 			},
 		},
 		{
-			name: "with tracing not enabled",
-			cfg: config.Config{
-				Tracing: config.TracingConfig{
-					Enabled:  false,
-					Exporter: config.TracingOTLP,
-				},
-			},
-			want: map[string]any{
-				"version":      "1.0.0",
-				"os":           "linux",
-				"arch":         "amd64",
-				"storage":      map[string]any{},
-				"experimental": experimental,
-			},
-		},
-		{
-			name: "with tracing enabled",
-			cfg: config.Config{
-				Tracing: config.TracingConfig{
-					Enabled:  true,
-					Exporter: config.TracingOTLP,
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
-				"storage": map[string]any{},
-				"tracing": map[string]any{
-					"exporter": "otlp",
-				},
-				"experimental": experimental,
-			},
-		},
-		{
 			name: "with analytics not enabled",
 			cfg: config.Config{
 				Analytics: config.AnalyticsConfig{

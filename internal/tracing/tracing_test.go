@@ -69,28 +69,8 @@ func TestGetExporter(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "Jaeger",
-			cfg: &config.TracingConfig{
-				Exporter: config.TracingJaeger,
-				Jaeger: config.JaegerTracingConfig{
-					Host: "localhost",
-					Port: 6831,
-				},
-			},
-		},
-		{
-			name: "Zipkin",
-			cfg: &config.TracingConfig{
-				Exporter: config.TracingZipkin,
-				Zipkin: config.ZipkinTracingConfig{
-					Endpoint: "http://localhost:9411/api/v2/spans",
-				},
-			},
-		},
-		{
 			name: "OTLP HTTP",
 			cfg: &config.TracingConfig{
-				Exporter: config.TracingOTLP,
 				OTLP: config.OTLPTracingConfig{
 					Endpoint: "http://localhost:4317",
 					Headers:  map[string]string{"key": "value"},
@@ -100,7 +80,6 @@ func TestGetExporter(t *testing.T) {
 		{
 			name: "OTLP HTTPS",
 			cfg: &config.TracingConfig{
-				Exporter: config.TracingOTLP,
 				OTLP: config.OTLPTracingConfig{
 					Endpoint: "https://localhost:4317",
 					Headers:  map[string]string{"key": "value"},
@@ -110,7 +89,6 @@ func TestGetExporter(t *testing.T) {
 		{
 			name: "OTLP GRPC",
 			cfg: &config.TracingConfig{
-				Exporter: config.TracingOTLP,
 				OTLP: config.OTLPTracingConfig{
 					Endpoint: "grpc://localhost:4317",
 					Headers:  map[string]string{"key": "value"},
@@ -120,7 +98,6 @@ func TestGetExporter(t *testing.T) {
 		{
 			name: "OTLP default",
 			cfg: &config.TracingConfig{
-				Exporter: config.TracingOTLP,
 				OTLP: config.OTLPTracingConfig{
 					Endpoint: "localhost:4317",
 					Headers:  map[string]string{"key": "value"},

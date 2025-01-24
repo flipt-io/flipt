@@ -2,10 +2,14 @@ package evaluation
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"slices"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	errs "go.flipt.io/flipt/errors"
@@ -21,14 +25,15 @@ import (
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-// It adapts the 'v2' evaluation API and proxies the request to the 'v1' evaluation API.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
 	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
 
-	s.logger.Debug("variant", zap.Stringer("request", r))
+	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
+		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
+	}
 
 	resp, err := s.variant(ctx, flag, r)
 	if err != nil {
@@ -53,43 +58,179 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	s.logger.Debug("variant", zap.Stringer("response", resp))
 	return resp, nil
 }
 
 func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	resp, err := s.evaluator.Evaluate(ctx, flag, r)
+	rules, err := s.store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
 	if err != nil {
 		return nil, err
 	}
 
-	var reason rpcevaluation.EvaluationReason
+	var (
+		resp = &rpcevaluation.VariantEvaluationResponse{
+			RequestId: r.RequestId,
+		}
+		lastRank int32
+	)
 
-	switch resp.Reason {
-	case flipt.EvaluationReason_MATCH_EVALUATION_REASON:
-		reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-	case flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON:
-		reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
-	case flipt.EvaluationReason_DEFAULT_EVALUATION_REASON:
-		reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	default:
-		reason = rpcevaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON
+	if len(rules) == 0 {
+		s.logger.Debug("no rules match")
+		return resp, nil
 	}
 
-	ver := &rpcevaluation.VariantEvaluationResponse{
-		RequestId:         r.RequestId,
-		Match:             resp.Match,
-		Reason:            reason,
-		VariantKey:        resp.Value,
-		VariantAttachment: resp.Attachment,
-		FlagKey:           resp.FlagKey,
+	var (
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+	)
+
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+
+	defer func() {
+		if err == nil {
+			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				metric.WithAttributeSet(
+					attribute.NewSet(
+						namespaceAttr,
+						flagAttr,
+						metrics.AttributeMatch.Bool(resp.Match),
+						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
+						metrics.AttributeReason.String(resp.Reason.String()),
+						metrics.AttributeValue.String(resp.VariantKey),
+						metrics.AttributeType.String("variant"),
+					),
+				),
+			)
+		} else {
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+		}
+
+		metrics.EvaluationLatency.Record(
+			ctx,
+			float64(time.Since(startTime).Nanoseconds())/1e6,
+			metric.WithAttributeSet(
+				attribute.NewSet(
+					namespaceAttr,
+					flagAttr,
+				),
+			),
+		)
+	}()
+
+	if flag.DefaultVariant != nil {
+		resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
+		resp.VariantKey = flag.DefaultVariant.Key
+		resp.VariantAttachment = flag.DefaultVariant.Attachment
 	}
 
-	if len(resp.SegmentKeys) > 0 {
-		ver.SegmentKeys = resp.SegmentKeys
+	if !flag.Enabled {
+		resp.Match = false
+		resp.Reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+		return resp, nil
 	}
 
-	return ver, nil
+	// rule loop
+	for _, rule := range rules {
+		if rule.Rank < lastRank {
+			return resp, errs.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
+		}
+
+		lastRank = rule.Rank
+
+		segmentKeys := make([]string, 0, len(rule.Segments))
+		segmentMatches := 0
+
+		for k, v := range rule.Segments {
+			matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+			if err != nil {
+				return resp, err
+			}
+
+			if matched {
+				s.logger.Debug(reason)
+				segmentKeys = append(segmentKeys, k)
+				segmentMatches++
+			}
+		}
+
+		switch rule.SegmentOperator {
+		case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+			if segmentMatches < 1 {
+				s.logger.Debug("did not match ANY segments")
+				continue
+			}
+		case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+			if len(rule.Segments) != segmentMatches {
+				s.logger.Debug("did not match ALL segments")
+				continue
+			}
+		}
+
+		if len(segmentKeys) > 0 {
+			resp.SegmentKeys = segmentKeys
+		}
+
+		distributions, err := s.store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
+		if err != nil {
+			return resp, err
+		}
+
+		var (
+			validDistributions []*storage.EvaluationDistribution
+			buckets            []int
+		)
+
+		for _, d := range distributions {
+			// don't include 0% rollouts
+			if d.Rollout > 0 {
+				validDistributions = append(validDistributions, d)
+
+				if buckets == nil {
+					bucket := int(d.Rollout * percentMultiplier)
+					buckets = append(buckets, bucket)
+				} else {
+					bucket := buckets[len(buckets)-1] + int(d.Rollout*percentMultiplier)
+					buckets = append(buckets, bucket)
+				}
+			}
+		}
+
+		// no distributions for rule
+		// match is true here because it did match the segment/rule
+		if len(validDistributions) == 0 {
+			s.logger.Info("no distributions for rule")
+			resp.Match = true
+			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+			return resp, nil
+		}
+
+		var (
+			bucket = crc32Num(r.EntityId, r.FlagKey)
+			// sort.SearchInts searches for x in a sorted slice of ints and returns the index
+			// as specified by Search. The return value is the index to insert x if x is
+			// not present (it could be len(a)).
+			index = sort.SearchInts(buckets, int(bucket)+1)
+		)
+
+		// if index is outside of our existing buckets then it does not match any distribution
+		if index == len(validDistributions) {
+			s.logger.Debug("did not match any distributions")
+			resp.Match = false
+			return resp, nil
+		}
+
+		d := validDistributions[index]
+		s.logger.Debug("matched distribution", zap.Reflect("evaluation_distribution", d))
+
+		resp.Match = true
+		resp.VariantKey = d.VariantKey
+		resp.VariantAttachment = d.VariantAttachment
+		resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+		return resp, nil
+	} // end rule loop
+
+	return resp, nil
 }
 
 // Boolean evaluates a request for a boolean flag and entity.
@@ -98,8 +239,6 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if err != nil {
 		return nil, err
 	}
-
-	s.logger.Debug("boolean", zap.Stringer("request", r))
 
 	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
@@ -126,7 +265,6 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	s.logger.Debug("boolean", zap.Stringer("response", resp))
 	return resp, nil
 }
 
@@ -210,7 +348,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 			for k, v := range rollout.Segment.Segments {
 				segmentKeys = append(segmentKeys, k)
-				matched, reason, err := s.evaluator.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
+				matched, reason, err := s.matchConstraints(r.Context, v.Constraints, v.MatchType, r.EntityId)
 				if err != nil {
 					return nil, err
 				}
@@ -316,4 +454,276 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 	}
 
 	return resp, nil
+}
+
+// matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
+// on the match type.
+func (s *Server) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType, entityId string) (bool, string, error) {
+	constraintMatches := 0
+
+	var reason string
+
+	for _, c := range constraints {
+		v := evalCtx[c.Property]
+
+		var (
+			match bool
+			err   error
+		)
+
+		switch c.Type {
+		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+			match = matchesString(c, v)
+		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+			match, err = matchesNumber(c, v)
+		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+			match, err = matchesBool(c, v)
+		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+			match, err = matchesDateTime(c, v)
+		case flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+			match = matchesString(c, entityId)
+		default:
+			return false, reason, errs.ErrInvalid("unknown constraint type")
+		}
+
+		if err != nil {
+			s.logger.Debug("error matching constraint", zap.String("property", c.Property), zap.Error(err))
+			// don't return here because we want to continue to evaluate the other constraints
+		}
+
+		if match {
+			// increase the matchCount
+			constraintMatches++
+
+			switch segmentMatchType {
+			case flipt.MatchType_ANY_MATCH_TYPE:
+				// can short circuit here since we had at least one match
+				break
+			default:
+				// keep looping as we need to match all constraints
+				continue
+			}
+		} else {
+			// no match
+			switch segmentMatchType {
+			case flipt.MatchType_ALL_MATCH_TYPE:
+				// we can short circuit because we must match all constraints
+				break
+			default:
+				// keep looping to see if we match the next constraint
+				continue
+			}
+		}
+	}
+
+	matched := true
+
+	switch segmentMatchType {
+	case flipt.MatchType_ALL_MATCH_TYPE:
+		if len(constraints) != constraintMatches {
+			reason = "did not match ALL constraints"
+			matched = false
+		}
+
+	case flipt.MatchType_ANY_MATCH_TYPE:
+		if len(constraints) > 0 && constraintMatches == 0 {
+			reason = "did not match ANY constraints"
+			matched = false
+		}
+	default:
+		reason = fmt.Sprintf("unknown match type %d", segmentMatchType)
+		matched = false
+	}
+
+	return matched, reason, nil
+}
+
+func crc32Num(entityID string, salt string) uint {
+	return uint(crc32.ChecksumIEEE([]byte(salt+entityID))) % totalBucketNum
+}
+
+const (
+	// totalBucketNum represents how many buckets we can use to determine the consistent hashing
+	// distribution and rollout
+	totalBucketNum uint = 1000
+
+	// percentMultiplier implies that the multiplier between percentage (100) and totalBucketNum
+	percentMultiplier float32 = float32(totalBucketNum) / 100
+)
+
+func matchesString(c storage.EvaluationConstraint, v string) bool {
+	switch c.Operator {
+	case flipt.OpEmpty:
+		return len(strings.TrimSpace(v)) == 0
+	case flipt.OpNotEmpty:
+		return len(strings.TrimSpace(v)) != 0
+	}
+
+	if v == "" {
+		return false
+	}
+
+	value := c.Value
+
+	switch c.Operator {
+	case flipt.OpEQ:
+		return value == v
+	case flipt.OpNEQ:
+		return value != v
+	case flipt.OpPrefix:
+		return strings.HasPrefix(strings.TrimSpace(v), value)
+	case flipt.OpSuffix:
+		return strings.HasSuffix(strings.TrimSpace(v), value)
+	case flipt.OpIsOneOf:
+		values := []string{}
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return false
+		}
+		return slices.Contains(values, v)
+	case flipt.OpIsNotOneOf:
+		values := []string{}
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return false
+		}
+		return !slices.Contains(values, v)
+	}
+
+	return false
+}
+
+func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	n, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return false, errs.ErrInvalidf("parsing number from %q", v)
+	}
+
+	if c.Operator == flipt.OpIsOneOf {
+		values := []float64{}
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+		}
+		return slices.Contains(values, n), nil
+	} else if c.Operator == flipt.OpIsNotOneOf {
+		values := []float64{}
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
+		}
+		return !slices.Contains(values, n), nil
+	}
+
+	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
+	value, err := strconv.ParseFloat(c.Value, 64)
+	if err != nil {
+		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
+	}
+
+	switch c.Operator {
+	case flipt.OpEQ:
+		return value == n, nil
+	case flipt.OpNEQ:
+		return value != n, nil
+	case flipt.OpLT:
+		return n < value, nil
+	case flipt.OpLTE:
+		return n <= value, nil
+	case flipt.OpGT:
+		return n > value, nil
+	case flipt.OpGTE:
+		return n >= value, nil
+	}
+
+	return false, nil
+}
+
+func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	value, err := strconv.ParseBool(v)
+	if err != nil {
+		return false, errs.ErrInvalidf("parsing boolean from %q", v)
+	}
+
+	switch c.Operator {
+	case flipt.OpTrue:
+		return value, nil
+	case flipt.OpFalse:
+		return !value, nil
+	}
+
+	return false, nil
+}
+
+func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	d, err := tryParseDateTime(v)
+	if err != nil {
+		return false, err
+	}
+
+	value, err := tryParseDateTime(c.Value)
+	if err != nil {
+		return false, err
+	}
+
+	switch c.Operator {
+	case flipt.OpEQ:
+		return value.Equal(d), nil
+	case flipt.OpNEQ:
+		return !value.Equal(d), nil
+	case flipt.OpLT:
+		return d.Before(value), nil
+	case flipt.OpLTE:
+		return d.Before(value) || value.Equal(d), nil
+	case flipt.OpGT:
+		return d.After(value), nil
+	case flipt.OpGTE:
+		return d.After(value) || value.Equal(d), nil
+	}
+
+	return false, nil
+}
+
+func tryParseDateTime(v string) (time.Time, error) {
+	if d, err := time.Parse(time.RFC3339, v); err == nil {
+		return d.UTC(), nil
+	}
+
+	if d, err := time.Parse(time.DateOnly, v); err == nil {
+		return d.UTC(), nil
+	}
+
+	return time.Time{}, errs.ErrInvalidf("parsing datetime from %q", v)
 }

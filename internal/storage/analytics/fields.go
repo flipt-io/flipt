@@ -1,4 +1,4 @@
-package sql
+package analytics
 
 import (
 	"database/sql/driver"

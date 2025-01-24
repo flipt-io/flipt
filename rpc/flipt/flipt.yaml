@@ -4,24 +4,6 @@ config_version: 3
 
 http:
   rules:
-  # evaluation
-  #
-  - selector: flipt.Flipt.Evaluate
-    post: /api/v1/evaluate
-    body: "*"
-
-  - selector: flipt.Flipt.Evaluate
-    post: /api/v1/namespaces/{namespace_key}/evaluate
-    body: "*"
-
-  - selector: flipt.Flipt.BatchEvaluate
-    post: /api/v1/batch-evaluate
-    body: "*"
-
-  - selector: flipt.Flipt.BatchEvaluate
-    post: /api/v1/namespaces/{namespace_key}/batch-evaluate
-    body: "*"
-
   # flags
   #
   - selector: flipt.Flipt.GetFlag

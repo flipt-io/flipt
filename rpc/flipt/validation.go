@@ -41,18 +41,6 @@ func validateJsonParameter(jsonValue string, parameterName string) error {
 	return nil
 }
 
-func (req *EvaluationRequest) Validate() error {
-	if req.FlagKey == "" {
-		return errors.EmptyFieldError("flagKey")
-	}
-
-	if req.EntityId == "" {
-		return errors.EmptyFieldError("entityId")
-	}
-
-	return nil
-}
-
 var keyRegex = regexp.MustCompile(`^[-_,A-Za-z0-9]+$`)
 
 // Flags

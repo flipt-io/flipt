@@ -1,12 +1,3 @@
-audit:
-  sinks:
-    log:
-      enabled: true
-      file: "/path/to/logs.txt"
-  buffer:
-    capacity: 10
-    flush_period: 3m
-
 log:
   level: WARN
   file: "testLogFile.txt"
@@ -23,13 +14,6 @@ cors:
     - "X-Some-Header"
     - "X-Some-Other-Header"
 
-cache:
-  enabled: true
-  backend: memory
-  ttl: 60s
-  memory:
-    eviction_interval: 5m # Evict Expired Items Every 5m
-
 server:
   protocol: https
   host: 127.0.0.1
@@ -41,7 +25,6 @@ server:
 
 tracing:
   enabled: true
-  exporter: otlp
   otlp:
     endpoint: "localhost:4318"
 
@@ -55,12 +38,6 @@ storage:
       basic:
         username: user
         password: pass
-
-db:
-  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
-  max_idle_conn: 10
-  max_open_conn: 50
-  conn_max_lifetime: 30m
 
 meta:
   check_for_updates: false
@@ -117,7 +94,3 @@ authorization:
     data:
       path: "/path/to/policy/data.json"
       poll_interval: 1m
-
-experimental:
-  authorization:
-    enabled: true

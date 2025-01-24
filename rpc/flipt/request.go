@@ -1,5 +1,7 @@
 package flipt
 
+const DefaultNamespace = "default"
+
 type Requester interface {
 	Request() []Request
 }

@@ -12,22 +12,6 @@ type Flipt struct {
 	authenticationProvider ClientAuthenticationProvider
 }
 
-func (x *Flipt) Evaluate(ctx context.Context, v *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.authenticationProvider)
-	if err != nil {
-		return nil, err
-	}
-	return x.transport.Evaluate(ctx, v)
-}
-
-func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
-	ctx, err := authenticate(ctx, x.authenticationProvider)
-	if err != nil {
-		return nil, err
-	}
-	return x.transport.BatchEvaluate(ctx, v)
-}
-
 func (x *Flipt) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {

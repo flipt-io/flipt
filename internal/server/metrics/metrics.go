@@ -57,7 +57,7 @@ var (
 	//nolint
 	AttributeMatch     = attribute.Key("match")
 	AttributeFlag      = attribute.Key("flag")
-	AttributeSegment   = attribute.Key("segment")
+	AttributeSegments  = attribute.Key("segments")
 	AttributeReason    = attribute.Key("reason")
 	AttributeValue     = attribute.Key("value")
 	AttributeNamespace = attribute.Key("namespace")

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
-	"go.uber.org/zap"
 
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -21,37 +20,40 @@ import (
 const ofrepCtxTargetingKey = "targetingKey"
 
 func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluatedFlag, error) {
-	s.logger.Debug("ofrep flag", zap.Stringer("request", r))
 	if r.Key == "" {
 		return nil, newFlagMissingError()
 	}
-	entityId := getTargetingKey(r.Context)
+
+	var (
+		flagKey      = r.Key
+		namespaceKey = getNamespace(ctx)
+		entityId     = getTargetingKey(r.Context)
+	)
+
 	output, err := s.bridge.OFREPFlagEvaluation(ctx, EvaluationBridgeInput{
-		FlagKey:      r.Key,
-		NamespaceKey: getNamespace(ctx),
+		FlagKey:      flagKey,
+		NamespaceKey: namespaceKey,
 		EntityId:     entityId,
 		Context:      r.Context,
 	})
 	if err != nil {
-		return nil, transformError(r.Key, err)
+		return nil, transformError(flagKey, err)
 	}
 
-	resp, err := transformOutput(output)
-	if err != nil {
-		return nil, err
-	}
-
-	s.logger.Debug("ofrep flag", zap.Stringer("response", resp))
-
-	return resp, nil
+	return transformOutput(output)
 }
 
 func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
-	s.logger.Debug("ofrep bulk", zap.Stringer("request", r))
-	entityId := getTargetingKey(r.Context)
-	namespaceKey := getNamespace(ctx)
-	flagKeys, ok := r.Context["flags"]
-	keys := strings.Split(flagKeys, ",")
+	var (
+		entityId     = getTargetingKey(r.Context)
+		namespaceKey = getNamespace(ctx)
+	)
+
+	var (
+		flagKeys, ok = r.Context["flags"]
+		keys         = strings.Split(flagKeys, ",")
+	)
+
 	if !ok {
 		flags, err := s.store.ListFlags(ctx, storage.ListWithOptions(storage.NewNamespace(namespaceKey)))
 		if err != nil {
@@ -69,7 +71,9 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 			}
 		}
 	}
+
 	flags := make([]*ofrep.EvaluatedFlag, 0, len(keys))
+
 	for _, key := range keys {
 		key = strings.TrimSpace(key)
 		o, err := s.bridge.OFREPFlagEvaluation(ctx, EvaluationBridgeInput{
@@ -88,11 +92,10 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 		}
 		flags = append(flags, evaluation)
 	}
-	resp := &ofrep.BulkEvaluationResponse{
+
+	return &ofrep.BulkEvaluationResponse{
 		Flags: flags,
-	}
-	s.logger.Debug("ofrep bulk", zap.Stringer("response", resp))
-	return resp, nil
+	}, nil
 }
 
 func transformOutput(output EvaluationBridgeOutput) (*ofrep.EvaluatedFlag, error) {

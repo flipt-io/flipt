@@ -35,16 +35,8 @@ type storage struct {
 	Cache string `json:"cache,omitempty"`
 }
 
-type audit struct {
-	Sinks []string `json:"sinks,omitempty"`
-}
-
 type authentication struct {
 	Methods []string `json:"methods,omitempty"`
-}
-
-type tracing struct {
-	Exporter string `json:"exporter,omitempty"`
 }
 
 type analytics struct {
@@ -57,8 +49,6 @@ type flipt struct {
 	Arch           string                    `json:"arch"`
 	Storage        *storage                  `json:"storage,omitempty"`
 	Authentication *authentication           `json:"authentication,omitempty"`
-	Audit          *audit                    `json:"audit,omitempty"`
-	Tracing        *tracing                  `json:"tracing,omitempty"`
 	Analytics      *analytics                `json:"analytics,omitempty"`
 	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
 }
@@ -202,11 +192,6 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 		Type: string(r.cfg.Storage.Type),
 	}
 
-	// only report cache if enabled
-	if r.cfg.Cache.Enabled {
-		flipt.Storage.Cache = r.cfg.Cache.Backend.String()
-	}
-
 	// authentication
 	authMethods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
 
@@ -218,31 +203,6 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	if len(authMethods) > 0 {
 		flipt.Authentication = &authentication{
 			Methods: authMethods,
-		}
-	}
-
-	auditSinks := []string{}
-
-	if r.cfg.Audit.Enabled() {
-		if r.cfg.Audit.Sinks.Log.Enabled {
-			auditSinks = append(auditSinks, "log")
-		}
-		if r.cfg.Audit.Sinks.Webhook.Enabled {
-			auditSinks = append(auditSinks, "webhook")
-		}
-	}
-
-	// only report auditsinks if enabled
-	if len(auditSinks) > 0 {
-		flipt.Audit = &audit{
-			Sinks: auditSinks,
-		}
-	}
-
-	// only report tracing if enabled
-	if r.cfg.Tracing.Enabled {
-		flipt.Tracing = &tracing{
-			Exporter: r.cfg.Tracing.Exporter.String(),
 		}
 	}
 
