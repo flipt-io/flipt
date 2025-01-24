@@ -1,7 +1,6 @@
 storage:
-  type: git
-  git:
-    repository: "git@github.com:foo/bar.git"
+  default:
+    remote: "git@github.com:foo/bar.git"
     authentication:
       basic:
         username: foo

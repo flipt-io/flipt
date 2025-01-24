@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -88,11 +87,11 @@ func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 
 func (a *AnalyticsConfig) validate() error {
 	if a.Storage.Clickhouse.Enabled && a.Storage.Clickhouse.URL == "" {
-		return errors.New("clickhouse url not provided")
+		return errFieldRequired("analytics", "clickhouse url")
 	}
 
 	if a.Buffer.FlushPeriod < time.Second*10 {
-		return errors.New("flush period below 10 seconds")
+		return err("analytics", "buffer flush period below 10 seconds")
 	}
 
 	return nil

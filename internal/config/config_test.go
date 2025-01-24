@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -159,19 +158,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated authentication excluding metadata",
-			path: "./testdata/deprecated/authentication_excluding_metadata.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Authentication.Required = true
-				cfg.Authentication.Exclude.Metadata = true
-				return cfg
-			},
-			warnings: []string{
-				"\"authentication.exclude.metadata\" is deprecated and will be removed in a future release. This feature never worked as intended. Metadata can no longer be excluded from authentication (when required).",
-			},
-		},
-		{
 			name: "metrics disabled",
 			path: "./testdata/metrics/disabled.yml",
 			expected: func() *Config {
@@ -195,12 +181,12 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "tracing with wrong sampling ration",
 			path:    "./testdata/tracing/wrong_sampling_ratio.yml",
-			wantErr: errors.New("sampling ratio should be a number between 0 and 1"),
+			wantErr: errors.New("tracing: sampling ratio should be a number between 0 and 1"),
 		},
 		{
 			name:    "tracing with wrong propagator",
 			path:    "./testdata/tracing/wrong_propagator.yml",
-			wantErr: errors.New("invalid propagator option: wrong_propagator"),
+			wantErr: errors.New("tracing: invalid propagator option: wrong_propagator"),
 		},
 		{
 			name: "tracing OTLP",
@@ -217,47 +203,32 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "server https missing cert file",
 			path:    "./testdata/server/https_missing_cert_file.yml",
-			wantErr: errValidationRequired,
+			wantErr: errors.New("server: cert_file non-empty value is required"),
 		},
 		{
 			name:    "server https missing cert key",
 			path:    "./testdata/server/https_missing_cert_key.yml",
-			wantErr: errValidationRequired,
+			wantErr: errors.New("server: cert_key non-empty value is required"),
 		},
 		{
 			name:    "server https defined but not found cert file",
 			path:    "./testdata/server/https_not_found_cert_file.yml",
-			wantErr: fs.ErrNotExist,
+			wantErr: errors.New("server: cert_file stat ./testdata/ssl_cert_not_exist.pem: no such file or directory"),
 		},
 		{
 			name:    "server https defined but not found cert key",
 			path:    "./testdata/server/https_not_found_cert_key.yml",
-			wantErr: fs.ErrNotExist,
-		},
-		{
-			name:    "database protocol required",
-			path:    "./testdata/database/missing_protocol.yml",
-			wantErr: errValidationRequired,
-		},
-		{
-			name:    "database host required",
-			path:    "./testdata/database/missing_host.yml",
-			wantErr: errValidationRequired,
-		},
-		{
-			name:    "database name required",
-			path:    "./testdata/database/missing_name.yml",
-			wantErr: errValidationRequired,
+			wantErr: errors.New("server: cert_key stat ./testdata/ssl_cert_not_exist.key: no such file or directory"),
 		},
 		{
 			name:    "authentication token negative interval",
 			path:    "./testdata/authentication/token_negative_interval.yml",
-			wantErr: errPositiveNonZeroDuration,
+			wantErr: errors.New("authentication: cleanup_interval positive non-zero duration required"),
 		},
 		{
 			name:    "authentication token zero grace_period",
 			path:    "./testdata/authentication/token_zero_grace_period.yml",
-			wantErr: errPositiveNonZeroDuration,
+			wantErr: errors.New("authentication: cleanup_grace_period positive non-zero duration required"),
 		},
 		{
 			name: "authentication token with provided bootstrap token",
@@ -371,67 +342,67 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "authentication github requires read:org scope when allowing orgs",
 			path:    "./testdata/authentication/github_missing_org_scope.yml",
-			wantErr: errors.New("provider \"github\": field \"scopes\": must contain read:org when allowed_organizations is not empty"),
+			wantErr: errors.New("authentication: scopes must contain read:org when allowed_organizations is not empty"),
 		},
 		{
 			name:    "authentication github missing client id",
 			path:    "./testdata/authentication/github_missing_client_id.yml",
-			wantErr: errors.New("provider \"github\": field \"client_id\": non-empty value is required"),
+			wantErr: errors.New("authentication: client_id non-empty value is required"),
 		},
 		{
 			name:    "authentication github missing client secret",
 			path:    "./testdata/authentication/github_missing_client_secret.yml",
-			wantErr: errors.New("provider \"github\": field \"client_secret\": non-empty value is required"),
+			wantErr: errors.New("authentication: client_secret non-empty value is required"),
 		},
 		{
 			name:    "authentication github missing client id",
 			path:    "./testdata/authentication/github_missing_redirect_address.yml",
-			wantErr: errors.New("provider \"github\": field \"redirect_address\": non-empty value is required"),
+			wantErr: errors.New("authentication: redirect_address non-empty value is required"),
 		},
 		{
 			name:    "authentication github has non declared org in allowed_teams",
 			path:    "./testdata/authentication/github_missing_org_when_declaring_allowed_teams.yml",
-			wantErr: errors.New("provider \"github\": field \"allowed_teams\": the organization 'my-other-org' was not declared in 'allowed_organizations' field"),
+			wantErr: errors.New("authentication: allowed_teams the organization 'my-other-org' was not declared in 'allowed_organizations' field"),
 		},
 		{
 			name:    "authentication oidc missing client id",
 			path:    "./testdata/authentication/oidc_missing_client_id.yml",
-			wantErr: errors.New("provider \"foo\": field \"client_id\": non-empty value is required"),
+			wantErr: errors.New("authentication: client_id non-empty value is required"),
 		},
 		{
 			name:    "authentication oidc missing client secret",
 			path:    "./testdata/authentication/oidc_missing_client_secret.yml",
-			wantErr: errors.New("provider \"foo\": field \"client_secret\": non-empty value is required"),
+			wantErr: errors.New("authentication: client_secret non-empty value is required"),
 		},
 		{
 			name:    "authentication oidc missing client id",
 			path:    "./testdata/authentication/oidc_missing_redirect_address.yml",
-			wantErr: errors.New("provider \"foo\": field \"redirect_address\": non-empty value is required"),
+			wantErr: errors.New("authentication: redirect_address non-empty value is required"),
 		},
 		{
 			name:    "authentication jwt public key file or jwks url required",
 			path:    "./testdata/authentication/jwt_missing_key_file_and_jwks_url.yml",
-			wantErr: errors.New("one of jwks_url or public_key_file is required"),
+			wantErr: errors.New("authentication: one of jwks_url or public_key_file is required"),
 		},
 		{
 			name:    "authentication jwt public key file and jwks url mutually exclusive",
 			path:    "./testdata/authentication/jwt_key_file_and_jwks_url.yml",
-			wantErr: errors.New("only one of jwks_url or public_key_file can be set"),
+			wantErr: errors.New("authentication: only one of jwks_url or public_key_file can be set"),
 		},
 		{
 			name:    "authentication jwks invalid url",
 			path:    "./testdata/authentication/jwt_invalid_jwks_url.yml",
-			wantErr: errors.New(`field "jwks_url": parse " http://localhost:8080/.well-known/jwks.json": first path segment in URL cannot contain colon`),
+			wantErr: errors.New("authentication: jwks_url parse \" http://localhost:8080/.well-known/jwks.json\": first path segment in URL cannot contain colon"),
 		},
 		{
 			name:    "authentication jwt public key file not found",
 			path:    "./testdata/authentication/jwt_key_file_not_found.yml",
-			wantErr: errors.New(`field "public_key_file": stat testdata/authentication/jwt_key_file.pem: no such file or directory`),
+			wantErr: errors.New("authentication: public_key_file stat testdata/authentication/jwt_key_file.pem: no such file or directory"),
 		},
 		{
 			name:    "authorization required without authentication",
 			path:    "./testdata/authorization/authentication_not_required.yml",
-			wantErr: errors.New("authorization requires authentication also be required"),
+			wantErr: errors.New("authorization: requires authentication to also be required"),
 		},
 		{
 			name: "authorization with all authentication methods enabled",
@@ -550,6 +521,23 @@ func TestLoad(t *testing.T) {
 					CertKey:   "./testdata/ssl_key.pem",
 				}
 
+				cfg.Storage = StoragesConfig{
+					"default": {
+						Backend: StorageBackendConfig{
+							Type: MemoryStorageBackendType,
+						},
+						Remote:       "https://github.com/flipt-io/flipt.git",
+						Branch:       "main",
+						PollInterval: 5 * time.Second,
+						Authentication: StorageGitAuthenticationConfig{
+							BasicAuth: &GitBasicAuth{
+								Username: "user",
+								Password: "pass",
+							},
+						},
+					},
+				}
+
 				cfg.Tracing = TracingConfig{
 					Enabled:       true,
 					SamplingRatio: 1,
@@ -559,25 +547,6 @@ func TestLoad(t *testing.T) {
 					},
 					OTLP: OTLPTracingConfig{
 						Endpoint: "localhost:4318",
-					},
-				}
-
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendMemory,
-						},
-						Repository:   "https://github.com/flipt-io/flipt.git",
-						Ref:          "production",
-						RefType:      GitRefTypeStatic,
-						PollInterval: 5 * time.Second,
-						Authentication: Authentication{
-							BasicAuth: &BasicAuth{
-								Username: "user",
-								Password: "pass",
-							},
-						},
 					},
 				}
 
@@ -668,42 +637,22 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "version v1",
-			path: "./testdata/version/v1.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Version = "1.0"
-				return cfg
-			},
-		},
-		{
-			name: "local config provided",
-			path: "./testdata/storage/local_provided.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: LocalStorageType,
-					Local: &StorageLocalConfig{
-						Path: ".",
-					},
-				}
-				return cfg
-			},
+			name:    "version v1",
+			path:    "./testdata/version/v1.yml",
+			wantErr: errors.New("invalid version: 1.0"),
 		},
 		{
 			name: "git config provided",
 			path: "./testdata/storage/git_provided.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendMemory,
+				cfg.Storage = StoragesConfig{
+					"default": {
+						Backend: StorageBackendConfig{
+							Type: MemoryStorageBackendType,
 						},
-						Ref:          "main",
-						RefType:      GitRefTypeStatic,
-						Repository:   "git@github.com:foo/bar.git",
+						Remote:       "git@github.com:foo/bar.git",
+						Branch:       "main",
 						PollInterval: 30 * time.Second,
 					},
 				}
@@ -715,111 +664,55 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/git_provided_with_directory.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendMemory,
-						},
-						Ref:          "main",
-						RefType:      GitRefTypeStatic,
-						Repository:   "git@github.com:foo/bar.git",
-						Directory:    "baz",
-						PollInterval: 30 * time.Second,
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "git config provided with ref_type",
-			path: "./testdata/storage/git_provided_with_ref_type.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendMemory,
-						},
-						Ref:          "main",
-						RefType:      GitRefTypeSemver,
-						Repository:   "git@github.com:foo/bar.git",
-						Directory:    "baz",
-						PollInterval: 30 * time.Second,
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "git config provided with ref_type",
-			path: "./testdata/storage/git_provided_with_backend_type.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendLocal,
+				cfg.Storage = StoragesConfig{
+					"default": {
+						Backend: StorageBackendConfig{
+							Type: LocalStorageBackendType,
 							Path: "/path/to/gitdir",
 						},
-						Ref:          "main",
-						RefType:      GitRefTypeStatic,
-						Repository:   "git@github.com:foo/bar.git",
+						Remote:       "git@github.com:foo/bar.git",
+						Branch:       "main",
 						PollInterval: 30 * time.Second,
 					},
 				}
 				return cfg
 			},
-		},
-		{
-			name:    "git repository not provided",
-			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
-			wantErr: errors.New("git repository must be specified"),
-		},
-		{
-			name:    "git invalid ref_type provided",
-			path:    "./testdata/storage/git_invalid_ref_type.yml",
-			wantErr: errors.New("invalid git storage reference type"),
 		},
 		{
 			name:    "git basic auth partially provided",
 			path:    "./testdata/storage/git_basic_auth_invalid.yml",
-			wantErr: errors.New("both username and password need to be provided for basic auth"),
+			wantErr: errors.New("storage default: both username and password need to be provided for basic auth"),
 		},
 		{
 			name:    "git ssh auth missing password",
 			path:    "./testdata/storage/git_ssh_auth_invalid_missing_password.yml",
-			wantErr: errors.New("ssh authentication: password required"),
+			wantErr: errors.New("storage default: ssh authentication password required"),
 		},
 		{
 			name:    "git ssh auth missing private key parts",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_missing.yml",
-			wantErr: errors.New("ssh authentication: please provide exclusively one of private_key_bytes or private_key_path"),
+			wantErr: errors.New("storage default: ssh authentication please provide exclusively one of private_key_bytes or private_key_path"),
 		},
 		{
 			name:    "git ssh auth provided both private key forms",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_both.yml",
-			wantErr: errors.New("ssh authentication: please provide exclusively one of private_key_bytes or private_key_path"),
+			wantErr: errors.New("storage default: ssh authentication please provide exclusively one of private_key_bytes or private_key_path"),
 		},
 		{
 			name: "git valid with ssh auth",
 			path: "./testdata/storage/git_ssh_auth_valid_with_path.yml",
 			expected: func() *Config {
 				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: GitStorageType,
-					Git: &StorageGitConfig{
-						Backend: GitBackend{
-							Type: GitBackendMemory,
+				cfg.Storage = StoragesConfig{
+					"default": {
+						Backend: StorageBackendConfig{
+							Type: MemoryStorageBackendType,
 						},
-						Ref:          "main",
-						RefType:      GitRefTypeStatic,
-						Repository:   "git@github.com:foo/bar.git",
+						Remote:       "git@github.com:foo/bar.git",
+						Branch:       "main",
 						PollInterval: 30 * time.Second,
-						Authentication: Authentication{
-							SSHAuth: &SSHAuth{
+						Authentication: StorageGitAuthenticationConfig{
+							SSHAuth: &GitSSHAuth{
 								User:           "git",
 								Password:       "bar",
 								PrivateKeyPath: "/path/to/pem.key",
@@ -831,126 +724,14 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "s3 config provided",
-			path: "./testdata/storage/s3_provided.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: ObjectStorageType,
-					Object: &StorageObjectConfig{
-						Type: S3ObjectSubStorageType,
-						S3: &S3Storage{
-							Bucket:       "testbucket",
-							PollInterval: time.Minute,
-						},
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "s3 full config provided",
-			path: "./testdata/storage/s3_full.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: ObjectStorageType,
-					Object: &StorageObjectConfig{
-						Type: S3ObjectSubStorageType,
-						S3: &S3Storage{
-							Bucket:       "testbucket",
-							Prefix:       "prefix",
-							Region:       "region",
-							PollInterval: 5 * time.Minute,
-						},
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name:    "storage readonly config invalid",
-			path:    "./testdata/storage/invalid_readonly.yml",
-			wantErr: errors.New("setting read only mode is only supported with database storage"),
-		},
-		{
-			name:    "s3 config invalid",
-			path:    "./testdata/storage/s3_bucket_missing.yml",
-			wantErr: errors.New("s3 bucket must be specified"),
-		},
-		{
-			name:    "object storage type not provided",
-			path:    "./testdata/storage/invalid_object_storage_type_not_specified.yml",
-			wantErr: errors.New("object storage type must be specified"),
-		},
-		{
-			name:    "azblob config invalid",
-			path:    "./testdata/storage/azblob_invalid.yml",
-			wantErr: errors.New("azblob container must be specified"),
-		},
-		{
-			name: "azblob full config provided",
-			path: "./testdata/storage/azblob_full.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: ObjectStorageType,
-					Object: &StorageObjectConfig{
-						Type: AZBlobObjectSubStorageType,
-						AZBlob: &AZBlobStorage{
-							Container:    "testdata",
-							Endpoint:     "https//devaccount.blob.core.windows.net",
-							PollInterval: 5 * time.Minute,
-						},
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name:    "gs config invalid",
-			path:    "./testdata/storage/gs_invalid.yml",
-			wantErr: errors.New("googlecloud bucket must be specified"),
-		},
-		{
-			name: "gs full config provided",
-			path: "./testdata/storage/gs_full.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Storage = StorageConfig{
-					Type: ObjectStorageType,
-					Object: &StorageObjectConfig{
-						Type: GSBlobObjectSubStorageType,
-						GS: &GSStorage{
-							Bucket:       "testdata",
-							Prefix:       "prefix",
-							PollInterval: 5 * time.Minute,
-						},
-					},
-				}
-				return cfg
-			},
-		},
-		{
-			name: "grpc keepalive config provided",
-			path: "./testdata/server/grpc_keepalive.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Server.GRPCConnectionMaxIdleTime = 1 * time.Hour
-				cfg.Server.GRPCConnectionMaxAge = 30 * time.Second
-				cfg.Server.GRPCConnectionMaxAgeGrace = 10 * time.Second
-				return cfg
-			},
-		},
-		{
 			name:    "clickhouse enabled but no URL set",
 			path:    "./testdata/analytics/invalid_clickhouse_configuration_empty_url.yml",
-			wantErr: errors.New("clickhouse url not provided"),
+			wantErr: errors.New("analytics: clickhouse url non-empty value is required"),
 		},
 		{
 			name:    "analytics flush period too low",
 			path:    "./testdata/analytics/invalid_buffer_configuration_flush_period.yml",
-			wantErr: errors.New("flush period below 10 seconds"),
+			wantErr: errors.New("analytics: buffer flush period below 10 seconds"),
 		},
 		{
 			name: "ui topbar with correct hex color",
@@ -965,7 +746,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "ui topbar with invalid hex color",
 			path:    "./testdata/ui/topbar_invalid_color.yml",
-			wantErr: errors.New("expected valid hex color, got invalid"),
+			wantErr: errors.New("ui: topbar expected valid hex color, got invalid"),
 		},
 	}
 
@@ -1141,9 +922,7 @@ func TestMarshalYAML(t *testing.T) {
 		{
 			name: "defaults",
 			path: "./testdata/marshal/yaml/default.yml",
-			cfg: func() *Config {
-				return Default()
-			},
+			cfg:  Default,
 		},
 	}
 

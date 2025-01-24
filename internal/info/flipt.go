@@ -44,7 +44,6 @@ func WithOS(os, arch string) Option {
 func WithConfig(cfg *config.Config) Option {
 	return func(f *Flipt) {
 		f.Authentication = authentication{Required: cfg.Authentication.Required}
-		f.Storage = storage{Type: cfg.Storage.Type, Metadata: cfg.Storage.Info()}
 		f.Analytics = &analytics{Enabled: cfg.Analytics.Enabled()}
 		f.UI = &ui{Theme: cfg.UI.DefaultTheme, TopbarColor: cfg.UI.Topbar.Color}
 	}
@@ -58,11 +57,6 @@ type authentication struct {
 
 type analytics struct {
 	Enabled bool `json:"enabled,omitempty"`
-}
-
-type storage struct {
-	Type     config.StorageType `json:"type"`
-	Metadata map[string]string  `json:"metadata,omitempty"`
 }
 
 type ui struct {
@@ -82,7 +76,6 @@ type Flipt struct {
 	OS               string         `json:"os,omitempty"`
 	Arch             string         `json:"arch,omitempty"`
 	Authentication   authentication `json:"authentication"`
-	Storage          storage        `json:"storage"`
 	Analytics        *analytics     `json:"analytics,omitempty"`
 	UI               *ui            `json:"ui,omitempty"`
 }

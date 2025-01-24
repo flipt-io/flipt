@@ -20,7 +20,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.5"
+	version  = "2.0"
 	event    = "flipt.ping"
 )
 
@@ -28,11 +28,6 @@ type ping struct {
 	Version string `json:"version"`
 	UUID    string `json:"uuid"`
 	Flipt   flipt  `json:"flipt"`
-}
-
-type storage struct {
-	Type  string `json:"type,omitempty"`
-	Cache string `json:"cache,omitempty"`
 }
 
 type authentication struct {
@@ -47,7 +42,6 @@ type flipt struct {
 	Version        string                    `json:"version"`
 	OS             string                    `json:"os"`
 	Arch           string                    `json:"arch"`
-	Storage        *storage                  `json:"storage,omitempty"`
 	Authentication *authentication           `json:"authentication,omitempty"`
 	Analytics      *analytics                `json:"analytics,omitempty"`
 	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
@@ -187,10 +181,6 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 			Experimental: r.cfg.Experimental,
 		}
 	)
-
-	flipt.Storage = &storage{
-		Type: string(r.cfg.Storage.Type),
-	}
 
 	// authentication
 	authMethods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))

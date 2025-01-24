@@ -9,230 +9,113 @@ import (
 )
 
 var (
-	_ defaulter = (*StorageConfig)(nil)
-	_ validator = (*StorageConfig)(nil)
+	_ defaulter = (*StoragesConfig)(nil)
+	_ validator = (*StoragesConfig)(nil)
 )
 
-type StorageType string
+type StoragesConfig map[string]*StorageConfig
+
+func (s StoragesConfig) validate() error {
+	for name, storage := range s {
+		if err := storage.validate(); err != nil {
+			return fmt.Errorf("storage %s: %w", name, err)
+		}
+	}
+
+	return nil
+}
+
+func (s StoragesConfig) setDefaults(v *viper.Viper) error {
+	storages, ok := v.AllSettings()["storage"].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	for name := range storages {
+		getString := func(s string) string {
+			return v.GetString("storage." + name + "." + s)
+		}
+
+		setDefault := func(k string, s any) {
+			v.SetDefault("storage."+name+"."+k, s)
+		}
+
+		// force name to map key
+		v.Set("storage."+name+".name", name)
+
+		switch getString("backend.type") {
+		case string(LocalStorageBackendType):
+			setDefault("backend.path", ".")
+		default:
+			setDefault("backend.type", "memory")
+		}
+
+		if getString("branch") == "" {
+			setDefault("branch", "main")
+		}
+
+		if getString("poll_interval") == "" {
+			setDefault("poll_interval", "30s")
+		}
+	}
+
+	return nil
+}
+
+type StorageBackendType string
 
 const (
-	LocalStorageType  = StorageType("local")
-	GitStorageType    = StorageType("git")
-	ObjectStorageType = StorageType("object")
+	LocalStorageBackendType  = StorageBackendType("local")
+	MemoryStorageBackendType = StorageBackendType("memory")
 )
 
-type ObjectSubStorageType string
-
-const (
-	S3ObjectSubStorageType     = ObjectSubStorageType("s3")
-	AZBlobObjectSubStorageType = ObjectSubStorageType("azblob")
-	GSBlobObjectSubStorageType = ObjectSubStorageType("googlecloud")
-)
+type StorageBackendConfig struct {
+	Type StorageBackendType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Path string             `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
+}
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type   StorageType          `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Local  *StorageLocalConfig  `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
-	Git    *StorageGitConfig    `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
-	Object *StorageObjectConfig `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
-}
-
-func (c *StorageConfig) Info() map[string]string {
-	if c.Type == GitStorageType {
-		return map[string]string{
-			"repository": c.Git.Repository,
-			"ref":        c.Git.Ref,
-		}
-	}
-	return nil
-}
-
-func (c *StorageConfig) setDefaults(v *viper.Viper) error {
-	switch v.GetString("storage.type") {
-	case string(LocalStorageType):
-		v.SetDefault("storage.local.path", ".")
-	case string(GitStorageType):
-		v.SetDefault("storage.git.backend.type", "memory")
-		v.SetDefault("storage.git.ref", "main")
-		v.SetDefault("storage.git.ref_type", "static")
-		v.SetDefault("storage.git.poll_interval", "30s")
-		v.SetDefault("storage.git.insecure_skip_tls", false)
-		if v.GetString("storage.git.authentication.ssh.password") != "" ||
-			v.GetString("storage.git.authentication.ssh.private_key_path") != "" ||
-			v.GetString("storage.git.authentication.ssh.private_key_bytes") != "" {
-			v.SetDefault("storage.git.authentication.ssh.user", "git")
-		}
-	case string(ObjectStorageType):
-		// keep this as a case statement in anticipation of
-		// more object types in the future
-		// nolint:gocritic
-		switch v.GetString("storage.object.type") {
-		case string(S3ObjectSubStorageType):
-			v.SetDefault("storage.object.s3.poll_interval", "1m")
-		case string(AZBlobObjectSubStorageType):
-			v.SetDefault("storage.object.azblob.poll_interval", "1m")
-		case string(GSBlobObjectSubStorageType):
-			v.SetDefault("storage.object.googlecloud.poll_interval", "1m")
-		}
-
-	default:
-		v.SetDefault("storage.type", "database")
-	}
-
-	return nil
+	Remote          string                         `json:"remote,omitempty" mapstructure:"remote" yaml:"remote,omitempty"`
+	Backend         StorageBackendConfig           `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Branch          string                         `json:"branch,omitempty" mapstructure:"branch" yaml:"branch,omitempty"`
+	CaCertBytes     string                         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string                         `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	PollInterval    time.Duration                  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	InsecureSkipTLS bool                           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Authentication  StorageGitAuthenticationConfig `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
 }
 
 func (c *StorageConfig) validate() error {
-	switch c.Type {
-	case GitStorageType:
-		if c.Git.Ref == "" {
-			return errors.New("git ref must be specified")
-		}
-		if c.Git.Repository == "" {
-			return errors.New("git repository must be specified")
-		}
-
-		if err := c.Git.Authentication.validate(); err != nil {
-			return err
-		}
-		if err := c.Git.validate(); err != nil {
-			return err
-		}
-
-	case LocalStorageType:
-		if c.Local.Path == "" {
-			return errors.New("local path must be specified")
-		}
-
-	case ObjectStorageType:
-		if c.Object == nil {
-			return errors.New("object storage type must be specified")
-		}
-		if err := c.Object.validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// StorageLocalConfig contains configuration for referencing a local filesystem.
-type StorageLocalConfig struct {
-	Path string `json:"path,omitempty" mapstructure:"path"`
-}
-
-// GitRefType describes the resolve types for git storages.
-type GitRefType string
-
-const (
-	GitRefTypeStatic GitRefType = "static"
-	GitRefTypeSemver GitRefType = "semver"
-)
-
-// StorageGitConfig contains configuration for referencing a git repository.
-type StorageGitConfig struct {
-	Repository      string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
-	Backend         GitBackend     `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
-	Ref             string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
-	RefType         GitRefType     `json:"refType,omitempty" mapstructure:"ref_type" yaml:"ref_type,omitempty"`
-	Directory       string         `json:"directory,omitempty" mapstructure:"directory" yaml:"directory,omitempty"`
-	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
-	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
-	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
-	PollInterval    time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	Authentication  Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
-}
-
-func (g *StorageGitConfig) validate() error {
-	if g.CaCertPath != "" && g.CaCertBytes != "" {
+	if c.CaCertPath != "" && c.CaCertBytes != "" {
 		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
 	}
 
-	if g.RefType != GitRefTypeStatic && g.RefType != GitRefTypeSemver {
-		return errors.New("invalid git storage reference type")
+	if c.PollInterval < 1*time.Second {
+		return errors.New("poll interval must be at least 1 second")
 	}
 
-	return nil
-}
-
-type GitBackendType string
-
-const (
-	GitBackendMemory = GitBackendType("memory")
-	GitBackendLocal  = GitBackendType("local")
-)
-
-type GitBackend struct {
-	Type GitBackendType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	Path string         `json:"path,omitempty" mapstructure:"path" yaml:"path,omitempty"`
-}
-
-// StorageObjectConfig contains configuration of readonly object storage.
-type StorageObjectConfig struct {
-	Type   ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
-	S3     *S3Storage           `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
-	AZBlob *AZBlobStorage       `json:"azblob,omitempty" mapstructure:"azblob,omitempty" yaml:"azblob,omitempty"`
-	GS     *GSStorage           `json:"googlecloud,omitempty" mapstructure:"googlecloud,omitempty" yaml:"googlecloud,omitempty"`
-}
-
-// validate is only called if storage.type == "object"
-func (o *StorageObjectConfig) validate() error {
-	switch o.Type {
-	case S3ObjectSubStorageType:
-		if o.S3 == nil || o.S3.Bucket == "" {
-			return errors.New("s3 bucket must be specified")
-		}
-	case AZBlobObjectSubStorageType:
-		if o.AZBlob == nil || o.AZBlob.Container == "" {
-			return errors.New("azblob container must be specified")
-		}
-	case GSBlobObjectSubStorageType:
-		if o.GS == nil || o.GS.Bucket == "" {
-			return errors.New("googlecloud bucket must be specified")
-		}
-	default:
-		return errors.New("object storage type must be specified")
+	if c.Backend.Type == LocalStorageBackendType && c.Backend.Path == "" {
+		return errors.New("local path must be specified")
 	}
-	return nil
+
+	return c.Authentication.validate()
 }
 
-// S3Storage contains configuration for referencing a s3 bucket
-type S3Storage struct {
-	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
-	Prefix       string        `json:"-" mapstructure:"prefix" yaml:"prefix,omitempty"`
-	Region       string        `json:"-" mapstructure:"region" yaml:"region,omitempty"`
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-}
-
-// AZBlobStorage contains configuration for referencing a Azure Blob Storage
-type AZBlobStorage struct {
-	Endpoint     string        `json:"-" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-	Container    string        `json:"-" mapstructure:"container" yaml:"container,omitempty"`
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-}
-
-// GSStorage contains configuration for referencing a Google Cloud Storage
-type GSStorage struct {
-	Bucket       string        `json:"-" mapstructure:"bucket" yaml:"bucket,omitempty"`
-	Prefix       string        `json:"-" mapstructure:"prefix" yaml:"prefix,omitempty"`
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-}
-
-// Authentication holds structures for various types of auth we support.
+// StorageGitAuthenticationConfig holds structures for various types of auth we support.
 // Token auth will take priority over Basic auth if both are provided.
 //
 // To make things easier, if there are multiple inputs that a particular auth method needs, and
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
-type Authentication struct {
-	BasicAuth *BasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
-	TokenAuth *TokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
-	SSHAuth   *SSHAuth   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
+type StorageGitAuthenticationConfig struct {
+	BasicAuth *GitBasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
+	TokenAuth *GitTokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
+	SSHAuth   *GitSSHAuth   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
 }
 
-func (a *Authentication) validate() error {
+func (a *StorageGitAuthenticationConfig) validate() error {
 	if a.BasicAuth != nil {
 		if err := a.BasicAuth.validate(); err != nil {
 			return err
@@ -252,14 +135,14 @@ func (a *Authentication) validate() error {
 	return nil
 }
 
-// BasicAuth has configuration for authenticating with private git repositories
+// GitBasicAuth has configuration for authenticating with private git repositories
 // with basic auth.
-type BasicAuth struct {
+type GitBasicAuth struct {
 	Username string `json:"-" mapstructure:"username" yaml:"-"`
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 
-func (b BasicAuth) validate() error {
+func (b GitBasicAuth) validate() error {
 	if (b.Username != "" && b.Password == "") || (b.Username == "" && b.Password != "") {
 		return errors.New("both username and password need to be provided for basic auth")
 	}
@@ -267,17 +150,17 @@ func (b BasicAuth) validate() error {
 	return nil
 }
 
-// TokenAuth has configuration for authenticating with private git repositories
+// GitTokenAuth has configuration for authenticating with private git repositories
 // with token auth.
-type TokenAuth struct {
+type GitTokenAuth struct {
 	AccessToken string `json:"-" mapstructure:"access_token" yaml:"-"`
 }
 
-func (t TokenAuth) validate() error { return nil }
+func (t GitTokenAuth) validate() error { return nil }
 
-// SSHAuth provides configuration support for SSH private key credentials when
+// GitSSHAuth provides configuration support for SSH private key credentials when
 // authenticating with private git repositories
-type SSHAuth struct {
+type GitSSHAuth struct {
 	User                  string `json:"-" mapstructure:"user" yaml:"-" `
 	Password              string `json:"-" mapstructure:"password" yaml:"-" `
 	PrivateKeyBytes       string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
@@ -285,10 +168,10 @@ type SSHAuth struct {
 	InsecureIgnoreHostKey bool   `json:"-" mapstructure:"insecure_ignore_host_key" yaml:"-"`
 }
 
-func (a SSHAuth) validate() (err error) {
+func (a GitSSHAuth) validate() (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("ssh authentication: %w", err)
+			err = fmt.Errorf("ssh authentication %w", err)
 		}
 	}()
 

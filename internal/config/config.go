@@ -62,7 +62,8 @@ type Config struct {
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta" yaml:"meta,omitempty"`
 	Analytics      AnalyticsConfig      `json:"analytics,omitempty" mapstructure:"analytics" yaml:"analytics,omitempty"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server" yaml:"server,omitempty"`
-	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Environments   EnvironmentsConfig   `json:"environments,omitempty" mapstructure:"environments" yaml:"environments,omitempty"`
+	Storage        StoragesConfig       `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
 	Metrics        MetricsConfig        `json:"metrics,omitempty" mapstructure:"metrics" yaml:"metrics,omitempty"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
@@ -390,7 +391,7 @@ func getFliptEnvs() (envs []string) {
 	return envs
 }
 
-func (c *Config) validate() (err error) {
+func (c *Config) validate() error {
 	if c.Version != "" {
 		if strings.TrimSpace(c.Version) != Version {
 			return fmt.Errorf("invalid version: %s", c.Version)
@@ -398,7 +399,7 @@ func (c *Config) validate() (err error) {
 	}
 
 	if c.Authorization.Required && !c.Authentication.Required {
-		return fmt.Errorf("authorization requires authentication also be required")
+		return err("authorization", "requires authentication to also be required")
 	}
 
 	return nil
@@ -576,10 +577,6 @@ func Default() *Config {
 			OTLP: OTLPTracingConfig{
 				Endpoint: "localhost:4317",
 			},
-		},
-
-		Storage: StorageConfig{
-			Type: LocalStorageType,
 		},
 
 		Meta: MetaConfig{
