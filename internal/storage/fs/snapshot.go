@@ -19,7 +19,9 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v3"
 )
@@ -39,41 +41,17 @@ type Snapshot struct {
 }
 
 type namespace struct {
-	resource     *flipt.Namespace
-	flags        map[string]*flipt.Flag
-	segments     map[string]*flipt.Segment
-	rules        map[string]*flipt.Rule
-	rollouts     map[string]*flipt.Rollout
+	flags        map[string]*core.Flag
+	segments     map[string]*core.Segment
 	evalRules    map[string][]*storage.EvaluationRule
 	evalRollouts map[string][]*storage.EvaluationRollout
 	etag         string
 }
 
 func newNamespace(ns *ext.NamespaceEmbed, created *timestamppb.Timestamp) *namespace {
-	var (
-		namespaceName        string
-		namespaceDescription string
-	)
-
-	switch t := ns.IsNamespace.(type) {
-	case ext.NamespaceKey:
-		namespaceName = string(t)
-	case *ext.Namespace:
-		namespaceName = t.Name
-		namespaceDescription = t.Description
-	}
 	return &namespace{
-		resource: &flipt.Namespace{
-			Key:         ns.GetKey(),
-			Name:        namespaceName,
-			Description: namespaceDescription,
-			CreatedAt:   created,
-			UpdatedAt:   created,
-		},
-		flags:        map[string]*flipt.Flag{},
-		segments:     map[string]*flipt.Segment{},
-		rules:        map[string]*flipt.Rule{},
-		rollouts:     map[string]*flipt.Rollout{},
+		flags:        map[string]*core.Flag{},
+		segments:     map[string]*core.Segment{},
 		evalRules:    map[string][]*storage.EvaluationRule{},
 		evalRollouts: map[string][]*storage.EvaluationRollout{},
 	}
@@ -335,30 +313,22 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	}
 
 	for _, s := range doc.Segments {
-		matchType := flipt.MatchType_value[s.MatchType]
-		segment := &flipt.Segment{
-			NamespaceKey: namespaceKey,
-			Name:         s.Name,
-			Key:          s.Key,
-			Description:  s.Description,
-			MatchType:    flipt.MatchType(matchType),
-			CreatedAt:    ss.now,
-			UpdatedAt:    ss.now,
+		matchType := core.MatchType_value[s.MatchType]
+		segment := &core.Segment{
+			Name:        s.Name,
+			Key:         s.Key,
+			Description: s.Description,
+			MatchType:   core.MatchType(matchType),
 		}
 
 		for _, constraint := range s.Constraints {
-			constraintType := flipt.ComparisonType_value[constraint.Type]
-			segment.Constraints = append(segment.Constraints, &flipt.Constraint{
-				NamespaceKey: namespaceKey,
-				SegmentKey:   segment.Key,
-				Id:           uuid.NewString(),
-				Operator:     constraint.Operator,
-				Property:     constraint.Property,
-				Type:         flipt.ComparisonType(constraintType),
-				Value:        constraint.Value,
-				Description:  constraint.Description,
-				CreatedAt:    ss.now,
-				UpdatedAt:    ss.now,
+			constraintType := core.ComparisonType_value[constraint.Type]
+			segment.Constraints = append(segment.Constraints, &core.Constraint{
+				Operator:    constraint.Operator,
+				Property:    constraint.Property,
+				Type:        core.ComparisonType(constraintType),
+				Value:       constraint.Value,
+				Description: constraint.Description,
 			})
 		}
 
@@ -366,39 +336,32 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	}
 
 	for _, f := range doc.Flags {
-		flagType := flipt.FlagType_value[f.Type]
-		flag := &flipt.Flag{
-			NamespaceKey: namespaceKey,
-			Key:          f.Key,
-			Name:         f.Name,
-			Description:  f.Description,
-			Enabled:      f.Enabled,
-			Type:         flipt.FlagType(flagType),
-			CreatedAt:    ss.now,
-			UpdatedAt:    ss.now,
+		flagType := core.FlagType_value[f.Type]
+		flag := &core.Flag{
+			Key:         f.Key,
+			Name:        f.Name,
+			Description: f.Description,
+			Enabled:     f.Enabled,
+			Type:        core.FlagType(flagType),
 		}
 
 		for _, v := range f.Variants {
-			attachment, err := json.Marshal(v.Attachment)
+			attachment, err := structpb.NewValue(v.Attachment)
 			if err != nil {
 				return err
 			}
 
-			variant := &flipt.Variant{
-				Id:           uuid.NewString(),
-				NamespaceKey: namespaceKey,
-				Key:          v.Key,
-				Name:         v.Name,
-				Description:  v.Description,
-				Attachment:   string(attachment),
-				CreatedAt:    ss.now,
-				UpdatedAt:    ss.now,
+			variant := &core.Variant{
+				Key:         v.Key,
+				Name:        v.Name,
+				Description: v.Description,
+				Attachment:  attachment,
 			}
 
 			flag.Variants = append(flag.Variants, variant)
 
 			if v.Default {
-				flag.DefaultVariant = variant
+				flag.DefaultVariant = &v.Key
 			}
 		}
 
@@ -407,30 +370,23 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		evalRules := []*storage.EvaluationRule{}
 		for i, r := range f.Rules {
 			rank := int32(i + 1)
-			rule := &flipt.Rule{
-				NamespaceKey: namespaceKey,
-				Id:           uuid.NewString(),
-				FlagKey:      f.Key,
-				Rank:         rank,
-				CreatedAt:    ss.now,
-				UpdatedAt:    ss.now,
-			}
+			rule := &core.Rule{}
 
 			evalRule := &storage.EvaluationRule{
+				ID:           uuid.NewString(),
 				NamespaceKey: namespaceKey,
 				FlagKey:      f.Key,
-				ID:           rule.Id,
 				Rank:         rank,
 			}
 
 			switch s := r.Segment.IsSegment.(type) {
 			case ext.SegmentKey:
-				rule.SegmentKey = string(s)
+				rule.Segments = []string{string(s)}
 			case *ext.Segments:
-				rule.SegmentKeys = s.Keys
-				segmentOperator := flipt.SegmentOperator_value[s.SegmentOperator]
+				rule.Segments = s.Keys
+				segmentOperator := core.SegmentOperator_value[s.SegmentOperator]
 
-				rule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
+				rule.SegmentOperator = core.SegmentOperator(segmentOperator)
 			}
 
 			var (
@@ -438,10 +394,8 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				segments    = make(map[string]*storage.EvaluationSegment)
 			)
 
-			if rule.SegmentKey != "" {
-				segmentKeys = append(segmentKeys, rule.SegmentKey)
-			} else if len(rule.SegmentKeys) > 0 {
-				segmentKeys = append(segmentKeys, rule.SegmentKeys...)
+			if len(rule.Segments) > 0 {
+				segmentKeys = append(segmentKeys, rule.Segments...)
 			}
 
 			for _, segmentKey := range segmentKeys {
@@ -467,8 +421,8 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				}
 			}
 
-			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
-				evalRule.SegmentOperator = flipt.SegmentOperator_AND_SEGMENT_OPERATOR
+			if rule.SegmentOperator == core.SegmentOperator_AND_SEGMENT_OPERATOR {
+				evalRule.SegmentOperator = core.SegmentOperator_AND_SEGMENT_OPERATOR
 			}
 
 			evalRule.Segments = segments
@@ -482,25 +436,25 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				}
 
 				id := uuid.NewString()
-				rule.Distributions = append(rule.Distributions, &flipt.Distribution{
-					Id:        id,
-					Rollout:   d.Rollout,
-					RuleId:    rule.Id,
-					VariantId: variant.Id,
-					CreatedAt: ss.now,
-					UpdatedAt: ss.now,
+				rule.Distributions = append(rule.Distributions, &core.Distribution{
+					Rollout: d.Rollout,
+					Variant: variant.Key,
 				})
+
+				attachment, err := variant.Attachment.MarshalJSON()
+				if err != nil {
+					return err
+				}
 
 				evalDists[evalRule.ID] = append(evalDists[evalRule.ID], &storage.EvaluationDistribution{
 					ID:                id,
 					Rollout:           d.Rollout,
-					VariantID:         variant.Id,
 					VariantKey:        variant.Key,
-					VariantAttachment: variant.Attachment,
+					VariantAttachment: string(attachment),
 				})
 			}
 
-			ns.rules[rule.Id] = rule
+			flag.Rules = append(flag.Rules, rule)
 		}
 
 		ns.evalRules[f.Key] = evalRules
@@ -513,25 +467,18 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				Rank:         rank,
 			}
 
-			flagRollout := &flipt.Rollout{
-				Id:           uuid.NewString(),
-				Rank:         rank,
-				FlagKey:      f.Key,
-				NamespaceKey: namespaceKey,
-				CreatedAt:    ss.now,
-				UpdatedAt:    ss.now,
-			}
+			flagRollout := &core.Rollout{}
 
 			if rollout.Threshold != nil {
 				s.Threshold = &storage.RolloutThreshold{
 					Percentage: rollout.Threshold.Percentage,
 					Value:      rollout.Threshold.Value,
 				}
-				s.RolloutType = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
+				s.RolloutType = core.RolloutType_THRESHOLD_ROLLOUT_TYPE
 
 				flagRollout.Type = s.RolloutType
-				flagRollout.Rule = &flipt.Rollout_Threshold{
-					Threshold: &flipt.RolloutThreshold{
+				flagRollout.Rule = &core.Rollout_Threshold{
+					Threshold: &core.RolloutThreshold{
 						Percentage: rollout.Threshold.Percentage,
 						Value:      rollout.Threshold.Value,
 					},
@@ -571,40 +518,36 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 					}
 				}
 
-				segmentOperator := flipt.SegmentOperator_value[rollout.Segment.Operator]
+				segmentOperator := core.SegmentOperator_value[rollout.Segment.Operator]
 
 				s.Segment = &storage.RolloutSegment{
 					Segments:        segments,
-					SegmentOperator: flipt.SegmentOperator(segmentOperator),
+					SegmentOperator: core.SegmentOperator(segmentOperator),
 					Value:           rollout.Segment.Value,
 				}
 
-				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+				s.RolloutType = core.RolloutType_SEGMENT_ROLLOUT_TYPE
 
-				frs := &flipt.RolloutSegment{
+				frs := &core.RolloutSegment{
 					Value:           rollout.Segment.Value,
-					SegmentOperator: flipt.SegmentOperator(segmentOperator),
-				}
-
-				if len(segmentKeys) == 1 {
-					frs.SegmentKey = segmentKeys[0]
-				} else {
-					frs.SegmentKeys = segmentKeys
+					SegmentOperator: core.SegmentOperator(segmentOperator),
+					Segments:        segmentKeys,
 				}
 
 				flagRollout.Type = s.RolloutType
-				flagRollout.Rule = &flipt.Rollout_Segment{
+				flagRollout.Rule = &core.Rollout_Segment{
 					Segment: frs,
 				}
 			}
 
-			ns.rollouts[flagRollout.Id] = flagRollout
+			flag.Rollouts = append(flag.Rollouts, flagRollout)
 
 			evalRollouts = append(evalRollouts, s)
 		}
 
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
+
 	ns.etag = doc.Etag
 	ss.ns[namespaceKey] = ns
 
@@ -617,119 +560,7 @@ func (ss Snapshot) String() string {
 	return "snapshot"
 }
 
-func (ss *Snapshot) GetRule(ctx context.Context, p storage.NamespaceRequest, id string) (rule *flipt.Rule, _ error) {
-	ns, err := ss.getNamespace(p.Namespace())
-	if err != nil {
-		return nil, err
-	}
-
-	var ok bool
-	rule, ok = ns.rules[id]
-	if !ok {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, p.Namespace(), id)
-	}
-
-	return rule, nil
-}
-
-func (ss *Snapshot) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rule], _ error) {
-	ns, err := ss.getNamespace(req.Predicate.Namespace())
-	if err != nil {
-		return set, err
-	}
-
-	rules := make([]*flipt.Rule, 0, len(ns.rules))
-	for _, rule := range ns.rules {
-		if rule.FlagKey == req.Predicate.Key {
-			rules = append(rules, rule)
-		}
-	}
-
-	return paginate(req.QueryParams, func(i, j int) bool {
-		return rules[i].Rank < rules[j].Rank
-	}, rules...)
-}
-
-func (ss *Snapshot) CountRules(ctx context.Context, req storage.ResourceRequest) (uint64, error) {
-	ns, err := ss.getNamespace(req.Namespace())
-	if err != nil {
-		return 0, err
-	}
-
-	var count uint64 = 0
-	for _, rule := range ns.rules {
-		if rule.FlagKey == req.Key {
-			count += 1
-		}
-	}
-
-	return count, nil
-}
-
-func (ss *Snapshot) GetSegment(ctx context.Context, req storage.ResourceRequest) (*flipt.Segment, error) {
-	ns, err := ss.getNamespace(req.Namespace())
-	if err != nil {
-		return nil, err
-	}
-
-	segment, ok := ns.segments[req.Key]
-	if !ok {
-		return nil, errs.ErrNotFoundf("segment %q", req)
-	}
-
-	return segment, nil
-}
-
-func (ss *Snapshot) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Segment], err error) {
-	ns, err := ss.getNamespace(req.Predicate.Namespace())
-	if err != nil {
-		return set, err
-	}
-
-	segments := make([]*flipt.Segment, 0, len(ns.segments))
-	for _, segment := range ns.segments {
-		segments = append(segments, segment)
-	}
-
-	return paginate(req.QueryParams, func(i, j int) bool {
-		return segments[i].Key < segments[j].Key
-	}, segments...)
-}
-
-func (ss *Snapshot) CountSegments(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
-	ns, err := ss.getNamespace(p.Namespace())
-	if err != nil {
-		return 0, err
-	}
-
-	return uint64(len(ns.segments)), nil
-}
-
-func (ss *Snapshot) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (*flipt.Namespace, error) {
-	ns, err := ss.getNamespace(p.Namespace())
-	if err != nil {
-		return nil, err
-	}
-
-	return ns.resource, nil
-}
-
-func (ss *Snapshot) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (set storage.ResultSet[*flipt.Namespace], err error) {
-	ns := make([]*flipt.Namespace, 0, len(ss.ns))
-	for _, n := range ss.ns {
-		ns = append(ns, n.resource)
-	}
-
-	return paginate(req.QueryParams, func(i, j int) bool {
-		return ns[i].Key < ns[j].Key
-	}, ns...)
-}
-
-func (ss *Snapshot) CountNamespaces(ctx context.Context, _ storage.ReferenceRequest) (uint64, error) {
-	return uint64(len(ss.ns)), nil
-}
-
-func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*flipt.Flag, error) {
+func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*core.Flag, error) {
 	ns, err := ss.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
@@ -743,13 +574,13 @@ func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*
 	return flag, nil
 }
 
-func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Flag], err error) {
+func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*core.Flag], err error) {
 	ns, err := ss.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
 
-	flags := make([]*flipt.Flag, 0, len(ns.flags))
+	flags := make([]*core.Flag, 0, len(ns.flags))
 	for _, flag := range ns.flags {
 		flags = append(flags, flag)
 	}
@@ -803,54 +634,6 @@ func (ss *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.Reso
 	}
 
 	return rollouts, nil
-}
-
-func (ss *Snapshot) GetRollout(ctx context.Context, p storage.NamespaceRequest, id string) (*flipt.Rollout, error) {
-	ns, err := ss.getNamespace(p.Namespace())
-	if err != nil {
-		return nil, err
-	}
-
-	rollout, ok := ns.rollouts[id]
-	if !ok {
-		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, p.Namespace(), id)
-	}
-
-	return rollout, nil
-}
-
-func (ss *Snapshot) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rollout], err error) {
-	ns, err := ss.getNamespace(req.Predicate.Namespace())
-	if err != nil {
-		return set, err
-	}
-
-	rollouts := make([]*flipt.Rollout, 0)
-	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == req.Predicate.Key {
-			rollouts = append(rollouts, rollout)
-		}
-	}
-
-	return paginate(req.QueryParams, func(i, j int) bool {
-		return rollouts[i].Rank < rollouts[j].Rank
-	}, rollouts...)
-}
-
-func (ss *Snapshot) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (uint64, error) {
-	ns, err := ss.getNamespace(flag.Namespace())
-	if err != nil {
-		return 0, err
-	}
-
-	var count uint64 = 0
-	for _, rollout := range ns.rollouts {
-		if rollout.FlagKey == flag.Key {
-			count += 1
-		}
-	}
-
-	return count, nil
 }
 
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
