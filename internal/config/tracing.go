@@ -1,9 +1,6 @@
 package config
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/spf13/viper"
 )
 
@@ -40,12 +37,12 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 
 func (c *TracingConfig) validate() error {
 	if c.SamplingRatio < 0 || c.SamplingRatio > 1 {
-		return errors.New("sampling ratio should be a number between 0 and 1")
+		return errString("tracing", "sampling ratio should be a number between 0 and 1")
 	}
 
 	for _, propagator := range c.Propagators {
 		if !propagator.isValid() {
-			return fmt.Errorf("invalid propagator option: %s", propagator)
+			return errString("tracing", "invalid propagator option: "+string(propagator))
 		}
 	}
 
@@ -81,6 +78,10 @@ const (
 	TracingPropagatorOtTrace      TracingPropagator = "ottrace"
 	TracingPropagatorNone         TracingPropagator = "none"
 )
+
+func (t TracingPropagator) String() string {
+	return string(t)
+}
 
 func (t TracingPropagator) isValid() bool {
 	validOptions := map[TracingPropagator]bool{

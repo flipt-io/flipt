@@ -26,6 +26,13 @@ type OTLPMetricsConfig struct {
 	Headers  map[string]string `json:"headers,omitempty" mapstructure:"headers" yaml:"headers,omitempty"`
 }
 
+func (c *OTLPMetricsConfig) validate() error {
+	if c.Endpoint == "" {
+		return errFieldRequired("metrics", "endpoint")
+	}
+	return nil
+}
+
 func (c *MetricsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("metrics", map[string]interface{}{
 		"enabled":  true,

@@ -1,0 +1,4 @@
+environments:
+  default:
+    name: default
+    storage: non_existent

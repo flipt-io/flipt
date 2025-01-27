@@ -29,10 +29,8 @@ tracing:
     endpoint: "localhost:4318"
 
 storage:
-  type: git
-  git:
-    repository: https://github.com/flipt-io/flipt.git
-    ref: production
+  default:
+    remote: https://github.com/flipt-io/flipt.git
     poll_interval: 5s
     authentication:
       basic:

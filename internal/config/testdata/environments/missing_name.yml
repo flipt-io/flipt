@@ -1,0 +1,3 @@
+environments:
+  default:
+    storage: default

@@ -1,5 +1,6 @@
 storage:
-  type: git
-  git:
-    repository: "git@github.com:foo/bar.git"
-    directory: "baz"
+  default:
+    remote: "git@github.com:foo/bar.git"
+    backend:
+      type: "local"
+      path: "/path/to/gitdir"

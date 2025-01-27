@@ -116,15 +116,17 @@ type AuthorizationLocalConfig struct {
 
 func (c *AuthorizationLocalConfig) validate() error {
 	if c.Policy == nil {
-		return errors.New("policy source must be configured")
+		return errString("authorization", "policy source must be configured")
 	}
 
 	if err := c.Policy.validate(); err != nil {
-		return fmt.Errorf("policy: %w", err)
+		return errFieldWrap("authorization", "policy", err)
 	}
 
-	if err := c.Data.validate(); err != nil {
-		return fmt.Errorf("data: %w", err)
+	if c.Data != nil {
+		if err := c.Data.validate(); err != nil {
+			return errFieldWrap("authorization", "data", err)
+		}
 	}
 
 	return nil
@@ -141,11 +143,11 @@ func (a *AuthorizationSourceLocalConfig) validate() error {
 	}
 
 	if a.Path == "" {
-		return errors.New("path must be non-empty string")
+		return errFieldRequired("authorization", "path")
 	}
 
 	if a.PollInterval <= 0 {
-		return errors.New("poll_interval must be greater than zero")
+		return errFieldPositiveDuration("authorization", "poll_interval")
 	}
 
 	return nil
@@ -161,7 +163,7 @@ func (a *AuthorizationSourceBundleConfig) validate() error {
 	}
 
 	if a.Configuration == "" {
-		return errors.New("configuration must be non-empty string")
+		return errString("authorization", "configuration must be non-empty string")
 	}
 
 	return nil
@@ -189,11 +191,11 @@ func (a *AuthorizationSourceObjectConfig) validate() error {
 	switch a.Type {
 	case S3ObjectAuthorizationBackendType:
 		if a.S3 == nil || a.S3.Bucket == "" {
-			return errors.New("s3 bucket must be specified")
+			return errString("authorization", "s3 bucket must be specified")
 		}
 
 	default:
-		return errors.New("object storage type must be specified")
+		return errFieldRequired("authorization", "type")
 	}
 	return nil
 }

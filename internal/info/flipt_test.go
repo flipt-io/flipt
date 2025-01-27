@@ -30,12 +30,10 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, "amd64", f.Arch)
 	assert.False(t, f.Authentication.Required)
 	assert.False(t, f.Analytics.Enabled)
-	assert.Equal(t, config.LocalStorageType, f.Storage.Type)
 }
 
 func TestHttpHandler(t *testing.T) {
 	f := New()
-	f.Storage.Type = config.LocalStorageType
 	r := httptest.NewRequest("GET", "/info", nil)
 	w := httptest.NewRecorder()
 	f.ServeHTTP(w, r)

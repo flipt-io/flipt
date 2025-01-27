@@ -28,7 +28,7 @@ type UITopbar struct {
 
 func (u *UITopbar) validate() error {
 	if u.Color != "" && !hexedColor.MatchString(u.Color) {
-		return fmt.Errorf("expected valid hex color, got %s", u.Color)
+		return errFieldWrap("ui", "topbar", fmt.Errorf("expected valid hex color, got %s", u.Color))
 	}
 	return nil
 }
