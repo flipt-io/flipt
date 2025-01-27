@@ -19,9 +19,6 @@ cors:
     - "Authorization"
     - "Content-Type"
     - "X-CSRF-Token"
-    - "X-Fern-Language"
-    - "X-Fern-SDK-Name"
-    - "X-Fern-SDK-Version"
     - "X-Flipt-Namespace"
     - "X-Flipt-Accept-Server-Version"
 
@@ -30,22 +27,27 @@ server:
   http_port: 8080
   https_port: 443
   grpc_port: 9000
+  protocol: http
+
+environments:
+  default:
+    name: default
+    storage: default
+
+storage:
+  default:
+    backend:
+      type: memory
+    branch: main
+    poll_interval: 30s
 
 metrics:
   enabled: true
   exporter: prometheus
 
-storage:
-  type: database
-
 diagnostics:
   profiling:
     enabled: true
-
-db:
-  url: file:/tmp/flipt/flipt.db
-  max_idle_conn: 2
-  prepared_statements_enabled: true
 
 meta:
   check_for_updates: true

@@ -30,8 +30,9 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 
 - [ ] Implement new declarative API for managing flag configuration
 - [ ] Update UI to support new API
-- [ ] Remove legacy evaluation APIs
-- [ ] Remove database dependencies except for analytics
+- [x] Remove legacy evaluation APIs
+- [x] Remove database dependencies except for analytics
+- [ ] Port over git storage backend
 - [ ] Implement Redis and in-memory authentication backends
 - [ ] Refactor and consolidate configuration options
 - [ ] Fix and improve unit test coverage

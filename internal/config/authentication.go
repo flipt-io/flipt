@@ -78,18 +78,6 @@ func (c AuthenticationConfig) Enabled() bool {
 	return false
 }
 
-// RequiresDatabase returns true if any of the enabled authentication
-// methods requires a database connection
-func (c AuthenticationConfig) RequiresDatabase() bool {
-	for _, info := range c.Methods.AllMethods(context.Background()) {
-		if info.Enabled && info.RequiresDatabase {
-			return true
-		}
-	}
-
-	return false
-}
-
 // IsZero returns true if the authentication config is not enabled.
 // This is used for marshalling to YAML for `config init`.
 func (c AuthenticationConfig) IsZero() bool {
@@ -163,13 +151,12 @@ func (c *AuthenticationConfig) validate() error {
 			continue
 		}
 
-		field := "authentication.method" + info.Name()
 		if info.Cleanup.Interval <= 0 {
-			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
+			return errFieldPositiveDuration("authentication", "cleanup_interval")
 		}
 
 		if info.Cleanup.GracePeriod <= 0 {
-			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
+			return errFieldPositiveDuration("authentication", "cleanup_grace_period")
 		}
 	}
 
@@ -178,13 +165,13 @@ func (c *AuthenticationConfig) validate() error {
 	// empty value.
 	if sessionEnabled {
 		if c.Session.Domain == "" {
-			err := errFieldWrap("authentication.session.domain", errValidationRequired)
+			err := errFieldRequired("authentication", "session_domain")
 			return fmt.Errorf("when session compatible auth method enabled: %w", err)
 		}
 
 		host, err := getHostname(c.Session.Domain)
 		if err != nil {
-			return fmt.Errorf("invalid domain: %w", err)
+			return errFieldWrap("authentication", "session_domain", err)
 		}
 
 		// strip scheme and port from domain
@@ -311,7 +298,7 @@ func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c Authenticatio
 
 // RequiresCleanup returns true if the method is enabled and requires cleanup.
 func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
-	return s.Enabled && s.RequiresDatabase && s.Cleanup != nil
+	return s.Enabled && s.Cleanup != nil
 }
 
 // AuthenticationMethodInfo is a structure which describes properties
@@ -320,7 +307,6 @@ func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
 type AuthenticationMethodInfo struct {
 	Method            auth.Method
 	SessionCompatible bool
-	RequiresDatabase  bool
 	Metadata          *structpb.Struct
 }
 
@@ -394,7 +380,6 @@ func (a AuthenticationMethodTokenConfig) info(_ context.Context) AuthenticationM
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
-		RequiresDatabase:  true,
 	}
 }
 
@@ -428,7 +413,6 @@ func (a AuthenticationMethodOIDCConfig) info(ctx context.Context) Authentication
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
-		RequiresDatabase:  true,
 	}
 
 	var (
@@ -459,9 +443,9 @@ func (a AuthenticationMethodOIDCConfig) info(ctx context.Context) Authentication
 }
 
 func (a AuthenticationMethodOIDCConfig) validate() error {
-	for provider, config := range a.Providers {
+	for _, config := range a.Providers {
 		if err := config.validate(); err != nil {
-			return fmt.Errorf("provider %q: %w", provider, err)
+			return err
 		}
 	}
 
@@ -485,15 +469,15 @@ func (a AuthenticationMethodOIDCProvider) setDefaults(defaults map[string]any) {
 
 func (a AuthenticationMethodOIDCProvider) validate() error {
 	if a.ClientID == "" {
-		return errFieldWrap("client_id", errValidationRequired)
+		return errFieldRequired("authentication", "client_id")
 	}
 
 	if a.ClientSecret == "" {
-		return errFieldWrap("client_secret", errValidationRequired)
+		return errFieldRequired("authentication", "client_secret")
 	}
 
 	if a.RedirectAddress == "" {
-		return errFieldWrap("redirect_address", errValidationRequired)
+		return errFieldRequired("authentication", "redirect_address")
 	}
 
 	return nil
@@ -532,7 +516,6 @@ func (a AuthenticationMethodKubernetesConfig) info(_ context.Context) Authentica
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_KUBERNETES,
 		SessionCompatible: false,
-		RequiresDatabase:  true,
 	}
 }
 
@@ -558,7 +541,6 @@ func (a AuthenticationMethodGithubConfig) info(ctx context.Context) Authenticati
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_GITHUB,
 		SessionCompatible: true,
-		RequiresDatabase:  true,
 	}
 
 	metadata := make(map[string]any)
@@ -572,35 +554,32 @@ func (a AuthenticationMethodGithubConfig) info(ctx context.Context) Authenticati
 }
 
 func (a AuthenticationMethodGithubConfig) validate() error {
-	errWrap := func(err error) error {
-		return fmt.Errorf("provider %q: %w", "github", err)
-	}
-
 	if a.ClientId == "" {
-		return errWrap(errFieldWrap("client_id", errValidationRequired))
+		return errFieldRequired("authentication", "client_id")
 	}
 
 	if a.ClientSecret == "" {
-		return errWrap(errFieldWrap("client_secret", errValidationRequired))
+		return errFieldRequired("authentication", "client_secret")
 	}
 
 	if a.RedirectAddress == "" {
-		return errWrap(errFieldWrap("redirect_address", errValidationRequired))
+		return errFieldRequired("authentication", "redirect_address")
 	}
 
 	// ensure scopes contain read:org if allowed organizations is not empty
 	if len(a.AllowedOrganizations) > 0 && !slices.Contains(a.Scopes, "read:org") {
-		return errWrap(errFieldWrap("scopes", fmt.Errorf("must contain read:org when allowed_organizations is not empty")))
+		return errFieldWrap("authentication", "scopes", fmt.Errorf("must contain read:org when allowed_organizations is not empty"))
 	}
 
 	// ensure all the declared organizations were declared in allowed organizations
 	if len(a.AllowedTeams) > 0 {
 		for org := range a.AllowedTeams {
 			if !slices.Contains(a.AllowedOrganizations, org) {
-				return errWrap(errFieldWrap(
+				return errFieldWrap(
+					"authentication",
 					"allowed_teams",
 					fmt.Errorf("the organization '%s' was not declared in 'allowed_organizations' field", org),
-				))
+				)
 			}
 		}
 	}
@@ -632,31 +611,30 @@ func (a AuthenticationMethodJWTConfig) info(_ context.Context) AuthenticationMet
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_JWT,
 		SessionCompatible: false,
-		RequiresDatabase:  false,
 	}
 }
 
 func (a AuthenticationMethodJWTConfig) validate() error {
 	setFields := nonEmpty([]string{a.JWKSURL, a.PublicKeyFile})
 	if setFields < 1 {
-		return fmt.Errorf("one of jwks_url or public_key_file is required")
+		return errString("authentication", "one of jwks_url or public_key_file is required")
 	}
 
 	if setFields > 1 {
-		return fmt.Errorf("only one of jwks_url or public_key_file can be set")
+		return errString("authentication", "only one of jwks_url or public_key_file can be set")
 	}
 
 	if a.JWKSURL != "" {
 		// ensure jwks url is valid
 		if _, err := url.Parse(a.JWKSURL); err != nil {
-			return errFieldWrap("jwks_url", err)
+			return errFieldWrap("authentication", "jwks_url", err)
 		}
 	}
 
 	if a.PublicKeyFile != "" {
 		// ensure public key file exists
 		if _, err := os.Stat(a.PublicKeyFile); err != nil {
-			return errFieldWrap("public_key_file", err)
+			return errFieldWrap("authentication", "public_key_file", err)
 		}
 	}
 

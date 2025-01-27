@@ -5,20 +5,34 @@ import (
 	"fmt"
 )
 
-const fieldErrFmt = "field %q: %w"
-
-var (
-	// errValidationRequired is returned when a required value is
-	// either not supplied or supplied with empty value.
-	errValidationRequired = errors.New("non-empty value is required")
-	// errPositiveNonZeroDuration is returned when a negative or zero time.Duration is provided.
-	errPositiveNonZeroDuration = errors.New("positive non-zero duration required")
-)
-
-func errFieldWrap(field string, err error) error {
-	return fmt.Errorf(fieldErrFmt, field, err)
+// errFieldWrap wraps an error with a field name and type.
+func errFieldWrap(typ, field string, err error) error {
+	if typ == "" {
+		return fmt.Errorf("%s: %w", field, err)
+	}
+	return fmt.Errorf("%s: %s %w", typ, field, err)
 }
 
-func errFieldRequired(field string) error {
-	return errFieldWrap(field, errValidationRequired)
+// errFieldRequired returns a formatted error for required fields
+func errFieldRequired(typ, field string) error {
+	if typ == "" {
+		return fmt.Errorf("%s non-empty value is required", field)
+	}
+	return fmt.Errorf("%s: %s non-empty value is required", typ, field)
+}
+
+// errFieldPositiveDuration returns a formatted error for positive non-zero duration fields
+func errFieldPositiveDuration(typ, field string) error {
+	if typ == "" {
+		return fmt.Errorf("%s must be a positive non-zero duration", field)
+	}
+	return fmt.Errorf("%s: %s must be a positive non-zero duration", typ, field)
+}
+
+// errString creates a new error with type and message context
+func errString(typ, msg string) error {
+	if typ == "" {
+		return errors.New(msg)
+	}
+	return fmt.Errorf("%s: %s", typ, msg)
 }
