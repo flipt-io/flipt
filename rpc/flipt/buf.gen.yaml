@@ -1,0 +1,23 @@
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt:
+      - paths=source_relative
+    strategy: all
+  - local: protoc-gen-go-grpc
+    out: .
+    opt: paths=source_relative
+    strategy: all
+  - local: protoc-gen-grpc-gateway
+    out: .
+    opt:
+      - paths=source_relative
+      - grpc_api_configuration=flipt.yaml
+    strategy: all
+  - local: protoc-gen-go-flipt-sdk
+    out: ../../sdk/go
+    opt:
+      - paths=source_relative
+      - grpc_api_configuration=flipt.yaml
+    strategy: all
