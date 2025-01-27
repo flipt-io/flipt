@@ -109,7 +109,7 @@ func TestPing(t *testing.T) {
 			cfg: config.Config{
 				Authentication: config.AuthenticationConfig{
 					Required: false,
-					Methods: config.AuthenticationMethods{
+					Methods: config.AuthenticationMethodsConfig{
 						Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
 							Enabled: false,
 						},
@@ -129,7 +129,7 @@ func TestPing(t *testing.T) {
 			cfg: config.Config{
 				Authentication: config.AuthenticationConfig{
 					Required: false,
-					Methods: config.AuthenticationMethods{
+					Methods: config.AuthenticationMethodsConfig{
 						Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
 							Enabled: true,
 						},

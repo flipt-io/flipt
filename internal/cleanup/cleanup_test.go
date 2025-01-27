@@ -28,14 +28,14 @@ func TestCleanup(t *testing.T) {
 		authstore  = inmemauth.NewStore()
 		lock       = inmemoplock.New()
 		authConfig = config.AuthenticationConfig{
-			Methods: config.AuthenticationMethods{},
+			Methods: config.AuthenticationMethodsConfig{},
 		}
 	)
 
 	// enable all methods and set their cleanup configuration
 	for _, info := range authConfig.Methods.AllMethods(ctx) {
 		info.Enable(t)
-		info.SetCleanup(t, config.AuthenticationCleanupSchedule{
+		info.SetCleanup(t, config.AuthenticationCleanupScheduleConfig{
 			Interval:    time.Second,
 			GracePeriod: 5 * time.Second,
 		})

@@ -30,12 +30,12 @@ const (
 // responses to http cookies, and establishing appropriate state parameters for csrf provention
 // during the oauth/oidc flow.
 type Middleware struct {
-	config config.AuthenticationSession
+	config config.AuthenticationSessionConfig
 }
 
 // NewHTTPMiddleware constructs and configures a new oidc HTTP middleware from the supplied
 // authentication configuration struct.
-func NewHTTPMiddleware(config config.AuthenticationSession) Middleware {
+func NewHTTPMiddleware(config config.AuthenticationSessionConfig) Middleware {
 	return Middleware{
 		config: config,
 	}

@@ -16,6 +16,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var _ authn.Store = (*Store)(nil)
+
 // Store is an in-memory implementation of storage.AuthenticationStore
 //
 // Authentications are stored in a map by hashedClientToken.
@@ -224,5 +226,9 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	}
 
 	authentication.ExpiresAt = expireAt
+	return nil
+}
+
+func (s *Store) Shutdown(ctx context.Context) error {
 	return nil
 }

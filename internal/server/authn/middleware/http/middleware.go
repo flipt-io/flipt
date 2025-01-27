@@ -17,12 +17,12 @@ const stateCookieKey = "flipt_client_state"
 // Middleware contains various extensions for appropriate integration of the generic auth services
 // behind gRPC gateway. This currently includes clearing the appropriate cookies on logout.
 type Middleware struct {
-	config            config.AuthenticationSession
+	config            config.AuthenticationSessionConfig
 	defaultErrHandler runtime.ErrorHandlerFunc
 }
 
 // NewHTTPMiddleware constructs a new auth HTTP middleware.
-func NewHTTPMiddleware(config config.AuthenticationSession) *Middleware {
+func NewHTTPMiddleware(config config.AuthenticationSessionConfig) *Middleware {
 	return &Middleware{
 		config:            config,
 		defaultErrHandler: runtime.DefaultHTTPErrorHandler,

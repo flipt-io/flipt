@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -36,7 +35,6 @@ func getAuthStore(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	forceMigrate bool,
 ) (storageauth.Store, func(context.Context) error, error) {
 	var (
 		store    storageauth.Store = storageauthmemory.NewStore()
@@ -50,20 +48,16 @@ func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	forceMigrate bool,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
-	shutdown := func(ctx context.Context) error {
-		return nil
-	}
+	var (
+		shutdown = func(ctx context.Context) error {
+			return nil
+		}
+		authCfg = cfg.Authentication
+	)
 
-	authCfg := cfg.Authentication
-
-	// NOTE: we skip attempting to connect to any database in the situation that either the git, local, or object
-	// FS backends are configured.
-	// All that is required to establish a connection for authentication is to either make auth required
-	// or configure at-least one authentication method (e.g. enable token method).
 	if !authCfg.Enabled() {
 		return grpcRegisterers{
 			public.NewServer(logger, authCfg),
@@ -71,7 +65,7 @@ func authenticationGRPC(
 		}, nil, shutdown, nil
 	}
 
-	store, shutdown, err := getAuthStore(ctx, logger, cfg, forceMigrate)
+	store, shutdown, err := getAuthStore(ctx, logger, cfg)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -89,33 +83,6 @@ func authenticationGRPC(
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
-		opts := []storageauth.BootstrapOption{}
-
-		// if a bootstrap token is provided, use it
-		if authCfg.Methods.Token.Method.Bootstrap.Token != "" {
-			opts = append(opts, storageauth.WithToken(authCfg.Methods.Token.Method.Bootstrap.Token))
-		}
-
-		// if a bootstrap expiration is provided, use it
-		if authCfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
-			opts = append(opts, storageauth.WithExpiration(authCfg.Methods.Token.Method.Bootstrap.Expiration))
-		}
-
-		// add any additional metadata if defined
-		for k, v := range authCfg.Methods.Token.Method.Bootstrap.Metadata {
-			opts = append(opts, storageauth.WithMetadataAttribute(strings.ToLower(k), v))
-		}
-
-		// attempt to bootstrap authentication store
-		clientToken, err := storageauth.Bootstrap(ctx, store, opts...)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("configuring token authentication: %w", err)
-		}
-
-		if clientToken != "" {
-			logger.Info("access token created", zap.String("client_token", clientToken))
-		}
-
 		register.Add(authtoken.NewServer(logger, store))
 
 		logger.Debug("authentication method \"token\" server registered")
@@ -149,9 +116,10 @@ func authenticationGRPC(
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
 		if authCfg.Methods.JWT.Enabled {
-			authJWT := authCfg.Methods.JWT
-
-			var ks jwt.KeySet
+			var (
+				authJWT = authCfg.Methods.JWT
+				ks      jwt.KeySet
+			)
 
 			if authJWT.Method.JWKSURL != "" {
 				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")

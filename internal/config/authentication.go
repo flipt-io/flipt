@@ -58,8 +58,8 @@ type AuthenticationConfig struct {
 		OFREP bool `json:"ofrep,omitempty" mapstructure:"ofrep" yaml:"ofrep,omitempty"`
 	} `json:"exclude,omitempty" mapstructure:"exclude" yaml:"exclude,omitempty"`
 
-	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session" yaml:"session,omitempty"`
-	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods" yaml:"methods,omitempty"`
+	Session AuthenticationSessionConfig `json:"session,omitempty" mapstructure:"session" yaml:"session,omitempty"`
+	Methods AuthenticationMethodsConfig `json:"methods,omitempty" mapstructure:"methods" yaml:"methods,omitempty"`
 }
 
 // Enabled returns true if authentication is marked as required
@@ -84,17 +84,6 @@ func (c AuthenticationConfig) IsZero() bool {
 	return !c.Enabled()
 }
 
-// ShouldRunCleanup returns true if the cleanup background process should be started.
-// It returns true given at-least 1 method is enabled and it's associated schedule
-// has been configured (non-nil).
-func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
-	for _, info := range c.Methods.AllMethods(context.Background()) {
-		shouldCleanup = shouldCleanup || info.RequiresCleanup()
-	}
-
-	return
-}
-
 func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	methods := map[string]any{}
 
@@ -107,11 +96,6 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 		if v.GetBool(prefix + ".enabled") {
 			// apply any method specific defaults
 			info.setDefaults(method)
-			// set default cleanup
-			method["cleanup"] = map[string]any{
-				"interval":     time.Hour,
-				"grace_period": 30 * time.Minute,
-			}
 		}
 
 		methods[info.Name()] = method
@@ -139,31 +123,10 @@ func (c *AuthenticationConfig) SessionEnabled() bool {
 }
 
 func (c *AuthenticationConfig) validate() error {
-	var sessionEnabled bool
-
-	for _, info := range c.Methods.AllMethods(context.Background()) {
-		if !info.RequiresCleanup() {
-			continue
-		}
-
-		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
-		if info.Cleanup == nil {
-			continue
-		}
-
-		if info.Cleanup.Interval <= 0 {
-			return errFieldPositiveDuration("authentication", "cleanup_interval")
-		}
-
-		if info.Cleanup.GracePeriod <= 0 {
-			return errFieldPositiveDuration("authentication", "cleanup_grace_period")
-		}
-	}
-
 	// ensure that when a session compatible authentication method has been
 	// enabled that the session cookie domain has been configured with a non
 	// empty value.
-	if sessionEnabled {
+	if c.SessionEnabled() {
 		if c.Session.Domain == "" {
 			err := errFieldRequired("authentication", "session_domain")
 			return fmt.Errorf("when session compatible auth method enabled: %w", err)
@@ -178,6 +141,10 @@ func (c *AuthenticationConfig) validate() error {
 		// domain cookies are not allowed to have a scheme or port
 		// https://github.com/golang/go/issues/28297
 		c.Session.Domain = host
+
+		if err := c.Session.Storage.validate(); err != nil {
+			return errFieldWrap("authentication", "session_storage", err)
+		}
 	}
 
 	for _, info := range c.Methods.AllMethods(context.Background()) {
@@ -200,9 +167,9 @@ func getHostname(rawurl string) (string, error) {
 	return strings.Split(u.Host, ":")[0], nil
 }
 
-// AuthenticationSession configures the session produced for browsers when
+// AuthenticationSessionConfig configures the session produced for browsers when
 // establishing authentication via HTTP.
-type AuthenticationSession struct {
+type AuthenticationSessionConfig struct {
 	// Domain is the domain on which to register session cookies.
 	Domain string `json:"domain,omitempty" mapstructure:"domain" yaml:"domain,omitempty"`
 	// Secure sets the secure property (i.e. HTTPS only) on both the state and token cookies.
@@ -213,18 +180,69 @@ type AuthenticationSession struct {
 	// StateLifetime is the lifetime duration of the state cookie.
 	StateLifetime time.Duration `json:"stateLifetime,omitempty" mapstructure:"state_lifetime" yaml:"state_lifetime,omitempty"`
 	// CSRF configures CSRF provention mechanisms.
-	CSRF AuthenticationSessionCSRF `json:"csrf,omitempty" mapstructure:"csrf" yaml:"csrf,omitempty"`
+	CSRF AuthenticationSessionCSRFConfig `json:"csrf,omitempty" mapstructure:"csrf" yaml:"csrf,omitempty"`
+	// Storage configures the storage mechanism for the session.
+	Storage AuthenticationSessionStorageConfig `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
 }
 
-// AuthenticationSessionCSRF configures cross-site request forgery prevention.
-type AuthenticationSessionCSRF struct {
+type AuthenticationSessionStorageType string
+
+const (
+	AuthenticationSessionStorageTypeMemory = AuthenticationSessionStorageType("memory")
+	AuthenticationSessionStorageTypeRedis  = AuthenticationSessionStorageType("redis")
+)
+
+type AuthenticationSessionStorageConfig struct {
+	Type AuthenticationSessionStorageType `json:"type" mapstructure:"type" yaml:"type"`
+}
+
+func (c AuthenticationSessionStorageConfig) validate() error {
+	return nil
+}
+
+func (c AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
+	v.SetDefault("authentication.session.storage", map[string]any{
+		"type": "memory",
+	})
+
+	return nil
+}
+
+// AuthenticationSessionStorageRedisConfig contains fields, which configure the connection
+// credentials for redis backed session storage.
+type AuthenticationSessionStorageRedisConfig struct {
+	Host            string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Port            int           `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	RequireTLS      bool          `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	Username        string        `json:"-" mapstructure:"username" yaml:"-"`
+	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
+	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
+	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
+	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
+	CaCertBytes     string        `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string        `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	InsecureSkipTLS bool          `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+}
+
+func (cfg *AuthenticationSessionStorageRedisConfig) validate() error {
+	if cfg.CaCertBytes != "" && cfg.CaCertPath != "" {
+		return errString("", "please provide exclusively one of ca_cert_bytes or ca_cert_path")
+	}
+
+	return nil
+}
+
+// AuthenticationSessionCSRFConfig configures cross-site request forgery prevention.
+type AuthenticationSessionCSRFConfig struct {
 	// Key is the private key string used to authenticate csrf tokens.
 	Key string `json:"-" mapstructure:"key"`
 }
 
-// AuthenticationMethods is a set of configuration for each authentication
+// AuthenticationMethodsConfig is a set of configuration for each authentication
 // method available for use within Flipt.
-type AuthenticationMethods struct {
+type AuthenticationMethodsConfig struct {
 	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token" yaml:"token,omitempty"`
 	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github" yaml:"github,omitempty"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
@@ -233,7 +251,7 @@ type AuthenticationMethods struct {
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
-func (a *AuthenticationMethods) AllMethods(ctx context.Context) []StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethodsConfig) AllMethods(ctx context.Context) []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
 		a.Token.info(ctx),
 		a.Github.info(ctx),
@@ -255,7 +273,7 @@ func getForwardPrefix(ctx context.Context) string {
 }
 
 // EnabledMethods returns all the AuthenticationMethod instances that have been enabled.
-func (a *AuthenticationMethods) EnabledMethods() []StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethodsConfig) EnabledMethods() []StaticAuthenticationMethodInfo {
 	var enabled []StaticAuthenticationMethodInfo
 	for _, info := range a.AllMethods(context.Background()) {
 		if info.Enabled {
@@ -271,7 +289,6 @@ func (a *AuthenticationMethods) EnabledMethods() []StaticAuthenticationMethodInf
 type StaticAuthenticationMethodInfo struct {
 	AuthenticationMethodInfo
 	Enabled bool
-	Cleanup *AuthenticationCleanupSchedule
 
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
@@ -281,24 +298,12 @@ type StaticAuthenticationMethodInfo struct {
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
 	setEnabled func()
-	setCleanup func(AuthenticationCleanupSchedule)
 }
 
 // Enable can only be called in a testing scenario.
 // It is used to enable a target method without having a concrete reference.
 func (s StaticAuthenticationMethodInfo) Enable(t *testing.T) {
 	s.setEnabled()
-}
-
-// SetCleanup can only be called in a testing scenario.
-// It is used to configure cleanup for a target method without having a concrete reference.
-func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c AuthenticationCleanupSchedule) {
-	s.setCleanup(c)
-}
-
-// RequiresCleanup returns true if the method is enabled and requires cleanup.
-func (s StaticAuthenticationMethodInfo) RequiresCleanup() bool {
-	return s.Enabled && s.Cleanup != nil
 }
 
 // AuthenticationMethodInfo is a structure which describes properties
@@ -331,9 +336,8 @@ type AuthenticationMethodInfoProvider interface {
 // the AuthenticationMethodInfoProvider to be valid at compile time.
 // nolint:musttag
 type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
-	Method  C                              `mapstructure:",squash"`
-	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup,omitempty" yaml:"cleanup,omitempty"`
+	Method  C    `mapstructure:",squash"`
+	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 }
 
 func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
@@ -344,15 +348,11 @@ func (a *AuthenticationMethod[C]) info(ctx context.Context) StaticAuthentication
 	return StaticAuthenticationMethodInfo{
 		AuthenticationMethodInfo: a.Method.info(ctx),
 		Enabled:                  a.Enabled,
-		Cleanup:                  a.Cleanup,
 
 		setDefaults: a.setDefaults,
 		validate:    a.validate,
 		setEnabled: func() {
 			a.Enabled = true
-		},
-		setCleanup: func(c AuthenticationCleanupSchedule) {
-			a.Cleanup = &c
 		},
 	}
 }
@@ -481,12 +481,6 @@ func (a AuthenticationMethodOIDCProvider) validate() error {
 	}
 
 	return nil
-}
-
-// AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
-type AuthenticationCleanupSchedule struct {
-	Interval    time.Duration `json:"interval,omitempty" mapstructure:"interval" yaml:"interval,omitempty"`
-	GracePeriod time.Duration `json:"gracePeriod,omitempty" mapstructure:"grace_period" yaml:"grace_period,omitempty"`
 }
 
 // AuthenticationMethodKubernetesConfig contains the fields necessary for the Kubernetes authentication
