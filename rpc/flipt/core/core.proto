@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package flipt.core;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/core";
+
+/* Flag */
+
+enum FlagType {
+  VARIANT_FLAG_TYPE = 0;
+  BOOLEAN_FLAG_TYPE = 1;
+}
+
+message Flag {
+  string key = 1;
+  FlagType type = 2;
+  string name = 3;
+  string description = 4;
+  bool enabled = 5;
+  repeated Variant variants = 6;
+  repeated Rule rules = 7;
+  repeated Rollout rollouts = 8;
+  optional string default_variant = 9;
+}
+
+message Variant {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  optional google.protobuf.Value attachment = 4;
+}
+
+enum SegmentOperator {
+  OR_SEGMENT_OPERATOR = 0;
+  AND_SEGMENT_OPERATOR = 1;
+}
+
+message Rule {
+  SegmentOperator segment_operator = 1;
+  repeated string segments = 2;
+  repeated Distribution distributions = 3;
+}
+
+message Distribution {
+  string variant = 1;
+  float rollout = 2;
+}
+
+enum RolloutType {
+  UNKNOWN_ROLLOUT_TYPE = 0;
+  SEGMENT_ROLLOUT_TYPE = 1;
+  THRESHOLD_ROLLOUT_TYPE = 2;
+}
+
+message Rollout {
+  RolloutType type = 1;
+  string description = 2;
+  oneof rule {
+    RolloutSegment segment = 20;
+    RolloutThreshold threshold = 21;
+  }
+}
+
+message RolloutSegment {
+  bool value = 1;
+  repeated string segments = 2;
+  SegmentOperator segment_operator = 3;
+}
+
+message RolloutThreshold {
+  float percentage = 1;
+  bool value = 2;
+}
+
+/* Segment */
+
+message Segment {
+  string key = 1;
+  MatchType match_type = 2;
+  string name = 3;
+  string description = 4;
+  repeated Constraint constraints = 5;
+}
+
+enum MatchType {
+  ALL_MATCH_TYPE = 0;
+  ANY_MATCH_TYPE = 1;
+}
+
+enum ComparisonType {
+  UNKNOWN_COMPARISON_TYPE = 0;
+  STRING_COMPARISON_TYPE = 1;
+  NUMBER_COMPARISON_TYPE = 2;
+  BOOLEAN_COMPARISON_TYPE = 3;
+  DATETIME_COMPARISON_TYPE = 4;
+}
+
+message Constraint {
+  ComparisonType type = 1;
+  string property = 2;
+  string operator = 3;
+  string value = 4;
+  string description = 5;
+}

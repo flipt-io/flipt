@@ -223,7 +223,19 @@ func (g Go) Lint() error {
 func (g Go) Proto() error {
 	mg.Deps(Bootstrap)
 	fmt.Println("Generating proto files...")
-	return sh.RunV("buf", "generate")
+	for _, module := range []string{
+		"rpc/flipt",
+		"rpc/v2/environments",
+	} {
+		cmd := exec.Command("buf", "generate")
+		cmd.Dir = module
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Runs the Go unit tests
