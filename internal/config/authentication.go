@@ -193,7 +193,8 @@ const (
 )
 
 type AuthenticationSessionStorageConfig struct {
-	Type AuthenticationSessionStorageType `json:"type" mapstructure:"type" yaml:"type"`
+	Type  AuthenticationSessionStorageType        `json:"type" mapstructure:"type" yaml:"type"`
+	Redis AuthenticationSessionStorageRedisConfig `json:"redis,omitempty" mapstructure:"redis" yaml:"redis,omitempty"`
 }
 
 func (c AuthenticationSessionStorageConfig) validate() error {
