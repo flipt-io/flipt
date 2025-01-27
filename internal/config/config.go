@@ -409,7 +409,7 @@ func (c *Config) validate() error {
 		}
 
 		if _, exists := c.Storage[env.Storage]; !exists {
-			return fmt.Errorf("environment %q references undefined storage %q", envName, env.Storage)
+			return errString("environments", fmt.Sprintf("%q references undefined storage %q", envName, env.Storage))
 		}
 	}
 

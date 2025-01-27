@@ -748,6 +748,25 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/ui/topbar_invalid_color.yml",
 			wantErr: errors.New("ui: topbar expected valid hex color, got invalid"),
 		},
+		{
+			name:    "environments no matching storage",
+			path:    "./testdata/environments/no_matching_storage.yml",
+			wantErr: errors.New("environments: \"default\" references undefined storage \"non_existent\""),
+		},
+		{
+			name: "environments missing name",
+			path: "./testdata/environments/missing_name.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
