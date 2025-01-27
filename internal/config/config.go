@@ -402,6 +402,17 @@ func (c *Config) validate() error {
 		return errString("authorization", "requires authentication to also be required")
 	}
 
+	// Check that environment storage references exist in storage config
+	for envName, env := range c.Environments {
+		if env.Storage == "" {
+			continue
+		}
+
+		if _, exists := c.Storage[env.Storage]; !exists {
+			return fmt.Errorf("environment %q references undefined storage %q", envName, env.Storage)
+		}
+	}
+
 	return nil
 }
 
@@ -560,6 +571,23 @@ func Default() *Config {
 			HTTPPort:  8080,
 			HTTPSPort: 443,
 			GRPCPort:  9000,
+		},
+
+		Environments: EnvironmentsConfig{
+			"default": &EnvironmentConfig{
+				Name:    "default",
+				Storage: "default",
+			},
+		},
+
+		Storage: StoragesConfig{
+			"default": &StorageConfig{
+				Backend: StorageBackendConfig{
+					Type: "memory",
+				},
+				Branch:       "main",
+				PollInterval: 30 * time.Second,
+			},
 		},
 
 		Metrics: MetricsConfig{

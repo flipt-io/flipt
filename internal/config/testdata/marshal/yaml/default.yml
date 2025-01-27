@@ -29,6 +29,18 @@ server:
   grpc_port: 9000
   protocol: http
 
+environments:
+  default:
+    name: default
+    storage: default
+
+storage:
+  default:
+    backend:
+      type: memory
+    branch: main
+    poll_interval: 30s
+
 metrics:
   enabled: true
   exporter: prometheus

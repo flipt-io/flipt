@@ -15,8 +15,8 @@ var (
 
 type StoragesConfig map[string]*StorageConfig
 
-func (s StoragesConfig) validate() error {
-	for name, storage := range s {
+func (s *StoragesConfig) validate() error {
+	for name, storage := range *s {
 		if err := storage.validate(); err != nil {
 			return fmt.Errorf("storage %s: %w", name, err)
 		}
@@ -25,9 +25,14 @@ func (s StoragesConfig) validate() error {
 	return nil
 }
 
-func (s StoragesConfig) setDefaults(v *viper.Viper) error {
+func (s *StoragesConfig) setDefaults(v *viper.Viper) error {
 	storages, ok := v.AllSettings()["storage"].(map[string]any)
-	if !ok {
+	if !ok || len(storages) == 0 {
+		// Create default storage if no storages are configured
+		v.SetDefault("storage.default.name", "default")
+		v.SetDefault("storage.default.backend.type", "memory")
+		v.SetDefault("storage.default.branch", "main")
+		v.SetDefault("storage.default.poll_interval", "30s")
 		return nil
 	}
 
@@ -40,8 +45,7 @@ func (s StoragesConfig) setDefaults(v *viper.Viper) error {
 			v.SetDefault("storage."+name+"."+k, s)
 		}
 
-		// force name to map key
-		v.Set("storage."+name+".name", name)
+		setDefault("name", name)
 
 		switch getString("backend.type") {
 		case string(LocalStorageBackendType):
@@ -142,7 +146,7 @@ type GitBasicAuth struct {
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 
-func (b GitBasicAuth) validate() error {
+func (b *GitBasicAuth) validate() error {
 	if (b.Username != "" && b.Password == "") || (b.Username == "" && b.Password != "") {
 		return errors.New("both username and password need to be provided for basic auth")
 	}
@@ -168,7 +172,7 @@ type GitSSHAuth struct {
 	InsecureIgnoreHostKey bool   `json:"-" mapstructure:"insecure_ignore_host_key" yaml:"-"`
 }
 
-func (a GitSSHAuth) validate() (err error) {
+func (a *GitSSHAuth) validate() (err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("ssh authentication %w", err)
