@@ -25,6 +25,7 @@ const (
 	authTokenKeyPrefix = "auth:token:" //nolint:gosec
 	authMethodPrefix   = "auth:method:"
 	authAllKey         = "auth:all"
+	authCreatedAtIndex = "auth:index:created_at"
 	batchSize          = 1000
 )
 
@@ -93,10 +94,17 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	pipe.HSet(ctx, idKey, "authentication", v)
 	pipe.HSet(ctx, idKey, "token_hash", hashedToken)
 
+	// Add to sorted indexes for ordering
+	pipe.ZAdd(ctx, authCreatedAtIndex, goredis.Z{
+		Score:  float64(authentication.CreatedAt.AsTime().UnixNano()),
+		Member: authentication.Id,
+	})
+
 	// If expiry is set, add expiry time and set TTL
 	if authentication.ExpiresAt != nil {
 		pipe.HSet(ctx, idKey, "expires_at", authentication.ExpiresAt.AsTime().UnixNano())
 		pipe.ExpireAt(ctx, idKey, authentication.ExpiresAt.AsTime())
+		pipe.ExpireAt(ctx, authCreatedAtIndex, authentication.ExpiresAt.AsTime())
 	}
 
 	// Store token hash -> id mapping
@@ -248,6 +256,7 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 		}
 		pipe.SRem(ctx, authAllKey, id)
 		pipe.Del(ctx, authIDKey(id))
+		pipe.ZRem(ctx, authCreatedAtIndex, id)
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
@@ -355,23 +364,28 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		}
 	}
 
-	// Determine which set to scan based on method filter
-	var key string
+	// Determine which set to scan based on method and order
+	var (
+		ids  []string
+		err  error
+		next uint64
+	)
+
 	if req.Predicate.Method != nil {
-		key = fmt.Sprintf("auth:method:%s", req.Predicate.Method.String())
+		// If filtering by method, we need to use set intersection
+		ids, next, err = s.getOrderedIDsByMethod(ctx, req, cursor)
 	} else {
-		key = "auth:all"
+		// If no method filter, we can directly use the sorted sets
+		ids, next, err = s.getOrderedIDs(ctx, req, cursor)
 	}
 
-	// Scan the set with cursor pagination
-	ids, nextCursor, err := s.client.SScan(ctx, key, cursor, "*", int64(req.QueryParams.Limit)).Result()
 	if err != nil {
-		return set, fmt.Errorf("scanning authentications: %w", err)
+		return set, err
 	}
 
 	// Set next page token if there are more results
-	if nextCursor > 0 {
-		set.NextPageToken = strconv.FormatUint(nextCursor, 10)
+	if next > 0 {
+		set.NextPageToken = strconv.FormatUint(next, 10)
 	}
 
 	// Get authentication details for each ID
@@ -403,6 +417,88 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	}
 
 	return set, nil
+}
+
+func (s *Store) getOrderedIDs(ctx context.Context, req *storage.ListRequest[authn.ListAuthenticationsPredicate], cursor uint64) ([]string, uint64, error) {
+	var (
+		key = authCreatedAtIndex
+		ids []string
+		err error
+	)
+
+	// Use ZRANGE to get sorted results
+	opt := &goredis.ZRangeBy{
+		Min:    "-inf",
+		Max:    "+inf",
+		Offset: int64(cursor),
+		Count:  int64(req.QueryParams.Limit),
+	}
+
+	if req.QueryParams.Order == storage.OrderDesc {
+		ids, err = s.client.ZRevRangeByScore(ctx, key, opt).Result()
+	} else {
+		ids, err = s.client.ZRangeByScore(ctx, key, opt).Result()
+	}
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("getting ordered IDs: %w", err)
+	}
+
+	nextCursor := cursor + uint64(len(ids))
+	if uint64(len(ids)) < req.QueryParams.Limit {
+		nextCursor = 0 // no more results
+	}
+
+	return ids, nextCursor, nil
+}
+
+func (s *Store) getOrderedIDsByMethod(ctx context.Context, req *storage.ListRequest[authn.ListAuthenticationsPredicate], cursor uint64) ([]string, uint64, error) {
+	// For method filtering with ordering, we need to use a temporary sorted set
+	tempKey := fmt.Sprintf("auth:temp:%s", uuid.NewString())
+	defer s.client.Del(ctx, tempKey)
+
+	// Store intersection of method set and ordered set in temporary set
+	var (
+		orderKey  = authCreatedAtIndex
+		methodKey = authMethodKey(*req.Predicate.Method)
+	)
+
+	if err := s.client.ZInterStore(ctx, tempKey, &goredis.ZStore{
+		Keys:    []string{orderKey, methodKey},
+		Weights: []float64{1, 0}, // preserve scores from the order index
+	}).Err(); err != nil {
+		return nil, 0, fmt.Errorf("creating temporary sorted set: %w", err)
+	}
+
+	var (
+		// Now use the temporary set for ordered pagination
+		opt = &goredis.ZRangeBy{
+			Min:    "-inf",
+			Max:    "+inf",
+			Offset: int64(cursor),
+			Count:  int64(req.QueryParams.Limit),
+		}
+
+		ids []string
+		err error
+	)
+
+	if req.QueryParams.Order == storage.OrderDesc {
+		ids, err = s.client.ZRevRangeByScore(ctx, tempKey, opt).Result()
+	} else {
+		ids, err = s.client.ZRangeByScore(ctx, tempKey, opt).Result()
+	}
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("getting ordered IDs by method: %w", err)
+	}
+
+	nextCursor := cursor + uint64(len(ids))
+	if uint64(len(ids)) < req.QueryParams.Limit {
+		nextCursor = 0 // no more results
+	}
+
+	return ids, nextCursor, nil
 }
 
 // Shutdown implements authn.Store.
