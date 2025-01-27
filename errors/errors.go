@@ -98,6 +98,54 @@ func (e ErrUnauthorized) Error() string {
 	return string(e)
 }
 
+// ErrAlreadyExists is returned when attempting to create a resource that
+// already exists
+type ErrAlreadyExists string
+
+// ErrAlreadyExistsf is a convience function for producing ErrAlreadyExists
+var ErrAlreadyExistsf = NewErrorf[ErrAlreadyExists]
+
+// Error returns the underlying string of the error
+func (e ErrAlreadyExists) Error() string {
+	return string(e)
+}
+
+// ErrConflict is returned when an operation fails to be applied because the
+// underlying storage revision has advanced since the operations was first attempted
+type ErrConflict string
+
+// ErrConflictf is a convience function for producing ErrConflict
+var ErrConflictf = NewErrorf[ErrConflict]
+
+// Error returns the underlying string of the error
+func (e ErrConflict) Error() string {
+	return string(e)
+}
+
+// ErrNotImplemented is returned when an operation is attempted which is not supported
+// either because it is not yet implemented or because it has been disabled in Flipt
+type ErrNotImplemented string
+
+// ErrNotImplementedf is a convience function for producing ErrNotImplemented
+var ErrNotImplementedf = NewErrorf[ErrNotImplemented]
+
+// Error returns the underlying string of the error
+func (e ErrNotImplemented) Error() string {
+	return string(e)
+}
+
+// ErrNotModified is returned when a request is made containing an If-None-Match header
+// which matches the current digest for the given requested resource
+// It us up to the client to reuse a previous response in this situation
+type ErrNotModified string
+
+var ErrNotModifiedf = NewErrorf[ErrNotModified]
+
+// Error returns a formatted message of the underlying error string
+func (e ErrNotModified) Error() string {
+	return fmt.Sprintf("not modified: %q", string(e))
+}
+
 // StringError is any error that also happens to have an underlying type of string.
 type StringError interface {
 	error

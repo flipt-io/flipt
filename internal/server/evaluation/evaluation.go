@@ -17,6 +17,7 @@ import (
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -155,12 +156,12 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		}
 
 		switch rule.SegmentOperator {
-		case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+		case core.SegmentOperator_OR_SEGMENT_OPERATOR:
 			if segmentMatches < 1 {
 				s.logger.Debug("did not match ANY segments")
 				continue
 			}
-		case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+		case core.SegmentOperator_AND_SEGMENT_OPERATOR:
 			if len(rule.Segments) != segmentMatches {
 				s.logger.Debug("did not match ALL segments")
 				continue

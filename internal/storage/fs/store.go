@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.uber.org/zap"
 )
 
@@ -84,14 +84,14 @@ func (s *Store) String() string {
 	return path.Join("declarative", s.viewer.String())
 }
 
-func (s *Store) GetFlag(ctx context.Context, req storage.ResourceRequest) (flag *flipt.Flag, err error) {
+func (s *Store) GetFlag(ctx context.Context, req storage.ResourceRequest) (flag *core.Flag, err error) {
 	return flag, s.viewer.View(ctx, req.Reference, func(ss storage.ReadOnlyStore) error {
 		flag, err = ss.GetFlag(ctx, req)
 		return err
 	})
 }
 
-func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Flag], err error) {
+func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*core.Flag], err error) {
 	return set, s.viewer.View(ctx, req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
 		set, err = ss.ListFlags(ctx, req)
 		return err
@@ -101,48 +101,6 @@ func (s *Store) ListFlags(ctx context.Context, req *storage.ListRequest[storage.
 func (s *Store) CountFlags(ctx context.Context, p storage.NamespaceRequest) (count uint64, err error) {
 	return count, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
 		count, err = ss.CountFlags(ctx, p)
-		return err
-	})
-}
-
-func (s *Store) GetRule(ctx context.Context, p storage.NamespaceRequest, id string) (rule *flipt.Rule, err error) {
-	return rule, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
-		rule, err = ss.GetRule(ctx, p, id)
-		return err
-	})
-}
-
-func (s *Store) ListRules(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rule], err error) {
-	return set, s.viewer.View(ctx, req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListRules(ctx, req)
-		return err
-	})
-}
-
-func (s *Store) CountRules(ctx context.Context, flag storage.ResourceRequest) (count uint64, err error) {
-	return count, s.viewer.View(ctx, flag.Reference, func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountRules(ctx, flag)
-		return err
-	})
-}
-
-func (s *Store) GetSegment(ctx context.Context, p storage.ResourceRequest) (segment *flipt.Segment, err error) {
-	return segment, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
-		segment, err = ss.GetSegment(ctx, p)
-		return err
-	})
-}
-
-func (s *Store) ListSegments(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*flipt.Segment], err error) {
-	return set, s.viewer.View(ctx, req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListSegments(ctx, req)
-		return err
-	})
-}
-
-func (s *Store) CountSegments(ctx context.Context, p storage.NamespaceRequest) (count uint64, err error) {
-	return count, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountSegments(ctx, p)
 		return err
 	})
 }
@@ -164,161 +122,6 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, r storage.Resour
 func (s *Store) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) (rollouts []*storage.EvaluationRollout, err error) {
 	return rollouts, s.viewer.View(ctx, flag.Reference, func(ss storage.ReadOnlyStore) error {
 		rollouts, err = ss.GetEvaluationRollouts(ctx, flag)
-		return err
-	})
-}
-
-func (s *Store) GetNamespace(ctx context.Context, p storage.NamespaceRequest) (ns *flipt.Namespace, err error) {
-	return ns, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
-		ns, err = ss.GetNamespace(ctx, p)
-		return err
-	})
-}
-
-func (s *Store) ListNamespaces(ctx context.Context, req *storage.ListRequest[storage.ReferenceRequest]) (set storage.ResultSet[*flipt.Namespace], err error) {
-	return set, s.viewer.View(ctx, req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListNamespaces(ctx, req)
-		return err
-	})
-}
-
-func (s *Store) CountNamespaces(ctx context.Context, req storage.ReferenceRequest) (count uint64, err error) {
-	return count, s.viewer.View(ctx, req.Reference, func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountNamespaces(ctx, req)
-		return err
-	})
-}
-
-func (s *Store) GetRollout(ctx context.Context, p storage.NamespaceRequest, id string) (rollout *flipt.Rollout, err error) {
-	return rollout, s.viewer.View(ctx, p.Reference, func(ss storage.ReadOnlyStore) error {
-		rollout, err = ss.GetRollout(ctx, p, id)
-		return err
-	})
-}
-
-func (s *Store) ListRollouts(ctx context.Context, req *storage.ListRequest[storage.ResourceRequest]) (set storage.ResultSet[*flipt.Rollout], err error) {
-	return set, s.viewer.View(ctx, req.Predicate.Reference, func(ss storage.ReadOnlyStore) error {
-		set, err = ss.ListRollouts(ctx, req)
-		return err
-	})
-}
-
-func (s *Store) CountRollouts(ctx context.Context, flag storage.ResourceRequest) (count uint64, err error) {
-	return count, s.viewer.View(ctx, flag.Reference, func(ss storage.ReadOnlyStore) error {
-		count, err = ss.CountRollouts(ctx, flag)
-		return err
-	})
-}
-
-// unimplemented write paths below
-
-func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
-}
-
-func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
-	return ErrNotImplemented
-}
-
-func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (version string, err error) {
-	return version, s.viewer.View(ctx, ns.Reference, func(ss storage.ReadOnlyStore) error {
-		version, err = ss.GetVersion(ctx, ns)
 		return err
 	})
 }
