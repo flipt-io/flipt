@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	errs "errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -19,8 +20,29 @@ import (
 
 var _ authn.Store = (*Store)(nil)
 
+const (
+	authIDKeyPrefix    = "auth:id:"
+	authTokenKeyPrefix = "auth:token:" //nolint:gosec
+	authMethodPrefix   = "auth:method:"
+	authAllKey         = "auth:all"
+	batchSize          = 1000
+)
+
 type Store struct {
 	client *goredis.Client
+}
+
+// Helper functions to generate Redis keys
+func authIDKey(id string) string {
+	return authIDKeyPrefix + id
+}
+
+func authTokenKey(token string) string {
+	return authTokenKeyPrefix + token
+}
+
+func authMethodKey(method auth.Method) string {
+	return authMethodPrefix + method.String()
 }
 
 func NewStore(c *goredis.Client) *Store {
@@ -103,68 +125,38 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *authn.DeleteAuth
 		return fmt.Errorf("deleting authentications: %w", err)
 	}
 
-	// Get IDs to delete based on filters
-	var key = "auth:all"
+	// Determine source set based on method filter
+	sourceKey := authAllKey
 	if req.Method != nil {
-		key = fmt.Sprintf("auth:method:%s", req.Method.String())
+		sourceKey = authMethodKey(*req.Method)
 	}
 
-	var cursor uint64
-	var allIDs []string
+	ids, err := s.scanMatchingIDs(ctx, sourceKey, req)
+	if err != nil {
+		return err
+	}
 
-	// Scan all IDs that match the method filter with larger batch size
+	return s.deleteAuthenticationBatches(ctx, ids, req.Method)
+}
+
+func (s *Store) scanMatchingIDs(ctx context.Context, sourceKey string, req *authn.DeleteAuthenticationsRequest) ([]string, error) {
+	var (
+		cursor  uint64
+		allIDs  []string
+		pattern = "*"
+	)
+
 	for {
-		ids, nextCursor, err := s.client.SScan(ctx, key, cursor, "*", 1000).Result()
+		ids, nextCursor, err := s.client.SScan(ctx, sourceKey, cursor, pattern, batchSize).Result()
 		if err != nil {
-			return fmt.Errorf("scanning authentications: %w", err)
+			return nil, fmt.Errorf("scanning authentications: %w", err)
 		}
 
-		// If we have an ID filter, only keep that ID
-		if req.ID != nil {
-			for _, id := range ids {
-				if id == *req.ID {
-					allIDs = append(allIDs, id)
-					break
-				}
-			}
-		} else {
-			// If we have an ExpiredBefore filter, check expiry for each ID
-			if req.ExpiredBefore != nil {
-				// First pipeline: check expiries in batches
-				checkPipe := s.client.Pipeline()
-				expiryCmds := make([]*goredis.StringCmd, len(ids))
-
-				for i, id := range ids {
-					expiryCmds[i] = checkPipe.HGet(ctx, fmt.Sprintf("auth:id:%s", id), "expires_at")
-				}
-
-				if _, err := checkPipe.Exec(ctx); err != nil && err != goredis.Nil {
-					return fmt.Errorf("getting expiry times: %w", err)
-				}
-
-				// Filter IDs based on expiry
-				for i, id := range ids {
-					expiresAtStr, err := expiryCmds[i].Result()
-					if err == goredis.Nil {
-						continue // Skip if no expiry
-					}
-					if err != nil {
-						return fmt.Errorf("getting expiry time: %w", err)
-					}
-
-					expiresAt, err := strconv.ParseInt(expiresAtStr, 10, 64)
-					if err != nil {
-						return fmt.Errorf("parsing expiry time: %w", err)
-					}
-
-					if time.Unix(0, expiresAt).Before(req.ExpiredBefore.AsTime()) {
-						allIDs = append(allIDs, id)
-					}
-				}
-			} else {
-				allIDs = append(allIDs, ids...)
-			}
+		matchingIDs, err := s.filterIDs(ctx, ids, req)
+		if err != nil {
+			return nil, err
 		}
+		allIDs = append(allIDs, matchingIDs...)
 
 		if nextCursor == 0 {
 			break
@@ -172,44 +164,105 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *authn.DeleteAuth
 		cursor = nextCursor
 	}
 
-	// Delete in batches of 1000
-	for i := 0; i < len(allIDs); i += 1000 {
-		end := i + 1000
+	return allIDs, nil
+}
+
+func (s *Store) filterIDs(ctx context.Context, ids []string, req *authn.DeleteAuthenticationsRequest) ([]string, error) {
+	if req.ID != nil {
+		for _, id := range ids {
+			if id == *req.ID {
+				return []string{id}, nil
+			}
+		}
+		return nil, nil
+	}
+
+	if req.ExpiredBefore == nil {
+		return ids, nil
+	}
+
+	return s.filterExpiredIDs(ctx, ids, req.ExpiredBefore)
+}
+
+func (s *Store) filterExpiredIDs(ctx context.Context, ids []string, expiredBefore *timestamppb.Timestamp) ([]string, error) {
+	var (
+		pipe       = s.client.Pipeline()
+		expiryCmds = make([]*goredis.StringCmd, len(ids))
+	)
+
+	for i, id := range ids {
+		expiryCmds[i] = pipe.HGet(ctx, authIDKey(id), "expires_at")
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
+		return nil, fmt.Errorf("checking expiry times: %w", err)
+	}
+
+	var matchingIDs []string
+	for i, id := range ids {
+		expiresAtStr, err := expiryCmds[i].Result()
+		if errs.Is(err, goredis.Nil) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("getting expiry time: %w", err)
+		}
+
+		expiresAt, err := strconv.ParseInt(expiresAtStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parsing expiry time: %w", err)
+		}
+
+		if time.Unix(0, expiresAt).Before(expiredBefore.AsTime()) {
+			matchingIDs = append(matchingIDs, id)
+		}
+	}
+
+	return matchingIDs, nil
+}
+
+func (s *Store) deleteAuthenticationBatches(ctx context.Context, allIDs []string, method *auth.Method) error {
+	for i := 0; i < len(allIDs); i += batchSize {
+		end := i + batchSize
 		if end > len(allIDs) {
 			end = len(allIDs)
 		}
 
-		batch := allIDs[i:end]
-		pipe := s.client.Pipeline()
-		tokenCmds := make([]*goredis.StringCmd, len(batch))
-
-		for j, id := range batch {
-			// Get the token hash before deletion
-			tokenCmds[j] = pipe.HGet(ctx, fmt.Sprintf("auth:id:%s", id), "token_hash")
-			// Remove from method set if exists
-			if req.Method != nil {
-				pipe.SRem(ctx, fmt.Sprintf("auth:method:%s", req.Method.String()), id)
-			}
-			// Remove from all set
-			pipe.SRem(ctx, "auth:all", id)
-			// Delete the auth hash
-			pipe.Del(ctx, fmt.Sprintf("auth:id:%s", id))
+		if err := s.deleteAuthenticationBatch(ctx, allIDs[i:end], method); err != nil {
+			return err
 		}
+	}
+	return nil
+}
 
-		if _, err := pipe.Exec(ctx); err != nil {
-			return fmt.Errorf("deleting authentications: %w", err)
-		}
+func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, method *auth.Method) error {
+	var (
+		pipe      = s.client.Pipeline()
+		tokenCmds = make([]*goredis.StringCmd, len(ids))
+	)
 
-		pipe = s.client.Pipeline()
-		for j := range batch {
-			if tokenHash, err := tokenCmds[j].Result(); err == nil {
-				pipe.Del(ctx, fmt.Sprintf("auth:token:%s", tokenHash))
-			}
+	for i, id := range ids {
+		tokenCmds[i] = pipe.HGet(ctx, authIDKey(id), "token_hash")
+		if method != nil {
+			pipe.SRem(ctx, authMethodKey(*method), id)
 		}
+		pipe.SRem(ctx, authAllKey, id)
+		pipe.Del(ctx, authIDKey(id))
+	}
 
-		if _, err := pipe.Exec(ctx); err != nil {
-			return fmt.Errorf("deleting token mappings: %w", err)
+	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
+		return fmt.Errorf("deleting authentications: %w", err)
+	}
+
+	pipe = s.client.Pipeline()
+	for i := range ids {
+		if tokenHash, err := tokenCmds[i].Result(); err == nil {
+			pipe.Del(ctx, authTokenKey(tokenHash))
 		}
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
+		return fmt.Errorf("deleting token mappings: %w", err)
 	}
 
 	return nil
@@ -221,7 +274,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	idKey := fmt.Sprintf("auth:id:%s", id)
 	tokenHash, err := s.client.HGet(ctx, idKey, "token_hash").Result()
 	if err != nil {
-		if err == goredis.Nil {
+		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication by id")
 		}
 		return fmt.Errorf("getting authentication by id: %w", err)
@@ -255,7 +308,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	tokenKey := fmt.Sprintf("auth:token:%s", hashedToken)
 	id, err := s.client.Get(ctx, tokenKey).Result()
 	if err != nil {
-		if err == goredis.Nil {
+		if errs.Is(err, goredis.Nil) {
 			return nil, errors.ErrNotFoundf("getting authentication by token")
 		}
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
