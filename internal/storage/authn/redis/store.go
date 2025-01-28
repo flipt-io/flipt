@@ -78,11 +78,10 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 		return "", nil, fmt.Errorf("creating authentication: %w", err)
 	}
 
-	// Store authentication data in Redis hash
-	pipe := s.client.Pipeline()
-
-	// Store by ID for direct lookups
-	idKey := fmt.Sprintf("auth:id:%s", authentication.Id)
+	var (
+		pipe  = s.client.Pipeline()
+		idKey = fmt.Sprintf("auth:id:%s", authentication.Id)
+	)
 
 	v, err := protojson.Marshal(authentication)
 	if err != nil {

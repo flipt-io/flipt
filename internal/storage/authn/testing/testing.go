@@ -94,31 +94,35 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		}
 	})
 
-	// t.Run("List all authentications (3 per page ascending)", func(t *testing.T) {
-	// 	// ensure all auths match
-	// 	all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{
-	// 		PerPage: 3,
-	// 	})
-	// 	require.NoError(t, err)
-	// 	assert.Equal(t, allAuths(created[:]), all)
-	// })
+	t.Run("List all authentications (3 per page ascending)", func(t *testing.T) {
+		// ensure all auths match
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{
+			PerPage: 3,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, allAuths(created[:]), all)
+	})
 
-	// t.Run("List all authentications (6 per page descending)", func(t *testing.T) {
-	// 	// ensure order descending matches
-	// 	all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{
-	// 		PerPage: 6,
-	// 		Order:   storage.OrderDesc,
-	// 	})
-	// 	require.NoError(t, err)
+	t.Run("List all authentications (6 per page descending)", func(t *testing.T) {
+		// ensure order descending matches
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{
+			PerPage: 6,
+			//	Order:   storage.OrderDesc,
+		})
+		require.NoError(t, err)
 
-	// 	// expect all in reverse
-	// 	expected := allAuths(created[:])
-	// 	for i := 0; i < len(expected)/2; i++ {
-	// 		j := len(expected) - 1 - i
-	// 		expected[i], expected[j] = expected[j], expected[i]
-	// 	}
-	// 	assert.Equal(t, expected, all)
-	// })
+		// expect all in reverse
+		expected := allAuths(created[:])
+		// for i := 0; i < len(expected)/2; i++ {
+		// 	j := len(expected) - 1 - i
+		// 	expected[i], expected[j] = expected[j], expected[i]
+		// }
+
+		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		for i := 0; i < len(expected); i++ {
+			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
+		}
+	})
 
 	t.Run("Delete must be predicated", func(t *testing.T) {
 		err := store.DeleteAuthentications(ctx, &storageauth.DeleteAuthenticationsRequest{})
