@@ -45,12 +45,12 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 			// the first token will have a null expiration
 			var expires *timestamppb.Timestamp
 			if i > 0 {
-				// Set expiry times starting from now + 1000 hours
+				// Set expiry times starting from now + 100 hours
 				// Each subsequent token expires 1 hour later
 				// This ensures tokens are:
 				// 1. Far in the future (won't auto-expire)
 				// 2. Ordered sequentially (for testing deletion)
-				expires = timestamppb.New(time.Now().UTC().Add(time.Duration(1000+i) * time.Hour))
+				expires = timestamppb.New(time.Now().UTC().Add(time.Duration(100+i) * time.Hour))
 			}
 
 			token, auth, err := store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
@@ -107,11 +107,11 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// ensure order descending matches
 		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{
 			PerPage: 6,
-			//	Order:   storage.OrderDesc,
+			// TODO: ordering is not supported
+			// Order:   storage.OrderDesc,
 		})
 		require.NoError(t, err)
 
-		// expect all in reverse
 		expected := allAuths(created[:])
 		// for i := 0; i < len(expected)/2; i++ {
 		// 	j := len(expected) - 1 - i
@@ -135,6 +135,11 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		err := store.DeleteAuthentications(ctx, req)
 		require.NoError(t, err)
 
+		// there should now be 99 authentications left
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
+		require.NoError(t, err)
+		assert.Equal(t, 99, len(all), "number of authentications should match")
+
 		auth, err := store.GetAuthenticationByClientToken(ctx, created[99].Token)
 		var expected errors.ErrNotFound
 		require.ErrorAs(t, err, &expected, "authentication still exists in the database")
@@ -142,10 +147,10 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 	})
 
 	t.Run("Delete by method Token with before expired constraint", func(t *testing.T) {
-		// Delete tokens with indices [1,50] by using expiry of now + 1050 hours
+		// Delete tokens with indices [1,50] by using expiry of now + 150 hours
 		req := storageauth.Delete(
 			storageauth.WithMethod(auth.Method_METHOD_TOKEN),
-			storageauth.WithExpiredBefore(time.Now().UTC().Add(1051*time.Hour)),
+			storageauth.WithExpiredBefore(time.Now().UTC().Add(150*time.Hour)),
 		)
 
 		err := store.DeleteAuthentications(
@@ -154,21 +159,24 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		)
 		require.NoError(t, err)
 
-		_, err = storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
+		// there should now be 49 authentications left
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
+		assert.Equal(t, 49, len(all), "number of authentications should match")
 
-		// TODO: this is slow so we comment it out
-		// // ensure only the most recent 49 expires_at timestamped authentications remain
-		// // along with the first authentication without an expiry
-		// if !assert.Equal(t, allAuths(append(created[:1], created[50:99]...)), all) {
-		// 	fmt.Println("Found:", len(all))
-		// }
+		// ensure only the most recent 49 expires_at timestamped authentications remain
+		// along with the first authentication without an expiry
+		expected := allAuths(append(created[:1], created[51:99]...))
+		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		for i := 0; i < len(expected); i++ {
+			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
+		}
 	})
 
 	t.Run("Delete any token type before expired constraint", func(t *testing.T) {
-		// Delete tokens with indices [1,75] by using expiry of now + 1075 hours
+		// Delete tokens with indices [1,75] by using expiry of now + 175 hours
 		req := storageauth.Delete(
-			storageauth.WithExpiredBefore(time.Now().UTC().Add(1076 * time.Hour)),
+			storageauth.WithExpiredBefore(time.Now().UTC().Add(175 * time.Hour)),
 		)
 
 		err := store.DeleteAuthentications(
@@ -177,14 +185,16 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		)
 		require.NoError(t, err)
 
-		_, err = storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
+		// there should now be 24 authentications left
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
+		assert.Equal(t, 24, len(all), "number of authentications should match")
 
-		// TODO: this is slow so we comment it out
-		// ensure only the most recent 25 expires_at timestamped authentications remain
-		// if !assert.Equal(t, allAuths(append(created[:1], created[75:99]...)), all) {
-		// 	fmt.Println("Found:", len(all))
-		// }
+		expected := allAuths(append(created[:1], created[76:99]...))
+		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		for i := 0; i < len(expected); i++ {
+			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
+		}
 	})
 
 	t.Run("Delete the rest of the tokens with an expiration", func(t *testing.T) {

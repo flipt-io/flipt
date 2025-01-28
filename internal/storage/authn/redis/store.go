@@ -94,7 +94,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 
 	// If expiry is set, add expiry time and set TTL
 	if authentication.ExpiresAt != nil {
-		pipe.HSet(ctx, idKey, "expires_at", authentication.ExpiresAt.AsTime().UnixNano())
+		pipe.HSet(ctx, idKey, "expires_at", authentication.ExpiresAt.AsTime().Unix())
 		pipe.ExpireAt(ctx, idKey, authentication.ExpiresAt.AsTime())
 	}
 
@@ -212,7 +212,7 @@ func (s *Store) filterExpiredIDs(ctx context.Context, ids []string, expiredBefor
 			return nil, fmt.Errorf("parsing expiry time: %w", err)
 		}
 
-		if time.Unix(0, expiresAt).Before(expiredBefore.AsTime()) {
+		if time.Unix(expiresAt, 0).Before(expiredBefore.AsTime()) {
 			matchingIDs = append(matchingIDs, id)
 		}
 	}
