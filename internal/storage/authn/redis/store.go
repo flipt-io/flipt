@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/authn"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -36,11 +37,12 @@ const (
 )
 
 type Store struct {
-	client *goredis.Client
-
-	now           func() *timestamppb.Timestamp
-	generateID    func() string
-	generateToken func() string
+	client             *goredis.Client
+	logger             *zap.Logger
+	now                func() *timestamppb.Timestamp
+	generateID         func() string
+	generateToken      func() string
+	cleanupGracePeriod time.Duration
 }
 
 // Helper functions to generate Redis keys
@@ -59,12 +61,14 @@ func authMethodKey(method auth.Method) string {
 // Option is a type which configures a *Store
 type Option func(*Store)
 
-func NewStore(c *goredis.Client, opts ...Option) *Store {
+func NewStore(c *goredis.Client, logger *zap.Logger, opts ...Option) *Store {
 	store := &Store{
-		client:        c,
-		now:           rpcflipt.Now,
-		generateID:    uuid.NewString,
-		generateToken: authn.GenerateRandomToken,
+		client:             c,
+		logger:             logger,
+		now:                rpcflipt.Now,
+		generateID:         uuid.NewString,
+		generateToken:      authn.GenerateRandomToken,
+		cleanupGracePeriod: 30 * time.Minute,
 	}
 
 	for _, opt := range opts {
@@ -99,6 +103,14 @@ func WithTokenGeneratorFunc(fn func() string) Option {
 func WithIDGeneratorFunc(fn func() string) Option {
 	return func(s *Store) {
 		s.generateID = fn
+	}
+}
+
+// WithCleanupGracePeriod overrides the stores cleanup grace period
+// used to set the TTL on authentication records.
+func WithCleanupGracePeriod(t time.Duration) Option {
+	return func(s *Store) {
+		s.cleanupGracePeriod = t
 	}
 }
 
@@ -148,14 +160,14 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	// If expiry is set, add expiry time and set TTL
 	if authentication.ExpiresAt != nil {
 		pipe.HSet(ctx, idKey, expiresAtKey, authentication.ExpiresAt.AsTime().Unix())
-		pipe.ExpireAt(ctx, idKey, authentication.ExpiresAt.AsTime())
+		pipe.ExpireAt(ctx, idKey, authentication.ExpiresAt.AsTime().Add(s.cleanupGracePeriod))
 	}
 
 	// Store token hash -> id mapping
 	tokenKey := authTokenKey(hashedToken)
 	pipe.Set(ctx, tokenKey, authentication.Id, 0)
 	if authentication.ExpiresAt != nil {
-		pipe.ExpireAt(ctx, tokenKey, authentication.ExpiresAt.AsTime())
+		pipe.ExpireAt(ctx, tokenKey, authentication.ExpiresAt.AsTime().Add(s.cleanupGracePeriod))
 	}
 
 	// Add to the set of all authentications for listing
@@ -337,9 +349,9 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	// Update expiry in hash
 	pipe.HSet(ctx, idKey, expiresAtKey, expireAt.AsTime().UnixNano())
 
-	// Set TTL on both ID and token hash keys
-	pipe.ExpireAt(ctx, idKey, expireAt.AsTime())
-	pipe.ExpireAt(ctx, authTokenKey(tokenHash), expireAt.AsTime())
+	// Set TTL on both ID and token hash keys, adding the grace period
+	pipe.ExpireAt(ctx, idKey, expireAt.AsTime().Add(s.cleanupGracePeriod))
+	pipe.ExpireAt(ctx, authTokenKey(tokenHash), expireAt.AsTime().Add(s.cleanupGracePeriod))
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("updating authentication expiry: %w", err)

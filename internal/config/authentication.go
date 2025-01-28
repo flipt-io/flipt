@@ -193,18 +193,35 @@ const (
 )
 
 type AuthenticationSessionStorageConfig struct {
-	Type  AuthenticationSessionStorageType        `json:"type" mapstructure:"type" yaml:"type"`
-	Redis AuthenticationSessionStorageRedisConfig `json:"redis,omitempty" mapstructure:"redis" yaml:"redis,omitempty"`
+	Type    AuthenticationSessionStorageType          `json:"type" mapstructure:"type" yaml:"type"`
+	Redis   AuthenticationSessionStorageRedisConfig   `json:"redis,omitempty" mapstructure:"redis" yaml:"redis,omitempty"`
+	Cleanup AuthenticationSessionStorageCleanupConfig `json:"cleanup,omitempty" mapstructure:"cleanup" yaml:"cleanup,omitempty"`
 }
 
 func (c AuthenticationSessionStorageConfig) validate() error {
-	return nil
+	return c.Cleanup.validate()
 }
 
 func (c AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("authentication.session.storage", map[string]any{
 		"type": "memory",
+		"cleanup": map[string]any{
+			"grace_period": "30m",
+		},
 	})
+
+	return nil
+}
+
+// AuthenticationSessionStorageCleanupConfig configures the schedule for cleaning up expired authentication records.
+type AuthenticationSessionStorageCleanupConfig struct {
+	GracePeriod time.Duration `json:"gracePeriod,omitempty" mapstructure:"grace_period" yaml:"grace_period,omitempty"`
+}
+
+func (c AuthenticationSessionStorageCleanupConfig) validate() error {
+	if c.GracePeriod < 0 {
+		return errFieldPositiveDuration("", "cleanup_grace_period")
+	}
 
 	return nil
 }

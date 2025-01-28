@@ -26,6 +26,7 @@ import (
 	"go.flipt.io/flipt/internal/server/authn/public"
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
+	storageauthredis "go.flipt.io/flipt/internal/storage/authn/redis"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -35,13 +36,23 @@ func getAuthStore(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-) (storageauth.Store, func(context.Context) error, error) {
+) (storageauth.Store, error) {
+
 	var (
-		store    storageauth.Store = storageauthmemory.NewStore()
-		shutdown                   = func(context.Context) error { return nil }
+		cleanupGracePeriod                   = cfg.Authentication.Session.Storage.Cleanup.GracePeriod
+		store              storageauth.Store = storageauthmemory.NewStore(logger, storageauthmemory.WithCleanupGracePeriod(cleanupGracePeriod))
 	)
 
-	return store, shutdown, nil
+	if cfg.Authentication.Session.Storage.Type == config.AuthenticationSessionStorageTypeRedis {
+		rdb, err := storageauthredis.NewClient(cfg.Authentication.Session.Storage.Redis)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create redis client: %w", err)
+		}
+
+		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod))
+	}
+
+	return store, nil
 }
 
 func authenticationGRPC(
@@ -61,14 +72,16 @@ func authenticationGRPC(
 	if !authCfg.Enabled() {
 		return grpcRegisterers{
 			public.NewServer(logger, authCfg),
-			authn.NewServer(logger, storageauthmemory.NewStore()),
+			authn.NewServer(logger, storageauthmemory.NewStore(logger)),
 		}, nil, shutdown, nil
 	}
 
-	store, shutdown, err := getAuthStore(ctx, logger, cfg)
+	store, err := getAuthStore(ctx, logger, cfg)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
+	shutdown = store.Shutdown
 
 	var (
 		authServer   = authn.NewServer(logger, store)

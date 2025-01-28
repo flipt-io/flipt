@@ -13,6 +13,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/internal/storage/authn"
 	authtesting "go.flipt.io/flipt/internal/storage/authn/testing"
+	"go.uber.org/zap"
 )
 
 type redisContainer struct {
@@ -87,6 +88,6 @@ func TestAuthenticationStoreRedis(t *testing.T) {
 	})
 
 	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) authn.Store {
-		return NewStore(rdb)
+		return NewStore(rdb, zap.NewNop())
 	})
 }
