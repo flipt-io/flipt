@@ -30,6 +30,10 @@ const (
 
 type Store struct {
 	client *goredis.Client
+
+	now           func() *timestamppb.Timestamp
+	generateID    func() string
+	generateToken func() string
 }
 
 // Helper functions to generate Redis keys
@@ -45,8 +49,50 @@ func authMethodKey(method auth.Method) string {
 	return authMethodPrefix + method.String()
 }
 
-func NewStore(c *goredis.Client) *Store {
-	return &Store{client: c}
+// Option is a type which configures a *Store
+type Option func(*Store)
+
+func NewStore(c *goredis.Client, opts ...Option) *Store {
+	store := &Store{
+		client:        c,
+		now:           rpcflipt.Now,
+		generateID:    uuid.NewString,
+		generateToken: authn.GenerateRandomToken,
+	}
+
+	for _, opt := range opts {
+		opt(store)
+	}
+
+	return store
+}
+
+// WithNowFunc overrides the stores now() function used to obtain
+// a protobuf timestamp representative of the current time of evaluation.
+func WithNowFunc(fn func() *timestamppb.Timestamp) Option {
+	return func(s *Store) {
+		s.now = fn
+	}
+}
+
+// WithTokenGeneratorFunc overrides the stores token generator function
+// used to generate new random token strings as client tokens, when
+// creating new instances of Authentication.
+// The default is a pseudo-random string of bytes base64 encoded.
+func WithTokenGeneratorFunc(fn func() string) Option {
+	return func(s *Store) {
+		s.generateToken = fn
+	}
+}
+
+// WithIDGeneratorFunc overrides the stores ID generator function
+// used to generate new random ID strings, when creating new instances
+// of Authentications.
+// The default is a string containing a valid UUID (V4).
+func WithIDGeneratorFunc(fn func() string) Option {
+	return func(s *Store) {
+		s.generateID = fn
+	}
 }
 
 // CreateAuthentication implements authn.Store.
@@ -56,10 +102,10 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	}
 
 	var (
-		now            = rpcflipt.Now()
+		now            = s.now()
 		clientToken    = r.ClientToken
 		authentication = &auth.Authentication{
-			Id:        uuid.NewString(),
+			Id:        s.generateID(),
 			Method:    r.Method,
 			Metadata:  r.Metadata,
 			ExpiresAt: r.ExpiresAt,
@@ -70,7 +116,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 
 	// if no client token is provided, generate a new one
 	if clientToken == "" {
-		clientToken = authn.GenerateRandomToken()
+		clientToken = s.generateToken()
 	}
 
 	hashedToken, err := authn.HashClientToken(clientToken)
