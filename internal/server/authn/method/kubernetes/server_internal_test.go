@@ -87,7 +87,7 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			var (
-				store = memory.NewStore(
+				store = memory.NewStore(logger,
 					memory.WithIDGeneratorFunc(func() string { return staticID }),
 					memory.WithTokenGeneratorFunc(func() string { return staticToken }),
 					memory.WithNowFunc(func() *timestamppb.Timestamp { return staticTime }),

@@ -692,7 +692,7 @@ func newTestServer(t *testing.T, cfg config.AuthenticationMethod[config.Authenti
 
 	auth.RegisterAuthenticationMethodGithubServiceServer(server, &Server{
 		logger: zaptest.NewLogger(t),
-		store:  memory.NewStore(),
+		store:  memory.NewStore(zaptest.NewLogger(t)),
 		config: config.AuthenticationConfig{
 			Methods: config.AuthenticationMethodsConfig{
 				Github: cfg,

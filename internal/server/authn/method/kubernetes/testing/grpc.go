@@ -34,7 +34,7 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 	t.Helper()
 
 	var (
-		store    = memory.NewStore()
+		store    = memory.NewStore(logger)
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
