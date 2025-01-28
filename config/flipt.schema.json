@@ -149,6 +149,16 @@
                     "type": {
                       "type": "string",
                       "enum": ["memory"]
+                    },
+                    "cleanup": {
+                      "type": "object",
+                      "properties": {
+                        "grace_period": {
+                          "type": "string",
+                          "default": "30m",
+                          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                        }
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -159,6 +169,16 @@
                     "type": {
                       "type": "string",
                       "enum": ["redis"]
+                    },
+                    "cleanup": {
+                      "type": "object",
+                      "properties": {
+                        "grace_period": {
+                          "type": "string",
+                          "default": "30m",
+                          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                        }
+                      }
                     },
                     "redis": {
                       "type": "object",

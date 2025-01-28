@@ -46,6 +46,9 @@ import "list"
 
 			storage?: *{
 				type:     "memory"
+				cleanup?: {
+					grace_period?: =~#duration | int | *"30m"
+				}
 			} | {
 				type:     "redis"
 				redis?: {
@@ -63,8 +66,12 @@ import "list"
 					ca_cert_bytes?:      string
 					insecure_skip_tls?:  bool | *false
 				}
+				cleanup?: {
+					grace_period?: =~#duration | int | *"30m"
+				}
 			}
 		}
+
 
 		methods?: {
 			token?: {
