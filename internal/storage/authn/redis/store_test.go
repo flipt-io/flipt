@@ -48,7 +48,7 @@ func setupRedis(ctx context.Context) (*redisContainer, error) {
 	return &redisContainer{Container: container, host: hostIP, port: mappedPort.Port()}, nil
 }
 
-func TestAuthenticationStoreHarness(t *testing.T) {
+func TestAuthenticationStoreRedis(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode")
 	}
