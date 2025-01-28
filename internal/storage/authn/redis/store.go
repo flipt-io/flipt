@@ -25,7 +25,14 @@ const (
 	authTokenKeyPrefix = "auth:token:" //nolint:gosec
 	authMethodPrefix   = "auth:method:"
 	authAllKey         = "auth:all"
-	batchSize          = 1000
+
+	allPattern = "*"
+
+	authenticationKey = "authentication"
+	tokenHashKey      = "token_hash"
+	expiresAtKey      = "expires_at"
+
+	batchSize = 1000
 )
 
 type Store struct {
@@ -126,7 +133,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 
 	var (
 		pipe  = s.client.Pipeline()
-		idKey = fmt.Sprintf("auth:id:%s", authentication.Id)
+		idKey = authIDKey(authentication.Id)
 	)
 
 	v, err := protojson.Marshal(authentication)
@@ -135,27 +142,27 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	}
 
 	// Store authentication data in Redis hash
-	pipe.HSet(ctx, idKey, "authentication", v)
-	pipe.HSet(ctx, idKey, "token_hash", hashedToken)
+	pipe.HSet(ctx, idKey, authenticationKey, v)
+	pipe.HSet(ctx, idKey, tokenHashKey, hashedToken)
 
 	// If expiry is set, add expiry time and set TTL
 	if authentication.ExpiresAt != nil {
-		pipe.HSet(ctx, idKey, "expires_at", authentication.ExpiresAt.AsTime().Unix())
+		pipe.HSet(ctx, idKey, expiresAtKey, authentication.ExpiresAt.AsTime().Unix())
 		pipe.ExpireAt(ctx, idKey, authentication.ExpiresAt.AsTime())
 	}
 
 	// Store token hash -> id mapping
-	tokenKey := fmt.Sprintf("auth:token:%s", hashedToken)
+	tokenKey := authTokenKey(hashedToken)
 	pipe.Set(ctx, tokenKey, authentication.Id, 0)
 	if authentication.ExpiresAt != nil {
 		pipe.ExpireAt(ctx, tokenKey, authentication.ExpiresAt.AsTime())
 	}
 
 	// Add to the set of all authentications for listing
-	pipe.SAdd(ctx, "auth:all", authentication.Id)
+	pipe.SAdd(ctx, authAllKey, authentication.Id)
 
 	// Add to method index for filtering
-	pipe.SAdd(ctx, fmt.Sprintf("auth:method:%s", authentication.Method.String()), authentication.Id)
+	pipe.SAdd(ctx, authMethodKey(authentication.Method), authentication.Id)
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return "", nil, fmt.Errorf("storing authentication: %w", err)
@@ -186,13 +193,12 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *authn.DeleteAuth
 
 func (s *Store) scanMatchingIDs(ctx context.Context, sourceKey string, req *authn.DeleteAuthenticationsRequest) ([]string, error) {
 	var (
-		cursor  uint64
-		allIDs  []string
-		pattern = "*"
+		cursor uint64
+		allIDs []string
 	)
 
 	for {
-		ids, nextCursor, err := s.client.SScan(ctx, sourceKey, cursor, pattern, batchSize).Result()
+		ids, nextCursor, err := s.client.SScan(ctx, sourceKey, cursor, allPattern, batchSize).Result()
 		if err != nil {
 			return nil, fmt.Errorf("scanning authentications: %w", err)
 		}
@@ -236,7 +242,7 @@ func (s *Store) filterExpiredIDs(ctx context.Context, ids []string, expiredBefor
 	)
 
 	for i, id := range ids {
-		expiryCmds[i] = pipe.HGet(ctx, authIDKey(id), "expires_at")
+		expiryCmds[i] = pipe.HGet(ctx, authIDKey(id), expiresAtKey)
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
@@ -287,7 +293,7 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 	)
 
 	for i, id := range ids {
-		tokenCmds[i] = pipe.HGet(ctx, authIDKey(id), "token_hash")
+		tokenCmds[i] = pipe.HGet(ctx, authIDKey(id), tokenHashKey)
 		if method != nil {
 			pipe.SRem(ctx, authMethodKey(*method), id)
 		}
@@ -316,8 +322,8 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 // ExpireAuthenticationByID implements authn.Store.
 func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	// Get the token hash first
-	idKey := fmt.Sprintf("auth:id:%s", id)
-	tokenHash, err := s.client.HGet(ctx, idKey, "token_hash").Result()
+	idKey := authIDKey(id)
+	tokenHash, err := s.client.HGet(ctx, idKey, tokenHashKey).Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
 			return errors.ErrNotFoundf("getting authentication by id")
@@ -329,11 +335,11 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	pipe := s.client.Pipeline()
 
 	// Update expiry in hash
-	pipe.HSet(ctx, idKey, "expires_at", expireAt.AsTime().UnixNano())
+	pipe.HSet(ctx, idKey, expiresAtKey, expireAt.AsTime().UnixNano())
 
 	// Set TTL on both ID and token hash keys
 	pipe.ExpireAt(ctx, idKey, expireAt.AsTime())
-	pipe.ExpireAt(ctx, fmt.Sprintf("auth:token:%s", tokenHash), expireAt.AsTime())
+	pipe.ExpireAt(ctx, authTokenKey(tokenHash), expireAt.AsTime())
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("updating authentication expiry: %w", err)
@@ -350,7 +356,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	}
 
 	// Get ID from token hash
-	tokenKey := fmt.Sprintf("auth:token:%s", hashedToken)
+	tokenKey := authTokenKey(hashedToken)
 	id, err := s.client.Get(ctx, tokenKey).Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
@@ -364,7 +370,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 // GetAuthenticationByID implements authn.Store.
 func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
-	idKey := fmt.Sprintf("auth:id:%s", id)
+	idKey := authIDKey(id)
 	result, err := s.client.HGetAll(ctx, idKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("getting authentication by id: %w", err)
@@ -374,7 +380,7 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Aut
 	}
 
 	auth := &auth.Authentication{}
-	if err := protojson.Unmarshal([]byte(result["authentication"]), auth); err != nil {
+	if err := protojson.Unmarshal([]byte(result[authenticationKey]), auth); err != nil {
 		return nil, fmt.Errorf("unmarshalling authentication: %w", err)
 	}
 
@@ -401,15 +407,13 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	}
 
 	// Determine which set to scan based on method filter
-	var key string
+	var key = authAllKey
 	if req.Predicate.Method != nil {
-		key = fmt.Sprintf("auth:method:%s", req.Predicate.Method.String())
-	} else {
-		key = "auth:all"
+		key = authMethodKey(*req.Predicate.Method)
 	}
 
 	// Scan the set with cursor pagination
-	ids, nextCursor, err := s.client.SScan(ctx, key, cursor, "*", int64(req.QueryParams.Limit)).Result()
+	ids, nextCursor, err := s.client.SScan(ctx, key, cursor, allPattern, int64(req.QueryParams.Limit)).Result()
 	if err != nil {
 		return set, fmt.Errorf("scanning authentications: %w", err)
 	}
@@ -424,7 +428,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	cmds := make(map[string]*goredis.MapStringStringCmd, len(ids))
 
 	for _, id := range ids {
-		cmds[id] = pipe.HGetAll(ctx, fmt.Sprintf("auth:id:%s", id))
+		cmds[id] = pipe.HGetAll(ctx, authIDKey(id))
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
@@ -440,7 +444,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		}
 
 		auth := &auth.Authentication{}
-		if err := protojson.Unmarshal([]byte(result["authentication"]), auth); err != nil {
+		if err := protojson.Unmarshal([]byte(result[authenticationKey]), auth); err != nil {
 			return set, fmt.Errorf("unmarshalling authentication: %w", err)
 		}
 
