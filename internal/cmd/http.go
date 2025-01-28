@@ -111,12 +111,6 @@ func NewHTTPServer(
 		logger.Debug("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
-	// set additional headers enabling the UI to be served securely
-	// ie: Content-Security-Policy, X-Content-Type-Options, etc.
-	for k, v := range ui.AdditionalHeaders() {
-		r.Use(middleware.SetHeader(k, v))
-	}
-
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(func(h http.Handler) http.Handler {
@@ -209,7 +203,16 @@ func NewHTTPServer(
 		return nil, fmt.Errorf("mounting ui: %w", err)
 	}
 
-	r.Mount("/", http.FileServer(http.FS(fs)))
+	r.With(func(next http.Handler) http.Handler {
+		// set additional headers enabling the UI to be served securely
+		// ie: Content-Security-Policy, X-Content-Type-Options, etc.
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			for k, v := range ui.AdditionalHeaders() {
+				w.Header().Set(k, v)
+			}
+			next.ServeHTTP(w, r)
+		})
+	}).Mount("/", http.FileServer(http.FS(fs)))
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
