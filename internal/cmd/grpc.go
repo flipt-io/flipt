@@ -223,7 +223,6 @@ func NewGRPCServer(
 		ctx,
 		logger,
 		cfg,
-		forceMigrate,
 		authnOpts...,
 	)
 	if err != nil {

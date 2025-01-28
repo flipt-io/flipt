@@ -24,7 +24,7 @@ import (
 func TestServer(t *testing.T) {
 	var (
 		logger   = zaptest.NewLogger(t)
-		store    = memory.NewStore()
+		store    = memory.NewStore(logger)
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(

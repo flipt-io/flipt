@@ -38,6 +38,7 @@ type Store interface {
 	DeleteAuthentications(context.Context, *DeleteAuthenticationsRequest) error
 	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
+	Shutdown(context.Context) error
 }
 
 // CreateAuthenticationRequest is the argument passed when creating instances

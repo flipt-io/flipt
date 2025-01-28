@@ -151,7 +151,14 @@
                       "enum": ["memory"]
                     },
                     "cleanup": {
-                      "$ref": "#/definitions/storage_cleanup"
+                      "type": "object",
+                      "properties": {
+                        "grace_period": {
+                          "type": "string",
+                          "default": "30m",
+                          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                        }
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -164,9 +171,16 @@
                       "enum": ["redis"]
                     },
                     "cleanup": {
-                      "$ref": "#/definitions/storage_cleanup"
+                      "type": "object",
+                      "properties": {
+                        "grace_period": {
+                          "type": "string",
+                          "default": "30m",
+                          "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                        }
+                      }
                     },
-                    "connection": {
+                    "redis": {
                       "type": "object",
                       "properties": {
                         "host": {
@@ -996,35 +1010,6 @@
     }
   },
   "definitions": {
-    "storage_cleanup": {
-      "type": "object",
-      "properties": {
-        "interval": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "default": "1h"
-        },
-        "grace_period": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "default": "30m"
-        }
-      }
-    },
     "authentication_oidc_provider": {
       "type": "object",
       "properties": {
