@@ -24,7 +24,7 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/metrics"
 	fliptserver "go.flipt.io/flipt/internal/server"
-	analytics "go.flipt.io/flipt/internal/server/analytics"
+	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/analytics/prometheus"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -49,6 +49,11 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.flipt.io/flipt/internal/tracing"
+	rpcflipt "go.flipt.io/flipt/rpc/flipt"
+	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcmeta "go.flipt.io/flipt/rpc/flipt/meta"
+	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
@@ -72,31 +77,16 @@ import (
 	goredis_cache "github.com/go-redis/cache/v9"
 )
 
-type grpcRegister interface {
-	RegisterGRPC(*grpc.Server)
-}
-
-type grpcRegisterers []grpcRegister
-
-func (g *grpcRegisterers) Add(r grpcRegister) {
-	*g = append(*g, r)
-}
-
-func (g grpcRegisterers) RegisterGRPC(s *grpc.Server) {
-	for _, register := range g {
-		register.RegisterGRPC(s)
-	}
-}
-
 // GRPCServer configures the dependencies associated with the Flipt GRPC Service.
 // It provides an entrypoint to start serving the gRPC stack (Run()).
 // Along with a teardown function (Shutdown(ctx)).
 type GRPCServer struct {
 	*grpc.Server
 
-	logger *zap.Logger
-	cfg    *config.Config
-	ln     net.Listener
+	logger    *zap.Logger
+	cfg       *config.Config
+	ln        net.Listener
+	registrar grpc.ServiceRegistrar
 
 	shutdownFuncs []func(context.Context) error
 }
@@ -108,6 +98,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
+	registrar grpc.ServiceRegistrar,
 	info info.Flipt,
 	forceMigrate bool,
 ) (*GRPCServer, error) {
@@ -296,10 +287,11 @@ func NewGRPCServer(
 		tokenDeletedEnabled = checker.Check("token:deleted")
 	}
 
-	register, authInterceptors, authShutdown, err := authenticationGRPC(
+	authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
+		registrar,
 		forceMigrate,
 		tokenDeletedEnabled,
 		authnOpts...,
@@ -325,26 +317,24 @@ func NewGRPCServer(
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
 			})
-			analyticssrv := analytics.New(logger, client)
-			register.Add(analyticssrv)
+			rpcanalytics.RegisterAnalyticsServiceServer(registrar, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 		} else if cfg.Analytics.Storage.Prometheus.Enabled {
 			client, err := prometheus.New(logger, cfg)
 			if err != nil {
 				return nil, err
 			}
-			analyticssrv := analytics.New(logger, client)
-			register.Add(analyticssrv)
+			rpcanalytics.RegisterAnalyticsServiceServer(registrar, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()))
 		}
 	}
 
-	// initialize servers
-	register.Add(fliptsrv)
-	register.Add(metasrv)
-	register.Add(evalsrv)
-	register.Add(evaldatasrv)
-	register.Add(ofrepsrv)
+	// register servers
+	rpcflipt.RegisterFliptServer(registrar, fliptsrv)
+	rpcmeta.RegisterMetadataServiceServer(registrar, metasrv)
+	rpcevaluation.RegisterEvaluationServiceServer(registrar, evalsrv)
+	rpcevaluation.RegisterDataServiceServer(registrar, evaldatasrv)
+	rpcoffrep.RegisterOFREPServiceServer(registrar, ofrepsrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -505,9 +495,6 @@ func NewGRPCServer(
 		server.GracefulStop()
 		return nil
 	})
-
-	// register each grpc service onto the grpc server
-	register.RegisterGRPC(server.Server)
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(server.Server)

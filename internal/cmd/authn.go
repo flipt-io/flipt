@@ -90,10 +90,11 @@ func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
+	registrar grpc.ServiceRegistrar,
 	forceMigrate bool,
 	tokenDeletedEnabled bool,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
-) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+) ([]grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
 	shutdown := func(ctx context.Context) error {
 		return nil
@@ -106,21 +107,20 @@ func authenticationGRPC(
 	// All that is required to establish a connection for authentication is to either make auth required
 	// or configure at-least one authentication method (e.g. enable token method).
 	if !authCfg.Enabled() && (cfg.Storage.Type != config.DatabaseStorageType) {
-		return grpcRegisterers{
-			public.NewServer(logger, authCfg),
-			authn.NewServer(logger, storageauthmemory.NewStore()),
-		}, nil, shutdown, nil
+		rpcauth.RegisterPublicAuthenticationServiceServer(registrar, public.NewServer(logger, authCfg))
+		rpcauth.RegisterAuthenticationServiceServer(registrar, authn.NewServer(logger, storageauthmemory.NewStore()))
+		return nil, shutdown, nil
 	}
 
 	store, shutdown, err := getAuthStore(ctx, logger, cfg, forceMigrate)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	if cfg.Cache.Enabled {
 		cacher, _, err := getCache(ctx, cfg)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		store = storageauthcache.NewStore(store, cacher, logger)
 	}
@@ -129,12 +129,11 @@ func authenticationGRPC(
 		authServer   = authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled))
 		publicServer = public.NewServer(logger, authCfg)
 
-		register = grpcRegisterers{
-			publicServer,
-			authServer,
-		}
 		interceptors []grpc.UnaryServerInterceptor
 	)
+
+	rpcauth.RegisterAuthenticationServiceServer(registrar, authServer)
+	rpcauth.RegisterPublicAuthenticationServiceServer(registrar, publicServer)
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
@@ -158,29 +157,27 @@ func authenticationGRPC(
 		// attempt to bootstrap authentication store
 		clientToken, err := storageauth.Bootstrap(ctx, store, opts...)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("configuring token authentication: %w", err)
+			return nil, nil, fmt.Errorf("configuring token authentication: %w", err)
 		}
 
 		if clientToken != "" {
 			logger.Info("access token created", zap.String("client_token", clientToken))
 		}
 
-		register.Add(authtoken.NewServer(logger, store))
+		rpcauth.RegisterAuthenticationMethodTokenServiceServer(registrar, authtoken.NewServer(logger, store))
 
 		logger.Debug("authentication method \"token\" server registered")
 	}
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
-		oidcServer := authoidc.NewServer(logger, store, authCfg)
-		register.Add(oidcServer)
+		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(registrar, authoidc.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
 	if authCfg.Methods.Github.Enabled {
-		githubServer := authgithub.NewServer(logger, store, authCfg)
-		register.Add(githubServer)
+		rpcauth.RegisterAuthenticationMethodGithubServiceServer(registrar, authgithub.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"github\" registered")
 	}
@@ -188,9 +185,9 @@ func authenticationGRPC(
 	if authCfg.Methods.Kubernetes.Enabled {
 		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
-		register.Add(kubernetesServer)
+		rpcauth.RegisterAuthenticationMethodKubernetesServiceServer(registrar, kubernetesServer)
 
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
@@ -205,28 +202,28 @@ func authenticationGRPC(
 			if authJWT.Method.JWKSURL != "" {
 				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+					return nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
 				}
 			} else if authJWT.Method.PublicKeyFile != "" {
 				keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
+					return nil, nil, fmt.Errorf("failed to read key file: %w", err)
 				}
 
 				publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+					return nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
 				}
 
 				ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+					return nil, nil, fmt.Errorf("failed to create static key set: %w", err)
 				}
 			}
 
 			validator, err := jwt.NewValidator(ks)
 			if err != nil {
-				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+				return nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
 			}
 
 			// intentionally restricted to a set of common asymmetric algorithms
@@ -263,7 +260,7 @@ func authenticationGRPC(
 			for _, em := range authCfg.Methods.OIDC.Method.EmailMatches {
 				rgx, err := regexp.Compile(em)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
+					return nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
 				}
 
 				rgxs = append(rgxs, rgx)
@@ -283,15 +280,7 @@ func authenticationGRPC(
 		logger.Info("authentication middleware enabled")
 	}
 
-	return register, interceptors, shutdown, nil
-}
-
-func registerFunc(ctx context.Context, conn *grpc.ClientConn, fn func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error) runtime.ServeMuxOption {
-	return func(mux *runtime.ServeMux) {
-		if err := fn(ctx, mux, conn); err != nil {
-			panic(err)
-		}
-	}
+	return interceptors, shutdown, nil
 }
 
 func authenticationHTTPMount(
@@ -299,20 +288,27 @@ func authenticationHTTPMount(
 	logger *zap.Logger,
 	cfg config.AuthenticationConfig,
 	r chi.Router,
-	conn *grpc.ClientConn,
+	conn grpc.ClientConnInterface,
 ) {
+
 	var (
 		authmiddleware = authmiddlewarehttp.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 		muxOpts        = []runtime.ServeMuxOption{
-			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
+			func(mux *runtime.ServeMux) {
+				rpcauth.RegisterPublicAuthenticationServiceHandlerClient(ctx, mux, rpcauth.NewPublicAuthenticationServiceClient(conn))
+			},
+			func(mux *runtime.ServeMux) {
+				rpcauth.RegisterAuthenticationServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationServiceClient(conn))
+			},
 			runtime.WithErrorHandler(authmiddleware.ErrorHandler),
 		}
 	)
 
 	if cfg.Methods.Token.Enabled {
-		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
+		muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
+			rpcauth.RegisterAuthenticationMethodTokenServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodTokenServiceClient(conn))
+		})
 	}
 
 	if cfg.SessionEnabled() {
@@ -322,18 +318,24 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 
 		if cfg.Methods.OIDC.Enabled {
-			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+			muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
+				rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn))
+			})
 		}
 
 		if cfg.Methods.Github.Enabled {
-			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+			muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
+				rpcauth.RegisterAuthenticationMethodGithubServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodGithubServiceClient(conn))
+			})
 		}
 
 		middleware = append(middleware, methodMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {
-		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodKubernetesServiceHandler))
+		muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
+			rpcauth.RegisterAuthenticationMethodKubernetesServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodKubernetesServiceClient(conn))
+		})
 	}
 
 	r.Group(func(r chi.Router) {

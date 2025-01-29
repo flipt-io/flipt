@@ -16,6 +16,8 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
+	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
@@ -351,21 +353,21 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		})
 	}
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, info, forceMigrate)
+	handlers := grpchan.HandlerMap{}
+
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, handlers, info, forceMigrate)
 	if err != nil {
 		return err
 	}
 
+	handlers.ForEach(grpcServer.Server.RegisterService)
 	// starts grpc server
 	g.Go(grpcServer.Run)
 
-	// retrieve client connection to associated running gRPC server.
-	conn, err := clientConn(ctx, cfg)
-	if err != nil {
-		return err
-	}
+	ipch := &inprocgrpc.Channel{}
+	handlers.ForEach(ipch.RegisterService)
 
-	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, conn, info)
+	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
 	if err != nil {
 		return err
 	}
