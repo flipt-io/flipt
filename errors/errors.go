@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+// Is delegates to the stdlib errors function
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
 // As is a utility for one-lining errors.As statements.
 // e.g. cerr, match := errors.As[MyCustomError](err).
 func As[E error](err error) (e E, _ bool) {

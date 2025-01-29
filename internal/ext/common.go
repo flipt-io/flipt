@@ -3,6 +3,14 @@ package ext
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/blang/semver/v4"
+)
+
+var (
+	// LatestVersion is the current latest supported export format for flag state
+	LatestVersion = v1_4
+	v1_4          = semver.Version{Major: 1, Minor: 4}
 )
 
 type Document struct {

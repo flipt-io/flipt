@@ -48,7 +48,7 @@ type namespace struct {
 	etag         string
 }
 
-func newNamespace(ns *ext.NamespaceEmbed, created *timestamppb.Timestamp) *namespace {
+func newNamespace() *namespace {
 	return &namespace{
 		flags:        map[string]*core.Flag{},
 		segments:     map[string]*core.Segment{},
@@ -59,18 +59,12 @@ func newNamespace(ns *ext.NamespaceEmbed, created *timestamppb.Timestamp) *names
 
 type SnapshotOption struct {
 	validatorOption []validation.FeaturesValidatorOption
-	etagFn          EtagFn
 }
 
-// EtagFn is a function type that takes an fs.FileInfo object as input and
-// returns a string representing the ETag.
-type EtagFn func(stat fs.FileInfo) string
-
-// EtagInfo is an interface that defines a single method, Etag(), which returns
-// a string representing the ETag of an object.
-type EtagInfo interface {
-	// Etag returns the ETag of the implementing object.
-	Etag() string
+func newSnapshotOption(opts ...containers.Option[SnapshotOption]) SnapshotOption {
+	so := SnapshotOption{}
+	containers.ApplyAll(&so, opts...)
+	return so
 }
 
 func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
@@ -79,34 +73,11 @@ func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.
 	}
 }
 
-// WithEtag returns a containers.Option[SnapshotOption] that sets the ETag function
-// to always return the provided ETag string.
-func WithEtag(etag string) containers.Option[SnapshotOption] {
-	return func(so *SnapshotOption) {
-		so.etagFn = func(stat fs.FileInfo) string { return etag }
-	}
-}
-
-// WithFileInfoEtag returns a containers.Option[SnapshotOption] that sets the ETag function
-// to generate an ETag based on the file information. If the file information implements
-// the EtagInfo interface, the Etag method is used. Otherwise, it generates an ETag
-// based on the file's modification time and size.
-func WithFileInfoEtag() containers.Option[SnapshotOption] {
-	return func(so *SnapshotOption) {
-		so.etagFn = func(stat fs.FileInfo) string {
-			if s, ok := stat.(EtagInfo); ok {
-				return s.Etag()
-			}
-			return fmt.Sprintf("%x-%x", stat.ModTime().Unix(), stat.Size())
-		}
-	}
-}
-
 // SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func SnapshotFromFS(logger *zap.Logger, src fs.FS, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
-	paths, err := listStateFiles(logger, src)
+func SnapshotFromFS(logger *zap.Logger, conf *Config, src fs.FS, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+	paths, err := conf.List(src)
 	if err != nil {
 		return nil, err
 	}
@@ -135,20 +106,13 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...co
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
 func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
-	s := newSnapshot()
-
-	var so SnapshotOption
-	containers.ApplyAll(&so, WithFileInfoEtag())
-	containers.ApplyAll(&so, opts...)
+	var (
+		so = newSnapshotOption(opts...)
+		s  = EmptySnapshot()
+	)
 
 	for _, fi := range files {
 		defer fi.Close()
-		info, err := fi.Stat()
-		if err != nil {
-			return nil, err
-		}
-
-		logger.Debug("opening state file", zap.String("path", info.Name()))
 
 		docs, err := documentsFromFile(fi, so)
 		if err != nil {
@@ -167,12 +131,13 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 
 // WalkDocuments walks all the Flipt feature documents found in the target fs.FS
 // based on either the default index file or an index file located in the root
-func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) error {
-	paths, err := listStateFiles(logger, src)
+func WalkDocuments(logger *zap.Logger, conf *Config, src fs.FS, fn func(*ext.Document) error) error {
+	paths, err := conf.List(src)
 	if err != nil {
 		return err
 	}
 
+	so := newSnapshotOption()
 	for _, file := range paths {
 		logger.Debug("opening state file", zap.String("path", file))
 
@@ -182,8 +147,6 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		var so SnapshotOption
-		containers.ApplyAll(&so, WithFileInfoEtag())
 		docs, err := documentsFromFile(fi, so)
 		if err != nil {
 			return err
@@ -199,14 +162,13 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 	return nil
 }
 
-func newSnapshot() *Snapshot {
-	now := flipt.Now()
+func EmptySnapshot() *Snapshot {
 	return &Snapshot{
 		ns: map[string]*namespace{
-			defaultNs: newNamespace(ext.DefaultNamespace, now),
+			defaultNs: newNamespace(),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
-		now:       now,
+		now:       flipt.Now(),
 	}
 }
 
@@ -261,40 +223,10 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 			doc.Namespace = ext.DefaultNamespace
 		}
 
-		doc.Etag = opts.etagFn(stat)
 		docs = append(docs, doc)
 	}
 
 	return docs, nil
-}
-
-// listStateFiles lists all the file paths in a provided fs.FS containing Flipt feature state
-func listStateFiles(logger *zap.Logger, src fs.FS) ([]string, error) {
-	idx, err := OpenFliptIndex(logger, src)
-	if err != nil {
-		return nil, err
-	}
-
-	var paths []string
-	if err := fs.WalkDir(src, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		if idx.Match(path) {
-			paths = append(paths, path)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return paths, nil
 }
 
 func (ss *Snapshot) addDoc(doc *ext.Document) error {
@@ -304,7 +236,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	)
 
 	if ns == nil {
-		ns = newNamespace(doc.Namespace, ss.now)
+		ns = newNamespace()
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
@@ -709,12 +641,4 @@ func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 	}
 
 	return *ns, nil
-}
-
-func (ss *Snapshot) GetVersion(ctx context.Context, req storage.NamespaceRequest) (string, error) {
-	ns, err := ss.getNamespace(req.Namespace())
-	if err != nil {
-		return "", err
-	}
-	return ns.etag, nil
 }

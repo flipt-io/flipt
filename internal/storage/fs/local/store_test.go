@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
-	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
 )
 
@@ -26,24 +24,24 @@ func Test_Store(t *testing.T) {
 	ch := make(chan struct{})
 
 	s, err := NewSnapshotStore(ctx, zap.NewNop(), "testdata", WithPollOptions(
-		storagefs.WithInterval(1*time.Second),
-		storagefs.WithNotify(t, func(modified bool) {
-			if modified && !closed {
+		WithInterval(1*time.Second),
+		WithNotify(t, func() {
+			if !closed {
 				closed = true
 				close(ch)
 			}
 		}),
 	))
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	t.Cleanup(func() {
 		_ = s.Close()
 	})
 
 	dir, err := os.Getwd()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	ftc := filepath.Join(dir, "testdata", "a.features.yml")
+	ftc := filepath.Join(dir, "testdata", "staging", "features.yaml")
 
 	defer func() {
 		_, err := os.Stat(ftc)
@@ -54,7 +52,7 @@ func Test_Store(t *testing.T) {
 	}()
 
 	// change the filesystem contents
-	assert.NoError(t, os.WriteFile(ftc, []byte(`{"namespace":"staging"}`), 0600))
+	assert.NoError(t, os.WriteFile(ftc, []byte(`{"namespace":"staging"}`), os.ModePerm))
 
 	select {
 	case <-ch:

@@ -16,7 +16,7 @@ var _ storagefs.SnapshotStore = (*SnapshotStore)(nil)
 // SnapshotStore implements storagefs.SnapshotStore which
 // is backed by the local filesystem through os.DirFS
 type SnapshotStore struct {
-	*storagefs.Poller
+	*Poller
 
 	logger *zap.Logger
 	dir    string
@@ -24,7 +24,7 @@ type SnapshotStore struct {
 	mu   sync.RWMutex
 	snap storage.ReadOnlyStore
 
-	pollOpts []containers.Option[storagefs.Poller]
+	pollOpts []containers.Option[Poller]
 }
 
 // NewSnapshotStore constructs a new SnapshotStore
@@ -38,19 +38,18 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, dir string, opts 
 
 	// seed initial state an ensure we have state
 	// before returning
-	if _, err := s.update(ctx); err != nil {
+	if err := s.update(ctx); err != nil {
 		return nil, err
 	}
 
-	s.Poller = storagefs.NewPoller(logger, ctx, s.update, s.pollOpts...)
-
+	s.Poller = NewPoller(logger, ctx, s.update, s.pollOpts...)
 	go s.Poll()
 
 	return s, nil
 }
 
 // WithPollOptions configures poller options on the store.
-func WithPollOptions(opts ...containers.Option[storagefs.Poller]) containers.Option[SnapshotStore] {
+func WithPollOptions(opts ...containers.Option[Poller]) containers.Option[SnapshotStore] {
 	return func(s *SnapshotStore) {
 		s.pollOpts = append(s.pollOpts, opts...)
 	}
@@ -66,17 +65,23 @@ func (s *SnapshotStore) View(_ context.Context, fn func(storage.ReadOnlyStore) e
 
 // update fetches a new snapshot from the local filesystem
 // and updates the current served reference via a write lock
-func (s *SnapshotStore) update(context.Context) (bool, error) {
-	snap, err := storagefs.SnapshotFromFS(s.logger, os.DirFS(s.dir))
+func (s *SnapshotStore) update(context.Context) error {
+	src := os.DirFS(s.dir)
+	conf, err := storagefs.GetConfig(src)
 	if err != nil {
-		return false, err
+		return err
+	}
+
+	snap, err := storagefs.SnapshotFromFS(s.logger, conf, src)
+	if err != nil {
+		return err
 	}
 
 	s.mu.Lock()
 	s.snap = snap
 	s.mu.Unlock()
 
-	return true, nil
+	return nil
 }
 
 // String returns an identifier string for the store type.
