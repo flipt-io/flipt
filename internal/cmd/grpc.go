@@ -83,10 +83,9 @@ import (
 type GRPCServer struct {
 	*grpc.Server
 
-	logger    *zap.Logger
-	cfg       *config.Config
-	ln        net.Listener
-	registrar grpc.ServiceRegistrar
+	logger *zap.Logger
+	cfg    *config.Config
+	ln     net.Listener
 
 	shutdownFuncs []func(context.Context) error
 }
