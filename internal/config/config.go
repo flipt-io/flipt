@@ -615,7 +615,7 @@ func Default() *Config {
 		},
 
 		Authentication: AuthenticationConfig{
-			Session: AuthenticationSession{
+			Session: AuthenticationSessionConfig{
 				TokenLifetime: 24 * time.Hour,
 				StateLifetime: 10 * time.Minute,
 			},

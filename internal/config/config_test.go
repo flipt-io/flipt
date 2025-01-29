@@ -236,7 +236,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Authentication.Required = true
-				cfg.Authentication.Methods = AuthenticationMethods{
+				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 						Enabled: true,
 						Method: AuthenticationMethodTokenConfig{
@@ -244,10 +244,6 @@ func TestLoad(t *testing.T) {
 								Token:      "s3cr3t!",
 								Expiration: 24 * time.Hour,
 							},
-						},
-						Cleanup: &AuthenticationCleanupSchedule{
-							Interval:    time.Hour,
-							GracePeriod: 30 * time.Minute,
 						},
 					},
 				}
@@ -260,21 +256,18 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Authentication.Required = true
-				cfg.Authentication.Session.Domain = "localhost"
-				cfg.Authentication.Methods = AuthenticationMethods{
+				cfg.Authentication.Session = AuthenticationSessionConfig{
+					Domain: "localhost",
+					Storage: AuthenticationSessionStorageConfig{
+						Type: AuthenticationSessionStorageTypeMemory,
+					},
+				}
+				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 						Enabled: true,
-						Cleanup: &AuthenticationCleanupSchedule{
-							Interval:    time.Hour,
-							GracePeriod: 30 * time.Minute,
-						},
 					},
 					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 						Enabled: true,
-						Cleanup: &AuthenticationCleanupSchedule{
-							Interval:    time.Hour,
-							GracePeriod: 30 * time.Minute,
-						},
 					},
 				}
 				return cfg
@@ -286,14 +279,15 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Authentication.Required = true
-				cfg.Authentication.Session.Domain = "localhost"
-				cfg.Authentication.Methods = AuthenticationMethods{
+				cfg.Authentication.Session = AuthenticationSessionConfig{
+					Domain: "localhost",
+					Storage: AuthenticationSessionStorageConfig{
+						Type: AuthenticationSessionStorageTypeMemory,
+					},
+				}
+				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 						Enabled: true,
-						Cleanup: &AuthenticationCleanupSchedule{
-							Interval:    time.Hour,
-							GracePeriod: 30 * time.Minute,
-						},
 						Method: AuthenticationMethodOIDCConfig{
 							Providers: map[string]AuthenticationMethodOIDCProvider{
 								"foo": {
@@ -312,7 +306,8 @@ func TestLoad(t *testing.T) {
 								},
 							},
 						},
-					}}
+					},
+				}
 				return cfg
 			},
 		},
@@ -322,17 +317,13 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Authentication.Required = true
-				cfg.Authentication.Methods = AuthenticationMethods{
+				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 						Enabled: true,
 						Method: AuthenticationMethodKubernetesConfig{
 							DiscoveryURL:            "https://kubernetes.default.svc.cluster.local",
 							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 							ServiceAccountTokenPath: "/var/run/secrets/kubernetes.io/serviceaccount/token",
-						},
-						Cleanup: &AuthenticationCleanupSchedule{
-							Interval:    time.Hour,
-							GracePeriod: 30 * time.Minute,
 						},
 					},
 				}
@@ -423,22 +414,21 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
-					Session: AuthenticationSession{
+					Session: AuthenticationSessionConfig{
 						Domain:        "auth.flipt.io",
 						Secure:        true,
 						TokenLifetime: 24 * time.Hour,
 						StateLifetime: 10 * time.Minute,
-						CSRF: AuthenticationSessionCSRF{
+						CSRF: AuthenticationSessionCSRFConfig{
 							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
 						},
+						Storage: AuthenticationSessionStorageConfig{
+							Type: AuthenticationSessionStorageTypeMemory,
+						},
 					},
-					Methods: AuthenticationMethods{
+					Methods: AuthenticationMethodsConfig{
 						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 							Method: AuthenticationMethodOIDCConfig{
@@ -452,10 +442,6 @@ func TestLoad(t *testing.T) {
 								},
 							},
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 						Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 							Enabled: true,
@@ -463,10 +449,6 @@ func TestLoad(t *testing.T) {
 								DiscoveryURL:            "https://some-other-k8s.namespace.svc",
 								CAPath:                  "/path/to/ca/certificate/ca.pem",
 								ServiceAccountTokenPath: "/path/to/sa/token",
-							},
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
 							},
 						},
 						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{
@@ -476,10 +458,6 @@ func TestLoad(t *testing.T) {
 								RedirectAddress: "http://auth.flipt.io",
 							},
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 					},
 				}
@@ -557,22 +535,21 @@ func TestLoad(t *testing.T) {
 
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
-					Session: AuthenticationSession{
+					Session: AuthenticationSessionConfig{
 						Domain:        "auth.flipt.io",
 						Secure:        true,
 						TokenLifetime: 24 * time.Hour,
 						StateLifetime: 10 * time.Minute,
-						CSRF: AuthenticationSessionCSRF{
+						CSRF: AuthenticationSessionCSRFConfig{
 							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
 						},
+						Storage: AuthenticationSessionStorageConfig{
+							Type: AuthenticationSessionStorageTypeMemory,
+						},
 					},
-					Methods: AuthenticationMethods{
+					Methods: AuthenticationMethodsConfig{
 						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 							Method: AuthenticationMethodOIDCConfig{
@@ -586,10 +563,6 @@ func TestLoad(t *testing.T) {
 								},
 							},
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 						Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 							Enabled: true,
@@ -597,10 +570,6 @@ func TestLoad(t *testing.T) {
 								DiscoveryURL:            "https://some-other-k8s.namespace.svc",
 								CAPath:                  "/path/to/ca/certificate/ca.pem",
 								ServiceAccountTokenPath: "/path/to/sa/token",
-							},
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
 							},
 						},
 						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{
@@ -610,10 +579,6 @@ func TestLoad(t *testing.T) {
 								RedirectAddress: "http://auth.flipt.io",
 							},
 							Enabled: true,
-							Cleanup: &AuthenticationCleanupSchedule{
-								Interval:    2 * time.Hour,
-								GracePeriod: 48 * time.Hour,
-							},
 						},
 					},
 				}

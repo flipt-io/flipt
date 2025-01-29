@@ -24,9 +24,9 @@ func errFieldRequired(typ, field string) error {
 // errFieldPositiveDuration returns a formatted error for positive non-zero duration fields
 func errFieldPositiveDuration(typ, field string) error {
 	if typ == "" {
-		return fmt.Errorf("%s must be a positive non-zero duration", field)
+		return fmt.Errorf("%s must be a positive duration", field)
 	}
-	return fmt.Errorf("%s: %s must be a positive non-zero duration", typ, field)
+	return fmt.Errorf("%s: %s must be a positive duration", typ, field)
 }
 
 // errString creates a new error with type and message context

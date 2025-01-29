@@ -27,7 +27,7 @@ func Test_Server(t *testing.T) {
 			ctx:  context.Background(),
 			conf: config.AuthenticationConfig{
 				Required: true,
-				Methods: config.AuthenticationMethods{
+				Methods: config.AuthenticationMethodsConfig{
 					Github: config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 						Enabled: true,
 						Method: config.AuthenticationMethodGithubConfig{
@@ -71,7 +71,7 @@ func Test_Server(t *testing.T) {
 			)),
 			conf: config.AuthenticationConfig{
 				Required: true,
-				Methods: config.AuthenticationMethods{
+				Methods: config.AuthenticationMethodsConfig{
 					Github: config.AuthenticationMethod[config.AuthenticationMethodGithubConfig]{
 						Enabled: true,
 						Method: config.AuthenticationMethodGithubConfig{

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"go.flipt.io/flipt/errors"
@@ -13,8 +14,12 @@ import (
 	"go.flipt.io/flipt/internal/storage/authn"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var _ authn.Store = (*Store)(nil)
 
 // Store is an in-memory implementation of storage.AuthenticationStore
 //
@@ -22,31 +27,49 @@ import (
 // Access to the map is protected by a mutex, meaning this is implementation
 // is safe to use concurrently.
 type Store struct {
+	logger *zap.Logger
+
 	mu      sync.Mutex
 	byID    map[string]*rpcauth.Authentication
 	byToken map[string]*rpcauth.Authentication
 
-	now           func() *timestamppb.Timestamp
-	generateID    func() string
-	generateToken func() string
+	now                func() *timestamppb.Timestamp
+	generateID         func() string
+	generateToken      func() string
+	errGroup           errgroup.Group
+	cleanupInterval    time.Duration
+	cleanupGracePeriod time.Duration
+	shutdown           context.CancelFunc
 }
 
 // Option is a type which configures a *Store
 type Option func(*Store)
 
 // NewStore instantiates a new in-memory implementation of storage.AuthenticationStore
-func NewStore(opts ...Option) *Store {
-	store := &Store{
-		byID:          map[string]*rpcauth.Authentication{},
-		byToken:       map[string]*rpcauth.Authentication{},
-		now:           rpcflipt.Now,
-		generateID:    uuid.NewString,
-		generateToken: authn.GenerateRandomToken,
-	}
+func NewStore(logger *zap.Logger, opts ...Option) *Store {
+	var (
+		ctx, cancel = context.WithCancel(context.Background())
+		store       = &Store{
+			logger: logger,
+
+			byID:          map[string]*rpcauth.Authentication{},
+			byToken:       map[string]*rpcauth.Authentication{},
+			now:           rpcflipt.Now,
+			generateID:    uuid.NewString,
+			generateToken: authn.GenerateRandomToken,
+
+			errGroup:           errgroup.Group{},
+			cleanupInterval:    1 * time.Hour,
+			cleanupGracePeriod: 30 * time.Minute,
+			shutdown:           cancel,
+		}
+	)
 
 	for _, opt := range opts {
 		opt(store)
 	}
+
+	store.startCleanup(ctx)
 
 	return store
 }
@@ -77,6 +100,44 @@ func WithIDGeneratorFunc(fn func() string) Option {
 	return func(s *Store) {
 		s.generateID = fn
 	}
+}
+
+// WithCleanupInterval overrides the stores cleanup interval
+// used to set the TTL on authentication records.
+func WithCleanupInterval(t time.Duration) Option {
+	return func(s *Store) {
+		s.cleanupInterval = t
+	}
+}
+
+// WithCleanupGracePeriod overrides the stores cleanup grace period
+// used to set the TTL on authentication records.
+func WithCleanupGracePeriod(t time.Duration) Option {
+	return func(s *Store) {
+		s.cleanupGracePeriod = t
+	}
+}
+
+func (s *Store) startCleanup(ctx context.Context) {
+	s.errGroup.Go(func() error {
+		ticker := time.NewTicker(s.cleanupInterval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				expiredBefore := time.Now().UTC().Add(-s.cleanupGracePeriod)
+				s.logger.Debug("cleanup process deleting authentications", zap.Time("expired_before", expiredBefore))
+				if err := s.DeleteAuthentications(ctx, authn.Delete(
+					authn.WithExpiredBefore(expiredBefore),
+				)); err != nil {
+					s.logger.Error("attempting to delete expired authentications", zap.Error(err))
+				}
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
 }
 
 // CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
@@ -217,12 +278,18 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *authn.DeleteAuthen
 // ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	authentication, ok := s.byID[id]
-	s.mu.Unlock()
 	if !ok {
 		return errors.ErrNotFoundf("getting authentication by token")
 	}
 
 	authentication.ExpiresAt = expireAt
 	return nil
+}
+
+func (s *Store) Shutdown(ctx context.Context) error {
+	s.shutdown()
+	return s.errGroup.Wait()
 }

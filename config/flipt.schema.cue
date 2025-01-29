@@ -46,11 +46,12 @@ import "list"
 
 			storage?: *{
 				type:     "memory"
-				cleanup?: #authentication.#storage_cleanup
+				cleanup?: {
+					grace_period?: =~#duration | int | *"30m"
+				}
 			} | {
 				type:     "redis"
-				cleanup?: #authentication.#storage_cleanup
-				connection: {
+				redis?: {
 					host?:               string | *"localhost"
 					port?:               int | *6379
 					require_tls?:        bool | *false
@@ -65,14 +66,12 @@ import "list"
 					ca_cert_bytes?:      string
 					insecure_skip_tls?:  bool | *false
 				}
-			}
-
-			#storage_cleanup: {
-				@jsonschema(id="storage_cleanup")
-				interval?:     =~#duration | int | *"1h"
-				grace_period?: =~#duration | int | *"30m"
+				cleanup?: {
+					grace_period?: =~#duration | int | *"30m"
+				}
 			}
 		}
+
 
 		methods?: {
 			token?: {

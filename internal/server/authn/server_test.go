@@ -43,7 +43,7 @@ func TestActorFromContext(t *testing.T) {
 func TestServer(t *testing.T) {
 	var (
 		logger   = zaptest.NewLogger(t)
-		store    = memory.NewStore()
+		store    = memory.NewStore(logger)
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(
@@ -201,7 +201,7 @@ func TestServer(t *testing.T) {
 func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
-		store  = memory.NewStore()
+		store  = memory.NewStore(logger)
 		server = authn.NewServer(logger, store)
 	)
 
