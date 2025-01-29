@@ -486,7 +486,7 @@ func NewGRPCServer(
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
-	grpc_health.RegisterHealthServer(server.Server, healthsrv)
+	grpc_health.RegisterHealthServer(registrar, healthsrv)
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
