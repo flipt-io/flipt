@@ -125,15 +125,10 @@ func authenticationGRPC(
 		store = storageauthcache.NewStore(store, cacher, logger)
 	}
 
-	var (
-		authServer   = authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled))
-		publicServer = public.NewServer(logger, authCfg)
+	var interceptors []grpc.UnaryServerInterceptor
 
-		interceptors []grpc.UnaryServerInterceptor
-	)
-
-	rpcauth.RegisterAuthenticationServiceServer(registrar, authServer)
-	rpcauth.RegisterPublicAuthenticationServiceServer(registrar, publicServer)
+	rpcauth.RegisterPublicAuthenticationServiceServer(registrar, public.NewServer(logger, authCfg))
+	rpcauth.RegisterAuthenticationServiceServer(registrar, authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled)))
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
@@ -283,6 +278,15 @@ func authenticationGRPC(
 	return interceptors, shutdown, nil
 }
 
+// register creates a ServeMuxOption that registers a gRPC service handler
+func register[T any](ctx context.Context, client T, register func(context.Context, *runtime.ServeMux, T) error) runtime.ServeMuxOption {
+	return func(mux *runtime.ServeMux) {
+		if err := register(ctx, mux, client); err != nil {
+			panic(err)
+		}
+	}
+}
+
 func authenticationHTTPMount(
 	ctx context.Context,
 	logger *zap.Logger,
@@ -290,25 +294,20 @@ func authenticationHTTPMount(
 	r chi.Router,
 	conn grpc.ClientConnInterface,
 ) {
-
 	var (
 		authmiddleware = authmiddlewarehttp.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 		muxOpts        = []runtime.ServeMuxOption{
-			func(mux *runtime.ServeMux) {
-				rpcauth.RegisterPublicAuthenticationServiceHandlerClient(ctx, mux, rpcauth.NewPublicAuthenticationServiceClient(conn))
-			},
-			func(mux *runtime.ServeMux) {
-				rpcauth.RegisterAuthenticationServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationServiceClient(conn))
-			},
+			register(ctx, rpcauth.NewPublicAuthenticationServiceClient(conn), rpcauth.RegisterPublicAuthenticationServiceHandlerClient),
+			register(ctx, rpcauth.NewAuthenticationServiceClient(conn), rpcauth.RegisterAuthenticationServiceHandlerClient),
 			runtime.WithErrorHandler(authmiddleware.ErrorHandler),
 		}
 	)
 
 	if cfg.Methods.Token.Enabled {
-		muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
-			rpcauth.RegisterAuthenticationMethodTokenServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodTokenServiceClient(conn))
-		})
+		muxOpts = append(muxOpts,
+			register(ctx, rpcauth.NewAuthenticationMethodTokenServiceClient(conn), rpcauth.RegisterAuthenticationMethodTokenServiceHandlerClient),
+		)
 	}
 
 	if cfg.SessionEnabled() {
@@ -318,29 +317,28 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 
 		if cfg.Methods.OIDC.Enabled {
-			muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
-				rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn))
-			})
+			muxOpts = append(muxOpts,
+				register(ctx, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn), rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient),
+			)
 		}
 
 		if cfg.Methods.Github.Enabled {
-			muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
-				rpcauth.RegisterAuthenticationMethodGithubServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodGithubServiceClient(conn))
-			})
+			muxOpts = append(muxOpts,
+				register(ctx, rpcauth.NewAuthenticationMethodGithubServiceClient(conn), rpcauth.RegisterAuthenticationMethodGithubServiceHandlerClient),
+			)
 		}
 
 		middleware = append(middleware, methodMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {
-		muxOpts = append(muxOpts, func(mux *runtime.ServeMux) {
-			rpcauth.RegisterAuthenticationMethodKubernetesServiceHandlerClient(ctx, mux, rpcauth.NewAuthenticationMethodKubernetesServiceClient(conn))
-		})
+		muxOpts = append(muxOpts,
+			register(ctx, rpcauth.NewAuthenticationMethodKubernetesServiceClient(conn), rpcauth.RegisterAuthenticationMethodKubernetesServiceHandlerClient),
+		)
 	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware...)
-
 		r.Mount("/auth/v1", gateway.NewGatewayServeMux(logger, muxOpts...))
 	})
 }
