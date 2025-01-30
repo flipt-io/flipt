@@ -470,12 +470,14 @@ func NewGRPCServer(
 		logger.Info("authorization middleware enabled")
 	}
 
-	// we validate requests before after authn and authz
+	// we validate requests after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
+
+	// add otel interceptor
+	interceptors = append(interceptors, otelgrpc.UnaryServerInterceptor())
 
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
