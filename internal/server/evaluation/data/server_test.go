@@ -29,7 +29,7 @@ func TestEvaluationSnapshotNamespace(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		assert.Nil(t, resp)
+		assert.Empty(t, resp.Namespace)
 
 		store.AssertExpectations(t)
 	})
