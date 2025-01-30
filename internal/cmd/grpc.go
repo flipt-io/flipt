@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -68,6 +69,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -97,7 +99,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	registrar grpc.ServiceRegistrar,
+	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
 ) (*GRPCServer, error) {
@@ -290,7 +292,7 @@ func NewGRPCServer(
 		ctx,
 		logger,
 		cfg,
-		registrar,
+		ipch,
 		forceMigrate,
 		tokenDeletedEnabled,
 		authnOpts...,
@@ -316,24 +318,24 @@ func NewGRPCServer(
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
 			})
-			rpcanalytics.RegisterAnalyticsServiceServer(registrar, analytics.New(logger, client))
+			rpcanalytics.RegisterAnalyticsServiceServer(ipch, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 		} else if cfg.Analytics.Storage.Prometheus.Enabled {
 			client, err := prometheus.New(logger, cfg)
 			if err != nil {
 				return nil, err
 			}
-			rpcanalytics.RegisterAnalyticsServiceServer(registrar, analytics.New(logger, client))
+			rpcanalytics.RegisterAnalyticsServiceServer(ipch, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()))
 		}
 	}
 
 	// register servers
-	rpcflipt.RegisterFliptServer(registrar, fliptsrv)
-	rpcmeta.RegisterMetadataServiceServer(registrar, metasrv)
-	rpcevaluation.RegisterEvaluationServiceServer(registrar, evalsrv)
-	rpcevaluation.RegisterDataServiceServer(registrar, evaldatasrv)
-	rpcoffrep.RegisterOFREPServiceServer(registrar, ofrepsrv)
+	rpcflipt.RegisterFliptServer(ipch, fliptsrv)
+	rpcmeta.RegisterMetadataServiceServer(ipch, metasrv)
+	rpcevaluation.RegisterEvaluationServiceServer(ipch, evalsrv)
+	rpcevaluation.RegisterDataServiceServer(ipch, evaldatasrv)
+	rpcoffrep.RegisterOFREPServiceServer(ipch, ofrepsrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -486,7 +488,8 @@ func NewGRPCServer(
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
-	grpc_health.RegisterHealthServer(registrar, healthsrv)
+	grpc_health.RegisterHealthServer(ipch, healthsrv)
+	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -90,7 +91,7 @@ func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	registrar grpc.ServiceRegistrar,
+	ipch *inprocgrpc.Channel,
 	forceMigrate bool,
 	tokenDeletedEnabled bool,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
@@ -107,8 +108,8 @@ func authenticationGRPC(
 	// All that is required to establish a connection for authentication is to either make auth required
 	// or configure at-least one authentication method (e.g. enable token method).
 	if !authCfg.Enabled() && (cfg.Storage.Type != config.DatabaseStorageType) {
-		rpcauth.RegisterPublicAuthenticationServiceServer(registrar, public.NewServer(logger, authCfg))
-		rpcauth.RegisterAuthenticationServiceServer(registrar, authn.NewServer(logger, storageauthmemory.NewStore()))
+		rpcauth.RegisterPublicAuthenticationServiceServer(ipch, public.NewServer(logger, authCfg))
+		rpcauth.RegisterAuthenticationServiceServer(ipch, authn.NewServer(logger, storageauthmemory.NewStore()))
 		return nil, shutdown, nil
 	}
 
@@ -127,8 +128,8 @@ func authenticationGRPC(
 
 	var interceptors []grpc.UnaryServerInterceptor
 
-	rpcauth.RegisterPublicAuthenticationServiceServer(registrar, public.NewServer(logger, authCfg))
-	rpcauth.RegisterAuthenticationServiceServer(registrar, authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled)))
+	rpcauth.RegisterPublicAuthenticationServiceServer(ipch, public.NewServer(logger, authCfg))
+	rpcauth.RegisterAuthenticationServiceServer(ipch, authn.NewServer(logger, store, authn.WithAuditLoggingEnabled(tokenDeletedEnabled)))
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
@@ -159,20 +160,20 @@ func authenticationGRPC(
 			logger.Info("access token created", zap.String("client_token", clientToken))
 		}
 
-		rpcauth.RegisterAuthenticationMethodTokenServiceServer(registrar, authtoken.NewServer(logger, store))
+		rpcauth.RegisterAuthenticationMethodTokenServiceServer(ipch, authtoken.NewServer(logger, store))
 
 		logger.Debug("authentication method \"token\" server registered")
 	}
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
-		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(registrar, authoidc.NewServer(logger, store, authCfg))
+		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(ipch, authoidc.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
 	if authCfg.Methods.Github.Enabled {
-		rpcauth.RegisterAuthenticationMethodGithubServiceServer(registrar, authgithub.NewServer(logger, store, authCfg))
+		rpcauth.RegisterAuthenticationMethodGithubServiceServer(ipch, authgithub.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"github\" registered")
 	}
@@ -182,7 +183,7 @@ func authenticationGRPC(
 		if err != nil {
 			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
-		rpcauth.RegisterAuthenticationMethodKubernetesServiceServer(registrar, kubernetesServer)
+		rpcauth.RegisterAuthenticationMethodKubernetesServiceServer(ipch, kubernetesServer)
 
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
