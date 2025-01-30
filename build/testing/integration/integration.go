@@ -38,6 +38,10 @@ const (
 	ProtocolGRPC  Protocol = "grpc"
 )
 
+func (p Protocol) String() string {
+	return string(p)
+}
+
 const (
 	DefaultNamespace    = "default"
 	ProductionNamespace = "production"

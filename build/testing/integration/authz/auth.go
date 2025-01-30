@@ -18,133 +18,138 @@ import (
 )
 
 func Common(t *testing.T, opts integration.TestOpts) {
-	client := opts.TokenClient(t)
+	var (
+		client   = opts.TokenClient(t)
+		protocol = opts.Protocol()
+	)
 
-	t.Run("Evaluation", func(t *testing.T) {
-		ctx := context.Background()
+	t.Run(protocol.String(), func(t *testing.T) {
+		t.Run("Evaluation", func(t *testing.T) {
+			ctx := context.Background()
 
-		t.Run("Boolean", func(t *testing.T) {
-			_, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
-				FlagKey: "flag_boolean",
-				Context: map[string]string{
-					"in_segment": "segment_001",
-				},
-			})
-			require.NoError(t, err)
-		})
-
-		t.Run("Variant", func(t *testing.T) {
-			_, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
-				FlagKey: "flag_001",
-				Context: map[string]string{
-					"in_segment": "segment_001",
-				},
-			})
-			require.NoError(t, err)
-		})
-	})
-
-	t.Run("Authentication Methods", func(t *testing.T) {
-		ctx := context.Background()
-
-		t.Run("List methods", func(t *testing.T) {
-			t.Log(`List methods (ensure at-least 1).`)
-
-			methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
-
-			require.NoError(t, err)
-
-			assert.NotEmpty(t, methods)
-		})
-
-		t.Run("Get Self", func(t *testing.T) {
-			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
-			require.NoError(t, err)
-
-			assert.NotEmpty(t, authn.Id)
-		})
-
-		for _, namespace := range integration.Namespaces {
-			t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
-				for _, test := range []struct {
-					name   string
-					client func(*testing.T, ...integration.ClientOpt) sdk.SDK
-				}{
-					{"StaticToken", opts.TokenClient},
-					{"JWT", opts.JWTClient},
-					{"K8s", opts.K8sClient},
-				} {
-					t.Run(test.name, func(t *testing.T) {
-						t.Run("NoRole", func(t *testing.T) {
-							// ensure we cannot do any read specific operations across namespaces
-							// with a token with no role
-							client := test.client(t)
-							cannotReadAnyIn(t, ctx, client, namespace.Key)
-							cannotWriteNamespaces(t, ctx, client)
-							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
-						})
-
-						t.Run("Admin", func(t *testing.T) {
-							// ensure admin can do all the things
-							client := test.client(t, integration.WithRole("admin"))
-							canReadAllIn(t, ctx, client, namespace.Key)
-							canWriteNamespaces(t, ctx, client)
-							canWriteNamespacedIn(t, ctx, client, namespace.Key)
-						})
-
-						t.Run("Editor", func(t *testing.T) {
-							client := test.client(t, integration.WithRole("editor"))
-							// can read everywhere (including namespaces)
-							canReadAllIn(t, ctx, client, namespace.Key)
-							// cannot write namespaces
-							cannotWriteNamespaces(t, ctx, client)
-							// but can write in namespaces
-							canWriteNamespacedIn(t, ctx, client, namespace.Key)
-						})
-
-						t.Run("Viewer", func(t *testing.T) {
-							client := test.client(t, integration.WithRole("viewer"))
-							// can read everywhere (including namespaces)
-							canReadAllIn(t, ctx, client, namespace.Key)
-							// cannot write namespaces
-							cannotWriteNamespaces(t, ctx, client)
-							// cannot write in namespaces either
-							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
-						})
-
-						t.Run("NamespacedViewer", func(t *testing.T) {
-							// ensure we cannot do read specific operations across other namespaces
-							// with the namespaced viewer role token
-							client := test.client(t, integration.WithRole(fmt.Sprintf("%s_viewer", namespace.Expected)))
-							// can read in designated namespace
-							canReadAllIn(t, ctx, client, namespace.Key)
-							// cannot read in other namespace
-							cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
-							// cannot write namespaces
-							cannotWriteNamespaces(t, ctx, client)
-							// cannot write in namespaces either
-							cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
-						})
-					})
-				}
-			})
-		}
-
-		t.Run("Expire Self", func(t *testing.T) {
-			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
-				ExpiresAt: flipt.Now(),
+			t.Run("Boolean", func(t *testing.T) {
+				_, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					FlagKey: "flag_boolean",
+					Context: map[string]string{
+						"in_segment": "segment_001",
+					},
+				})
+				require.NoError(t, err)
 			})
 
-			require.NoError(t, err)
+			t.Run("Variant", func(t *testing.T) {
+				_, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					FlagKey: "flag_001",
+					Context: map[string]string{
+						"in_segment": "segment_001",
+					},
+				})
+				require.NoError(t, err)
+			})
+		})
 
-			t.Log(`Ensure token is no longer valid.`)
+		t.Run("Authentication Methods", func(t *testing.T) {
+			ctx := context.Background()
 
-			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+			t.Run("List methods", func(t *testing.T) {
+				t.Log(`List methods (ensure at-least 1).`)
 
-			status, ok := status.FromError(err)
-			require.True(t, ok)
-			assert.Equal(t, codes.Unauthenticated, status.Code())
+				methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
+
+				require.NoError(t, err)
+
+				assert.NotEmpty(t, methods)
+			})
+
+			t.Run("Get Self", func(t *testing.T) {
+				authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+
+				require.NoError(t, err)
+
+				assert.NotEmpty(t, authn.Id)
+			})
+
+			for _, namespace := range integration.Namespaces {
+				t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
+					for _, test := range []struct {
+						name   string
+						client func(*testing.T, ...integration.ClientOpt) sdk.SDK
+					}{
+						{"StaticToken", opts.TokenClient},
+						{"JWT", opts.JWTClient},
+						{"K8s", opts.K8sClient},
+					} {
+						t.Run(test.name, func(t *testing.T) {
+							t.Run("NoRole", func(t *testing.T) {
+								// ensure we cannot do any read specific operations across namespaces
+								// with a token with no role
+								client := test.client(t)
+								cannotReadAnyIn(t, ctx, client, namespace.Key)
+								cannotWriteNamespaces(t, ctx, client)
+								cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+							})
+
+							t.Run("Admin", func(t *testing.T) {
+								// ensure admin can do all the things
+								client := test.client(t, integration.WithRole("admin"))
+								canReadAllIn(t, ctx, client, namespace.Key)
+								canWriteNamespaces(t, ctx, client)
+								canWriteNamespacedIn(t, ctx, client, namespace.Key)
+							})
+
+							t.Run("Editor", func(t *testing.T) {
+								client := test.client(t, integration.WithRole("editor"))
+								// can read everywhere (including namespaces)
+								canReadAllIn(t, ctx, client, namespace.Key)
+								// cannot write namespaces
+								cannotWriteNamespaces(t, ctx, client)
+								// but can write in namespaces
+								canWriteNamespacedIn(t, ctx, client, namespace.Key)
+							})
+
+							t.Run("Viewer", func(t *testing.T) {
+								client := test.client(t, integration.WithRole("viewer"))
+								// can read everywhere (including namespaces)
+								canReadAllIn(t, ctx, client, namespace.Key)
+								// cannot write namespaces
+								cannotWriteNamespaces(t, ctx, client)
+								// cannot write in namespaces either
+								cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+							})
+
+							t.Run("NamespacedViewer", func(t *testing.T) {
+								// ensure we cannot do read specific operations across other namespaces
+								// with the namespaced viewer role token
+								client := test.client(t, integration.WithRole(fmt.Sprintf("%s_viewer", namespace.Expected)))
+								// can read in designated namespace
+								canReadAllIn(t, ctx, client, namespace.Key)
+								// cannot read in other namespace
+								cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
+								// cannot write namespaces
+								cannotWriteNamespaces(t, ctx, client)
+								// cannot write in namespaces either
+								cannotWriteNamespacedIn(t, ctx, client, namespace.Key)
+							})
+						})
+					}
+				})
+			}
+
+			t.Run("Expire Self", func(t *testing.T) {
+				err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
+					ExpiresAt: flipt.Now(),
+				})
+
+				require.NoError(t, err)
+
+				t.Log(`Ensure token is no longer valid.`)
+
+				_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+
+				status, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.Unauthenticated, status.Code())
+			})
 		})
 	})
 }
