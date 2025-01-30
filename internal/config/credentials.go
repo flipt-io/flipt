@@ -74,7 +74,7 @@ func (c *CredentialConfig) validate() error {
 		}
 	case CredentialTypeAccessToken:
 		if c.AccessToken == nil || *c.AccessToken == "" {
-			return errFieldRequired("", "access_token")
+			return errFieldRequired("string", "access_token")
 		}
 	default:
 		return fmt.Errorf("unexpected credential type %q", c.Type)
@@ -120,7 +120,7 @@ func (a *SSHAuthConfig) validate() (err error) {
 	}
 
 	if a.Password == "" {
-		return errors.New("password required")
+		return errFieldRequired("string", "password")
 	}
 
 	if (a.PrivateKeyBytes == "" && a.PrivateKeyPath == "") || (a.PrivateKeyBytes != "" && a.PrivateKeyPath != "") {

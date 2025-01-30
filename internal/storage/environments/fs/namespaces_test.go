@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/storage/configuration/fs"
-	fstesting "go.flipt.io/flipt/internal/storage/configuration/fs/testing"
-	rpcconfig "go.flipt.io/flipt/rpc/configuration"
+	"go.flipt.io/flipt/internal/storage/environments/fs"
+	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
+	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -53,7 +53,7 @@ func Test_NamespaceStorage_GetNamespace(t *testing.T) {
 		ns, err := storage.GetNamespace(ctx, filesystem(t), "default")
 		require.NoError(t, err)
 
-		assert.Equal(t, &rpcconfig.Namespace{
+		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "default",
 			Name:        "Default",
 			Description: ptr("The default namespace"),
@@ -65,7 +65,7 @@ func Test_NamespaceStorage_GetNamespace(t *testing.T) {
 		ns, err := storage.GetNamespace(ctx, filesystem(t), "team_a")
 		require.NoError(t, err)
 
-		assert.Equal(t, &rpcconfig.Namespace{
+		assert.Equal(t, &rpcenvironments.Namespace{
 			Key:         "team_a",
 			Name:        "Team A",
 			Description: ptr("The Team A namespace"),
@@ -88,7 +88,7 @@ func Test_NamespaceStorage_ListNamespaces(t *testing.T) {
 	items, err := storage.ListNamespaces(ctx, filesystem(t))
 	require.NoError(t, err)
 
-	assert.Equal(t, []*rpcconfig.Namespace{
+	assert.Equal(t, []*rpcenvironments.Namespace{
 		{
 			Key:         "default",
 			Name:        "Default",
@@ -107,7 +107,7 @@ func Test_NamespaceStorage_ListNamespaces(t *testing.T) {
 		items, err := storage.ListNamespaces(ctx, fs.SubFilesystem(filesystem(t), "notfound"))
 		require.NoError(t, err)
 
-		assert.Equal(t, []*rpcconfig.Namespace{}, items)
+		assert.Equal(t, []*rpcenvironments.Namespace{}, items)
 	})
 }
 
@@ -117,7 +117,7 @@ func Test_NamespaceStorage_PutNamespace(t *testing.T) {
 	storage := fs.NewNamespaceStorage(logger)
 
 	fs := filesystem(t)
-	require.NoError(t, storage.PutNamespace(ctx, fs, &rpcconfig.Namespace{
+	require.NoError(t, storage.PutNamespace(ctx, fs, &rpcenvironments.Namespace{
 		Key:         "team_b",
 		Name:        "Team B",
 		Description: ptr("The Team B namespace"),

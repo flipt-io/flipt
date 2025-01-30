@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/containers"
-	"go.flipt.io/flipt/internal/storage/configuration/fs"
+	"go.flipt.io/flipt/internal/storage/environments/fs"
 )
 
 type Filesystem struct {

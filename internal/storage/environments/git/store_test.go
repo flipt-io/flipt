@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/server/configuration"
+	"go.flipt.io/flipt/internal/server/environments"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 )
 
@@ -30,7 +30,7 @@ func Test_Environment_messageForChanges(t *testing.T) {
 				{
 					Verb: storagefs.VerbCreate,
 					Resource: storagefs.Resource{
-						Type: configuration.NewResourceType("flipt.config", "Namespace"),
+						Type: environments.NewResourceType("flipt.config", "Namespace"),
 						Key:  "default",
 					},
 				},
@@ -43,7 +43,7 @@ func Test_Environment_messageForChanges(t *testing.T) {
 				{
 					Verb: storagefs.VerbCreate,
 					Resource: storagefs.Resource{
-						Type:      configuration.NewResourceType("flipt.core", "Flag"),
+						Type:      environments.NewResourceType("flipt.core", "Flag"),
 						Namespace: "default",
 						Key:       "someFeature",
 					},
@@ -51,7 +51,7 @@ func Test_Environment_messageForChanges(t *testing.T) {
 				{
 					Verb: storagefs.VerbDelete,
 					Resource: storagefs.Resource{
-						Type:      configuration.NewResourceType("flipt.core", "Segment"),
+						Type:      environments.NewResourceType("flipt.core", "Segment"),
 						Namespace: "default",
 						Key:       "someSegment",
 					},
@@ -68,7 +68,7 @@ delete segment default/someSegment`,
 				{
 					Verb: storagefs.VerbUpdate,
 					Resource: storagefs.Resource{
-						Type:      configuration.NewResourceType("flipt.core", "Flag"),
+						Type:      environments.NewResourceType("flipt.core", "Flag"),
 						Namespace: "default",
 						Key:       "some-flag",
 					},

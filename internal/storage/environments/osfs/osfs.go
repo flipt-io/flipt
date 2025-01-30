@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
-	configfs "go.flipt.io/flipt/internal/storage/configuration/fs"
+	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 )
 
 // Filesystem is a wrapper around the billy osfs implementation which
@@ -22,7 +22,7 @@ func New(baseDir string) *Filesystem {
 // Open opens the named file for reading. If successful, methods on the
 // returned file can be used for reading; the associated file descriptor has
 // mode O_RDONLY.
-func (f *Filesystem) Open(filename string) (configfs.File, error) {
+func (f *Filesystem) Open(filename string) (envsfs.File, error) {
 	return f.OpenFile(filename, os.O_RDONLY, os.ModePerm)
 }
 
@@ -30,7 +30,7 @@ func (f *Filesystem) Open(filename string) (configfs.File, error) {
 // instead. It opens the named file with specified flag (O_RDONLY etc.) and
 // perm, (0666 etc.) if applicable. If successful, methods on the returned
 // File can be used for I/O.
-func (f *Filesystem) OpenFile(filename string, flag int, perm os.FileMode) (configfs.File, error) {
+func (f *Filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envsfs.File, error) {
 	stat, err := f.Stat(filename)
 	if err != nil {
 		return nil, err
