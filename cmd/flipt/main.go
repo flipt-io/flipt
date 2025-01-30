@@ -357,20 +357,19 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		handlers = &grpchan.HandlerMap{}
 	)
 
-	handlers.ForEach(ipch.RegisterService)
-
 	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, handlers, info, forceMigrate)
 	if err != nil {
 		return err
 	}
 
+	// register all grpc services onto the grpc server
 	handlers.ForEach(grpcServer.RegisterService)
 
-	// register all grpc services onto the grpc server
 	// starts grpc server
 	g.Go(grpcServer.Run)
 
 	// register all grpc services onto the in-process client connection
+	handlers.ForEach(ipch.RegisterService)
 
 	if cfg.Tracing.Enabled {
 		ipch = grpchan.InterceptClientConn(ipch, otelgrpc.UnaryClientInterceptor(), nil).(*inprocgrpc.Channel)
