@@ -19,6 +19,7 @@ import "list"
 	diagnostics?:    #diagnostics
 	environments?:   #environments
 	storage?:        #storage
+	credentials?:    #credentials
 	log?:            #log
 	meta?:           #meta
 	server?:         #server
@@ -194,26 +195,7 @@ import "list"
 		ca_cert_path?:      string
 		ca_cert_bytes?:     string
 		insecure_skip_tls?: bool | *false
-		authentication?: ({
-			basic: {
-				username: string
-				password: string
-			}
-		} | {
-			token: access_token: string
-		} | {
-			ssh: {
-				user?:            string | *"git"
-				password:         string
-				private_key_path: string
-			}
-		} | {
-			ssh: {
-				user?:             string | *"git"
-				password:          string
-				private_key_bytes: string
-			}
-		})
+		credentials?:       string
 		publishers?: {
 			object?: {
 				type: "s3" | "azblob" | "googlecloud" | *""
@@ -236,6 +218,30 @@ import "list"
 				}
 			}
 		}
+	}
+
+	#credentials: [string]: {
+		type: "basic"
+		basic: {
+			username: string
+			password: string
+		}
+	} | {
+		type: "ssh"
+		ssh: {
+			user?:                     string
+			password:                  string
+			private_key_bytes:         string
+			insecure_ignore_host_key?: bool
+		} | {
+			user?:                     string
+			password:                  string
+			private_key_path:          string
+			insecure_ignore_host_key?: bool
+		}
+	} | {
+		type:         "access_token"
+		access_token: string
 	}
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "warn"]

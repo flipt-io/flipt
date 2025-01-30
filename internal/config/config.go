@@ -64,6 +64,7 @@ type Config struct {
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server" yaml:"server,omitempty"`
 	Environments   EnvironmentsConfig   `json:"environments,omitempty" mapstructure:"environments" yaml:"environments,omitempty"`
 	Storage        StoragesConfig       `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Credentials    CredentialsConfig    `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
 	Metrics        MetricsConfig        `json:"metrics,omitempty" mapstructure:"metrics" yaml:"metrics,omitempty"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`

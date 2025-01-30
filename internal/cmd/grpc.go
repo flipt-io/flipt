@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"go.flipt.io/flipt/internal/server/ofrep"
-
 	otlpRuntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
@@ -17,7 +15,6 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/metrics"
-	fliptserver "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/analytics/prometheus"
@@ -26,12 +23,13 @@ import (
 	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
 	authzrego "go.flipt.io/flipt/internal/server/authz/engine/rego"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
+	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/storage"
-	fsstore "go.flipt.io/flipt/internal/storage/fs/store"
+	"go.flipt.io/flipt/internal/server/ofrep"
+	"go.flipt.io/flipt/internal/storage/environments"
 	"go.flipt.io/flipt/internal/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
@@ -109,14 +107,13 @@ func NewGRPCServer(
 		return server.ln.Close()
 	})
 
-	var store storage.Store
-
-	store, err = fsstore.NewStore(ctx, logger, cfg)
+	// configure a declarative backend store
+	environmentStore, err := environments.NewStore(ctx, logger, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debug("store enabled", zap.Stringer("store", store))
+	logger.Debug("store enabled")
 
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {
@@ -193,13 +190,18 @@ func NewGRPCServer(
 	}
 
 	var (
-		fliptsrv    = fliptserver.New(logger, store)
 		metasrv     = metadata.New(cfg, info)
-		evalsrv     = evaluation.New(logger, store)
-		evaldatasrv = evaluationdata.New(logger, store)
+		evalsrv     = evaluation.New(logger, environmentStore)
+		evaldatasrv = evaluationdata.New(logger, environmentStore)
 		healthsrv   = health.NewServer()
-		ofrepsrv    = ofrep.New(logger, evalsrv, store)
+		// TODO(georgemac): wire back in legacy flipt compat services
+		ofrepsrv = ofrep.New(logger, evalsrv, nil)
 	)
+
+	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
+	if err != nil {
+		return nil, fmt.Errorf("building configuration server: %w", err)
+	}
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.
@@ -214,10 +216,8 @@ func NewGRPCServer(
 		}
 	)
 
-	skipAuthnIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
-	skipAuthnIfExcluded(ofrepsrv, cfg.Authentication.Exclude.OFREP)
 
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
@@ -261,7 +261,6 @@ func NewGRPCServer(
 	}
 
 	// initialize servers
-	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
 	register.Add(evaldatasrv)

@@ -632,82 +632,8 @@
               "type": "boolean",
               "default": false
             },
-            "authentication": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "basic": {
-                      "type": "object",
-                      "properties": {
-                        "username": {
-                          "type": "string"
-                        },
-                        "password": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["username", "password"]
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "object",
-                      "properties": {
-                        "access_token": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["access_token"]
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "ssh": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "type": "string",
-                          "default": "git"
-                        },
-                        "password": {
-                          "type": "string"
-                        },
-                        "private_key_path": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["password", "private_key_path"]
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "ssh": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "type": "string",
-                          "default": "git"
-                        },
-                        "password": {
-                          "type": "string"
-                        },
-                        "private_key_bytes": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["password", "private_key_bytes"]
-                    }
-                  }
-                }
-              ]
+            "credentials": {
+              "type": "string"
             },
             "publishers": {
               "type": "object",
@@ -781,6 +707,88 @@
           }
         }
       }
+    },
+    "credentials": {
+      "type": "object",
+      "patternProperties": {
+         "^.*$": {
+           "oneOf": [
+             {
+               "type": "object",
+               "properties": {
+                 "basic": {
+                   "type": "object",
+                   "properties": {
+                     "username": {
+                       "type": "string"
+                     },
+                     "password": {
+                       "type": "string"
+                     }
+                   },
+                   "required": ["username", "password"]
+                 }
+               }
+             },
+             {
+               "type": "object",
+               "properties": {
+                 "token": {
+                   "type": "object",
+                   "properties": {
+                     "access_token": {
+                       "type": "string"
+                     }
+                   },
+                   "required": ["access_token"]
+                 }
+               }
+             },
+             {
+               "type": "object",
+               "properties": {
+                 "ssh": {
+                   "type": "object",
+                   "properties": {
+                     "user": {
+                       "type": "string",
+                       "default": "git"
+                     },
+                     "password": {
+                       "type": "string"
+                     },
+                     "private_key_path": {
+                       "type": "string"
+                     }
+                   },
+                   "required": ["password", "private_key_path"]
+                 }
+               }
+             },
+             {
+               "type": "object",
+               "properties": {
+                 "ssh": {
+                   "type": "object",
+                   "properties": {
+                     "user": {
+                       "type": "string",
+                       "default": "git"
+                     },
+                     "password": {
+                       "type": "string"
+                     },
+                     "private_key_bytes": {
+                       "type": "string"
+                     }
+                   },
+                   "required": ["password", "private_key_bytes"]
+                 }
+               }
+             }
+           ]
+         }
+       }
     },
     "log": {
       "type": "object",
