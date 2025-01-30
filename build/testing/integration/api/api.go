@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strconv"
 	"testing"
 	"time"
 
@@ -1391,7 +1393,13 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 			defer resp.Body.Close()
 
-			assert.Contains(t, string(body), "flipt_evaluations_requests_total")
+			r := regexp.MustCompile(`flipt_evaluations_requests_total{[^}]+}\s+(\d+)`)
+			matches := r.FindStringSubmatch(string(body))
+			require.Len(t, matches, 2, "Expected to find metric value")
+
+			value, err := strconv.ParseFloat(matches[1], 64)
+			require.NoError(t, err)
+			assert.Greater(t, value, float64(0), "Expected non-zero evaluation requests")
 		})
 
 		t.Run("Meta", func(t *testing.T) {
