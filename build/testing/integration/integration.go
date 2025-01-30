@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	fliptAddr       = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
+	fliptAddr       = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance")
 	fliptToken      = flag.String("flipt-token", "", "Full-Access authentication token to be used during test suite")
 	fliptReferences = flag.Bool("flipt-supports-references", false, "Identifies the backend as supporting references")
 )

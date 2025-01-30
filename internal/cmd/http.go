@@ -185,9 +185,7 @@ func NewHTTPServer(
 
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
-				func(mux *runtime.ServeMux) {
-					meta.RegisterMetadataServiceHandlerClient(ctx, mux, meta.NewMetadataServiceClient(conn))
-				},
+				register(ctx, meta.NewMetadataServiceClient(conn), meta.RegisterMetadataServiceHandlerClient),
 				runtime.WithMetadata(method.ForwardPrefix),
 			))
 		})
