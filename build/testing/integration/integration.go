@@ -89,6 +89,8 @@ func Harness(t *testing.T, fn func(t *testing.T, opts TestOpts)) {
 		t.Fatal(err)
 	}
 
+	t.Logf("Running tests against %s", u)
+
 	fn(t, TestOpts{
 		URL:        u,
 		References: *fliptReferences,
