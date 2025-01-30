@@ -289,8 +289,11 @@ func NewGRPCServer(
 		tokenDeletedEnabled = checker.Check("token:deleted")
 	}
 
+	// acts as a registry for all grpc services so they can be shared between
+	// the grpc server and the in-process client connection
 	handlers := &grpchan.HandlerMap{}
 
+	// register authentication services
 	authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
@@ -495,6 +498,7 @@ func NewGRPCServer(
 	grpcServer := grpc.NewServer(grpcOpts...)
 	grpc_health.RegisterHealthServer(handlers, healthsrv)
 
+	// register grpc services onto the in-process client connection and the grpc server
 	handlers.ForEach(ipch.RegisterService)
 	handlers.ForEach(grpcServer.RegisterService)
 
