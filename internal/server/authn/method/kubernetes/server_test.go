@@ -81,7 +81,7 @@ func Test_Server(t *testing.T) {
 
 	var (
 		authConfig = config.AuthenticationConfig{
-			Methods: config.AuthenticationMethods{
+			Methods: config.AuthenticationMethodsConfig{
 				Kubernetes: config.AuthenticationMethod[config.AuthenticationMethodKubernetesConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodKubernetesConfig{

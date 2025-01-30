@@ -99,13 +99,13 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 
 	var (
 		authConfig = config.AuthenticationConfig{
-			Session: config.AuthenticationSession{
+			Session: config.AuthenticationSessionConfig{
 				Domain:        "localhost",
 				Secure:        false,
 				TokenLifetime: 1 * time.Hour,
 				StateLifetime: 10 * time.Minute,
 			},
-			Methods: config.AuthenticationMethods{
+			Methods: config.AuthenticationMethodsConfig{
 				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodOIDCConfig{
@@ -207,13 +207,13 @@ func Test_Server_PKCE(t *testing.T) {
 
 	var (
 		authConfig = config.AuthenticationConfig{
-			Session: config.AuthenticationSession{
+			Session: config.AuthenticationSessionConfig{
 				Domain:        "localhost",
 				Secure:        false,
 				TokenLifetime: 1 * time.Hour,
 				StateLifetime: 10 * time.Minute,
 			},
-			Methods: config.AuthenticationMethods{
+			Methods: config.AuthenticationMethodsConfig{
 				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodOIDCConfig{
@@ -312,13 +312,13 @@ func Test_Server_Nonce(t *testing.T) {
 
 	var (
 		authConfig = config.AuthenticationConfig{
-			Session: config.AuthenticationSession{
+			Session: config.AuthenticationSessionConfig{
 				Domain:        "localhost",
 				Secure:        false,
 				TokenLifetime: 1 * time.Hour,
 				StateLifetime: 10 * time.Minute,
 			},
-			Methods: config.AuthenticationMethods{
+			Methods: config.AuthenticationMethodsConfig{
 				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodOIDCConfig{

@@ -21,7 +21,7 @@ func TestHandler(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	middleware := NewHTTPMiddleware(config.AuthenticationSession{
+	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
 		Domain: "localhost",
 	})
 
@@ -43,7 +43,7 @@ func TestHandler(t *testing.T) {
 func TestErrorHandler(t *testing.T) {
 	const defaultResponseBody = "default handler called"
 	var (
-		middleware = NewHTTPMiddleware(config.AuthenticationSession{
+		middleware = NewHTTPMiddleware(config.AuthenticationSessionConfig{
 			Domain: "localhost",
 		})
 	)

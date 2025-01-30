@@ -335,7 +335,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 }
 
 func TestClientTokenAuthenticationInterceptor(t *testing.T) {
-	authenticator := memory.NewStore()
+	authenticator := memory.NewStore(zaptest.NewLogger(t))
 
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
@@ -485,7 +485,12 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 }
 
 func TestEmailMatchingInterceptor(t *testing.T) {
-	authenticator := memory.NewStore()
+	var (
+		logger = zaptest.NewLogger(t)
+
+		authenticator = memory.NewStore(logger)
+	)
+
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
 		&authn.CreateAuthenticationRequest{
@@ -589,8 +594,6 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
-				logger = zaptest.NewLogger(t)
-
 				ctx     = ContextWithAuthentication(context.Background(), tt.auth)
 				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
 					return nil, nil
@@ -837,7 +840,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger        = zaptest.NewLogger(t)
-				authenticator = memory.NewStore()
+				authenticator = memory.NewStore(logger)
 			)
 
 			clientToken, storedAuth, err := authenticator.CreateAuthentication(
