@@ -17,6 +17,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -69,6 +70,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -98,7 +100,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	handlers *grpchan.HandlerMap,
+	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
 ) (*GRPCServer, error) {
@@ -286,6 +288,8 @@ func NewGRPCServer(
 	if checker != nil {
 		tokenDeletedEnabled = checker.Check("token:deleted")
 	}
+
+	handlers := &grpchan.HandlerMap{}
 
 	authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
@@ -485,21 +489,27 @@ func NewGRPCServer(
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
 
+	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
+
 	// initialize grpc server
-	server.Server = grpc.NewServer(grpcOpts...)
+	grpcServer := grpc.NewServer(grpcOpts...)
 	grpc_health.RegisterHealthServer(handlers, healthsrv)
+
+	handlers.ForEach(ipch.RegisterService)
+	handlers.ForEach(grpcServer.RegisterService)
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
 		healthsrv.Shutdown()
-		server.GracefulStop()
+		grpcServer.GracefulStop()
 		return nil
 	})
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(server.Server)
-	reflection.Register(server.Server)
+	grpc_prometheus.Register(grpcServer)
+	reflection.Register(grpcServer)
 
+	server.Server = grpcServer
 	return server, nil
 }
 
