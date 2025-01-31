@@ -53,7 +53,7 @@ func NewHTTPServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	conn *grpc.ClientConn,
+	conn grpc.ClientConnInterface,
 	info info.Flipt,
 ) (*HTTPServer, error) {
 	logger = logger.With(zap.Stringer("server", cfg.Server.Protocol))
@@ -77,23 +77,23 @@ func NewHTTPServer(
 		httpPort = cfg.Server.HTTPSPort
 	}
 
-	if err := flipt.RegisterFliptHandler(ctx, api, conn); err != nil {
+	if err := flipt.RegisterFliptHandlerClient(ctx, api, flipt.NewFliptClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterEvaluationServiceHandler(ctx, evaluateAPI, conn); err != nil {
+	if err := evaluation.RegisterEvaluationServiceHandlerClient(ctx, evaluateAPI, evaluation.NewEvaluationServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterDataServiceHandler(ctx, evaluateDataAPI, conn); err != nil {
+	if err := evaluation.RegisterDataServiceHandlerClient(ctx, evaluateDataAPI, evaluation.NewDataServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := analytics.RegisterAnalyticsServiceHandler(ctx, analyticsAPI, conn); err != nil {
+	if err := analytics.RegisterAnalyticsServiceHandlerClient(ctx, analyticsAPI, analytics.NewAnalyticsServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := ofrep.RegisterOFREPServiceHandler(ctx, ofrepAPI, conn); err != nil {
+	if err := ofrep.RegisterOFREPServiceHandlerClient(ctx, ofrepAPI, ofrep.NewOFREPServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -185,11 +185,7 @@ func NewHTTPServer(
 
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
-				registerFunc(
-					ctx,
-					conn,
-					meta.RegisterMetadataServiceHandler,
-				),
+				register(ctx, meta.NewMetadataServiceClient(conn), meta.RegisterMetadataServiceHandlerClient),
 				runtime.WithMetadata(method.ForwardPrefix),
 			))
 		})

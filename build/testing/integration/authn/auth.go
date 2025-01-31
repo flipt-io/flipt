@@ -16,112 +16,106 @@ import (
 )
 
 func Common(t *testing.T, opts integration.TestOpts) {
-	client := opts.TokenClient(t)
+	var (
+		client   = opts.TokenClient(t)
+		protocol = opts.Protocol()
+	)
 
-	t.Run("Authentication Methods", func(t *testing.T) {
-		ctx := context.Background()
+	t.Run(protocol.String(), func(t *testing.T) {
+		t.Run("Authentication Methods", func(t *testing.T) {
+			ctx := context.Background()
 
-		t.Run("List methods", func(t *testing.T) {
-			t.Log(`List methods (ensure at-least 1).`)
+			t.Run("List methods", func(t *testing.T) {
+				t.Log(`List methods (ensure at-least 1).`)
 
-			methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
+				methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
 
-			require.NoError(t, err)
+				require.NoError(t, err)
 
-			assert.NotEmpty(t, methods)
-		})
+				assert.NotEmpty(t, methods)
+			})
 
-		t.Run("Get Self", func(t *testing.T) {
-			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+			t.Run("Get Self", func(t *testing.T) {
+				authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
 
-			require.NoError(t, err)
+				require.NoError(t, err)
 
-			assert.NotEmpty(t, authn.Id)
-		})
+				assert.NotEmpty(t, authn.Id)
+			})
 
-		for _, namespace := range integration.Namespaces {
-			t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
-				t.Run("NoAuth", func(t *testing.T) {
-					client := opts.NoAuthClient(t)
-					cannotReadAnyIn(t, ctx, client, namespace.Key)
-				})
-
-				t.Run("StaticToken", func(t *testing.T) {
-					// ensure we can do resource specific operations across namespaces
-					canReadAllIn(t, ctx, client, namespace.Key)
-
-					t.Run("CreateToken()", func(t *testing.T) {
-						// namespaced scoped tokens can only create tokens
-						// in the same namespace
-						// this ensures that the scope is appropriate for that condition
-						resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
-							Name:         "Access Token",
-							NamespaceKey: namespace.Key,
-							Description:  "Some Description",
-						})
-
-						require.NoError(t, err)
-
-						assert.NotEmpty(t, resp.ClientToken)
-						assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
-						assert.Equal(t, "Some Description", resp.Authentication.Metadata["io.flipt.auth.token.description"])
-						if namespace.Key != "" {
-							assert.Equal(t, namespace.Expected, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
-						} else {
-							assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
-						}
+			for _, namespace := range integration.Namespaces {
+				t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
+					t.Run("NoAuth", func(t *testing.T) {
+						client := opts.NoAuthClient(t)
+						cannotReadAnyIn(t, ctx, client, namespace.Key)
 					})
 
-					// ensure we can do resource specific operations in scoped namespace
-					scopedClient := opts.TokenClient(t, integration.WithNamespace(namespace.Key))
+					t.Run("StaticToken", func(t *testing.T) {
+						// ensure we can do resource specific operations across namespaces
+						canReadAllIn(t, ctx, client, namespace.Key)
 
-					canReadAllIn(t, ctx, scopedClient, namespace.Key)
+						t.Run("CreateToken()", func(t *testing.T) {
+							// namespaced scoped tokens can only create tokens
+							// in the same namespace
+							// this ensures that the scope is appropriate for that condition
+							resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
+								Name:         "Access Token",
+								NamespaceKey: namespace.Key,
+								Description:  "Some Description",
+							})
 
-					if namespace.Key != "" {
-						// ensure we exclude from reading in another namespace
-						otherNS := integration.Namespaces.OtherNamespaceFrom(namespace.Expected)
-						t.Run(fmt.Sprintf("NamespaceScopedIn(%q)", otherNS), func(t *testing.T) {
-							cannotReadAnyIn(t, ctx, scopedClient, otherNS)
+							require.NoError(t, err)
+
+							assert.NotEmpty(t, resp.ClientToken)
+							assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
+							assert.Equal(t, "Some Description", resp.Authentication.Metadata["io.flipt.auth.token.description"])
+							if namespace.Key != "" {
+								assert.Equal(t, namespace.Expected, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
+							} else {
+								assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
+							}
 						})
-					}
+
+						// ensure we can do resource specific operations in scoped namespace
+						scopedClient := opts.TokenClient(t, integration.WithNamespace(namespace.Key))
+
+						canReadAllIn(t, ctx, scopedClient, namespace.Key)
+
+						if namespace.Key != "" {
+							// ensure we exclude from reading in another namespace
+							otherNS := integration.Namespaces.OtherNamespaceFrom(namespace.Expected)
+							t.Run(fmt.Sprintf("NamespaceScopedIn(%q)", otherNS), func(t *testing.T) {
+								cannotReadAnyIn(t, ctx, scopedClient, otherNS)
+							})
+						}
+					})
 				})
+
+				t.Run("K8sClient", func(t *testing.T) {
+					canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
+				})
+
+				t.Run("JWTClient", func(t *testing.T) {
+					canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
+				})
+			}
+
+			t.Run("Expire Self", func(t *testing.T) {
+				err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
+					ExpiresAt: flipt.Now(),
+				})
+
+				require.NoError(t, err)
+
+				t.Log(`Ensure token is no longer valid.`)
+
+				_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+
+				status, ok := status.FromError(err)
+				require.True(t, ok)
+				assert.Equal(t, codes.Unauthenticated, status.Code())
 			})
-
-			t.Run("K8sClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
-			})
-
-			t.Run("JWTClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
-			})
-		}
-
-		t.Run("Expire Self", func(t *testing.T) {
-			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
-				ExpiresAt: flipt.Now(),
-			})
-
-			require.NoError(t, err)
-
-			t.Log(`Ensure token is no longer valid.`)
-
-			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
-			status, ok := status.FromError(err)
-			require.True(t, ok)
-			assert.Equal(t, codes.Unauthenticated, status.Code())
 		})
-	})
-}
-
-func listFlagsIsUnauthorized(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
-	t.Helper()
-
-	t.Run(fmt.Sprintf("ListFlags(namespace: %q)", namespace), func(t *testing.T) {
-		_, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
-		})
-		require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 	})
 }
 

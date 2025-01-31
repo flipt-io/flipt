@@ -22,26 +22,28 @@ func TestSnapshot(t *testing.T) {
 			t.Skip("REST tests are not applicable for gRPC")
 		}
 
-		t.Run("Evaluation Data", func(t *testing.T) {
-			for _, role := range []string{"admin", "editor", "viewer"} {
-				t.Run(fmt.Sprintf("role %q", role), func(t *testing.T) {
-					httpClient := opts.HTTPClient(t, integration.WithRole(role))
+		t.Run(protocol.String(), func(t *testing.T) {
+			t.Run("Evaluation Data", func(t *testing.T) {
+				for _, role := range []string{"admin", "editor", "viewer"} {
+					t.Run(fmt.Sprintf("role %q", role), func(t *testing.T) {
+						httpClient := opts.HTTPClient(t, integration.WithRole(role))
+						for _, namespace := range integration.Namespaces {
+							t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
+								testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
+							})
+						}
+					})
+				}
+
+				t.Run("With Namespace Scoped Token", func(t *testing.T) {
 					for _, namespace := range integration.Namespaces {
 						t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
+							clientOpts := []integration.ClientOpt{integration.WithNamespace(namespace.Expected), integration.WithRole("admin")}
+							httpClient := opts.HTTPClient(t, clientOpts...)
 							testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
 						})
 					}
 				})
-			}
-
-			t.Run("With Namespace Scoped Token", func(t *testing.T) {
-				for _, namespace := range integration.Namespaces {
-					t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
-						clientOpts := []integration.ClientOpt{integration.WithNamespace(namespace.Expected), integration.WithRole("admin")}
-						httpClient := opts.HTTPClient(t, clientOpts...)
-						testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
-					})
-				}
 			})
 		})
 	})

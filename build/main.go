@@ -95,11 +95,6 @@ func (t *Test) Migration(ctx context.Context) error {
 	return testing.Migration(ctx, dag, t.BaseContainer, t.FliptContainer)
 }
 
-// Run all load tests
-func (t *Test) Load(ctx context.Context) error {
-	return testing.LoadTest(ctx, dag, t.BaseContainer, t.FliptContainer)
-}
-
 // Run all integration tests
 func (t *Test) Integration(
 	ctx context.Context,
