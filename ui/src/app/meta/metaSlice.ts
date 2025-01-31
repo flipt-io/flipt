@@ -56,9 +56,9 @@ export const metaSlice = createSlice({
             action.payload.storage.type !== StorageType.DATABASE;
         }
         state.config.ui = {
-          defaultTheme: action.payload.ui?.Theme || Theme.SYSTEM,
+          defaultTheme: action.payload.ui?.theme || Theme.SYSTEM,
           topbar: {
-            color: action.payload.ui?.TopbarColor || ''
+            color: action.payload.ui?.topbarColor || ''
           }
         };
       });
