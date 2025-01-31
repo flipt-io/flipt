@@ -219,16 +219,13 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 	})
 
 	t.Run("Expire a single instance by ID", func(t *testing.T) {
-		expiresAt := timestamppb.New(time.Now().UTC().Add(-time.Hour))
+		expiresAt := timestamppb.New(time.Now().UTC().Add(-10 * time.Minute))
 		// expire the first token
 		err := store.ExpireAuthenticationByID(ctx, created[0].Auth.Id, expiresAt)
 		require.NoError(t, err)
 
-		_, err = store.GetAuthenticationByClientToken(ctx, created[0].Token)
-		var expected errors.ErrNotFound
-		require.ErrorAs(t, err, &expected, "authentication still exists in the database")
-		// TODO: the memory store does not remove the token from the set if it is expired
-		// require.NoError(t, err)
-		// assert.True(t, auth.ExpiresAt.AsTime().Before(time.Now().UTC()))
+		auth, err := store.GetAuthenticationByClientToken(ctx, created[0].Token)
+		require.NoError(t, err)
+		assert.True(t, auth.ExpiresAt.AsTime().Before(time.Now().UTC()))
 	})
 }

@@ -385,10 +385,8 @@ func (a *AuthenticationMethod[C]) validate() error {
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".
-// This authentication method supports the ability to create static tokens via the
-// /auth/v1/method/token prefix of endpoints.
 type AuthenticationMethodTokenConfig struct {
-	Bootstrap AuthenticationMethodTokenBootstrapConfig `json:"bootstrap" mapstructure:"bootstrap" yaml:"bootstrap"`
+	Storage AuthenticationMethodTokenStorage `json:"storage" mapstructure:"storage" yaml:"storage"`
 }
 
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
@@ -401,13 +399,30 @@ func (a AuthenticationMethodTokenConfig) info(_ context.Context) AuthenticationM
 	}
 }
 
-func (a AuthenticationMethodTokenConfig) validate() error { return nil }
+func (a AuthenticationMethodTokenConfig) validate() error {
+	if a.Storage.Type != AuthenticationMethodTokenStorageTypeStatic {
+		return errFieldWrap("storage type", "authentication.method.token.storage.type", fmt.Errorf("unexpected type: %q", a.Storage.Type))
+	}
+
+	return nil
+}
+
+type AuthenticationMethodTokenStorageType string
+
+const (
+	AuthenticationMethodTokenStorageTypeStatic = AuthenticationMethodTokenStorageType("static")
+)
+
+type AuthenticationMethodTokenStorage struct {
+	Type   AuthenticationMethodTokenStorageType `json:"type" mapstructure:"type" yaml:"type"`
+	Tokens []AuthenticationMethodStaticToken    `json:"tokens" mapstructure:"tokens" yaml:"tokens"`
+}
 
 // AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
 // bootstrap process for the authentication method "token".
-type AuthenticationMethodTokenBootstrapConfig struct {
-	Token      string            `json:"-" mapstructure:"token" yaml:"token"`
-	Expiration time.Duration     `json:"expiration,omitempty" mapstructure:"expiration" yaml:"expiration,omitempty"`
+type AuthenticationMethodStaticToken struct {
+	Name       string            `json:"name" mapstructure:"name" yaml:"name"`
+	Credential string            `json:"-" mapstructure:"credential" yaml:"-"`
 	Metadata   map[string]string `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 }
 
