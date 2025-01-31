@@ -12,15 +12,22 @@ This is a load testing script for Flipt. It uses the [k6](https://k6.io/) tool t
 1. Install k6
 2. Install or build Flipt
 3. Import data into Flipt
-4. Run the load test
+4. Run Flipt
+5. Run the load test
 
-## Import data into Flipt
+### Import data into Flipt
 
 ```bash
 flipt import import.yaml
 ```
 
-## Run the load test
+### Run Flipt
+
+```bash
+flipt
+```
+
+### Run the load test
 
 ```bash
 FLIPT_ADDR=http://localhost:8080 k6 run loadtest.js
