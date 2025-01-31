@@ -40,7 +40,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
 	go.opentelemetry.io/proto/otlp v1.4.0
-	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
+	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 	golang.org/x/mod v0.22.0
 	golang.org/x/sync v0.10.0
 	google.golang.org/grpc v1.69.2
@@ -143,8 +143,8 @@ require (
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/onsi/gomega v1.34.2 // indirect
-	github.com/open-feature/go-sdk v1.13.1
-	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.4
+	github.com/open-feature/go-sdk v1.14.1
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.5
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
