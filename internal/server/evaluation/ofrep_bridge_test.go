@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
@@ -21,11 +21,10 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		store        = &evaluationStoreMock{}
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
-		flag         = &flipt.Flag{
-			NamespaceKey: namespaceKey,
-			Key:          flagKey,
-			Enabled:      true,
-			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		flag         = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
 
@@ -39,7 +38,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 			Segments: map[string]*storage.EvaluationSegment{
 				"bar": {
 					SegmentKey: "bar",
-					MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+					MatchType:  core.MatchType_ANY_MATCH_TYPE,
 				},
 			},
 		},
@@ -78,11 +77,10 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 		store        = &evaluationStoreMock{}
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
-		flag         = &flipt.Flag{
-			NamespaceKey: namespaceKey,
-			Key:          flagKey,
-			Enabled:      true,
-			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		flag         = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}
 	)
 

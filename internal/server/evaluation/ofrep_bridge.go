@@ -8,11 +8,11 @@ import (
 
 	"go.flipt.io/flipt/internal/server/ofrep"
 
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -22,7 +22,12 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.EvaluationBridgeInput) (ofrep.EvaluationBridgeOutput, error) {
-	flag, err := s.store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
+	store, err := s.getEvalStore(ctx)
+	if err != nil {
+		return ofrep.EvaluationBridgeOutput{}, err
+	}
+
+	flag, err := store.GetFlag(ctx, storage.NewResource(input.NamespaceKey, input.FlagKey))
 	if err != nil {
 		return ofrep.EvaluationBridgeOutput{}, err
 	}
@@ -41,8 +46,8 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.Evaluation
 	}
 
 	switch flag.Type {
-	case flipt.FlagType_VARIANT_FLAG_TYPE:
-		resp, err := s.variant(ctx, flag, req)
+	case core.FlagType_VARIANT_FLAG_TYPE:
+		resp, err := s.variant(ctx, store, flag, req)
 		if err != nil {
 			return ofrep.EvaluationBridgeOutput{}, err
 		}
@@ -71,8 +76,8 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.Evaluation
 			Value:    resp.VariantKey,
 			Metadata: metadata,
 		}, nil
-	case flipt.FlagType_BOOLEAN_FLAG_TYPE:
-		resp, err := s.boolean(ctx, flag, req)
+	case core.FlagType_BOOLEAN_FLAG_TYPE:
+		resp, err := s.boolean(ctx, store, flag, req)
 		if err != nil {
 			return ofrep.EvaluationBridgeOutput{}, err
 		}

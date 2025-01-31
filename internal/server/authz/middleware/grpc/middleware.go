@@ -8,6 +8,7 @@ import (
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -98,7 +99,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				return ctx, errUnauthorized
 			}
 
-			if info.FullMethod == flipt.Flipt_ListNamespaces_FullMethodName {
+			if info.FullMethod == environments.EnvironmentsService_ListNamespaces_FullMethodName {
 				namespaces, err := policyVerifier.Namespaces(ctx, map[string]any{
 					"request":        request,
 					"authentication": auth,

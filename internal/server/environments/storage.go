@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/v2/environments"
 )
 
@@ -49,6 +51,11 @@ type Environment interface {
 
 	View(_ context.Context, typ ResourceType, fn ViewFunc) error
 	Update(_ context.Context, rev string, typ ResourceType, fn UpdateFunc) (string, error)
+
+	// Evaluation
+
+	EvaluationStore() (storage.ReadOnlyStore, error)
+	EvaluationNamespaceSnapshot(context.Context, string) (*evaluation.EvaluationNamespaceSnapshot, error)
 }
 
 type ViewFunc func(context.Context, ResourceStoreView) error

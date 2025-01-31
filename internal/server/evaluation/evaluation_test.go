@@ -11,6 +11,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
@@ -24,7 +25,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -49,11 +50,10 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
-		NamespaceKey: namespaceKey,
-		Key:          flagKey,
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
@@ -79,11 +79,10 @@ func TestVariant_FlagDisabled(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
-		NamespaceKey: namespaceKey,
-		Key:          flagKey,
-		Enabled:      false,
-		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: false,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
@@ -108,11 +107,10 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 		store        = &evaluationStoreMock{}
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
-		flag         = &flipt.Flag{
-			NamespaceKey: namespaceKey,
-			Key:          flagKey,
-			Enabled:      true,
-			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		flag         = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
 
@@ -140,11 +138,10 @@ func TestVariant_Success(t *testing.T) {
 		store        = &evaluationStoreMock{}
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
-		flag         = &flipt.Flag{
-			NamespaceKey: namespaceKey,
-			Key:          flagKey,
-			Enabled:      true,
-			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		flag         = &core.Flag{
+			Key:     flagKey,
+			Enabled: true,
+			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
 
@@ -159,11 +156,11 @@ func TestVariant_Success(t *testing.T) {
 				Segments: map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
 								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",
@@ -202,7 +199,7 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 	)
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey))
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
 
 	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -229,11 +226,10 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey))
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
 	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
@@ -258,11 +254,10 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
@@ -292,18 +287,17 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Threshold: &storage.RolloutThreshold{
 				Percentage: 5,
 				Value:      false,
@@ -336,18 +330,17 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Threshold: &storage.RolloutThreshold{
 				Percentage: 70,
 				Value:      false,
@@ -380,18 +373,17 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Threshold: &storage.RolloutThreshold{
 				Percentage: 5,
 				Value:      false,
@@ -399,18 +391,18 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		},
 		{
 			NamespaceKey: namespaceKey,
-			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         2,
 			Segment: &storage.RolloutSegment{
 				Value:           true,
-				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
 				Segments: map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",
@@ -448,34 +440,33 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&flipt.Flag{
-			NamespaceKey: "test-namespace",
-			Key:          "test-flag",
-			Enabled:      true,
-			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		&core.Flag{
+			Key:     "test-flag",
+			Enabled: true,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
-			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         1,
 			Segment: &storage.RolloutSegment{
 				Value:           true,
-				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
 				Segments: map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 								Property: "pitimes100",
 								Operator: flipt.OpEQ,
 								Value:    "314",
 							},
 							{
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",
@@ -513,31 +504,30 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&flipt.Flag{
-			NamespaceKey: "test-namespace",
-			Key:          "test-flag",
-			Enabled:      true,
-			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		&core.Flag{
+			Key:     "test-flag",
+			Enabled: true,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
-			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         1,
 			Segment: &storage.RolloutSegment{
 				Value:           true,
-				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
 				Segments: map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
+								Type:     core.ComparisonType_ENTITY_ID_COMPARISON_TYPE,
 								Property: "entity",
 								Operator: flipt.OpEQ,
-								Value:    "user@flipt.io",
+								Value:    "user@core.io",
 							},
 						},
 					},
@@ -548,7 +538,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 
 	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
-		EntityId:     "user@flipt.io",
+		EntityId:     "user@core.io",
 		NamespaceKey: namespaceKey,
 		Context:      map[string]string{},
 	})
@@ -570,28 +560,27 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&flipt.Flag{
-			NamespaceKey: "test-namespace",
-			Key:          "test-flag",
-			Enabled:      true,
-			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		&core.Flag{
+			Key:     "test-flag",
+			Enabled: true,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
-			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         1,
 			Segment: &storage.RolloutSegment{
 				Value:           true,
-				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				SegmentOperator: core.SegmentOperator_AND_SEGMENT_OPERATOR,
 				Segments: map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Type:     core.ComparisonType_NUMBER_COMPARISON_TYPE,
 								Property: "pitimes100",
 								Operator: flipt.OpEQ,
 								Value:    "314",
@@ -600,10 +589,10 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 					},
 					"another-segment": {
 						SegmentKey: "another-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",
@@ -642,18 +631,17 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&flipt.Flag{
-			NamespaceKey: "test-namespace",
-			Key:          "test-flag",
-			Enabled:      true,
-			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		&core.Flag{
+			Key:     "test-flag",
+			Enabled: true,
+			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Threshold: &storage.RolloutThreshold{
 				Percentage: 5,
 				Value:      false,
@@ -661,18 +649,18 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		},
 		{
 			NamespaceKey: namespaceKey,
-			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         0,
 			Segment: &storage.RolloutSegment{
 				Value:           true,
-				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
 				Segments: map[string]*storage.EvaluationSegment{
 					"test-segment": {
 						SegmentKey: "test-segment",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",
@@ -709,7 +697,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
 		Key:         flagKey,
 		Enabled:     true,
 		Description: "test-flag",
@@ -744,7 +732,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{}, errors.New("internal error"))
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
 
 	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
@@ -774,27 +762,25 @@ func TestBatch_Success(t *testing.T) {
 		s              = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     "test-flag",
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, anotherFlagKey)).Return(&flipt.Flag{}, errs.ErrNotFound("another-test-flag"))
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, anotherFlagKey)).Return(&core.Flag{}, errs.ErrNotFound("another-test-flag"))
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "variant-test-flag",
-		Enabled:      true,
-		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(&core.Flag{
+		Key:     "variant-test-flag",
+		Enabled: true,
+		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Threshold: &storage.RolloutThreshold{
 				Percentage: 80,
 				Value:      true,
@@ -811,11 +797,11 @@ func TestBatch_Success(t *testing.T) {
 				Segments: map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType:  core.MatchType_ALL_MATCH_TYPE,
 						Constraints: []storage.EvaluationConstraint{
 							{
 								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "hello",
 								Operator: flipt.OpEQ,
 								Value:    "world",

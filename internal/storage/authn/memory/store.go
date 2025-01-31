@@ -190,7 +190,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	authentication, ok := s.byToken[hashedToken]
 	s.mu.Unlock()
 	if !ok {
-		return nil, errors.ErrNotFoundf("getting authentication by token")
+		return nil, errors.ErrNotFound("getting authentication by token")
 	}
 
 	return authentication, nil
@@ -203,7 +203,7 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.
 	authentication, ok := s.byID[id]
 	s.mu.Unlock()
 	if !ok {
-		return nil, errors.ErrNotFoundf("getting authentication by token")
+		return nil, errors.ErrNotFound("getting authentication by id")
 	}
 
 	return authentication, nil
@@ -276,20 +276,28 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *authn.DeleteAuthen
 }
 
 // ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
-func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
+func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expiresAt *timestamppb.Timestamp) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	authentication, ok := s.byID[id]
 	if !ok {
-		return errors.ErrNotFoundf("getting authentication by token")
+		return errors.ErrNotFound("getting authentication by id")
 	}
 
-	authentication.ExpiresAt = expireAt
+	authentication.ExpiresAt = expiresAt
 	return nil
 }
 
 func (s *Store) Shutdown(ctx context.Context) error {
 	s.shutdown()
 	return s.errGroup.Wait()
+}
+
+func isExpired(auth *rpcauth.Authentication) bool {
+	if auth.ExpiresAt == nil {
+		return false
+	}
+
+	return auth.ExpiresAt.AsTime().Before(time.Now())
 }

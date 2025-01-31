@@ -27,13 +27,13 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/authn"
 	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
 	storageauthredis "go.flipt.io/flipt/internal/storage/authn/redis"
+	"go.flipt.io/flipt/internal/storage/authn/static"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 func getAuthStore(
-	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
 ) (storageauth.Store, error) {
@@ -50,6 +50,16 @@ func getAuthStore(
 		}
 
 		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod))
+	}
+
+	// if token method is enabled we decorate the store with a static store implementation
+	// which is populated with the configured tokens
+	if cfg.Authentication.Methods.Token.Enabled {
+		var err error
+		store, err = static.NewStore(store, cfg.Authentication.Methods.Token.Method.Storage)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return store, nil
@@ -76,7 +86,7 @@ func authenticationGRPC(
 		}, nil, shutdown, nil
 	}
 
-	store, err := getAuthStore(ctx, logger, cfg)
+	store, err := getAuthStore(logger, cfg)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -23,11 +23,10 @@ service EnvironmentsService {
 /* Namespace */
 
 message Namespace {
-  string environment = 1;
-  string key = 2;
-  string name = 3;
-  optional string description = 4;
-  optional bool protected = 5;
+  string key = 1;
+  string name = 2;
+  optional string description = 3;
+  optional bool protected = 4;
 }
 
 message GetNamespaceRequest {
@@ -78,10 +77,9 @@ message GetResourceRequest {
 }
 
 message Resource {
-  string environment = 1;
-  string namespace = 2;
-  string key = 3;
-  google.protobuf.Any payload = 5;
+  string namespace = 1;
+  string key = 2;
+  google.protobuf.Any payload = 3;
 }
 
 message ResourceResponse {

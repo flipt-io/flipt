@@ -101,9 +101,9 @@ service EvaluationService {
 }
 
 message EvaluationDistribution {
-  string id = 1;
+  string id = 1 [deprecated = true];
   string rule_id = 2;
-  string variant_id = 3;
+  string variant_id = 3 [deprecated = true];
   string variant_key = 4;
   string variant_attachment = 5;
   float rollout = 6;
@@ -189,7 +189,7 @@ enum EvaluationConstraintComparisonType {
 }
 
 message EvaluationConstraint {
-  string id = 1;
+  string id = 1 [deprecated=true];
   EvaluationConstraintComparisonType type = 2;
   string property = 3;
   string operator = 4;
@@ -211,11 +211,16 @@ message EvaluationNamespace {
 message EvaluationNamespaceSnapshot {
   EvaluationNamespace namespace = 1;
   repeated EvaluationFlag flags = 2;
+  string digest = 3;
 }
 
 message EvaluationNamespaceSnapshotRequest {
   string key = 1;
   string reference = 2;
+}
+
+message EvaluationSnapshot {
+    map<string, EvaluationNamespaceSnapshot> namespaces = 1;
 }
 
 service DataService {

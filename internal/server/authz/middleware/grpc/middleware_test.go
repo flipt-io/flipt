@@ -10,6 +10,7 @@ import (
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -68,9 +69,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 		{
 			name:  "allowed",
 			authn: adminAuth,
-			req: &flipt.CreateFlagRequest{
-				NamespaceKey: "default",
-				Key:          "some_flag",
+			req: &environments.UpdateResourceRequest{
+				Environment: "default",
+				Namespace:   "default",
+				Key:         "some_flag",
 			},
 			validatorAllowed: true,
 			wantAllowed:      true,
@@ -88,9 +90,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 		{
 			name:  "not allowed",
 			authn: adminAuth,
-			req: &flipt.CreateFlagRequest{
-				NamespaceKey: "default",
-				Key:          "some_other_flag",
+			req: &environments.UpdateResourceRequest{
+				Environment: "default",
+				Namespace:   "default",
+				Key:         "some_other_flag",
 			},
 			validatorAllowed: false,
 			wantAllowed:      false,
@@ -109,12 +112,12 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			server: &mockServer{
 				skipsAuthz: true,
 			},
-			req:         &flipt.CreateFlagRequest{},
+			req:         &environments.UpdateResourceRequest{},
 			wantAllowed: true,
 		},
 		{
 			name:        "no auth",
-			req:         &flipt.CreateFlagRequest{},
+			req:         &environments.UpdateResourceRequest{},
 			wantAllowed: false,
 		},
 		{
@@ -126,17 +129,17 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 		{
 			name:         "validator error",
 			authn:        adminAuth,
-			req:          &flipt.CreateFlagRequest{},
+			req:          &environments.UpdateResourceRequest{},
 			validatorErr: errors.New("error"),
 			wantAllowed:  false,
 		},
 		{
 			name:               "list namespaces",
 			authn:              adminAuth,
-			req:                &flipt.ListNamespaceRequest{},
+			req:                &environments.ListNamespacesRequest{},
 			wantAllowed:        true,
 			viewableNamespaces: []string{"special"},
-			serverFullMethod:   "/flipt.Flipt/ListNamespaces",
+			serverFullMethod:   "/environments.EnvironmentsService/ListNamespaces",
 			authzInput: map[string]any{
 				"request": flipt.Request{
 					Resource: flipt.ResourceNamespace,
