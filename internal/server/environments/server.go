@@ -177,10 +177,9 @@ func (s *Server) CreateResource(ctx context.Context, req *environments.UpdateRes
 
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
-			Environment: req.Environment,
-			Namespace:   req.Namespace,
-			Key:         req.Key,
-			Payload:     req.Payload,
+			Namespace: req.Namespace,
+			Key:       req.Key,
+			Payload:   req.Payload,
 		},
 	}
 
@@ -216,10 +215,9 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
-			Environment: req.Environment,
-			Namespace:   req.Namespace,
-			Key:         req.Key,
-			Payload:     req.Payload,
+			Namespace: req.Namespace,
+			Key:       req.Key,
+			Payload:   req.Payload,
 		},
 	}
 
