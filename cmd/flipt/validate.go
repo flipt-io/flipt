@@ -82,10 +82,16 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return errors.New("non-empty working directory expected")
 	}
 
+	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
-		_, err = fs.SnapshotFromFS(logger, os.DirFS(v.workDirectory), opts...)
+		config, err := fs.GetConfig(ofs)
+		if err != nil {
+			return err
+		}
+
+		_, err = fs.SnapshotFromFS(logger, config, ofs, opts...)
 	} else {
-		_, err = fs.SnapshotFromPaths(logger, os.DirFS(v.workDirectory), args, opts...)
+		_, err = fs.SnapshotFromPaths(logger, ofs, args, opts...)
 	}
 
 	errs, ok := validation.Unwrap(err)

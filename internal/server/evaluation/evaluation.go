@@ -16,7 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,16 +27,21 @@ import (
 
 // Variant evaluates a request for a multi-variate flag and entity.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
+	store, err := s.getEvalStore(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
+	flag, err := store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
+	if err != nil {
+		return nil, err
+	}
+
+	if flag.Type != core.FlagType_VARIANT_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	resp, err := s.variant(ctx, flag, r)
+	resp, err := s.variant(ctx, store, flag, r)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +67,8 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	return resp, nil
 }
 
-func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	rules, err := s.store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
+func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+	rules, err := store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +125,24 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	}()
 
 	if flag.DefaultVariant != nil {
+		dv, ok := getVariant(flag.GetDefaultVariant(), flag.Variants...)
+		if !ok {
+			return nil, fmt.Errorf("default variant not found: %q", flag.GetDefaultVariant())
+		}
+
+		var attachment string
+		if dv.Attachment != nil {
+			a, err := dv.Attachment.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+
+			attachment = string(a)
+		}
+
 		resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-		resp.VariantKey = flag.DefaultVariant.Key
-		resp.VariantAttachment = flag.DefaultVariant.Attachment
+		resp.VariantKey = dv.Key
+		resp.VariantAttachment = attachment
 	}
 
 	if !flag.Enabled {
@@ -172,7 +192,7 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			resp.SegmentKeys = segmentKeys
 		}
 
-		distributions, err := s.store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
+		distributions, err := store.GetEvaluationDistributions(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey), storage.NewID(rule.ID))
 		if err != nil {
 			return resp, err
 		}
@@ -236,16 +256,21 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	flag, err := s.store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
+	store, err := s.getEvalStore(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
+	flag, err := store.GetFlag(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey, storage.WithReference(r.Reference)))
+	if err != nil {
+		return nil, err
+	}
+
+	if flag.Type != core.FlagType_BOOLEAN_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	resp, err := s.boolean(ctx, flag, r)
+	resp, err := s.boolean(ctx, store, flag, r)
 	if err != nil {
 		return nil, err
 	}
@@ -269,8 +294,8 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	return resp, nil
 }
 
-func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	rollouts, err := s.store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
+func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	rollouts, err := store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
 	}
@@ -362,12 +387,12 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			}
 
 			switch rollout.Segment.SegmentOperator {
-			case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+			case core.SegmentOperator_OR_SEGMENT_OPERATOR:
 				if segmentMatches < 1 {
 					s.logger.Debug("did not match ANY segments")
 					continue
 				}
-			case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+			case core.SegmentOperator_AND_SEGMENT_OPERATOR:
 				if len(rollout.Segment.Segments) != segmentMatches {
 					s.logger.Debug("did not match ALL segments")
 					continue
@@ -394,12 +419,17 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 // Batch takes in a list of *evaluation.EvaluationRequest and returns their respective responses.
 func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
+	store, err := s.getEvalStore(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	resp := &rpcevaluation.BatchEvaluationResponse{
 		Responses: make([]*rpcevaluation.EvaluationResponse, 0, len(b.Requests)),
 	}
 
 	for _, req := range b.GetRequests() {
-		f, err := s.store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
+		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if errors.As(err, &errnf) {
@@ -422,8 +452,8 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		}
 
 		switch f.Type {
-		case flipt.FlagType_BOOLEAN_FLAG_TYPE:
-			res, err := s.boolean(ctx, f, req)
+		case core.FlagType_BOOLEAN_FLAG_TYPE:
+			res, err := s.boolean(ctx, store, f, req)
 			if err != nil {
 				return nil, err
 			}
@@ -436,8 +466,8 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			}
 
 			resp.Responses = append(resp.Responses, eresp)
-		case flipt.FlagType_VARIANT_FLAG_TYPE:
-			res, err := s.variant(ctx, f, req)
+		case core.FlagType_VARIANT_FLAG_TYPE:
+			res, err := s.variant(ctx, store, f, req)
 			if err != nil {
 				return nil, err
 			}
@@ -459,7 +489,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func (s *Server) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType, entityId string) (bool, string, error) {
+func (s *Server) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType core.MatchType, entityId string) (bool, string, error) {
 	constraintMatches := 0
 
 	var reason string
@@ -473,15 +503,15 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 		)
 
 		switch c.Type {
-		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+		case core.ComparisonType_STRING_COMPARISON_TYPE:
 			match = matchesString(c, v)
-		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+		case core.ComparisonType_NUMBER_COMPARISON_TYPE:
 			match, err = matchesNumber(c, v)
-		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+		case core.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 			match, err = matchesBool(c, v)
-		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+		case core.ComparisonType_DATETIME_COMPARISON_TYPE:
 			match, err = matchesDateTime(c, v)
-		case flipt.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
+		case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
 			match = matchesString(c, entityId)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
@@ -497,7 +527,7 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 			constraintMatches++
 
 			switch segmentMatchType {
-			case flipt.MatchType_ANY_MATCH_TYPE:
+			case core.MatchType_ANY_MATCH_TYPE:
 				// can short circuit here since we had at least one match
 				break
 			default:
@@ -507,7 +537,7 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 		} else {
 			// no match
 			switch segmentMatchType {
-			case flipt.MatchType_ALL_MATCH_TYPE:
+			case core.MatchType_ALL_MATCH_TYPE:
 				// we can short circuit because we must match all constraints
 				break
 			default:
@@ -520,13 +550,13 @@ func (s *Server) matchConstraints(evalCtx map[string]string, constraints []stora
 	matched := true
 
 	switch segmentMatchType {
-	case flipt.MatchType_ALL_MATCH_TYPE:
+	case core.MatchType_ALL_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
 			reason = "did not match ALL constraints"
 			matched = false
 		}
 
-	case flipt.MatchType_ANY_MATCH_TYPE:
+	case core.MatchType_ANY_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
 			reason = "did not match ANY constraints"
 			matched = false
@@ -727,4 +757,14 @@ func tryParseDateTime(v string) (time.Time, error) {
 	}
 
 	return time.Time{}, errs.ErrInvalidf("parsing datetime from %q", v)
+}
+
+func getVariant(key string, variants ...*core.Variant) (*core.Variant, bool) {
+	for _, v := range variants {
+		if v.Key == key {
+			return v, true
+		}
+	}
+
+	return nil, false
 }

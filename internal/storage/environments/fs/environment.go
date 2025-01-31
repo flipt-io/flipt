@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.flipt.io/flipt/internal/storage/fs/local"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcconfig "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 )
@@ -193,4 +194,8 @@ func (s *store) DeleteResource(ctx context.Context, namespace string, key string
 
 func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
 	return e.snap, nil
+}
+
+func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
 }

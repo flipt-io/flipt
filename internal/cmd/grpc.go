@@ -261,6 +261,7 @@ func NewGRPCServer(
 	}
 
 	// initialize servers
+	register.Add(envsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
 	register.Add(evaldatasrv)

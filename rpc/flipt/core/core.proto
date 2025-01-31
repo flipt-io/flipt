@@ -95,6 +95,7 @@ enum ComparisonType {
   NUMBER_COMPARISON_TYPE = 2;
   BOOLEAN_COMPARISON_TYPE = 3;
   DATETIME_COMPARISON_TYPE = 4;
+  ENTITY_ID_COMPARISON_TYPE = 5;
 }
 
 message Constraint {

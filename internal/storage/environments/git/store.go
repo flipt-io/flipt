@@ -17,6 +17,7 @@ import (
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 )
@@ -307,6 +308,10 @@ func (s *store) DeleteResource(ctx context.Context, namespace string, key string
 
 func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
 	return e.snap, nil
+}
+
+func (e *Environment) EvaluationNamespaceSnapshot(_ context.Context, _ string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	panic("not implemented") // TODO: Implement
 }
 
 // Notify is called whenever the tracked branch is fetched and advances

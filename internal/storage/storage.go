@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
 const (
@@ -159,6 +160,7 @@ func WithOrder(order Order) QueryOption {
 type ReadOnlyStore interface {
 	ReadOnlyFlagStore
 	EvaluationStore
+	EvaluationSnapshotStore
 	fmt.Stringer
 }
 
@@ -185,6 +187,12 @@ type EvaluationStore interface {
 	// GetEvaluationRollouts returns rollouts applicable to namespaceKey + flagKey provided
 	// Note: Rollouts MUST be returned in order by rank
 	GetEvaluationRollouts(ctx context.Context, flag ResourceRequest) ([]*EvaluationRollout, error)
+}
+
+// EvaluationSnapshotStore is a store from which entire namespace snapshots can be retrieved.
+// These snapshots are intended to be sent to client-side evaluators.
+type EvaluationSnapshotStore interface {
+	EvaluationNamespaceSnapshot(_ context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error)
 }
 
 // ReadOnlyFlagStore supports retrieval of flags
