@@ -188,6 +188,8 @@ replace (
 	go.flipt.io/flipt/sdk/go => ../sdk/go
 )
 
+replace github.com/open-feature/go-sdk-contrib/providers/ofrep => github.com/erka/openfeature-go-ofrep-provider v0.0.1
+
 replace go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc => go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.0.0-20240518090000-14441aefdf88
 
 replace go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp => go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.3.0
