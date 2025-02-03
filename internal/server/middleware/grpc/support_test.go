@@ -41,3 +41,7 @@ func (a *authStoreMock) DeleteAuthentications(ctx context.Context, r *storageaut
 func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	return nil
 }
+
+func (a *authStoreMock) Shutdown(ctx context.Context) error {
+	return nil
+}
