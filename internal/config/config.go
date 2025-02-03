@@ -284,7 +284,13 @@ func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 		bindEnvVars(v, env, append(prefixes, wildcard), typ.Elem())
 
 		return
-	case reflect.Struct:
+	case reflect.Struct, reflect.Slice:
+		if typ.Kind() == reflect.Slice {
+			if typ = typ.Elem(); typ.Kind() != reflect.Struct {
+				break
+			}
+		}
+
 		for i := 0; i < typ.NumField(); i++ {
 			var (
 				structField = typ.Field(i)
@@ -616,6 +622,12 @@ func Default() *Config {
 
 		Authentication: AuthenticationConfig{
 			Session: AuthenticationSessionConfig{
+				Storage: AuthenticationSessionStorageConfig{
+					Type: AuthenticationSessionStorageTypeMemory,
+					Cleanup: AuthenticationSessionStorageCleanupConfig{
+						GracePeriod: 30 * time.Minute,
+					},
+				},
 				TokenLifetime: 24 * time.Hour,
 				StateLifetime: 10 * time.Minute,
 			},

@@ -3,6 +3,8 @@ authentication:
   methods:
     token:
       enabled: true
-      bootstrap:
-        token: "s3cr3t!"
-        expiration: 24h
+      storage:
+        type: static
+        tokens:
+          - name: "bootstrap token"
+            credential: "s3cr3t!"

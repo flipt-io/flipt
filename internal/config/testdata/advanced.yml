@@ -32,10 +32,14 @@ storage:
   default:
     remote: https://github.com/flipt-io/flipt.git
     poll_interval: 5s
-    authentication:
-      basic:
-        username: user
-        password: pass
+    credentials: "git"
+
+credentials:
+  git:
+    type: basic
+    basic:
+      username: "user"
+      password: "pass"
 
 meta:
   check_for_updates: false
@@ -48,12 +52,17 @@ authentication:
     secure: true
     csrf:
       key: "abcdefghijklmnopqrstuvwxyz1234567890" #gitleaks:allow
+    cleanup:
+      interval: 2h
+      grace_period: 48h
   methods:
     token:
       enabled: true
-      cleanup:
-        interval: 2h
-        grace_period: 48h
+      storage:
+        type: static
+        tokens:
+          - name: "some static token"
+            credential: "abcdefg"
     oidc:
       enabled: true
       providers:
