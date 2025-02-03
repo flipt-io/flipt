@@ -6,7 +6,7 @@ import {
   useUpdateRuleMutation
 } from '~/app/flags/rulesApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';

@@ -9,7 +9,7 @@ import {
   namespaceApi,
   namespaceKey,
   namespacesSlice
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import { analyticsApi } from './app/flags/analyticsApi';
 import { flagsApi, flagsTableSlice } from './app/flags/flagsApi';
 import { rolloutTag, rolloutsApi } from './app/flags/rolloutsApi';
@@ -26,7 +26,6 @@ import {
 } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
-import { refsKey, refsSlice } from './app/refs/refsSlice';
 import { eventSlice, eventKey } from './app/events/eventSlice';
 
 const listenerMiddleware = createListenerMiddleware();
@@ -67,24 +66,6 @@ listenerMiddleware.startListening({
       namespaceKey,
       (api.getState() as RootState).namespaces.currentNamespace
     );
-  }
-});
-
-listenerMiddleware.startListening({
-  matcher: isAnyOf(refsSlice.actions.currentRefChanged),
-  effect: (_action, api) => {
-    // save to local storage
-    localStorage.setItem(
-      refsKey,
-      (api.getState() as RootState).refs.currentRef || ''
-    );
-
-    // reset internal cache
-    api.dispatch(namespaceApi.util.resetApiState());
-    api.dispatch(flagsApi.util.resetApiState());
-    api.dispatch(segmentsApi.util.resetApiState());
-    api.dispatch(rolloutsApi.util.resetApiState());
-    api.dispatch(rulesApi.util.resetApiState());
   }
 });
 
@@ -130,17 +111,19 @@ const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
 );
 
-const currentRef = localStorage.getItem(refsKey) || undefined;
-
+const currentEnvironment = localStorage.getItem(environmentKey) || 'default';
 const currentNamespace = localStorage.getItem(namespaceKey) || 'default';
 
 export const store = configureStore({
   preloadedState: {
-    refs: {
-      currentRef
-    },
     user: userState,
     preferences: preferencesState,
+    environments: {
+      environments: {},
+      status: LoadingStatus.IDLE,
+      currentEnvironment,
+      error: undefined
+    },
     namespaces: {
       namespaces: {},
       status: LoadingStatus.IDLE,
@@ -157,7 +140,6 @@ export const store = configureStore({
   reducer: {
     flagsTable: flagsTableSlice.reducer,
     segmentsTable: segmentsTableSlice.reducer,
-    refs: refsSlice.reducer,
     user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,
     namespaces: namespacesSlice.reducer,

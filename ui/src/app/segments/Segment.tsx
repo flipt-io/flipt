@@ -7,7 +7,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import {
   useCopySegmentMutation,
   useDeleteConstraintMutation,

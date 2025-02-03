@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useDeleteVariantMutation } from '~/app/flags/flagsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import EmptyState from '~/components/EmptyState';
 import VariantForm from '~/components/variants/forms/VariantForm';
 import { ButtonWithPlus } from '~/components/Button';

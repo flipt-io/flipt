@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { selectConfig } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { createHashRouter, redirect, RouterProvider } from 'react-router';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';

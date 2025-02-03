@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { ButtonWithPlus } from '~/components/Button';
 import FlagTable from '~/components/flags/FlagTable';
 import { PageHeader } from '~/components/ui/page';

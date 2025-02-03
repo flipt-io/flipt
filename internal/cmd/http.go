@@ -82,28 +82,30 @@ func NewHTTPServer(
 	}
 
 	// v1
-	if err := flipt.RegisterFliptHandlerClient(ctx, api, flipt.NewFliptClient(conn)); err != nil {
+
+	if err := flipt.RegisterFliptHandler(ctx, api, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterEvaluationServiceHandlerClient(ctx, evaluateAPI, evaluation.NewEvaluationServiceClient(conn)); err != nil {
+	if err := evaluation.RegisterEvaluationServiceHandler(ctx, evaluateAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterDataServiceHandlerClient(ctx, evaluateDataAPI, evaluation.NewDataServiceClient(conn)); err != nil {
+	if err := evaluation.RegisterDataServiceHandler(ctx, evaluateDataAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := analytics.RegisterAnalyticsServiceHandlerClient(ctx, analyticsAPI, analytics.NewAnalyticsServiceClient(conn)); err != nil {
+	if err := analytics.RegisterAnalyticsServiceHandler(ctx, analyticsAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := ofrep.RegisterOFREPServiceHandlerClient(ctx, ofrepAPI, ofrep.NewOFREPServiceClient(conn)); err != nil {
+	if err := ofrep.RegisterOFREPServiceHandler(ctx, ofrepAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
 	// v2
-	if err := environments.RegisterEnvironmentsServiceHandlerClient(ctx, v2Environments, environments.NewEnvironmentsServiceClient(conn)); err != nil {
+
+	if err := environments.RegisterEnvironmentsServiceHandler(ctx, v2Environments, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -177,6 +179,7 @@ func NewHTTPServer(
 		r.Mount("/internal/v1/analytics", analyticsAPI)
 		r.Mount("/internal/v1", evaluateDataAPI)
 		r.Mount("/ofrep", ofrepAPI)
+
 		r.Mount("/v2/environments", v2Environments)
 
 		// mount all authentication related HTTP components
@@ -196,7 +199,11 @@ func NewHTTPServer(
 
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
-				register(ctx, meta.NewMetadataServiceClient(conn), meta.RegisterMetadataServiceHandlerClient),
+				register(
+					ctx,
+					conn,
+					meta.RegisterMetadataServiceHandler,
+				),
 				runtime.WithMetadata(method.ForwardPrefix),
 			))
 		})

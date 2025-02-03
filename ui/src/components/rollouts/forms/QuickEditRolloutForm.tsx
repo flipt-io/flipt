@@ -2,7 +2,7 @@ import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';

@@ -12,7 +12,7 @@ import { INamespace } from '~/types/Namespace';
 import {
   useDeleteNamespaceMutation,
   useListNamespacesQuery
-} from './namespacesSlice';
+} from './namespacesApi';
 
 export default function Namespaces() {
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);

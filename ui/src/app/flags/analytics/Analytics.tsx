@@ -4,7 +4,7 @@ import { useOutletContext } from 'react-router';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { IFlag } from '~/types/Flag';
 import { Graph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';

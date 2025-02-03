@@ -8,7 +8,7 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import FlagForm from '~/components/flags/forms/FlagForm';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';

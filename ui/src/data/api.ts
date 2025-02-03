@@ -6,10 +6,9 @@ import { IAuthJWTInternal } from '~/types/auth/JWT';
 import { IAuthOIDCInternal } from '~/types/auth/OIDC';
 import { getUser } from '~/data/user';
 
-export const apiURL = 'api/v1';
+export const apiURL = 'v2/environments';
 export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
-export const metaURL = 'meta';
 export const internalURL = 'internal/v1';
 
 const csrfTokenHeaderKey = 'x-csrf-token';
@@ -137,57 +136,16 @@ export async function evaluate(
 //
 // evaluateV2
 export async function evaluateV2(
-  ref: string | undefined,
   namespaceKey: string,
   flagKey: string,
   flagType: FlagType,
   values: any
 ) {
   let route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
-  if (ref) {
-    const q = new URLSearchParams({ reference: ref }).toString();
-    route += '?' + q;
-  }
   const body = {
     namespaceKey,
     flagKey: flagKey,
     ...values
   };
   return post(route, body, evaluateURL);
-}
-
-//
-// meta
-async function getMeta(path: string) {
-  const req = {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    }
-  };
-
-  const res = await fetch(`${metaURL}${path}`, req);
-  if (!res.ok) {
-    const contentType = res.headers.get('content-type');
-
-    if (!contentType || !contentType.includes('application/json')) {
-      const err = new APIError('An unexpected error occurred.', res.status);
-      throw err;
-    }
-
-    let err = await res.json();
-    throw new APIError(err.message, res.status);
-  }
-
-  const token = res.headers.get(csrfTokenHeaderKey);
-  if (token !== null) {
-    window.localStorage.setItem(csrfTokenHeaderKey, token);
-  }
-
-  return res.json();
-}
-
-export async function getInfo() {
-  return getMeta('/info');
 }

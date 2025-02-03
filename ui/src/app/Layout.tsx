@@ -22,7 +22,7 @@ import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   useListNamespacesQuery
-} from './namespaces/namespacesSlice';
+} from './namespaces/namespacesApi';
 import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
 import { selectDismissedBanner } from './events/eventSlice';

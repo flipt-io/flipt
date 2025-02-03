@@ -24,7 +24,7 @@ import {
   useOrderRolloutsMutation
 } from '~/app/flags/rolloutsApi';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { ButtonWithPlus, TextButton } from '~/components/Button';
 import Modal from '~/components/Modal';
