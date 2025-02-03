@@ -16,6 +16,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
@@ -23,13 +24,9 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -347,7 +344,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		})
 	}
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, info, forceMigrate)
+	// in-process client connection for grpc services
+	ipch := &inprocgrpc.Channel{}
+
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
 	if err != nil {
 		return err
 	}
@@ -355,13 +355,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts grpc server
 	g.Go(grpcServer.Run)
 
-	// retrieve client connection to associated running gRPC server.
-	conn, err := clientConn(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
-	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, conn, info)
+	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
 	if err != nil {
 		return err
 	}
@@ -412,29 +406,4 @@ func initMetaStateDir(cfg *config.Config) error {
 	}
 
 	return ensureDir(cfg.Meta.StateDirectory)
-}
-
-// clientConn constructs and configures a client connection to the underlying gRPC server.
-func clientConn(ctx context.Context, cfg *config.Config) (*grpc.ClientConn, error) {
-	opts := []grpc.DialOption{grpc.WithBlock()}
-	if cfg.Tracing.Enabled {
-		opts = append(opts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
-	}
-	switch cfg.Server.Protocol {
-	case config.HTTPS:
-		creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
-		if err != nil {
-			return nil, fmt.Errorf("loading TLS credentials: %w", err)
-		}
-
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	case config.HTTP:
-		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	}
-
-	dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
-	defer dialCancel()
-
-	return grpc.DialContext(dialCtx,
-		fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts...)
 }
