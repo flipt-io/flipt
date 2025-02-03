@@ -110,7 +110,7 @@ func (s *sourceBuilder) forEnvironment(
 	// register the environment for updates to the target branch
 	repo.Subscribe(storage.Branch, env)
 
-	logger.Info("Configured environment",
+	logger.Info("configured environment",
 		zap.String("environment", envConf.Name),
 		zap.String("storage", envConf.Storage))
 

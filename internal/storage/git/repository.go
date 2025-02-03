@@ -68,7 +68,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	}
 
 	if empty {
-		logger.Warn("repository empty, attempting to add and push a README")
+		logger.Debug("repository empty, attempting to add and push a README")
 		// add initial readme if repo is empty
 		if _, err := repo.UpdateAndPush(ctx, func(fs envsfs.Filesystem) (string, error) {
 			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
@@ -337,7 +337,7 @@ func (r *Repository) View(ctx context.Context, fn func(hash plumbing.Hash, fs en
 		finished(err)
 	}()
 
-	r.logger.Debug("View", zap.String("branch", branch))
+	r.logger.Debug("view", zap.String("branch", branch))
 
 	hash, err := r.Resolve(branch)
 	if err != nil {

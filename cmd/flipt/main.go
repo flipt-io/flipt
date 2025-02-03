@@ -16,6 +16,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
+	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/cobra"
@@ -24,6 +25,7 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -354,6 +356,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// starts grpc server
 	g.Go(grpcServer.Run)
+
+	if cfg.Tracing.Enabled {
+		ipch = grpchan.InterceptClientConn(ipch, otelgrpc.UnaryClientInterceptor(), nil).(*inprocgrpc.Channel)
+	}
 
 	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
 	if err != nil {
