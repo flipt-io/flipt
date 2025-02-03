@@ -62,7 +62,6 @@ const Rule = forwardRef(
             actions={[
               {
                 id: 'rule-delete',
-                disabled: false,
                 label: 'Delete',
                 variant: 'destructive',
                 onClick: () => {

@@ -64,7 +64,6 @@ const Rollout = forwardRef(
             actions={[
               {
                 id: 'rollout-edit',
-                disabled: false,
                 label: 'Edit',
                 onClick: () => {
                   onEdit && onEdit();
@@ -72,7 +71,6 @@ const Rollout = forwardRef(
               },
               {
                 id: 'rollout-delete',
-                disabled: false,
                 label: 'Delete',
                 variant: 'destructive',
                 onClick: () => {

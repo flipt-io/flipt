@@ -322,7 +322,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   variant="primary"
                   className="ml-3 min-w-[80px]"
                   type="submit"
-                  title={false ? 'Not allowed in Read-Only mode' : undefined}
                   disabled={
                     !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
                     hasMetadataErrors
