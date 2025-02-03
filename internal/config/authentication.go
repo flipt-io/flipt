@@ -104,6 +104,12 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("authentication", map[string]any{
 		"required": false,
 		"session": map[string]any{
+			"storage": map[string]any{
+				"type": "memory",
+				"cleanup": map[string]any{
+					"grace_period": "30m",
+				},
+			},
 			"token_lifetime": "24h",
 			"state_lifetime": "10m",
 		},
@@ -200,17 +206,6 @@ type AuthenticationSessionStorageConfig struct {
 
 func (c AuthenticationSessionStorageConfig) validate() error {
 	return c.Cleanup.validate()
-}
-
-func (c AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("authentication.session.storage", map[string]any{
-		"type": "memory",
-		"cleanup": map[string]any{
-			"grace_period": "30m",
-		},
-	})
-
-	return nil
 }
 
 // AuthenticationSessionStorageCleanupConfig configures the schedule for cleaning up expired authentication records.
@@ -389,7 +384,11 @@ type AuthenticationMethodTokenConfig struct {
 	Storage AuthenticationMethodTokenStorage `json:"storage" mapstructure:"storage" yaml:"storage"`
 }
 
-func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
+func (a AuthenticationMethodTokenConfig) setDefaults(defaults map[string]any) {
+	defaults["storage"] = map[string]any{
+		"type": "static",
+	}
+}
 
 // info describes properties of the authentication method "token".
 func (a AuthenticationMethodTokenConfig) info(_ context.Context) AuthenticationMethodInfo {

@@ -1,8 +1,12 @@
 storage:
   default:
     remote: "git@github.com:foo/bar.git"
-    authentication:
-      ssh:
-        user: git
-        password: bar
-        private_key_path: "/path/to/pem.key"
+    credentials: git
+
+credentials:
+  git:
+    type: ssh
+    ssh:
+      user: git
+      password: bar
+      private_key_path: "/path/to/pem.key"

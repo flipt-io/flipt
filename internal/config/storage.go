@@ -89,7 +89,7 @@ type StorageConfig struct {
 	PollInterval    time.Duration        `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 	InsecureSkipTLS bool                 `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
 	Credentials     string               `json:"-" mapstructure:"credentials" yaml:"-"`
-	Signature       SignatureConfig      `json:"signature" mapstructure:"signature,omitempty" yaml:"signature"`
+	Signature       SignatureConfig      `json:"signature,omitempty" mapstructure:"signature,omitempty" yaml:"signature,omitempty"`
 }
 
 func (c *StorageConfig) validate() error {
