@@ -226,8 +226,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 name="operator"
                                 type="radio"
                                 className={cls(
-                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
-                                  { 'cursor-not-allowed': false }
+                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400'
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(
