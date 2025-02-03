@@ -1,7 +1,6 @@
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
-import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
@@ -47,7 +46,6 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       ? rollout.segment.segmentOperator
       : SegmentOperatorType.OR;
 
-  const readOnly = useSelector(selectReadonly);
   const [updateRollout] = useUpdateRolloutMutation();
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     let rolloutSegment = rollout;
@@ -202,7 +200,6 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                         name="segmentKeys"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
-                            readonly={readOnly}
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
                               arrayHelpers.push(segment)
@@ -230,7 +227,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 type="radio"
                                 className={cls(
                                   'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
-                                  { 'cursor-not-allowed': readOnly }
+                                  { 'cursor-not-allowed': false }
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(
@@ -242,12 +239,6 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                   segmentOperator.id === formik.values.operator
                                 }
                                 value={segmentOperator.id}
-                                disabled={readOnly}
-                                title={
-                                  readOnly
-                                    ? 'Not allowed in Read-Only mode'
-                                    : undefined
-                                }
                               />
                             </div>
                             <div>
@@ -283,10 +274,8 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'False', value: 'false' }
                   ]}
                   className={cls(
-                    'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
-                    { 'cursor-not-allowed bg-gray-100 text-gray-500': readOnly }
+                    'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle'
                   )}
-                  disabled={readOnly}
                 />
               </div>
             </div>

@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectReadonly } from '~/app/meta/metaSlice';
+import { selectNamespaces } from './namespacesApi';
 import EmptyState from '~/components/EmptyState';
 import { ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
@@ -28,10 +28,7 @@ export default function Namespaces() {
   );
   const listNamespaces = useListNamespacesQuery();
 
-  const namespaces = useMemo(() => {
-    return listNamespaces.data?.namespaces || [];
-  }, [listNamespaces]);
-  const readOnly = useSelector(selectReadonly);
+  const namespaces = useSelector(selectNamespaces);
   const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
 
@@ -89,8 +86,6 @@ export default function Namespaces() {
           <div className="mt-4">
             <ButtonWithPlus
               variant="primary"
-              disabled={readOnly}
-              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               onClick={() => {
                 setEditingNamespace(null);
                 setShowNamespaceForm(true);
@@ -109,12 +104,10 @@ export default function Namespaces() {
               setShowEditNamespaceModal={setShowNamespaceForm}
               setDeletingNamespace={setDeletingNamespace}
               setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}
-              readOnly={readOnly}
             />
           ) : (
             <EmptyState
               text="New Namespace"
-              disabled={readOnly}
               onClick={() => {
                 setEditingNamespace(null);
                 setShowNamespaceForm(true);

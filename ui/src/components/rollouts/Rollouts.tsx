@@ -23,7 +23,6 @@ import {
   useListRolloutsQuery,
   useOrderRolloutsMutation
 } from '~/app/flags/rolloutsApi';
-import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { ButtonWithPlus, TextButton } from '~/components/Button';
@@ -59,7 +58,6 @@ export function DefaultRollout(props: RolloutsProps) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace) as INamespace;
-  const readOnly = useSelector(selectReadonly);
 
   const [updateFlag] = useUpdateFlagMutation();
 
@@ -139,13 +137,8 @@ export function DefaultRollout(props: RolloutsProps) {
                                 { label: 'False', value: 'false' }
                               ]}
                               className={cls(
-                                'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
-                                {
-                                  'cursor-not-allowed bg-gray-100 text-gray-500':
-                                    readOnly
-                                }
+                                'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle'
                               )}
-                              disabled={readOnly}
                             />
                           </div>
                         </div>
@@ -154,7 +147,7 @@ export function DefaultRollout(props: RolloutsProps) {
                     <div className="flex-shrink-0 py-1">
                       <div className="flex justify-end space-x-2">
                         <TextButton
-                          disabled={formik.isSubmitting || readOnly}
+                          disabled={formik.isSubmitting}
                           onClick={() => {
                             formik.resetForm();
                           }}
@@ -164,9 +157,7 @@ export function DefaultRollout(props: RolloutsProps) {
                         <TextButton
                           type="submit"
                           className="min-w-[80px]"
-                          disabled={
-                            !formik.isValid || formik.isSubmitting || readOnly
-                          }
+                          disabled={!formik.isValid || formik.isSubmitting}
                         >
                           {formik.isSubmitting ? (
                             <Loading isPrimary />
@@ -207,8 +198,7 @@ export default function Rollouts(props: RolloutsProps) {
 
   const rolloutFormRef = useRef(null);
 
-  const namespace = useSelector(selectCurrentNamespace);
-  const readOnly = useSelector(selectReadonly);
+  const namespace = useSelector(selectCurrentNamespace) as INamespace;
   const segmentsList = useListSegmentsQuery(namespace.key);
   const segments = useMemo(
     () => segmentsList.data?.segments || [],
@@ -394,8 +384,6 @@ export default function Rollouts(props: RolloutsProps) {
             <ButtonWithPlus
               variant="primary"
               type="button"
-              disabled={readOnly}
-              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               onClick={() => {
                 setEditingRollout(null);
                 setShowRolloutForm(true);
@@ -434,7 +422,6 @@ export default function Rollouts(props: RolloutsProps) {
                             setDeletingRollout(rollout);
                             setShowDeleteRolloutModal(true);
                           }}
-                          readOnly={readOnly}
                         />
                       ))}
                     </ul>

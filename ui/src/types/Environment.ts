@@ -1,5 +1,5 @@
 export interface IEnvironment {
-    name: string;
-    storage: string;
-    directory: string;
+  name: string;
+  storage: string;
+  directory: string;
 }

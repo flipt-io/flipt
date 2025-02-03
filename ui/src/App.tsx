@@ -174,7 +174,6 @@ export default function App() {
     }
   }, [theme, systemPrefersDark]);
 
-
   const namespace = useSelector(selectCurrentNamespace);
 
   let title = `Flipt · ${namespace.key}`;

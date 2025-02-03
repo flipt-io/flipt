@@ -9,12 +9,11 @@ type SortableRuleProps = {
   rule: IEvaluatable;
   segments: ISegment[];
   onSuccess: () => void;
-  onDelete: () => void;
-  readOnly?: boolean;
+  onDelete: (rule: IEvaluatable) => void;
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { flag, rule, segments, onSuccess, onDelete, readOnly } = props;
+  const { flag, rule, segments, onSuccess, onDelete } = props;
   const {
     isDragging,
     attributes,
@@ -24,7 +23,7 @@ export default function SortableRule(props: SortableRuleProps) {
     transition
   } = useSortable({
     id: rule.id,
-    disabled: readOnly
+    disabled: false
   });
 
   const style = transform
@@ -49,7 +48,7 @@ export default function SortableRule(props: SortableRuleProps) {
       segments={segments}
       onSuccess={onSuccess}
       onDelete={onDelete}
-      readOnly={readOnly}
+      readOnly={false}
     />
   );
 }

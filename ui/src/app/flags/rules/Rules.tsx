@@ -23,12 +23,10 @@ import {
   useListRulesQuery,
   useOrderRulesMutation
 } from '~/app/flags/rulesApi';
-import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import EmptyState from '~/components/EmptyState';
 import { ButtonWithPlus, TextButton } from '~/components/Button';
-
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -63,7 +61,6 @@ export function DefaultVariant(props: RulesProps) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace) as INamespace;
-  const readOnly = useSelector(selectReadonly);
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
@@ -161,11 +158,7 @@ export function DefaultVariant(props: RulesProps) {
                       <div className="flex justify-end space-x-3">
                         <TextButton
                           className="min-w-[80px]"
-                          disabled={
-                            formik.isSubmitting ||
-                            !flag.defaultVariant ||
-                            readOnly
-                          }
+                          disabled={formik.isSubmitting || !flag.defaultVariant}
                           onClick={() => handleRemove()}
                         >
                           Remove
@@ -173,8 +166,7 @@ export function DefaultVariant(props: RulesProps) {
                         <TextButton
                           disabled={
                             formik.isSubmitting ||
-                            flag.defaultVariant?.id == selectedVariant?.id ||
-                            readOnly
+                            flag.defaultVariant?.id == selectedVariant?.id
                           }
                           onClick={() => {
                             formik.resetForm();
@@ -191,8 +183,7 @@ export function DefaultVariant(props: RulesProps) {
                           disabled={
                             !formik.isValid ||
                             formik.isSubmitting ||
-                            flag.defaultVariant?.id == selectedVariant?.id ||
-                            readOnly
+                            flag.defaultVariant?.id == selectedVariant?.id
                           }
                         >
                           {formik.isSubmitting ? (
@@ -229,7 +220,6 @@ export default function Rules() {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-  const readOnly = useSelector(selectReadonly);
   const segmentsList = useListSegmentsQuery(namespace.key);
   const segments = useMemo(
     () => segmentsList.data?.segments || [],
@@ -421,8 +411,6 @@ export default function Rules() {
                 variant="primary"
                 type="button"
                 onClick={() => setShowRuleForm(true)}
-                disabled={readOnly}
-                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
                 New Rule
               </ButtonWithPlus>
@@ -461,7 +449,6 @@ export default function Rules() {
                                 setShowDeleteRuleModal(true);
                               }}
                               onSuccess={clearError}
-                              readOnly={readOnly}
                             />
                           ))}
                       </ul>
@@ -483,7 +470,6 @@ export default function Rules() {
           ) : (
             <EmptyState
               text="New Rule"
-              disabled={readOnly}
               onClick={() => {
                 setShowRuleForm(true);
               }}

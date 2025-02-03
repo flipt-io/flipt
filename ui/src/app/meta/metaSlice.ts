@@ -34,7 +34,7 @@ export const metaSlice = createSlice({
       .addCase(fetchInfoAsync.fulfilled, (state, action) => {
         state.info = action.payload;
         state.info.status = LoadingStatus.SUCCEEDED;
-      })
+      });
   }
 });
 

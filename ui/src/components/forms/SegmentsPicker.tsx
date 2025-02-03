@@ -6,7 +6,6 @@ import { truncateKey } from '~/utils/helpers';
 import { ButtonIcon } from '~/components/Button';
 
 type SegmentPickerProps = {
-  readonly?: boolean;
   segments: ISegment[];
   selectedSegments: FilterableSegment[];
   segmentAdd: (segment: FilterableSegment) => void;
@@ -15,7 +14,6 @@ type SegmentPickerProps = {
 };
 
 export default function SegmentsPicker({
-  readonly = false,
   segments,
   selectedSegments: parentSegments,
   segmentAdd,
@@ -85,29 +83,18 @@ export default function SegmentsPicker({
                   filterValue: truncateKey(s.key),
                   displayValue: s.name
                 }))}
-              disabled={readonly}
               selected={selectedSegment}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
-              inputClassName={
-                readonly
-                  ? 'cursor-not-allowed bg-gray-100 text-gray-500'
-                  : undefined
-              }
             />
           </div>
           {editing && parentSegments.length - 1 === index ? (
-            <ButtonIcon
-              icon={faPlus}
-              onClick={() => setEditing(false)}
-              disabled={readonly}
-            />
+            <ButtonIcon icon={faPlus} onClick={() => setEditing(false)} />
           ) : (
             <ButtonIcon
               icon={faMinus}
               onClick={() => handleSegmentRemove(index)}
-              disabled={readonly}
             />
           )}
         </div>

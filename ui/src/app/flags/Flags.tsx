@@ -1,6 +1,5 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { ButtonWithPlus } from '~/components/Button';
 import FlagTable from '~/components/flags/FlagTable';
@@ -12,15 +11,12 @@ export default function Flags() {
 
   const navigate = useNavigate();
 
-  const readOnly = useSelector(selectReadonly);
-
   return (
     <>
       <PageHeader title="Flags">
         <ButtonWithPlus
           variant="primary"
           onClick={() => navigate(`${path}/new`)}
-          disabled={readOnly}
         >
           New Flag
         </ButtonWithPlus>

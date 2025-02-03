@@ -28,9 +28,7 @@ export default function Header(props: HeaderProps) {
         <Bars3BottomLeftIcon className="h-6 w-6" aria-hidden="true" />
       </button>
 
-      <div
-        className="top-0 flex flex-1 justify-between px-4"
-      >
+      <div className="top-0 flex flex-1 justify-between px-4">
         <div className="flex flex-1" />
         <div className="flex items-center gap-2 pr-2">
           {/* notifications */}

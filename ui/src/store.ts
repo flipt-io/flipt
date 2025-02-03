@@ -27,7 +27,11 @@ import {
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { eventSlice, eventKey } from './app/events/eventSlice';
-import { environmentKey } from './app/environments/environmentsApi';
+import {
+  environmentKey,
+  environmentsApi,
+  environmentsSlice
+} from './app/environments/environmentsApi';
 
 const listenerMiddleware = createListenerMiddleware();
 
@@ -143,8 +147,10 @@ export const store = configureStore({
     segmentsTable: segmentsTableSlice.reducer,
     user: eventSlice.reducer,
     preferences: preferencesSlice.reducer,
+    environments: environmentsSlice.reducer,
     namespaces: namespacesSlice.reducer,
     meta: metaSlice.reducer,
+    [environmentsApi.reducerPath]: environmentsApi.reducer,
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
@@ -158,6 +164,7 @@ export const store = configureStore({
     getDefaultMiddleware()
       .prepend(listenerMiddleware.middleware)
       .concat(
+        environmentsApi.middleware,
         namespaceApi.middleware,
         flagsApi.middleware,
         segmentsApi.middleware,

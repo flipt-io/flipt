@@ -83,7 +83,10 @@ export const namespaceApi = createApi({
       providesTags: () => [{ type: 'Namespace' }]
     }),
     // create the namespace
-    createNamespace: builder.mutation<INamespace, { environmentKey: string; values: INamespaceBase }>({
+    createNamespace: builder.mutation<
+      INamespace,
+      { environmentKey: string; values: INamespaceBase }
+    >({
       query({ environmentKey, values }) {
         return {
           url: `/${environmentKey}/namespaces`,
@@ -91,7 +94,11 @@ export const namespaceApi = createApi({
           body: values
         };
       },
-      invalidatesTags: () => [{ type: 'Namespace' }, { type: 'Flag' }, { type: 'Segment' }]
+      invalidatesTags: () => [
+        { type: 'Namespace' },
+        { type: 'Flag' },
+        { type: 'Segment' }
+      ]
     }),
     // update the namespace
     updateNamespace: builder.mutation<
@@ -105,7 +112,11 @@ export const namespaceApi = createApi({
           body: values
         };
       },
-      invalidatesTags: () => [{ type: 'Namespace' }, { type: 'Flag' }, { type: 'Segment' }]
+      invalidatesTags: () => [
+        { type: 'Namespace' },
+        { type: 'Flag' },
+        { type: 'Segment' }
+      ]
     }),
     // delete the namespace
     deleteNamespace: builder.mutation<void, string>({
@@ -115,7 +126,11 @@ export const namespaceApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: () => [{ type: 'Namespace' }, { type: 'Flag' }, { type: 'Segment' }]
+      invalidatesTags: () => [
+        { type: 'Namespace' },
+        { type: 'Flag' },
+        { type: 'Segment' }
+      ]
     })
   })
 });

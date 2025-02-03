@@ -94,9 +94,7 @@ export default function Sidebar(props: SidebarProps) {
       {/* Static sidebar for desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
-          <div
-            className="relative flex h-16 flex-shrink-0 items-center bg-black px-4 pb-1 pt-2 dark:border-b dark:border-b-background/20"
-          >
+          <div className="relative flex h-16 flex-shrink-0 items-center bg-black px-4 pb-1 pt-2 dark:border-b dark:border-b-background/20">
             <Link to="/">
               <img
                 src={logoLight}
