@@ -27,6 +27,7 @@ import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
 import { selectDismissedBanner } from './events/eventSlice';
 import { StarIcon } from '@heroicons/react/20/solid';
+import { selectCurrentEnvironment } from './environments/environmentsApi';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -38,6 +39,8 @@ function InnerLayout() {
   const { namespaceKey } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
 
@@ -55,7 +58,9 @@ function InnerLayout() {
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
-  const namespaces = useListNamespacesQuery();
+  const namespaces = useListNamespacesQuery({
+    environmentKey: currentEnvironment.name
+  });
 
   useEffect(() => {
     dispatch(fetchInfoAsync());

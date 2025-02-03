@@ -1,8 +1,9 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { IEnvironment } from '~/types/Environment';
 import { baseQuery } from '~/utils/redux-rtk';
 import { LoadingStatus } from '~/types/Meta';
+import { RootState } from '~/store';
 
 export const environmentKey = 'environment';
 
@@ -24,17 +25,46 @@ export const environmentsSlice = createSlice({
   name: 'environments',
   initialState,
   reducers: {
-    setCurrentEnvironment: (state, action) => {
-      state.currentEnvironment = action.payload;
+    currentEnvironmentChanged: (state, action) => {
+      const environment = action.payload;
+      state.currentEnvironment = environment.name;
+    },
+    environmentsChanged: (state, action) => {
+      const environments: { [key: string]: IEnvironment } = {};
+      action.payload.environments.forEach((environment: IEnvironment) => {
+        environments[environment.name] = environment;
+      });
+      state.environments = environments;
+      state.status = LoadingStatus.SUCCEEDED;
     }
   }
 });
 
-export const { setCurrentEnvironment } = environmentsSlice.actions;
+export const { currentEnvironmentChanged } = environmentsSlice.actions;
+
+export const selectCurrentEnvironment = createSelector(
+  [(state: RootState) => state.environments],
+  (state) => {
+    if (state.environments[state.currentEnvironment]) {
+      return state.environments[state.currentEnvironment];
+    }
+
+    if (state.environments.default) {
+      return state.environments.default;
+    }
+
+    const envs = Object.keys(state.environments);
+    if (envs.length > 0) {
+      return state.environments[envs[0]];
+    }
+
+    return { name: 'default', storage: '', directory: '' } as IEnvironment;
+  }
+);
 
 export const environmentsApi = createApi({
   reducerPath: 'environments-api',
-  baseQuery: baseQuery,
+  baseQuery,
   tagTypes: ['Environment'],
   endpoints: (builder) => ({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({

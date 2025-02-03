@@ -13,5 +13,5 @@ export interface INamespace extends INamespaceBase {
 }
 
 export interface INamespaceList extends IPageable {
-  namespaces: INamespace[];
+  items: INamespace[];
 }

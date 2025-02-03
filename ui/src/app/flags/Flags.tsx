@@ -4,8 +4,10 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { ButtonWithPlus } from '~/components/Button';
 import FlagTable from '~/components/flags/FlagTable';
 import { PageHeader } from '~/components/ui/page';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 export default function Flags() {
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
   const path = `/namespaces/${namespace.key}/flags`;
 
@@ -22,7 +24,7 @@ export default function Flags() {
         </ButtonWithPlus>
       </PageHeader>
       <div className="flex flex-col gap-1 space-y-2 py-2">
-        <FlagTable namespace={namespace} />
+        <FlagTable environment={environment} namespace={namespace} />
       </div>
     </>
   );

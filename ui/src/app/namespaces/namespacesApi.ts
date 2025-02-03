@@ -32,7 +32,7 @@ export const namespacesSlice = createSlice({
     },
     namespacesChanged: (state, action) => {
       const namespaces: { [key: string]: INamespace } = {};
-      action.payload.namespaces.forEach((namespace: INamespace) => {
+      action.payload.items.forEach((namespace: INamespace) => {
         namespaces[namespace.key] = namespace;
       });
       state.namespaces = namespaces;
@@ -78,8 +78,8 @@ export const namespaceApi = createApi({
   tagTypes: ['Namespace', 'Flag', 'Segment'],
   endpoints: (builder) => ({
     // get list of namespaces
-    listNamespaces: builder.query<INamespaceList, void>({
-      query: (environmentKey) => `/${environmentKey}/namespaces`,
+    listNamespaces: builder.query<INamespaceList, { environmentKey: string }>({
+      query: ({ environmentKey }) => `/${environmentKey}/namespaces`,
       providesTags: () => [{ type: 'Namespace' }]
     }),
     // create the namespace
