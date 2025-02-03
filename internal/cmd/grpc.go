@@ -11,6 +11,8 @@ import (
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
+	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
@@ -31,6 +33,11 @@ import (
 	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage/environments"
 	"go.flipt.io/flipt/internal/tracing"
+	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcmeta "go.flipt.io/flipt/rpc/flipt/meta"
+	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
+	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
@@ -45,28 +52,13 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 )
-
-type grpcRegister interface {
-	RegisterGRPC(*grpc.Server)
-}
-
-type grpcRegisterers []grpcRegister
-
-func (g *grpcRegisterers) Add(r grpcRegister) {
-	*g = append(*g, r)
-}
-
-func (g grpcRegisterers) RegisterGRPC(s *grpc.Server) {
-	for _, register := range g {
-		register.RegisterGRPC(s)
-	}
-}
 
 // GRPCServer configures the dependencies associated with the Flipt GRPC Service.
 // It provides an entrypoint to start serving the gRPC stack (Run()).
@@ -88,6 +80,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
+	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
 ) (*GRPCServer, error) {
@@ -96,6 +89,10 @@ func NewGRPCServer(
 		logger: logger,
 		cfg:    cfg,
 	}
+
+	// acts as a registry for all grpc services so they can be shared between
+	// the grpc server and the in-process client connection
+	handlers := &grpchan.HandlerMap{}
 
 	var err error
 	server.ln, err = net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
@@ -219,10 +216,11 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
-	register, authInterceptors, authShutdown, err := authenticationGRPC(
+	authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
+		handlers,
 		authnOpts...,
 	)
 	if err != nil {
@@ -246,26 +244,24 @@ func NewGRPCServer(
 			server.onShutdown(func(ctx context.Context) error {
 				return analyticsExporter.Shutdown(ctx)
 			})
-			analyticssrv := analytics.New(logger, client)
-			register.Add(analyticssrv)
+			rpcanalytics.RegisterAnalyticsServiceServer(handlers, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()), zap.String("flush_period", cfg.Analytics.Buffer.FlushPeriod.String()))
 		} else if cfg.Analytics.Storage.Prometheus.Enabled {
 			client, err := prometheus.New(logger, cfg)
 			if err != nil {
 				return nil, err
 			}
-			analyticssrv := analytics.New(logger, client)
-			register.Add(analyticssrv)
+			rpcanalytics.RegisterAnalyticsServiceServer(handlers, analytics.New(logger, client))
 			logger.Debug("analytics enabled", zap.String("database", client.String()))
 		}
 	}
 
-	// initialize servers
-	register.Add(envsrv)
-	register.Add(metasrv)
-	register.Add(evalsrv)
-	register.Add(evaldatasrv)
-	register.Add(ofrepsrv)
+	// register servers
+	rpcenv.RegisterEnvironmentsServiceServer(handlers, envsrv)
+	rpcmeta.RegisterMetadataServiceServer(handlers, metasrv)
+	rpcevaluation.RegisterEvaluationServiceServer(handlers, evalsrv)
+	rpcevaluation.RegisterDataServiceServer(handlers, evaldatasrv)
+	rpcoffrep.RegisterOFREPServiceServer(handlers, ofrepsrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -318,18 +314,22 @@ func NewGRPCServer(
 		logger.Info("authorization middleware enabled")
 	}
 
-	// we validate requests before after authn and authz
+	// we validate requests after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
+
+	// add otel interceptor
+	interceptors = append(interceptors, otelgrpc.UnaryServerInterceptor())
 
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
 			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
 		}),
 	}
+
+	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 
 	if cfg.Server.Protocol == config.HTTPS {
 		creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
@@ -341,23 +341,25 @@ func NewGRPCServer(
 	}
 
 	// initialize grpc server
-	server.Server = grpc.NewServer(grpcOpts...)
-	grpc_health.RegisterHealthServer(server.Server, healthsrv)
+	grpcServer := grpc.NewServer(grpcOpts...)
+	grpc_health.RegisterHealthServer(handlers, healthsrv)
+
+	// register grpc services onto the in-process client connection and the grpc server
+	handlers.ForEach(ipch.RegisterService)
+	handlers.ForEach(grpcServer.RegisterService)
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
 		healthsrv.Shutdown()
-		server.GracefulStop()
+		grpcServer.GracefulStop()
 		return nil
 	})
 
-	// register each grpc service onto the grpc server
-	register.RegisterGRPC(server.Server)
-
 	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(server.Server)
-	reflection.Register(server.Server)
+	grpc_prometheus.Register(grpcServer)
+	reflection.Register(grpcServer)
 
+	server.Server = grpcServer
 	return server, nil
 }
 

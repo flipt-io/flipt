@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/fullstorydev/grpchan"
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -69,8 +70,9 @@ func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
+	handlers *grpchan.HandlerMap,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
-) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+) ([]grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
 	var (
 		shutdown = func(ctx context.Context) error {
@@ -80,48 +82,36 @@ func authenticationGRPC(
 	)
 
 	if !authCfg.Enabled() {
-		return grpcRegisterers{
-			public.NewServer(logger, authCfg),
-			authn.NewServer(logger, storageauthmemory.NewStore(logger)),
-		}, nil, shutdown, nil
+		rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
+		rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, storageauthmemory.NewStore(logger)))
+		return nil, shutdown, nil
 	}
 
 	store, err := getAuthStore(logger, cfg)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	shutdown = store.Shutdown
 
-	var (
-		authServer   = authn.NewServer(logger, store)
-		publicServer = public.NewServer(logger, authCfg)
-
-		register = grpcRegisterers{
-			publicServer,
-			authServer,
-		}
-		interceptors []grpc.UnaryServerInterceptor
-	)
+	var interceptors []grpc.UnaryServerInterceptor
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
-		register.Add(authtoken.NewServer(logger, store))
+		rpcauth.RegisterAuthenticationMethodTokenServiceServer(handlers, authtoken.NewServer(logger, store))
 
 		logger.Debug("authentication method \"token\" server registered")
 	}
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
-		oidcServer := authoidc.NewServer(logger, store, authCfg)
-		register.Add(oidcServer)
+		rpcauth.RegisterAuthenticationMethodOIDCServiceServer(handlers, authoidc.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
 	if authCfg.Methods.Github.Enabled {
-		githubServer := authgithub.NewServer(logger, store, authCfg)
-		register.Add(githubServer)
+		rpcauth.RegisterAuthenticationMethodGithubServiceServer(handlers, authgithub.NewServer(logger, store, authCfg))
 
 		logger.Debug("authentication method \"github\" registered")
 	}
@@ -129,9 +119,9 @@ func authenticationGRPC(
 	if authCfg.Methods.Kubernetes.Enabled {
 		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
-		register.Add(kubernetesServer)
+		rpcauth.RegisterAuthenticationMethodKubernetesServiceServer(handlers, kubernetesServer)
 
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
@@ -147,28 +137,28 @@ func authenticationGRPC(
 			if authJWT.Method.JWKSURL != "" {
 				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+					return nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
 				}
 			} else if authJWT.Method.PublicKeyFile != "" {
 				keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
+					return nil, nil, fmt.Errorf("failed to read key file: %w", err)
 				}
 
 				publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+					return nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
 				}
 
 				ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+					return nil, nil, fmt.Errorf("failed to create static key set: %w", err)
 				}
 			}
 
 			validator, err := jwt.NewValidator(ks)
 			if err != nil {
-				return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+				return nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
 			}
 
 			// intentionally restricted to a set of common asymmetric algorithms
@@ -205,7 +195,7 @@ func authenticationGRPC(
 			for _, em := range authCfg.Methods.OIDC.Method.EmailMatches {
 				rgx, err := regexp.Compile(em)
 				if err != nil {
-					return nil, nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
+					return nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
 				}
 
 				rgxs = append(rgxs, rgx)
@@ -225,12 +215,13 @@ func authenticationGRPC(
 		logger.Info("authentication middleware enabled")
 	}
 
-	return register, interceptors, shutdown, nil
+	return interceptors, shutdown, nil
 }
 
-func registerFunc(ctx context.Context, conn *grpc.ClientConn, fn func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error) runtime.ServeMuxOption {
+// register creates a ServeMuxOption that registers a gRPC service handler
+func register[T any](ctx context.Context, client T, register func(context.Context, *runtime.ServeMux, T) error) runtime.ServeMuxOption {
 	return func(mux *runtime.ServeMux) {
-		if err := fn(ctx, mux, conn); err != nil {
+		if err := register(ctx, mux, client); err != nil {
 			panic(err)
 		}
 	}
@@ -241,20 +232,20 @@ func authenticationHTTPMount(
 	logger *zap.Logger,
 	cfg config.AuthenticationConfig,
 	r chi.Router,
-	conn *grpc.ClientConn,
+	conn grpc.ClientConnInterface,
 ) {
 	var (
 		authmiddleware = authmiddlewarehttp.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 		muxOpts        = []runtime.ServeMuxOption{
-			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
+			register(ctx, rpcauth.NewPublicAuthenticationServiceClient(conn), rpcauth.RegisterPublicAuthenticationServiceHandlerClient),
+			register(ctx, rpcauth.NewAuthenticationServiceClient(conn), rpcauth.RegisterAuthenticationServiceHandlerClient),
 			runtime.WithErrorHandler(authmiddleware.ErrorHandler),
 		}
 	)
 
 	if cfg.Methods.Token.Enabled {
-		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
+		muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodTokenServiceClient(conn), rpcauth.RegisterAuthenticationMethodTokenServiceHandlerClient))
 	}
 
 	if cfg.SessionEnabled() {
@@ -264,23 +255,22 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 
 		if cfg.Methods.OIDC.Enabled {
-			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+			muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodOIDCServiceClient(conn), rpcauth.RegisterAuthenticationMethodOIDCServiceHandlerClient))
 		}
 
 		if cfg.Methods.Github.Enabled {
-			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+			muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodGithubServiceClient(conn), rpcauth.RegisterAuthenticationMethodGithubServiceHandlerClient))
 		}
 
 		middleware = append(middleware, methodMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {
-		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodKubernetesServiceHandler))
+		muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodKubernetesServiceClient(conn), rpcauth.RegisterAuthenticationMethodKubernetesServiceHandlerClient))
 	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware...)
-
 		r.Mount("/auth/v1", gateway.NewGatewayServeMux(logger, muxOpts...))
 	})
 }
