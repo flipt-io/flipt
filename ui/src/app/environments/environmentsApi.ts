@@ -1,7 +1,9 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createSlice } from '@reduxjs/toolkit';
 import { IEnvironment } from '~/types/Environment';
-import { baseQueryNoPath } from '~/utils/redux-rtk';
+import { baseQuery } from '~/utils/redux-rtk';
+
+export const environmentKey = 'environment';
 
 interface IEnvironmentsState {
   currentEnvironment: IEnvironment | null;
@@ -25,11 +27,11 @@ export const { setCurrentEnvironment } = environmentsSlice.actions;
 
 export const environmentsApi = createApi({
   reducerPath: 'environments-api',
-  baseQuery: baseQueryNoPath,
+  baseQuery: baseQuery,
   tagTypes: ['Environment'],
   endpoints: (builder) => ({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({
-      query: () => 'v2/environments',
+      query: () => '',
       providesTags: (result, _error) =>
         result?.environments.map(({ name }) => ({
           type: 'Environment' as const,

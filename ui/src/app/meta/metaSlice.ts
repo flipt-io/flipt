@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getInfo } from '~/data/api';
-import { IConfig, IInfo, LoadingStatus, StorageType } from '~/types/Meta';
-import { Theme } from '~/types/Preferences';
+import { getMeta } from '~/data/api';
+import { IInfo, LoadingStatus } from '~/types/Meta';
 
 interface IMetaSlice {
-  info: IInfo;
-  config: IConfig;
+  info: IInfo & { status: LoadingStatus };
 }
 
 const initialState: IMetaSlice = {
@@ -18,19 +16,9 @@ const initialState: IMetaSlice = {
     buildDate: '',
     goVersion: '',
     updateAvailable: false,
-    isRelease: false
-  },
-  config: {
-    status: LoadingStatus.IDLE,
-    storage: {
-      type: StorageType.DATABASE,
-      readOnly: false
-    },
-    ui: {
-      defaultTheme: Theme.SYSTEM,
-      topbar: { color: '' }
-    },
-    analyticsEnabled: false
+    isRelease: false,
+    analyticsEnabled: false,
+    status: LoadingStatus.IDLE
   }
 };
 
@@ -41,37 +29,19 @@ export const metaSlice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(fetchInfoAsync.pending, (state, _action) => {
-        state.config.status = LoadingStatus.LOADING;
+        state.info.status = LoadingStatus.LOADING;
       })
       .addCase(fetchInfoAsync.fulfilled, (state, action) => {
         state.info = action.payload;
-        state.config.status = LoadingStatus.SUCCEEDED;
-        state.config.analyticsEnabled =
-          action.payload.analytics?.enabled || false;
-        if (action.payload.storage !== undefined) {
-          state.config.storage.type = action.payload.storage?.type;
-          state.config.storage.git = action.payload.storage?.metadata;
-          state.config.storage.readOnly =
-            action.payload.storage &&
-            action.payload.storage.type !== StorageType.DATABASE;
-        }
-        state.config.ui = {
-          defaultTheme: action.payload.ui?.Theme || Theme.SYSTEM,
-          topbar: {
-            color: action.payload.ui?.TopbarColor || ''
-          }
-        };
-      });
+        state.info.status = LoadingStatus.SUCCEEDED;
+      })
   }
 });
 
 export const selectInfo = (state: { meta: IMetaSlice }) => state.meta.info;
-export const selectConfig = (state: { meta: IMetaSlice }) => state.meta.config;
-export const selectReadonly = (state: { meta: IMetaSlice }) =>
-  state.meta.config.storage.readOnly;
 
 export const fetchInfoAsync = createAsyncThunk('meta/fetchInfo', async () => {
-  const response = await getInfo();
+  const response = await getMeta();
   return response;
 });
 

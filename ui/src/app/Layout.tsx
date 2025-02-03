@@ -17,7 +17,7 @@ import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
-import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
+import { fetchInfoAsync, selectInfo } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
@@ -39,7 +39,7 @@ function InnerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentNamespace = useSelector(selectCurrentNamespace);
-  const config = useSelector(selectConfig);
+  const info = useSelector(selectInfo);
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -65,7 +65,7 @@ function InnerLayout() {
     return <Navigate to="/login" />;
   }
 
-  if (namespaces.isLoading || config.status != LoadingStatus.SUCCEEDED) {
+  if (namespaces.isLoading || info.status != LoadingStatus.SUCCEEDED) {
     return <Loading fullScreen />;
   }
 

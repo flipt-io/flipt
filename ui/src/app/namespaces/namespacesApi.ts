@@ -4,7 +4,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { RootState } from '~/store';
 import { LoadingStatus } from '~/types/Meta';
 import { INamespace, INamespaceBase, INamespaceList } from '~/types/Namespace';
-import { baseQuery, baseQueryNoPath } from '~/utils/redux-rtk';
+import { baseQuery } from '~/utils/redux-rtk';
 
 export const namespaceKey = 'namespace';
 

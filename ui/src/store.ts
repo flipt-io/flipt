@@ -27,6 +27,7 @@ import {
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
 import { eventSlice, eventKey } from './app/events/eventSlice';
+import { environmentKey } from './app/environments/environmentsApi';
 
 const listenerMiddleware = createListenerMiddleware();
 

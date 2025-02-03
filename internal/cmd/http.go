@@ -83,29 +83,29 @@ func NewHTTPServer(
 
 	// v1
 
-	if err := flipt.RegisterFliptHandler(ctx, api, conn); err != nil {
+	if err := flipt.RegisterFliptHandlerClient(ctx, api, flipt.NewFliptClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterEvaluationServiceHandler(ctx, evaluateAPI, conn); err != nil {
+	if err := evaluation.RegisterEvaluationServiceHandlerClient(ctx, evaluateAPI, evaluation.NewEvaluationServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterDataServiceHandler(ctx, evaluateDataAPI, conn); err != nil {
+	if err := evaluation.RegisterDataServiceHandlerClient(ctx, evaluateDataAPI, evaluation.NewDataServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := analytics.RegisterAnalyticsServiceHandler(ctx, analyticsAPI, conn); err != nil {
+	if err := analytics.RegisterAnalyticsServiceHandlerClient(ctx, analyticsAPI, analytics.NewAnalyticsServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := ofrep.RegisterOFREPServiceHandler(ctx, ofrepAPI, conn); err != nil {
+	if err := ofrep.RegisterOFREPServiceHandlerClient(ctx, ofrepAPI, ofrep.NewOFREPServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
 	// v2
 
-	if err := environments.RegisterEnvironmentsServiceHandler(ctx, v2Environments, conn); err != nil {
+	if err := environments.RegisterEnvironmentsServiceHandlerClient(ctx, v2Environments, environments.NewEnvironmentsServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -201,8 +201,8 @@ func NewHTTPServer(
 			r.Mount("/meta", runtime.NewServeMux(
 				register(
 					ctx,
-					conn,
-					meta.RegisterMetadataServiceHandler,
+					meta.NewMetadataServiceClient(conn),
+					meta.RegisterMetadataServiceHandlerClient,
 				),
 				runtime.WithMetadata(method.ForwardPrefix),
 			))

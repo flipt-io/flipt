@@ -10,7 +10,7 @@ export const apiURL = 'v2/environments';
 export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
 export const internalURL = 'internal/v1';
-
+export const metaURL = 'meta/info';
 const csrfTokenHeaderKey = 'x-csrf-token';
 export const sessionKey = 'session';
 
@@ -109,7 +109,6 @@ async function put<T>(uri: string, values: T, base = apiURL) {
 
 //
 // auth
-
 export async function getAuthSelf() {
   return get('/self', authURL);
 }
@@ -148,4 +147,36 @@ export async function evaluateV2(
     ...values
   };
   return post(route, body, evaluateURL);
+}
+
+//
+// meta
+export async function getMeta() {
+  const req = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    }
+  };
+
+  const res = await fetch(metaURL, req);
+  if (!res.ok) {
+    const contentType = res.headers.get('content-type');
+
+    if (!contentType || !contentType.includes('application/json')) {
+      const err = new APIError('An unexpected error occurred.', res.status);
+      throw err;
+    }
+
+    let err = await res.json();
+    throw new APIError(err.message, res.status);
+  }
+
+  const token = res.headers.get(csrfTokenHeaderKey);
+  if (token !== null) {
+    window.localStorage.setItem(csrfTokenHeaderKey, token);
+  }
+
+  return res.json();
 }

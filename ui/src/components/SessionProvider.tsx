@@ -1,5 +1,5 @@
 import { createContext, useEffect, useMemo } from 'react';
-import { getAuthSelf, getInfo } from '~/data/api';
+import { getAuthSelf, getMeta } from '~/data/api';
 import { useLocalStorage } from '~/data/hooks/storage';
 import { IAuthGithubInternal } from '~/types/auth/Github';
 import { IAuthJWTInternal } from '~/types/auth/JWT';
@@ -36,7 +36,7 @@ export default function SessionProvider({
     const loadSession = async () => {
       let info: any = null;
       try {
-        info = await getInfo();
+        info = await getMeta();
       } catch (err) {
         // if we can't get the info, we're not logged in
         // or there was an error, either way, clear the session so we redirect

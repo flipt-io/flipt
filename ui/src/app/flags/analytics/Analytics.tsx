@@ -10,7 +10,7 @@ import { Graph } from '~/components/graphs';
 import { IFilterable } from '~/types/Selectable';
 import Well from '~/components/Well';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
-import { selectConfig } from '~/app/meta/metaSlice';
+import { selectInfo } from '~/app/meta/metaSlice';
 import Listbox from '~/components/forms/Listbox';
 
 type AnalyticsProps = {
@@ -65,7 +65,7 @@ export default function Analytics() {
   const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
-  const config = useSelector(selectConfig);
+  const info = useSelector(selectInfo);
 
   const d = new Date();
   d.setSeconds(0);
@@ -83,7 +83,7 @@ export default function Analytics() {
     },
     {
       pollingInterval,
-      skip: !config.analyticsEnabled
+      skip: !info.analyticsEnabled
     }
   );
 
@@ -102,7 +102,7 @@ export default function Analytics() {
 
   return (
     <div className="mt-2 max-w-screen-lg">
-      {config.analyticsEnabled ? (
+      {info.analyticsEnabled ? (
         <>
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
