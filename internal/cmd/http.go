@@ -82,6 +82,7 @@ func NewHTTPServer(
 	}
 
 	// v1
+
 	if err := flipt.RegisterFliptHandlerClient(ctx, api, flipt.NewFliptClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
@@ -103,6 +104,7 @@ func NewHTTPServer(
 	}
 
 	// v2
+
 	if err := environments.RegisterEnvironmentsServiceHandlerClient(ctx, v2Environments, environments.NewEnvironmentsServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
@@ -177,6 +179,7 @@ func NewHTTPServer(
 		r.Mount("/internal/v1/analytics", analyticsAPI)
 		r.Mount("/internal/v1", evaluateDataAPI)
 		r.Mount("/ofrep", ofrepAPI)
+
 		r.Mount("/v2/environments", v2Environments)
 
 		// mount all authentication related HTTP components
@@ -196,7 +199,11 @@ func NewHTTPServer(
 
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
-				register(ctx, meta.NewMetadataServiceClient(conn), meta.RegisterMetadataServiceHandlerClient),
+				register(
+					ctx,
+					meta.NewMetadataServiceClient(conn),
+					meta.RegisterMetadataServiceHandlerClient,
+				),
 				runtime.WithMetadata(method.ForwardPrefix),
 			))
 		})

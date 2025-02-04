@@ -5,8 +5,7 @@ import {
   useUpdateDistributionMutation,
   useUpdateRuleMutation
 } from '~/app/flags/rulesApi';
-import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import { useError } from '~/data/hooks/error';
@@ -55,7 +54,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(selectCurrentNamespace) as INamespace;
+  const namespace = useSelector(selectCurrentNamespace);
 
   const ruleType =
     rule.rollouts.length === 0
@@ -74,8 +73,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
       return toFilterableVariant(rule.rollouts[0].variant);
     });
-
-  const readOnly = useSelector(selectReadonly);
 
   const [updateRule] = useUpdateRuleMutation();
   const [updateDistribution] = useUpdateDistributionMutation();
@@ -213,7 +210,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         name="segmentKeys"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
-                            readonly={readOnly}
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
                               arrayHelpers.push(segment)
@@ -245,8 +241,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                 name="operator"
                                 type="radio"
                                 className={cls(
-                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400',
-                                  { 'cursor-not-allowed': readOnly }
+                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400'
                                 )}
                                 onChange={() => {
                                   formik.setFieldValue(
@@ -258,12 +253,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   segmentOperator.id === formik.values.operator
                                 }
                                 value={segmentOperator.id}
-                                disabled={readOnly}
-                                title={
-                                  readOnly
-                                    ? 'Not allowed in Read-Only mode'
-                                    : undefined
-                                }
                               />
                             </div>
                             <div>
@@ -369,11 +358,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         key={index}
                                         type="number"
                                         className={cls(
-                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
-                                          {
-                                            'cursor-not-allowed bg-gray-100 text-gray-500':
-                                              readOnly
-                                          }
+                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm'
                                         )}
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}
@@ -382,7 +367,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         step=".01"
                                         min="0"
                                         max="100"
-                                        disabled={readOnly}
                                       />
                                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                         <span className="text-gray-500 sm:text-sm">

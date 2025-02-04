@@ -29,8 +29,10 @@ import { useError } from '~/data/hooks/error';
 import { INamespaceBase } from '~/types/Namespace';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
 import Well from '~/components/Well';
+import { IEnvironment } from '~/types/Environment';
 
 type FlagTableProps = {
+  environment: IEnvironment;
   namespace: INamespaceBase;
 };
 
@@ -124,7 +126,7 @@ const columns = [
 export default function FlagTable(props: FlagTableProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const namespace = props.namespace;
+  const { environment, namespace } = props;
 
   const path = `/namespaces/${namespace.key}/flags`;
 
@@ -137,7 +139,10 @@ export default function FlagTable(props: FlagTableProps) {
 
   const sorting = useSelector(selectSorting);
 
-  const { data, isLoading, error } = useListFlagsQuery(namespace.key);
+  const { data, isLoading, error } = useListFlagsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
   const flags = useMemo(() => data?.flags || [], [data]);
 
   const { setError } = useError();

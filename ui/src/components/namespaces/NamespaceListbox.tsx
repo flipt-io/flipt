@@ -4,7 +4,7 @@ import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   selectNamespaces
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import Listbox from '~/components/forms/Listbox';
 import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';

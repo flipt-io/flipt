@@ -11,12 +11,10 @@ type SortableRolloutProps = {
   onSuccess?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
-  readOnly?: boolean;
 };
 
 export default function SortableRollout(props: SortableRolloutProps) {
-  const { flag, rollout, segments, onSuccess, onEdit, onDelete, readOnly } =
-    props;
+  const { flag, rollout, segments, onSuccess, onEdit, onDelete } = props;
   const {
     isDragging,
     attributes,
@@ -25,8 +23,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
     transform,
     transition
   } = useSortable({
-    id: rollout.id,
-    disabled: readOnly
+    id: rollout.id
   });
 
   const style = transform
@@ -52,7 +49,6 @@ export default function SortableRollout(props: SortableRolloutProps) {
       onSuccess={onSuccess}
       onEdit={onEdit}
       onDelete={onDelete}
-      readOnly={readOnly}
     />
   );
 }

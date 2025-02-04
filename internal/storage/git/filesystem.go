@@ -38,7 +38,7 @@ type filesystem struct {
 // ReadDir reads the directory named by dirname and returns a list of
 // directory entries sorted by filename.
 func (f *filesystem) ReadDir(path string) (infos []os.FileInfo, err error) {
-	f.logger.Debug("ReadDir", zap.String("path", path))
+	f.logger.Debug("readDir", zap.String("path", path))
 
 	subtree := f.tree
 	if path != "." {
@@ -68,9 +68,9 @@ func (f *filesystem) ReadDir(path string) (infos []os.FileInfo, err error) {
 // already a directory, MkdirAll does nothing and returns nil.
 func (f *filesystem) MkdirAll(filename string, perm os.FileMode) error {
 	logger := f.logger.With(zap.String("path", filename))
-	logger.Debug("MkdirAll Started", zap.Stringer("tree", f.tree.Hash))
+	logger.Debug("mkdirAll Started", zap.Stringer("tree", f.tree.Hash))
 	defer func() {
-		f.logger.Debug("MkdirAll Finished", zap.Stringer("tree", f.tree.Hash))
+		f.logger.Debug("mkdirAll Finished", zap.Stringer("tree", f.tree.Hash))
 	}()
 
 	entry, err := f.tree.FindEntry(filename)
@@ -102,7 +102,7 @@ func (f *filesystem) MkdirAll(filename string, perm os.FileMode) error {
 // perm, (0666 etc.) if applicable. If successful, methods on the returned
 // File can be used for I/O.
 func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envfs.File, error) {
-	f.logger.Debug("OpenFile",
+	f.logger.Debug("openFile",
 		zap.String("path", filename),
 		zap.Bool("create", flag&os.O_CREATE == os.O_CREATE))
 
@@ -428,7 +428,7 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 		return err
 	}
 
-	logger.Debug("Updating tree",
+	logger.Debug("updating tree",
 		zap.Strings("path", parts),
 		zap.Stringer("tree_hash", node.Hash),
 		zap.Stringer("blob_hash", blob))

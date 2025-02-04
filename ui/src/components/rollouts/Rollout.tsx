@@ -15,7 +15,6 @@ type RolloutProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
-  readOnly?: boolean;
 };
 
 const Rollout = forwardRef(
@@ -29,7 +28,6 @@ const Rollout = forwardRef(
       onDelete,
       style,
       className,
-      readOnly,
       ...rest
     }: RolloutProps,
     ref: Ref<HTMLLIElement>
@@ -45,21 +43,16 @@ const Rollout = forwardRef(
           <span
             key={rollout.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex',
-              {
-                'hover:cursor-not-allowed': readOnly,
-                'hover:cursor-move': !readOnly
-              }
+              'hidden h-4 w-4 justify-start text-gray-400 hover:cursor-move hover:text-violet-300 sm:flex'
             )}
             {...rest}
           >
             {rollout.rank}
           </span>
           <h3
-            className={cls('text-sm font-normal leading-6 text-gray-700', {
-              'hover:cursor-not-allowed': readOnly,
-              'hover:cursor-move': !readOnly
-            })}
+            className={cls(
+              'text-sm font-normal leading-6 text-gray-700 hover:cursor-move'
+            )}
             {...rest}
           >
             {rolloutTypeToLabel(rollout.type)} Rollout
@@ -68,11 +61,9 @@ const Rollout = forwardRef(
             data-testid="rollout-menu-button"
             label=""
             kind="dots"
-            disabled={readOnly}
             actions={[
               {
                 id: 'rollout-edit',
-                disabled: readOnly,
                 label: 'Edit',
                 onClick: () => {
                   onEdit && onEdit();
@@ -80,7 +71,6 @@ const Rollout = forwardRef(
               },
               {
                 id: 'rollout-delete',
-                disabled: readOnly,
                 label: 'Delete',
                 variant: 'destructive',
                 onClick: () => {

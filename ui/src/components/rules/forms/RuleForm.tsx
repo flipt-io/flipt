@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import * as Yup from 'yup';
 import { useCreateRuleMutation } from '~/app/flags/rulesApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { Button } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';

@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
-import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCreateSegmentMutation,
   useUpdateSegmentMutation
@@ -53,7 +52,6 @@ export default function SegmentForm(props: SegmentFormProps) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-  const readOnly = useSelector(selectReadonly);
 
   const [createSegment] = useCreateSegmentMutation();
   const [updateSegment] = useUpdateSegmentMutation();
@@ -120,7 +118,6 @@ export default function SegmentForm(props: SegmentFormProps) {
                   className="mt-1"
                   name="name"
                   id="name"
-                  disabled={readOnly}
                   autoFocus={isNew}
                   onChange={(e) => {
                     // check if the name and key are currently in sync
@@ -151,7 +148,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                     className={cls('mt-1', { 'md:mr-2': !isNew })}
                     name="key"
                     id="key"
-                    disabled={!isNew || readOnly}
+                    disabled={!isNew}
                     onChange={(e) => {
                       const formatted = stringAsKey(e.target.value);
                       formik.setFieldValue('key', formatted);
@@ -214,7 +211,6 @@ export default function SegmentForm(props: SegmentFormProps) {
                             aria-describedby={`${matchType.id}-description`}
                             name="matchType"
                             type="radio"
-                            disabled={readOnly}
                             className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                             onChange={() => {
                               formik.setFieldValue('matchType', matchType.id);
@@ -257,12 +253,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                     Optional
                   </span>
                 </div>
-                <Input
-                  className="mt-1"
-                  name="description"
-                  id="description"
-                  disabled={readOnly}
-                />
+                <Input className="mt-1" name="description" id="description" />
               </div>
             </div>
             <div className="flex justify-end">
@@ -273,10 +264,8 @@ export default function SegmentForm(props: SegmentFormProps) {
                 variant="primary"
                 className="ml-3 min-w-[80px]"
                 type="submit"
-                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                 disabled={
-                  !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
-                  readOnly
+                  !(formik.dirty && formik.isValid && !formik.isSubmitting)
                 }
               >
                 {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}

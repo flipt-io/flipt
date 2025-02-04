@@ -83,7 +83,7 @@ export const ButtonIcon = ({
 }: {
   icon: IconProp;
   onClick: () => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) => (
   <button
     type="button"

@@ -8,8 +8,7 @@ import {
   useCreateFlagMutation,
   useUpdateFlagMutation
 } from '~/app/flags/flagsApi';
-import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
@@ -55,7 +54,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-  const readOnly = useSelector(selectReadonly);
 
   const [createFlag] = useCreateFlagMutation();
   const [updateFlag] = useUpdateFlagMutation();
@@ -124,7 +122,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       id="enabled"
                       name="enabled"
                       label="Enabled"
-                      disabled={readOnly}
                       checked={enabled}
                       onChange={(e) => {
                         formik.setFieldValue('enabled', e);
@@ -143,7 +140,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     className="mt-1"
                     name="name"
                     id="name"
-                    disabled={readOnly}
                     autoFocus={isNew}
                     onChange={(e) => {
                       // check if the name and key are currently in sync
@@ -178,7 +174,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       className={cls('mt-1', { 'md:mr-2': !isNew })}
                       name="key"
                       id="key"
-                      disabled={!isNew || readOnly}
+                      disabled={!isNew}
                       onChange={(e) => {
                         const formatted = stringAsKey(e.target.value);
                         formik.setFieldValue('key', formatted);
@@ -239,7 +235,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                               aria-describedby={`${flagType.id}-description`}
                               name="type"
                               type="radio"
-                              disabled={!isNew || readOnly}
+                              disabled={!isNew}
                               className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                               onChange={() => {
                                 formik.setFieldValue('type', flagType.id);
@@ -283,12 +279,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       Optional
                     </span>
                   </div>
-                  <Input
-                    className="mt-1"
-                    name="description"
-                    id="description"
-                    disabled={readOnly}
-                  />
+                  <Input className="mt-1" name="description" id="description" />
                 </div>
                 <div className="col-span-3">
                   <div className="flex justify-between">
@@ -311,14 +302,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       onChange={(metadata) =>
                         formik.setFieldValue('metadata', metadata)
                       }
-                      disabled={readOnly}
                     >
                       <MetadataForm
                         metadata={formik.values.metadata}
                         onChange={(metadata) =>
                           formik.setFieldValue('metadata', metadata)
                         }
-                        disabled={readOnly}
                         onErrorChange={setHasMetadataErrors}
                       />
                     </MetadataFormErrorBoundary>
@@ -333,10 +322,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   variant="primary"
                   className="ml-3 min-w-[80px]"
                   type="submit"
-                  title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                   disabled={
                     !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
-                    readOnly ||
                     hasMetadataErrors
                   }
                 >
