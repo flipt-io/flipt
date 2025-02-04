@@ -8,9 +8,6 @@ authentication:
   methods:
     token:
       enabled: true
-      cleanup:
-        interval: 2h
-        grace_period: 48h
     oidc:
       enabled: true
       providers:

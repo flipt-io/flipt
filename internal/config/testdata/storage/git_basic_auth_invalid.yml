@@ -1,6 +1,10 @@
 storage:
   default:
     remote: "git@github.com:foo/bar.git"
-    authentication:
-      basic:
-        username: foo
+    credentials: basic
+
+credentials:
+  default:
+    type: basic
+    basic:
+      username: foo

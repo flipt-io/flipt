@@ -221,16 +221,6 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("server: cert_key stat ./testdata/ssl_cert_not_exist.key: no such file or directory"),
 		},
 		{
-			name:    "authentication token negative interval",
-			path:    "./testdata/authentication/token_negative_interval.yml",
-			wantErr: errors.New("authentication: cleanup_interval must be a positive non-zero duration"),
-		},
-		{
-			name:    "authentication token zero grace_period",
-			path:    "./testdata/authentication/token_zero_grace_period.yml",
-			wantErr: errors.New("authentication: cleanup_grace_period must be a positive non-zero duration"),
-		},
-		{
 			name: "authentication token with provided bootstrap token",
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
@@ -240,9 +230,14 @@ func TestLoad(t *testing.T) {
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 						Enabled: true,
 						Method: AuthenticationMethodTokenConfig{
-							Bootstrap: AuthenticationMethodTokenBootstrapConfig{
-								Token:      "s3cr3t!",
-								Expiration: 24 * time.Hour,
+							Storage: AuthenticationMethodTokenStorage{
+								Type: AuthenticationMethodTokenStorageTypeStatic,
+								Tokens: []AuthenticationMethodStaticToken{
+									{
+										Name:       "bootstrap token",
+										Credential: "s3cr3t!",
+									},
+								},
 							},
 						},
 					},
@@ -260,11 +255,21 @@ func TestLoad(t *testing.T) {
 					Domain: "localhost",
 					Storage: AuthenticationSessionStorageConfig{
 						Type: AuthenticationSessionStorageTypeMemory,
+						Cleanup: AuthenticationSessionStorageCleanupConfig{
+							GracePeriod: 30 * time.Minute,
+						},
 					},
+					TokenLifetime: 24 * time.Hour,
+					StateLifetime: 10 * time.Minute,
 				}
 				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 						Enabled: true,
+						Method: AuthenticationMethodTokenConfig{
+							Storage: AuthenticationMethodTokenStorage{
+								Type: AuthenticationMethodTokenStorageTypeStatic,
+							},
+						},
 					},
 					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 						Enabled: true,
@@ -283,7 +288,12 @@ func TestLoad(t *testing.T) {
 					Domain: "localhost",
 					Storage: AuthenticationSessionStorageConfig{
 						Type: AuthenticationSessionStorageTypeMemory,
+						Cleanup: AuthenticationSessionStorageCleanupConfig{
+							GracePeriod: 30 * time.Minute,
+						},
 					},
+					TokenLifetime: 24 * time.Hour,
+					StateLifetime: 10 * time.Minute,
 				}
 				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
@@ -424,11 +434,19 @@ func TestLoad(t *testing.T) {
 						},
 						Storage: AuthenticationSessionStorageConfig{
 							Type: AuthenticationSessionStorageTypeMemory,
+							Cleanup: AuthenticationSessionStorageCleanupConfig{
+								GracePeriod: 30 * time.Minute,
+							},
 						},
 					},
 					Methods: AuthenticationMethodsConfig{
 						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 							Enabled: true,
+							Method: AuthenticationMethodTokenConfig{
+								Storage: AuthenticationMethodTokenStorage{
+									Type: AuthenticationMethodTokenStorageTypeStatic,
+								},
+							},
 						},
 						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 							Method: AuthenticationMethodOIDCConfig{
@@ -507,11 +525,16 @@ func TestLoad(t *testing.T) {
 						Remote:       "https://github.com/flipt-io/flipt.git",
 						Branch:       "main",
 						PollInterval: 5 * time.Second,
-						Authentication: StorageGitAuthenticationConfig{
-							BasicAuth: &GitBasicAuth{
-								Username: "user",
-								Password: "pass",
-							},
+						Credentials:  "git",
+					},
+				}
+
+				cfg.Credentials = CredentialsConfig{
+					"git": {
+						Type: "basic",
+						Basic: &BasicAuthConfig{
+							Username: "user",
+							Password: "pass",
 						},
 					},
 				}
@@ -545,11 +568,25 @@ func TestLoad(t *testing.T) {
 						},
 						Storage: AuthenticationSessionStorageConfig{
 							Type: AuthenticationSessionStorageTypeMemory,
+							Cleanup: AuthenticationSessionStorageCleanupConfig{
+								GracePeriod: 30 * time.Minute,
+							},
 						},
 					},
 					Methods: AuthenticationMethodsConfig{
 						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 							Enabled: true,
+							Method: AuthenticationMethodTokenConfig{
+								Storage: AuthenticationMethodTokenStorage{
+									Type: AuthenticationMethodTokenStorageTypeStatic,
+									Tokens: []AuthenticationMethodStaticToken{
+										{
+											Name:       "some static token",
+											Credential: "abcdefg",
+										},
+									},
+								},
+							},
 						},
 						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
 							Method: AuthenticationMethodOIDCConfig{
@@ -646,22 +683,22 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "git basic auth partially provided",
 			path:    "./testdata/storage/git_basic_auth_invalid.yml",
-			wantErr: errors.New("storage default: both username and password need to be provided for basic auth"),
+			wantErr: errors.New(`credential "default": both username and password need to be provided for basic auth`),
 		},
 		{
 			name:    "git ssh auth missing password",
 			path:    "./testdata/storage/git_ssh_auth_invalid_missing_password.yml",
-			wantErr: errors.New("storage default: ssh authentication password required"),
+			wantErr: errors.New(`credential "default": ssh authentication: string: password non-empty value is required`),
 		},
 		{
 			name:    "git ssh auth missing private key parts",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_missing.yml",
-			wantErr: errors.New("storage default: ssh authentication please provide exclusively one of private_key_bytes or private_key_path"),
+			wantErr: errors.New(`credential "default": ssh authentication: please provide exclusively one of private_key_bytes or private_key_path`),
 		},
 		{
 			name:    "git ssh auth provided both private key forms",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_both.yml",
-			wantErr: errors.New("storage default: ssh authentication please provide exclusively one of private_key_bytes or private_key_path"),
+			wantErr: errors.New(`credential "default": ssh authentication: please provide exclusively one of private_key_bytes or private_key_path`),
 		},
 		{
 			name: "git valid with ssh auth",
@@ -676,12 +713,16 @@ func TestLoad(t *testing.T) {
 						Remote:       "git@github.com:foo/bar.git",
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
-						Authentication: StorageGitAuthenticationConfig{
-							SSHAuth: &GitSSHAuth{
-								User:           "git",
-								Password:       "bar",
-								PrivateKeyPath: "/path/to/pem.key",
-							},
+						Credentials:  "git",
+					},
+				}
+				cfg.Credentials = CredentialsConfig{
+					"git": {
+						Type: "ssh",
+						SSH: &SSHAuthConfig{
+							User:           "git",
+							Password:       "bar",
+							PrivateKeyPath: "/path/to/pem.key",
 						},
 					},
 				}
@@ -868,6 +909,7 @@ func readYAMLIntoEnv(t *testing.T, path string) [][2]string {
 }
 
 func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
+OUTER:
 	for key, value := range v {
 		switch v := value.(type) {
 		case map[any]any:
@@ -875,9 +917,16 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 		case []any:
 			builder := strings.Builder{}
 			for i, s := range v {
-				builder.WriteString(fmt.Sprintf("%v", s))
-				if i < len(v)-1 {
-					builder.WriteByte(' ')
+				switch s := s.(type) {
+				case map[any]any:
+					// descend into slices of objects
+					vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), s)...)
+					continue OUTER
+				default:
+					builder.WriteString(fmt.Sprintf("%v", s))
+					if i < len(v)-1 {
+						builder.WriteByte(' ')
+					}
 				}
 			}
 

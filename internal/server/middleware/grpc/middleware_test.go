@@ -152,13 +152,16 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 
 func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 	var (
-		req = &flipt.GetFlagRequest{
-			Key: "foo",
+		req = &flipt.ListFlagRequest{
+			NamespaceKey: "foo",
 		}
 
 		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
-			return &flipt.Flag{
-				Key: "foo",
+			return &flipt.FlagList{
+				Flags: []*flipt.Flag{
+					{Key: "foo"},
+				},
+				TotalCount: 1,
 			}, nil
 		}
 
@@ -172,10 +175,10 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 
 	assert.NotNil(t, got)
 
-	resp, ok := got.(*flipt.Flag)
+	resp, ok := got.(*flipt.FlagList)
 	assert.True(t, ok)
 	assert.NotNil(t, resp)
-	assert.Equal(t, "foo", resp.Key)
+	assert.Equal(t, "foo", resp.Flags[0].Key)
 }
 
 func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
