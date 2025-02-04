@@ -1,0 +1,61 @@
+namespace: production
+flags:
+  - key: prod-flag-1
+    name: Prod Flag 1
+    description: description
+    enabled: true
+    variants:
+      - key: prod-variant
+        name: Prod Variant
+        default: true
+        attachment:
+          pi: 3.141
+          happy: true
+          name: Niels
+          nothing:
+          answer:
+            everything: 42
+          list:
+            - 1
+            - 0
+            - 2
+          object:
+            currency: USD
+            value: 42.99
+      - key: foo
+    rules:
+      - segment: segment2
+        rank: 1
+        distributions:
+          - variant: prod-variant
+            rollout: 100
+  - key: flag_boolean_2
+    name: FLAG_BOOLEAN
+    type: BOOLEAN_FLAG_TYPE
+    description: Boolean Flag Description
+    enabled: false
+    rollouts:
+      - description: enabled for segment2
+        segment:
+          key: segment2
+          value: true
+      - description: enabled for 50%
+        threshold:
+          percentage: 50
+          value: true
+segments:
+  - key: segment2
+    name: segment2
+    match_type: "ANY_MATCH_TYPE"
+    description: description
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: foo
+        operator: eq
+        value: baz
+        description: desc
+      - type: STRING_COMPARISON_TYPE
+        property: fizz
+        operator: neq
+        value: buzz
+        description: desc
