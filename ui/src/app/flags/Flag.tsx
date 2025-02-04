@@ -23,8 +23,9 @@ import {
   useGetFlagQuery
 } from './flagsApi';
 import { FlagType } from '~/types/Flag';
-import { cls } from '~/utils/helpers';
+import { cls, getRevision } from '~/utils/helpers';
 import { PageHeader } from '~/components/ui/page';
+import { selectCurrentEnvironment } from '../environments/environmentsApi';
 
 const variantFlagTabs = [
   { name: 'Variants', to: '' },
@@ -48,8 +49,11 @@ export default function Flag() {
 
   const navigate = useNavigate();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
+
+  const revision = getRevision();
 
   const {
     data: flag,
@@ -57,6 +61,7 @@ export default function Flag() {
     isLoading,
     isError
   } = useGetFlagQuery({
+    environmentKey: environment.name,
     namespaceKey: namespace.key,
     flagKey: flagKey || ''
   });
@@ -86,12 +91,13 @@ export default function Flag() {
               This action cannot be undone.
             </>
           }
-          panelType="Flag"
+          panelType="Flag"  
           setOpen={setShowDeleteFlagModal}
           handleDelete={() =>
             deleteFlag({
+              environmentKey: environment.name,
               namespaceKey: namespace.key,
-              flagKey: flag.key
+              flagKey: flag.key,
             }).unwrap()
           }
           onSuccess={() => {
@@ -153,14 +159,6 @@ export default function Flag() {
 
       {/* Info Section */}
       <div className="mb-8 space-y-4">
-        <div className="flex items-center text-sm text-gray-500">
-          <CalendarIcon className="mr-1.5 h-5 w-5 text-gray-400" />
-          Created{' '}
-          {formatDistanceToNowStrict(parseISO(flag.createdAt), {
-            addSuffix: true
-          })}
-        </div>
-
         <MoreInfo href="https://www.flipt.io/docs/concepts#flags">
           Learn more about flags
         </MoreInfo>

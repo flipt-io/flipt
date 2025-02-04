@@ -8,6 +8,14 @@ export function cls(...args: ClassValue[]) {
   return twMerge(clsx(args));
 }
 
+export function getRevision(): string {
+  const revision = localStorage.getItem('revision');
+  if (!revision) {
+    throw new Error('No revision found');
+  }
+  return revision;
+}
+
 export function copyTextToClipboard(text: string) {
   if ('clipboard' in navigator) {
     navigator.clipboard.writeText(text);

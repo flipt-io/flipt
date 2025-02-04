@@ -18,8 +18,9 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
-import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import { cls, copyTextToClipboard, getRevision, stringAsKey } from '~/utils/helpers';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 const flagTypes = [
   {
@@ -53,7 +54,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
+  const revision = getRevision();
 
   const [createFlag] = useCreateFlagMutation();
   const [updateFlag] = useUpdateFlagMutation();
@@ -61,15 +64,19 @@ export default function FlagForm(props: { flag?: IFlag }) {
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {
       return createFlag({
+        environmentKey: environment.name,
         namespaceKey: namespace.key,
-        values
+        values,
+        revision
       }).unwrap();
     }
 
     return updateFlag({
+      environmentKey: environment.name,
       namespaceKey: namespace.key,
       flagKey: flag?.key,
-      values
+      values,
+      revision
     }).unwrap();
   };
 

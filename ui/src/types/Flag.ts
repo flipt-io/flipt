@@ -39,8 +39,6 @@ export interface IFlagBase {
 }
 
 export interface IFlag extends IFlagBase {
-  createdAt: string;
-  updatedAt: string;
   variants?: IVariant[];
   rules?: IRule[];
   rollouts?: IRollout[];
@@ -48,16 +46,6 @@ export interface IFlag extends IFlagBase {
 
 export interface IFlagList extends IPageable {
   flags: IFlag[];
-}
-
-export interface IFlagResource {
-  payload: IFlag;
-  namespace: string;
-  key: string;
-}
-
-export interface IFlagResourceList extends IPageable {
-  resources: IFlagResource[];
 }
 
 export type FilterableFlag = IFlag & IFilterable;
