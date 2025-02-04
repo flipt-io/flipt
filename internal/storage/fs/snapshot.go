@@ -527,7 +527,9 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				}
 
 				evalSnapRolloutSegment := &evaluation.EvaluationRollout_Segment{
-					Segment: &evaluation.EvaluationRolloutSegment{},
+					Segment: &evaluation.EvaluationRolloutSegment{
+						Value: rollout.Segment.Value,
+					},
 				}
 				evalSnapRollout.Rule = evalSnapRolloutSegment
 
@@ -658,6 +660,11 @@ func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 }
 
 func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	_, ok := ss.ns[flag.Namespace()]
+	if !ok {
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
+	}
+
 	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
 		return []*storage.EvaluationDistribution{}, nil
