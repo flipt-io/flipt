@@ -8,7 +8,7 @@ import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   selectNamespaces
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import { themeChanged } from '~/app/preferences/preferencesSlice';
 import { useAppDispatch } from '~/data/hooks/store';
 import { Theme } from '~/types/Preferences';

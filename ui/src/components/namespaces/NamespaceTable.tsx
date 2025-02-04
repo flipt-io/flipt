@@ -80,7 +80,6 @@ type NamespaceTableProps = {
   setShowEditNamespaceModal: (show: boolean) => void;
   setDeletingNamespace: (namespace: INamespace) => void;
   setShowDeleteNamespaceModal: (show: boolean) => void;
-  readOnly?: boolean;
 };
 
 export default function NamespaceTable(props: NamespaceTableProps) {
@@ -89,8 +88,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     setEditingNamespace,
     setShowEditNamespaceModal,
     setDeletingNamespace,
-    setShowDeleteNamespaceModal,
-    readOnly = false
+    setShowDeleteNamespaceModal
   } = props;
 
   const searchThreshold = 10;
@@ -118,9 +116,6 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     columnHelper.accessor('name', {
       header: 'Name',
       cell: (info) => {
-        if (readOnly) {
-          return info.getValue();
-        }
         return (
           <NamespaceEditAction
             // eslint-disable-next-line react/prop-types
@@ -171,16 +166,13 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     columnHelper.display({
       id: 'actions',
       cell: (props) => {
-        if (!readOnly) {
-          return (
-            <NamespaceDeleteAction
-              // eslint-disable-next-line react/prop-types
-              row={props.row}
-              setDeletingNamespace={setDeletingNamespace}
-              setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}
-            />
-          );
-        }
+        return (
+          <NamespaceDeleteAction
+            row={props.row}
+            setDeletingNamespace={setDeletingNamespace}
+            setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}
+          />
+        );
       },
       meta: {
         className:

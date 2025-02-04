@@ -4,11 +4,10 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router';
-import { selectReadonly } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
-} from '~/app/namespaces/namespacesSlice';
+} from '~/app/namespaces/namespacesApi';
 import FlagForm from '~/components/flags/forms/FlagForm';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
@@ -51,7 +50,6 @@ export default function Flag() {
 
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
-  const readOnly = useSelector(selectReadonly);
 
   const {
     data: flag,
@@ -136,7 +134,7 @@ export default function Flag() {
             {
               id: 'flag-copy',
               label: 'Copy to Namespace',
-              disabled: readOnly || namespaces.length < 2,
+              disabled: namespaces.length < 2,
               onClick: () => {
                 setShowCopyFlagModal(true);
               },
@@ -145,7 +143,6 @@ export default function Flag() {
             {
               id: 'flag-delete',
               label: 'Delete',
-              disabled: readOnly,
               onClick: () => setShowDeleteFlagModal(true),
               icon: Trash2Icon,
               variant: 'destructive'

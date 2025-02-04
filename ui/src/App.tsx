@@ -3,8 +3,7 @@ import formbricks from '@formbricks/js/website';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
-import { selectConfig } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { createHashRouter, redirect, RouterProvider } from 'react-router';
 import ErrorLayout from './app/ErrorLayout';
 import Flag from './app/flags/Flag';
@@ -175,14 +174,9 @@ export default function App() {
     }
   }, [theme, systemPrefersDark]);
 
-  const { ui } = useSelector(selectConfig);
-
   const namespace = useSelector(selectCurrentNamespace);
 
   let title = `Flipt · ${namespace.key}`;
-  if (ui.topbar?.label) {
-    title = `Flipt/${ui.topbar.label} · ${namespace.key}`;
-  }
 
   return (
     <>

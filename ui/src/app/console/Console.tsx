@@ -10,8 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import { selectCurrentRef } from '~/app/refs/refsSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { JsonEditor } from '~/components/json/JsonEditor';
 import EmptyState from '~/components/EmptyState';
 import { Button } from '~/components/Button';
@@ -70,7 +69,6 @@ export default function Console() {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
-  const ref = useSelector(selectCurrentRef);
   const { data, error } = useListFlagsQuery(namespace.key);
 
   useEffect(() => {
@@ -127,7 +125,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluateV2(ref, namespace.key, flag.key, flag.type, rest)
+    evaluateV2(namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));

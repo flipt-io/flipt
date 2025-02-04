@@ -4,7 +4,7 @@ import { Form, Formik } from 'formik';
 import { forwardRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { selectNamespaces } from '~/app/namespaces/namespacesSlice';
+import { selectNamespaces } from '~/app/namespaces/namespacesApi';
 import { useCreateTokenMutation } from '~/app/tokens/tokensApi';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';

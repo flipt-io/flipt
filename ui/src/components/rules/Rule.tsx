@@ -14,7 +14,6 @@ type RuleProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
-  readOnly?: boolean;
 };
 
 const Rule = forwardRef(
@@ -27,7 +26,6 @@ const Rule = forwardRef(
       onDelete,
       style,
       className,
-      readOnly,
       ...rest
     }: RuleProps,
     ref: Ref<HTMLLIElement>
@@ -43,21 +41,16 @@ const Rule = forwardRef(
           <span
             key={rule.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex',
-              {
-                'hover:cursor-not-allowed': readOnly,
-                'hover:cursor-move': !readOnly
-              }
+              'hidden h-4 w-4 justify-start text-gray-400 hover:cursor-move hover:text-violet-300 sm:flex'
             )}
             {...rest}
           >
             {rule.rank}
           </span>
           <h3
-            className={cls('text-sm font-normal leading-6 text-gray-700', {
-              'hover:cursor-not-allowed': readOnly,
-              'hover:cursor-move': !readOnly
-            })}
+            className={cls(
+              'text-sm font-normal leading-6 text-gray-700 hover:cursor-move'
+            )}
             {...rest}
           >
             Rule
@@ -66,11 +59,9 @@ const Rule = forwardRef(
             data-testid="rule-menu-button"
             label=""
             kind="dots"
-            disabled={readOnly}
             actions={[
               {
                 id: 'rule-delete',
-                disabled: readOnly,
                 label: 'Delete',
                 variant: 'destructive',
                 onClick: () => {

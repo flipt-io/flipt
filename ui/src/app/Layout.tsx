@@ -17,16 +17,17 @@ import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { LoadingStatus } from '~/types/Meta';
-import { fetchInfoAsync, selectConfig } from './meta/metaSlice';
+import { fetchInfoAsync, selectInfo } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   useListNamespacesQuery
-} from './namespaces/namespacesSlice';
+} from './namespaces/namespacesApi';
 import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
 import { selectDismissedBanner } from './events/eventSlice';
 import { StarIcon } from '@heroicons/react/20/solid';
+import { selectCurrentEnvironment } from './environments/environmentsApi';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -38,8 +39,10 @@ function InnerLayout() {
   const { namespaceKey } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
-  const config = useSelector(selectConfig);
+  const info = useSelector(selectInfo);
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -55,7 +58,9 @@ function InnerLayout() {
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
-  const namespaces = useListNamespacesQuery();
+  const namespaces = useListNamespacesQuery({
+    environmentKey: currentEnvironment.name
+  });
 
   useEffect(() => {
     dispatch(fetchInfoAsync());
@@ -65,7 +70,7 @@ function InnerLayout() {
     return <Navigate to="/login" />;
   }
 
-  if (namespaces.isLoading || config.status != LoadingStatus.SUCCEEDED) {
+  if (namespaces.isLoading || info.status != LoadingStatus.SUCCEEDED) {
     return <Loading fullScreen />;
   }
 

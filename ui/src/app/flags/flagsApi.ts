@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 import { RootState } from '~/store';
-import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
+import { IFlag, IFlagBase, IFlagList, IFlagResourceList } from '~/types/Flag';
 import { IVariantBase } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
 
@@ -32,18 +32,27 @@ export const flagsApi = createApi({
   tagTypes: ['Flag'],
   endpoints: (builder) => ({
     // get list of flags in this namespace
-    listFlags: builder.query<IFlagList, string>({
-      query: (namespaceKey) => `/namespaces/${namespaceKey}/flags`,
-      providesTags: (result, _error, namespaceKey) =>
+    listFlags: builder.query<
+      IFlagList,
+      { environmentKey: string; namespaceKey: string }
+    >({
+      query: ({ environmentKey, namespaceKey }) =>
+        `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Flag`,
+      providesTags: (result, _error, { environmentKey, namespaceKey }) =>
         result
           ? [
               ...result.flags.map(({ key }) => ({
                 type: 'Flag' as const,
-                id: namespaceKey + '/' + key
+                id: environmentKey + '/' + namespaceKey + '/' + key
               })),
-              { type: 'Flag', id: namespaceKey }
+              { type: 'Flag', id: environmentKey + '/' + namespaceKey }
             ]
-          : [{ type: 'Flag', id: namespaceKey }]
+          : [{ type: 'Flag', id: environmentKey + '/' + namespaceKey }],
+      transformResponse: (response: IFlagResourceList): IFlagList => {
+        return {
+          flags: response.resources.map(({ payload }) => payload)
+        } as IFlagList;
+      }
     }),
     // get flag in this namespace
     getFlag: builder.query<IFlag, { namespaceKey: string; flagKey: string }>({
