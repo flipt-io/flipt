@@ -68,24 +68,14 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 }
 
 func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	rules, err := store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		resp = &rpcevaluation.VariantEvaluationResponse{
+			FlagKey:   flag.Key,
 			RequestId: r.RequestId,
 		}
+		err      error
 		lastRank int32
-	)
 
-	if len(rules) == 0 {
-		s.logger.Debug("no rules match")
-		return resp, nil
-	}
-
-	var (
 		startTime     = time.Now().UTC()
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
 		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
@@ -148,6 +138,16 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 	if !flag.Enabled {
 		resp.Match = false
 		resp.Reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+		return resp, nil
+	}
+
+	rules, err := store.GetEvaluationRules(ctx, storage.NewResource(r.NamespaceKey, r.FlagKey))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rules) == 0 {
+		s.logger.Debug("no rules match")
 		return resp, nil
 	}
 

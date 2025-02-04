@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -18,15 +19,20 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 		flag         = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
 
@@ -44,7 +50,12 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, flagKey),
+		storage.NewID("1"),
+	).Return([]*storage.EvaluationDistribution{
 		{
 			ID:         "4",
 			RuleID:     "1",
@@ -74,15 +85,20 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 		flag         = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
 

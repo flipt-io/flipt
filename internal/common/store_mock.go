@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
 var _ storage.Store = &StoreMock{}
@@ -64,4 +65,9 @@ func (m *StoreMock) GetEvaluationDistributions(ctx context.Context, r storage.Re
 func (m *StoreMock) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
 	args := m.Called(ctx, flag)
 	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
+}
+
+func (m *StoreMock) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	args := m.Called(ctx, ns)
+	return args.Get(0).(*evaluation.EvaluationNamespaceSnapshot), args.Error(1)
 }

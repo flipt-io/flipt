@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -20,10 +21,16 @@ func TestVariant_FlagNotFound(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
 
@@ -45,10 +52,15 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
 		Key:     flagKey,
@@ -66,7 +78,6 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 	})
 
 	require.Nil(t, res)
-
 	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
 }
 
@@ -74,10 +85,15 @@ func TestVariant_FlagDisabled(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
 		Key:     flagKey,
@@ -95,7 +111,6 @@ func TestVariant_FlagDisabled(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.False(t, res.Match)
 	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, res.Reason)
 }
@@ -104,9 +119,11 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 		flag         = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
@@ -114,8 +131,10 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
 	store.On("GetEvaluationRules", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRule{}, errs.ErrInvalid("some invalid error"))
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
@@ -135,15 +154,20 @@ func TestVariant_Success(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 		flag         = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
 
@@ -171,7 +195,12 @@ func TestVariant_Success(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, flagKey),
+		storage.NewID("1"),
+	).Return([]*storage.EvaluationDistribution{}, nil)
 
 	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -183,7 +212,6 @@ func TestVariant_Success(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Match)
 	assert.Contains(t, res.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
@@ -193,13 +221,17 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
-	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey))
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
 
 	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -211,7 +243,6 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 	})
 
 	require.Nil(t, res)
-
 	assert.EqualError(t, err, "test-flag not found")
 }
 
@@ -219,15 +250,18 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey))
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
-		Key:     "test-flag",
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
@@ -249,13 +283,18 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
-		Key:     "test-flag",
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
@@ -272,7 +311,6 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -282,13 +320,18 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&core.Flag{
-		Key:     "test-flag",
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
@@ -315,7 +358,6 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -325,13 +367,18 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
-		Key:     "test-flag",
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
@@ -358,7 +405,6 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.False(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -368,13 +414,18 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
-		Key:     "test-flag",
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
@@ -424,7 +475,6 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -434,17 +484,21 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&core.Flag{
-			Key:     "test-flag",
-			Enabled: true,
-			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
-		}, nil)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
@@ -488,7 +542,6 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -498,17 +551,21 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&core.Flag{
-			Key:     "test-flag",
-			Enabled: true,
-			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
-		}, nil)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
@@ -544,7 +601,6 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -554,17 +610,21 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&core.Flag{
-			Key:     "test-flag",
-			Enabled: true,
-			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
-		}, nil)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
@@ -615,7 +675,6 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
@@ -625,17 +684,21 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(
-		&core.Flag{
-			Key:     "test-flag",
-			Enabled: true,
-			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
-		}, nil)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
+		Key:     flagKey,
+		Enabled: true,
+		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
@@ -682,7 +745,6 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	})
 
 	require.Nil(t, res)
-
 	assert.EqualError(t, err, "rollout rank: 0 detected out of order")
 }
 
@@ -690,12 +752,15 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
 		Key:         flagKey,
@@ -718,19 +783,22 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 	})
 
 	require.Error(t, err)
-	require.EqualError(t, err, "unknown flag type: 3")
+	assert.EqualError(t, err, "unknown flag type: 3")
 }
 
 func TestBatch_InternalError_GetFlag(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
-		store        = &evaluationStoreMock{}
+		envStore     = NewMockEnvironmentStore(t)
+		environment  = environments.NewMockEnvironment(t)
+		store        = storage.NewMockReadOnlyStore(t)
 		logger       = zaptest.NewLogger(t)
-		s            = New(logger, store)
+		s            = New(logger, envStore)
 	)
 
-	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
 
@@ -757,13 +825,18 @@ func TestBatch_Success(t *testing.T) {
 		anotherFlagKey = "another-test-flag"
 		variantFlagKey = "variant-test-flag"
 		namespaceKey   = "test-namespace"
-		store          = &evaluationStoreMock{}
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
 		logger         = zaptest.NewLogger(t)
-		s              = New(logger, store)
+		s              = New(logger, envStore)
 	)
 
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
+
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
-		Key:     "test-flag",
+		Key:     flagKey,
 		Enabled: true,
 		Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
@@ -771,7 +844,7 @@ func TestBatch_Success(t *testing.T) {
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, anotherFlagKey)).Return(&core.Flag{}, errs.ErrNotFound("another-test-flag"))
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, variantFlagKey)).Return(&core.Flag{
-		Key:     "variant-test-flag",
+		Key:     variantFlagKey,
 		Enabled: true,
 		Type:    core.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
@@ -812,7 +885,12 @@ func TestBatch_Success(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("GetEvaluationDistributions", mock.Anything, storage.NewID("1")).Return([]*storage.EvaluationDistribution{}, nil)
+	store.On(
+		"GetEvaluationDistributions",
+		mock.Anything,
+		storage.NewResource(namespaceKey, variantFlagKey),
+		storage.NewID("1"),
+	).Return([]*storage.EvaluationDistribution{}, nil)
 
 	res, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
@@ -847,7 +925,6 @@ func TestBatch_Success(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 	assert.Len(t, res.Responses, 3)
 
 	b, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_BooleanResponse)
@@ -874,6 +951,7 @@ func TestBatch_Success(t *testing.T) {
 	assert.Equal(t, "3", v.VariantResponse.RequestId)
 	assert.Equal(t, variantFlagKey, v.VariantResponse.FlagKey)
 }
+
 func Test_matchesString(t *testing.T) {
 	tests := []struct {
 		name       string
