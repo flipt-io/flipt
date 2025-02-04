@@ -171,8 +171,10 @@ func EmptySnapshot() *Snapshot {
 			defaultNs: newNamespace(),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
-		evalSnap:  &evaluation.EvaluationSnapshot{},
-		now:       flipt.Now(),
+		evalSnap: &evaluation.EvaluationSnapshot{
+			Namespaces: map[string]*evaluation.EvaluationNamespaceSnapshot{},
+		},
+		now: flipt.Now(),
 	}
 }
 
@@ -362,6 +364,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		}
 
 		ns.flags[f.Key] = flag
+		snap.Flags = append(snap.Flags, evalSnapFlag)
 
 		evalRules := []*storage.EvaluationRule{}
 		for i, r := range f.Rules {
@@ -475,7 +478,10 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		for i, rollout := range f.Rollouts {
 			var (
 				rank        = int32(i + 1)
-				flagRollout = &core.Rollout{}
+				flagRollout = &core.Rollout{
+					Description: rollout.Description,
+				}
+
 				evalRollout = &storage.EvaluationRollout{
 					NamespaceKey: namespaceKey,
 					Rank:         rank,
@@ -521,7 +527,9 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				}
 
 				evalSnapRolloutSegment := &evaluation.EvaluationRollout_Segment{
-					Segment: &evaluation.EvaluationRolloutSegment{},
+					Segment: &evaluation.EvaluationRolloutSegment{
+						Value: rollout.Segment.Value,
+					},
 				}
 				evalSnapRollout.Rule = evalSnapRolloutSegment
 
@@ -580,6 +588,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			flag.Rollouts = append(flag.Rollouts, flagRollout)
 
 			evalRollouts = append(evalRollouts, evalRollout)
+			evalSnapFlag.Rollouts = append(evalSnapFlag.Rollouts, evalSnapRollout)
 		}
 
 		ns.evalRollouts[f.Key] = evalRollouts
@@ -651,6 +660,11 @@ func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 }
 
 func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	_, ok := ss.ns[flag.Namespace()]
+	if !ok {
+		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
+	}
+
 	dists, ok := ss.evalDists[rule.ID]
 	if !ok {
 		return []*storage.EvaluationDistribution{}, nil
