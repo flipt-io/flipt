@@ -12,4 +12,5 @@ use (
 	./rpc/flipt
 	./rpc/v2/environments
 	./sdk/go
+	./sdk/go/v2
 )

@@ -19,7 +19,7 @@ import (
 
 const httpbodyImport = "google.golang.org/genproto/googleapis/api/httpbody"
 
-func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
+func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protogen.GoImportPath) {
 	data, err := os.ReadFile(grpcAPIConfig)
 	if err != nil {
 		panic(err)
