@@ -1,32 +1,33 @@
-import { useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useDeleteVariantMutation } from '~/app/flags/flagsApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+import { useContext, useRef, useState } from 'react';
 import EmptyState from '~/components/EmptyState';
-import VariantForm from '~/components/variants/forms/VariantForm';
+import VariantForm from '~/components/variants/VariantForm';
 import { ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
 
 type VariantsProps = {
   flag: IFlag;
+  variants: IVariant[];
 };
 
-export default function Variants({ flag }: VariantsProps) {
+export default function Variants({ flag, variants }: VariantsProps) {
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
-  const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
+  const [editingVariant, setEditingVariant] = useState<IVariant | undefined>(
+    undefined
+  );
   const [showDeleteVariantModal, setShowDeleteVariantModal] =
     useState<boolean>(false);
-  const [deletingVariant, setDeletingVariant] = useState<IVariant | null>(null);
+  const [deletingVariant, setDeletingVariant] = useState<IVariant | undefined>(
+    undefined
+  );
 
   const variantFormRef = useRef(null);
 
-  const namespace = useSelector(selectCurrentNamespace);
-
-  const [deleteVariant] = useDeleteVariantMutation();
+  const { deleteVariant } = useContext(FlagFormContext);
 
   return (
     <>
@@ -39,7 +40,7 @@ export default function Variants({ flag }: VariantsProps) {
         <VariantForm
           ref={variantFormRef}
           flagKey={flag.key}
-          variant={editingVariant || undefined}
+          variant={editingVariant}
           setOpen={setShowVariantForm}
           onSuccess={() => {
             setShowVariantForm(false);
@@ -61,13 +62,15 @@ export default function Variants({ flag }: VariantsProps) {
           }
           panelType="Variant"
           setOpen={setShowDeleteVariantModal}
-          handleDelete={() =>
-            deleteVariant({
-              namespaceKey: namespace.key,
-              flagKey: flag.key,
-              variantId: deletingVariant?.id ?? ''
-            }).unwrap()
-          }
+          handleDelete={() => {
+            try {
+              deleteVariant(deletingVariant!);
+            } catch (e) {
+              return Promise.reject(e);
+            }
+            setDeletingVariant(undefined);
+            return Promise.resolve();
+          }}
         />
       </Modal>
 
@@ -79,13 +82,13 @@ export default function Variants({ flag }: VariantsProps) {
               Return different values based on rules you define.
             </p>
           </div>
-          {flag.variants && flag.variants.length > 0 && (
+          {variants && variants.length > 0 && (
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
               <ButtonWithPlus
                 variant="primary"
                 type="button"
                 onClick={() => {
-                  setEditingVariant(null);
+                  setEditingVariant(undefined);
                   setShowVariantForm(true);
                 }}
               >
@@ -95,7 +98,7 @@ export default function Variants({ flag }: VariantsProps) {
           )}
         </div>
         <div className="mt-10">
-          {flag.variants && flag.variants.length > 0 ? (
+          {variants && variants.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-300">
               <thead>
                 <tr>
@@ -123,7 +126,7 @@ export default function Variants({ flag }: VariantsProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {flag.variants.map((variant) => (
+                {variants.map((variant) => (
                   <tr key={variant.key}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
                       {variant.key}
@@ -170,8 +173,9 @@ export default function Variants({ flag }: VariantsProps) {
           ) : (
             <EmptyState
               text="New Variant"
-              onClick={() => {
-                setEditingVariant(null);
+              onClick={(e) => {
+                e.preventDefault();
+                setEditingVariant(undefined);
                 setShowVariantForm(true);
               }}
             />

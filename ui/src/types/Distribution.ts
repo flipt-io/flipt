@@ -1,16 +1,14 @@
 export interface IDistributionBase {
-  variantId: string;
+  variant: string;
   rollout: number;
 }
 
 export interface IDistributionVariant extends IDistributionBase {
-  variantKey: string;
+  variantId: string;
 }
 
 export interface IDistribution extends IDistributionBase {
   id: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export enum DistributionType {

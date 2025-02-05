@@ -2,8 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 import { RootState } from '~/store';
-import { IFlag, IFlagBase, IFlagList, IFlagResourceList } from '~/types/Flag';
-import { IVariantBase } from '~/types/Variant';
+import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
+import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
+import { IRollout } from '~/types/Rollout';
+import { IRule } from '~/types/Rule';
+import { IVariant, IVariantBase } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
 
 const initialTableState: {
@@ -48,175 +51,212 @@ export const flagsApi = createApi({
               { type: 'Flag', id: environmentKey + '/' + namespaceKey }
             ]
           : [{ type: 'Flag', id: environmentKey + '/' + namespaceKey }],
-      transformResponse: (response: IFlagResourceList): IFlagList => {
+      transformResponse: (
+        response: IResourceListResponse<IFlag>
+      ): IFlagList => {
+        if (response.revision) {
+          localStorage.setItem('revision', response.revision);
+        }
         return {
           flags: response.resources.map(({ payload }) => payload)
         } as IFlagList;
       }
     }),
     // get flag in this namespace
-    getFlag: builder.query<IFlag, { namespaceKey: string; flagKey: string }>({
-      query: ({ namespaceKey, flagKey }) =>
-        `/namespaces/${namespaceKey}/flags/${flagKey}`,
-      providesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
-      ]
+    getFlag: builder.query<
+      IFlag,
+      { environmentKey: string; namespaceKey: string; flagKey: string }
+    >({
+      query: ({ environmentKey, namespaceKey, flagKey }) =>
+        `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Flag/${flagKey}`,
+      providesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, flagKey }
+      ) => [
+        {
+          type: 'Flag',
+          id: environmentKey + '/' + namespaceKey + '/' + flagKey
+        }
+      ],
+      transformResponse: (response: IResourceResponse<IFlag>): IFlag => {
+        if (response.revision) {
+          localStorage.setItem('revision', response.revision);
+        }
+        return {
+          ...response.resource.payload,
+          rollouts: response.resource.payload.rollouts?.map(
+            (r: IRollout, i: number) => ({
+              ...r,
+              rank: i
+            })
+          ),
+          rules: response.resource.payload.rules?.map(
+            (r: IRule, i: number) => ({
+              ...r,
+              rank: i
+            })
+          ),
+          variants: response.resource.payload.variants?.map(
+            (v: IVariant, i: number) => ({
+              ...v
+            })
+          )
+        };
+      }
     }),
     // create a new flag in the namespace
     createFlag: builder.mutation<
       IFlag,
-      { namespaceKey: string; values: IFlagBase }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        values: IFlagBase;
+        revision?: string;
+      }
     >({
-      query({ namespaceKey, values }) {
+      query({ environmentKey, namespaceKey, values, revision }) {
         return {
-          url: `/namespaces/${namespaceKey}/flags`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'POST',
-          body: values
+          body: {
+            key: values.key,
+            revision: revision,
+            payload: {
+              '@type': 'flipt.core.Flag',
+              ...values
+            }
+          }
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, values }) => [
-        { type: 'Flag', id: namespaceKey },
-        { type: 'Flag', id: namespaceKey + '/' + values.key }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, values }
+      ) => [
+        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Flag',
+          id: environmentKey + '/' + namespaceKey + '/' + values.key
+        }
       ]
     }),
     // delete the flag from the namespace
     deleteFlag: builder.mutation<
       void,
-      { namespaceKey: string; flagKey: string }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        flagKey: string;
+        revision: string;
+      }
     >({
-      query({ namespaceKey, flagKey }) {
+      query({ environmentKey, namespaceKey, flagKey, revision }) {
         return {
-          url: `/namespaces/${namespaceKey}/flags/${flagKey}`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Flag/${flagKey}?revision=${revision}`,
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey }) => [
-        { type: 'Flag', id: namespaceKey }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, flagKey }
+      ) => [
+        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Flag',
+          id: environmentKey + '/' + namespaceKey + '/' + flagKey
+        }
       ]
     }),
     // update the flag in the namespace
     updateFlag: builder.mutation<
       IFlag,
-      { namespaceKey: string; flagKey: string; values: IFlagBase }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        flagKey: string;
+        values: IFlag;
+        revision?: string;
+      }
     >({
-      query({ namespaceKey, flagKey, values }) {
-        const update = {
+      query({ environmentKey, namespaceKey, flagKey, values, revision }) {
+        const payload = {
+          '@type': 'flipt.core.Flag',
           defaultVariantId: values.defaultVariant?.id || null,
-          metadata: values.metadata || undefined,
+          metadata: values.metadata,
           ...values
         };
-        delete update.defaultVariant;
+        delete payload.defaultVariant;
         return {
-          url: `/namespaces/${namespaceKey}/flags/${flagKey}`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'PUT',
-          body: update
+          body: {
+            '@type': 'flipt.core.Flag',
+            key: flagKey,
+            revision,
+            payload
+          }
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey },
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, flagKey }
+      ) => [
+        { type: 'Flag', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Flag',
+          id: environmentKey + '/' + namespaceKey + '/' + flagKey
+        }
       ]
     }),
     // copy the flag from one namespace to another one
     copyFlag: builder.mutation<
       void,
       {
+        environmentKey: string;
         from: { namespaceKey: string; flagKey: string };
         to: { namespaceKey: string; flagKey: string };
       }
     >({
-      queryFn: async ({ from, to }, _api, _extraOptions, baseQuery) => {
+      queryFn: async (
+        { environmentKey, from, to },
+        _api,
+        _extraOptions,
+        baseQuery
+      ) => {
         let resp = await baseQuery({
-          url: `/namespaces/${from.namespaceKey}/flags/${from.flagKey}`,
-          method: 'get'
+          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Flag/${from.flagKey}`,
+          method: 'GET'
         });
         if (resp.error) {
           return { error: resp.error };
         }
-        let data = resp.data as IFlag;
 
-        if (to.flagKey) {
-          data.key = to.flagKey;
-        }
-        // first create the flag
+        const res = resp.data as {
+          resource: { payload: IFlag; key: string };
+          revision: string;
+        };
+
+        let data = {
+          key: res.resource.key,
+          payload: res.resource.payload,
+          revision: res.revision
+        };
+
         resp = await baseQuery({
-          url: `/namespaces/${to.namespaceKey}/flags`,
+          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
           method: 'POST',
           body: data
         });
         if (resp.error) {
           return { error: resp.error };
         }
-        // then copy the variants
-        const variants = data.variants || [];
-        for (let variant of variants) {
-          resp = await baseQuery({
-            url: `/namespaces/${to.namespaceKey}/flags/${to.flagKey}/variants`,
-            method: 'POST',
-            body: variant
-          });
-          if (resp.error) {
-            return { error: resp.error };
-          }
-        }
-
         return { data: undefined };
       },
-      invalidatesTags: (_result, _error, { to }) => [
-        { type: 'Flag', id: to.namespaceKey }
-      ]
-    }),
-
-    // create the flag variant in the namespace
-    createVariant: builder.mutation<
-      void,
-      { namespaceKey: string; flagKey: string; values: IVariantBase }
-    >({
-      query({ namespaceKey, flagKey, values }) {
-        return {
-          url: `/namespaces/${namespaceKey}/flags/${flagKey}/variants`,
-          method: 'POST',
-          body: values
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
-      ]
-    }),
-    // update the flag variant in the namespace
-    updateVariant: builder.mutation<
-      void,
-      {
-        namespaceKey: string;
-        flagKey: string;
-        variantId: string;
-        values: IVariantBase;
-      }
-    >({
-      query({ namespaceKey, flagKey, variantId, values }) {
-        return {
-          url: `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`,
-          method: 'PUT',
-          body: values
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
-      ]
-    }),
-    // delete the flag variant in the namespace
-    deleteVariant: builder.mutation<
-      void,
-      { namespaceKey: string; flagKey: string; variantId: string }
-    >({
-      query({ namespaceKey, flagKey, variantId }) {
-        return {
-          url: `/namespaces/${namespaceKey}/flags/${flagKey}/variants/${variantId}`,
-          method: 'DELETE'
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, flagKey }) => [
-        { type: 'Flag', id: namespaceKey + '/' + flagKey }
+      invalidatesTags: (_result, _error, { environmentKey, to }) => [
+        { type: 'Flag', id: environmentKey + '/' + to.namespaceKey }
       ]
     })
   })
@@ -228,8 +268,5 @@ export const {
   useCreateFlagMutation,
   useDeleteFlagMutation,
   useUpdateFlagMutation,
-  useCopyFlagMutation,
-  useCreateVariantMutation,
-  useUpdateVariantMutation,
-  useDeleteVariantMutation
+  useCopyFlagMutation
 } = flagsApi;

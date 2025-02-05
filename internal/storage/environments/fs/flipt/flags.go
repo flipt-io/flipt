@@ -242,6 +242,13 @@ func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
 		Enabled:     flag.Enabled,
 	}
 
+	if flag.Metadata != nil {
+		dst.Metadata, err = structpb.NewStruct(flag.Metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	for _, variant := range flag.Variants {
 		var attach *structpb.Value
 		if variant.Attachment != nil {
@@ -344,6 +351,7 @@ func resourceToFlag(r *rpcenvironments.Resource) (*ext.Flag, error) {
 		Name:        f.Name,
 		Description: f.Description,
 		Enabled:     f.Enabled,
+		Metadata:    f.Metadata.AsMap(),
 	}
 
 	for _, variant := range f.Variants {

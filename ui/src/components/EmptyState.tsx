@@ -1,12 +1,13 @@
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { Icon } from 'types/Icon';
 import { cls } from '~/utils/helpers';
+
 type EmptyStateProps = {
   text?: string;
   secondaryText?: string;
   disabled?: boolean;
   Icon?: Icon;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export default function EmptyState(props: EmptyStateProps) {

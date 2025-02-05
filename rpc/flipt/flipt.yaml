@@ -11,8 +11,6 @@ http:
 
   # metadata
   #
-  - selector: flipt.meta.MetadataService.GetConfiguration
-    get: /meta/config
   - selector: flipt.meta.MetadataService.GetInfo
     get: /meta/info
 

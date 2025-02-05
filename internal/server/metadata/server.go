@@ -32,12 +32,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	meta.RegisterMetadataServiceServer(server, s)
 }
 
-// GetConfiguration returns a HttpBody instance containing the Flipt instance's
-// configuration structure marshalled as JSON.
-func (s *Server) GetConfiguration(ctx context.Context, _ *emptypb.Empty) (*httpbody.HttpBody, error) {
-	return response(ctx, s.cfg)
-}
-
 // GetInfo returns a HttpBody instance containing the Flipt instance's
 // runtime information marshalled as JSON.
 func (s *Server) GetInfo(ctx context.Context, _ *emptypb.Empty) (*httpbody.HttpBody, error) {

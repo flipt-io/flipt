@@ -1,4 +1,4 @@
-import FlagForm from '~/components/flags/forms/FlagForm';
+import FlagForm from '~/components/flags/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/ui/page';
 

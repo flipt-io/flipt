@@ -18,32 +18,6 @@ type MetadataServiceClient struct {
 	addr   string
 }
 
-func (x *MetadataServiceClient) GetConfiguration(ctx context.Context, v *emptypb.Empty, _ ...grpc.CallOption) (*httpbody.HttpBody, error) {
-	var body io.Reader
-	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/meta/config", body)
-	if err != nil {
-		return nil, err
-	}
-	req.URL.RawQuery = values.Encode()
-	resp, err := x.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var output httpbody.HttpBody
-	respData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp, respData); err != nil {
-		return nil, err
-	}
-	output.ContentType = resp.Header.Get("Content-Type")
-	output.Data = respData
-	return &output, nil
-}
-
 func (x *MetadataServiceClient) GetInfo(ctx context.Context, v *emptypb.Empty, _ ...grpc.CallOption) (*httpbody.HttpBody, error) {
 	var body io.Reader
 	var values url.Values

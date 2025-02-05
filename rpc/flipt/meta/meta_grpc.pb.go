@@ -21,15 +21,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MetadataService_GetConfiguration_FullMethodName = "/flipt.meta.MetadataService/GetConfiguration"
-	MetadataService_GetInfo_FullMethodName          = "/flipt.meta.MetadataService/GetInfo"
+	MetadataService_GetInfo_FullMethodName = "/flipt.meta.MetadataService/GetInfo"
 )
 
 // MetadataServiceClient is the client API for MetadataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetadataServiceClient interface {
-	GetConfiguration(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	GetInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
@@ -39,16 +37,6 @@ type metadataServiceClient struct {
 
 func NewMetadataServiceClient(cc grpc.ClientConnInterface) MetadataServiceClient {
 	return &metadataServiceClient{cc}
-}
-
-func (c *metadataServiceClient) GetConfiguration(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(httpbody.HttpBody)
-	err := c.cc.Invoke(ctx, MetadataService_GetConfiguration_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *metadataServiceClient) GetInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
@@ -65,7 +53,6 @@ func (c *metadataServiceClient) GetInfo(ctx context.Context, in *emptypb.Empty, 
 // All implementations must embed UnimplementedMetadataServiceServer
 // for forward compatibility.
 type MetadataServiceServer interface {
-	GetConfiguration(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
 	GetInfo(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
 	mustEmbedUnimplementedMetadataServiceServer()
 }
@@ -77,9 +64,6 @@ type MetadataServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMetadataServiceServer struct{}
 
-func (UnimplementedMetadataServiceServer) GetConfiguration(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetConfiguration not implemented")
-}
 func (UnimplementedMetadataServiceServer) GetInfo(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInfo not implemented")
 }
@@ -102,24 +86,6 @@ func RegisterMetadataServiceServer(s grpc.ServiceRegistrar, srv MetadataServiceS
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&MetadataService_ServiceDesc, srv)
-}
-
-func _MetadataService_GetConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MetadataServiceServer).GetConfiguration(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MetadataService_GetConfiguration_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetadataServiceServer).GetConfiguration(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _MetadataService_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -147,10 +113,6 @@ var MetadataService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "flipt.meta.MetadataService",
 	HandlerType: (*MetadataServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetConfiguration",
-			Handler:    _MetadataService_GetConfiguration_Handler,
-		},
 		{
 			MethodName: "GetInfo",
 			Handler:    _MetadataService_GetInfo_Handler,
