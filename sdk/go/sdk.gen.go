@@ -5,19 +5,10 @@ package sdk
 import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	metadata "google.golang.org/grpc/metadata"
-	os "os"
-	sync "sync"
-	time "time"
 )
-
-var _ *time.Time
-var _ *os.File
-var _ *sync.Mutex
-var _ auth.Method
 
 type Transport interface {
 	AuthClient() AuthClient

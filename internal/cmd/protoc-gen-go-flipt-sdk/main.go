@@ -63,11 +63,6 @@ func generateSDK(gen *protogen.Plugin, importPath protogen.GoImportPath) {
 	g.P()
 	g.P("package sdk")
 	g.P()
-	g.P("var _ *", importPackage(g, "time")("Time"))
-	g.P("var _ *", importPackage(g, "os")("File"))
-	g.P("var _ *", importPackage(g, "sync")("Mutex"))
-	g.P("var _ ", importPackage(g, "go.flipt.io/flipt/rpc/flipt/auth")("Method"))
-	g.P()
 	g.P("type Transport interface {")
 	var types [][2]string
 	for _, file := range gen.Files {

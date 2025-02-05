@@ -4,18 +4,9 @@ package sdk
 
 import (
 	context "context"
-	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	environments "go.flipt.io/flipt/rpc/v2/environments"
 	metadata "google.golang.org/grpc/metadata"
-	os "os"
-	sync "sync"
-	time "time"
 )
-
-var _ *time.Time
-var _ *os.File
-var _ *sync.Mutex
-var _ auth.Method
 
 type Transport interface {
 	EnvironmentsClient() environments.EnvironmentsServiceClient
