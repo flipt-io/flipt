@@ -8,6 +8,7 @@ import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
+import { v4 as uuid } from 'uuid';
 
 const initialTableState: {
   sorting: SortingState;
@@ -88,18 +89,22 @@ export const flagsApi = createApi({
           rollouts: response.resource.payload.rollouts?.map(
             (r: IRollout, i: number) => ({
               ...r,
+              id: uuid(),
               rank: i
             })
           ),
           rules: response.resource.payload.rules?.map(
             (r: IRule, i: number) => ({
               ...r,
+              id: uuid(),
               rank: i
             })
           ),
           variants: response.resource.payload.variants?.map(
             (v: IVariant, i: number) => ({
-              ...v
+              ...v,
+              id: uuid(),
+              rank: i
             })
           )
         };
@@ -189,7 +194,6 @@ export const flagsApi = createApi({
           url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'PUT',
           body: {
-            '@type': 'flipt.core.Flag',
             key: flagKey,
             revision,
             payload
