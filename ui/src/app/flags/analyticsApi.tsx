@@ -1,5 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
+
 import { IFlagEvaluationCount } from '~/types/Analytics';
+
 import { internalQuery } from '~/utils/redux-rtk';
 
 export const analyticsApi = createApi({

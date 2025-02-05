@@ -1,13 +1,15 @@
 import { useContext, useRef, useState } from 'react';
-import EmptyState from '~/components/EmptyState';
-import VariantForm from '~/components/variants/VariantForm';
+
 import { ButtonWithPlus } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
-import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import DeletePanel from '~/components/panels/DeletePanel';
+import VariantForm from '~/components/variants/VariantForm';
+
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
-import { FlagFormContext } from '~/components/flags/FlagFormContext';
 
 type VariantsProps = {
   flag: IFlag;
@@ -16,14 +18,10 @@ type VariantsProps = {
 
 export default function Variants({ flag, variants }: VariantsProps) {
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
-  const [editingVariant, setEditingVariant] = useState<IVariant | undefined>(
-    undefined
-  );
+  const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
   const [showDeleteVariantModal, setShowDeleteVariantModal] =
     useState<boolean>(false);
-  const [deletingVariant, setDeletingVariant] = useState<IVariant | undefined>(
-    undefined
-  );
+  const [deletingVariant, setDeletingVariant] = useState<IVariant | null>(null);
 
   const variantFormRef = useRef(null);
 
@@ -68,7 +66,7 @@ export default function Variants({ flag, variants }: VariantsProps) {
             } catch (e) {
               return Promise.reject(e);
             }
-            setDeletingVariant(undefined);
+            setDeletingVariant(null);
             return Promise.resolve();
           }}
         />
@@ -88,7 +86,7 @@ export default function Variants({ flag, variants }: VariantsProps) {
                 variant="primary"
                 type="button"
                 onClick={() => {
-                  setEditingVariant(undefined);
+                  setEditingVariant(null);
                   setShowVariantForm(true);
                 }}
               >
@@ -175,7 +173,7 @@ export default function Variants({ flag, variants }: VariantsProps) {
               text="New Variant"
               onClick={(e) => {
                 e.preventDefault();
-                setEditingVariant(undefined);
+                setEditingVariant(null);
                 setShowVariantForm(true);
               }}
             />

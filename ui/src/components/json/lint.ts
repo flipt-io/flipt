@@ -1,7 +1,7 @@
 import { Diagnostic } from '@codemirror/lint';
-import { EditorView } from '@codemirror/view';
-import { Text } from '@codemirror/state';
 import { SearchCursor } from '@codemirror/search';
+import { Text } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 
 function getJsonErrorPosition(error: SyntaxError, doc: Text): number {
   let m;

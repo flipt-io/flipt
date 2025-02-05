@@ -3,18 +3,22 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import * as Yup from 'yup';
+
 import {
   useCreateNamespaceMutation,
   useUpdateNamespaceMutation
 } from '~/app/namespaces/namespacesApi';
+
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
+import Input from '~/components/forms/Input';
+
+import { INamespace, INamespaceBase } from '~/types/Namespace';
+
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { INamespace, INamespaceBase } from '~/types/Namespace';
 import { stringAsKey } from '~/utils/helpers';
 
 const namespaceValidationSchema = Yup.object({
@@ -24,14 +28,14 @@ const namespaceValidationSchema = Yup.object({
 
 type NamespaceFormProps = {
   setOpen: (open: boolean) => void;
-  namespace?: INamespace;
+  namespace?: INamespace | null;
   onSuccess: () => void;
 };
 
 const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setOpen, namespace, onSuccess } = props;
 
-  const isNew = namespace === undefined;
+  const isNew = namespace === null;
   const title = isNew ? 'New Namespace' : 'Edit Namespace';
   const submitPhrase = isNew ? 'Create' : 'Update';
 

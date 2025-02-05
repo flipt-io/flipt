@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { authURL } from '~/data/api';
+
 import { IAuthMethodList } from '~/types/Auth';
+
+import { authURL } from '~/data/api';
 
 export const authProvidersApi = createApi({
   reducerPath: 'providers',

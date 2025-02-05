@@ -7,25 +7,17 @@ import { forwardRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import * as Yup from 'yup';
+
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
-import {
-  useCreateConstraintMutation,
-  useUpdateConstraintMutation
-} from '~/app/segments/segmentsApi';
+
 import { Button } from '~/components/Button';
+import Loading from '~/components/Loading';
+import MoreInfo from '~/components/MoreInfo';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Tags from '~/components/forms/Tags';
-import Loading from '~/components/Loading';
-import MoreInfo from '~/components/MoreInfo';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import {
-  jsonNumberArrayValidation,
-  jsonStringArrayValidation,
-  requiredValidation
-} from '~/data/validations';
+
 import {
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
@@ -33,12 +25,20 @@ import {
   ConstraintNumberOperators,
   ConstraintStringOperators,
   ConstraintType,
-  constraintTypeToLabel,
   IConstraint,
   IConstraintBase,
-  NoValueOperators
+  NoValueOperators,
+  constraintTypeToLabel
 } from '~/types/Constraint';
 import { Timezone } from '~/types/Preferences';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
+import {
+  jsonNumberArrayValidation,
+  jsonStringArrayValidation,
+  requiredValidation
+} from '~/data/validations';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ConstraintType) as Array<keyof typeof ConstraintType>).map(

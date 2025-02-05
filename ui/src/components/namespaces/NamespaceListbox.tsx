@@ -1,14 +1,18 @@
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router';
+
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
+
 import Listbox from '~/components/forms/Listbox';
-import { useAppDispatch } from '~/data/hooks/store';
+
 import { INamespace } from '~/types/Namespace';
 import { ISelectable } from '~/types/Selectable';
+
+import { useAppDispatch } from '~/data/hooks/store';
 import { addNamespaceToPath } from '~/utils/helpers';
 
 export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &

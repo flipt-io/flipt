@@ -1,22 +1,31 @@
 import { json } from '@codemirror/lang-json';
-import { CodeIcon, SquareTerminalIcon, RefreshCwIcon } from 'lucide-react';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik, useFormikContext } from 'formik';
+import { CodeIcon, RefreshCwIcon, SquareTerminalIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
-import { JsonEditor } from '~/components/json/JsonEditor';
-import EmptyState from '~/components/EmptyState';
+
 import { Button } from '~/components/Button';
 import Combobox from '~/components/Combobox';
 import Dropdown from '~/components/Dropdown';
+import EmptyState from '~/components/EmptyState';
 import Input from '~/components/forms/Input';
+import { JsonEditor } from '~/components/json/JsonEditor';
+import { PageHeader } from '~/components/ui/page';
+
+import { IAuthMethod } from '~/types/Auth';
+import { Command } from '~/types/Cli';
+import { FilterableFlag, FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
+import { INamespace } from '~/types/Namespace';
+
 import { evaluateURL, evaluateV2 } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -25,17 +34,12 @@ import {
   keyValidation,
   requiredValidation
 } from '~/data/validations';
-import { IAuthMethod } from '~/types/Auth';
-import { Command } from '~/types/Cli';
-import { FilterableFlag, FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 import {
   copyTextToClipboard,
   generateCliCommand,
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-import { PageHeader } from '~/components/ui/page';
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();

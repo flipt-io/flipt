@@ -1,15 +1,21 @@
-import { forwardRef, Ref } from 'react';
-import { IEvaluatable } from '~/types/Evaluatable';
-import { IFlag } from '~/types/Flag';
-import { ISegment } from '~/types/Segment';
-import { cls } from '~/utils/helpers';
+import { Ref, forwardRef } from 'react';
+
 import Dropdown from '~/components/Dropdown';
-import QuickEditRuleForm from './forms/QuickEditRuleForm';
+
+import { IFlag } from '~/types/Flag';
+import { IRule } from '~/types/Rule';
+import { ISegment } from '~/types/Segment';
+import { IVariant } from '~/types/Variant';
+
+import { cls } from '~/utils/helpers';
+
+import QuickEditRuleForm from './QuickEditRuleForm';
 
 type RuleProps = {
   flag: IFlag;
-  rule: IEvaluatable;
+  rule: IRule;
   segments: ISegment[];
+  variants: IVariant[];
   onSuccess?: () => void;
   onDelete?: () => void;
   style?: React.CSSProperties;
@@ -22,6 +28,7 @@ const Rule = forwardRef(
       flag,
       rule,
       segments,
+      variants,
       onSuccess,
       onDelete,
       style,
@@ -78,6 +85,7 @@ const Rule = forwardRef(
             flag={flag}
             rule={rule}
             segments={segments}
+            variants={variants}
             onSuccess={onSuccess}
           />
         </div>

@@ -1,11 +1,11 @@
 /* eslint-disable no-case-declarations */
-
-import { useState, useEffect } from 'react';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import * as Yup from 'yup';
-import type { IFlagMetadata } from '~/types/Flag';
+
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
+import { JsonEditor } from '~/components/json/JsonEditor';
 import {
   Select,
   SelectContent,
@@ -13,8 +13,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '~/components/ui/select';
+
+import type { IFlagMetadata } from '~/types/Flag';
+
 import { cls, stringAsKey } from '~/utils/helpers';
-import { JsonEditor } from '~/components/json/JsonEditor';
 
 const metadataValidationSchema = Yup.object({
   key: Yup.string().required('Key is required'),

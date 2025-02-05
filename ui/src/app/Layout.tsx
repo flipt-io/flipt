@@ -1,3 +1,4 @@
+import { StarIcon } from '@heroicons/react/20/solid';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -7,27 +8,30 @@ import {
   useNavigate,
   useParams
 } from 'react-router';
+
+import Banner from '~/components/Banner';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import Loading from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
+import Sidebar from '~/components/Sidebar';
+import CommandDialog from '~/components/command/CommandDialog';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
-import Sidebar from '~/components/Sidebar';
+
+import { LoadingStatus } from '~/types/Meta';
+
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
-import { LoadingStatus } from '~/types/Meta';
+
+import { selectCurrentEnvironment } from './environments/environmentsApi';
+import { selectDismissedBanner } from './events/eventSlice';
 import { fetchInfoAsync, selectInfo } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesApi';
-import CommandDialog from '~/components/command/CommandDialog';
-import Banner from '~/components/Banner';
-import { selectDismissedBanner } from './events/eventSlice';
-import { StarIcon } from '@heroicons/react/20/solid';
-import { selectCurrentEnvironment } from './environments/environmentsApi';
 
 function InnerLayout() {
   const { session } = useSession();

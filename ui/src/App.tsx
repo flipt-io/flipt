@@ -1,21 +1,24 @@
-import loadable from '@loadable/component';
 import formbricks from '@formbricks/js/website';
+import loadable from '@loadable/component';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
+import { RouterProvider, createHashRouter, redirect } from 'react-router';
+
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
-import { createHashRouter, redirect, RouterProvider } from 'react-router';
+
 import ErrorLayout from './app/ErrorLayout';
-import Flag from './app/flags/Flag';
-import NewFlag from './app/flags/NewFlag';
 import Layout from './app/Layout';
 import NotFoundLayout from './app/NotFoundLayout';
+import Flag from './app/flags/Flag';
+import NewFlag from './app/flags/NewFlag';
 import { selectTheme } from './app/preferences/preferencesSlice';
 import NewSegment from './app/segments/NewSegment';
 import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
-import { Theme } from './types/Preferences';
 import { store } from './store';
+import { Theme } from './types/Preferences';
+
 const Flags = loadable(() => import('./app/flags/Flags'));
 const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));

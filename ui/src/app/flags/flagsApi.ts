@@ -1,12 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
-import { RootState } from '~/store';
+import { v4 as uuid } from 'uuid';
+
 import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
-import { IVariant, IVariantBase } from '~/types/Variant';
+import { IVariant } from '~/types/Variant';
+
+import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
 
 const initialTableState: {
@@ -88,18 +91,22 @@ export const flagsApi = createApi({
           rollouts: response.resource.payload.rollouts?.map(
             (r: IRollout, i: number) => ({
               ...r,
+              id: uuid(),
               rank: i
             })
           ),
           rules: response.resource.payload.rules?.map(
             (r: IRule, i: number) => ({
               ...r,
+              id: uuid(),
               rank: i
             })
           ),
           variants: response.resource.payload.variants?.map(
             (v: IVariant, i: number) => ({
-              ...v
+              ...v,
+              id: uuid(),
+              rank: i
             })
           )
         };
@@ -183,16 +190,12 @@ export const flagsApi = createApi({
       query({ environmentKey, namespaceKey, flagKey, values, revision }) {
         const payload = {
           '@type': 'flipt.core.Flag',
-          defaultVariantId: values.defaultVariant?.id || null,
-          metadata: values.metadata,
           ...values
         };
-        delete payload.defaultVariant;
         return {
           url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'PUT',
           body: {
-            '@type': 'flipt.core.Flag',
             key: flagKey,
             revision,
             payload

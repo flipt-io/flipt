@@ -1,9 +1,11 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createApi } from '@reduxjs/toolkit/query/react';
+
 import { IEnvironment } from '~/types/Environment';
-import { baseQuery } from '~/utils/redux-rtk';
 import { LoadingStatus } from '~/types/Meta';
+
 import { RootState } from '~/store';
+import { baseQuery } from '~/utils/redux-rtk';
 
 export const environmentKey = 'environment';
 

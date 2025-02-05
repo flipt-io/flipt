@@ -1,301 +1,156 @@
 import {
-  closestCenter,
   DndContext,
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { StarIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
-import { useMemo, useState } from 'react';
+import { useFormikContext } from 'formik';
+import { useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router';
-import {
-  useDeleteRuleMutation,
-  useListRulesQuery,
-  useOrderRulesMutation
-} from '~/app/flags/rulesApi';
+import { v4 as uuid } from 'uuid';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import EmptyState from '~/components/EmptyState';
+
 import { ButtonWithPlus, TextButton } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import DeletePanel from '~/components/panels/DeletePanel';
-import RuleForm from '~/components/rules/forms/RuleForm';
-import Rule from '~/components/rules/Rule';
-import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import { IDistribution } from '~/types/Distribution';
-import { IEvaluatable } from '~/types/Evaluatable';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import DeletePanel from '~/components/panels/DeletePanel';
+import Rule from '~/components/rules/Rule';
+import RuleForm from '~/components/rules/RuleForm';
+import SingleDistributionFormInput from '~/components/rules/SingleDistributionForm';
+import SortableRule from '~/components/rules/SortableRule';
+
 import { IFlag } from '~/types/Flag';
-import { IRule } from '~/types/Rule';
-import { ISegment, SegmentOperatorType } from '~/types/Segment';
+import { IRule, IRuleBase } from '~/types/Rule';
 import {
   FilterableVariant,
   IVariant,
   toFilterableVariant
 } from '~/types/Variant';
-import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
-import { INamespace } from '~/types/Namespace';
-import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
+
+import { useError } from '~/data/hooks/error';
 
 type RulesProps = {
   flag: IFlag;
+  rules: IRule[];
+  variants: IVariant[];
 };
 
 export function DefaultVariant(props: RulesProps) {
   const { flag } = props;
 
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
-
-  const namespace = useSelector(selectCurrentNamespace) as INamespace;
+  const { updateFlag } = useContext(FlagFormContext);
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
-      return toFilterableVariant(flag.defaultVariant);
+      const variant = toFilterableVariant(
+        flag.variants?.find((variant) => {
+          return variant.key == flag.defaultVariant;
+        }) || null
+      );
+      return variant || null;
     });
-
-  const [updateFlag] = useUpdateFlagMutation();
 
   const handleRemove = async () => {
-    try {
-      setSelectedVariant(null);
-      await updateFlag({
-        namespaceKey: namespace.key,
-        flagKey: flag.key,
-        values: {
-          ...flag,
-          defaultVariant: undefined
-        }
-      });
-      clearError();
-      setSuccess('Successfully removed default variant');
-    } catch (err) {
-      setError(err);
-    }
+    updateFlag({ defaultVariant: null });
+    setSelectedVariant(null);
+    return Promise.resolve();
   };
 
-  const handleSubmit = async () => {
-    await updateFlag({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      values: {
-        ...flag,
-        defaultVariant: {
-          id: selectedVariant?.id ?? ''
-        } as IVariant
-      }
-    });
-  };
+  const formik = useFormikContext<IFlag>();
 
   return (
-    <Formik
-      initialValues={{
-        defaultVariant: selectedVariant
-      }}
-      onSubmit={(_, { setSubmitting }) => {
-        handleSubmit()
-          .then(() => {
-            clearError();
-            setSuccess('Successfully updated default variant');
-          })
-          .catch((err) => {
-            setError(err);
-          })
-          .finally(() => {
-            setSubmitting(false);
-          });
-      }}
-    >
-      {(formik) => {
-        return (
-          <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
-                <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                  <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                  <h3 className="text-sm font-normal leading-6 text-gray-700">
-                    Default Rule
-                  </h3>
-                  <span className="hidden h-4 w-4 justify-end sm:flex" />
+    <div className="flex flex-col p-2">
+      <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+        <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+          <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+            <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
+            <h3 className="text-sm font-normal leading-6 text-gray-700">
+              Default Rule
+            </h3>
+            <span className="hidden h-4 w-4 justify-end sm:flex" />
+          </div>
+        </div>
+
+        <div className="flex grow flex-col items-center justify-center sm:ml-2">
+          <p className="text-center text-sm font-light text-gray-600">
+            This is the default value that will be returned if no other rules
+            match.
+          </p>
+        </div>
+        <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+          <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+            <div className="flex w-full flex-col">
+              <div className="w-full flex-1">
+                <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
+                  {flag.variants && flag.variants.length > 0 && (
+                    <SingleDistributionFormInput
+                      id="defaultVariant"
+                      variants={flag.variants}
+                      selectedVariant={selectedVariant}
+                      setSelectedVariant={setSelectedVariant}
+                    />
+                  )}
                 </div>
               </div>
-
-              <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                <p className="text-center text-sm font-light text-gray-600">
-                  This is the default value that will be returned if no other
-                  rules match.
-                </p>
-              </div>
-              <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-                <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col">
-                    <div className="w-full flex-1">
-                      <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                        {flag.variants && flag.variants.length > 0 && (
-                          <SingleDistributionFormInput
-                            id="variant-default"
-                            variants={flag.variants}
-                            selectedVariant={selectedVariant}
-                            setSelectedVariant={setSelectedVariant}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 py-1">
-                      <div className="flex justify-end space-x-3">
-                        <TextButton
-                          className="min-w-[80px]"
-                          disabled={formik.isSubmitting || !flag.defaultVariant}
-                          onClick={() => handleRemove()}
-                        >
-                          Remove
-                        </TextButton>
-                        <TextButton
-                          disabled={
-                            formik.isSubmitting ||
-                            flag.defaultVariant?.id == selectedVariant?.id
-                          }
-                          onClick={() => {
-                            formik.resetForm();
-                            setSelectedVariant(
-                              toFilterableVariant(flag.defaultVariant)
-                            );
-                          }}
-                        >
-                          Reset
-                        </TextButton>
-                        <TextButton
-                          type="submit"
-                          className="min-w-[80px]"
-                          disabled={
-                            !formik.isValid ||
-                            formik.isSubmitting ||
-                            flag.defaultVariant?.id == selectedVariant?.id
-                          }
-                        >
-                          {formik.isSubmitting ? (
-                            <Loading isPrimary />
-                          ) : (
-                            'Update'
-                          )}
-                        </TextButton>
-                      </div>
-                    </div>
-                  </Form>
+              <div className="flex-shrink-0 py-1">
+                <div className="flex justify-end space-x-3">
+                  <TextButton
+                    className="min-w-[80px]"
+                    disabled={formik.isSubmitting || !flag.defaultVariant}
+                    onClick={() => handleRemove()}
+                  >
+                    Remove
+                  </TextButton>
                 </div>
               </div>
             </div>
           </div>
-        );
-      }}
-    </Formik>
+        </div>
+      </div>
+    </div>
   );
 }
 
-export default function Rules() {
-  const { flag } = useOutletContext<RulesProps>();
-
-  const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
+export default function Rules({ flag, rules, variants }: RulesProps) {
+  const [activeRule, setActiveRule] = useState<IRule | null>(null);
+  const [deletingRule, setDeletingRule] = useState<IRule | null>(null);
 
   const [showRuleForm, setShowRuleForm] = useState<boolean>(false);
 
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
-  const [deletingRule, setDeletingRule] = useState<IEvaluatable | null>(null);
 
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
+  const { clearError } = useError();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
-  const segmentsList = useListSegmentsQuery(namespace.key);
+
+  const segmentsList = useListSegmentsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
   const segments = useMemo(
     () => segmentsList.data?.segments || [],
     [segmentsList]
   );
 
   const showDefaultVariant = flag.variants && flag.variants.length > 0;
-
-  const [deleteRule] = useDeleteRuleMutation();
-  const [orderRules] = useOrderRulesMutation();
-
-  const rulesList = useListRulesQuery({
-    namespaceKey: namespace.key,
-    flagKey: flag.key
-  });
-
-  const ruleList = useMemo(() => rulesList.data?.rules || [], [rulesList]);
-
-  const rules = useMemo(() => {
-    return ruleList.flatMap((rule: IRule) => {
-      const rollouts = rule.distributions.flatMap(
-        (distribution: IDistribution) => {
-          const variant = flag?.variants?.find(
-            (variant: IVariant) => variant.id === distribution.variantId
-          );
-
-          if (!variant) {
-            return [];
-          }
-
-          return {
-            variant,
-            distribution
-          };
-        }
-      );
-
-      const ruleSegments: ISegment[] = [];
-
-      const size = rule.segmentKeys ? rule.segmentKeys.length : 0;
-
-      // Combine both segment and segments for legacy purposes.
-      for (let i = 0; i < size; i++) {
-        const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
-        const segment = segments.find(
-          (segment: ISegment) => ruleSegment === segment.key
-        );
-        if (segment) {
-          ruleSegments.push(segment);
-        }
-      }
-
-      const segment = segments.find(
-        (segment: ISegment) => segment.key === rule.segmentKey
-      );
-
-      if (segment) {
-        ruleSegments.push(segment);
-      }
-
-      const operator = rule.segmentOperator
-        ? rule.segmentOperator
-        : SegmentOperatorType.OR;
-
-      return {
-        id: rule.id,
-        flag,
-        segments: ruleSegments,
-        operator,
-        rank: rule.rank,
-        rollouts,
-        createdAt: rule.createdAt,
-        updatedAt: rule.updatedAt
-      };
-    });
-  }, [flag, segments, ruleList]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -304,21 +159,7 @@ export default function Rules() {
     })
   );
 
-  const reorderRules = (rules: IEvaluatable[]) => {
-    orderRules({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      ruleIds: rules.map((rule) => rule.id)
-    })
-      .unwrap()
-      .then(() => {
-        clearError();
-        setSuccess('Successfully reordered rules');
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  };
+  const { setRules, deleteRule } = useContext(FlagFormContext);
 
   // disabling eslint due to this being a third-party event type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -326,14 +167,14 @@ export default function Rules() {
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      const reordered = (function (rules: IEvaluatable[]) {
+      const reordered = (function (rules: IRule[]) {
         const oldIndex = rules.findIndex((rule) => rule.id === active.id);
         const newIndex = rules.findIndex((rule) => rule.id === over.id);
 
         return arrayMove(rules, oldIndex, newIndex);
       })(rules);
 
-      reorderRules(reordered);
+      setRules(reordered);
     }
 
     setActiveRule(null);
@@ -349,7 +190,7 @@ export default function Rules() {
     }
   };
 
-  if (segmentsList.isLoading || rulesList.isLoading) {
+  if (segmentsList.isLoading) {
     return <Loading />;
   }
 
@@ -370,13 +211,13 @@ export default function Rules() {
           }
           panelType="Rule"
           setOpen={setShowDeleteRuleModal}
-          handleDelete={() =>
-            deleteRule({
-              namespaceKey: namespace.key,
-              flagKey: flag.key,
-              ruleId: deletingRule?.id ?? ''
-            }).unwrap()
-          }
+          handleDelete={() => {
+            if (!deletingRule) {
+              return Promise.resolve();
+            }
+            deleteRule(deletingRule);
+            return Promise.resolve();
+          }}
         />
       </Modal>
 
@@ -387,6 +228,10 @@ export default function Rules() {
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
+          saveRule={(rule: IRuleBase) => {
+            const id = uuid();
+            setRules([...rules, { id: id, ...rule }]);
+          }}
           onSuccess={() => {
             setShowRuleForm(false);
           }}
@@ -444,7 +289,9 @@ export default function Rules() {
                               flag={flag}
                               rule={rule}
                               segments={segments}
+                              variants={variants}
                               onDelete={() => {
+                                setActiveRule(null);
                                 setDeletingRule(rule);
                                 setShowDeleteRuleModal(true);
                               }}
@@ -459,18 +306,26 @@ export default function Rules() {
                           flag={flag}
                           rule={activeRule}
                           segments={segments}
+                          variants={variants}
                         />
                       ) : null}
                     </DragOverlay>
                   </DndContext>
                 )}
-                {showDefaultVariant && <DefaultVariant flag={flag} />}
+                {showDefaultVariant && (
+                  <DefaultVariant
+                    flag={flag}
+                    rules={rules}
+                    variants={variants}
+                  />
+                )}
               </div>
             </div>
           ) : (
             <EmptyState
               text="New Rule"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 setShowRuleForm(true);
               }}
             />

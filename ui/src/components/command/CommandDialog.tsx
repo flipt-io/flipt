@@ -4,15 +4,18 @@ import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useMatches, useNavigate } from 'react-router';
+
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 import { themeChanged } from '~/app/preferences/preferencesSlice';
-import { useAppDispatch } from '~/data/hooks/store';
+
 import { Theme } from '~/types/Preferences';
 import { RouteMatches } from '~/types/Routes';
+
+import { useAppDispatch } from '~/data/hooks/store';
 import { addNamespaceToPath } from '~/utils/helpers';
 
 interface Item {

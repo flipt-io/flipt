@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router';
+
 import { cls } from '~/utils/helpers';
+
 export interface Tab {
   name: string;
   to: string;

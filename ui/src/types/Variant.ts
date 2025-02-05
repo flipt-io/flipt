@@ -16,7 +16,7 @@ export interface IVariant extends IVariantBase {
 export type FilterableVariant = Pick<IVariant, 'id' | 'key' | 'name'> &
   IFilterable;
 
-export function toFilterableVariant(selected: IVariant | undefined) {
+export function toFilterableVariant(selected: IVariant | null) {
   if (selected) {
     return {
       ...selected,

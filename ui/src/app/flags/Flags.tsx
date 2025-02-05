@@ -1,10 +1,12 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
 import { ButtonWithPlus } from '~/components/Button';
 import FlagTable from '~/components/flags/FlagTable';
 import { PageHeader } from '~/components/ui/page';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 export default function Flags() {
   const environment = useSelector(selectCurrentEnvironment);

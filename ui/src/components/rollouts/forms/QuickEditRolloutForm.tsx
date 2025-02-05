@@ -1,22 +1,26 @@
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
+
 import { useUpdateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
 import { TextButton } from '~/components/Button';
+import Loading from '~/components/Loading';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
+
 import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
 import {
   FilterableSegment,
   ISegment,
-  segmentOperators,
-  SegmentOperatorType
+  SegmentOperatorType,
+  segmentOperators
 } from '~/types/Segment';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { cls } from '~/utils/helpers';
 
 type QuickEditRolloutFormProps = {

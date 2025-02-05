@@ -3,15 +3,18 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef, useContext } from 'react';
 import * as Yup from 'yup';
+
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import Input from '~/components/forms/Input';
+import { JsonTextArea } from '~/components/forms/JsonTextArea';
+
+import { IVariant, IVariantBase } from '~/types/Variant';
+
 import { useError } from '~/data/hooks/error';
 import { keyWithDotValidation } from '~/data/validations';
-import { IVariant, IVariantBase } from '~/types/Variant';
-import { FlagFormContext } from '~/components/flags/FlagFormContext';
-import { JSONTextArea } from '~/components/forms/JSONTextArea';
 
 const variantValidationSchema = Yup.object({
   key: keyWithDotValidation
@@ -20,7 +23,7 @@ const variantValidationSchema = Yup.object({
 type VariantFormProps = {
   setOpen: (open: boolean) => void;
   flagKey: string;
-  variant?: IVariant;
+  variant?: IVariant | null;
   onSuccess: () => void;
 };
 
@@ -165,7 +168,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   </span>
                 </div>
                 <div className="sm:col-span-2">
-                  <JSONTextArea name="attachment" id="attachment" />
+                  <JsonTextArea name="attachment" id="attachment" />
                 </div>
               </div>
             </div>

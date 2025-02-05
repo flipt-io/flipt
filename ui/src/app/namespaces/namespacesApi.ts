@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { RootState } from '~/store';
+
 import { LoadingStatus } from '~/types/Meta';
 import { INamespace, INamespaceBase, INamespaceList } from '~/types/Namespace';
+
+import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
 
 export const namespaceKey = 'namespace';

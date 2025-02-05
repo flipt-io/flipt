@@ -2,28 +2,31 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
+import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
-import { useCreateRuleMutation } from '~/app/flags/rulesApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
 import { Button } from '~/components/Button';
-import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import { keyValidation } from '~/data/validations';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
+
 import { DistributionType, IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
+import { IRuleBase } from '~/types/Rule';
 import {
   FilterableSegment,
   ISegment,
-  segmentOperators,
-  SegmentOperatorType
+  SegmentOperatorType,
+  segmentOperators
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
+import { keyValidation } from '~/data/validations';
 import { truncateKey } from '~/utils/helpers';
+
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
 
@@ -83,23 +86,22 @@ const validRollout = (distributions: IDistributionVariant[]): boolean => {
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
+  saveRule: (rule: IRuleBase) => void;
   flag: IFlag;
   rank: number;
   segments: ISegment[];
 };
 
 interface Segment {
-  segmentKeys: FilterableSegment[];
+  segments: FilterableSegment[];
   operator: SegmentOperatorType;
 }
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, onSuccess, flag, rank, segments } = props;
+  const { setOpen, onSuccess, flag, rank, segments, saveRule } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
-
-  const namespace = useSelector(selectCurrentNamespace);
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
@@ -111,14 +113,14 @@ export default function RuleForm(props: RuleFormProps) {
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
 
-    return flag.variants?.map((variant, i) => ({
-      variantId: variant.id,
-      variantKey: variant.key,
-      rollout: percentages[i]
-    }));
+    return (
+      flag.variants?.map((variant, i) => ({
+        variantId: variant.id,
+        variant: variant.key,
+        rollout: percentages[i]
+      })) || null
+    );
   });
-
-  const [createRule] = useCreateRuleMutation();
 
   const initialSegmentKeys: FilterableSegment[] = [];
 
@@ -135,35 +137,43 @@ export default function RuleForm(props: RuleFormProps) {
   }, [distributions, ruleType]);
 
   const handleSubmit = async (values: Segment) => {
-    if (values.segmentKeys.length === 0) {
+    if (values.segments.length === 0) {
       throw new Error('No segments selected');
     }
 
     const dist = [];
     if (ruleType === DistributionType.Multi && distributions) {
-      dist.push(...distributions);
+      dist.push(
+        ...distributions.map((d) => {
+          return {
+            variant: d.variant,
+            rollout: d.rollout
+          };
+        })
+      );
     } else if (selectedVariant) {
       dist.push({
-        variantId: selectedVariant.id,
+        variant: selectedVariant.id,
         rollout: 100
       });
     }
-    return createRule({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      values: {
-        segmentKeys: values.segmentKeys.map((s) => s.key),
-        segmentOperator: values.operator,
-        rank
-      },
-      distributions: dist
+    return saveRule({
+      segments: values.segments.map((s) => s.key),
+      rank: rank,
+      segmentOperator: values.operator,
+      distributions: dist.map((d) => {
+        return {
+          ...d,
+          id: uuid()
+        };
+      })
     });
   };
 
   return (
     <Formik
       initialValues={{
-        segmentKeys: initialSegmentKeys,
+        segments: initialSegmentKeys,
         operator: SegmentOperatorType.OR
       }}
       validationSchema={ruleValidationSchema}
@@ -235,12 +245,12 @@ export default function RuleForm(props: RuleFormProps) {
                             index: number,
                             segment: FilterableSegment
                           ) => arrayHelpers.replace(index, segment)}
-                          selectedSegments={formik.values.segmentKeys}
+                          selectedSegments={formik.values.segments}
                         />
                       )}
                     />
                   </div>
-                  {formik.values.segmentKeys.length > 1 && (
+                  {formik.values.segments.length > 1 && (
                     <>
                       <div>
                         <label
@@ -253,7 +263,7 @@ export default function RuleForm(props: RuleFormProps) {
                       <div>
                         <div className="sm:col-span-2">
                           <div className="w-48 space-y-4">
-                            {formik.values.segmentKeys.length > 1 &&
+                            {formik.values.segments.length > 1 &&
                               segmentOperators.map((segmentOperator, index) => (
                                 <div className="flex space-x-4" key={index}>
                                   <div>

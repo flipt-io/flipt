@@ -1,21 +1,25 @@
 import {
+  IconDefinition,
   faGithub,
   faGitlab,
   faGoogle,
-  faOpenid,
-  IconDefinition
+  faOpenid
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router';
+
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
-import logoFlag from '~/assets/logo-flag.png';
+
 import Loading from '~/components/Loading';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
+
+import { IAuthMethod } from '~/types/Auth';
+
+import logoFlag from '~/assets/logo-flag.png';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
-import { IAuthMethod } from '~/types/Auth';
 import { upperFirst } from '~/utils/helpers';
 
 interface ILoginProvider {

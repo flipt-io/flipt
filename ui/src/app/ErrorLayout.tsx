@@ -1,4 +1,5 @@
 import { Link, useNavigate, useRouteError } from 'react-router';
+
 import logoFlag from '~/assets/logo-flag.png';
 
 export default function ErrorLayout() {

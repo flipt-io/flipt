@@ -1,6 +1,7 @@
 import { Transition } from '@headlessui/react';
 import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import { useEffect } from 'react';
+
 import { useSuccess } from '~/data/hooks/success';
 
 export default function SuccessNotification() {

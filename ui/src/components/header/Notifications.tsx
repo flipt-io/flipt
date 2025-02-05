@@ -5,8 +5,10 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Fragment, useState } from 'react';
-import { useSessionStorage } from '~/data/hooks/storage';
+
 import { IInfo } from '~/types/Meta';
+
+import { useSessionStorage } from '~/data/hooks/storage';
 
 type NotificationProps = {
   show: boolean;

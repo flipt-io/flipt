@@ -1,7 +1,9 @@
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { ButtonWithPlus } from '~/components/Button';
+
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
+import { ButtonWithPlus } from '~/components/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
 import { PageHeader } from '~/components/ui/page';
 

@@ -1,21 +1,23 @@
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import {
   CellContext,
+  PaginationState,
+  Row,
+  SortingState,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
-  Row,
-  SortingState,
   useReactTable
 } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
+
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
+
 import { INamespace } from '~/types/Namespace';
 
 type NamespaceEditActionProps = {

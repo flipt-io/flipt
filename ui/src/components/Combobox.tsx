@@ -2,7 +2,9 @@ import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
+
 import { IFilterable } from '~/types/Selectable';
+
 import { cls } from '~/utils/helpers';
 
 type ComboboxProps<T extends IFilterable> = {

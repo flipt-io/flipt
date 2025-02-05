@@ -1,40 +1,43 @@
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
+
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 import {
   useCopySegmentMutation,
-  useDeleteConstraintMutation,
   useDeleteSegmentMutation,
   useGetSegmentQuery
 } from '~/app/segments/segmentsApi';
-import Chips from '~/components/Chips';
-import EmptyState from '~/components/EmptyState';
+
 import { Button } from '~/components/Button';
+import Chips from '~/components/Chips';
 import Dropdown from '~/components/Dropdown';
+import EmptyState from '~/components/EmptyState';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
+import Slideover from '~/components/Slideover';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import SegmentForm from '~/components/segments/SegmentForm';
-import Slideover from '~/components/Slideover';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import { useTimezone } from '~/data/hooks/timezone';
+import { PageHeader } from '~/components/ui/page';
+
 import {
   ConstraintOperators,
   ConstraintType,
-  constraintTypeToLabel,
-  IConstraint
+  IConstraint,
+  constraintTypeToLabel
 } from '~/types/Constraint';
-import { PageHeader } from '~/components/ui/page';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
+import { useTimezone } from '~/data/hooks/timezone';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {

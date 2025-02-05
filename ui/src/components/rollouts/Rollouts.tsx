@@ -1,15 +1,15 @@
 import {
-  closestCenter,
   DndContext,
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
@@ -17,6 +17,7 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+
 import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
 import {
   useDeleteRolloutMutation,
@@ -25,22 +26,25 @@ import {
 } from '~/app/flags/rolloutsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
+
 import { ButtonWithPlus, TextButton } from '~/components/Button';
+import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
+import Slideover from '~/components/Slideover';
+import Select from '~/components/forms/Select';
 import DeletePanel from '~/components/panels/DeletePanel';
-import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
-import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 import Rollout from '~/components/rollouts/Rollout';
 import SortableRollout from '~/components/rollouts/SortableRollout';
-import Slideover from '~/components/Slideover';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
+import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
+import RolloutForm from '~/components/rollouts/forms/RolloutForm';
+
 import { IFlag } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
-import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { cls } from '~/utils/helpers';
 
 type RolloutsProps = {

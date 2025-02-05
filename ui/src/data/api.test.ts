@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  * @jest-environment-options {"url": "https://test/"}
  */
-
 import { checkResponse, sessionKey } from './api';
 
 describe('checkResponse', () => {

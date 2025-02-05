@@ -1,22 +1,25 @@
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LineElement,
   LinearScale,
+  PointElement,
   TimeScale,
   TimeSeriesScale,
   Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  Filler
+  Tooltip
 } from 'chart.js';
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useSelector } from 'react-redux';
+
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
-import { useTimezone } from '~/data/hooks/timezone';
+
 import { Timezone } from '~/types/Preferences';
+
+import { useTimezone } from '~/data/hooks/timezone';
 
 ChartJS.register(
   CategoryScale,

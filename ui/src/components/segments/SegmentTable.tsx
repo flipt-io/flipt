@@ -1,35 +1,39 @@
 import {
+  PaginationState,
+  Row,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
-  Row,
   useReactTable
 } from '@tanstack/react-table';
-import { useState, useEffect, useMemo } from 'react';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { AsteriskIcon, SigmaIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router';
+
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
-import { useTimezone } from '~/data/hooks/timezone';
+import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
+
+import { Badge } from '~/components/Badge';
+import Searchbox from '~/components/Searchbox';
+import Well from '~/components/Well';
+import { DataTablePagination } from '~/components/ui/table-pagination';
+import { TableSkeleton } from '~/components/ui/table-skeleton';
+import { DataTableViewOptions } from '~/components/ui/table-view-options';
+
+import { INamespaceBase } from '~/types/Namespace';
 import {
   ISegment,
   SegmentMatchType,
   segmentMatchTypeToLabel
 } from '~/types/Segment';
-import { cls } from '~/utils/helpers';
-import { Badge } from '~/components/Badge';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import Searchbox from '~/components/Searchbox';
-import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import { DataTablePagination } from '~/components/ui/table-pagination';
-import { AsteriskIcon, SigmaIcon } from 'lucide-react';
+
 import { useError } from '~/data/hooks/error';
-import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import { INamespaceBase } from '~/types/Namespace';
-import { TableSkeleton } from '~/components/ui/table-skeleton';
-import Well from '~/components/Well';
+import { useTimezone } from '~/data/hooks/timezone';
+import { cls } from '~/utils/helpers';
 
 type SegmentTableProps = {
   namespace: INamespaceBase;

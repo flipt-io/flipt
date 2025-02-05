@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { JsonEditor } from '~/components/json/JsonEditor';
 
 interface MetadataFormErrorBoundaryProps {

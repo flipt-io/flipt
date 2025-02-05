@@ -1,10 +1,11 @@
-import React, { ReactNode, createContext } from 'react';
 import { FormikProps } from 'formik';
+import React, { ReactNode, createContext } from 'react';
+import { v4 as uuid } from 'uuid';
+
+import { IFlag, IFlagBase } from '~/types/Flag';
+import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
-import { IRollout } from '~/types/Rollout';
-import { IFlag, IFlagBase } from '~/types/Flag';
-import { v4 as uuid } from 'uuid';
 
 interface FlagFormContextProps {
   variants: IVariant[];

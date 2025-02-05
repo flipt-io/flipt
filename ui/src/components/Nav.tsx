@@ -7,10 +7,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router';
+
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
-import { cls } from '~/utils/helpers';
-import NamespaceListbox from './namespaces/NamespaceListbox';
+
 import { RouteMatches } from '~/types/Routes';
+
+import { cls } from '~/utils/helpers';
+
+import NamespaceListbox from './namespaces/NamespaceListbox';
 
 type Icon = (
   props: React.PropsWithoutRef<React.SVGProps<SVGSVGElement>>

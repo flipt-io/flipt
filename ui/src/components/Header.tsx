@@ -1,10 +1,14 @@
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
+
 import { selectInfo } from '~/app/meta/metaSlice';
+
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';
+
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
+
 type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
