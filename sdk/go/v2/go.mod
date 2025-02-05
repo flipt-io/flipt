@@ -5,7 +5,6 @@ go 1.22.7
 toolchain go1.23.4
 
 require (
-	go.flipt.io/flipt/rpc/flipt v1.54.0
 	go.flipt.io/flipt/rpc/v2/environments v0.0.0-00010101000000-000000000000
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241230172942-26aa7a208def
 	google.golang.org/grpc v1.69.2
@@ -19,6 +18,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1 // indirect
 	go.flipt.io/flipt/errors v1.45.0 // indirect
+	go.flipt.io/flipt/rpc/flipt v1.54.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
