@@ -3,15 +3,18 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef, useContext } from 'react';
 import * as Yup from 'yup';
+
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import Input from '~/components/forms/Input';
+import { JsonTextArea } from '~/components/forms/JsonTextArea';
+
+import { IVariant, IVariantBase } from '~/types/Variant';
+
 import { useError } from '~/data/hooks/error';
 import { keyWithDotValidation } from '~/data/validations';
-import { IVariant, IVariantBase } from '~/types/Variant';
-import { FlagFormContext } from '~/components/flags/FlagFormContext';
-import { JsonTextArea } from '~/components/forms/JsonTextArea';
 
 const variantValidationSchema = Yup.object({
   key: keyWithDotValidation

@@ -1,26 +1,30 @@
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 import {
   useDeleteTokensMutation,
   useListTokensQuery
 } from '~/app/tokens/tokensApi';
-import EmptyState from '~/components/EmptyState';
+
 import { ButtonWithPlus } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
+import DeletePanel from '~/components/panels/DeletePanel';
 import ShowTokenPanel from '~/components/tokens/ShowTokenPanel';
 import TokenForm from '~/components/tokens/TokenForm';
 import TokenTable from '~/components/tokens/TokenTable';
-import Well from '~/components/Well';
-import { useError } from '~/data/hooks/error';
+
 import { IAuthMethod } from '~/types/Auth';
 import {
   IAuthToken,
   IAuthTokenInternal,
   IAuthTokenSecret
 } from '~/types/auth/Token';
+
+import { useError } from '~/data/hooks/error';
 
 export default function Tokens() {
   const { setError } = useError();

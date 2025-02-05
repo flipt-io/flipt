@@ -1,14 +1,16 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
-import { RootState } from '~/store';
+import { v4 as uuid } from 'uuid';
+
 import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
+
+import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
-import { v4 as uuid } from 'uuid';
 
 const initialTableState: {
   sorting: SortingState;

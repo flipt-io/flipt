@@ -2,27 +2,31 @@ import { FilesIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
-import FlagForm from '~/components/flags/FlagForm';
+
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
+import FlagForm from '~/components/flags/FlagForm';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
+import { PageHeader } from '~/components/ui/page';
+
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
+import { getRevision } from '~/utils/helpers';
+
 import {
   useCopyFlagMutation,
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
-import { getRevision } from '~/utils/helpers';
-import { PageHeader } from '~/components/ui/page';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 export default function Flag() {
   let { flagKey } = useParams();

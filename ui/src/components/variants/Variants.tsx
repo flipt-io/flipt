@@ -1,13 +1,15 @@
 import { useContext, useRef, useState } from 'react';
-import EmptyState from '~/components/EmptyState';
-import VariantForm from '~/components/variants/VariantForm';
+
 import { ButtonWithPlus } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
-import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import DeletePanel from '~/components/panels/DeletePanel';
+import VariantForm from '~/components/variants/VariantForm';
+
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
-import { FlagFormContext } from '~/components/flags/FlagFormContext';
 
 type VariantsProps = {
   flag: IFlag;

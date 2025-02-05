@@ -1,9 +1,13 @@
-import { forwardRef, Ref } from 'react';
+import { Ref, forwardRef } from 'react';
+
+import Dropdown from '~/components/Dropdown';
+
 import { IFlag } from '~/types/Flag';
 import { IRollout, rolloutTypeToLabel } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
+
 import { cls } from '~/utils/helpers';
-import Dropdown from '~/components/Dropdown';
+
 import QuickEditRolloutForm from './forms/QuickEditRolloutForm';
 
 type RolloutProps = {

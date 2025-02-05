@@ -3,28 +3,32 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
+
 import { Button } from '~/components/Button';
-import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import { keyValidation } from '~/data/validations';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
+
 import { DistributionType, IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
+import { IRuleBase } from '~/types/Rule';
 import {
   FilterableSegment,
   ISegment,
-  segmentOperators,
-  SegmentOperatorType
+  SegmentOperatorType,
+  segmentOperators
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
+import { keyValidation } from '~/data/validations';
 import { truncateKey } from '~/utils/helpers';
+
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
-import { IRuleBase } from '~/types/Rule';
-import { v4 as uuid } from 'uuid';
 
 export const distTypes = [
   {

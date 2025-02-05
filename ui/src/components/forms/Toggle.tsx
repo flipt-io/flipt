@@ -1,5 +1,6 @@
-import { Switch } from '~/components/Switch';
 import { useField } from 'formik';
+
+import { Switch } from '~/components/Switch';
 
 type ToggleProps = {
   id: string;

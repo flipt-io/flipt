@@ -1,16 +1,18 @@
-import { Icon } from '~/types/Icon';
+import { type VariantProps, cva } from 'class-variance-authority';
+import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
+import { Fragment } from 'react';
+
+import { Button } from '~/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu';
-import { Fragment } from 'react';
 
-import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
-import { Button } from '~/components/Button';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { Icon } from '~/types/Icon';
+
 import { cls } from '~/utils/helpers';
 
 const dropdownVariants = cva('', {

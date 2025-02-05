@@ -4,33 +4,38 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
   useCreateFlagMutation,
   useUpdateFlagMutation
 } from '~/app/flags/flagsApi';
+import Rules from '~/app/flags/rules/Rules';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
 import { Button } from '~/components/Button';
+import Loading from '~/components/Loading';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
-import Loading from '~/components/Loading';
-import { MetadataForm } from './MetadataForm';
+
+import { IDistribution } from '~/types/Distribution';
+import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
+
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import {
   cls,
   copyTextToClipboard,
   getRevision,
   stringAsKey
 } from '~/utils/helpers';
-import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
-import { IDistribution } from '~/types/Distribution';
-import { FlagFormProvider } from './FlagFormContext';
+
 import Rollouts from '../rollouts/Rollouts';
 import Variants from '../variants/Variants';
-import Rules from '~/app/flags/rules/Rules';
+import { FlagFormProvider } from './FlagFormContext';
+import { MetadataForm } from './MetadataForm';
+import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
 
 const flagTypes = [
   {

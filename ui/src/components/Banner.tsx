@@ -1,5 +1,6 @@
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import { useDispatch } from 'react-redux';
+
 import { bannerDismissed } from '~/app/events/eventSlice';
 
 type BannerProps = {

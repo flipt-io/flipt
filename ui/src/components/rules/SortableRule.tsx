@@ -1,9 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
+
 import { IFlag } from '~/types/Flag';
-import { ISegment } from '~/types/Segment';
-import Rule from './Rule';
 import { IRule } from '~/types/Rule';
+import { ISegment } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
+
+import Rule from './Rule';
 
 type SortableRuleProps = {
   flag: IFlag;

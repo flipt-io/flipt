@@ -1,4 +1,5 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+
 import { RootState } from '~/store';
 
 export const eventKey = 'event';

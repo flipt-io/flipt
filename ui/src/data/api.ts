@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { FlagType } from '~/types/Flag';
-
 import { IAuthGithubInternal } from '~/types/auth/Github';
 import { IAuthJWTInternal } from '~/types/auth/JWT';
 import { IAuthOIDCInternal } from '~/types/auth/OIDC';
+
 import { getUser } from '~/data/user';
 
 export const apiURL = 'v2/environments';

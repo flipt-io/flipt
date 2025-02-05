@@ -1,32 +1,36 @@
 import {
+  PaginationState,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
   useReactTable
 } from '@tanstack/react-table';
-import { useState, useEffect, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { ToggleLeftIcon, VariableIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router';
-import { DataTablePagination } from '~/components/ui/table-pagination';
-import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
+
 import {
   selectSorting,
   setSorting,
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
-import { cls } from '~/utils/helpers';
+
 import { Badge } from '~/components/Badge';
 import Searchbox from '~/components/Searchbox';
-import { DataTableViewOptions } from '~/components/ui/table-view-options';
-import { VariableIcon, ToggleLeftIcon } from 'lucide-react';
-import { useError } from '~/data/hooks/error';
-import { INamespaceBase } from '~/types/Namespace';
-import { TableSkeleton } from '~/components/ui/table-skeleton';
 import Well from '~/components/Well';
+import { DataTablePagination } from '~/components/ui/table-pagination';
+import { TableSkeleton } from '~/components/ui/table-skeleton';
+import { DataTableViewOptions } from '~/components/ui/table-view-options';
+
 import { IEnvironment } from '~/types/Environment';
+import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
+import { INamespaceBase } from '~/types/Namespace';
+
+import { useError } from '~/data/hooks/error';
+import { cls } from '~/utils/helpers';
 
 type FlagTableProps = {
   environment: IEnvironment;

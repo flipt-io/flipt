@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectNamespaces } from './namespacesApi';
-import EmptyState from '~/components/EmptyState';
+
 import { ButtonWithPlus } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
+import Slideover from '~/components/Slideover';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
 import DeletePanel from '~/components/panels/DeletePanel';
-import Slideover from '~/components/Slideover';
+
 import { INamespace } from '~/types/Namespace';
+
+import { selectNamespaces } from './namespacesApi';
 import {
   useDeleteNamespaceMutation,
   useListNamespacesQuery

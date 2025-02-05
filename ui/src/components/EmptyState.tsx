@@ -1,5 +1,6 @@
 import { PlusCircleIcon } from '@heroicons/react/24/outline';
 import { Icon } from 'types/Icon';
+
 import { cls } from '~/utils/helpers';
 
 type EmptyStateProps = {

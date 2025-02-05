@@ -2,13 +2,16 @@ import { Dialog } from '@headlessui/react';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
+
 import { Button } from '~/components/Button';
 import Listbox from '~/components/forms/Listbox';
 import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
+
 import { useError } from '~/data/hooks/error';
 
 type CopyToNamespacePanelProps = {

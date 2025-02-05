@@ -1,4 +1,5 @@
 import { SegmentOperatorType } from '~/types/Segment';
+
 import { IDistribution } from './Distribution';
 import { IPageable } from './Pageable';
 

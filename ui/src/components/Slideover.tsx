@@ -1,5 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { forwardRef, Fragment } from 'react';
+import { Fragment, forwardRef } from 'react';
 
 type SlideOverProps = {
   open: boolean;

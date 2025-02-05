@@ -1,5 +1,6 @@
 import { TagDescription } from '@reduxjs/toolkit/query';
 import { createApi } from '@reduxjs/toolkit/query/react';
+
 import { IDistributionBase } from '~/types/Distribution';
 import { IRule, IRuleBase, IRuleList } from '~/types/Rule';
 

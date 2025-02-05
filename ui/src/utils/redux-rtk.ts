@@ -4,7 +4,9 @@ import {
   FetchBaseQueryError,
   fetchBaseQuery
 } from '@reduxjs/toolkit/query/react';
+
 import { apiURL, checkResponse, defaultHeaders, internalURL } from '~/data/api';
+
 type CustomFetchFn = (
   url: RequestInfo,
   options: RequestInit | undefined

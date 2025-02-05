@@ -1,7 +1,8 @@
-import { useField } from 'formik';
-import { cls } from '~/utils/helpers';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import { useField } from 'formik';
 import React, { KeyboardEvent, useState } from 'react';
+
+import { cls } from '~/utils/helpers';
 
 type TagsProps = {
   id: string;

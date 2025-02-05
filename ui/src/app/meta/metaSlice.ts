@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getMeta } from '~/data/api';
+
 import { IInfo, LoadingStatus } from '~/types/Meta';
+
+import { getMeta } from '~/data/api';
 
 interface IMetaSlice {
   info: IInfo & { status: LoadingStatus };

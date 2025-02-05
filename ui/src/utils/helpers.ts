@@ -1,8 +1,10 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { defaultHeaders } from '~/data/api';
+
 import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
+
+import { defaultHeaders } from '~/data/api';
 
 export function cls(...args: ClassValue[]) {
   return twMerge(clsx(args));

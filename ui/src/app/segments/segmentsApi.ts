@@ -1,11 +1,14 @@
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '~/store';
-import { IConstraintBase } from '~/types/Constraint';
+import { v4 as uuid } from 'uuid';
+
+import { IConstraint } from '~/types/Constraint';
+import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
+
+import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
-import { IResourceListResponse } from '~/types/Resource';
 
 const initialTableState: {
   sorting: SortingState;
@@ -63,164 +66,184 @@ export const segmentsApi = createApi({
     // get segment in this namespace
     getSegment: builder.query<
       ISegment,
-      { namespaceKey: string; segmentKey: string }
+      { environmentKey: string; namespaceKey: string; segmentKey: string }
     >({
-      query: ({ namespaceKey, segmentKey }) =>
-        `/namespaces/${namespaceKey}/segments/${segmentKey}`,
-      providesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
-      ]
+      query: ({ environmentKey, namespaceKey, segmentKey }) =>
+        `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Segment/${segmentKey}`,
+      providesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, segmentKey }
+      ) => [
+        {
+          type: 'Segment',
+          id: environmentKey + '/' + namespaceKey + '/' + segmentKey
+        }
+      ],
+      transformResponse: (response: IResourceResponse<ISegment>): ISegment => {
+        if (response.revision) {
+          localStorage.setItem('revision', response.revision);
+        }
+        return {
+          ...response.resource.payload,
+          constraints: response.resource.payload.constraints?.map(
+            (c: IConstraint, i: number) => ({
+              ...c,
+              id: uuid(),
+              rank: i
+            })
+          )
+        };
+      }
     }),
     // create a new segment in the namespace
     createSegment: builder.mutation<
       ISegment,
-      { namespaceKey: string; values: ISegmentBase }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        values: ISegmentBase;
+        revision?: string;
+      }
     >({
-      query({ namespaceKey, values }) {
+      query({ environmentKey, namespaceKey, values, revision }) {
         return {
-          url: `/namespaces/${namespaceKey}/segments`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'POST',
-          body: values
+          body: {
+            key: values.key,
+            revision: revision,
+            payload: {
+              '@type': 'flipt.core.Segment',
+              ...values
+            }
+          }
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, values }) => [
-        { type: 'Segment', id: namespaceKey + '/' + values.key }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, values }
+      ) => [
+        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Segment',
+          id: environmentKey + '/' + namespaceKey + '/' + values.key
+        }
       ]
     }),
     // delete the segment from the namespace
     deleteSegment: builder.mutation<
       void,
-      { namespaceKey: string; segmentKey: string }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        segmentKey: string;
+        revision: string;
+      }
     >({
-      query({ namespaceKey, segmentKey }) {
+      query({ environmentKey, namespaceKey, segmentKey, revision }) {
         return {
-          url: `/namespaces/${namespaceKey}/segments/${segmentKey}`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Segment/${segmentKey}?revision=${revision}`,
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey },
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, segmentKey }
+      ) => [
+        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Segment',
+          id: environmentKey + '/' + namespaceKey + '/' + segmentKey
+        }
       ]
     }),
     // update the segment in the namespace
     updateSegment: builder.mutation<
       ISegment,
-      { namespaceKey: string; segmentKey: string; values: ISegmentBase }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        segmentKey: string;
+        values: ISegmentBase;
+        revision: string;
+      }
     >({
-      query({ namespaceKey, segmentKey, values }) {
+      query({ environmentKey, namespaceKey, segmentKey, values, revision }) {
+        const payload = {
+          '@type': 'flipt.core.Segment',
+          ...values
+        };
         return {
-          url: `/namespaces/${namespaceKey}/segments/${segmentKey}`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'PUT',
-          body: values
+          body: {
+            key: segmentKey,
+            revision,
+            payload
+          }
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey },
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      invalidatesTags: (
+        _result,
+        _error,
+        { environmentKey, namespaceKey, segmentKey }
+      ) => [
+        { type: 'Segment', id: environmentKey + '/' + namespaceKey },
+        {
+          type: 'Segment',
+          id: environmentKey + '/' + namespaceKey + '/' + segmentKey
+        }
       ]
     }),
     // copy the segment from one namespace to another one
     copySegment: builder.mutation<
       void,
       {
+        environmentKey: string;
         from: { namespaceKey: string; segmentKey: string };
         to: { namespaceKey: string; segmentKey: string };
       }
     >({
-      queryFn: async ({ from, to }, _api, _extraOptions, baseQuery) => {
+      queryFn: async (
+        { environmentKey, from, to },
+        _api,
+        _extraOptions,
+        baseQuery
+      ) => {
         let resp = await baseQuery({
-          url: `/namespaces/${from.namespaceKey}/segments/${from.segmentKey}`,
-          method: 'get'
+          url: `/${environmentKey}/namespaces/${from.namespaceKey}/resources/flipt.core.Segment/${from.segmentKey}`,
+          method: 'GET'
         });
         if (resp.error) {
           return { error: resp.error };
         }
-        let data = resp.data as ISegment;
 
-        if (to.segmentKey) {
-          data.key = to.segmentKey;
-        }
-        // first create the segment
+        const res = resp.data as {
+          resource: { payload: ISegment; key: string };
+          revision: string;
+        };
+
+        let data = {
+          key: res.resource.key,
+          payload: res.resource.payload,
+          revision: res.revision
+        };
+
         resp = await baseQuery({
-          url: `/namespaces/${to.namespaceKey}/segments`,
+          url: `/${environmentKey}/namespaces/${to.namespaceKey}/resources`,
           method: 'POST',
           body: data
         });
         if (resp.error) {
           return { error: resp.error };
         }
-        // then copy the constraints
-        const constraints = data.constraints || [];
-        for (let constraint of constraints) {
-          resp = await baseQuery({
-            url: `/namespaces/${to.namespaceKey}/segments/${to.segmentKey}/constraints`,
-            method: 'POST',
-            body: constraint
-          });
-          if (resp.error) {
-            return { error: resp.error };
-          }
-        }
-
         return { data: undefined };
       },
-      invalidatesTags: (_result, _error, { to }) => [
-        { type: 'Segment', id: to.namespaceKey },
-        { type: 'Segment', id: to.namespaceKey + '/' + to.segmentKey }
-      ]
-    }),
-
-    // create the segment constraint in the namespace
-    createConstraint: builder.mutation<
-      void,
-      { namespaceKey: string; segmentKey: string; values: IConstraintBase }
-    >({
-      query({ namespaceKey, segmentKey, values }) {
-        return {
-          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints`,
-          method: 'POST',
-          body: values
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
-      ]
-    }),
-    // update the segment constraint in the namespace
-    updateConstraint: builder.mutation<
-      void,
-      {
-        namespaceKey: string;
-        segmentKey: string;
-        constraintId: string;
-        values: IConstraintBase;
-      }
-    >({
-      query({ namespaceKey, segmentKey, constraintId, values }) {
-        return {
-          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
-          method: 'PUT',
-          body: values
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
-      ]
-    }),
-    // delete the segment constraint in the namespace
-    deleteConstraint: builder.mutation<
-      void,
-      { namespaceKey: string; segmentKey: string; constraintId: string }
-    >({
-      query({ namespaceKey, segmentKey, constraintId }) {
-        return {
-          url: `/namespaces/${namespaceKey}/segments/${segmentKey}/constraints/${constraintId}`,
-          method: 'DELETE'
-        };
-      },
-      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
+      invalidatesTags: (_result, _error, { environmentKey, to }) => [
+        { type: 'Segment', id: environmentKey + '/' + to.namespaceKey }
       ]
     })
   })
@@ -232,8 +255,5 @@ export const {
   useCreateSegmentMutation,
   useDeleteSegmentMutation,
   useUpdateSegmentMutation,
-  useCopySegmentMutation,
-  useCreateConstraintMutation,
-  useUpdateConstraintMutation,
-  useDeleteConstraintMutation
+  useCopySegmentMutation
 } = segmentsApi;

@@ -1,11 +1,15 @@
-import { forwardRef, Ref } from 'react';
-import { IFlag } from '~/types/Flag';
-import { ISegment } from '~/types/Segment';
-import { cls } from '~/utils/helpers';
+import { Ref, forwardRef } from 'react';
+
 import Dropdown from '~/components/Dropdown';
-import QuickEditRuleForm from './QuickEditRuleForm';
+
+import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
+import { ISegment } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
+
+import { cls } from '~/utils/helpers';
+
+import QuickEditRuleForm from './QuickEditRuleForm';
 
 type RuleProps = {
   flag: IFlag;

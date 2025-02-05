@@ -1,9 +1,12 @@
-import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
-import Combobox from '~/components/Combobox';
-import { FilterableSegment, ISegment } from '~/types/Segment';
-import { truncateKey } from '~/utils/helpers';
+
 import { ButtonIcon } from '~/components/Button';
+import Combobox from '~/components/Combobox';
+
+import { FilterableSegment, ISegment } from '~/types/Segment';
+
+import { truncateKey } from '~/utils/helpers';
 
 type SegmentPickerProps = {
   segments: ISegment[];

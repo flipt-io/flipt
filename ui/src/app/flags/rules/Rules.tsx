@@ -1,15 +1,15 @@
 import {
-  closestCenter,
   DndContext,
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
@@ -17,18 +17,24 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
 import { useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { v4 as uuid } from 'uuid';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import EmptyState from '~/components/EmptyState';
+
 import { ButtonWithPlus, TextButton } from '~/components/Button';
+import EmptyState from '~/components/EmptyState';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import DeletePanel from '~/components/panels/DeletePanel';
-import RuleForm from '~/components/rules/RuleForm';
-import Rule from '~/components/rules/Rule';
-import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
-import { useError } from '~/data/hooks/error';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import DeletePanel from '~/components/panels/DeletePanel';
+import Rule from '~/components/rules/Rule';
+import RuleForm from '~/components/rules/RuleForm';
+import SingleDistributionFormInput from '~/components/rules/SingleDistributionForm';
+import SortableRule from '~/components/rules/SortableRule';
+
 import { IFlag } from '~/types/Flag';
 import { IRule, IRuleBase } from '~/types/Rule';
 import {
@@ -36,10 +42,8 @@ import {
   IVariant,
   toFilterableVariant
 } from '~/types/Variant';
-import SingleDistributionFormInput from '~/components/rules/SingleDistributionForm';
-import { FlagFormContext } from '~/components/flags/FlagFormContext';
-import { v4 as uuid } from 'uuid';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+
+import { useError } from '~/data/hooks/error';
 
 type RulesProps = {
   flag: IFlag;

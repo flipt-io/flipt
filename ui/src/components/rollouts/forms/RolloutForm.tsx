@@ -3,23 +3,27 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+
 import { useCreateRolloutMutation } from '~/app/flags/rolloutsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
 import { Button } from '~/components/Button';
+import Loading from '~/components/Loading';
+import MoreInfo from '~/components/MoreInfo';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
-import MoreInfo from '~/components/MoreInfo';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
+
 import { RolloutType } from '~/types/Rollout';
 import {
   FilterableSegment,
   ISegment,
-  segmentOperators,
-  SegmentOperatorType
+  SegmentOperatorType,
+  segmentOperators
 } from '~/types/Segment';
+
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 
 const rolloutRuleTypes = [
   {

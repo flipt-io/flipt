@@ -1,9 +1,11 @@
 import { createContext, useEffect, useMemo } from 'react';
-import { getAuthSelf, getMeta } from '~/data/api';
-import { useLocalStorage } from '~/data/hooks/storage';
+
 import { IAuthGithubInternal } from '~/types/auth/Github';
 import { IAuthJWTInternal } from '~/types/auth/JWT';
 import { IAuthOIDCInternal } from '~/types/auth/OIDC';
+
+import { getAuthSelf, getMeta } from '~/data/api';
+import { useLocalStorage } from '~/data/hooks/storage';
 
 type Session = {
   required: boolean;

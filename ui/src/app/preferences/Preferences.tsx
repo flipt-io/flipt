@@ -1,10 +1,14 @@
-import { Switch } from '~/components/Switch';
 import { Formik } from 'formik';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { Switch } from '~/components/Switch';
 import Select from '~/components/forms/Select';
-import { useTimezone } from '~/data/hooks/timezone';
+
 import { Theme, Timezone } from '~/types/Preferences';
+
+import { useTimezone } from '~/data/hooks/timezone';
+
 import {
   selectTheme,
   selectTimezone,

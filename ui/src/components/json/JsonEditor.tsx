@@ -3,6 +3,7 @@ import { linter } from '@codemirror/lint';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
+
 import { parseLinter } from './lint';
 
 type JsonEditorProps = {

@@ -4,18 +4,22 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
+
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCreateSegmentMutation,
   useUpdateSegmentMutation
 } from '~/app/segments/segmentsApi';
+
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
+import Input from '~/components/forms/Input';
+
+import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
+
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
 import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 
 const segmentMatchTypes = [

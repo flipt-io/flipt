@@ -4,18 +4,22 @@ import { Form, Formik } from 'formik';
 import { forwardRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
+
 import { selectNamespaces } from '~/app/namespaces/namespacesApi';
 import { useCreateTokenMutation } from '~/app/tokens/tokensApi';
+
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
-import Listbox from '~/components/forms/Listbox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
+import Input from '~/components/forms/Input';
+import Listbox from '~/components/forms/Listbox';
 import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
+
+import { INamespace } from '~/types/Namespace';
+import { IAuthTokenBase, IAuthTokenSecret } from '~/types/auth/Token';
+
 import { useError } from '~/data/hooks/error';
 import { requiredValidation } from '~/data/validations';
-import { IAuthTokenBase, IAuthTokenSecret } from '~/types/auth/Token';
-import { INamespace } from '~/types/Namespace';
 
 const tokenValidationSchema = Yup.object({
   name: requiredValidation

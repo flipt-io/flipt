@@ -5,6 +5,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
+
 import { selectInfo } from '~/app/meta/metaSlice';
 
 export default function Footer() {

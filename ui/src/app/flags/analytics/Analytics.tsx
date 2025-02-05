@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router';
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
-import { IFlag } from '~/types/Flag';
-import { Graph } from '~/components/graphs';
-import { IFilterable } from '~/types/Selectable';
-import Well from '~/components/Well';
+import { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useOutletContext } from 'react-router';
+
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
+
+import Well from '~/components/Well';
 import Listbox from '~/components/forms/Listbox';
+import { Graph } from '~/components/graphs';
+
+import { IFlag } from '~/types/Flag';
+import { IFilterable } from '~/types/Selectable';
 
 type AnalyticsProps = {
   flag: IFlag;

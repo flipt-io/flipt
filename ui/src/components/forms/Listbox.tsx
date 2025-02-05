@@ -1,7 +1,9 @@
 import { Listbox as L, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
+
 import { ISelectable } from '~/types/Selectable';
+
 import { cls } from '~/utils/helpers';
 
 type ListBoxProps<T extends ISelectable> = {

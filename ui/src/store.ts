@@ -10,6 +10,13 @@ import {
   namespaceKey,
   namespacesSlice
 } from '~/app/namespaces/namespacesApi';
+
+import {
+  environmentKey,
+  environmentsApi,
+  environmentsSlice
+} from './app/environments/environmentsApi';
+import { eventKey, eventSlice } from './app/events/eventSlice';
 import { analyticsApi } from './app/flags/analyticsApi';
 import { flagsApi, flagsTableSlice } from './app/flags/flagsApi';
 import { rolloutsApi } from './app/flags/rolloutsApi';
@@ -22,12 +29,6 @@ import {
 import { segmentsApi, segmentsTableSlice } from './app/segments/segmentsApi';
 import { tokensApi } from './app/tokens/tokensApi';
 import { LoadingStatus } from './types/Meta';
-import { eventSlice, eventKey } from './app/events/eventSlice';
-import {
-  environmentKey,
-  environmentsApi,
-  environmentsSlice
-} from './app/environments/environmentsApi';
 
 const listenerMiddleware = createListenerMiddleware();
 
