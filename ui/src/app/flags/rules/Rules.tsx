@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { StarIcon } from '@heroicons/react/24/outline';
-import { Form, useFormikContext } from 'formik';
+import { useFormikContext } from 'formik';
 import { useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
@@ -39,6 +39,7 @@ import {
 import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import { v4 as uuid } from 'uuid';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 type RulesProps = {
   flag: IFlag;
@@ -62,7 +63,8 @@ export function DefaultVariant(props: RulesProps) {
     });
 
   const handleRemove = async () => {
-    updateFlag({ defaultVariant: undefined });
+    updateFlag({ defaultVariant: null });
+    setSelectedVariant(null);
     return Promise.resolve();
   };
 
@@ -89,7 +91,7 @@ export function DefaultVariant(props: RulesProps) {
         </div>
         <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
           <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-            <Form className="flex w-full flex-col">
+            <div className="flex w-full flex-col">
               <div className="w-full flex-1">
                 <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                   {flag.variants && flag.variants.length > 0 && (
@@ -113,7 +115,7 @@ export function DefaultVariant(props: RulesProps) {
                   </TextButton>
                 </div>
               </div>
-            </Form>
+            </div>
           </div>
         </div>
       </div>
@@ -130,10 +132,15 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
 
-  const { setError, clearError } = useError();
+  const { clearError } = useError();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
-  const segmentsList = useListSegmentsQuery(namespace.key);
+
+  const segmentsList = useListSegmentsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
   const segments = useMemo(
     () => segmentsList.data?.segments || [],
     [segmentsList]

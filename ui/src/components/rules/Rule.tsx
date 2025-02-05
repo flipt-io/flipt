@@ -6,6 +6,7 @@ import Dropdown from '~/components/Dropdown';
 import QuickEditRuleForm from './forms/QuickEditRuleForm';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
+
 type RuleProps = {
   flag: IFlag;
   rule: IRule;

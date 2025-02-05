@@ -1,4 +1,3 @@
-import { TagDescription } from '@reduxjs/toolkit/query';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
@@ -6,6 +5,7 @@ import { RootState } from '~/store';
 import { IConstraintBase } from '~/types/Constraint';
 import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
 import { baseQuery } from '~/utils/redux-rtk';
+import { IResourceListResponse } from '~/types/Resource';
 
 const initialTableState: {
   sorting: SortingState;
@@ -27,28 +27,38 @@ export const segmentsTableSlice = createSlice({
 export const selectSorting = (state: RootState) => state.segmentsTable.sorting;
 export const { setSorting } = segmentsTableSlice.actions;
 
-export const segmentTag = (namespaceKey: string): TagDescription<'Segment'> => {
-  return { type: 'Segment', id: namespaceKey };
-};
-
 export const segmentsApi = createApi({
   reducerPath: 'segments',
   baseQuery,
   tagTypes: ['Segment'],
   endpoints: (builder) => ({
     // get list of segments in this namespace
-    listSegments: builder.query<ISegmentList, string>({
-      query: (namespaceKey) => `/namespaces/${namespaceKey}/segments`,
-      providesTags: (result, _error, namespaceKey) =>
+    listSegments: builder.query<
+      ISegmentList,
+      { environmentKey: string; namespaceKey: string }
+    >({
+      query: ({ environmentKey, namespaceKey }) =>
+        `/${environmentKey}/namespaces/${namespaceKey}/resources/flipt.core.Segment`,
+      providesTags: (result, _error, { environmentKey, namespaceKey }) =>
         result
           ? [
               ...result.segments.map(({ key }) => ({
                 type: 'Segment' as const,
-                id: namespaceKey + '/' + key
+                id: environmentKey + '/' + namespaceKey + '/' + key
               })),
-              segmentTag(namespaceKey)
+              { type: 'Segment', id: environmentKey + '/' + namespaceKey }
             ]
-          : [segmentTag(namespaceKey)]
+          : [{ type: 'Segment', id: environmentKey + '/' + namespaceKey }],
+      transformResponse: (
+        response: IResourceListResponse<ISegment>
+      ): ISegmentList => {
+        if (response.revision) {
+          localStorage.setItem('revision', response.revision);
+        }
+        return {
+          segments: response.resources.map(({ payload }) => payload)
+        } as ISegmentList;
+      }
     }),
     // get segment in this namespace
     getSegment: builder.query<
@@ -74,7 +84,6 @@ export const segmentsApi = createApi({
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey, values }) => [
-        segmentTag(namespaceKey),
         { type: 'Segment', id: namespaceKey + '/' + values.key }
       ]
     }),
@@ -89,8 +98,9 @@ export const segmentsApi = createApi({
           method: 'DELETE'
         };
       },
-      invalidatesTags: (_result, _error, { namespaceKey }) => [
-        segmentTag(namespaceKey)
+      invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
+        { type: 'Segment', id: namespaceKey },
+        { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
     }),
     // update the segment in the namespace
@@ -106,7 +116,7 @@ export const segmentsApi = createApi({
         };
       },
       invalidatesTags: (_result, _error, { namespaceKey, segmentKey }) => [
-        segmentTag(namespaceKey),
+        { type: 'Segment', id: namespaceKey },
         { type: 'Segment', id: namespaceKey + '/' + segmentKey }
       ]
     }),
@@ -156,7 +166,8 @@ export const segmentsApi = createApi({
         return { data: undefined };
       },
       invalidatesTags: (_result, _error, { to }) => [
-        segmentTag(to.namespaceKey)
+        { type: 'Segment', id: to.namespaceKey },
+        { type: 'Segment', id: to.namespaceKey + '/' + to.segmentKey }
       ]
     }),
 

@@ -6,7 +6,7 @@ import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
-import { IVariant, IVariantBase } from '~/types/Variant';
+import { IVariant } from '~/types/Variant';
 import { baseQuery } from '~/utils/redux-rtk';
 
 const initialTableState: {

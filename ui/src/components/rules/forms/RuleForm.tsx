@@ -101,8 +101,6 @@ export default function RuleForm(props: RuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(selectCurrentNamespace);
-
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
   const [ruleType, setRuleType] = useState(DistributionType.None);
@@ -113,11 +111,13 @@ export default function RuleForm(props: RuleFormProps) {
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
 
-    return flag.variants?.map((variant, i) => ({
-      variantId: variant.id,
-      variant: variant.key,
-      rollout: percentages[i]
-    }));
+    return (
+      flag.variants?.map((variant, i) => ({
+        variantId: variant.id,
+        variant: variant.key,
+        rollout: percentages[i]
+      })) || null
+    );
   });
 
   const initialSegmentKeys: FilterableSegment[] = [];

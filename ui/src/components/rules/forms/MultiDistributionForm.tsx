@@ -1,7 +1,7 @@
 import { IDistributionVariant } from '~/types/Distribution';
 
 type MultiDistributionFormInputProps = {
-  distributions?: IDistributionVariant[];
+  distributions?: IDistributionVariant[] | null;
   setDistributions: (distributions: IDistributionVariant[] | null) => void;
 };
 

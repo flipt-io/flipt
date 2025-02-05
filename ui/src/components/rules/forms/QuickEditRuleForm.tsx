@@ -28,7 +28,7 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 };
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
-  const { onSuccess, flag, rule, segments, variants } = props;
+  const { flag, rule, segments, variants } = props;
 
   const ruleType =
     rule.distributions.length === 0
