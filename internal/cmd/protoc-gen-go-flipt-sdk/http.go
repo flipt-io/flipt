@@ -354,7 +354,7 @@ func renderPath(pkgfmt func(string) string, rule rule, msg *protogen.Message) (s
 
 		if p[0] == '{' && p[len(p)-1] == '}' {
 			for _, field := range msg.Fields {
-				if p[1:len(p)-1] == string(field.Desc.Name()) {
+				if fieldName, _, _ := strings.Cut(p[1:len(p)-1], "="); fieldName == string(field.Desc.Name()) {
 					p = "%v"
 					args = append(args, "v."+field.GoName)
 					inPath[field] = struct{}{}

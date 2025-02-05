@@ -167,9 +167,8 @@ func (x *EnvironmentsServiceClient) DeleteNamespace(ctx context.Context, v *envi
 
 func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environments.GetResourceRequest, _ ...grpc.CallOption) (*environments.ResourceResponse, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("typeUrl", v.TypeUrl)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/{type_url=*}/%v", v.Environment, v.Namespace, v.Key), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.Environment, v.Namespace, v.TypeUrl, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -195,9 +194,8 @@ func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environm
 
 func (x *EnvironmentsServiceClient) ListResources(ctx context.Context, v *environments.ListResourcesRequest, _ ...grpc.CallOption) (*environments.ListResourcesResponse, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("typeUrl", v.TypeUrl)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/{type_url=*}", v.Environment, v.Namespace), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v", v.Environment, v.Namespace, v.TypeUrl), body)
 	if err != nil {
 		return nil, err
 	}
@@ -288,9 +286,8 @@ func (x *EnvironmentsServiceClient) UpdateResource(ctx context.Context, v *envir
 func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *environments.DeleteResourceRequest, _ ...grpc.CallOption) (*environments.DeleteResourceResponse, error) {
 	var body io.Reader
 	values := url.Values{}
-	values.Set("typeUrl", v.TypeUrl)
 	values.Set("revision", v.Revision)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/{type_url=*}/%v", v.Environment, v.Namespace, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.Environment, v.Namespace, v.TypeUrl, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
