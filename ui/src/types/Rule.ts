@@ -3,17 +3,16 @@ import { IDistribution } from './Distribution';
 import { IPageable } from './Pageable';
 
 export interface IRuleBase {
-  segmentKey?: string;
-  segmentKeys?: string[];
+  segments?: string[];
   segmentOperator?: SegmentOperatorType;
   rank: number;
+  distributions: IDistribution[];
 }
 
 export interface IRule extends IRuleBase {
   id: string;
   createdAt: string;
   updatedAt: string;
-  distributions: IDistribution[];
 }
 
 export interface IRuleList extends IPageable {

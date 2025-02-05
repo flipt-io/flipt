@@ -1,4 +1,4 @@
-import { IPageable } from "./Pageable";
+import { IPageable } from './Pageable';
 
 export interface IResourceResponse<T> {
   resource: IResource<T>;

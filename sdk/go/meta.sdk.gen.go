@@ -14,14 +14,6 @@ type Meta struct {
 	authenticationProvider ClientAuthenticationProvider
 }
 
-func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error) {
-	ctx, err := authenticate(ctx, x.authenticationProvider)
-	if err != nil {
-		return nil, err
-	}
-	return x.transport.GetConfiguration(ctx, &emptypb.Empty{})
-}
-
 func (x *Meta) GetInfo(ctx context.Context) (*httpbody.HttpBody, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {

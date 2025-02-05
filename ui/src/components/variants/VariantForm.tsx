@@ -1,27 +1,20 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
-import { forwardRef } from 'react';
-import { useSelector } from 'react-redux';
+import { forwardRef, useContext } from 'react';
 import * as Yup from 'yup';
-import {
-  useCreateVariantMutation,
-  useUpdateVariantMutation
-} from '~/app/flags/flagsApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
-import TextArea from '~/components/forms/TextArea';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
-import { jsonValidation, keyWithDotValidation } from '~/data/validations';
+import { keyWithDotValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
+import { JSONTextArea } from '~/components/forms/JSONTextArea';
 
 const variantValidationSchema = Yup.object({
-  key: keyWithDotValidation,
-  attachment: jsonValidation
+  key: keyWithDotValidation
 });
 
 type VariantFormProps = {
@@ -36,48 +29,36 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
 
   const isNew = variant === undefined;
   const title = isNew ? 'New Variant' : 'Edit Variant';
-  const submitPhrase = isNew ? 'Create' : 'Update';
+  const submitPhrase = isNew ? 'Create' : 'Done';
 
   const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(selectCurrentNamespace);
-
-  const [createVariant] = useCreateVariantMutation();
-  const [updateVariant] = useUpdateVariantMutation();
+  const { updateVariant, createVariant } = useContext(FlagFormContext);
 
   const handleSubmit = async (values: IVariantBase) => {
     if (isNew) {
-      return createVariant({
-        namespaceKey: namespace.key,
-        flagKey: flagKey,
-        values: values
-      }).unwrap();
+      createVariant(values as IVariant);
+      return;
     }
-
-    return updateVariant({
-      namespaceKey: namespace.key,
-      flagKey: flagKey,
-      variantId: variant?.id,
-      values: values
-    }).unwrap();
+    updateVariant(values as IVariant);
   };
 
   return (
     <Formik
+      validateOnChange
+      validate={(values: IVariantBase) => {
+        !isNew && handleSubmit(values);
+      }}
       initialValues={{
         key: variant?.key || '',
         name: variant?.name || '',
         description: variant?.description || '',
-        attachment: variant?.attachment || ''
+        attachment: variant?.attachment || {}
       }}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
             clearError();
-            setSuccess(
-              `Successfully ${submitPhrase.toLocaleLowerCase()}d variant.`
-            );
             onSuccess();
           })
           .catch((err) => {
@@ -125,7 +106,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   </label>
                 </div>
                 <div className="sm:col-span-2">
-                  <Input name="key" id="key" forwardRef={ref} />
+                  <Input
+                    name="key"
+                    id="key"
+                    forwardRef={ref}
+                    disabled={!isNew}
+                  />
                 </div>
               </div>
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
@@ -179,7 +165,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   </span>
                 </div>
                 <div className="sm:col-span-2">
-                  <TextArea name="attachment" id="attachment" />
+                  <JSONTextArea name="attachment" id="attachment" />
                 </div>
               </div>
             </div>

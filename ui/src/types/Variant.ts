@@ -4,7 +4,7 @@ export interface IVariantBase {
   key: string;
   name: string;
   description: string;
-  attachment?: string;
+  attachment?: Record<string, any>;
 }
 
 export interface IVariant extends IVariantBase {

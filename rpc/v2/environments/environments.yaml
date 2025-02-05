@@ -25,10 +25,10 @@ http:
     # resources
     #
     - selector: environments.EnvironmentsService.GetResource
-      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=**}/{key}
+      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}/{key}
 
     - selector: environments.EnvironmentsService.ListResources
-      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=**}
+      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}
 
     - selector: environments.EnvironmentsService.CreateResource
       post: /v2/environments/{environment}/namespaces/{namespace}/resources
@@ -39,4 +39,4 @@ http:
       body: "*"
 
     - selector: environments.EnvironmentsService.DeleteResource
-      delete: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=**}/{key}
+      delete: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}/{key}

@@ -8,6 +8,5 @@ import "google/protobuf/empty.proto";
 option go_package = "go.flipt.io/flipt/rpc/flipt/meta";
 
 service MetadataService {
-  rpc GetConfiguration(google.protobuf.Empty) returns (google.api.HttpBody) {}
   rpc GetInfo(google.protobuf.Empty) returns (google.api.HttpBody) {}
 }

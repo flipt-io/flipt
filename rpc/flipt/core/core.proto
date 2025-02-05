@@ -23,6 +23,7 @@ message Flag {
   repeated Rule rules = 7;
   repeated Rollout rollouts = 8;
   optional string default_variant = 9;
+  optional google.protobuf.Struct metadata = 10;
 }
 
 message Variant {

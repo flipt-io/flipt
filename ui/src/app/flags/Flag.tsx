@@ -1,14 +1,12 @@
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
-import 'chartjs-adapter-date-fns';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { FilesIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { NavLink, Outlet, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
-import FlagForm from '~/components/flags/forms/FlagForm';
+import FlagForm from '~/components/flags/FlagForm';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -22,21 +20,9 @@ import {
   useDeleteFlagMutation,
   useGetFlagQuery
 } from './flagsApi';
-import { FlagType } from '~/types/Flag';
-import { cls, getRevision } from '~/utils/helpers';
+import { getRevision } from '~/utils/helpers';
 import { PageHeader } from '~/components/ui/page';
-import { selectCurrentEnvironment } from '../environments/environmentsApi';
-
-const variantFlagTabs = [
-  { name: 'Variants', to: '' },
-  { name: 'Rules', to: 'rules' },
-  { name: 'Analytics', to: 'analytics' }
-];
-
-const booleanFlagTabs = [
-  { name: 'Rollouts', to: '' },
-  { name: 'Analytics', to: 'analytics' }
-];
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -91,13 +77,14 @@ export default function Flag() {
               This action cannot be undone.
             </>
           }
-          panelType="Flag"  
+          panelType="Flag"
           setOpen={setShowDeleteFlagModal}
           handleDelete={() =>
             deleteFlag({
               environmentKey: environment.name,
               namespaceKey: namespace.key,
               flagKey: flag.key,
+              revision
             }).unwrap()
           }
           onSuccess={() => {
@@ -120,6 +107,7 @@ export default function Flag() {
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
             copyFlag({
+              environmentKey: environment.name,
               from: { namespaceKey: namespace.key, flagKey: flag.key },
               to: { namespaceKey: namespaceKey, flagKey: flag.key }
             }).unwrap()
@@ -165,54 +153,8 @@ export default function Flag() {
       </div>
 
       {/* Form Section - Full Width */}
-      <div className="mb-8">
+      <div className="mt-5">
         <FlagForm flag={flag} />
-      </div>
-
-      {/* Tabs Section */}
-      <div>
-        <nav className="mb-8 space-x-4">
-          {flag.type === FlagType.VARIANT ? (
-            <>
-              {variantFlagTabs.map((tab) => (
-                <NavLink
-                  end
-                  key={tab.name}
-                  to={tab.to}
-                  className={({ isActive }) =>
-                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
-                      'border-violet-500 text-violet-600': isActive,
-                      'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
-                        !isActive
-                    })
-                  }
-                >
-                  {tab.name}
-                </NavLink>
-              ))}
-            </>
-          ) : (
-            <>
-              {booleanFlagTabs.map((tab) => (
-                <NavLink
-                  end
-                  key={tab.name}
-                  to={tab.to}
-                  className={({ isActive }) =>
-                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
-                      'border-violet-500 text-violet-600': isActive,
-                      'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
-                        !isActive
-                    })
-                  }
-                >
-                  {tab.name}
-                </NavLink>
-              ))}
-            </>
-          )}
-        </nav>
-        <Outlet context={{ flag }} />
       </div>
     </>
   );
