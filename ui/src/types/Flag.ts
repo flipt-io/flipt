@@ -39,8 +39,6 @@ export interface IFlagBase {
 }
 
 export interface IFlag extends IFlagBase {
-  createdAt?: string;
-  updatedAt?: string;
   variants?: IVariant[];
   rules?: IRule[];
   rollouts?: IRollout[];
