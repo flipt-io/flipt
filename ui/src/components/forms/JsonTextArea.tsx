@@ -2,7 +2,7 @@ import { Field, FieldProps } from 'formik';
 import { useState } from 'react';
 import { cls } from '~/utils/helpers';
 
-function JSONInput({
+function JsonInput({
   field,
   form,
   meta,
@@ -48,7 +48,7 @@ function JSONInput({
   );
 }
 
-const validateJSON = (value: string): string | undefined => {
+const validateJson = (value: string): string | undefined => {
   if (typeof value === 'string') {
     try {
       JSON.parse(value);
@@ -59,7 +59,7 @@ const validateJSON = (value: string): string | undefined => {
   return undefined;
 };
 
-export function JSONTextArea({
+export function JsonTextArea({
   name,
   id,
   className
@@ -72,8 +72,8 @@ export function JSONTextArea({
     <Field
       name={name}
       id={id}
-      validate={validateJSON}
-      component={JSONInput}
+      validate={validateJson}
+      component={JsonInput}
       className={className}
     />
   );

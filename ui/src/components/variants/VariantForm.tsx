@@ -11,7 +11,7 @@ import { useError } from '~/data/hooks/error';
 import { keyWithDotValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
-import { JSONTextArea } from '~/components/forms/JSONTextArea';
+import { JsonTextArea } from '~/components/forms/JsonTextArea';
 
 const variantValidationSchema = Yup.object({
   key: keyWithDotValidation
@@ -165,7 +165,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   </span>
                 </div>
                 <div className="sm:col-span-2">
-                  <JSONTextArea name="attachment" id="attachment" />
+                  <JsonTextArea name="attachment" id="attachment" />
                 </div>
               </div>
             </div>
