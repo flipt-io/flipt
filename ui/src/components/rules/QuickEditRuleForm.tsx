@@ -8,7 +8,7 @@ import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
 import { FilterableVariant, IVariant } from '~/types/Variant';
 import { cls } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
-import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
+import SingleDistributionFormInput from './SingleDistributionForm';
 import { IDistribution } from '~/types/Distribution';
 
 type QuickEditRuleFormProps = {

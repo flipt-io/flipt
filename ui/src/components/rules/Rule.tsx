@@ -3,7 +3,7 @@ import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
 import { cls } from '~/utils/helpers';
 import Dropdown from '~/components/Dropdown';
-import QuickEditRuleForm from './forms/QuickEditRuleForm';
+import QuickEditRuleForm from './QuickEditRuleForm';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
 

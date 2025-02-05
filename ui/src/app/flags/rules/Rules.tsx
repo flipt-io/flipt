@@ -24,7 +24,7 @@ import { ButtonWithPlus, TextButton } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import RuleForm from '~/components/rules/forms/RuleForm';
+import RuleForm from '~/components/rules/RuleForm';
 import Rule from '~/components/rules/Rule';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
@@ -36,7 +36,7 @@ import {
   IVariant,
   toFilterableVariant
 } from '~/types/Variant';
-import SingleDistributionFormInput from '~/components/rules/forms/SingleDistributionForm';
+import SingleDistributionFormInput from '~/components/rules/SingleDistributionForm';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import { v4 as uuid } from 'uuid';
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
@@ -285,6 +285,7 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                               flag={flag}
                               rule={rule}
                               segments={segments}
+                              variants={variants}
                               onDelete={() => {
                                 setActiveRule(null);
                                 setDeletingRule(rule);
