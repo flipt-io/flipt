@@ -34,7 +34,7 @@ export interface IFlagBase {
   name: string;
   enabled: boolean;
   description: string;
-  defaultVariant?: IVariant;
+  defaultVariant?: string;
   metadata?: Record<string, any>;
 }
 

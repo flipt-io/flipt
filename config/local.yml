@@ -2,7 +2,7 @@
 
 # version: "1.0"
 log:
-  level: INFO
+  level: DEBUG
 
 # authentication:
 #   required: false

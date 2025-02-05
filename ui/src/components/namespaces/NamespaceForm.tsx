@@ -24,14 +24,14 @@ const namespaceValidationSchema = Yup.object({
 
 type NamespaceFormProps = {
   setOpen: (open: boolean) => void;
-  namespace?: INamespace;
+  namespace?: INamespace | null;
   onSuccess: () => void;
 };
 
 const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setOpen, namespace, onSuccess } = props;
 
-  const isNew = namespace === undefined;
+  const isNew = namespace === null;
   const title = isNew ? 'New Namespace' : 'Edit Namespace';
   const submitPhrase = isNew ? 'Create' : 'Update';
 

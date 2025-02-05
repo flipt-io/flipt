@@ -431,14 +431,10 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     )}
                     {/* {selectedTab == 'rollouts' && (
                         <Rollouts flag={flag} rollouts={rollouts!} />
-                      )}
-                      {selectedTab == 'rules' && (
-                        <Rules
-                          flag={flag}
-                          rules={rules!}
-                          variants={variants!}
-                        />
                       )} */}
+                    {selectedTab == 'rules' && (
+                      <Rules flag={flag} rules={rules!} variants={variants!} />
+                    )}
                   </>
                 )}
                 <div className="flex justify-end">

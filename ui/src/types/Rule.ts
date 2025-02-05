@@ -11,8 +11,6 @@ export interface IRuleBase {
 
 export interface IRule extends IRuleBase {
   id: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface IRuleList extends IPageable {

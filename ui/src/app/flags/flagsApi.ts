@@ -183,11 +183,8 @@ export const flagsApi = createApi({
       query({ environmentKey, namespaceKey, flagKey, values, revision }) {
         const payload = {
           '@type': 'flipt.core.Flag',
-          defaultVariantId: values.defaultVariant?.id || null,
-          metadata: values.metadata,
           ...values
         };
-        delete payload.defaultVariant;
         return {
           url: `/${environmentKey}/namespaces/${namespaceKey}/resources`,
           method: 'PUT',

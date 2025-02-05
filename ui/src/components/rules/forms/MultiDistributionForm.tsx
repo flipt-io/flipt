@@ -2,7 +2,7 @@ import { IDistributionVariant } from '~/types/Distribution';
 
 type MultiDistributionFormInputProps = {
   distributions?: IDistributionVariant[];
-  setDistributions: (distributions: IDistributionVariant[] | undefined) => void;
+  setDistributions: (distributions: IDistributionVariant[] | null) => void;
 };
 
 export default function MultiDistributionFormInputs(
@@ -29,10 +29,10 @@ export default function MultiDistributionFormInputs(
         >
           <div>
             <label
-              htmlFor={dist.variantKey}
+              htmlFor={dist.variant}
               className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
             >
-              {dist.variantKey}
+              {dist.variant}
             </label>
           </div>
           <div className="relative sm:col-span-1">
@@ -43,7 +43,7 @@ export default function MultiDistributionFormInputs(
               type="number"
               className="block w-full rounded-md border-gray-300 bg-gray-50 pl-10 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
               value={dist.rollout}
-              name={dist.variantKey}
+              name={dist.variant}
               // eslint-disable-next-line react/no-unknown-property
               typeof="number"
               step=".01"

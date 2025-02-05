@@ -26,7 +26,6 @@ export default function Namespaces() {
   const [deletingNamespace, setDeletingNamespace] = useState<INamespace | null>(
     null
   );
-  const listNamespaces = useListNamespacesQuery();
 
   const namespaces = useSelector(selectNamespaces);
   const [deleteNamespace] = useDeleteNamespaceMutation();
@@ -42,7 +41,7 @@ export default function Namespaces() {
       >
         <NamespaceForm
           ref={namespaceFormRef}
-          namespace={editingNamespace || undefined}
+          namespace={editingNamespace || null}
           setOpen={setShowNamespaceForm}
           onSuccess={() => {
             setShowNamespaceForm(false);

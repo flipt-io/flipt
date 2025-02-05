@@ -20,7 +20,7 @@ const variantValidationSchema = Yup.object({
 type VariantFormProps = {
   setOpen: (open: boolean) => void;
   flagKey: string;
-  variant?: IVariant;
+  variant?: IVariant | null;
   onSuccess: () => void;
 };
 

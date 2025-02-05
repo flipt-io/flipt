@@ -3,10 +3,11 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
 import Rule from './Rule';
+import { IRule } from '~/types/Rule';
 
 type SortableRuleProps = {
   flag: IFlag;
-  rule: IEvaluatable;
+  rule: IRule;
   segments: ISegment[];
   onSuccess: () => void;
   onDelete: () => void;
