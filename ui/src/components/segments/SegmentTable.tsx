@@ -1,6 +1,5 @@
 import {
   PaginationState,
-  Row,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,

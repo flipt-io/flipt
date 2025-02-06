@@ -22,13 +22,12 @@ const variantValidationSchema = Yup.object({
 
 type VariantFormProps = {
   setOpen: (open: boolean) => void;
-  flagKey: string;
   variant?: IVariant | null;
   onSuccess: () => void;
 };
 
 const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
-  const { setOpen, flagKey, variant, onSuccess } = props;
+  const { setOpen, variant, onSuccess } = props;
 
   const isNew = variant === null;
   const title = isNew ? 'New Variant' : 'Edit Variant';

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
   selectCurrentNamespace,
   selectNamespaces
@@ -39,8 +40,6 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { getRevision } from '~/utils/helpers';
-
-import { selectCurrentEnvironment } from '../environments/environmentsApi';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {

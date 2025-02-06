@@ -37,7 +37,6 @@ export default function Variants({ flag, variants }: VariantsProps) {
       >
         <VariantForm
           ref={variantFormRef}
-          flagKey={flag.key}
           variant={editingVariant}
           setOpen={setShowVariantForm}
           onSuccess={() => {

@@ -7,7 +7,6 @@ import { IFlag, IFlagList } from '~/types/Flag';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
-import { IVariant } from '~/types/Variant';
 
 import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
