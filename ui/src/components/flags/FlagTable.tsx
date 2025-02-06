@@ -84,9 +84,10 @@ const columns = [
 ];
 
 export default function FlagTable(props: FlagTableProps) {
+  const { environment, namespace } = props;
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { environment, namespace } = props;
 
   const path = `/namespaces/${namespace.key}/flags`;
 

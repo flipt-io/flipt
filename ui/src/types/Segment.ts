@@ -10,8 +10,6 @@ export interface ISegmentBase {
 }
 
 export interface ISegment extends ISegmentBase {
-  createdAt: string;
-  updatedAt: string;
   constraints?: IConstraint[];
 }
 

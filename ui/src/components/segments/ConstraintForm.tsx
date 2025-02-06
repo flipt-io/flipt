@@ -26,7 +26,6 @@ import {
   ConstraintStringOperators,
   ConstraintType,
   IConstraint,
-  IConstraintBase,
   NoValueOperators,
   constraintTypeToLabel
 } from '~/types/Constraint';
@@ -39,6 +38,10 @@ import {
   jsonStringArrayValidation,
   requiredValidation
 } from '~/data/validations';
+import { useUpdateSegmentMutation } from '~/app/segments/segmentsApi';
+import { useGetSegmentQuery } from '~/app/segments/segmentsApi';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import { getRevision } from '~/utils/helpers';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ConstraintType) as Array<keyof typeof ConstraintType>).map(
@@ -272,7 +275,7 @@ const validationSchema = Yup.object({
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;
   segmentKey: string;
-  constraint?: IConstraint;
+  constraint?: IConstraint & { index: number };
   onSuccess: () => void;
 };
 
@@ -290,7 +293,18 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     !NoValueOperators.includes(constraint?.operator || 'eq')
   );
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
+
+  const { data: segment } = useGetSegmentQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key,
+    segmentKey: segmentKey
+  });
+
+  const revision = getRevision();
+
+  const [updateSegment] = useUpdateSegmentMutation();
 
   const initialValues = {
     property: constraint?.property || '',
@@ -300,22 +314,25 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     description: constraint?.description || ''
   };
 
-  const [createConstraint] = useCreateConstraintMutation();
-  const [updateConstraint] = useUpdateConstraintMutation();
-
-  const handleSubmit = (values: IConstraintBase) => {
-    if (isNew) {
-      return createConstraint({
-        namespaceKey: namespace.key,
-        segmentKey,
-        values
-      }).unwrap();
+  const handleSubmit = (values: IConstraint) => {
+    if (!segment) {
+      return Promise.reject();
     }
-    return updateConstraint({
+    let s = {
+      ...segment,
+      constraints: [...segment.constraints!]
+    };
+    if (isNew) {
+      s.constraints.push(values);
+    } else {
+      s.constraints[constraint.index] = values;
+    }
+    return updateSegment({
+      environmentKey: environment.name,
       namespaceKey: namespace.key,
       segmentKey,
-      constraintId: constraint?.id,
-      values
+      values: s,
+      revision 
     }).unwrap();
   };
 

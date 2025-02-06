@@ -39,8 +39,6 @@ export interface IRolloutBase {
 
 export interface IRollout extends IRolloutBase {
   id: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface IRolloutList extends IPageable {

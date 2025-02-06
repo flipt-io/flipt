@@ -1,5 +1,4 @@
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { CalendarIcon, FilesIcon, Trash2Icon } from 'lucide-react';
+import { FilesIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
@@ -11,7 +10,8 @@ import {
 import {
   useCopySegmentMutation,
   useDeleteSegmentMutation,
-  useGetSegmentQuery
+  useGetSegmentQuery,
+  useUpdateSegmentMutation
 } from '~/app/segments/segmentsApi';
 
 import { Button } from '~/components/Button';
@@ -38,6 +38,9 @@ import {
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
+import { getRevision } from '~/utils/helpers';
+
+import { selectCurrentEnvironment } from '../environments/environmentsApi';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {
@@ -74,11 +77,11 @@ export default function Segment() {
 
   const [showConstraintForm, setShowConstraintForm] = useState<boolean>(false);
   const [editingConstraint, setEditingConstraint] =
-    useState<IConstraint | null>(null);
+    useState<IConstraint & { index: number } | null>(null);
   const [showDeleteConstraintModal, setShowDeleteConstraintModal] =
     useState<boolean>(false);
   const [deletingConstraint, setDeletingConstraint] =
-    useState<IConstraint | null>(null);
+    useState<IConstraint & { index: number } | null>(null);
   const [showDeleteSegmentModal, setShowDeleteSegmentModal] =
     useState<boolean>(false);
   const [showCopySegmentModal, setShowCopySegmentModal] =
@@ -89,8 +92,11 @@ export default function Segment() {
 
   const navigate = useNavigate();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
+
+  const revision = getRevision();
 
   const {
     data: segment,
@@ -98,13 +104,14 @@ export default function Segment() {
     isLoading,
     isError
   } = useGetSegmentQuery({
+    environmentKey: environment.name,
     namespaceKey: namespace.key,
     segmentKey: segmentKey || ''
   });
 
   const [deleteSegment] = useDeleteSegmentMutation();
-  const [deleteSegmentConstraint] = useDeleteConstraintMutation();
   const [copySegment] = useCopySegmentMutation();
+  const [updateSegment] = useUpdateSegmentMutation();
 
   const constraintFormRef = useRef(null);
 
@@ -155,13 +162,21 @@ export default function Segment() {
           }
           panelType="Constraint"
           setOpen={setShowDeleteConstraintModal}
-          handleDelete={() =>
-            deleteSegmentConstraint({
+          handleDelete={() => {
+            const s = {
+              ...segment,
+              constraints: segment.constraints?.filter(
+                (c) => c.id !== deletingConstraint?.id
+              )
+            };
+            return updateSegment({
+              environmentKey: environment.name,
               namespaceKey: namespace.key,
               segmentKey: segment.key,
-              constraintId: deletingConstraint?.id ?? ''
-            }).unwrap()
-          }
+              values: s,
+              revision
+            }).unwrap();
+          }}
         />
       </Modal>
 
@@ -179,8 +194,10 @@ export default function Segment() {
           setOpen={setShowDeleteSegmentModal}
           handleDelete={() =>
             deleteSegment({
+              environmentKey: environment.name,
               namespaceKey: namespace.key,
-              segmentKey: segment.key
+              segmentKey: segment.key,
+              revision
             }).unwrap()
           }
           onSuccess={() => {
@@ -203,6 +220,7 @@ export default function Segment() {
           setOpen={setShowCopySegmentModal}
           handleCopy={(namespaceKey: string) =>
             copySegment({
+              environmentKey: environment.name,
               from: { namespaceKey: namespace.key, segmentKey: segment.key },
               to: { namespaceKey: namespaceKey, segmentKey: segment.key }
             }).unwrap()
@@ -240,14 +258,6 @@ export default function Segment() {
       </PageHeader>
 
       <div className="mb-8 space-y-4">
-        <div className="flex items-center text-sm text-gray-500">
-          <CalendarIcon className="mr-1.5 h-5 w-5 text-gray-400" />
-          Created{' '}
-          {formatDistanceToNowStrict(parseISO(segment.createdAt), {
-            addSuffix: true
-          })}
-        </div>
-
         <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
           Learn more about segments
         </MoreInfo>

@@ -20,7 +20,8 @@ import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { cls, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
+import { cls, copyTextToClipboard, getRevision, stringAsKey } from '~/utils/helpers';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 const segmentMatchTypes = [
   {
@@ -55,19 +56,28 @@ export default function SegmentForm(props: SegmentFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
+  const revision = getRevision();
 
   const [createSegment] = useCreateSegmentMutation();
   const [updateSegment] = useUpdateSegmentMutation();
 
   const handleSubmit = (values: ISegmentBase) => {
     if (isNew) {
-      return createSegment({ namespaceKey: namespace.key, values }).unwrap();
+      return createSegment({
+        environmentKey: environment.name,
+        namespaceKey: namespace.key,
+        values,
+        revision
+      }).unwrap();
     }
     return updateSegment({
+      environmentKey: environment.name,
       namespaceKey: namespace.key,
       segmentKey: segment?.key,
-      values
+      values,
+      revision
     }).unwrap();
   };
 
