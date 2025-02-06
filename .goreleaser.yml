@@ -74,8 +74,7 @@ nightly:
 changelog:
   use: github
   ai:
-    use: openai
-    model: o1-mini
+    use: anthropic
     prompt:
       from_file:
         path: ./build/PROMPT.md
