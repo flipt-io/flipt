@@ -4,17 +4,12 @@ package sdk
 
 import (
 	context "context"
-	flipt "go.flipt.io/flipt/rpc/flipt"
-	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
-	meta "go.flipt.io/flipt/rpc/flipt/meta"
+	environments "go.flipt.io/flipt/rpc/v2/environments"
 	metadata "google.golang.org/grpc/metadata"
 )
 
 type Transport interface {
-	AuthClient() AuthClient
-	EvaluationClient() evaluation.EvaluationServiceClient
-	FliptClient() flipt.FliptClient
-	MetaClient() meta.MetadataServiceClient
+	EnvironmentsClient() environments.EnvironmentsServiceClient
 }
 
 // ClientTokenProvider is a type which when requested provides a
@@ -116,30 +111,9 @@ func New(t Transport, opts ...Option) SDK {
 	return sdk
 }
 
-func (s SDK) Auth() *Auth {
-	return &Auth{
-		transport:              s.transport.AuthClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
-}
-
-func (s SDK) Evaluation() *Evaluation {
-	return &Evaluation{
-		transport:              s.transport.EvaluationClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
-}
-
-func (s SDK) Flipt() *Flipt {
-	return &Flipt{
-		transport:              s.transport.FliptClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
-}
-
-func (s SDK) Meta() *Meta {
-	return &Meta{
-		transport:              s.transport.MetaClient(),
+func (s SDK) Environments() *Environments {
+	return &Environments{
+		transport:              s.transport.EnvironmentsClient(),
 		authenticationProvider: s.authenticationProvider,
 	}
 }

@@ -19,7 +19,7 @@ import (
 
 const httpbodyImport = "google.golang.org/genproto/googleapis/api/httpbody"
 
-func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
+func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protogen.GoImportPath) {
 	data, err := os.ReadFile(grpcAPIConfig)
 	if err != nil {
 		panic(err)
@@ -354,7 +354,7 @@ func renderPath(pkgfmt func(string) string, rule rule, msg *protogen.Message) (s
 
 		if p[0] == '{' && p[len(p)-1] == '}' {
 			for _, field := range msg.Fields {
-				if p[1:len(p)-1] == string(field.Desc.Name()) {
+				if fieldName, _, _ := strings.Cut(p[1:len(p)-1], "="); fieldName == string(field.Desc.Name()) {
 					p = "%v"
 					args = append(args, "v."+field.GoName)
 					inPath[field] = struct{}{}
