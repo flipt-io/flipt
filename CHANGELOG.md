@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.55.0](https://github.com/flipt-io/flipt/releases/tag/v1.55.0) - 2025-02-06
+
+### Changed
+
+- switch to in process communication between GRPC gateway and GRPC backend which should significantly improve HTTP performance.(#3856)
+
+### Fixed
+
+- `ui`: ui.topbar.color config setting has been broken since v1.53.0 (#3857)
+- apply UI additional http headers only for requests to UI assets (#3853)
+- `audit`: allow to send events with complex payload to kafka with avro (#3827)
+
 ## [v1.54.1](https://github.com/flipt-io/flipt/releases/tag/v1.54.1) - 2025-01-10
 
 ### Fixed
