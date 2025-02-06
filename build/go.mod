@@ -18,8 +18,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/cap v0.6.0
-	github.com/open-feature/go-sdk v1.12.0
-	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.4
+	github.com/open-feature/go-sdk v1.14.1
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.5
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.20
 	go.flipt.io/flipt/rpc/flipt v1.54.0
@@ -41,7 +41,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
 	go.opentelemetry.io/proto/otlp v1.3.1
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
+	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 	golang.org/x/mod v0.22.0
 	golang.org/x/sync v0.10.0
 	google.golang.org/grpc v1.69.2
@@ -146,3 +146,5 @@ replace go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp => go.opente
 replace go.opentelemetry.io/otel/log => go.opentelemetry.io/otel/log v0.3.0
 
 replace go.opentelemetry.io/otel/sdk/log => go.opentelemetry.io/otel/sdk/log v0.3.0
+
+replace github.com/open-feature/go-sdk-contrib/providers/ofrep => github.com/erka/openfeature-go-ofrep-provider v0.0.1
