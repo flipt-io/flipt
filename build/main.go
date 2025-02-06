@@ -32,13 +32,13 @@ type Flipt struct {
 }
 
 // Returns a container with all the assets compiled and ready for testing and distribution
-func (f *Flipt) Base(ctx context.Context, source *dagger.Directory, chatwootToken *dagger.Secret) (*dagger.Container, error) {
+func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	platform, err := dag.DefaultPlatform(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"), chatwootToken)
+	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +48,8 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory, chatwootToke
 }
 
 // Return container with Flipt binaries in a thinner alpine distribution
-func (f *Flipt) Build(ctx context.Context, source *dagger.Directory, chatwootToken *dagger.Secret) (*dagger.Container, error) {
-	base, err := f.Base(ctx, source, chatwootToken)
+func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
+	base, err := f.Base(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -71,10 +71,8 @@ func (f *Flipt) Publish(
 	//+optional
 	//+default="flipt"
 	image string,
-	//+optional
-	chatwootToken *dagger.Secret,
 ) (string, error) {
-	container, err := f.Build(ctx, source, chatwootToken)
+	container, err := f.Build(ctx, source)
 	if err != nil {
 		return "", err
 	}
@@ -94,7 +92,7 @@ type Test struct {
 // Execute test specific by subcommand
 // see all available subcommands with dagger call test --help
 func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, error) {
-	flipt, err := f.Build(ctx, source, nil)
+	flipt, err := f.Build(ctx, source)
 	if err != nil {
 		return nil, err
 	}
