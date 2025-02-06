@@ -72,7 +72,12 @@ nightly:
   version_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
-  disable: true
+  use: github
+  # ai:
+  #   use: anthropic
+  #   prompt:
+  #     from_file:
+  #       path: ./build/PROMPT.md
 
 dockers:
   - dockerfile: ./build/Dockerfile
