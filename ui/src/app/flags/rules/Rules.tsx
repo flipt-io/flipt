@@ -274,7 +274,7 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                     onDragEnd={onDragEnd}
                   >
                     <SortableContext
-                      items={rules.map((rule) => rule.rank)}
+                      items={rules.map((rule) => rule.id!)}
                       strategy={verticalListSortingStrategy}
                     >
                       <ul
@@ -285,7 +285,7 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                           rules.length > 0 &&
                           rules.map((rule) => (
                             <SortableRule
-                              key={rule.rank}
+                              key={rule.id}
                               flag={flag}
                               rule={rule}
                               segments={segments}
