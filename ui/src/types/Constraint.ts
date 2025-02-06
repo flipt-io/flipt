@@ -1,4 +1,5 @@
 export interface IConstraint {
+  id?: string;
   property: string;
   type: ConstraintType;
   operator: string;

@@ -26,7 +26,7 @@ export default function SortableRule(props: SortableRuleProps) {
     transform,
     transition
   } = useSortable({
-    id: rule.id
+    id: rule.id!
   });
 
   const style = transform

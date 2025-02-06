@@ -1,6 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
+import { v4 as uuid } from 'uuid';
 
 import { IConstraint } from '~/types/Constraint';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
@@ -86,9 +87,9 @@ export const segmentsApi = createApi({
         return {
           ...response.resource.payload,
           constraints: response.resource.payload.constraints?.map(
-            (c: IConstraint, i: number) => ({
+            (c: IConstraint) => ({
               ...c,
-              rank: i
+              id: uuid()
             })
           )
         };

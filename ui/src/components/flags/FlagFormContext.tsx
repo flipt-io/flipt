@@ -2,7 +2,7 @@ import { FormikProps } from 'formik';
 import React, { ReactNode, createContext } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { IFlag, IFlagBase } from '~/types/Flag';
+import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
@@ -11,7 +11,7 @@ interface FlagFormContextProps {
   variants: IVariant[];
   rules: IRule[];
   rollouts: IRollout[];
-  updateFlag: (f: Partial<IFlagBase>) => void;
+  updateFlag: (f: Partial<IFlag>) => void;
   setRules: (rules: IRule[]) => void;
   createRule: (r: IRule) => void;
   updateRule: (r: IRule) => void;
@@ -57,7 +57,7 @@ export const FlagFormProvider: React.FC<FlagFormProviderProps> = ({
 }) => {
   const { rules, variants, rollouts } = formik.values;
 
-  const updateFlag = (f: Partial<IFlagBase>) => {
+  const updateFlag = (f: Partial<IFlag>) => {
     if ('name' in f) {
       formik.setFieldValue('name', f.name);
     }
@@ -104,14 +104,13 @@ export const FlagFormProvider: React.FC<FlagFormProviderProps> = ({
   };
 
   const createVariant = (v: IVariant) => {
-    v.id = uuid();
     const newVariants = [...(variants || []), v];
     formik.setFieldValue('variants', newVariants);
   };
 
   const updateVariant = (v: IVariant) => {
     const newVariants = [...(variants || [])];
-    const index = newVariants.findIndex((variant) => variant.id === v.id);
+    const index = newVariants.findIndex((variant) => variant.key === v.key);
     newVariants[index] = v;
     formik.setFieldValue('variants', newVariants);
   };
@@ -125,7 +124,7 @@ export const FlagFormProvider: React.FC<FlagFormProviderProps> = ({
     });
 
     const newVariants = [...(variants || [])];
-    const index = newVariants.findIndex((variant) => variant.id === v.id);
+    const index = newVariants.findIndex((variant) => variant.key === v.key);
     newVariants.splice(index, 1);
     formik.setFieldValue('variants', newVariants);
   };

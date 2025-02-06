@@ -20,7 +20,6 @@ import { eventKey, eventSlice } from './app/events/eventSlice';
 import { analyticsApi } from './app/flags/analyticsApi';
 import { flagsApi, flagsTableSlice } from './app/flags/flagsApi';
 import { rolloutsApi } from './app/flags/rolloutsApi';
-import { rulesApi } from './app/flags/rulesApi';
 import { metaSlice } from './app/meta/metaSlice';
 import {
   preferencesKey,
@@ -129,7 +128,6 @@ export const store = configureStore({
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
-    [rulesApi.reducerPath]: rulesApi.reducer,
     [rolloutsApi.reducerPath]: rolloutsApi.reducer,
     [tokensApi.reducerPath]: tokensApi.reducer,
     [authProvidersApi.reducerPath]: authProvidersApi.reducer,
@@ -143,7 +141,6 @@ export const store = configureStore({
         namespaceApi.middleware,
         flagsApi.middleware,
         segmentsApi.middleware,
-        rulesApi.middleware,
         rolloutsApi.middleware,
         tokensApi.middleware,
         authProvidersApi.middleware,
