@@ -128,16 +128,7 @@ func listFlagsIsUnauthorized(t *testing.T, ctx context.Context, client sdk.SDK, 
 func canReadAllIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
 	t.Run("CanReadAll", func(t *testing.T) {
 		clientCallSet{
-			can(GetNamespace(&flipt.GetNamespaceRequest{Key: namespace})),
-			can(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace})),
 			can(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-			can(CreateVariant(&flipt.CreateVariantRequest{NamespaceKey: namespace})),
-			can(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace})),
-			can(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace})),
-			can(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace})),
-			can(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace})),
-			can(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace})),
-			can(ListSegments(&flipt.ListSegmentRequest{NamespaceKey: namespace})),
 		}.assert(t, ctx, client)
 	})
 }
@@ -145,16 +136,7 @@ func canReadAllIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace s
 func cannotReadAnyIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
 	t.Run("CannotReadAny", func(t *testing.T) {
 		clientCallSet{
-			cannot(GetNamespace(&flipt.GetNamespaceRequest{Key: namespace})),
-			cannot(GetFlag(&flipt.GetFlagRequest{NamespaceKey: namespace})),
 			cannot(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-			cannot(CreateVariant(&flipt.CreateVariantRequest{NamespaceKey: namespace})),
-			cannot(GetRule(&flipt.GetRuleRequest{NamespaceKey: namespace})),
-			cannot(ListRules(&flipt.ListRuleRequest{NamespaceKey: namespace})),
-			cannot(GetRollout(&flipt.GetRolloutRequest{NamespaceKey: namespace})),
-			cannot(ListRollouts(&flipt.ListRolloutRequest{NamespaceKey: namespace})),
-			cannot(GetSegment(&flipt.GetSegmentRequest{NamespaceKey: namespace})),
-			cannot(ListSegments(&flipt.ListSegmentRequest{NamespaceKey: namespace})),
 		}.assert(t, ctx, client)
 	})
 }
@@ -177,79 +159,9 @@ func (s clientCallSet) assert(t *testing.T, ctx context.Context, client sdk.SDK)
 
 type clientCall func(*testing.T, context.Context, sdk.SDK) error
 
-func GetNamespace(in *flipt.GetNamespaceRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().GetNamespace(ctx, in)
-		return err
-	}
-}
-
-func ListNamespaces(in *flipt.ListNamespaceRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListNamespaces(ctx, in)
-		return err
-	}
-}
-
-func GetFlag(in *flipt.GetFlagRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().GetFlag(ctx, in)
-		return err
-	}
-}
-
 func ListFlags(in *flipt.ListFlagRequest) clientCall {
 	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
 		_, err := s.Flipt().ListFlags(ctx, in)
-		return err
-	}
-}
-
-func CreateVariant(in *flipt.CreateVariantRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().CreateVariant(ctx, in)
-		return err
-	}
-}
-
-func GetRule(in *flipt.GetRuleRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().GetRule(ctx, in)
-		return err
-	}
-}
-
-func ListRules(in *flipt.ListRuleRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListRules(ctx, in)
-		return err
-	}
-}
-
-func GetRollout(in *flipt.GetRolloutRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().GetRollout(ctx, in)
-		return err
-	}
-}
-
-func ListRollouts(in *flipt.ListRolloutRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListRollouts(ctx, in)
-		return err
-	}
-}
-
-func GetSegment(in *flipt.GetSegmentRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().GetSegment(ctx, in)
-		return err
-	}
-}
-
-func ListSegments(in *flipt.ListSegmentRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListSegments(ctx, in)
 		return err
 	}
 }

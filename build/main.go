@@ -32,13 +32,13 @@ type Flipt struct {
 }
 
 // Returns a container with all the assets compiled and ready for testing and distribution
-func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
+func (f *Flipt) Base(ctx context.Context, source *dagger.Directory, chatwootToken *dagger.Secret) (*dagger.Container, error) {
 	platform, err := dag.DefaultPlatform(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
+	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"), chatwootToken)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +48,40 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Con
 }
 
 // Return container with Flipt binaries in a thinner alpine distribution
-func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
-	base, err := f.Base(ctx, source)
+func (f *Flipt) Build(ctx context.Context, source *dagger.Directory, chatwootToken *dagger.Secret) (*dagger.Container, error) {
+	base, err := f.Base(ctx, source, chatwootToken)
 	if err != nil {
 		return nil, err
 	}
 
 	return internal.Package(ctx, dag, base)
+}
+
+// Publishes the flipt-private container image to a target repository
+func (f *Flipt) Publish(
+	ctx context.Context,
+	source *dagger.Directory,
+	password *dagger.Secret,
+	//+optional
+	//+default="ghcr.io"
+	registry string,
+	//+optional
+	//+default="flipt-io"
+	username string,
+	//+optional
+	//+default="flipt"
+	image string,
+	//+optional
+	chatwootToken *dagger.Secret,
+) (string, error) {
+	container, err := f.Build(ctx, source, chatwootToken)
+	if err != nil {
+		return "", err
+	}
+
+	return container.
+		WithRegistryAuth(registry, username, password).
+		Publish(ctx, fmt.Sprintf("%s/%s/%s", registry, username, image))
 }
 
 type Test struct {
@@ -67,7 +94,7 @@ type Test struct {
 // Execute test specific by subcommand
 // see all available subcommands with dagger call test --help
 func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, error) {
-	flipt, err := f.Build(ctx, source)
+	flipt, err := f.Build(ctx, source, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -76,28 +103,18 @@ func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, erro
 }
 
 // Run all ui tests
-func (t *Test) UI(ctx context.Context) error {
-	return testing.UI(ctx, dag, t.UIContainer, t.FliptContainer)
+func (t *Test) UI(
+	ctx context.Context,
+	//+optional
+	//+default=false
+	trace bool,
+) (*dagger.Container, error) {
+	return testing.UI(ctx, dag, t.BaseContainer, t.FliptContainer, t.Source.Directory("ui"), trace)
 }
 
 // Run all unit tests
 func (t *Test) Unit(ctx context.Context) (*dagger.File, error) {
 	return testing.Unit(ctx, dag, t.BaseContainer)
-}
-
-// Run all cli tests
-func (t *Test) CLI(ctx context.Context) error {
-	return testing.CLI(ctx, dag, t.Source, t.FliptContainer)
-}
-
-// Run all migration tests
-func (t *Test) Migration(ctx context.Context) error {
-	return testing.Migration(ctx, dag, t.BaseContainer, t.FliptContainer)
-}
-
-// Run all load tests
-func (t *Test) Load(ctx context.Context) error {
-	return testing.LoadTest(ctx, dag, t.BaseContainer, t.FliptContainer)
 }
 
 // Run all integration tests
