@@ -74,7 +74,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
-          version: "~> v2.6.0"
+          version: "~> v2.3.0"
           args: release --clean --nightly -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
@@ -143,7 +143,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser-pro
-          version: "~> v2.6.0"
+          version: "~> v2.3.0"
           args: release --nightly -f .goreleaser.nightly.yml
         env:
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
