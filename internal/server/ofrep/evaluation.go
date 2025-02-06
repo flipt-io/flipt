@@ -8,7 +8,7 @@ import (
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"google.golang.org/grpc/codes"
@@ -62,9 +62,9 @@ func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest)
 		keys = make([]string, 0, len(flags.Results))
 		for _, flag := range flags.Results {
 			switch flag.Type {
-			case flipt.FlagType_BOOLEAN_FLAG_TYPE:
+			case core.FlagType_BOOLEAN_FLAG_TYPE:
 				keys = append(keys, flag.Key)
-			case flipt.FlagType_VARIANT_FLAG_TYPE:
+			case core.FlagType_VARIANT_FLAG_TYPE:
 				if flag.Enabled {
 					keys = append(keys, flag.Key)
 				}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 
@@ -36,7 +36,7 @@ type Bridge interface {
 }
 
 type Storer interface {
-	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*flipt.Flag], error)
+	ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (storage.ResultSet[*core.Flag], error)
 }
 
 // Server servers the methods used by the OpenFeature Remote Evaluation Protocol.
