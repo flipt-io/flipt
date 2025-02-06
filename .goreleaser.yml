@@ -72,7 +72,13 @@ nightly:
   version_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
-  disable: true
+  use: github
+  ai:
+    use: openai
+    model: o1-mini
+    prompt:
+      from_file:
+        path: ./build/PROMPT.md
 
 dockers:
   - dockerfile: ./build/Dockerfile

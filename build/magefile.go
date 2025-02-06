@@ -31,7 +31,3 @@ func (r Release) Changelog(ctx context.Context, module, version string) error {
 func (r Release) Tag(ctx context.Context, module, version string) error {
 	return release.Tag(ctx, module, version)
 }
-
-func (r Release) Notes(ctx context.Context, version string) error {
-	return release.GenerateReleaseNotes(version)
-}
