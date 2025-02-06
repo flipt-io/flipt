@@ -3,7 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { SortingState } from '@tanstack/react-table';
 import { v4 as uuid } from 'uuid';
 
-import { IFlag, IFlagBase, IFlagList } from '~/types/Flag';
+import { IFlag, IFlagList } from '~/types/Flag';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
 import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
@@ -101,13 +101,6 @@ export const flagsApi = createApi({
               id: uuid(),
               rank: i
             })
-          ),
-          variants: response.resource.payload.variants?.map(
-            (v: IVariant, i: number) => ({
-              ...v,
-              id: uuid(),
-              rank: i
-            })
           )
         };
       }
@@ -118,7 +111,7 @@ export const flagsApi = createApi({
       {
         environmentKey: string;
         namespaceKey: string;
-        values: IFlagBase;
+        values: IFlag;
         revision?: string;
       }
     >({

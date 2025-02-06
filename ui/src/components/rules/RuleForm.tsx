@@ -11,9 +11,9 @@ import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
-import { DistributionType, IDistributionVariant } from '~/types/Distribution';
+import { DistributionType, IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
-import { IRuleBase } from '~/types/Rule';
+import { IRule } from '~/types/Rule';
 import {
   FilterableSegment,
   ISegment,
@@ -23,7 +23,6 @@ import {
 import { FilterableVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { truncateKey } from '~/utils/helpers';
 
@@ -49,7 +48,7 @@ export const distTypes = [
 ];
 
 const ruleValidationSchema = Yup.object({
-  segmentKeys: Yup.array()
+  segments: Yup.array()
     .of(
       Yup.object().shape({
         key: keyValidation
@@ -75,7 +74,7 @@ const computePercentages = (n: number): number[] => {
   return result;
 };
 
-const validRollout = (distributions: IDistributionVariant[]): boolean => {
+const validRollout = (distributions: IDistribution[]): boolean => {
   const sum = distributions.reduce(function (acc, d) {
     return acc + Number(d.rollout);
   }, 0);
@@ -86,7 +85,7 @@ const validRollout = (distributions: IDistributionVariant[]): boolean => {
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  saveRule: (rule: IRuleBase) => void;
+  saveRule: (rule: IRule) => void;
   flag: IFlag;
   rank: number;
   segments: ISegment[];
@@ -101,7 +100,6 @@ export default function RuleForm(props: RuleFormProps) {
   const { setOpen, onSuccess, flag, rank, segments, saveRule } = props;
 
   const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
@@ -115,7 +113,6 @@ export default function RuleForm(props: RuleFormProps) {
 
     return (
       flag.variants?.map((variant, i) => ({
-        variantId: variant.id,
         variant: variant.key,
         rollout: percentages[i]
       })) || null
@@ -153,7 +150,7 @@ export default function RuleForm(props: RuleFormProps) {
       );
     } else if (selectedVariant) {
       dist.push({
-        variant: selectedVariant.id,
+        variant: selectedVariant.key,
         rollout: 100
       });
     }
@@ -182,7 +179,6 @@ export default function RuleForm(props: RuleFormProps) {
           .then(() => {
             onSuccess();
             clearError();
-            setSuccess('Successfully created rule');
             setOpen(false);
           })
           .catch((err) => {
@@ -223,7 +219,7 @@ export default function RuleForm(props: RuleFormProps) {
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
                     <label
-                      htmlFor="segmentKey"
+                      htmlFor="segments"
                       className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Segment
@@ -231,7 +227,7 @@ export default function RuleForm(props: RuleFormProps) {
                   </div>
                   <div className="sm:col-span-2">
                     <FieldArray
-                      name="segmentKeys"
+                      name="segments"
                       render={(arrayHelpers) => (
                         <SegmentsPicker
                           segments={segments}
@@ -411,7 +407,7 @@ export default function RuleForm(props: RuleFormProps) {
                     )
                   }
                 >
-                  {formik.isSubmitting ? <Loading isPrimary /> : 'Create'}
+                  {formik.isSubmitting ? <Loading isPrimary /> : 'Add'}
                 </Button>
               </div>
             </div>

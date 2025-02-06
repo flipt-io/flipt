@@ -8,8 +8,11 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import * as Yup from 'yup';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
+import { useUpdateSegmentMutation } from '~/app/segments/segmentsApi';
+import { useGetSegmentQuery } from '~/app/segments/segmentsApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
@@ -38,9 +41,6 @@ import {
   jsonStringArrayValidation,
   requiredValidation
 } from '~/data/validations';
-import { useUpdateSegmentMutation } from '~/app/segments/segmentsApi';
-import { useGetSegmentQuery } from '~/app/segments/segmentsApi';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { getRevision } from '~/utils/helpers';
 
 const constraintComparisonTypes = () =>
@@ -275,14 +275,14 @@ const validationSchema = Yup.object({
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;
   segmentKey: string;
-  constraint?: IConstraint & { index: number };
+  constraint?: (IConstraint & { index: number }) | null;
   onSuccess: () => void;
 };
 
 const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setOpen, segmentKey, constraint, onSuccess } = props;
 
-  const isNew = constraint === undefined;
+  const isNew = constraint === null;
   const submitPhrase = isNew ? 'Create' : 'Update';
   const title = isNew ? 'New Constraint' : 'Edit Constraint';
 
@@ -325,14 +325,14 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     if (isNew) {
       s.constraints.push(values);
     } else {
-      s.constraints[constraint.index] = values;
+      s.constraints[constraint!.index] = values;
     }
     return updateSegment({
       environmentKey: environment.name,
       namespaceKey: namespace.key,
       segmentKey,
       values: s,
-      revision 
+      revision
     }).unwrap();
   };
 
@@ -482,6 +482,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     onChange={(e) => {
                       const noValue = NoValueOperators.includes(e.target.value);
                       setHasValue(!noValue);
+                      if (noValue) {
+                        formik.setFieldValue('value', '');
+                      }
                     }}
                   />
                 </div>

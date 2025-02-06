@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import {
   useCreateSegmentMutation,
@@ -15,13 +16,17 @@ import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Input from '~/components/forms/Input';
 
-import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
+import { ISegment, SegmentMatchType } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { cls, copyTextToClipboard, getRevision, stringAsKey } from '~/utils/helpers';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  cls,
+  copyTextToClipboard,
+  getRevision,
+  stringAsKey
+} from '~/utils/helpers';
 
 const segmentMatchTypes = [
   {
@@ -63,7 +68,7 @@ export default function SegmentForm(props: SegmentFormProps) {
   const [createSegment] = useCreateSegmentMutation();
   const [updateSegment] = useUpdateSegmentMutation();
 
-  const handleSubmit = (values: ISegmentBase) => {
+  const handleSubmit = (values: ISegment) => {
     if (isNew) {
       return createSegment({
         environmentKey: environment.name,
@@ -81,7 +86,7 @@ export default function SegmentForm(props: SegmentFormProps) {
     }).unwrap();
   };
 
-  const initialValues: ISegmentBase = {
+  const initialValues: ISegment = {
     key: segment?.key || '',
     name: segment?.name || '',
     description: segment?.description || '',

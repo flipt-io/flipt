@@ -76,12 +76,14 @@ export default function Segment() {
   let { segmentKey } = useParams();
 
   const [showConstraintForm, setShowConstraintForm] = useState<boolean>(false);
-  const [editingConstraint, setEditingConstraint] =
-    useState<IConstraint & { index: number } | null>(null);
+  const [editingConstraint, setEditingConstraint] = useState<
+    (IConstraint & { index: number }) | null
+  >(null);
   const [showDeleteConstraintModal, setShowDeleteConstraintModal] =
     useState<boolean>(false);
-  const [deletingConstraint, setDeletingConstraint] =
-    useState<IConstraint & { index: number } | null>(null);
+  const [deletingConstraint, setDeletingConstraint] = useState<
+    (IConstraint & { index: number }) | null
+  >(null);
   const [showDeleteSegmentModal, setShowDeleteSegmentModal] =
     useState<boolean>(false);
   const [showCopySegmentModal, setShowCopySegmentModal] =
@@ -136,7 +138,7 @@ export default function Segment() {
         <ConstraintForm
           ref={constraintFormRef}
           segmentKey={segment.key}
-          constraint={editingConstraint || undefined}
+          constraint={editingConstraint || null}
           setOpen={setShowConstraintForm}
           onSuccess={() => {
             clearError();
@@ -332,58 +334,66 @@ export default function Segment() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {segment.constraints.map((constraint) => (
-                  <tr key={constraint.id}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
-                      {constraint.property}
-                    </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                      {constraintTypeToLabel(constraint.type)}
-                    </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                      {ConstraintOperators[constraint.operator]}
-                    </td>
-                    <td className="hidden whitespace-normal px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                      <ConstraintValue constraint={constraint} />
-                    </td>
-                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                      {constraint.description}
-                    </td>
-                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                      <>
-                        <a
-                          href="#"
-                          className="pr-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setEditingConstraint(constraint);
-                            setShowConstraintForm(true);
-                          }}
-                        >
-                          Edit
-                          <span className="sr-only">
-                            , {constraint.property}
-                          </span>
-                        </a>
-                        <span aria-hidden="true"> | </span>
-                        <a
-                          href="#"
-                          className="pl-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDeletingConstraint(constraint);
-                            setShowDeleteConstraintModal(true);
-                          }}
-                        >
-                          Delete
-                          <span className="sr-only">
-                            , {constraint.property}
-                          </span>
-                        </a>
-                      </>
-                    </td>
-                  </tr>
-                ))}
+                {segment.constraints.map(
+                  (constraint: IConstraint, index: number) => (
+                    <tr key={index}>
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
+                        {constraint.property}
+                      </td>
+                      <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                        {constraintTypeToLabel(constraint.type)}
+                      </td>
+                      <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        {ConstraintOperators[constraint.operator]}
+                      </td>
+                      <td className="hidden whitespace-normal px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        <ConstraintValue constraint={constraint} />
+                      </td>
+                      <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        {constraint.description}
+                      </td>
+                      <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <>
+                          <a
+                            href="#"
+                            className="pr-2 text-violet-600 hover:text-violet-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setEditingConstraint({
+                                ...constraint,
+                                index
+                              });
+                              setShowConstraintForm(true);
+                            }}
+                          >
+                            Edit
+                            <span className="sr-only">
+                              , {constraint.property}
+                            </span>
+                          </a>
+                          <span aria-hidden="true"> | </span>
+                          <a
+                            href="#"
+                            className="pl-2 text-violet-600 hover:text-violet-900"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setDeletingConstraint({
+                                ...constraint,
+                                index
+                              });
+                              setShowDeleteConstraintModal(true);
+                            }}
+                          >
+                            Delete
+                            <span className="sr-only">
+                              , {constraint.property}
+                            </span>
+                          </a>
+                        </>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           ) : (

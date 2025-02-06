@@ -19,7 +19,6 @@ export function rolloutTypeToLabel(rolloutType: RolloutType): string {
 
 export interface IRolloutRuleSegment {
   segmentOperator?: SegmentOperatorType;
-  segmentKey?: string;
   segmentKeys?: string[];
   value: boolean;
 }

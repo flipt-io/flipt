@@ -55,7 +55,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         return {
           ...selected,
           displayValue: selected.name,
-          filterValue: selected.id
+          filterValue: selected.key
         };
       }
       return null;

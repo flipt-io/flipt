@@ -1,4 +1,4 @@
-version: "1.0" | "1.1" | "1.2" | "1.3" | *"1.4"
+version: "1.0" | "1.1" | "1.2" | "1.3" | "1.4" | *"1.5"
 
 close({
 	version:    version
@@ -20,11 +20,11 @@ close({
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
-	if version == "1.1" || version == "1.2" || version == "1.3" || version == "1.4" {
+	if version == "1.1" || version == "1.2" || version == "1.3" || version == "1.4" || version == "1.5" {
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		#FlagBoolean | *{}
 	}
-	if version == "1.3" || version == "1.4" {
+	if version == "1.3" || version == "1.4" || version == "1.5" {
 		metadata: [string]: (string | int | bool | float)
 	}
 }
@@ -42,7 +42,7 @@ close({
 	name?:        string & =~"^.+$"
 	description?: string
 	attachment: {...} | [...] | *null
-	if version == "1.3" || version == "1.4" {
+	if version == "1.3" || version == "1.4" || version == "1.5" {
 		default: bool | *false
 	}
 }

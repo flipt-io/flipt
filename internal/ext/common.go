@@ -9,8 +9,8 @@ import (
 
 var (
 	// LatestVersion is the current latest supported export format for flag state
-	LatestVersion = v2_0
-	v2_0          = semver.Version{Major: 2, Minor: 0}
+	LatestVersion = v1_5
+	v1_5          = semver.Version{Major: 1, Minor: 5}
 )
 
 type Document struct {
