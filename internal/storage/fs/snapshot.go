@@ -369,8 +369,10 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		evalRules := []*storage.EvaluationRule{}
 		for i, r := range f.Rules {
 			var (
-				rank     = int32(i + 1)
-				rule     = &core.Rule{}
+				rank = int32(i + 1)
+				rule = &core.Rule{
+					Segments: r.Segment.Keys,
+				}
 				evalRule = &storage.EvaluationRule{
 					ID:           uuid.NewString(),
 					NamespaceKey: namespaceKey,
@@ -384,17 +386,10 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				}
 			)
 
-			switch s := r.Segment.IsSegment.(type) {
-			case ext.SegmentKey:
-				rule.Segments = []string{string(s)}
-			case *ext.Segments:
-				rule.Segments = s.Keys
-
-				segmentOperator := core.SegmentOperator(core.SegmentOperator_value[s.SegmentOperator])
-				rule.SegmentOperator = segmentOperator
-				evalRule.SegmentOperator = segmentOperator
-				evalSnapRule.SegmentOperator = toEvaluationSegmentOperator(rule.SegmentOperator)
-			}
+			segmentOperator := core.SegmentOperator(core.SegmentOperator_value[r.Segment.Operator])
+			rule.SegmentOperator = segmentOperator
+			evalRule.SegmentOperator = segmentOperator
+			evalSnapRule.SegmentOperator = toEvaluationSegmentOperator(rule.SegmentOperator)
 
 			var (
 				segmentKeys = []string{}
@@ -520,9 +515,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 					segments    = make(map[string]*storage.EvaluationSegment)
 				)
 
-				if rollout.Segment.Key != "" {
-					segmentKeys = append(segmentKeys, rollout.Segment.Key)
-				} else if len(rollout.Segment.Keys) > 0 {
+				if len(rollout.Segment.Keys) > 0 {
 					segmentKeys = append(segmentKeys, rollout.Segment.Keys...)
 				}
 

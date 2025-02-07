@@ -28,7 +28,7 @@ export interface IFlagMetadata {
   isNew?: boolean;
 }
 
-export interface IFlagBase {
+export interface IFlag {
   key: string;
   type: FlagType;
   name: string;
@@ -36,9 +36,6 @@ export interface IFlagBase {
   description: string;
   defaultVariant?: string | null;
   metadata?: Record<string, any>;
-}
-
-export interface IFlag extends IFlagBase {
   variants?: IVariant[];
   rules?: IRule[];
   rollouts?: IRollout[];

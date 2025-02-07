@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20241230172942-26aa7a208def
-	google.golang.org/protobuf v1.36.2
+	google.golang.org/protobuf v1.36.4
 	sigs.k8s.io/yaml v1.4.0
 )
 

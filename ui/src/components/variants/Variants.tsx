@@ -8,15 +8,13 @@ import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import DeletePanel from '~/components/panels/DeletePanel';
 import VariantForm from '~/components/variants/VariantForm';
 
-import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
 
 type VariantsProps = {
-  flag: IFlag;
   variants: IVariant[];
 };
 
-export default function Variants({ flag, variants }: VariantsProps) {
+export default function Variants({ variants }: VariantsProps) {
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
   const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
   const [showDeleteVariantModal, setShowDeleteVariantModal] =
@@ -37,7 +35,6 @@ export default function Variants({ flag, variants }: VariantsProps) {
       >
         <VariantForm
           ref={variantFormRef}
-          flagKey={flag.key}
           variant={editingVariant}
           setOpen={setShowVariantForm}
           onSuccess={() => {

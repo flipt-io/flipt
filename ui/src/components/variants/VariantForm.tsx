@@ -11,7 +11,7 @@ import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import Input from '~/components/forms/Input';
 import { JsonTextArea } from '~/components/forms/JsonTextArea';
 
-import { IVariant, IVariantBase } from '~/types/Variant';
+import { IVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 import { keyWithDotValidation } from '~/data/validations';
@@ -22,34 +22,33 @@ const variantValidationSchema = Yup.object({
 
 type VariantFormProps = {
   setOpen: (open: boolean) => void;
-  flagKey: string;
   variant?: IVariant | null;
   onSuccess: () => void;
 };
 
 const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
-  const { setOpen, flagKey, variant, onSuccess } = props;
+  const { setOpen, variant, onSuccess } = props;
 
-  const isNew = variant === undefined;
+  const isNew = variant === null;
   const title = isNew ? 'New Variant' : 'Edit Variant';
-  const submitPhrase = isNew ? 'Create' : 'Done';
+  const submitPhrase = isNew ? 'Add' : 'Done';
 
   const { setError, clearError } = useError();
 
   const { updateVariant, createVariant } = useContext(FlagFormContext);
 
-  const handleSubmit = async (values: IVariantBase) => {
+  const handleSubmit = async (values: IVariant) => {
     if (isNew) {
-      createVariant(values as IVariant);
+      createVariant(values);
       return;
     }
-    updateVariant(values as IVariant);
+    updateVariant(values);
   };
 
   return (
     <Formik
       validateOnChange
-      validate={(values: IVariantBase) => {
+      validate={(values: IVariant) => {
         !isNew && handleSubmit(values);
       }}
       initialValues={{
