@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/sortable';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { v4 as uuid } from 'uuid';
 
@@ -37,11 +37,7 @@ import SortableRule from '~/components/rules/SortableRule';
 
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
-import {
-  FilterableVariant,
-  IVariant,
-  toFilterableVariant
-} from '~/types/Variant';
+import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 
@@ -137,6 +133,8 @@ export default function Rules({ flag, rules }: RulesProps) {
 
   const { clearError } = useError();
 
+  const ruleFormRef = useRef(null);
+
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -158,7 +156,7 @@ export default function Rules({ flag, rules }: RulesProps) {
     })
   );
 
-  const { setRules, deleteRule } = useContext(FlagFormContext);
+  const { setRules, deleteRule, createRule } = useContext(FlagFormContext);
 
   // disabling eslint due to this being a third-party event type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -221,16 +219,17 @@ export default function Rules({ flag, rules }: RulesProps) {
       </Modal>
 
       {/* rule create form */}
-      <Slideover open={showRuleForm} setOpen={setShowRuleForm}>
+      <Slideover
+        open={showRuleForm}
+        setOpen={setShowRuleForm}
+        ref={ruleFormRef}
+      >
         <RuleForm
           flag={flag}
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
-          saveRule={(rule: IRule) => {
-            const id = uuid();
-            setRules([...rules, { id, ...rule }]);
-          }}
+          createRule={createRule}
           onSuccess={() => {
             setShowRuleForm(false);
           }}
@@ -281,7 +280,6 @@ export default function Rules({ flag, rules }: RulesProps) {
                         className="flex-col space-y-6 p-2 md:flex"
                       >
                         {rules &&
-                          rules.length > 0 &&
                           rules.map((rule) => (
                             <SortableRule
                               key={rule.id}
@@ -310,10 +308,7 @@ export default function Rules({ flag, rules }: RulesProps) {
                   </DndContext>
                 )}
                 {showDefaultVariant && (
-                  <DefaultVariant
-                    flag={flag}
-                    rules={rules}
-                  />
+                  <DefaultVariant flag={flag} rules={rules} />
                 )}
               </div>
             </div>

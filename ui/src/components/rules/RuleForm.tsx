@@ -47,7 +47,7 @@ export const distTypes = [
   }
 ];
 
-const ruleValidationSchema = Yup.object({
+const validationSchema = Yup.object({
   segments: Yup.array()
     .of(
       Yup.object().shape({
@@ -85,7 +85,7 @@ const validRollout = (distributions: IDistribution[]): boolean => {
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  saveRule: (rule: IRule) => void;
+  createRule: (rule: IRule) => void;
   flag: IFlag;
   rank: number;
   segments: ISegment[];
@@ -97,7 +97,7 @@ interface Segment {
 }
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, onSuccess, flag, rank, segments, saveRule } = props;
+  const { setOpen, onSuccess, flag, rank, segments, createRule } = props;
 
   const { setError, clearError } = useError();
 
@@ -154,7 +154,7 @@ export default function RuleForm(props: RuleFormProps) {
         rollout: 100
       });
     }
-    return saveRule({
+    return createRule({
       segments: values.segments.map((s) => s.key),
       rank: rank,
       segmentOperator: values.operator,
@@ -173,7 +173,7 @@ export default function RuleForm(props: RuleFormProps) {
         segments: initialSegmentKeys,
         operator: SegmentOperatorType.OR
       }}
-      validationSchema={ruleValidationSchema}
+      validationSchema={validationSchema}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
