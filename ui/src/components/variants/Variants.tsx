@@ -70,7 +70,7 @@ export default function Variants({ variants }: VariantsProps) {
       </Modal>
 
       {/* variants */}
-      <div className="mt-2">
+      <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <p className="mt-1 text-sm text-gray-500">

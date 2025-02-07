@@ -16,7 +16,7 @@ import { IVariant } from '~/types/Variant';
 import { useError } from '~/data/hooks/error';
 import { keyWithDotValidation } from '~/data/validations';
 
-const variantValidationSchema = Yup.object({
+const validationSchema = Yup.object({
   key: keyWithDotValidation
 });
 
@@ -70,7 +70,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
             setSubmitting(false);
           });
       }}
-      validationSchema={variantValidationSchema}
+      validationSchema={validationSchema}
     >
       {(formik) => (
         <Form className="flex h-full flex-col overflow-y-scroll bg-background shadow-xl">

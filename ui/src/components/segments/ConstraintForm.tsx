@@ -3,16 +3,12 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { addMinutes, format, formatISO, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import * as Yup from 'yup';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { selectTimezone } from '~/app/preferences/preferencesSlice';
-import { useUpdateSegmentMutation } from '~/app/segments/segmentsApi';
-import { useGetSegmentQuery } from '~/app/segments/segmentsApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
@@ -35,13 +31,13 @@ import {
 import { Timezone } from '~/types/Preferences';
 
 import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
 import {
   jsonNumberArrayValidation,
   jsonStringArrayValidation,
   requiredValidation
 } from '~/data/validations';
-import { getRevision } from '~/utils/helpers';
+
+import { SegmentFormContext } from './SegmentFormContext';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ConstraintType) as Array<keyof typeof ConstraintType>).map(
@@ -274,66 +270,31 @@ const validationSchema = Yup.object({
 
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;
-  segmentKey: string;
   constraint?: (IConstraint & { index: number }) | null;
   onSuccess: () => void;
 };
 
 const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
-  const { setOpen, segmentKey, constraint, onSuccess } = props;
+  const { setOpen, constraint, onSuccess } = props;
 
   const isNew = constraint === null;
-  const submitPhrase = isNew ? 'Create' : 'Update';
+  const submitPhrase = isNew ? 'Add' : 'Done';
   const title = isNew ? 'New Constraint' : 'Edit Constraint';
 
   const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
 
   const [hasValue, setHasValue] = useState(
     !NoValueOperators.includes(constraint?.operator || 'eq')
   );
 
-  const environment = useSelector(selectCurrentEnvironment);
-  const namespace = useSelector(selectCurrentNamespace);
+  const { updateConstraint, createConstraint } = useContext(SegmentFormContext);
 
-  const { data: segment } = useGetSegmentQuery({
-    environmentKey: environment.name,
-    namespaceKey: namespace.key,
-    segmentKey: segmentKey
-  });
-
-  const revision = getRevision();
-
-  const [updateSegment] = useUpdateSegmentMutation();
-
-  const initialValues = {
-    property: constraint?.property || '',
-    type: constraint?.type || ConstraintType.STRING,
-    operator: constraint?.operator || 'eq',
-    value: constraint?.value || '',
-    description: constraint?.description || ''
-  };
-
-  const handleSubmit = (values: IConstraint) => {
-    if (!segment) {
-      return Promise.reject();
-    }
-    let s = {
-      ...segment,
-      constraints: [...segment.constraints!]
-    };
+  const handleSubmit = async (values: IConstraint) => {
     if (isNew) {
-      s.constraints.push(values);
-    } else {
-      s.constraints[constraint!.index] = values;
+      createConstraint(values);
+      return;
     }
-    return updateSegment({
-      environmentKey: environment.name,
-      namespaceKey: namespace.key,
-      segmentKey,
-      values: s,
-      revision
-    }).unwrap();
+    updateConstraint(values);
   };
 
   const getValuePlaceholder = (type: ConstraintType, operator: string) => {
@@ -358,15 +319,22 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
   return (
     <Formik
-      initialValues={initialValues}
-      enableReinitialize={true}
+      validateOnChange
+      validate={(values: IConstraint) => {
+        !isNew && handleSubmit(values);
+      }}
+      initialValues={{
+        id: constraint?.id || '',
+        property: constraint?.property || '',
+        type: constraint?.type || ConstraintType.STRING,
+        operator: constraint?.operator || 'eq',
+        value: constraint?.value || '',
+        description: constraint?.description || ''
+      }}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
             clearError();
-            setSuccess(
-              `Successfully ${submitPhrase.toLocaleLowerCase()}d constraint`
-            );
             onSuccess();
           })
           .catch((err) => {
