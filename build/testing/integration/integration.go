@@ -20,6 +20,9 @@ import (
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
+	sdkv2 "go.flipt.io/flipt/sdk/go/v2"
+	sdkv2grpc "go.flipt.io/flipt/sdk/go/v2/grpc"
+	sdkv2http "go.flipt.io/flipt/sdk/go/v2/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -46,10 +49,6 @@ const (
 type NamespaceExpectation struct {
 	Key      string
 	Expected string
-}
-
-func (n NamespaceExpectation) String() string {
-	return n.Expected
 }
 
 type NamespaceExpectations []NamespaceExpectation
@@ -112,7 +111,7 @@ func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
 	return sdk.New(o.newTransport(t))
 }
 
-func (o TestOpts) bootstrapClient(t *testing.T) sdk.SDK {
+func (o TestOpts) BootstrapClient(t *testing.T) sdk.SDK {
 	t.Helper()
 
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
@@ -148,26 +147,9 @@ func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
 	t.Helper()
 
-	var copts ClientOpts
-	for _, opt := range opts {
-		opt(&copts)
-	}
-
-	metadata := map[string]string{}
-	if copts.Role != "" {
-		metadata["io.flipt.auth.role"] = copts.Role
-	}
-
-	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
-		Name:         t.Name(),
-		NamespaceKey: copts.Namespace,
-		Metadata:     metadata,
-	})
-
-	require.NoError(t, err)
-
 	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", resp.ClientToken))
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", o.Token))
+		r.Header.Set("X-Forwarded-Host", o.URL.Host)
 		return http.DefaultTransport.RoundTrip(r)
 	})
 
@@ -175,6 +157,10 @@ func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
 }
 
 func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	return sdk.New(o.newTransport(t), TokenAuth(t, o.BootstrapClient(t).Auth(), opts...))
+}
+
+func TokenAuth(t *testing.T, client *sdk.Auth, opts ...ClientOpt) sdk.Option {
 	t.Helper()
 
 	var copts ClientOpts
@@ -187,19 +173,24 @@ func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 		metadata["io.flipt.auth.role"] = copts.Role
 	}
 
-	resp, err := o.bootstrapClient(t).Auth().AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
+	resp, err := client.AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
 		Name:         t.Name(),
 		NamespaceKey: copts.Namespace,
 		Metadata:     metadata,
 	})
 	require.NoError(t, err)
 
-	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+	return sdk.WithAuthenticationProvider(
 		sdk.StaticTokenAuthenticationProvider(resp.ClientToken),
-	))
+	)
 }
 
 func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	transport := o.newTransport(t)
+	return sdk.New(transport, K8sAuth(t, transport, opts...))
+}
+
+func K8sAuth(t *testing.T, transport sdk.Transport, opts ...ClientOpt) sdk.Option {
 	t.Helper()
 
 	var copts ClientOpts
@@ -233,14 +224,16 @@ func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 
 	tokenPath := fmt.Sprintf("/var/run/secrets/kubernetes.io/serviceaccount/%s.token", saName)
 	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
-
-	transport := o.newTransport(t)
-	return sdk.New(transport, sdk.WithAuthenticationProvider(
+	return sdk.WithAuthenticationProvider(
 		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(tokenPath)),
-	))
+	)
 }
 
 func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	return sdk.New(o.newTransport(t), JWTAuth(t, opts...))
+}
+
+func JWTAuth(t *testing.T, opts ...ClientOpt) sdk.Option {
 	t.Helper()
 
 	var copts ClientOpts
@@ -262,9 +255,15 @@ func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 		claims["io.flipt.auth.namespace"] = copts.Namespace
 	}
 
-	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+	return sdk.WithAuthenticationProvider(
 		sdk.JWTAuthenticationProvider(signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)),
-	))
+	)
+}
+
+func (o TestOpts) EnvironmentClient(t *testing.T, opts ...sdkv2.Option) *sdkv2.Environments {
+	t.Helper()
+
+	return sdkv2.New(o.newTransportV2(t), opts...).Environments()
 }
 
 func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]any) string {
@@ -293,10 +292,7 @@ func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]a
 func (o TestOpts) newTransport(t *testing.T) (transport sdk.Transport) {
 	switch o.Protocol() {
 	case ProtocolGRPC:
-		conn, err := grpc.NewClient(o.URL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		require.NoError(t, err)
-
-		transport = sdkgrpc.NewTransport(conn)
+		transport = sdkgrpc.NewTransport(o.newGRPCClient(t))
 	case ProtocolHTTP, ProtocolHTTPS:
 		transport = sdkhttp.NewTransport(o.URL.String())
 	default:
@@ -304,4 +300,26 @@ func (o TestOpts) newTransport(t *testing.T) (transport sdk.Transport) {
 	}
 
 	return
+}
+
+func (o TestOpts) newTransportV2(t *testing.T) (transport sdkv2.Transport) {
+	switch o.Protocol() {
+	case ProtocolGRPC:
+		transport = sdkv2grpc.NewTransport(o.newGRPCClient(t))
+	case ProtocolHTTP, ProtocolHTTPS:
+		transport = sdkv2http.NewTransport(o.URL.String())
+	default:
+		t.Fatalf("Unexpected flipt address protocol %s", o.URL)
+	}
+
+	return
+}
+
+func (o TestOpts) newGRPCClient(t *testing.T) *grpc.ClientConn {
+	conn, err := grpc.NewClient(o.URL.Host,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	require.NoError(t, err)
+
+	return conn
 }

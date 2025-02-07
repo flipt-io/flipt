@@ -6,7 +6,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/containerd/platforms"
+	"github.com/containerd/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
 	"golang.org/x/mod/modfile"
 )
@@ -73,8 +73,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	project := source.
 		WithoutDirectory("./.build/").
 		WithoutDirectory("./ui/").
-		WithoutDirectory("./bin/").
-		WithoutDirectory("./.git/")
+		WithoutDirectory("./bin/")
 
 	golang = golang.WithEnvVariable("CGO_ENABLED", "1").
 		WithMountedDirectory(".", project)
@@ -86,9 +85,15 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		source.File("./ui/index.dev.html"),
 	})
 
-	// TODO(georgemac): wire in commit and version ldflags
+	gitCommit, err := golang.WithExec([]string{"git", "rev-parse", "HEAD"}).Stdout(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting git commit: %w", err)
+	}
+
+	// TODO(georgemac): wire in version ldflag
+	// TODO(mark): does version make sense now?
 	var (
-		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s", time.Now().UTC().Format(time.RFC3339))
+		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
 		path       = path.Join("/bin", platforms.Format(platform))
 		goBuildCmd = fmt.Sprintf(
 			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
