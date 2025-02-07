@@ -17,9 +17,11 @@ import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
+import Rollouts from '~/components/rollouts/Rollouts';
+import Variants from '~/components/variants/Variants';
 
 import { IDistribution } from '~/types/Distribution';
-import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
+import { FlagType, IFlag } from '~/types/Flag';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -31,8 +33,6 @@ import {
   stringAsKey
 } from '~/utils/helpers';
 
-import Rollouts from '../rollouts/Rollouts';
-import Variants from '../variants/Variants';
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';

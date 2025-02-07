@@ -55,7 +55,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         return {
           ...selected,
           displayValue: selected.name,
-          filterValue: selected.id
+          filterValue: selected.key
         };
       }
       return null;
@@ -64,7 +64,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   const ruleSegmentKeys = rule.segments || [];
 
   const ruleSegments = ruleSegmentKeys.map((s) => {
-    const segment = props.segments.find((seg) => seg.key === s);
+    const segment = segments.find((seg) => seg.key === s);
     if (!segment) {
       throw new Error(`Segment ${s} not found in segments`);
     }
@@ -86,7 +86,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
             <div>
               <label
-                htmlFor="segmentKeys"
+                htmlFor={fieldPrefix + 'segments'}
                 className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
               >
                 Segment
@@ -200,7 +200,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
             flag.variants &&
             flag.variants.length > 0 && (
               <SingleDistributionFormInput
-                id={`quick-variant-${rule.rank}`}
+                id={fieldPrefix + 'distributions.[0].variant'}
                 variants={flag.variants}
                 selectedVariant={selectedVariant}
                 setSelectedVariant={setSelectedVariant}

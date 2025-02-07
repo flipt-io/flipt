@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 import { IConstraint } from '~/types/Constraint';
 import { IResourceListResponse, IResourceResponse } from '~/types/Resource';
-import { ISegment, ISegmentBase, ISegmentList } from '~/types/Segment';
+import { ISegment, ISegmentList } from '~/types/Segment';
 
 import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
@@ -87,10 +87,9 @@ export const segmentsApi = createApi({
         return {
           ...response.resource.payload,
           constraints: response.resource.payload.constraints?.map(
-            (c: IConstraint, i: number) => ({
+            (c: IConstraint) => ({
               ...c,
-              id: uuid(),
-              rank: i
+              id: uuid()
             })
           )
         };
@@ -102,7 +101,7 @@ export const segmentsApi = createApi({
       {
         environmentKey: string;
         namespaceKey: string;
-        values: ISegmentBase;
+        values: ISegment;
         revision?: string;
       }
     >({
@@ -167,7 +166,7 @@ export const segmentsApi = createApi({
         environmentKey: string;
         namespaceKey: string;
         segmentKey: string;
-        values: ISegmentBase;
+        values: ISegment;
         revision: string;
       }
     >({

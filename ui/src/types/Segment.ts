@@ -2,16 +2,11 @@ import { IConstraint } from './Constraint';
 import { IPageable } from './Pageable';
 import { IFilterable } from './Selectable';
 
-export interface ISegmentBase {
+export interface ISegment {
   key: string;
   name: string;
   description: string;
   matchType: SegmentMatchType;
-}
-
-export interface ISegment extends ISegmentBase {
-  createdAt: string;
-  updatedAt: string;
   constraints?: IConstraint[];
 }
 

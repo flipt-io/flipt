@@ -278,14 +278,9 @@ func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
 	}
 
 	for _, rule := range flag.Rules {
-		r := &core.Rule{}
-
-		switch s := rule.Segment.IsSegment.(type) {
-		case ext.SegmentKey:
-			r.Segments = []string{string(s)}
-		case *ext.Segments:
-			r.SegmentOperator = core.SegmentOperator(core.SegmentOperator_value[s.SegmentOperator])
-			r.Segments = s.Keys
+		r := &core.Rule{
+			Segments:        rule.Segment.Keys,
+			SegmentOperator: core.SegmentOperator(core.SegmentOperator_value[rule.Segment.Operator]),
 		}
 
 		for _, dist := range rule.Distributions {
@@ -308,11 +303,7 @@ func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
 				segmentKeys = []string{}
 			)
 
-			// TODO: we should really come up with a better way to handle this so we don't have to do this
-			// everywhere
-			if rollout.Segment.Key != "" {
-				segmentKeys = append(segmentKeys, rollout.Segment.Key)
-			} else if len(rollout.Segment.Keys) > 0 {
+			if len(rollout.Segment.Keys) > 0 {
 				segmentKeys = append(segmentKeys, rollout.Segment.Keys...)
 			}
 
@@ -377,11 +368,9 @@ func resourceToFlag(r *rpcenvironments.Resource) (*ext.Flag, error) {
 
 	for _, rule := range f.Rules {
 		r := &ext.Rule{
-			Segment: &ext.SegmentEmbed{
-				IsSegment: &ext.Segments{
-					Keys:            rule.Segments,
-					SegmentOperator: rule.SegmentOperator.String(),
-				},
+			Segment: &ext.SegmentRule{
+				Keys:     rule.Segments,
+				Operator: rule.SegmentOperator.String(),
 			},
 		}
 

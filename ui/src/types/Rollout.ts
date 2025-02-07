@@ -19,7 +19,6 @@ export function rolloutTypeToLabel(rolloutType: RolloutType): string {
 
 export interface IRolloutRuleSegment {
   segmentOperator?: SegmentOperatorType;
-  segmentKey?: string;
   segmentKeys?: string[];
   value: boolean;
 }
@@ -39,8 +38,6 @@ export interface IRolloutBase {
 
 export interface IRollout extends IRolloutBase {
   id: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface IRolloutList extends IPageable {

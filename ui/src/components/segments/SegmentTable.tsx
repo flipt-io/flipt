@@ -1,6 +1,5 @@
 import {
   PaginationState,
-  Row,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
@@ -8,7 +7,6 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,6 +22,7 @@ import { DataTablePagination } from '~/components/ui/table-pagination';
 import { TableSkeleton } from '~/components/ui/table-skeleton';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 
+import { IEnvironment } from '~/types/Environment';
 import { INamespaceBase } from '~/types/Namespace';
 import {
   ISegment,
@@ -32,15 +31,14 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { useTimezone } from '~/data/hooks/timezone';
 import { cls } from '~/utils/helpers';
 
 type SegmentTableProps = {
+  environment: IEnvironment;
   namespace: INamespaceBase;
 };
 
 function SegmentDetails({ item }: { item: ISegment }) {
-  const { inTimezone } = useTimezone();
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1">
@@ -51,20 +49,6 @@ function SegmentDetails({ item }: { item: ISegment }) {
         )}
         Matches {segmentMatchTypeToLabel(item.matchType)}
       </span>
-      <span className="hidden sm:block">•</span>
-      <time className="hidden sm:block" title={inTimezone(item.createdAt)}>
-        Created{' '}
-        {formatDistanceToNowStrict(parseISO(item.createdAt), {
-          addSuffix: true
-        })}
-      </time>
-      <span>•</span>
-      <time title={inTimezone(item.updatedAt)}>
-        Updated{' '}
-        {formatDistanceToNowStrict(parseISO(item.updatedAt), {
-          addSuffix: true
-        })}
-      </time>
     </div>
   );
 }
@@ -88,42 +72,16 @@ const columns = [
     header: 'Description',
     enableSorting: false,
     cell: (info) => info.getValue()
-  }),
-  columnHelper.accessor((row) => row.createdAt, {
-    header: 'Created',
-    id: 'createdAt',
-    sortingFn: (
-      rowA: Row<ISegment>,
-      rowB: Row<ISegment>,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _columnId: string
-    ): number =>
-      new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
-        ? 1
-        : -1
-  }),
-  columnHelper.accessor((row) => row.updatedAt, {
-    header: 'Updated',
-    id: 'updatedAt',
-    sortingFn: (
-      rowA: Row<ISegment>,
-      rowB: Row<ISegment>,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _columnId: string
-    ): number =>
-      new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
-        ? 1
-        : -1
   })
 ];
 
 export default function SegmentTable(props: SegmentTableProps) {
-  const { namespace } = props;
+  const { environment, namespace } = props;
 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const path = `/namespaces/${namespace.key}/segments`;
-  const navigate = useNavigate();
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -133,8 +91,20 @@ export default function SegmentTable(props: SegmentTableProps) {
   const [filter, setFilter] = useState<string>('');
 
   const sorting = useSelector(selectSorting);
-  const { data, isLoading, error } = useListSegmentsQuery(namespace.key);
+
+  const { data, isLoading, error } = useListSegmentsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
   const segments = useMemo(() => data?.segments || [], [data]);
+
+  const { setError } = useError();
+  useEffect(() => {
+    if (error) {
+      setError(error);
+    }
+  }, [error, setError]);
+
   const table = useReactTable({
     data: segments,
     columns,
@@ -156,13 +126,6 @@ export default function SegmentTable(props: SegmentTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel()
   });
-
-  const { setError } = useError();
-  useEffect(() => {
-    if (error) {
-      setError(error);
-    }
-  }, [error, setError]);
 
   if (isLoading) {
     return <TableSkeleton />;

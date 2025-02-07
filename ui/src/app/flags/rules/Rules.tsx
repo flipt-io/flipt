@@ -36,7 +36,7 @@ import SingleDistributionFormInput from '~/components/rules/SingleDistributionFo
 import SortableRule from '~/components/rules/SortableRule';
 
 import { IFlag } from '~/types/Flag';
-import { IRule, IRuleBase } from '~/types/Rule';
+import { IRule } from '~/types/Rule';
 import {
   FilterableVariant,
   IVariant,
@@ -228,9 +228,9 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
-          saveRule={(rule: IRuleBase) => {
+          saveRule={(rule: IRule) => {
             const id = uuid();
-            setRules([...rules, { id: id, ...rule }]);
+            setRules([...rules, { id, ...rule }]);
           }}
           onSuccess={() => {
             setShowRuleForm(false);
@@ -274,7 +274,7 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                     onDragEnd={onDragEnd}
                   >
                     <SortableContext
-                      items={rules.map((rule) => rule.id)}
+                      items={rules.map((rule) => rule.id!)}
                       strategy={verticalListSortingStrategy}
                     >
                       <ul

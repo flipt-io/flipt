@@ -9,8 +9,8 @@ import (
 
 var (
 	// LatestVersion is the current latest supported export format for flag state
-	LatestVersion = v1_4
-	v1_4          = semver.Version{Major: 1, Minor: 4}
+	LatestVersion = v1_5
+	v1_5          = semver.Version{Major: 1, Minor: 5}
 )
 
 type Document struct {
@@ -42,7 +42,7 @@ type Variant struct {
 }
 
 type Rule struct {
-	Segment       *SegmentEmbed   `yaml:"segment,omitempty" json:"segment,omitempty"`
+	Segment       *SegmentRule    `yaml:"segment,omitempty" json:"segment,omitempty"`
 	Rank          uint            `yaml:"rank,omitempty" json:"rank,omitempty"`
 	Distributions []*Distribution `yaml:"distributions,omitempty" json:"distributions,omitempty"`
 }
@@ -59,7 +59,6 @@ type Rollout struct {
 }
 
 type SegmentRule struct {
-	Key      string   `yaml:"key,omitempty" json:"key,omitempty"`
 	Keys     []string `yaml:"keys,omitempty" json:"keys,omitempty"`
 	Operator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
 	Value    bool     `yaml:"value,omitempty" json:"value,omitempty"`
@@ -85,99 +84,6 @@ type Constraint struct {
 	Value       string `yaml:"value,omitempty" json:"value,omitempty"`
 	Description string `yaml:"description,omitempty" json:"description,omitempty"`
 }
-
-type SegmentEmbed struct {
-	IsSegment `yaml:"-"`
-}
-
-// MarshalYAML tries to type assert to either of the following types that implement
-// IsSegment, and returns the marshaled value.
-func (s *SegmentEmbed) MarshalYAML() (interface{}, error) {
-	switch t := s.IsSegment.(type) {
-	case SegmentKey:
-		return string(t), nil
-	case *Segments:
-		sk := &Segments{
-			Keys:            t.Keys,
-			SegmentOperator: t.SegmentOperator,
-		}
-		return sk, nil
-	}
-
-	return nil, errors.New("failed to marshal to string or segmentKeys")
-}
-
-// UnmarshalYAML attempts to unmarshal a string or `SegmentKeys`, and fails if it can not
-// do so.
-func (s *SegmentEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var sk SegmentKey
-
-	if err := unmarshal(&sk); err == nil {
-		s.IsSegment = sk
-		return nil
-	}
-
-	var sks *Segments
-	if err := unmarshal(&sks); err == nil {
-		s.IsSegment = sks
-		return nil
-	}
-
-	return errors.New("failed to unmarshal to string or segmentKeys")
-}
-
-// MarshalJSON tries to type assert to either of the following types that implement
-// IsSegment, and returns the marshaled value.
-func (s *SegmentEmbed) MarshalJSON() ([]byte, error) {
-	switch t := s.IsSegment.(type) {
-	case SegmentKey:
-		return json.Marshal(string(t))
-	case *Segments:
-		sk := &Segments{
-			Keys:            t.Keys,
-			SegmentOperator: t.SegmentOperator,
-		}
-		return json.Marshal(sk)
-	}
-
-	return nil, errors.New("failed to marshal to string or segmentKeys")
-}
-
-// UnmarshalJSON attempts to unmarshal a string or `SegmentKeys`, and fails if it can not
-// do so.
-func (s *SegmentEmbed) UnmarshalJSON(v []byte) error {
-	var sk SegmentKey
-
-	if err := json.Unmarshal(v, &sk); err == nil {
-		s.IsSegment = sk
-		return nil
-	}
-
-	var sks *Segments
-	if err := json.Unmarshal(v, &sks); err == nil {
-		s.IsSegment = sks
-		return nil
-	}
-
-	return errors.New("failed to unmarshal to string or segmentKeys")
-}
-
-// IsSegment is used to unify the two types of segments that can come in
-// from the import.
-type IsSegment interface {
-	IsSegment()
-}
-
-type SegmentKey string
-
-func (s SegmentKey) IsSegment() {}
-
-type Segments struct {
-	Keys            []string `yaml:"keys,omitempty" json:"keys,omitempty"`
-	SegmentOperator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
-}
-
-func (s *Segments) IsSegment() {}
 
 // IsNamespace is used to unify the two types of namespaces that can come in
 // from the import.

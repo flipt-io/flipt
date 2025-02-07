@@ -1,15 +1,10 @@
-export interface IConstraintBase {
+export interface IConstraint {
+  id?: string;
   property: string;
   type: ConstraintType;
   operator: string;
   value?: string;
   description?: string;
-}
-
-export interface IConstraint extends IConstraintBase {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export enum ConstraintType {
