@@ -438,7 +438,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         <Rollouts flag={flag} rollouts={rollouts!} />
                       )} */}
                     {selectedTab == 'rules' && (
-                      <Rules flag={flag} rules={rules!} variants={variants!} />
+                      <Rules flag={flag} rules={rules!} />
                     )}
                   </>
                 )}

@@ -48,7 +48,6 @@ import { useError } from '~/data/hooks/error';
 type RulesProps = {
   flag: IFlag;
   rules: IRule[];
-  variants: IVariant[];
 };
 
 export function DefaultVariant(props: RulesProps) {
@@ -127,7 +126,7 @@ export function DefaultVariant(props: RulesProps) {
   );
 }
 
-export default function Rules({ flag, rules, variants }: RulesProps) {
+export default function Rules({ flag, rules }: RulesProps) {
   const [activeRule, setActiveRule] = useState<IRule | null>(null);
   const [deletingRule, setDeletingRule] = useState<IRule | null>(null);
 
@@ -289,7 +288,6 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                               flag={flag}
                               rule={rule}
                               segments={segments}
-                              variants={variants}
                               onDelete={() => {
                                 setActiveRule(null);
                                 setDeletingRule(rule);
@@ -306,7 +304,6 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                           flag={flag}
                           rule={activeRule}
                           segments={segments}
-                          variants={variants}
                         />
                       ) : null}
                     </DragOverlay>
@@ -316,7 +313,6 @@ export default function Rules({ flag, rules, variants }: RulesProps) {
                   <DefaultVariant
                     flag={flag}
                     rules={rules}
-                    variants={variants}
                   />
                 )}
               </div>
