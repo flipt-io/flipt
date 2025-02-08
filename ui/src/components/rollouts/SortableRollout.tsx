@@ -25,7 +25,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
     transform,
     transition
   } = useSortable({
-    id: rollout.id
+    id: rollout.id!
   });
 
   const style = transform

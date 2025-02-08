@@ -1,11 +1,6 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-
-import { useCreateRolloutMutation } from '~/app/flags/rolloutsApi';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
@@ -14,7 +9,7 @@ import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
 
-import { RolloutType } from '~/types/Rollout';
+import { IRollout, RolloutType } from '~/types/Rollout';
 import {
   FilterableSegment,
   ISegment,
@@ -23,7 +18,7 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
+import { cls } from '~/utils/helpers';
 
 const rolloutRuleTypes = [
   {
@@ -38,76 +33,92 @@ const rolloutRuleTypes = [
   }
 ];
 
-type RolloutFormProps = {
+type EditRolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  flagKey: string;
+  updateRollout: (rollout: IRollout) => void;
+  rollout: IRollout;
   segments: ISegment[];
-  rank: number;
 };
 
 interface RolloutFormValues {
-  type: string;
-  description?: string;
-  segmentKeys?: FilterableSegment[];
+  description: string;
   operator?: SegmentOperatorType;
   percentage?: number;
+  segmentKeys?: FilterableSegment[];
   value: string;
 }
 
-export default function RolloutForm(props: RolloutFormProps) {
-  const { setOpen, onSuccess, flagKey, segments, rank } = props;
+export default function EditRolloutForm(props: EditRolloutFormProps) {
+  const { setOpen, onSuccess, rollout, segments, updateRollout } = props;
 
   const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(selectCurrentNamespace);
+  const segmentOperator =
+    rollout.segment && rollout.segment.segmentOperator
+      ? rollout.segment.segmentOperator
+      : SegmentOperatorType.OR;
 
-  const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
-  const [createRollout] = useCreateRolloutMutation();
   const handleSegmentSubmit = (values: RolloutFormValues) => {
-    return createRollout({
-      namespaceKey: namespace.key,
-      flagKey,
-      values: {
-        rank,
-        type: rolloutRuleType,
-        description: values.description,
-        segment: {
-          segmentKeys: values.segmentKeys?.map((s) => s.key),
-          segmentOperator: values.operator,
-          value: values.value === 'true'
-        }
+    let rolloutSegment = rollout;
+    rolloutSegment.threshold = undefined;
+
+    updateRollout({
+      ...rolloutSegment,
+      description: values.description,
+      segment: {
+        segments: values.segmentKeys?.map((s) => s.key),
+        segmentOperator: values.operator,
+        value: values.value === 'true'
       }
-    }).unwrap();
+    });
+
+    return Promise.resolve();
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
-    return createRollout({
-      namespaceKey: namespace.key,
-      flagKey,
-      values: {
-        rank,
-        type: rolloutRuleType,
-        description: values.description,
-        threshold: {
-          percentage: values.percentage || 0,
-          value: values.value === 'true'
-        }
+    let rolloutThreshold = rollout;
+    rolloutThreshold.segment = undefined;
+
+    updateRollout({
+      ...rolloutThreshold,
+      description: values.description,
+      threshold: {
+        percentage: values.percentage || 0,
+        value: values.value === 'true'
       }
-    }).unwrap();
+    });
+
+    return Promise.resolve();
   };
+
+  const initialValue =
+    rollout.type === RolloutType.THRESHOLD
+      ? rollout.threshold?.value
+        ? 'true'
+        : 'false'
+      : rollout.segment?.value
+        ? 'true'
+        : 'false';
 
   return (
     <Formik
       enableReinitialize
       initialValues={{
-        type: rolloutRuleType,
-        description: '',
-        segmentKeys: [],
-        operator: SegmentOperatorType.OR,
-        percentage: 50, // TODO: make this 0?
-        value: 'true'
+        type: rollout.type,
+        description: rollout.description || '',
+        segmentKeys: segments.flatMap((s) =>
+          rollout.segment?.segments?.includes(s.key)
+            ? {
+                ...s,
+                displayValue: s.name,
+                filterValue: s.key
+              }
+            : []
+        ),
+        operator: segmentOperator,
+        percentage: rollout.threshold?.percentage,
+        value: initialValue
       }}
       validate={(values) => {
         if (values.type === RolloutType.SEGMENT) {
@@ -117,7 +128,10 @@ export default function RolloutForm(props: RolloutFormProps) {
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
-          if (values.percentage < 0 || values.percentage > 100) {
+          if (
+            values.percentage &&
+            (values.percentage < 0 || values.percentage > 100)
+          ) {
             return {
               percentage: true
             };
@@ -127,9 +141,9 @@ export default function RolloutForm(props: RolloutFormProps) {
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
-        if (rolloutRuleType === RolloutType.SEGMENT) {
+        if (rollout.type === RolloutType.SEGMENT) {
           handleSubmit = handleSegmentSubmit;
-        } else if (rolloutRuleType === RolloutType.THRESHOLD) {
+        } else if (rollout.type === RolloutType.THRESHOLD) {
           handleSubmit = handleThresholdSubmit;
         }
 
@@ -137,7 +151,6 @@ export default function RolloutForm(props: RolloutFormProps) {
           .then(() => {
             onSuccess();
             clearError();
-            setSuccess('Successfully created rollout');
             setOpen(false);
           })
           .catch((err) => {
@@ -155,7 +168,7 @@ export default function RolloutForm(props: RolloutFormProps) {
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
                   <Dialog.Title className="text-lg font-medium text-gray-900">
-                    New Rollout
+                    Edit Rollout
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#rollouts">
                     Learn more about rollouts
@@ -199,11 +212,8 @@ export default function RolloutForm(props: RolloutFormProps) {
                               name="type"
                               type="radio"
                               className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                              onChange={() => {
-                                setRolloutRuleType(rolloutRule.id);
-                                formik.setFieldValue('type', rolloutRule.id);
-                              }}
-                              checked={rolloutRule.id === rolloutRuleType}
+                              disabled={true}
+                              checked={rolloutRule.id === rollout.type}
                               value={rolloutRule.id}
                             />
                           </div>
@@ -227,7 +237,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                   </fieldset>
                 </div>
               </div>
-              {rolloutRuleType === RolloutType.THRESHOLD && (
+              {rollout.type === RolloutType.THRESHOLD && (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <label
                     htmlFor="percentage"
@@ -256,89 +266,77 @@ export default function RolloutForm(props: RolloutFormProps) {
                   </div>
                 </div>
               )}
-              {rolloutRuleType === RolloutType.SEGMENT && (
+              {rollout.type === RolloutType.SEGMENT && (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
                     <label
-                      htmlFor="segmentKey"
+                      htmlFor="segmentKeys"
                       className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <FieldArray
-                      name="segmentKeys"
-                      render={(arrayHelpers) => (
-                        <SegmentsPicker
-                          segments={segments}
-                          segmentAdd={(segment: FilterableSegment) =>
-                            arrayHelpers.push(segment)
-                          }
-                          segmentRemove={(index: number) =>
-                            arrayHelpers.remove(index)
-                          }
-                          segmentReplace={(
-                            index: number,
-                            segment: FilterableSegment
-                          ) => arrayHelpers.replace(index, segment)}
-                          selectedSegments={formik.values.segmentKeys}
-                        />
-                      )}
-                    />
-                  </div>
-                  {formik.values.segmentKeys.length > 1 && (
-                    <>
-                      <div>
-                        <label
-                          htmlFor="operator"
-                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                        >
-                          Operator
-                        </label>
-                      </div>
-                      <div>
-                        <div className="sm:col-span-2">
-                          <div className="w-48 space-y-4">
-                            {segmentOperators.map((segmentOperator, index) => (
-                              <div className="flex space-x-4" key={index}>
-                                <div>
-                                  <input
-                                    id={segmentOperator.id}
-                                    name="operator"
-                                    type="radio"
-                                    className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                    onChange={() => {
-                                      formik.setFieldValue(
-                                        'operator',
-                                        segmentOperator.id
-                                      );
-                                    }}
-                                    checked={
-                                      segmentOperator.id ===
-                                      formik.values.operator
-                                    }
-                                    value={segmentOperator.id}
-                                  />
-                                </div>
-                                <div className="mt-1">
-                                  <label
-                                    htmlFor={segmentOperator.id}
-                                    className="block text-sm text-gray-700"
-                                  >
-                                    {segmentOperator.name}{' '}
-                                    <span className="font-light">
-                                      {segmentOperator.meta}
-                                    </span>
-                                  </label>
-                                </div>
-                              </div>
-                            ))}
+                    <div>
+                      <FieldArray
+                        name="segmentKeys"
+                        render={(arrayHelpers) => (
+                          <SegmentsPicker
+                            segments={segments}
+                            segmentAdd={(segment: FilterableSegment) =>
+                              arrayHelpers.push(segment)
+                            }
+                            segmentRemove={(index: number) =>
+                              arrayHelpers.remove(index)
+                            }
+                            segmentReplace={(
+                              index: number,
+                              segment: FilterableSegment
+                            ) => arrayHelpers.replace(index, segment)}
+                            selectedSegments={formik.values.segmentKeys}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="mt-6 flex space-x-8">
+                      {formik.values.segmentKeys.length > 1 &&
+                        segmentOperators.map((segmentOperator, index) => (
+                          <div className="flex space-x-2" key={index}>
+                            <div>
+                              <input
+                                id={segmentOperator.id}
+                                name="operator"
+                                type="radio"
+                                className={cls(
+                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400'
+                                )}
+                                onChange={() => {
+                                  formik.setFieldValue(
+                                    'operator',
+                                    segmentOperator.id
+                                  );
+                                }}
+                                checked={
+                                  segmentOperator.id === formik.values.operator
+                                }
+                                value={segmentOperator.id}
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor={segmentOperator.id}
+                                className="block text-sm text-gray-700"
+                              >
+                                {segmentOperator.name}{' '}
+                                <span className="font-light">
+                                  {segmentOperator.meta}
+                                </span>
+                              </label>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                        ))}
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
@@ -351,6 +349,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                 <Select
                   id="value"
                   name="value"
+                  value={formik.values.value}
                   options={[
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
@@ -388,7 +387,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                 className="min-w-[80px]"
                 disabled={!formik.isValid || formik.isSubmitting}
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : 'Create'}
+                {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
               </Button>
             </div>
           </div>

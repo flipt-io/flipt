@@ -8,7 +8,7 @@ import { IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
-import { FilterableVariant, IVariant } from '~/types/Variant';
+import { FilterableVariant } from '~/types/Variant';
 
 import { cls } from '~/utils/helpers';
 
@@ -19,7 +19,6 @@ type QuickEditRuleFormProps = {
   flag: IFlag;
   rule: IRule;
   segments: ISegment[];
-  variants: IVariant[];
   onSuccess?: () => void;
 };
 
@@ -32,7 +31,7 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 };
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
-  const { flag, rule, segments, variants } = props;
+  const { flag, rule, segments } = props;
 
   const ruleType =
     rule.distributions.length === 0
@@ -48,7 +47,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       if (rule.distributions.length !== 1) {
         return null;
       }
-      let selected = variants.find(
+      let selected = flag.variants?.find(
         (v) => v.key === rule.distributions[0].variant
       );
       if (selected) {

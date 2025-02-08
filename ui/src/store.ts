@@ -6,28 +6,27 @@ import {
 
 import { authProvidersApi } from '~/app/auth/authApi';
 import {
+  environmentKey,
+  environmentsApi,
+  environmentsSlice
+} from '~/app/environments/environmentsApi';
+import { eventKey, eventSlice } from '~/app/events/eventSlice';
+import { analyticsApi } from '~/app/flags/analyticsApi';
+import { flagsApi, flagsTableSlice } from '~/app/flags/flagsApi';
+import { metaSlice } from '~/app/meta/metaSlice';
+import {
   namespaceApi,
   namespaceKey,
   namespacesSlice
 } from '~/app/namespaces/namespacesApi';
-
-import {
-  environmentKey,
-  environmentsApi,
-  environmentsSlice
-} from './app/environments/environmentsApi';
-import { eventKey, eventSlice } from './app/events/eventSlice';
-import { analyticsApi } from './app/flags/analyticsApi';
-import { flagsApi, flagsTableSlice } from './app/flags/flagsApi';
-import { rolloutsApi } from './app/flags/rolloutsApi';
-import { metaSlice } from './app/meta/metaSlice';
 import {
   preferencesKey,
   preferencesSlice
-} from './app/preferences/preferencesSlice';
-import { segmentsApi, segmentsTableSlice } from './app/segments/segmentsApi';
-import { tokensApi } from './app/tokens/tokensApi';
-import { LoadingStatus } from './types/Meta';
+} from '~/app/preferences/preferencesSlice';
+import { segmentsApi, segmentsTableSlice } from '~/app/segments/segmentsApi';
+import { tokensApi } from '~/app/tokens/tokensApi';
+
+import { LoadingStatus } from '~/types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
 
@@ -128,7 +127,6 @@ export const store = configureStore({
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
-    [rolloutsApi.reducerPath]: rolloutsApi.reducer,
     [tokensApi.reducerPath]: tokensApi.reducer,
     [authProvidersApi.reducerPath]: authProvidersApi.reducer,
     [analyticsApi.reducerPath]: analyticsApi.reducer
@@ -141,7 +139,6 @@ export const store = configureStore({
         namespaceApi.middleware,
         flagsApi.middleware,
         segmentsApi.middleware,
-        rolloutsApi.middleware,
         tokensApi.middleware,
         authProvidersApi.middleware,
         analyticsApi.middleware

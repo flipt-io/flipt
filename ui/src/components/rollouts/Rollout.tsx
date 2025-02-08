@@ -8,7 +8,7 @@ import { ISegment } from '~/types/Segment';
 
 import { cls } from '~/utils/helpers';
 
-import QuickEditRolloutForm from './forms/QuickEditRolloutForm';
+import QuickEditRolloutForm from './QuickEditRolloutForm';
 
 type RolloutProps = {
   flag: IFlag;
