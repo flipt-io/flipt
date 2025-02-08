@@ -19,7 +19,7 @@ export function rolloutTypeToLabel(rolloutType: RolloutType): string {
 
 export interface IRolloutRuleSegment {
   segmentOperator?: SegmentOperatorType;
-  segmentKeys?: string[];
+  segments?: string[];
   value: boolean;
 }
 
@@ -28,16 +28,13 @@ export interface IRolloutRuleThreshold {
   value: boolean;
 }
 
-export interface IRolloutBase {
+export interface IRollout {
+  id?: string;
   type: RolloutType;
   rank: number;
   description?: string;
   threshold?: IRolloutRuleThreshold;
   segment?: IRolloutRuleSegment;
-}
-
-export interface IRollout extends IRolloutBase {
-  id: string;
 }
 
 export interface IRolloutList extends IPageable {

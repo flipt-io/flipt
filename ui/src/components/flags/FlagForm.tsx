@@ -432,13 +432,13 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       </div>
                     </div>
                     {selectedTab == 'variants' && (
-                      <Variants flag={flag} variants={variants!} />
+                      <Variants variants={variants!} />
                     )}
-                    {/* {selectedTab == 'rollouts' && (
-                        <Rollouts flag={flag} rollouts={rollouts!} />
-                      )} */}
+                    {selectedTab == 'rollouts' && (
+                      <Rollouts flag={flag} rollouts={rollouts!} />
+                    )}
                     {selectedTab == 'rules' && (
-                      <Rules flag={flag} rules={rules!} variants={variants!} />
+                      <Rules flag={flag} rules={rules!} />
                     )}
                   </>
                 )}

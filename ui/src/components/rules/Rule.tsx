@@ -5,7 +5,6 @@ import Dropdown from '~/components/Dropdown';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { ISegment } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
 
 import { cls } from '~/utils/helpers';
 
@@ -15,7 +14,6 @@ type RuleProps = {
   flag: IFlag;
   rule: IRule;
   segments: ISegment[];
-  variants: IVariant[];
   onSuccess?: () => void;
   onDelete?: () => void;
   style?: React.CSSProperties;
@@ -28,7 +26,6 @@ const Rule = forwardRef(
       flag,
       rule,
       segments,
-      variants,
       onSuccess,
       onDelete,
       style,
@@ -85,7 +82,6 @@ const Rule = forwardRef(
             flag={flag}
             rule={rule}
             segments={segments}
-            variants={variants}
             onSuccess={onSuccess}
           />
         </div>

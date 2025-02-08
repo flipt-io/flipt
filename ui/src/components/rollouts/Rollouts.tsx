@@ -14,16 +14,11 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { StarIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
-import { useMemo, useRef, useState } from 'react';
+import { useFormikContext } from 'formik';
+import { useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
-import {
-  useDeleteRolloutMutation,
-  useListRolloutsQuery,
-  useOrderRolloutsMutation
-} from '~/app/flags/rolloutsApi';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
@@ -33,152 +28,103 @@ import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Select from '~/components/forms/Select';
 import DeletePanel from '~/components/panels/DeletePanel';
+import EditRolloutForm from '~/components/rollouts/EditRolloutForm';
 import Rollout from '~/components/rollouts/Rollout';
+import RolloutForm from '~/components/rollouts/RolloutForm';
 import SortableRollout from '~/components/rollouts/SortableRollout';
-import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
-import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 
 import { IFlag } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
 import { cls } from '~/utils/helpers';
+
+import { FlagFormContext } from '../flags/FlagFormContext';
 
 type RolloutsProps = {
   flag: IFlag;
+  rollouts?: IRollout[];
 };
 
-interface DefaultRolloutFormValues {
-  defaultValue: string;
-}
-
-export function DefaultRollout(props: RolloutsProps) {
-  const { flag } = props;
-
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
-
-  const namespace = useSelector(selectCurrentNamespace) as INamespace;
-
-  const [updateFlag] = useUpdateFlagMutation();
-
-  const handleSubmit = async (values: DefaultRolloutFormValues) => {
-    await updateFlag({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      values: {
-        ...flag,
-        enabled: values.defaultValue === 'true'
-      }
-    });
-  };
+export function DefaultRollout() {
+  const formik = useFormikContext<IFlag>();
 
   return (
-    <Formik
-      enableReinitialize
-      initialValues={{
-        defaultValue: flag.enabled ? 'true' : 'false'
-      }}
-      onSubmit={(values: DefaultRolloutFormValues, { setSubmitting }) => {
-        handleSubmit(values)
-          .then(() => {
-            clearError();
-            setSuccess('Successfully updated default rollout');
-          })
-          .catch((err) => {
-            setError(err);
-          })
-          .finally(() => {
-            setSubmitting(false);
-          });
-      }}
-    >
-      {(formik) => {
-        return (
-          <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
-                <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                  <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                  <h3 className="text-sm font-normal leading-6 text-gray-700">
-                    Default Rollout
-                  </h3>
-                  <span className="hidden h-4 w-4 justify-end sm:flex" />
+    <div className="flex flex-col p-2">
+      <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+        <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+          <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+            <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
+            <h3 className="text-sm font-normal leading-6 text-gray-700">
+              Default Rollout
+            </h3>
+            <span className="hidden h-4 w-4 justify-end sm:flex" />
+          </div>
+        </div>
+
+        <div className="flex grow flex-col items-center justify-center sm:ml-2">
+          <p className="text-center text-sm font-light text-gray-600">
+            This is the default value that will be returned if no other rules
+            match. It is directly tied to the flag enabled state.
+          </p>
+        </div>
+
+        <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+          <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+            <div className="flex w-full flex-col overflow-y-scroll bg-background">
+              {' '}
+              <div className="w-full flex-1">
+                <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
+                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+                    <div>
+                      <label
+                        htmlFor="defaultValue"
+                        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      >
+                        Value
+                      </label>
+                    </div>
+                    <div>
+                      <Select
+                        id="defaultValue"
+                        name="defaultValue"
+                        value={formik.values.enabled ? 'true' : 'false'}
+                        onChange={(e) => {
+                          formik.setFieldValue(
+                            'enabled',
+                            e.target.value === 'true'
+                          );
+                        }}
+                        options={[
+                          { label: 'True', value: 'true' },
+                          { label: 'False', value: 'false' }
+                        ]}
+                        className={cls(
+                          'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle'
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                <p className="text-center text-sm font-light text-gray-600">
-                  This is the default value that will be returned if no other
-                  rules match. It is directly tied to the flag enabled state.
-                </p>
-              </div>
-
-              <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-                <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col">
-                    <div className="w-full flex-1">
-                      <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                        <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
-                          <div>
-                            <label
-                              htmlFor="defaultValue"
-                              className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                            >
-                              Value
-                            </label>
-                          </div>
-                          <div>
-                            <Select
-                              id="defaultValue"
-                              name="defaultValue"
-                              value={formik.values.defaultValue}
-                              options={[
-                                { label: 'True', value: 'true' },
-                                { label: 'False', value: 'false' }
-                              ]}
-                              className={cls(
-                                'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle'
-                              )}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 py-1">
-                      <div className="flex justify-end space-x-2">
-                        <TextButton
-                          disabled={formik.isSubmitting}
-                          onClick={() => {
-                            formik.resetForm();
-                          }}
-                        >
-                          Reset
-                        </TextButton>
-                        <TextButton
-                          type="submit"
-                          className="min-w-[80px]"
-                          disabled={!formik.isValid || formik.isSubmitting}
-                        >
-                          {formik.isSubmitting ? (
-                            <Loading isPrimary />
-                          ) : (
-                            'Update'
-                          )}
-                        </TextButton>
-                      </div>
-                    </div>
-                  </Form>
+              <div className="flex-shrink-0 py-1">
+                <div className="flex justify-end space-x-2">
+                  <TextButton
+                    disabled={formik.isSubmitting}
+                    onClick={() => {
+                      formik.resetForm();
+                    }}
+                  >
+                    Reset
+                  </TextButton>
                 </div>
               </div>
             </div>
           </div>
-        );
-      }}
-    </Formik>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -186,7 +132,6 @@ export default function Rollouts(props: RolloutsProps) {
   const { flag } = props;
 
   const [activeRollout, setActiveRollout] = useState<IRollout | null>(null);
-
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
 
   const [showEditRolloutForm, setShowEditRolloutForm] =
@@ -197,41 +142,31 @@ export default function Rollouts(props: RolloutsProps) {
     useState<boolean>(false);
   const [deletingRollout, setDeletingRollout] = useState<IRollout | null>(null);
 
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
+  const { clearError } = useError();
 
   const rolloutFormRef = useRef(null);
 
-  const namespace = useSelector(selectCurrentNamespace) as INamespace;
-  const segmentsList = useListSegmentsQuery(namespace.key);
+  const environment = useSelector(selectCurrentEnvironment);
+  const namespace = useSelector(selectCurrentNamespace);
+
+  const segmentsList = useListSegmentsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
   const segments = useMemo(
     () => segmentsList.data?.segments || [],
     [segmentsList]
   );
 
-  const [deleteRollout] = useDeleteRolloutMutation();
-
-  const rolloutsList = useListRolloutsQuery({
-    namespaceKey: namespace.key,
-    flagKey: flag.key
-  });
-  const rolloutsRules = useMemo(
-    () => rolloutsList.data?.rules || [],
-    [rolloutsList]
-  );
+  const { setRollouts, createRollout, updateRollout, deleteRollout } =
+    useContext(FlagFormContext);
 
   const rollouts = useMemo(() => {
-    // Combine both segmentKey and segmentKeys for legacy purposes.
-    return rolloutsRules.map((rollout) => {
+    return props.rollouts!.map((rollout) => {
       if (rollout.segment) {
         let segmentKeys: string[] = [];
-        if (
-          rollout.segment.segmentKeys &&
-          rollout.segment.segmentKeys.length > 0
-        ) {
-          segmentKeys = rollout.segment.segmentKeys;
-        } else if (rollout.segment.segmentKey) {
-          segmentKeys = [rollout.segment.segmentKey];
+        if (rollout.segment.segments && rollout.segment.segments.length > 0) {
+          segmentKeys = rollout.segment.segments;
         }
 
         return {
@@ -249,7 +184,7 @@ export default function Rollouts(props: RolloutsProps) {
         ...rollout
       };
     });
-  }, [rolloutsRules]);
+  }, [props.rollouts]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -257,23 +192,6 @@ export default function Rollouts(props: RolloutsProps) {
       coordinateGetter: sortableKeyboardCoordinates
     })
   );
-
-  const [orderRollouts] = useOrderRolloutsMutation();
-
-  const reorderRollouts = (rollouts: IRollout[]) => {
-    orderRollouts({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      rolloutIds: rollouts.map((rollout) => rollout.id)
-    })
-      .then(() => {
-        clearError();
-        setSuccess('Successfully reordered rollouts');
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  };
 
   // disabling eslint due to this being a third-party event type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -292,7 +210,7 @@ export default function Rollouts(props: RolloutsProps) {
         return arrayMove(rollouts, oldIndex, newIndex);
       })(rollouts);
 
-      reorderRollouts(reordered);
+      setRollouts(reordered);
     }
 
     setActiveRollout(null);
@@ -307,6 +225,10 @@ export default function Rollouts(props: RolloutsProps) {
       setActiveRollout(rollout);
     }
   };
+
+  if (segmentsList.isLoading) {
+    return <Loading />;
+  }
 
   return (
     <>
@@ -325,13 +247,13 @@ export default function Rollouts(props: RolloutsProps) {
           }
           panelType="Rollout"
           setOpen={setShowDeleteRolloutModal}
-          handleDelete={() =>
-            deleteRollout({
-              namespaceKey: namespace.key,
-              flagKey: flag.key,
-              rolloutId: deletingRollout?.id ?? ''
-            }).unwrap()
-          }
+          handleDelete={() => {
+            if (!deletingRollout) {
+              return Promise.resolve();
+            }
+            deleteRollout(deletingRollout);
+            return Promise.resolve();
+          }}
         />
       </Modal>
 
@@ -342,10 +264,10 @@ export default function Rollouts(props: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          flagKey={flag.key}
-          rank={rollouts.length + 1}
+          rank={(rollouts?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRolloutForm}
+          createRollout={createRollout}
           onSuccess={() => {
             setShowRolloutForm(false);
           }}
@@ -360,10 +282,10 @@ export default function Rollouts(props: RolloutsProps) {
           ref={rolloutFormRef}
         >
           <EditRolloutForm
-            flagKey={flag.key}
             segments={segments}
             rollout={editingRollout}
             setOpen={setShowEditRolloutForm}
+            updateRollout={updateRollout}
             onSuccess={() => {
               setShowEditRolloutForm(false);
             }}
@@ -408,26 +330,29 @@ export default function Rollouts(props: RolloutsProps) {
                   onDragEnd={onDragEnd}
                 >
                   <SortableContext
-                    items={rollouts.map((rollout) => rollout.id)}
+                    items={rollouts.map((rollout) => rollout.id!)}
                     strategy={verticalListSortingStrategy}
                   >
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
-                      {rollouts.map((rollout) => (
-                        <SortableRollout
-                          key={`${rollout.id}-${rollout.updatedAt}`}
-                          flag={flag}
-                          rollout={rollout}
-                          segments={segments}
-                          onEdit={() => {
-                            setEditingRollout(rollout);
-                            setShowEditRolloutForm(true);
-                          }}
-                          onDelete={() => {
-                            setDeletingRollout(rollout);
-                            setShowDeleteRolloutModal(true);
-                          }}
-                        />
-                      ))}
+                      {rollouts &&
+                        rollouts.map((rollout) => (
+                          <SortableRollout
+                            key={rollout.id}
+                            flag={flag}
+                            rollout={rollout}
+                            segments={segments}
+                            onEdit={() => {
+                              setEditingRollout(rollout);
+                              setShowEditRolloutForm(true);
+                            }}
+                            onDelete={() => {
+                              setActiveRollout(null);
+                              setDeletingRollout(rollout);
+                              setShowDeleteRolloutModal(true);
+                            }}
+                            onSuccess={clearError}
+                          />
+                        ))}
                     </ul>
                   </SortableContext>
                   <DragOverlay>
@@ -441,7 +366,7 @@ export default function Rollouts(props: RolloutsProps) {
                   </DragOverlay>
                 </DndContext>
               )}
-              <DefaultRollout flag={flag} />
+              <DefaultRollout />
             </div>
           </div>
         </div>
