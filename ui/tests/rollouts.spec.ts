@@ -17,7 +17,7 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
   });
 
-  test('has default rollout', async ({ page }) => {
+  test('can update default rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await expect(
       page.getByRole('heading', { name: 'Default Rollout' })
@@ -51,11 +51,7 @@ test.describe('Rollouts', () => {
   test('can quick edit rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('list').getByLabel('Percentage').first().fill('70');
-    await page
-      .getByRole('list')
-      .getByRole('button', { name: 'Update' })
-      .first()
-      .click();
+    await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
@@ -82,20 +78,33 @@ test.describe('Rollouts', () => {
     ).toBeHidden();
   });
 
-  test('can create segment with rollout', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-boolean' }).click();
-    await page.getByRole('button', { name: 'New Rollout' }).click();
-    await page.getByLabel('New Rollout').getByLabel('Segment').check();
-    await page
-      .getByLabel('New Rollout')
-      .locator('#segmentKey-0-select-button')
-      .click();
-    await page.getByLabel('New Rollout').getByText('Test Rule').click();
-    await page
-      .getByLabel('New Rollout')
-      .getByRole('button', { name: 'Done' })
-      .click();
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+  test('can create segment rollout', async ({ page }) => {
+    await test.step('create segment', async () => {
+      await page.getByRole('link', { name: 'Segments' }).click();
+      await page.getByRole('button', { name: 'New Segment' }).click();
+      await page.getByLabel('Name').fill('Test Rollout');
+      await page.getByLabel('Description').click();
+      await page.getByRole('button', { name: 'Create' }).click();
+    });
+
+    await test.step('create rollout', async () => {
+      await page.reload();
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('link', { name: 'test-boolean' }).click();
+      await page.getByRole('button', { name: 'New Rollout' }).click();
+      await page.getByLabel('New Rollout').getByLabel('Segment').check();
+
+      await page
+        .getByLabel('New Rollout')
+        .locator('#segmentKey-0-select-button')
+        .click();
+      await page.getByLabel('New Rollout').getByText('Test Rollout').click();
+      await page
+        .getByLabel('New Rollout')
+        .getByRole('button', { name: 'Add' })
+        .click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    });
   });
 });

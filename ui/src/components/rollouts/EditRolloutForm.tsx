@@ -387,7 +387,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 className="min-w-[80px]"
                 disabled={!formik.isValid || formik.isSubmitting}
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
+                {formik.isSubmitting ? <Loading isPrimary /> : 'Done'}
               </Button>
             </div>
           </div>

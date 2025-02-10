@@ -373,7 +373,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                 className="min-w-[80px]"
                 disabled={!formik.isValid || formik.isSubmitting}
               >
-                {formik.isSubmitting ? <Loading isPrimary /> : 'Create'}
+                {formik.isSubmitting ? <Loading isPrimary /> : 'Add'}
               </Button>
             </div>
           </div>
