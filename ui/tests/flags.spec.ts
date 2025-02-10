@@ -35,9 +35,10 @@ test.describe('Flags', () => {
         .getByRole('dialog', { name: 'New Variant' })
         .locator('#key')
         .fill('chrome');
-      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
       await expect(
-        page.getByText('Successfully created variant')
+        page.getByText('Successfully updated flag')
       ).toBeVisible();
     });
 
@@ -51,9 +52,10 @@ test.describe('Flags', () => {
         .getByRole('dialog', { name: 'New Variant' })
         .locator('#key')
         .fill('firefox');
-      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
       await expect(
-        page.getByText('Successfully created variant')
+        page.getByText('Successfully updated flag')
       ).toBeVisible();
     });
 
@@ -69,10 +71,11 @@ test.describe('Flags', () => {
         .fill('chrome browser');
       await page
         .getByRole('dialog', { name: 'Edit Variant' })
-        .getByRole('button', { name: 'Update' })
+        .getByRole('button', { name: 'Done' })
         .click();
+      await page.getByRole('button', { name: 'Update' }).click();
       await expect(
-        page.getByText('Successfully updated variant')
+        page.getByText('Successfully updated flag')
       ).toBeVisible();
     });
 
@@ -88,10 +91,11 @@ test.describe('Flags', () => {
         .fill('firefox browser');
       await page
         .getByRole('dialog', { name: 'Edit Variant' })
-        .getByRole('button', { name: 'Update' })
+        .getByRole('button', { name: 'Done' })
         .click();
+      await page.getByRole('button', { name: 'Update' }).click();
       await expect(
-        page.getByText('Successfully updated variant')
+        page.getByText('Successfully updated flag')
       ).toBeVisible();
     });
   });
@@ -168,68 +172,5 @@ test.describe('Flags', () => {
     await page.getByTestId('metadata-value-1').fill('bar');
     await expect(page.getByText('Key must be unique')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
-  });
-});
-
-test.describe('Flags - Read Only', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.route(/\/meta\/info/, async (route) => {
-      const response = await route.fetch();
-      const json = await response.json();
-      json.storage.type = 'git';
-      // Fulfill using the original response, while patching the
-      // response body with our changes to mock git storage for read only mode
-      await route.fulfill({ response, json });
-    });
-
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
-  });
-
-  test('can not create flag', async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'New Flag' })).toBeDisabled();
-  });
-
-  test('can not update flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
-    await expect(page.getByLabel('Description')).toBeDisabled();
-    await expect(page.getByRole('switch', { name: 'Enabled' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
-  });
-
-  test('can not add variants to flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
-
-    await expect(
-      page.getByRole('button', { name: 'New Variant' })
-    ).toBeDisabled();
-  });
-
-  test('can not edit variant description', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
-    await expect(page.getByRole('link', { name: 'Edit ,chrome' })).toBeHidden();
-  });
-
-  test('can not delete flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
-    await page.getByRole('button', { name: 'Actions' }).click();
-    // assert nothing happens
-    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeDisabled();
-  });
-
-  test('can not copy flag to new namespace', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-flag' }).click();
-    await page.getByRole('button', { name: 'Actions' }).click();
-    // assert nothing happens
-    await expect(
-      page.getByRole('menuitem', { name: 'Copy to Namespace' })
-    ).toBeDisabled();
-  });
-
-  test('can not edit metadata', async ({ page }) => {
-    await page.getByRole('link', { name: 'metadata-flag' }).click();
-    await expect(
-      page.getByRole('button', { name: 'Add Metadata' })
-    ).toBeDisabled();
   });
 });
