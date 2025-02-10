@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
@@ -40,8 +41,6 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-
-import { selectCurrentEnvironment } from '../environments/environmentsApi';
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
