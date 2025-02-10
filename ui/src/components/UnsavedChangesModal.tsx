@@ -18,7 +18,7 @@ export function UnsavedChangesModal(props: UnsavedChangesModalState) {
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white p-6 shadow-xl">
+        <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-background p-6 shadow-xl">
           <Dialog.Title className="text-lg font-medium text-gray-900">
             Unsaved Changes
           </Dialog.Title>
