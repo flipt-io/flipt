@@ -7,6 +7,7 @@ import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
+import { SegmentFormContext } from '~/components/segments/SegmentFormContext';
 
 import {
   ConstraintOperators,
@@ -16,8 +17,6 @@ import {
 } from '~/types/Constraint';
 
 import { useTimezone } from '~/data/hooks/timezone';
-
-import { SegmentFormContext } from '../segments/SegmentFormContext';
 
 function ConstraintArrayValue({ value }: { value: string | undefined }) {
   const items: string[] | number[] = useMemo(() => {

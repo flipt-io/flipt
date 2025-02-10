@@ -17,7 +17,6 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
 import { useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { v4 as uuid } from 'uuid';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';

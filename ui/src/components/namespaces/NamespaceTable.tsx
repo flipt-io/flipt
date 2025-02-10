@@ -143,6 +143,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
       cell: (props) => {
         return (
           <NamespaceDeleteAction
+            // eslint-disable-next-line react/prop-types
             row={props.row}
             setDeletingNamespace={setDeletingNamespace}
             setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}

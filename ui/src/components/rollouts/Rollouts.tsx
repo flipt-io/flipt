@@ -26,6 +26,7 @@ import { ButtonWithPlus, TextButton } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import Select from '~/components/forms/Select';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/EditRolloutForm';
@@ -39,8 +40,6 @@ import { SegmentOperatorType } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
-
-import { FlagFormContext } from '../flags/FlagFormContext';
 
 type RolloutsProps = {
   flag: IFlag;

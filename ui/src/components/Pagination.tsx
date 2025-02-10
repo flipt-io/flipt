@@ -145,7 +145,7 @@ export default function Pagination(props: PaginationProps) {
         </select>
       </div>
       <div className="-mt-px flex w-0 flex-1 justify-end">
-        {currentPage < lastPage && (
+        {currentPage < (lastPage as number) && (
           <a
             href="#"
             className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
