@@ -26,8 +26,10 @@ export function UnsavedChangesModal(props: UnsavedChangesModalState) {
             You have unsaved changes. Would you like to save them before
             leaving?
           </Dialog.Description>
-          <div className="mt-4 flex justify-between">
-            <Button onClick={onClose}>Cancel</Button>
+          <div className="mt-8 flex justify-between">
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
             <div className="space-x-3">
               <Button variant="secondary" onClick={onDiscard}>
                 Discard Changes
