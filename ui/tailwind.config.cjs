@@ -3,6 +3,17 @@ module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      animation: {
+        ping: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
+      },
+      keyframes: {
+        ping: {
+          '75%, 100%': {
+            transform: 'scale(2)',
+            opacity: '0'
+          }
+        }
+      },
       colors: {
         gray: {
           50: 'rgb(var(--gray-50)/<alpha-value>)',
