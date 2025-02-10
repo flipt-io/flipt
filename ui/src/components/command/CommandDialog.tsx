@@ -88,12 +88,6 @@ const nonNamespacedRoutes = [
     keywords: ['settings', 'namespaces']
   },
   {
-    name: 'Settings: API Tokens',
-    description: 'Manage API tokens',
-    route: '/settings/tokens',
-    keywords: ['settings', 'api', 'tokens']
-  },
-  {
     name: 'Support',
     description: 'Get help and support',
     route: '/support',
