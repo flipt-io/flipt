@@ -173,4 +173,12 @@ test.describe('Flags', () => {
     await expect(page.getByText('Key must be unique')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
+
+  test('can delete flag', async ({ page }) => {
+    await page.getByRole('link', { name: 'Test Flag Test-Flag Test flag' }).click();
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByText('Successfully deleted flag')).toBeVisible();
+  });
 });

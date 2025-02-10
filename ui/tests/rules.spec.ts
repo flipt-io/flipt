@@ -23,7 +23,8 @@ test.describe('Rules', () => {
         .getByRole('dialog', { name: 'New Variant' })
         .locator('#key')
         .fill('456');
-      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
     });
 
     await test.step('create segment', async () => {
@@ -43,8 +44,9 @@ test.describe('Rules', () => {
       await page.locator('#segmentKey-0-select-button').click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
       await page.getByLabel('Multi-Variate').check();
-      await page.getByRole('button', { name: 'Create' }).click();
-      await expect(page.getByText('Successfully created rule')).toBeVisible();
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('create single-variant rule', async () => {
@@ -57,8 +59,9 @@ test.describe('Rules', () => {
       await page.getByLabel('Single Variant').check();
       await page.locator('#variant-select-button').click();
       await page.getByLabel('New Rule').getByText('123').click();
-      await page.getByRole('button', { name: 'Create' }).click();
-      await expect(page.getByText('Successfully created rule')).toBeVisible();
+      await page.getByRole('button', { name: 'Add' }).click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('can update multi-variate rule', async () => {
@@ -74,9 +77,10 @@ test.describe('Rules', () => {
       await page
         .getByRole('listitem')
         .filter({ hasText: 'Multi-Variate' })
-        .getByRole('button', { name: 'Update' })
+        .getByRole('button', { name: 'Done' })
         .click();
-      await expect(page.getByText('Successfully updated rule')).toBeVisible();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('can update single-variant rule', async () => {
@@ -108,40 +112,5 @@ test.describe('Rules', () => {
     await expect(
       page.getByText('Successfully updated default variant')
     ).toBeVisible();
-  });
-});
-
-test.describe('Rules - Read Only', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.route(/\/meta\/info/, async (route) => {
-      const response = await route.fetch();
-      const json = await response.json();
-      json.storage.type = 'git';
-      // Fulfill using the original response, while patching the
-      // response body with our changes to mock git storage for read only mode
-      await route.fulfill({ response, json });
-    });
-
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
-  });
-
-  test('can not create rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'Flags' }).click();
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await expect(page.getByRole('button', { name: 'New Rule' })).toBeDisabled();
-  });
-
-  test('can not update rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await expect(page.getByTestId('rule-menu-button').nth(0)).toBeDisabled();
-  });
-
-  test('can not delete rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await expect(page.getByTestId('rule-menu-button').nth(0)).toBeDisabled();
   });
 });
