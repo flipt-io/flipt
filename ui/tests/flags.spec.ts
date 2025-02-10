@@ -37,9 +37,7 @@ test.describe('Flags', () => {
         .fill('chrome');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(
-        page.getByText('Successfully updated flag')
-      ).toBeVisible();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('add another variant', async () => {
@@ -54,9 +52,7 @@ test.describe('Flags', () => {
         .fill('firefox');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(
-        page.getByText('Successfully updated flag')
-      ).toBeVisible();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('edit variant description', async () => {
@@ -74,9 +70,7 @@ test.describe('Flags', () => {
         .getByRole('button', { name: 'Done' })
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(
-        page.getByText('Successfully updated flag')
-      ).toBeVisible();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
 
     await test.step('edit other variant description', async () => {
@@ -94,9 +88,7 @@ test.describe('Flags', () => {
         .getByRole('button', { name: 'Done' })
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(
-        page.getByText('Successfully updated flag')
-      ).toBeVisible();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
   });
 
@@ -175,7 +167,9 @@ test.describe('Flags', () => {
   });
 
   test('can delete flag', async ({ page }) => {
-    await page.getByRole('link', { name: 'Test Flag Test-Flag Test flag' }).click();
+    await page
+      .getByRole('link', { name: 'Test Flag Test-Flag Test flag' })
+      .click();
     await page.getByRole('button', { name: 'Actions' }).click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();

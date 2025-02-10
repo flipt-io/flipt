@@ -24,9 +24,7 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
     await page.locator('#defaultValue').selectOption('true');
     await page.getByRole('button', { name: 'Update' }).last().click();
-    await expect(
-      page.getByText('Successfully updated flag')
-    ).toBeVisible();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
   test('can create rollout', async ({ page }) => {

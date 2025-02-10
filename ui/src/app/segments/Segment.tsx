@@ -94,6 +94,7 @@ export default function Segment() {
           }
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/segments`);
+            setSuccess('Successfully deleted segment');
           }}
         />
       </Modal>
