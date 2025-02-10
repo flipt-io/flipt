@@ -24,7 +24,6 @@ import {
   preferencesSlice
 } from '~/app/preferences/preferencesSlice';
 import { segmentsApi, segmentsTableSlice } from '~/app/segments/segmentsApi';
-import { tokensApi } from '~/app/tokens/tokensApi';
 
 import { LoadingStatus } from '~/types/Meta';
 
@@ -127,7 +126,6 @@ export const store = configureStore({
     [namespaceApi.reducerPath]: namespaceApi.reducer,
     [flagsApi.reducerPath]: flagsApi.reducer,
     [segmentsApi.reducerPath]: segmentsApi.reducer,
-    [tokensApi.reducerPath]: tokensApi.reducer,
     [authProvidersApi.reducerPath]: authProvidersApi.reducer,
     [analyticsApi.reducerPath]: analyticsApi.reducer
   },
@@ -139,7 +137,6 @@ export const store = configureStore({
         namespaceApi.middleware,
         flagsApi.middleware,
         segmentsApi.middleware,
-        tokensApi.middleware,
         authProvidersApi.middleware,
         analyticsApi.middleware
       )

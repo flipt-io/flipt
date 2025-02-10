@@ -23,7 +23,7 @@ import { TableSkeleton } from '~/components/ui/table-skeleton';
 import { DataTableViewOptions } from '~/components/ui/table-view-options';
 
 import { IEnvironment } from '~/types/Environment';
-import { INamespaceBase } from '~/types/Namespace';
+import { INamespace } from '~/types/Namespace';
 import {
   ISegment,
   SegmentMatchType,
@@ -35,7 +35,7 @@ import { cls } from '~/utils/helpers';
 
 type SegmentTableProps = {
   environment: IEnvironment;
-  namespace: INamespaceBase;
+  namespace: INamespace;
 };
 
 function SegmentDetails({ item }: { item: ISegment }) {

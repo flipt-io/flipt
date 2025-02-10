@@ -12,10 +12,7 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import { INamespace } from '~/types/Namespace';
 
 import { selectNamespaces } from './namespacesApi';
-import {
-  useDeleteNamespaceMutation,
-  useListNamespacesQuery
-} from './namespacesApi';
+import { useDeleteNamespaceMutation } from './namespacesApi';
 
 export default function Namespaces() {
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);

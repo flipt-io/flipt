@@ -1,15 +1,13 @@
 import { IPageable } from './Pageable';
 
-export interface INamespaceBase {
+export interface INamespace {
   key: string;
   name: string;
   description?: string;
-}
-
-export interface INamespace extends INamespaceBase {
   protected: boolean;
 }
 
 export interface INamespaceList extends IPageable {
   items: INamespace[];
+  revision?: string;
 }

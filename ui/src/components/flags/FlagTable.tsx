@@ -27,14 +27,14 @@ import { DataTableViewOptions } from '~/components/ui/table-view-options';
 
 import { IEnvironment } from '~/types/Environment';
 import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
-import { INamespaceBase } from '~/types/Namespace';
+import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
 
 type FlagTableProps = {
   environment: IEnvironment;
-  namespace: INamespaceBase;
+  namespace: INamespace;
 };
 
 function FlagDetails({ item }: { item: IFlag }) {

@@ -12,7 +12,6 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 
 import Pagination from '~/components/Pagination';
@@ -139,32 +138,6 @@ export default function NamespaceTable(props: NamespaceTableProps) {
         className: 'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
       }
     }),
-    columnHelper.accessor(
-      (row) => format(parseISO(row.createdAt), 'MM/dd/yyyy'),
-      {
-        header: 'Created',
-        id: 'createdAt',
-        meta: {
-          className: 'whitespace-nowrap px-3 py-4 text-sm text-gray-500'
-        }
-      }
-    ),
-    columnHelper.accessor(
-      (row) => {
-        if (!row.updatedAt) {
-          return '';
-        }
-        return format(parseISO(row.updatedAt), 'MM/dd/yyyy');
-      },
-      {
-        header: 'Updated',
-        id: 'updatedAt',
-        meta: {
-          className:
-            'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
-        }
-      }
-    ),
     columnHelper.display({
       id: 'actions',
       cell: (props) => {
