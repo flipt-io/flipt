@@ -28,7 +28,6 @@ const Onboarding = loadable(() => import('./app/Onboarding'));
 const Support = loadable(() => import('./app/Support'));
 const Preferences = loadable(() => import('./app/preferences/Preferences'));
 const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
-const Tokens = loadable(() => import('./app/tokens/Tokens'));
 
 if (typeof window !== 'undefined') {
   formbricks.init({
@@ -114,10 +113,6 @@ const router = createHashRouter([
           {
             path: 'namespaces',
             element: <Namespaces />
-          },
-          {
-            path: 'tokens',
-            element: <Tokens />
           }
         ]
       },

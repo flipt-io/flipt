@@ -41,6 +41,8 @@ import {
   getErrorMessage
 } from '~/utils/helpers';
 
+import { selectCurrentEnvironment } from '../environments/environmentsApi';
+
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
 
@@ -72,8 +74,13 @@ export default function Console() {
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
-  const { data, error } = useListFlagsQuery(namespace.key);
+
+  const { data, error } = useListFlagsQuery({
+    environmentKey: environment.name,
+    namespaceKey: namespace.key
+  });
 
   useEffect(() => {
     if (error) {

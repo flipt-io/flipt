@@ -3,7 +3,7 @@ import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
 import { LoadingStatus } from '~/types/Meta';
-import { INamespace, INamespaceBase, INamespaceList } from '~/types/Namespace';
+import { INamespace, INamespaceList } from '~/types/Namespace';
 
 import { RootState } from '~/store';
 import { baseQuery } from '~/utils/redux-rtk';
@@ -82,18 +82,27 @@ export const namespaceApi = createApi({
     // get list of namespaces
     listNamespaces: builder.query<INamespaceList, { environmentKey: string }>({
       query: ({ environmentKey }) => `/${environmentKey}/namespaces`,
-      providesTags: () => [{ type: 'Namespace' }]
+      providesTags: () => [{ type: 'Namespace' }],
+      transformResponse: (response: INamespaceList): INamespaceList => {
+        if (response.revision) {
+          localStorage.setItem('revision', response.revision);
+        }
+        return response;
+      }
     }),
     // create the namespace
     createNamespace: builder.mutation<
       INamespace,
-      { environmentKey: string; values: INamespaceBase }
+      { environmentKey: string; values: INamespace; revision?: string }
     >({
-      query({ environmentKey, values }) {
+      query({ environmentKey, values, revision }) {
         return {
           url: `/${environmentKey}/namespaces`,
           method: 'POST',
-          body: values
+          body: {
+            ...values,
+            revision
+          }
         };
       },
       invalidatesTags: () => [
@@ -105,13 +114,16 @@ export const namespaceApi = createApi({
     // update the namespace
     updateNamespace: builder.mutation<
       INamespace,
-      { environmentKey: string; values: INamespaceBase }
+      { environmentKey: string; values: INamespace; revision?: string }
     >({
-      query({ environmentKey, values }) {
+      query({ environmentKey, values, revision }) {
         return {
           url: `/${environmentKey}/namespaces/`,
           method: 'PUT',
-          body: values
+          body: {
+            ...values,
+            revision
+          }
         };
       },
       invalidatesTags: () => [

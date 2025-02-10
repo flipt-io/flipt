@@ -2,8 +2,10 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
   useCreateNamespaceMutation,
   useUpdateNamespaceMutation
@@ -14,12 +16,12 @@ import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import Input from '~/components/forms/Input';
 
-import { INamespace, INamespaceBase } from '~/types/Namespace';
+import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { stringAsKey } from '~/utils/helpers';
+import { getRevision, stringAsKey } from '~/utils/helpers';
 
 const namespaceValidationSchema = Yup.object({
   key: keyValidation,
@@ -42,14 +44,25 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
+  const environment = useSelector(selectCurrentEnvironment);
+  const revision = getRevision();
+
   const [createNamespace] = useCreateNamespaceMutation();
   const [updateNamespace] = useUpdateNamespaceMutation();
 
-  const handleSubmit = async (values: INamespaceBase) => {
+  const handleSubmit = async (values: INamespace) => {
     if (isNew) {
-      return createNamespace(values).unwrap();
+      return createNamespace({
+        environmentKey: environment.name,
+        values,
+        revision
+      }).unwrap();
     }
-    return updateNamespace({ key: namespace.key, values }).unwrap();
+    return updateNamespace({
+      environmentKey: environment.name,
+      values,
+      revision
+    }).unwrap();
   };
 
   return (
@@ -57,7 +70,8 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
       initialValues={{
         key: namespace?.key || '',
         name: namespace?.name || '',
-        description: namespace?.description || ''
+        description: namespace?.description || '',
+        protected: namespace?.protected || false
       }}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)

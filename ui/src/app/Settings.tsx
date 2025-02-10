@@ -11,10 +11,6 @@ export default function Settings() {
     {
       name: 'Namespaces',
       to: '/settings/namespaces'
-    },
-    {
-      name: 'API Tokens',
-      to: '/settings/tokens'
     }
   ];
 
