@@ -15,6 +15,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
+import { UnsavedChangesModalWrapper } from '~/components/UnsavedChangesModal';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Rollouts from '~/components/rollouts/Rollouts';
@@ -33,7 +34,6 @@ import {
   stringAsKey
 } from '~/utils/helpers';
 
-import { UnsavedChangesModalWrapper } from '../UnsavedChangesModal';
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
@@ -176,9 +176,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
             ruleErrors.rollouts = 'Rollouts must add up to 100%';
           }
           if (!rule.segments || rule.segments.length <= 0) {
-            ruleErrors.segmentKeys = 'Segments length must be greater than 0';
+            ruleErrors.segments = 'Segments length must be greater than 0';
           }
-          if (ruleErrors.rollouts || ruleErrors.segmentKeys) {
+          if (ruleErrors.rollouts || ruleErrors.segments) {
             if (!errors.rules) {
               errors.rules = [];
             }

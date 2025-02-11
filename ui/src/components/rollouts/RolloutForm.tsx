@@ -44,7 +44,7 @@ type RolloutFormProps = {
 interface RolloutFormValues {
   type: string;
   description?: string;
-  segmentKeys?: FilterableSegment[];
+  segments?: FilterableSegment[];
   operator?: SegmentOperatorType;
   percentage?: number;
   value: string;
@@ -63,7 +63,7 @@ export default function RolloutForm(props: RolloutFormProps) {
       type: rolloutRuleType,
       description: values.description,
       segment: {
-        segments: values.segmentKeys?.map((s) => s.key),
+        segments: values.segments?.map((s) => s.key),
         segmentOperator: values.operator,
         value: values.value === 'true'
       }
@@ -90,16 +90,16 @@ export default function RolloutForm(props: RolloutFormProps) {
       initialValues={{
         type: rolloutRuleType,
         description: '',
-        segmentKeys: [],
+        segments: [],
         operator: SegmentOperatorType.OR,
         percentage: 50, // TODO: make this 0?
         value: 'true'
       }}
       validate={(values) => {
         if (values.type === RolloutType.SEGMENT) {
-          if (values.segmentKeys.length <= 0) {
+          if (values.segments.length <= 0) {
             return {
-              segmentKeys: true
+              segments: true
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
@@ -253,7 +253,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                   </div>
                   <div className="sm:col-span-2">
                     <FieldArray
-                      name="segmentKeys"
+                      name="segments"
                       render={(arrayHelpers) => (
                         <SegmentsPicker
                           segments={segments}
@@ -267,12 +267,12 @@ export default function RolloutForm(props: RolloutFormProps) {
                             index: number,
                             segment: FilterableSegment
                           ) => arrayHelpers.replace(index, segment)}
-                          selectedSegments={formik.values.segmentKeys}
+                          selectedSegments={formik.values.segments}
                         />
                       )}
                     />
                   </div>
-                  {formik.values.segmentKeys.length > 1 && (
+                  {formik.values.segments.length > 1 && (
                     <>
                       <div>
                         <label
