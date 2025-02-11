@@ -51,7 +51,7 @@ const Rollout = forwardRef(
             )}
             {...rest}
           >
-            {rollout.rank}
+            {rollout.rank + 1}
           </span>
           <h3
             className={cls(
