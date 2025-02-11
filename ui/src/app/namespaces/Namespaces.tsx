@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+
 import { ButtonWithPlus } from '~/components/Button';
 import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
@@ -10,6 +12,8 @@ import NamespaceTable from '~/components/namespaces/NamespaceTable';
 import DeletePanel from '~/components/panels/DeletePanel';
 
 import { INamespace } from '~/types/Namespace';
+
+import { getRevision } from '~/utils/helpers';
 
 import { selectNamespaces } from './namespacesApi';
 import { useDeleteNamespaceMutation } from './namespacesApi';
@@ -27,7 +31,10 @@ export default function Namespaces() {
     null
   );
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespaces = useSelector(selectNamespaces);
+  const revision = useSelector(getRevision);
+
   const [deleteNamespace] = useDeleteNamespaceMutation();
   const namespaceFormRef = useRef(null);
 
@@ -68,7 +75,11 @@ export default function Namespaces() {
           panelType="Namespace"
           setOpen={setShowDeleteNamespaceModal}
           handleDelete={() =>
-            deleteNamespace(deletingNamespace?.key ?? '').unwrap()
+            deleteNamespace({
+              environmentKey: environment.name,
+              namespaceKey: deletingNamespace?.key!,
+              revision: revision
+            }).unwrap()
           }
         />
       </Modal>

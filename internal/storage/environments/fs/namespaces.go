@@ -128,11 +128,7 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 
 	path := path.Join(ns.Key, FeaturesFilename)
 	_, err := fs.Stat(path)
-	if err == nil {
-		return nil
-	}
-
-	if !errors.Is(err, os.ErrNotExist) {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 
