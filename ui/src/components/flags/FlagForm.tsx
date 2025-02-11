@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import Analytics from '~/app/flags/analytics/Analytics';
 import {
   useCreateFlagMutation,
   useUpdateFlagMutation
@@ -37,7 +38,6 @@ import {
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
-import Analytics from '~/app/flags/analytics/Analytics';
 
 const flagTypes = [
   {
@@ -440,9 +440,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   {selectedTab == 'rules' && (
                     <Rules flag={flag} rules={rules!} />
                   )}
-                  {selectedTab == 'analytics' && (
-                    <Analytics flag={flag} />
-                  )}
+                  {selectedTab == 'analytics' && <Analytics flag={flag} />}
                 </>
               )}
               <div className="flex justify-end">
