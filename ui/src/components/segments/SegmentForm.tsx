@@ -14,6 +14,7 @@ import {
 
 import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
+import { UnsavedChangesModalWrapper } from '~/components/UnsavedChangesModal';
 import Constraints from '~/components/constraints/Constraints';
 import Input from '~/components/forms/Input';
 
@@ -29,7 +30,6 @@ import {
   stringAsKey
 } from '~/utils/helpers';
 
-import { UnsavedChangesModalWrapper } from '../UnsavedChangesModal';
 import { SegmentFormProvider } from './SegmentFormContext';
 
 const segmentMatchTypes = [
