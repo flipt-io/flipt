@@ -19,7 +19,7 @@ type QuickEditRolloutFormProps = {
 export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   const { rollout, segments } = props;
 
-  const rolloutSegmentKeys = rollout.segment?.segments || [];
+  const rolloutSegmentKeys = rollout.segment?.segmentKeys || [];
 
   const rolloutSegments = rolloutSegmentKeys.map((s) => {
     const segment = segments.find((seg) => seg.key === s);
