@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.23"
-  DAGGER_VERSION: "0.13.5"
+  DAGGER_VERSION: "0.14.0"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -39,20 +39,8 @@ jobs:
       matrix:
         test:
           [
-            "api/cache",
-            "api/cachetls",
-            "api/snapshot",
-            "api/ofrep",
-            "fs/git",
-            "fs/local",
-            "fs/s3",
-            "fs/azblob",
-            "fs/gcs",
-            "import/export",
-            "authn",
-            "authz",
-            "audit/webhook",
-            "audit/webhooktmpl",
+            "envs",
+            "envs_with_dir"
           ]
     steps:
       - uses: actions/checkout@v4

@@ -41,7 +41,7 @@ func init() {
 }
 
 var (
-	protocolPorts = map[string]int{"grpc": 9000}
+	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
 	sema          = make(chan struct{}, 6)
 
@@ -51,19 +51,17 @@ var (
 		// "fs/local": local,
 		// "authn":    authn,
 		// "authz":    authz,
-		"config":             configAPI("main", ""),
-		"config_with_branch": configAPI("other", ""),
-		"config_with_dir":    configAPI("main", "root"),
-		"ofrep":              withAuthz(ofrepAPI),
-		"snapshot":           withAuthz(snapshotAPI),
+		"envs":          envsAPI(""),
+		"envs_with_dir": envsAPI("root"),
+		// "ofrep":         withAuthz(ofrepAPI),
+		// "snapshot":      withAuthz(snapshotAPI),
 	}
 )
 
 type testConfig struct {
-	name       string
-	address    string
-	port       int
-	references bool
+	name    string
+	address string
+	port    int
 }
 
 type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
@@ -163,8 +161,9 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					flipt = flipt.
 						WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken).
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_METADATA_IS_BOOTSTRAP", "true")
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_NAME", "bootstrap").
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_CREDENTIAL", bootstrapToken).
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_METADATA_IS_BOOTSTRAP", "true")
 				}
 				{
 					// K8s auth configuration
@@ -249,115 +248,12 @@ func take(fn func() error) func() error {
 	}
 }
 
-func snapshotAPI(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	flipt = flipt.
-		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
-		WithEnvVariable("FLIPT_GENERAL_ENABLED", "true").
-		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_SOURCE", "production").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_TYPE", "local").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_LOCAL_PATH", "/tmp/testdata").
-		WithEnvVariable("UNIQUE", uuid.New().String())
+const configTestdataDir = "build/testing/integration/environments/testdata"
 
-	return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
-}
-
-const (
-	configTestdataDir         = "build/testing/integration/config/testdata"
-	rootReadOnlyTestdataDir   = "build/testing/integration/readonly/testdata"
-	singleRevisionTestdataDir = rootReadOnlyTestdataDir + "/main"
-)
-
-func local(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	flipt = flipt.
-		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
-		WithEnvVariable("FLIPT_GENERAL_ENABLED", "true").
-		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_SOURCE", "production").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_TYPE", "local").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_LOCAL_PATH", "/tmp/testdata").
-		WithEnvVariable("UNIQUE", uuid.New().String())
-
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
-}
-
-func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	gitea := client.Container().
-		From("gitea/gitea:1.21.1").
-		WithExposedPort(3000).
-		WithExec(nil).
-		AsService()
-
-	stew := config.Config{
-		URL: "http://gitea:3000",
-		Admin: struct {
-			Username string "json:\"username\""
-			Email    string "json:\"email\""
-			Password string "json:\"password\""
-		}{
-			Username: "root",
-			Password: "password",
-			Email:    "dev@flipt.io",
-		},
-		Repositories: []config.Repository{
-			{
-				Name: "features",
-				Contents: []config.Content{
-					{
-						Branch:  "main",
-						Path:    "/work/base/main",
-						Message: "feat: add main directory contents",
-					},
-					{
-						Branch:  "alternate",
-						Path:    "/work/base/alternate",
-						Message: "feat: add alternate directory contents",
-					},
-				},
-			},
-		},
-	}
-
-	contents, err := yaml.Marshal(&stew)
-	if err != nil {
-		return func() error { return err }
-	}
-
-	_, err = client.Container().
-		From("ghcr.io/flipt-io/stew:latest").
-		WithWorkdir("/work").
-		WithDirectory("/work/base", base.Directory(rootReadOnlyTestdataDir)).
-		WithNewFile("/etc/stew/config.yml", string(contents)).
-		WithServiceBinding("gitea", gitea).
-		WithExec(nil).
-		Sync(ctx)
-	if err != nil {
-		return func() error { return err }
-	}
-
-	flipt = flipt.
-		WithServiceBinding("gitea", gitea).
-		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
-		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
-		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
-		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_USERNAME", "root").
-		WithEnvVariable("FLIPT_STORAGE_GIT_AUTHENTICATION_BASIC_PASSWORD", "password").
-		WithEnvVariable("UNIQUE", uuid.New().String())
-
-	// Git backend supports arbitrary references
-	conf.references = true
-
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
-}
-
-func configAPI(branch, directory string) testCaseFn {
+func envsAPI(directory string) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		gitea := client.Container().
-			From("gitea/gitea:1.21.1").
+			From("gitea/gitea:1.23.3").
 			WithExposedPort(3000).
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			WithExec(nil).
@@ -408,40 +304,19 @@ func configAPI(branch, directory string) testCaseFn {
 
 		flipt = flipt.
 			WithServiceBinding("gitea", gitea).
-			WithEnvVariable("FLIPT_GENERAL_ENABLED", "true").
 			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "flipt").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_SOURCE", "production").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_BRANCH", branch).
-			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_DIRECTORY", directory).
-			WithEnvVariable("FLIPT_SOURCES_PRODUCTION_TYPE", "git").
-			WithEnvVariable("FLIPT_SOURCES_PRODUCTION_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
-			WithEnvVariable("FLIPT_SOURCES_PRODUCTION_GIT_DEFAULT_BRANCH", "main").
-			WithEnvVariable("FLIPT_SOURCES_PRODUCTION_GIT_AUTHENTICATION_BASIC_USERNAME", "root").
-			WithEnvVariable("FLIPT_SOURCES_PRODUCTION_GIT_AUTHENTICATION_BASIC_PASSWORD", "password").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		// Git backend supports arbitrary references
-		conf.references = true
-
-		return suite(ctx, "config", base, flipt.WithExec(nil), conf)
+		return suite(ctx, "environments", base, flipt.WithExec(nil), conf)
 	}
-}
-
-func ofrepAPI(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-	flipt = flipt.
-		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
-		WithEnvVariable("FLIPT_GENERAL_ENABLED", "true").
-		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "flipt").
-		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_SOURCE", "production").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_TYPE", "local").
-		WithEnvVariable("FLIPT_SOURCES_PRODUCTION_LOCAL_PATH", "/tmp/testdata").
-		WithEnvVariable("UNIQUE", uuid.New().String())
-
-	return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
 }
 
 func withAuthz(fn testCaseFn) testCaseFn {
@@ -455,6 +330,10 @@ func withAuthz(fn testCaseFn) testCaseFn {
 			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
 			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
 			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithNewFile(policyPath, `package flipt.authz.v1
 
 import data
@@ -604,9 +483,6 @@ permit_slice(allowed, requested) if {
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address, "--flipt-token", bootstrapToken}
-		if conf.references {
-			flags = append(flags, "--flipt-supports-references")
-		}
 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).

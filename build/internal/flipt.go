@@ -6,7 +6,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal/dagger"
 	"golang.org/x/mod/modfile"
 )
@@ -121,15 +121,11 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 	// build container with just Flipt + config
 	return client.Container().From("alpine:3.19").
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
-		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 		WithFile("/flipt",
 			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
-		WithFile("/etc/flipt/config/default.yml",
-			flipt.Directory("/src/config").File("default.yml")).
 		WithExec([]string{"addgroup", "flipt"}).
 		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
-		WithExec([]string{"chown", "-R", "flipt:flipt", "/etc/flipt", "/var/opt/flipt", "/var/log/flipt"}).
 		WithUser("flipt").
 		WithDefaultArgs([]string{"/flipt"}), nil
 }

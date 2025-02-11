@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"flag"
@@ -16,7 +15,6 @@ import (
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/rpc/flipt/auth"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
@@ -42,8 +40,11 @@ const (
 )
 
 const (
-	DefaultNamespace    = "default"
-	ProductionNamespace = "production"
+	DefaultNamespace     = "default"
+	AlternativeNamespace = "alternative"
+
+	DefaultEnvironment    = "default"
+	ProductionEnvironment = "production"
 )
 
 type NamespaceExpectation struct {
@@ -75,7 +76,7 @@ func (n NamespaceExpectations) OtherNamespaceFrom(from string) string {
 var Namespaces = NamespaceExpectations{
 	{Key: "", Expected: DefaultNamespace},
 	{Key: DefaultNamespace, Expected: DefaultNamespace},
-	{Key: ProductionNamespace, Expected: ProductionNamespace},
+	{Key: AlternativeNamespace, Expected: AlternativeNamespace},
 }
 
 func Harness(t *testing.T, fn func(t *testing.T, opts TestOpts)) {
@@ -111,7 +112,7 @@ func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
 	return sdk.New(o.newTransport(t))
 }
 
-func (o TestOpts) BootstrapClient(t *testing.T) sdk.SDK {
+func (o TestOpts) BootstrapClient(t *testing.T, _ ...ClientOpt) sdk.SDK {
 	t.Helper()
 
 	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
@@ -154,35 +155,6 @@ func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
 	})
 
 	return &http.Client{Transport: transport}
-}
-
-func (o TestOpts) TokenClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
-	return sdk.New(o.newTransport(t), TokenAuth(t, o.BootstrapClient(t).Auth(), opts...))
-}
-
-func TokenAuth(t *testing.T, client *sdk.Auth, opts ...ClientOpt) sdk.Option {
-	t.Helper()
-
-	var copts ClientOpts
-	for _, opt := range opts {
-		opt(&copts)
-	}
-
-	metadata := map[string]string{}
-	if copts.Role != "" {
-		metadata["io.flipt.auth.role"] = copts.Role
-	}
-
-	resp, err := client.AuthenticationMethodTokenService().CreateToken(context.Background(), &auth.CreateTokenRequest{
-		Name:         t.Name(),
-		NamespaceKey: copts.Namespace,
-		Metadata:     metadata,
-	})
-	require.NoError(t, err)
-
-	return sdk.WithAuthenticationProvider(
-		sdk.StaticTokenAuthenticationProvider(resp.ClientToken),
-	)
 }
 
 func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
@@ -262,6 +234,10 @@ func JWTAuth(t *testing.T, opts ...ClientOpt) sdk.Option {
 
 func (o TestOpts) EnvironmentClient(t *testing.T, opts ...sdkv2.Option) *sdkv2.Environments {
 	t.Helper()
+
+	opts = append(opts, sdkv2.WithAuthenticationProvider(
+		sdkv2.StaticTokenAuthenticationProvider(o.Token),
+	))
 
 	return sdkv2.New(o.newTransportV2(t), opts...).Environments()
 }

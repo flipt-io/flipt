@@ -70,6 +70,17 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		code = codes.Unauthenticated
 	case errs.AsMatch[errs.ErrUnauthorized](err):
 		code = codes.PermissionDenied
+	case errs.AsMatch[errs.ErrAlreadyExists](err):
+		code = codes.AlreadyExists
+	case errs.AsMatch[errs.ErrConflict](err):
+		code = codes.Aborted
+	case errs.AsMatch[errs.ErrNotImplemented](err):
+		code = codes.Unimplemented
+	case errs.AsMatch[errs.ErrNotModified](err):
+		// special case: only supported via HTTP / Gateway
+		// we set the response to OK, but override the http status code to 304 (Not Modified)
+		code = codes.OK
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
 	}
 
 	err = status.Error(code, err.Error())

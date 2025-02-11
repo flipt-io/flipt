@@ -28,24 +28,29 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
-		nl, err := envClient.ListNamespaces(ctx, &environments.ListNamespacesRequest{})
+		nl, err := envClient.ListNamespaces(
+			ctx,
+			&environments.ListNamespacesRequest{Environment: integration.DefaultEnvironment},
+		)
 		require.NoError(t, err)
 
 		revision = nl.Revision
 
 		t.Run(`Ensure default cannot be created.`, func(t *testing.T) {
 			_, err := envClient.CreateNamespace(ctx, &environments.UpdateNamespaceRequest{
-				Key:      integration.DefaultNamespace,
-				Name:     "Default",
-				Revision: revision,
+				Environment: integration.DefaultEnvironment,
+				Key:         integration.DefaultNamespace,
+				Name:        "Default",
+				Revision:    revision,
 			})
 			require.EqualError(t, err, "rpc error: code = AlreadyExists desc = create namespace \"default\"")
 
 			t.Log(`Ensure default cannot be deleted.`)
 
 			_, err = envClient.DeleteNamespace(ctx, &environments.DeleteNamespaceRequest{
-				Key:      integration.DefaultNamespace,
-				Revision: revision,
+				Environment: integration.DefaultEnvironment,
+				Key:         integration.DefaultNamespace,
+				Revision:    revision,
 			})
 			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = namespace \"default\" is protected")
 		})
@@ -53,21 +58,23 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 		t.Log(`Create namespace.`)
 
 		created, err := envClient.CreateNamespace(ctx, &environments.UpdateNamespaceRequest{
-			Key:      integration.ProductionNamespace,
-			Name:     "production",
-			Revision: revision,
+			Environment: integration.DefaultEnvironment,
+			Key:         integration.AlternativeNamespace,
+			Name:        "alternative",
+			Revision:    revision,
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, integration.ProductionNamespace, created.Namespace.Key)
-		assert.Equal(t, "production", created.Namespace.Name)
+		assert.Equal(t, integration.AlternativeNamespace, created.Namespace.Key)
+		assert.Equal(t, "alternative", created.Namespace.Name)
 
 		revision = created.Revision
 
 		t.Log(`Get namespace by key.`)
 
 		retrieved, err := envClient.GetNamespace(ctx, &environments.GetNamespaceRequest{
-			Key: integration.ProductionNamespace,
+			Environment: integration.DefaultEnvironment,
+			Key:         integration.AlternativeNamespace,
 		})
 		require.NoError(t, err)
 
@@ -75,18 +82,21 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 		t.Log(`List namespaces.`)
 
-		namespaces, err := envClient.ListNamespaces(ctx, &environments.ListNamespacesRequest{})
+		namespaces, err := envClient.ListNamespaces(ctx, &environments.ListNamespacesRequest{
+			Environment: integration.DefaultEnvironment,
+		})
 		require.NoError(t, err)
 
 		assert.Len(t, namespaces.Items, 2)
 
 		assert.Equal(t, integration.DefaultNamespace, namespaces.Items[0].Key)
-		assert.Equal(t, integration.ProductionNamespace, namespaces.Items[1].Key)
+		assert.Equal(t, integration.AlternativeNamespace, namespaces.Items[1].Key)
 
 		t.Log(`Update namespace.`)
 
 		updated, err := envClient.UpdateNamespace(ctx, &environments.UpdateNamespaceRequest{
-			Key:         integration.ProductionNamespace,
+			Environment: integration.DefaultEnvironment,
+			Key:         integration.AlternativeNamespace,
 			Name:        "production",
 			Description: ptr("Some kind of description"),
 			Revision:    revision,
@@ -100,7 +110,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 
 	for _, namespace := range (integration.NamespaceExpectations{
 		{Key: integration.DefaultNamespace, Expected: integration.DefaultNamespace},
-		{Key: integration.ProductionNamespace, Expected: integration.ProductionNamespace},
+		{Key: integration.AlternativeNamespace, Expected: integration.AlternativeNamespace},
 	}) {
 		t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
 			t.Run("Flags and Variants", func(t *testing.T) {
@@ -131,10 +141,11 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					require.NoError(t, err)
 
 					enabled, err := envClient.CreateResource(ctx, &environments.UpdateResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "test",
-						Payload:   flag,
-						Revision:  revision,
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "test",
+						Payload:     flag,
+						Revision:    revision,
 					})
 					require.NoError(t, err)
 
@@ -185,10 +196,11 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					require.NoError(t, err)
 
 					disabled, err := envClient.CreateResource(ctx, &environments.UpdateResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "disabled",
-						Payload:   disabledFlagAny,
-						Revision:  revision,
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "disabled",
+						Payload:     disabledFlagAny,
+						Revision:    revision,
 					})
 					require.NoError(t, err)
 
@@ -219,10 +231,11 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					stripAnyTypePrefix(t, booleanFlagAny)
 
 					booleanEnabled, err := envClient.CreateResource(ctx, &environments.UpdateResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "boolean_enabled",
-						Payload:   booleanFlagAny,
-						Revision:  revision,
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "boolean_enabled",
+						Payload:     booleanFlagAny,
+						Revision:    revision,
 					})
 					require.NoError(t, err)
 
@@ -238,8 +251,10 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					revision = booleanEnabled.Revision
 
 					fetchedBooleanEnabled, err := envClient.GetResource(ctx, &environments.GetResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "boolean_enabled",
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "boolean_enabled",
+						TypeUrl:     "flipt.core.Flag",
 					})
 					require.NoError(t, err)
 
@@ -269,10 +284,11 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					stripAnyTypePrefix(t, disabledBooleanFlagAny)
 
 					booleanDisabled, err := envClient.CreateResource(ctx, &environments.UpdateResourceRequest{
-						Key:       "boolean_disabled",
-						Namespace: namespace.Key,
-						Payload:   disabledBooleanFlagAny,
-						Revision:  revision,
+						Environment: integration.DefaultEnvironment,
+						Key:         "boolean_disabled",
+						Namespace:   namespace.Key,
+						Payload:     disabledBooleanFlagAny,
+						Revision:    revision,
 					})
 					require.NoError(t, err)
 
@@ -288,8 +304,10 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					revision = booleanDisabled.Revision
 
 					fetchedBooleanDisabled, err := envClient.GetResource(ctx, &environments.GetResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "boolean_disabled",
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "boolean_disabled",
+						TypeUrl:     "flipt.core.Flag",
 					})
 					require.NoError(t, err)
 
@@ -300,8 +318,10 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 					t.Log("Retrieve flag with key \"test\".")
 
 					found, err := envClient.GetResource(ctx, &environments.GetResourceRequest{
-						Namespace: namespace.Key,
-						Key:       "test",
+						Environment: integration.DefaultEnvironment,
+						Namespace:   namespace.Key,
+						Key:         "test",
+						TypeUrl:     "flipt.core.Flag",
 					})
 					require.NoError(t, err)
 
