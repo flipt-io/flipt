@@ -45,7 +45,7 @@ interface RolloutFormValues {
   description: string;
   operator?: SegmentOperatorType;
   percentage?: number;
-  segmentKeys?: FilterableSegment[];
+  segments?: FilterableSegment[];
   value: string;
 }
 
@@ -67,7 +67,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       ...rolloutSegment,
       description: values.description,
       segment: {
-        segments: values.segmentKeys?.map((s) => s.key),
+        segments: values.segments?.map((s) => s.key),
         segmentOperator: values.operator,
         value: values.value === 'true'
       }
@@ -107,7 +107,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       initialValues={{
         type: rollout.type,
         description: rollout.description || '',
-        segmentKeys: segments.flatMap((s) =>
+        segments: segments.flatMap((s) =>
           rollout.segment?.segments?.includes(s.key)
             ? {
                 ...s,
@@ -122,9 +122,9 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       }}
       validate={(values) => {
         if (values.type === RolloutType.SEGMENT) {
-          if (values.segmentKeys.length <= 0) {
+          if (values.segments.length <= 0) {
             return {
-              segmentKeys: true
+              segments: true
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
@@ -270,7 +270,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
                     <label
-                      htmlFor="segmentKeys"
+                      htmlFor="segments"
                       className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
                     >
                       Segment
@@ -279,7 +279,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                   <div className="sm:col-span-2">
                     <div>
                       <FieldArray
-                        name="segmentKeys"
+                        name="segments"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
                             segments={segments}
@@ -293,13 +293,13 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                               index: number,
                               segment: FilterableSegment
                             ) => arrayHelpers.replace(index, segment)}
-                            selectedSegments={formik.values.segmentKeys}
+                            selectedSegments={formik.values.segments}
                           />
                         )}
                       />
                     </div>
                     <div className="mt-6 flex space-x-8">
-                      {formik.values.segmentKeys.length > 1 &&
+                      {formik.values.segments.length > 1 &&
                         segmentOperators.map((segmentOperator, index) => (
                           <div className="flex space-x-2" key={index}>
                             <div>

@@ -176,9 +176,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
             ruleErrors.rollouts = 'Rollouts must add up to 100%';
           }
           if (!rule.segments || rule.segments.length <= 0) {
-            ruleErrors.segmentKeys = 'Segments length must be greater than 0';
+            ruleErrors.segments = 'Segments length must be greater than 0';
           }
-          if (ruleErrors.rollouts || ruleErrors.segmentKeys) {
+          if (ruleErrors.rollouts || ruleErrors.segments) {
             if (!errors.rules) {
               errors.rules = [];
             }

@@ -163,9 +163,9 @@ export default function Rollouts(props: RolloutsProps) {
   const rollouts = useMemo(() => {
     return props.rollouts!.map((rollout) => {
       if (rollout.segment) {
-        let segmentKeys: string[] = [];
+        let segments: string[] = [];
         if (rollout.segment.segments && rollout.segment.segments.length > 0) {
-          segmentKeys = rollout.segment.segments;
+          segments = rollout.segment.segments;
         }
 
         return {
@@ -173,7 +173,7 @@ export default function Rollouts(props: RolloutsProps) {
           segment: {
             segmentOperator:
               rollout.segment.segmentOperator || SegmentOperatorType.OR,
-            segmentKeys,
+            segments,
             value: rollout.segment.value
           }
         };
