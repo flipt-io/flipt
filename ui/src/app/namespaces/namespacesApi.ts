@@ -93,7 +93,7 @@ export const namespaceApi = createApi({
     // create the namespace
     createNamespace: builder.mutation<
       INamespace,
-      { environmentKey: string; values: INamespace; revision?: string }
+      { environmentKey: string; values: INamespace; revision: string }
     >({
       query({ environmentKey, values, revision }) {
         return {
@@ -114,11 +114,11 @@ export const namespaceApi = createApi({
     // update the namespace
     updateNamespace: builder.mutation<
       INamespace,
-      { environmentKey: string; values: INamespace; revision?: string }
+      { environmentKey: string; values: INamespace; revision: string }
     >({
       query({ environmentKey, values, revision }) {
         return {
-          url: `/${environmentKey}/namespaces/`,
+          url: `/${environmentKey}/namespaces`,
           method: 'PUT',
           body: {
             ...values,
@@ -133,10 +133,13 @@ export const namespaceApi = createApi({
       ]
     }),
     // delete the namespace
-    deleteNamespace: builder.mutation<void, string>({
-      query(namespaceKey) {
+    deleteNamespace: builder.mutation<
+      void,
+      { environmentKey: string; namespaceKey: string; revision: string }
+    >({
+      query({ environmentKey, namespaceKey, revision }) {
         return {
-          url: `/namespaces/${namespaceKey}`,
+          url: `/${environmentKey}/namespaces/${namespaceKey}?revision=${revision}`,
           method: 'DELETE'
         };
       },
