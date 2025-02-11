@@ -39,20 +39,8 @@ jobs:
       matrix:
         test:
           [
-            "api/cache",
-            "api/cachetls",
-            "api/snapshot",
-            "api/ofrep",
-            "fs/git",
-            "fs/local",
-            "fs/s3",
-            "fs/azblob",
-            "fs/gcs",
-            "import/export",
-            "authn",
-            "authz",
-            "audit/webhook",
-            "audit/webhooktmpl",
+            "envs",
+            "envs_with_dir"
           ]
     steps:
       - uses: actions/checkout@v4
