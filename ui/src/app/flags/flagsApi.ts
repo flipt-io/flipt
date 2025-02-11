@@ -91,14 +91,14 @@ export const flagsApi = createApi({
             (r: IRollout, i: number) => ({
               ...r,
               id: uuid(),
-              rank: i
+              rank: i+1
             })
           ),
           rules: response.resource.payload.rules?.map(
             (r: IRule, i: number) => ({
               ...r,
               id: uuid(),
-              rank: i
+              rank: i+1
             })
           )
         };
