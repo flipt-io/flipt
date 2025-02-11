@@ -592,8 +592,7 @@ func Default() *Config {
 				Backend: StorageBackendConfig{
 					Type: "memory",
 				},
-				Branch:       "main",
-				PollInterval: 30 * time.Second,
+				Branch: "main",
 			},
 		},
 
