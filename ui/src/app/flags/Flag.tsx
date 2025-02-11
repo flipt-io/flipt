@@ -93,6 +93,7 @@ export default function Flag() {
           }
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
+            setSuccess('Successfully deleted flag');
           }}
         />
       </Modal>
