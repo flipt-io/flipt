@@ -74,22 +74,10 @@ export default function Footer() {
               <a
                 target="_blank"
                 rel="noreferrer"
-                href="https://features.flipt.io/changelog"
+                href="https://docs.flipt.io/changelog/overview"
                 className="text-violet-500"
               >
                 Changelog
-              </a>
-            </span>
-          </p>
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
-            <span className="hidden sm:inline">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="https://features.flipt.io"
-                className="text-violet-500"
-              >
-                Share Feedback
               </a>
             </span>
           </p>
