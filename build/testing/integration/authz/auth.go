@@ -17,7 +17,7 @@ import (
 )
 
 func Common(t *testing.T, opts integration.TestOpts) {
-	client := opts.TokenClient(t)
+	client := opts.BootstrapClient(t)
 
 	t.Run("Evaluation", func(t *testing.T) {
 		ctx := context.Background()
@@ -70,7 +70,7 @@ func Common(t *testing.T, opts integration.TestOpts) {
 					name   string
 					client func(*testing.T, ...integration.ClientOpt) sdk.SDK
 				}{
-					{"StaticToken", opts.TokenClient},
+					{"StaticToken", opts.BootstrapClient},
 					{"JWT", opts.JWTClient},
 					{"K8s", opts.K8sClient},
 				} {

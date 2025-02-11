@@ -16,7 +16,7 @@ import (
 )
 
 func Common(t *testing.T, opts integration.TestOpts) {
-	client := opts.TokenClient(t)
+	client := opts.BootstrapClient(t)
 
 	t.Run("Authentication Methods", func(t *testing.T) {
 		ctx := context.Background()
@@ -73,7 +73,10 @@ func Common(t *testing.T, opts integration.TestOpts) {
 					})
 
 					// ensure we can do resource specific operations in scoped namespace
-					scopedClient := opts.TokenClient(t, integration.WithNamespace(namespace.Key))
+					// TODO(georgemac): the options here aren't currently being observed because tokens
+					// can no longer be generated on the fly so we need to adjust the strategy here.
+					// (i.e. precreate the scoped token before the test begins)
+					scopedClient := opts.BootstrapClient(t, integration.WithNamespace(namespace.Key))
 
 					canReadAllIn(t, ctx, scopedClient, namespace.Key)
 

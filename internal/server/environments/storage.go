@@ -21,7 +21,7 @@ func NewResourceType(pkg, name string) ResourceType {
 }
 
 func ParseResourceType(typ string) (t ResourceType, err error) {
-	parts := strings.Split(typ, ".")
+	parts := strings.Split(strings.TrimPrefix(typ, "type.googleapis.com/"), ".")
 	if len(parts) == 0 {
 		return t, fmt.Errorf("unexpected package type %q", typ)
 	}

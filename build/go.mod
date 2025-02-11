@@ -9,7 +9,6 @@ require (
 	dagger.io/dagger v0.14.0
 	github.com/99designs/gqlgen v0.17.57
 	github.com/Khan/genqlient v0.7.0
-	github.com/containerd/containerd v1.7.23
 	github.com/containerd/platforms v0.2.1
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/go-git/go-billy/v5 v5.6.2
@@ -63,9 +62,9 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/Microsoft/hcsshim v0.12.7 // indirect
 	github.com/ProtonMail/go-crypto v1.1.3 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
