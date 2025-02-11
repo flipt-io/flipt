@@ -7,6 +7,8 @@ import "google/protobuf/any.proto";
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
 
 service EnvironmentsService {
+  rpc ListEnvironments(ListEnvironmentsRequest) returns (ListEnvironmentsResponse) {}
+
   rpc GetNamespace(GetNamespaceRequest) returns (NamespaceResponse) {}
   rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {}
   rpc CreateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {}
@@ -18,6 +20,18 @@ service EnvironmentsService {
   rpc CreateResource(UpdateResourceRequest) returns (ResourceResponse) {}
   rpc UpdateResource(UpdateResourceRequest) returns (ResourceResponse) {}
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
+}
+
+/* Environments */
+
+message Environment {
+  string key = 1;
+}
+
+message ListEnvironmentsRequest {}
+
+message ListEnvironmentsResponse {
+  repeated Environment environments = 1;
 }
 
 /* Namespace */

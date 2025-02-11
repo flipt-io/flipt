@@ -19,22 +19,24 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EnvironmentsService_GetNamespace_FullMethodName    = "/environments.EnvironmentsService/GetNamespace"
-	EnvironmentsService_ListNamespaces_FullMethodName  = "/environments.EnvironmentsService/ListNamespaces"
-	EnvironmentsService_CreateNamespace_FullMethodName = "/environments.EnvironmentsService/CreateNamespace"
-	EnvironmentsService_UpdateNamespace_FullMethodName = "/environments.EnvironmentsService/UpdateNamespace"
-	EnvironmentsService_DeleteNamespace_FullMethodName = "/environments.EnvironmentsService/DeleteNamespace"
-	EnvironmentsService_GetResource_FullMethodName     = "/environments.EnvironmentsService/GetResource"
-	EnvironmentsService_ListResources_FullMethodName   = "/environments.EnvironmentsService/ListResources"
-	EnvironmentsService_CreateResource_FullMethodName  = "/environments.EnvironmentsService/CreateResource"
-	EnvironmentsService_UpdateResource_FullMethodName  = "/environments.EnvironmentsService/UpdateResource"
-	EnvironmentsService_DeleteResource_FullMethodName  = "/environments.EnvironmentsService/DeleteResource"
+	EnvironmentsService_ListEnvironments_FullMethodName = "/environments.EnvironmentsService/ListEnvironments"
+	EnvironmentsService_GetNamespace_FullMethodName     = "/environments.EnvironmentsService/GetNamespace"
+	EnvironmentsService_ListNamespaces_FullMethodName   = "/environments.EnvironmentsService/ListNamespaces"
+	EnvironmentsService_CreateNamespace_FullMethodName  = "/environments.EnvironmentsService/CreateNamespace"
+	EnvironmentsService_UpdateNamespace_FullMethodName  = "/environments.EnvironmentsService/UpdateNamespace"
+	EnvironmentsService_DeleteNamespace_FullMethodName  = "/environments.EnvironmentsService/DeleteNamespace"
+	EnvironmentsService_GetResource_FullMethodName      = "/environments.EnvironmentsService/GetResource"
+	EnvironmentsService_ListResources_FullMethodName    = "/environments.EnvironmentsService/ListResources"
+	EnvironmentsService_CreateResource_FullMethodName   = "/environments.EnvironmentsService/CreateResource"
+	EnvironmentsService_UpdateResource_FullMethodName   = "/environments.EnvironmentsService/UpdateResource"
+	EnvironmentsService_DeleteResource_FullMethodName   = "/environments.EnvironmentsService/DeleteResource"
 )
 
 // EnvironmentsServiceClient is the client API for EnvironmentsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EnvironmentsServiceClient interface {
+	ListEnvironments(ctx context.Context, in *ListEnvironmentsRequest, opts ...grpc.CallOption) (*ListEnvironmentsResponse, error)
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
 	CreateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
@@ -53,6 +55,16 @@ type environmentsServiceClient struct {
 
 func NewEnvironmentsServiceClient(cc grpc.ClientConnInterface) EnvironmentsServiceClient {
 	return &environmentsServiceClient{cc}
+}
+
+func (c *environmentsServiceClient) ListEnvironments(ctx context.Context, in *ListEnvironmentsRequest, opts ...grpc.CallOption) (*ListEnvironmentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListEnvironmentsResponse)
+	err := c.cc.Invoke(ctx, EnvironmentsService_ListEnvironments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *environmentsServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error) {
@@ -159,6 +171,7 @@ func (c *environmentsServiceClient) DeleteResource(ctx context.Context, in *Dele
 // All implementations must embed UnimplementedEnvironmentsServiceServer
 // for forward compatibility.
 type EnvironmentsServiceServer interface {
+	ListEnvironments(context.Context, *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	CreateNamespace(context.Context, *UpdateNamespaceRequest) (*NamespaceResponse, error)
@@ -179,6 +192,9 @@ type EnvironmentsServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedEnvironmentsServiceServer struct{}
 
+func (UnimplementedEnvironmentsServiceServer) ListEnvironments(context.Context, *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironments not implemented")
+}
 func (UnimplementedEnvironmentsServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNamespace not implemented")
 }
@@ -228,6 +244,24 @@ func RegisterEnvironmentsServiceServer(s grpc.ServiceRegistrar, srv Environments
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&EnvironmentsService_ServiceDesc, srv)
+}
+
+func _EnvironmentsService_ListEnvironments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEnvironmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).ListEnvironments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_ListEnvironments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).ListEnvironments(ctx, req.(*ListEnvironmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _EnvironmentsService_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -417,6 +451,10 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "environments.EnvironmentsService",
 	HandlerType: (*EnvironmentsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListEnvironments",
+			Handler:    _EnvironmentsService_ListEnvironments_Handler,
+		},
 		{
 			MethodName: "GetNamespace",
 			Handler:    _EnvironmentsService_GetNamespace_Handler,

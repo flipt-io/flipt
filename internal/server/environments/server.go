@@ -30,6 +30,21 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	environments.RegisterEnvironmentsServiceServer(server, s)
 }
 
+// ListEnvironments returns a list of all environments.
+func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnvironmentsRequest) (el *environments.ListEnvironmentsResponse, err error) {
+	el = &environments.ListEnvironmentsResponse{
+		Environments: make([]*environments.Environment, 0),
+	}
+
+	for env := range s.envs.List(ctx) {
+		el.Environments = append(el.Environments, &environments.Environment{
+			Key: env.Name(),
+		})
+	}
+
+	return el, nil
+}
+
 func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespaceRequest) (ns *environments.NamespaceResponse, err error) {
 	env, err := s.envs.Get(ctx, req.Environment)
 	if err != nil {
