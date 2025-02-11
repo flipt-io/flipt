@@ -3,6 +3,7 @@ package environments
 import (
 	"context"
 	"fmt"
+	"iter"
 	"strings"
 
 	"go.flipt.io/flipt/errors"
@@ -89,6 +90,16 @@ func NewEnvironmentStore(envs ...Environment) *EnvironmentStore {
 	}
 
 	return store
+}
+
+func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
+	return iter.Seq[Environment](func(yield func(Environment) bool) {
+		for _, env := range e.byName {
+			if !yield(env) {
+				return
+			}
+		}
+	})
 }
 
 // Get returns the environment identified on the context via the matching host

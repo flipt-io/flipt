@@ -3,6 +3,11 @@ config_version: 3
 
 http:
   rules:
+    # environments
+    #
+    - selector: environments.EnvironmentsService.ListEnvironments
+      get: /v2/environments
+
     # namespaces
     #
     - selector: environments.EnvironmentsService.GetNamespace

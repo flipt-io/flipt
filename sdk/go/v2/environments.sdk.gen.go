@@ -12,6 +12,14 @@ type Environments struct {
 	authenticationProvider ClientAuthenticationProvider
 }
 
+func (x *Environments) ListEnvironments(ctx context.Context, v *environments.ListEnvironmentsRequest) (*environments.ListEnvironmentsResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.ListEnvironments(ctx, v)
+}
+
 func (x *Environments) GetNamespace(ctx context.Context, v *environments.GetNamespaceRequest) (*environments.NamespaceResponse, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {
