@@ -105,15 +105,43 @@ test.describe('Rules', () => {
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
+  test('can reorder rules', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-rule' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
+    await page
+      .getByTestId('rule-1')
+      .getByRole('button', { name: 'Rule' })
+      .dragTo(page.getByTestId('rule-0').getByRole('button', { name: 'Rule' }));
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(
+      page.getByTestId('rule-0').getByRole('button', { name: '1' })
+    ).toBeVisible();
+    await expect(
+      page.getByTestId('rule-1').getByRole('button', { name: '2' })
+    ).toBeVisible();
+  });
+
   test('can update default rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
     await expect(
       page.getByRole('heading', { name: 'Default Rule' })
     ).toBeVisible();
-    await page.locator('#defaultVariant-select-input').click();
-    await page.getByLabel('', { exact: true }).getByText('456').click(); // TODO: should get variant by label
+    await page.locator('#defaultVariant-select-button').click();
+    await page.getByRole('option', { name: '456' }).locator('div').click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
+  });
+
+  test('can delete rule', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-rule' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
+    await page.getByTestId('rule-1').getByTestId('rule-menu-button').click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(page.getByTestId('rule-1')).toBeHidden();
   });
 });

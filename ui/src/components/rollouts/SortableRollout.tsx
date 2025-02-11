@@ -4,6 +4,8 @@ import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
 
+import { cls } from '~/utils/helpers';
+
 import Rollout from './Rollout';
 
 type SortableRolloutProps = {
@@ -35,8 +37,6 @@ export default function SortableRollout(props: SortableRolloutProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-500 cursor-move' : '';
-
   return (
     <Rollout
       key={rollout.id}
@@ -44,7 +44,9 @@ export default function SortableRollout(props: SortableRolloutProps) {
       {...listeners}
       {...attributes}
       style={style}
-      className={className}
+      className={cls({
+        'border-violet-500': isDragging
+      })}
       flag={flag}
       rollout={rollout}
       segments={segments}
