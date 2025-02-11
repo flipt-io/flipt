@@ -28,13 +28,13 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 
 ## TODO
 
-- [ ] Implement new declarative API for managing flag configuration
-- [ ] Update UI to support new API
+- [x] Implement new declarative API for managing flag configuration
+- [x] Update UI to support new API
 - [x] Remove legacy evaluation APIs
 - [x] Remove database dependencies except for analytics
-- [ ] Port over git storage backend
-- [ ] Implement Redis and in-memory authentication backends
-- [ ] Refactor and consolidate configuration options
+- [x] Port over git storage backend
+- [x] Implement Redis and in-memory authentication backends
+- [x] Refactor and consolidate configuration options
 - [ ] Fix and improve unit test coverage
 - [ ] Fix and improve integration test coverage
 - [ ] Package and release
