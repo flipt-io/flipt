@@ -65,9 +65,6 @@ func (f *FlagStorage) GetResource(ctx context.Context, fs environmentsfs.Filesys
 					return nil, err
 				}
 
-				// TODO: remove this after ui is complete
-				f.logger.Debug("get flag", zap.Any("flag", payload))
-
 				return &rpcenvironments.Resource{
 					Namespace: namespace,
 					Key:       ff.Key,
@@ -127,9 +124,6 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 	if err != nil {
 		return err
 	}
-
-	// TODO: remove this after ui is complete
-	f.logger.Debug("put flag", zap.Any("flag", flag))
 
 	docs, idx, err := getDocsAndNamespace(ctx, fs, rs.Namespace)
 	if err != nil {

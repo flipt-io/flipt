@@ -17,16 +17,14 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
   });
 
-  test('has default rollout', async ({ page }) => {
+  test('can update default rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await expect(
       page.getByRole('heading', { name: 'Default Rollout' })
     ).toBeVisible();
     await page.locator('#defaultValue').selectOption('true');
     await page.getByRole('button', { name: 'Update' }).last().click();
-    await expect(
-      page.getByText('Successfully updated default rollout')
-    ).toBeVisible();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
   test('can create rollout', async ({ page }) => {
@@ -38,8 +36,9 @@ test.describe('Rollouts', () => {
       .getByLabel('Value')
       .selectOption('false');
     await page.getByRole('textbox').fill('test'); // TODO: should get description by label
-    await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page.getByText('Successfully created rollout')).toBeVisible();
+    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Threshold Rollout' })
     ).toBeVisible();
@@ -52,12 +51,8 @@ test.describe('Rollouts', () => {
   test('can quick edit rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('list').getByLabel('Percentage').first().fill('70');
-    await page
-      .getByRole('list')
-      .getByRole('button', { name: 'Update' })
-      .first()
-      .click();
-    await expect(page.getByText('Successfully updated rollout')).toBeVisible();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
   test('can edit rollout', async ({ page }) => {
@@ -66,8 +61,9 @@ test.describe('Rollouts', () => {
     await page.getByRole('menuitem', { name: 'Edit' }).click();
     await page.getByRole('textbox').click();
     await page.getByRole('textbox').fill('test2');
+    await page.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated rollout')).toBeVisible();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
   test('can delete rollout', async ({ page }) => {
@@ -75,51 +71,40 @@ test.describe('Rollouts', () => {
     await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Threshold Rollout' })
     ).toBeHidden();
   });
 
-  test('can create segment with rollout', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-boolean' }).click();
-    await page.getByRole('button', { name: 'New Rollout' }).click();
-    await page.getByLabel('New Rollout').getByLabel('Segment').check();
-    await page
-      .getByLabel('New Rollout')
-      .locator('#segmentKey-0-select-button')
-      .click();
-    await page.getByLabel('New Rollout').getByText('Test Rule').click();
-    await page
-      .getByLabel('New Rollout')
-      .getByRole('button', { name: 'Create' })
-      .click();
-    await expect(page.getByText('Successfully created rollout')).toBeVisible();
-  });
-});
-
-test.describe('Rollouts - Read Only', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.route(/\/meta\/info/, async (route) => {
-      const response = await route.fetch();
-      const json = await response.json();
-      json.storage.type = 'git';
-      // Fulfill using the original response, while patching the
-      // response body with our changes to mock git storage for read only mode
-      await route.fulfill({ response, json });
+  test('can create segment rollout', async ({ page }) => {
+    await test.step('create segment', async () => {
+      await page.getByRole('link', { name: 'Segments' }).click();
+      await page.getByRole('button', { name: 'New Segment' }).click();
+      await page.getByLabel('Name').fill('Test Rollout');
+      await page.getByLabel('Description').click();
+      await page.getByRole('button', { name: 'Create' }).click();
     });
 
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Flags' }).click();
-    await page.getByRole('link', { name: 'test-boolean' }).click();
-  });
+    await test.step('create rollout', async () => {
+      await page.reload();
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('link', { name: 'test-boolean' }).click();
+      await page.getByRole('button', { name: 'New Rollout' }).click();
+      await page.getByLabel('New Rollout').getByLabel('Segment').check();
 
-  test('cannot create rollout', async ({ page }) => {
-    await expect(
-      page.getByRole('button', { name: 'New Rollout' })
-    ).toBeDisabled();
-  });
-
-  test('cannot delete rollout', async ({ page }) => {
-    await expect(page.getByTestId('rollout-menu-button').nth(0)).toBeDisabled();
+      await page
+        .getByLabel('New Rollout')
+        .locator('#segmentKey-0-select-button')
+        .click();
+      await page.getByLabel('New Rollout').getByText('Test Rollout').click();
+      await page
+        .getByLabel('New Rollout')
+        .getByRole('button', { name: 'Add' })
+        .click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    });
   });
 });

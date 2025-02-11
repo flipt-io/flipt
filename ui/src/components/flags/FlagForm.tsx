@@ -408,9 +408,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                       <nav className="-mb-px flex space-x-8">
                         {tabs.map((tab) => (
                           <div
-                            role="button"
+                            role="link"
                             key={tab.name}
-                            onClick={() => setSelectedTab(tab.id!)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedTab(tab.id!);
+                            }}
                             className={cls(
                               'cursor-pointer whitespace-nowrap border-b-2 px-1 py-2 font-medium',
                               {

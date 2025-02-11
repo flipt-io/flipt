@@ -25,7 +25,7 @@ close({
 		#FlagBoolean | *{}
 	}
 	if version == "1.3" || version == "1.4" || version == "1.5" {
-		metadata: [string]: (string | int | bool | float)
+		metadata: [string]: !=null
 	}
 }
 
