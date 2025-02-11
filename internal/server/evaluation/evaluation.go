@@ -47,6 +47,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
+		// TODO: fliptotel.AttributeEnvironment.String(r.EnvironmentKey),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -76,7 +77,8 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 		err      error
 		lastRank int32
 
-		startTime     = time.Now().UTC()
+		startTime = time.Now().UTC()
+		// TODO: environmentAttr = metrics.AttributeEnvironment.String(r.EnvironmentKey)
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
 		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
 	)
@@ -88,6 +90,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
 				metric.WithAttributeSet(
 					attribute.NewSet(
+						// TODO: environmentAttr,
 						namespaceAttr,
 						flagAttr,
 						metrics.AttributeMatch.Bool(resp.Match),
@@ -276,6 +279,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
+		// TODO: fliptotel.AttributeEnvironment.String(r.EnvironmentKey),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -308,7 +312,8 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 	)
 
 	var (
-		startTime     = time.Now().UTC()
+		startTime = time.Now().UTC()
+		// TODO: environmentAttr = metrics.AttributeEnvironment.String(r.EnvironmentKey)
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
 		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
 	)
@@ -320,6 +325,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
 				metric.WithAttributeSet(
 					attribute.NewSet(
+						// TODO: environmentAttr,
 						namespaceAttr,
 						flagAttr,
 						metrics.AttributeValue.Bool(resp.Enabled),

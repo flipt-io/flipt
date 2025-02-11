@@ -3,7 +3,6 @@ import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router';
 
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
@@ -59,13 +58,14 @@ const durations: FilterableDurations[] = [
   }
 ];
 
-export default function Analytics() {
+export default function Analytics(props: AnalyticsProps) {
+  const { flag } = props;
+
   const [selectedDuration, setSelectedDuration] = useState<FilterableDurations>(
     durations[0]
   );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
 
-  const { flag } = useOutletContext<AnalyticsProps>();
   const namespace = useSelector(selectCurrentNamespace);
 
   const info = useSelector(selectInfo);
@@ -104,7 +104,7 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mt-2 max-w-screen-lg">
+    <div className="mt-2">
       {info.analyticsEnabled ? (
         <>
           <div className="sm:flex sm:items-center">

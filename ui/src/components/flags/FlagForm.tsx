@@ -37,6 +37,7 @@ import {
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
+import Analytics from '~/app/flags/analytics/Analytics';
 
 const flagTypes = [
   {
@@ -438,6 +439,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   )}
                   {selectedTab == 'rules' && (
                     <Rules flag={flag} rules={rules!} />
+                  )}
+                  {selectedTab == 'analytics' && (
+                    <Analytics flag={flag} />
                   )}
                 </>
               )}
