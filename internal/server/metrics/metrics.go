@@ -55,11 +55,12 @@ var (
 
 	// Attributes used in evaluation metrics
 	//nolint
-	AttributeMatch     = attribute.Key("match")
-	AttributeFlag      = attribute.Key("flag")
-	AttributeSegments  = attribute.Key("segments")
-	AttributeReason    = attribute.Key("reason")
-	AttributeValue     = attribute.Key("value")
-	AttributeNamespace = attribute.Key("namespace")
-	AttributeType      = attribute.Key("type")
+	AttributeMatch       = attribute.Key("flipt.match")
+	AttributeFlag        = attribute.Key("flipt.flag")
+	AttributeType        = attribute.Key("flipt.type")
+	AttributeSegments    = attribute.Key("flipt.segments")
+	AttributeReason      = attribute.Key("flipt.reason")
+	AttributeValue       = attribute.Key("flipt.value")
+	AttributeNamespace   = attribute.Key("flipt.namespace")
+	AttributeEnvironment = attribute.Key("flipt.environment")
 )

@@ -49,7 +49,7 @@ const Rule = forwardRef(
             )}
             {...rest}
           >
-            {rule.rank}
+            {rule.rank + 1}
           </span>
           <h3
             className={cls(

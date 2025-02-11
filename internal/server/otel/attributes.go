@@ -5,12 +5,13 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
+// TODO: merge with metrics?
 var (
 	AttributeMatch       = attribute.Key("flipt.match")
 	AttributeFlag        = attribute.Key("flipt.flag")
+	AttributeEnvironment = attribute.Key("flipt.environment")
 	AttributeNamespace   = attribute.Key("flipt.namespace")
 	AttributeFlagEnabled = attribute.Key("flipt.flag_enabled")
-	AttributeSegment     = attribute.Key("flipt.segment")
 	AttributeSegments    = attribute.Key("flipt.segments")
 	AttributeReason      = attribute.Key("flipt.reason")
 	AttributeValue       = attribute.Key("flipt.value")
