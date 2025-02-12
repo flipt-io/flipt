@@ -28,18 +28,21 @@
         "null"
       ],
       "title": "Analytics",
+      "additionalProperties": false,
       "properties": {
         "storage": {
           "type": [
             "object",
             "null"
           ],
+          "additionalProperties": false,
           "properties": {
             "clickhouse": {
               "type": [
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -56,6 +59,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -83,6 +87,7 @@
             "object",
             "null"
           ],
+          "additionalProperties": false,
           "properties": {
             "capacity": {
               "type": "integer"
@@ -110,6 +115,7 @@
         },
         "exclude": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "management": {
               "type": "boolean",
@@ -134,6 +140,7 @@
             "object",
             "null"
           ],
+          "additionalProperties": false,
           "properties": {
             "domain": {
               "type": "string"
@@ -156,6 +163,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "key": {
                   "type": "string"
@@ -167,6 +175,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
@@ -181,6 +190,7 @@
                     "object",
                     "null"
                   ],
+                  "additionalProperties": false,
                   "properties": {
                     "grace_period": {
                       "type": "string",
@@ -194,6 +204,7 @@
                     "object",
                     "null"
                   ],
+                  "additionalProperties": false,
                   "properties": {
                     "host": {
                       "type": "string",
@@ -256,12 +267,14 @@
             "object",
             "null"
           ],
+          "additionalProperties": false,
           "properties": {
             "token": {
               "type": [
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -272,16 +285,26 @@
                     "object",
                     "null"
                   ],
-                   "properties": {
+                  "additionalProperties": false,
+                  "properties": {
                     "type": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "default": "static"
                     },
                     "tokens": {
-                      "type": ["array", "null"],
+                      "type": [
+                        "array",
+                        "null"
+                      ],
                       "items": {
                         "type": "object",
-                        "required": ["name", "credential"],
+                        "required": [
+                          "name",
+                          "credential"
+                        ],
                         "properties": {
                           "name": {
                             "type": "string"
@@ -290,7 +313,10 @@
                             "type": "string"
                           },
                           "metadata": {
-                            "type": ["object", "null"],
+                            "type": [
+                              "object",
+                              "null"
+                            ],
                             "additionalProperties": {
                               "type": "string"
                             }
@@ -307,19 +333,38 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
                   "default": false
+                },
+                "email_matches": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "providers": {
                   "type": [
                     "object",
                     "null"
                   ],
+                  "additionalProperties": false,
                   "patternProperties": {
                     "^.*$": {
                       "type": "object",
+                      "additionalProperties": false,
                       "properties": {
                         "issuer_url": {
                           "type": "string"
@@ -351,24 +396,7 @@
                         }
                       }
                     }
-                  },
-                  "additionalProperties": false
-                },
-                "email_matches": {
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  }
                 }
               }
             },
@@ -377,6 +405,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -398,6 +427,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -428,20 +458,13 @@
                   }
                 },
                 "allowed_organizations": {
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
                 },
                 "allowed_teams": {
                   "type": [
@@ -462,6 +485,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "enabled": {
                   "type": "boolean",
@@ -472,6 +496,7 @@
                     "object",
                     "null"
                   ],
+                  "additionalProperties": false,
                   "properties": {
                     "issuer": {
                       "type": "string"
@@ -589,40 +614,32 @@
           "default": false
         },
         "allowed_origins": {
-          "oneOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "default": [
-                "*"
-              ]
-            },
-            {
-              "type": "string"
-            }
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "*"
           ]
         },
         "allowed_headers": {
-          "oneOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "default": [
-                "Accept",
-                "Authorization",
-                "Content-Type",
-                "X-CSRF-Token",
-                "X-Flipt-Namespace",
-                "X-Flipt-Accept-Server-Version"
-              ]
-            },
-            {
-              "type": "string"
-            }
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "Accept",
+            "Authorization",
+            "Content-Type",
+            "X-CSRF-Token",
+            "X-Flipt-Namespace",
+            "X-Flipt-Accept-Server-Version"
           ]
         }
       }
@@ -649,6 +666,7 @@
         "object",
         "null"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
           "type": "object",
@@ -679,9 +697,11 @@
         "object",
         "null"
       ],
+      "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "remote": {
               "type": "string"
@@ -691,6 +711,7 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
@@ -708,6 +729,24 @@
             "branch": {
               "type": "string",
               "default": "main"
+            },
+            "signature": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                }
+              }
             },
             "poll_interval": {
               "type": "string",
@@ -732,12 +771,14 @@
                 "object",
                 "null"
               ],
+              "additionalProperties": false,
               "properties": {
                 "object": {
                   "type": [
                     "object",
                     "null"
                   ],
+                  "additionalProperties": false,
                   "properties": {
                     "type": {
                       "type": "string",
@@ -754,6 +795,7 @@
                         "object",
                         "null"
                       ],
+                      "additionalProperties": false,
                       "required": [
                         "region",
                         "bucket"
@@ -783,6 +825,7 @@
                         "object",
                         "null"
                       ],
+                      "additionalProperties": false,
                       "required": [
                         "container"
                       ],
@@ -805,6 +848,7 @@
                         "object",
                         "null"
                       ],
+                      "additionalProperties": false,
                       "required": [
                         "bucket"
                       ],
@@ -1101,6 +1145,7 @@
             "null"
           ],
           "title": "Metrics OTLP",
+          "additionalProperties": false,
           "properties": {
             "endpoint": {
               "type": "string",
@@ -1163,6 +1208,7 @@
             "null"
           ],
           "title": "Tracing OTLP",
+          "additionalProperties": false,
           "properties": {
             "endpoint": {
               "type": "string",
@@ -1203,6 +1249,7 @@
             "object",
             "null"
           ],
+          "additionalProperties": false,
           "properties": {
             "color": {
               "type": "string"
