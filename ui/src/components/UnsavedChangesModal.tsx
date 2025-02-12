@@ -84,7 +84,11 @@ export function UnsavedChangesModalWrapper(props: UnsavedChangesModalProps) {
   }, [formik.dirty]);
 
   const handleDiscard = () => {
-    onDiscard ? onDiscard() : formik.resetForm();
+    if (onDiscard) {
+      onDiscard();
+    } else {
+      formik.resetForm();
+    }
     setShowUnsavedModal(false);
     if (blocker.state === 'blocked') {
       blocker.proceed();
@@ -94,7 +98,11 @@ export function UnsavedChangesModalWrapper(props: UnsavedChangesModalProps) {
   };
 
   const handleSave = async () => {
-    onSave ? onSave() : await formik.submitForm();
+    if (onSave) {
+      onSave();
+    } else {
+      await formik.submitForm();
+    }
     setShowUnsavedModal(false);
     if (blocker.state === 'blocked') {
       blocker.proceed();

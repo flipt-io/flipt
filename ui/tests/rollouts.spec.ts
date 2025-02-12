@@ -66,18 +66,6 @@ test.describe('Rollouts', () => {
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
-  test('can delete rollout', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-boolean' }).click();
-    await page.getByTestId('rollout-menu-button').click();
-    await page.getByRole('menuitem', { name: 'Delete' }).click();
-    await page.getByRole('button', { name: 'Delete' }).click();
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: 'Threshold Rollout' })
-    ).toBeHidden();
-  });
-
   test('can create segment rollout', async ({ page }) => {
     await test.step('create segment', async () => {
       await page.getByRole('link', { name: 'Segments' }).click();
@@ -106,5 +94,36 @@ test.describe('Rollouts', () => {
       await page.getByRole('button', { name: 'Update' }).click();
       await expect(page.getByText('Successfully updated flag')).toBeVisible();
     });
+  });
+
+  test('can reorder rollouts', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-boolean' }).click();
+    await page
+      .getByTestId('rollout-0')
+      .getByRole('button', { name: 'Rollout' })
+      .dragTo(
+        page.getByTestId('rollout-1').getByRole('button', { name: 'Rollout' })
+      );
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(
+      page.getByTestId('rollout-0').getByRole('button', { name: '1' })
+    ).toBeVisible();
+    await expect(
+      page.getByTestId('rollout-1').getByRole('button', { name: '2' })
+    ).toBeVisible();
+  });
+
+  test('can delete rollout', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-boolean' }).click();
+    await page
+      .getByTestId('rollout-1')
+      .getByTestId('rollout-menu-button')
+      .click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(page.getByTestId('rollout-1')).toBeHidden();
   });
 });

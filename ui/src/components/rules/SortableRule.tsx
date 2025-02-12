@@ -4,6 +4,8 @@ import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { ISegment } from '~/types/Segment';
 
+import { cls } from '~/utils/helpers';
+
 import Rule from './Rule';
 
 type SortableRuleProps = {
@@ -34,8 +36,6 @@ export default function SortableRule(props: SortableRuleProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-500 cursor-move' : '';
-
   return (
     <Rule
       key={rule.id}
@@ -43,7 +43,9 @@ export default function SortableRule(props: SortableRuleProps) {
       {...listeners}
       {...attributes}
       style={style}
-      className={className}
+      className={cls({
+        'border-violet-500': isDragging
+      })}
       flag={flag}
       rule={rule}
       segments={segments}

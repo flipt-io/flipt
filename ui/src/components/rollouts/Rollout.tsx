@@ -40,6 +40,7 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
+      data-testid={`rollout-${rollout.rank}`}
       className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
       <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
