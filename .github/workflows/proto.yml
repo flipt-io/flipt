@@ -26,13 +26,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: bufbuild/buf-lint-action@v1
-        with:
-          input: "rpc/flipt"
 
       - uses: bufbuild/buf-breaking-action@v1
         with:
-          input: "rpc/flipt"
-          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=v2"
 
   proto-check:
     name: "Check Generated Code"
