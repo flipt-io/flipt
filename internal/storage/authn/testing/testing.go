@@ -138,7 +138,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// there should now be 99 authentications left
 		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
-		assert.Equal(t, 99, len(all), "number of authentications should match")
+		assert.Len(t, all, 99, "number of authentications should match")
 
 		auth, err := store.GetAuthenticationByClientToken(ctx, created[99].Token)
 		var expected errors.ErrNotFound
@@ -162,12 +162,12 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// there should now be 49 authentications left
 		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
-		assert.Equal(t, 49, len(all), "number of authentications should match")
+		assert.Len(t, all, 49, "number of authentications should match")
 
 		// ensure only the most recent 49 expires_at timestamped authentications remain
 		// along with the first authentication without an expiry
 		expected := allAuths(append(created[:1], created[51:99]...))
-		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		assert.Len(t, all, len(expected), "number of authentications should match")
 		for i := 0; i < len(expected); i++ {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
@@ -188,7 +188,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// there should now be 24 authentications left
 		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
-		assert.Equal(t, 24, len(all), "number of authentications should match")
+		assert.Len(t, all, 24, "number of authentications should match")
 
 		expected := allAuths(append(created[:1], created[76:99]...))
 		assert.Equal(t, len(expected), len(all), "number of authentications should match")

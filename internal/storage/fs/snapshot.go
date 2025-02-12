@@ -241,11 +241,11 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 // codepaths (v1 types / eval).
 // The snapshot generated contains all the necessary state to serve server-side
 // evaluation as well as returning entire snapshot state for client-side evaluation.
-func (ss *Snapshot) addDoc(doc *ext.Document) error {
+func (s *Snapshot) addDoc(doc *ext.Document) error {
 	var (
 		namespaceKey = doc.Namespace.GetKey()
-		ns           = ss.ns[namespaceKey]
-		snap         = ss.evalSnap.Namespaces[namespaceKey]
+		ns           = s.ns[namespaceKey]
+		snap         = s.evalSnap.Namespaces[namespaceKey]
 	)
 
 	if ns == nil {
@@ -262,8 +262,8 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
-	if len(ss.evalDists) > 0 {
-		evalDists = ss.evalDists
+	if len(s.evalDists) > 0 {
+		evalDists = s.evalDists
 	}
 
 	evalSnapSegments := map[string]*evaluation.EvaluationSegment{}
@@ -325,8 +325,8 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 				Description: f.Description,
 				Enabled:     f.Enabled,
 				Type:        toEvaluationFlagType(f.Type),
-				CreatedAt:   ss.now,
-				UpdatedAt:   ss.now,
+				CreatedAt:   s.now,
+				UpdatedAt:   s.now,
 			}
 		)
 
@@ -588,19 +588,19 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	}
 
 	ns.etag = doc.Etag
-	ss.ns[namespaceKey] = ns
-	ss.evalSnap.Namespaces[namespaceKey] = snap
-	ss.evalDists = evalDists
+	s.ns[namespaceKey] = ns
+	s.evalSnap.Namespaces[namespaceKey] = snap
+	s.evalDists = evalDists
 
 	return nil
 }
 
-func (ss Snapshot) String() string {
+func (s Snapshot) String() string {
 	return "snapshot"
 }
 
-func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*core.Flag, error) {
-	ns, err := ss.getNamespace(req.Namespace())
+func (s *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*core.Flag, error) {
+	ns, err := s.getNamespace(req.Namespace())
 	if err != nil {
 		return nil, err
 	}
@@ -613,8 +613,8 @@ func (ss *Snapshot) GetFlag(ctx context.Context, req storage.ResourceRequest) (*
 	return flag, nil
 }
 
-func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*core.Flag], err error) {
-	ns, err := ss.getNamespace(req.Predicate.Namespace())
+func (s *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[storage.NamespaceRequest]) (set storage.ResultSet[*core.Flag], err error) {
+	ns, err := s.getNamespace(req.Predicate.Namespace())
 	if err != nil {
 		return set, err
 	}
@@ -629,8 +629,8 @@ func (ss *Snapshot) ListFlags(ctx context.Context, req *storage.ListRequest[stor
 	}, flags...)
 }
 
-func (ss *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
-	ns, err := ss.getNamespace(p.Namespace())
+func (s *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) (uint64, error) {
+	ns, err := s.getNamespace(p.Namespace())
 	if err != nil {
 		return 0, err
 	}
@@ -638,8 +638,8 @@ func (ss *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) 
 	return uint64(len(ns.flags)), nil
 }
 
-func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
-	ns, ok := ss.ns[flag.Namespace()]
+func (s *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
+	ns, ok := s.ns[flag.Namespace()]
 	if !ok {
 		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
@@ -652,13 +652,13 @@ func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.Resourc
 	return rules, nil
 }
 
-func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
-	_, ok := ss.ns[flag.Namespace()]
+func (s *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage.ResourceRequest, rule storage.IDRequest) ([]*storage.EvaluationDistribution, error) {
+	_, ok := s.ns[flag.Namespace()]
 	if !ok {
 		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
 
-	dists, ok := ss.evalDists[rule.ID]
+	dists, ok := s.evalDists[rule.ID]
 	if !ok {
 		return []*storage.EvaluationDistribution{}, nil
 	}
@@ -666,8 +666,8 @@ func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, flag storage
 	return dists, nil
 }
 
-func (ss *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
-	ns, ok := ss.ns[flag.Namespace()]
+func (s *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRollout, error) {
+	ns, ok := s.ns[flag.Namespace()]
 	if !ok {
 		return nil, errs.ErrNotFoundf("namespace %q", flag.NamespaceRequest)
 	}
@@ -755,8 +755,8 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	return set, nil
 }
 
-func (ss *Snapshot) getNamespace(key string) (namespace, error) {
-	ns, ok := ss.ns[key]
+func (s *Snapshot) getNamespace(key string) (namespace, error) {
+	ns, ok := s.ns[key]
 	if !ok {
 		return namespace{}, errs.ErrNotFoundf("namespace %q", key)
 	}

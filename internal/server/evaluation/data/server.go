@@ -26,11 +26,11 @@ func New(logger *zap.Logger, envs *environments.EnvironmentStore) *Server {
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.
-func (srv *Server) RegisterGRPC(server *grpc.Server) {
-	evaluation.RegisterDataServiceServer(server, srv)
+func (s *Server) RegisterGRPC(server *grpc.Server) {
+	evaluation.RegisterDataServiceServer(server, s)
 }
 
-func (srv *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
+func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 	return true
 }
 
