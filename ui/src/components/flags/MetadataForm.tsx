@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '~/components/ui/select';
+} from '~/components/Select';
 
 import type { IFlagMetadata } from '~/types/Flag';
 

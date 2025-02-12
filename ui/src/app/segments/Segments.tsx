@@ -6,7 +6,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { ButtonWithPlus } from '~/components/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
-import { PageHeader } from '~/components/ui/page';
+import { PageHeader } from '~/components/Page';
 
 export default function Segments() {
   const environment = useSelector(selectCurrentEnvironment);

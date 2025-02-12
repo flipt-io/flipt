@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '~/components/ui/dropdown-menu';
+} from '~/components/DropdownMenu';
 
 import { Icon } from '~/types/Icon';
 

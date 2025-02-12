@@ -21,7 +21,7 @@ import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
-import { PageHeader } from '~/components/ui/page';
+import { PageHeader } from '~/components/Page';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';

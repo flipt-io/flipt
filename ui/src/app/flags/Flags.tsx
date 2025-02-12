@@ -6,7 +6,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
 import { ButtonWithPlus } from '~/components/Button';
 import FlagTable from '~/components/flags/FlagTable';
-import { PageHeader } from '~/components/ui/page';
+import { PageHeader } from '~/components/Page';
 
 export default function Flags() {
   const environment = useSelector(selectCurrentEnvironment);
