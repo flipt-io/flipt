@@ -7,19 +7,19 @@ import "google/api/visibility.proto";
 option go_package = "go.flipt.io/flipt/rpc/flipt/analytics";
 
 message GetFlagEvaluationsCountRequest {
-    string namespace_key = 1;
-    string flag_key = 2;
-    string from = 3;
-    string to = 4;
+  string namespace_key = 1;
+  string flag_key = 2;
+  string from = 3;
+  string to = 4;
 }
 
 message GetFlagEvaluationsCountResponse {
-    repeated string timestamps = 1;
-    repeated float values = 2;
+  repeated string timestamps = 1;
+  repeated float values = 2;
 }
 
 service AnalyticsService {
-    option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
 
-    rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {}
+  rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {}
 }

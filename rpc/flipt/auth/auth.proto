@@ -2,46 +2,43 @@ syntax = "proto3";
 
 package flipt.auth;
 
+import "gnostic/openapi/v3/annotations.proto";
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
-import "gnostic/openapi/v3/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/auth";
-
 option (gnostic.openapi.v3.document) = {
   components: {
     security_schemes: {
       additional_properties: [
         {
-          name: "bearerAuth";
+          name: "bearerAuth"
           value: {
             security_scheme: {
-              type: "http";
-              scheme: "bearer";
+              type: "http"
+              scheme: "bearer"
             }
           }
         },
         {
-          name: "jwtAuth";
+          name: "jwtAuth"
           value: {
             security_scheme: {
-              type: "http";
-              scheme: "JWT";
+              type: "http"
+              scheme: "JWT"
             }
           }
         }
       ]
     }
   }
-  servers: {
-    url: "http://localhost:8080";
-  }
+  servers: {url: "http://localhost:8080"}
   security: {
     additional_properties: [
       {
-        name: "bearerAuth",
+        name: "bearerAuth"
         value: {
           value: []
         }
@@ -49,7 +46,6 @@ option (gnostic.openapi.v3.document) = {
     ]
   }
 };
-
 
 enum Method {
   METHOD_NONE = 0;
@@ -110,44 +106,24 @@ message ExpireAuthenticationSelfRequest {
 
 service AuthenticationService {
   rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {
-    option (google.api.http) = {
-      get: "/auth/v1/self"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "getAuthSelf"
-    };
+    option (google.api.http) = {get: "/auth/v1/self"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getAuthSelf"};
   }
   rpc GetAuthentication(GetAuthenticationRequest) returns (Authentication) {
-    option (google.api.http) = {
-      get: "/auth/v1/tokens/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "getAuthToken"
-    };
+    option (google.api.http) = {get: "/auth/v1/tokens/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getAuthToken"};
   }
   rpc ListAuthentications(ListAuthenticationsRequest) returns (ListAuthenticationsResponse) {
-    option (google.api.http) = {
-      get: "/auth/v1/tokens"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "listAuthTokens"
-    };
+    option (google.api.http) = {get: "/auth/v1/tokens"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listAuthTokens"};
   }
   rpc DeleteAuthentication(DeleteAuthenticationRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/auth/v1/tokens/{id}"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "deleteAuthToken"
-    };
+    option (google.api.http) = {delete: "/auth/v1/tokens/{id}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteAuthToken"};
   }
   rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      put: "/auth/v1/self/expire"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "expireAuthSelf"
-    };
+    option (google.api.http) = {put: "/auth/v1/self/expire"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "expireAuthSelf"};
   }
 }
 
@@ -170,9 +146,7 @@ service AuthenticationMethodTokenService {
       post: "/auth/v1/method/token"
       body: "*"
     };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "createMethodToken"
-    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "createMethodToken"};
   }
 }
 
@@ -198,20 +172,12 @@ message CallbackResponse {
 
 service AuthenticationMethodOIDCService {
   rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {
-    option (google.api.http) = {
-      get: "/auth/v1/method/oidc/{provider}/authorize"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "oidcAuthorizeURL"
-    };
+    option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/authorize"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "oidcAuthorizeURL"};
   }
   rpc Callback(CallbackRequest) returns (CallbackResponse) {
-    option (google.api.http) = {
-      get: "/auth/v1/method/oidc/{provider}/callback"
-    };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "oidcCallback"
-    };
+    option (google.api.http) = {get: "/auth/v1/method/oidc/{provider}/callback"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "oidcCallback"};
   }
 }
 
@@ -230,9 +196,7 @@ service AuthenticationMethodKubernetesService {
       post: "/auth/v1/method/kubernetes/serviceaccount"
       body: "*"
     };
-    option (gnostic.openapi.v3.operation) = {
-      operation_id: "kubernetesVerifyServiceAccount"
-    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "kubernetesVerifyServiceAccount"};
   }
 }
 
