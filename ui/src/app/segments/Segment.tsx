@@ -18,10 +18,10 @@ import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
+import { PageHeader } from '~/components/Page';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
-import { PageHeader } from '~/components/Page';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';

@@ -17,10 +17,10 @@ import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
 import { Badge } from '~/components/Badge';
 import Searchbox from '~/components/Searchbox';
-import Well from '~/components/Well';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
+import Well from '~/components/Well';
 
 import { IEnvironment } from '~/types/Environment';
 import { INamespace } from '~/types/Namespace';

@@ -1,4 +1,4 @@
-import { Dialog } from '@headlessui/react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { FormikProps } from 'formik';
 import { useEffect, useState } from 'react';
 import { useBlocker, useNavigate } from 'react-router';
@@ -15,33 +15,38 @@ interface UnsavedChangesModalState {
 export function UnsavedChangesModal(props: UnsavedChangesModalState) {
   const { isOpen, onClose, onDiscard, onSave } = props;
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-background p-6 shadow-xl">
-          <Dialog.Title className="text-lg font-medium text-gray-900">
-            Unsaved Changes
-          </Dialog.Title>
-          <Dialog.Description className="mt-2 text-sm text-gray-500">
-            You have unsaved changes. Would you like to save them before
-            leaving?
-          </Dialog.Description>
-          <div className="mt-8 flex justify-between">
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <div className="space-x-3">
-              <Button variant="secondary" onClick={onDiscard}>
-                Discard Changes
+    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className="fixed inset-0 bg-black/30"
+          aria-hidden="true"
+        />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Content className="mx-auto max-w-lg rounded-lg bg-background p-6 shadow-xl">
+            <Dialog.Title className="text-lg font-medium text-gray-900">
+              Unsaved Changes
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm text-gray-500">
+              You have unsaved changes. Would you like to save them before
+              leaving?
+            </Dialog.Description>
+            <div className="mt-8 flex justify-between">
+              <Button variant="ghost" onClick={onClose}>
+                Cancel
               </Button>
-              <Button variant="primary" onClick={onSave}>
-                Save Changes
-              </Button>
+              <div className="space-x-3">
+                <Button variant="secondary" onClick={onDiscard}>
+                  Discard Changes
+                </Button>
+                <Button variant="primary" onClick={onSave}>
+                  Save Changes
+                </Button>
+              </div>
             </div>
-          </div>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+          </Dialog.Content>
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

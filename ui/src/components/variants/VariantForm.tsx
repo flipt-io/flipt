@@ -1,5 +1,5 @@
-import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import * as Dialog from '@radix-ui/react-dialog';
 import { Form, Formik } from 'formik';
 import { forwardRef, useContext } from 'react';
 import * as Yup from 'yup';

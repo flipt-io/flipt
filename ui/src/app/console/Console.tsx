@@ -18,9 +18,9 @@ import { Button } from '~/components/Button';
 import Combobox from '~/components/Combobox';
 import Dropdown from '~/components/Dropdown';
 import EmptyState from '~/components/EmptyState';
+import { PageHeader } from '~/components/Page';
 import Input from '~/components/forms/Input';
 import { JsonEditor } from '~/components/json/JsonEditor';
-import { PageHeader } from '~/components/Page';
 
 import { IAuthMethod } from '~/types/Auth';
 import { Command } from '~/types/Cli';

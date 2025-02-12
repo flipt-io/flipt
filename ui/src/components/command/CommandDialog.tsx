@@ -1,5 +1,5 @@
-import { Dialog } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import * as Dialog from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -134,186 +134,188 @@ export default function CommandMenu() {
   }, []);
 
   return (
-    <Dialog
-      open={open}
-      onClose={setOpen}
-      className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]"
-    >
-      <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75" />
-      <Dialog.Panel className="mx-auto max-w-xl transform rounded-xl bg-background p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
-        <Command
-          loop
-          className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground"
-          onKeyDown={(e) => {
-            if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
-              e.preventDefault();
-              setPages((pages) => pages.slice(0, -1));
-            }
-          }}
-        >
-          <div className="flex items-center border-slate-500 text-lg font-medium">
-            <div className="relative w-full">
-              <MagnifyingGlassIcon
-                className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-              <Command.Input
-                className="h-12 w-full rounded-md border-0 bg-gray-100 px-4 py-2.5 pl-11 pr-4 text-gray-900 focus:ring-0 sm:text-sm"
-                value={search}
-                onValueChange={setSearch}
-              />
-            </div>
-          </div>
-
-          <Command.List className="flex max-h-96 flex-col overflow-y-auto py-2 text-sm">
-            <Command.Empty className="mt-4 px-4 text-sm text-gray-700">
-              No results found
-            </Command.Empty>
-
-            {page === 'namespaces' && (
-              <>
-                <Command.Item
-                  disabled={true}
-                  className="px-4 py-2.5 font-semibold text-gray-600"
-                >
-                  Switch Namespace
-                </Command.Item>
-                {namespaces.map((namespace) => (
-                  <CommandItem
-                    key={namespace.key}
-                    item={{
-                      name: namespace.key,
-                      description: namespace.description,
-                      onSelected: () => {
-                        setOpen(false);
-                        dispatch(currentNamespaceChanged(namespace));
-                        // navigate to the current location.path with the new namespace prependend
-                        // e.g. /namespaces/default/segments -> /namespaces/namespaceKey/segments
-                        const newPath = addNamespaceToPath(
-                          location.pathname,
-                          namespace.key
-                        );
-                        navigate(newPath);
-                        setSearch('');
-                        setPages((pages) => pages.slice(0, -1));
-                      },
-                      keywords: [namespace.key]
-                    }}
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500 bg-opacity-75 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <div className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]">
+          <Dialog.Content
+            className="mx-auto max-w-xl transform rounded-xl bg-background p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all
+            data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 
+            data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+          >
+            <Command
+              loop
+              className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground"
+              onKeyDown={(e) => {
+                if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
+                  e.preventDefault();
+                  setPages((pages) => pages.slice(0, -1));
+                }
+              }}
+            >
+              <div className="flex items-center border-slate-500 text-lg font-medium">
+                <div className="relative w-full">
+                  <MagnifyingGlassIcon
+                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                    aria-hidden="true"
                   />
-                ))}
-              </>
-            )}
-
-            {page === 'theme' && (
-              <>
-                <Command.Item
-                  disabled={true}
-                  className="px-4 py-2.5 font-semibold text-gray-600"
-                >
-                  Change Theme
-                </Command.Item>
-                <CommandItem
-                  item={{
-                    name: 'Light',
-                    onSelected: () => {
-                      setOpen(false);
-                      setSearch('');
-                      dispatch(themeChanged(Theme.LIGHT));
-                      setPages((pages) => pages.slice(0, -1));
-                    },
-                    keywords: ['themes', 'light']
-                  }}
-                />
-                <CommandItem
-                  item={{
-                    name: 'Dark',
-                    onSelected: () => {
-                      setOpen(false);
-                      setSearch('');
-                      dispatch(themeChanged(Theme.DARK));
-                      setPages((pages) => pages.slice(0, -1));
-                    },
-                    keywords: ['themes', 'dark']
-                  }}
-                />
-                <CommandItem
-                  item={{
-                    name: 'System',
-                    onSelected: () => {
-                      setOpen(false);
-                      setSearch('');
-                      dispatch(themeChanged(Theme.SYSTEM));
-                      setPages((pages) => pages.slice(0, -1));
-                    },
-                    keywords: ['themes', 'system']
-                  }}
-                />
-              </>
-            )}
-
-            {!page && (
-              <>
-                {namespacedRoutes.map((item) => (
-                  <CommandItem
-                    key={item.name}
-                    item={{
-                      onSelected: () => {
-                        setOpen(false);
-                        setSearch('');
-                        navigate(
-                          `/namespaces/${currentNamespace.key + item.route}`
-                        );
-                      },
-                      ...item
-                    }}
+                  <Command.Input
+                    className="h-12 w-full rounded-md border-0 bg-gray-100 px-4 py-2.5 pl-11 pr-4 text-gray-900 focus:ring-0 sm:text-sm"
+                    value={search}
+                    onValueChange={setSearch}
                   />
-                ))}
+                </div>
+              </div>
 
-                {namespaceNavEnabled && namespaces.length > 1 && (
-                  <CommandItem
-                    item={{
-                      name: 'Switch Namespaces',
-                      description: 'Switch to a different namespace',
-                      onSelected: () => {
-                        setSearch('');
-                        setPages([...pages, 'namespaces'] as string[]);
-                      },
-                      keywords: ['namespaces', 'switch']
-                    }}
-                  />
+              <Command.List className="flex max-h-96 flex-col overflow-y-auto py-2 text-sm">
+                <Command.Empty className="mt-4 px-4 text-sm text-gray-700">
+                  No results found
+                </Command.Empty>
+
+                {page === 'namespaces' && (
+                  <>
+                    <Command.Item
+                      disabled={true}
+                      className="px-4 py-2.5 font-semibold text-gray-600"
+                    >
+                      Switch Namespace
+                    </Command.Item>
+                    {namespaces.map((namespace) => (
+                      <CommandItem
+                        key={namespace.key}
+                        item={{
+                          name: namespace.key,
+                          description: namespace.description,
+                          onSelected: () => {
+                            setOpen(false);
+                            dispatch(currentNamespaceChanged(namespace));
+                            const newPath = addNamespaceToPath(
+                              location.pathname,
+                              namespace.key
+                            );
+                            navigate(newPath);
+                            setSearch('');
+                            setPages((pages) => pages.slice(0, -1));
+                          },
+                          keywords: [namespace.key]
+                        }}
+                      />
+                    ))}
+                  </>
                 )}
 
-                <Command.Separator className="my-2 border-t border-gray-200" />
-                {nonNamespacedRoutes.map((item) => (
-                  <CommandItem
-                    key={item.name}
-                    item={{
-                      onSelected: () => {
-                        setOpen(false);
-                        setSearch('');
-                        navigate(item.route);
-                      },
-                      ...item
-                    }}
-                  />
-                ))}
+                {page === 'theme' && (
+                  <>
+                    <Command.Item
+                      disabled={true}
+                      className="px-4 py-2.5 font-semibold text-gray-600"
+                    >
+                      Change Theme
+                    </Command.Item>
+                    <CommandItem
+                      item={{
+                        name: 'Light',
+                        onSelected: () => {
+                          setOpen(false);
+                          setSearch('');
+                          dispatch(themeChanged(Theme.LIGHT));
+                          setPages((pages) => pages.slice(0, -1));
+                        },
+                        keywords: ['themes', 'light']
+                      }}
+                    />
+                    <CommandItem
+                      item={{
+                        name: 'Dark',
+                        onSelected: () => {
+                          setOpen(false);
+                          setSearch('');
+                          dispatch(themeChanged(Theme.DARK));
+                          setPages((pages) => pages.slice(0, -1));
+                        },
+                        keywords: ['themes', 'dark']
+                      }}
+                    />
+                    <CommandItem
+                      item={{
+                        name: 'System',
+                        onSelected: () => {
+                          setOpen(false);
+                          setSearch('');
+                          dispatch(themeChanged(Theme.SYSTEM));
+                          setPages((pages) => pages.slice(0, -1));
+                        },
+                        keywords: ['themes', 'system']
+                      }}
+                    />
+                  </>
+                )}
 
-                <CommandItem
-                  item={{
-                    name: 'Preferences: Change Theme',
-                    description: 'Set the application theme',
-                    onSelected: () => {
-                      setSearch('');
-                      setPages([...pages, 'theme'] as string[]);
-                    },
-                    keywords: ['preferences', 'theme']
-                  }}
-                />
-              </>
-            )}
-          </Command.List>
-        </Command>
-      </Dialog.Panel>
-    </Dialog>
+                {!page && (
+                  <>
+                    {namespacedRoutes.map((item) => (
+                      <CommandItem
+                        key={item.name}
+                        item={{
+                          onSelected: () => {
+                            setOpen(false);
+                            setSearch('');
+                            navigate(
+                              `/namespaces/${currentNamespace.key + item.route}`
+                            );
+                          },
+                          ...item
+                        }}
+                      />
+                    ))}
+
+                    {namespaceNavEnabled && namespaces.length > 1 && (
+                      <CommandItem
+                        item={{
+                          name: 'Switch Namespaces',
+                          description: 'Switch to a different namespace',
+                          onSelected: () => {
+                            setSearch('');
+                            setPages([...pages, 'namespaces'] as string[]);
+                          },
+                          keywords: ['namespaces', 'switch']
+                        }}
+                      />
+                    )}
+
+                    <Command.Separator className="my-2 border-t border-gray-200" />
+                    {nonNamespacedRoutes.map((item) => (
+                      <CommandItem
+                        key={item.name}
+                        item={{
+                          onSelected: () => {
+                            setOpen(false);
+                            setSearch('');
+                            navigate(item.route);
+                          },
+                          ...item
+                        }}
+                      />
+                    ))}
+
+                    <CommandItem
+                      item={{
+                        name: 'Preferences: Change Theme',
+                        description: 'Set the application theme',
+                        onSelected: () => {
+                          setSearch('');
+                          setPages([...pages, 'theme'] as string[]);
+                        },
+                        keywords: ['preferences', 'theme']
+                      }}
+                    />
+                  </>
+                )}
+              </Command.List>
+            </Command>
+          </Dialog.Content>
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

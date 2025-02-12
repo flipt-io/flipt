@@ -1,5 +1,5 @@
-import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
 
 import { Button } from '~/components/Button';

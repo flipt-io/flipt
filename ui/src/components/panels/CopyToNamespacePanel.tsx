@@ -1,5 +1,5 @@
-import { Dialog } from '@headlessui/react';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import * as Dialog from '@radix-ui/react-dialog';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -54,10 +54,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
           />
         </div>
         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title
-            as="h3"
-            className="text-lg font-medium leading-6 text-gray-900"
-          >
+          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900">
             Copy {panelType}
           </Dialog.Title>
           <div className="mt-2">

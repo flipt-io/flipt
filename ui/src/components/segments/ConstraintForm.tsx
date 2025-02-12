@@ -1,6 +1,6 @@
-import { Dialog } from '@headlessui/react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import * as Dialog from '@radix-ui/react-dialog';
 import { addMinutes, format, formatISO, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useContext, useEffect, useState } from 'react';
