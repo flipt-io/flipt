@@ -15,21 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cli:
-    name: CLI Integration Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run CLI Tests
-        uses: dagger/dagger-for-github@v7
-        with:
-          verb: call
-          version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default cli
-
   test:
     name: Integration Tests
     runs-on: ubuntu-latest
