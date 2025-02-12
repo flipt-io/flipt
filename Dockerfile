@@ -11,15 +11,13 @@ RUN git clone https://github.com/magefile/mage && \
 COPY go.mod .
 COPY go.sum .
 COPY ./errors ./errors
-COPY ./rpc/flipt ./rpc/flipt
+COPY ./rpc ./rpc
 COPY ./sdk ./sdk
 COPY ./core ./core
 
 RUN go mod download
 
 COPY . /home/flipt
-
-ENV CGO_ENABLED=1
 
 RUN mage bootstrap && \
     mage build
@@ -30,7 +28,7 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN apk add --update --no-cache postgresql-client \
+RUN apk add --update --no-cache \
     openssl \
     ca-certificates
 
@@ -50,4 +48,4 @@ EXPOSE 9000
 
 USER flipt
 
-CMD ["./flipt"]
+CMD ["./flipt", "server"]

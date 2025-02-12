@@ -12,33 +12,10 @@ Also check out our [Contributing](CONTRIBUTING.md) guide for more information on
 Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
-- [SQLite](https://sqlite.org/index.html)
 - [Go 1.23+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
-
-## CGO
-
-Flipt uses [CGO](https://golang.org/cmd/cgo/) to compile SQLite.
-
-If you run into errors such as:
-
-```console
-undefined: sqlite3.Error
-```
-
-Then you need to enable CGO. 
-
-### Windows
-
-- Make sure you have the [GCC Compiler](https://gcc.gnu.org/install/binaries.html) installed and in your PATH.
-- `set CGO_ENABLED=1`
-
-### Linux/Mac
-
-- Make sure you have the [GCC Compiler](https://gcc.gnu.org/install/binaries.html) installed and in your PATH.
-- `export CGO_ENABLED=1`
 
 ## Setup
 
@@ -68,7 +45,7 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 
 A sample configuration for running and developing against Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
-`./bin/flipt [--config ./config/local.yml`]
+`./bin/flipt server [--config ./config/local.yml]`
 
 To prevent providing the config via config flag every time, you have the option of writing configuration at the location:
 
@@ -78,7 +55,7 @@ To prevent providing the config via config flag every time, you have the option 
 
 The flipt binary will check in that location if a `--config` override is not provided, so you can just invoke the binary:
 
-`./bin/flipt`
+`./bin/flipt server [--config ./config/local.yml]`
 
 The `USER_CONFIG_DIR` is different based on your architecture, and specified [here](https://pkg.go.dev/os#UserConfigDir).
 
@@ -88,7 +65,7 @@ Changing certain types of files such as the proto or ui files require re-buildin
 
 ### Updating .proto Files
 
-After changing `flipt.proto`, you'll need to run `mage proto`. This will regenerate the necessary files in the `rpc` directory.
+After changing any proto files, you'll need to run `mage proto`. This will regenerate the necessary files in the `rpc` directory.
 
 ## UI
 

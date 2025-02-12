@@ -4,8 +4,7 @@ WORKDIR /server
 
 RUN apk add --update --no-cache git bash gcc build-base binutils-gold \
     openssl \
-    ca-certificates \
-    postgresql-client
+    ca-certificates
 
 RUN git clone https://github.com/magefile/mage && \
     cd mage && \
@@ -14,7 +13,7 @@ RUN git clone https://github.com/magefile/mage && \
 COPY go.mod .
 COPY go.sum .
 COPY ./errors ./errors
-COPY ./rpc/flipt ./rpc/flipt
+COPY ./rpc ./rpc
 COPY ./sdk ./sdk
 COPY ./core ./core
 

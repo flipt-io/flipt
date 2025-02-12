@@ -8,7 +8,7 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN apk add --no-cache postgresql-client \
+RUN apk add --no-cache \
     openssl \
     ca-certificates
 
@@ -27,4 +27,4 @@ EXPOSE 9000
 
 USER flipt
 
-CMD ["./flipt"]
+CMD ["./flipt", "server"]
