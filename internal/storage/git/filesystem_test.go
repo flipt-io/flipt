@@ -23,7 +23,7 @@ func Test_filesystem(t *testing.T) {
 	infos, err := fs.ReadDir(".")
 	require.NoError(t, err)
 
-	assert.Len(t, infos, 0, "unexpected returned set of infos")
+	assert.Empty(t, infos, "unexpected returned set of infos")
 
 	// Test MkdirAll
 	t.Run("MkdirAll", func(t *testing.T) {

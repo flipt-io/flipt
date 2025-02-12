@@ -293,11 +293,3 @@ func (s *Store) Shutdown(ctx context.Context) error {
 	s.shutdown()
 	return s.errGroup.Wait()
 }
-
-func isExpired(auth *rpcauth.Authentication) bool {
-	if auth.ExpiresAt == nil {
-		return false
-	}
-
-	return auth.ExpiresAt.AsTime().Before(time.Now())
-}

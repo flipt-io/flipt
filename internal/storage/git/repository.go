@@ -508,7 +508,7 @@ func refMatch(ref, pattern string) bool {
 		return ref == pattern
 	}
 
-	return strings.HasPrefix(ref, pattern[:strings.Index(pattern, "*")])
+	return strings.HasPrefix(ref, pattern[:strings.Index(pattern, "*")]) //nolint:gocritic
 }
 
 func (r *Repository) ResolveHead() (plumbing.Hash, error) {

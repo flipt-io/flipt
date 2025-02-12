@@ -84,7 +84,8 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
-		config, err := fs.GetConfig(ofs)
+		var config *fs.Config
+		config, err = fs.GetConfig(ofs)
 		if err != nil {
 			return err
 		}

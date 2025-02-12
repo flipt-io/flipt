@@ -4,11 +4,9 @@ package flipt;
 
 /* This file and its RPCs are preserved for backwards compatibility with v1 Flipt clients */
 
-import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
-import "google/api/field_behavior.proto";
 import "gnostic/openapi/v3/annotations.proto";
 import "options/options.proto";
 
