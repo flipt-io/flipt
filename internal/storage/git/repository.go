@@ -260,7 +260,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}
 
 	r.mu.Lock()
-	defer r.mu.Unlock()
 
 	heads := specific
 	if len(heads) == 0 {
@@ -298,6 +297,11 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}
 
 	updatedRefs := map[string]plumbing.Hash{}
+	defer func() {
+		r.mu.Unlock()
+		r.updateSubs(ctx, updatedRefs)
+	}()
+
 	if err := allRefs.ForEach(func(ref *plumbing.Reference) error {
 		// we're only interested in updates to remotes
 		if !ref.Name().IsRemote() {
@@ -315,8 +319,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}); err != nil {
 		return err
 	}
-
-	r.updateSubs(ctx, updatedRefs)
 
 	return nil
 }
