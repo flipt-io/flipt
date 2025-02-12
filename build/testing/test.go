@@ -52,5 +52,4 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 
 	// attempt to export coverage if its exists
 	return flipt.File("coverage.txt"), nil
-
 }

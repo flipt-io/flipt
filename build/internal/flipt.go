@@ -119,7 +119,7 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 
 	// build container with just Flipt + config
 	return client.Container().From("alpine:3.19").
-		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
+		WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 		WithFile("/flipt",
 			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
