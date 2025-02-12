@@ -2,14 +2,11 @@ syntax = "proto3";
 
 package flipt;
 
+import "gnostic/openapi/v3/annotations.proto";
+import "google/api/annotations.proto";
 /* This file and its RPCs are preserved for backwards compatibility with v1 Flipt clients */
-
-import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
-import "google/api/field_behavior.proto";
-import "gnostic/openapi/v3/annotations.proto";
 import "options/options.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt";
@@ -31,7 +28,7 @@ message Flag {
   FlagType type = 9;
   optional Variant default_variant = 10;
   optional google.protobuf.Struct metadata = 11;
- }
+}
 
 message FlagList {
   repeated Flag flags = 1;
@@ -62,7 +59,15 @@ message Variant {
 service Flipt {
   rpc ListFlags(ListFlagRequest) returns (FlagList) {
     option (google.api.http) = {get: "/api/v1/namespaces/{namespace_key}/flags"};
-    option (gnostic.openapi.v3.operation) = {operation_id: "listFlags" tags: ["FlagsService"]};
-    option (flipt.options.flipt_client) = {path_defaults: {key: "namespace_key", value: "default"}};
+    option (gnostic.openapi.v3.operation) = {
+      operation_id: "listFlags"
+      tags: ["FlagsService"]
+    };
+    option (flipt.options.flipt_client) = {
+      path_defaults: {
+        key: "namespace_key"
+        value: "default"
+      }
+    };
   }
 }

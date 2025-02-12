@@ -33,10 +33,6 @@ type repoMetrics struct {
 	updateErrorsTotal metric.Int64Counter
 	updateLatency     metric.Float64Histogram
 
-	listCommitsTotal       metric.Int64Counter
-	listCommitsErrorsTotal metric.Int64Counter
-	listCommitsLatency     metric.Float64Histogram
-
 	pollErrorsTotal       metric.Int64Counter
 	updateSubsErrorsTotal metric.Int64Counter
 }
@@ -75,19 +71,6 @@ func newRepoMetrics(opts ...containers.Option[repoMetrics]) repoMetrics {
 			metric.WithDescription("The latency of repository writes (and pushes) in milliseconds"),
 			metric.WithUnit("ms"),
 		),
-		listCommitsTotal: metrics.MustInt64().Counter(
-			prometheus.BuildFQName(namespace, subsystem, "list_commits_total"),
-			metric.WithDescription("The total number of attempted list repository commits"),
-		),
-		listCommitsErrorsTotal: metrics.MustInt64().Counter(
-			prometheus.BuildFQName(namespace, subsystem, "list_commits_errors_total"),
-			metric.WithDescription("The total number of errors reading listing repository commits"),
-		),
-		listCommitsLatency: metrics.MustFloat64().Histogram(
-			prometheus.BuildFQName(namespace, subsystem, "list_commits_latency"),
-			metric.WithDescription("The latency of listing repository commits in milliseconds"),
-			metric.WithUnit("ms"),
-		),
 		pollErrorsTotal: metrics.MustInt64().Counter(
 			prometheus.BuildFQName(namespace, subsystem, "poll_errors_total"),
 			metric.WithDescription("The total number of errors observed during polling"),
@@ -103,19 +86,6 @@ func newRepoMetrics(opts ...containers.Option[repoMetrics]) repoMetrics {
 	m.set = attribute.NewSet(m.attrs...)
 
 	return m
-}
-
-func (r repoMetrics) recordListCommits(ctx context.Context, branch string) func(error) {
-	attrs := metric.WithAttributes(append(r.attrs, attrBranch.String(branch))...)
-	r.listCommitsTotal.Add(ctx, 1, attrs)
-
-	start := time.Now().UTC()
-	return func(err error) {
-		r.listCommitsLatency.Record(ctx, float64(time.Since(start).Milliseconds()), attrs)
-		if err != nil {
-			r.listCommitsErrorsTotal.Add(ctx, 1, attrs)
-		}
-	}
 }
 
 func (r repoMetrics) recordView(ctx context.Context, branch string) func(error) {

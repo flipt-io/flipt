@@ -3,7 +3,6 @@ package environments
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/v2/environments"
@@ -275,22 +274,4 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 	}
 
 	return resp, nil
-}
-
-// ensureFullURL ensures that the provided host is a valid URL with a scheme and host.
-// If the host is already a valid URL, it returns it as is.
-// If the host is not a valid URL, it returns a URL with the provided host and https as the scheme.
-func ensureFullURL(envHost string) string {
-	u, err := url.Parse(envHost)
-	if err == nil && u.Host != "" {
-		return envHost
-	}
-	if u.Host == "" {
-		u = &url.URL{
-			Scheme: "https",
-			Host:   envHost,
-		}
-	}
-
-	return u.String()
 }

@@ -2,9 +2,10 @@ syntax = "proto3";
 
 package flipt.audit;
 
-option go_package = "go.flipt.io/flipt/rpc/flipt/audit";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/audit";
 
 message Actor {
   string authentication = 1;
@@ -15,15 +16,15 @@ message Actor {
 }
 
 message Metadata {
-    optional Actor actor = 1;
+  optional Actor actor = 1;
 }
 
 message Event {
-    string version = 1;
-    string type = 2;
-    string action = 3;
-    Metadata metadata = 4;
-    optional google.protobuf.Struct payload = 5;
-    google.protobuf.Timestamp timestamp = 6;
-    optional string status = 7;
+  string version = 1;
+  string type = 2;
+  string action = 3;
+  Metadata metadata = 4;
+  optional google.protobuf.Struct payload = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  optional string status = 7;
 }

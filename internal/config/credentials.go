@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	_ validator = (*CredentialsConfig)(nil)
+	_ defaulter = (*CredentialsConfig)(nil)
+)
+
 type CredentialsConfig map[string]*CredentialConfig
 
 func (c *CredentialsConfig) validate() error {
@@ -34,8 +39,7 @@ func (c *CredentialsConfig) setDefaults(v *viper.Viper) error {
 			v.SetDefault("credentials."+name+"."+k, s)
 		}
 
-		switch getString("type") {
-		case string(CredentialTypeSSH):
+		if getString("type") == string(CredentialTypeSSH) {
 			if getString("ssh.password") != "" ||
 				getString("ssh.private_key_path") != "" ||
 				getString("ssh.private_key_bytes") != "" {

@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/fs"
 	"sync"
 	"text/template"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/gitfs"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
@@ -156,7 +154,7 @@ func (e *Environment) updateNamespace(ctx context.Context, rev string, fn func(e
 		}
 
 		return e.messageForChanges(conf.Templates.CommitMessageTemplate, change)
-	}, storagegit.IfHeadMatches(&hash))
+	}, storagegit.UpdateIfHeadMatches(&hash))
 	if err != nil {
 		return "", err
 	}
@@ -207,7 +205,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 		}
 
 		return e.messageForChanges(conf.Templates.CommitMessageTemplate, store.changes...)
-	}, storagegit.IfHeadMatches(&hash))
+	}, storagegit.UpdateIfHeadMatches(&hash))
 	if err != nil {
 		return "", err
 	}
@@ -307,11 +305,17 @@ func (s *store) DeleteResource(ctx context.Context, namespace string, key string
 }
 
 func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
 	return e.snap, nil
 }
 
-func (e *Environment) EvaluationNamespaceSnapshot(_ context.Context, _ string) (*evaluation.EvaluationNamespaceSnapshot, error) {
-	panic("not implemented") // TODO: Implement
+func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
@@ -322,13 +326,16 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 		return nil
 	}
 
-	snap, err := e.buildSnapshot(head)
+	snap, err := e.buildSnapshot(ctx, head)
 	if err != nil {
 		e.logger.Error("updating snapshot",
 			zap.Error(err),
 			zap.String("environment", e.cfg.Name))
 		return err
 	}
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	e.head = head
 	e.snap = snap
@@ -337,24 +344,19 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 
 }
 
-func (e *Environment) buildSnapshot(hash plumbing.Hash) (*storagefs.Snapshot, error) {
-	var gfs fs.FS
-	gfs, err := gitfs.NewFromRepoHash(e.logger, e.repo.Repository, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	if e.cfg.Directory != "" {
-		gfs, err = fs.Sub(gfs, e.cfg.Directory)
-		if err != nil {
-			return nil, err
+func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (snap *storagefs.Snapshot, err error) {
+	return snap, e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+		if e.cfg.Directory != "" {
+			fs = environmentsfs.SubFilesystem(fs, e.cfg.Directory)
 		}
-	}
 
-	conf, err := storagefs.GetConfig(gfs)
-	if err != nil {
-		return nil, err
-	}
+		iofs := environmentsfs.ToFS(fs)
+		conf, err := storagefs.GetConfig(iofs)
+		if err != nil {
+			return err
+		}
 
-	return storagefs.SnapshotFromFS(e.logger, conf, gfs)
+		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
+		return err
+	}, storagegit.ViewWithHash(hash))
 }

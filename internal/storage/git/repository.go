@@ -15,7 +15,6 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/cache"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/storage"
 	gitfilesystem "github.com/go-git/go-git/v5/storage/filesystem"
@@ -85,7 +84,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			}
 
 			return "add initial README", nil
-		}, InitialCommit); err != nil {
+		}, UpdateWithInitialCommit); err != nil {
 			return nil, err
 		}
 	}
@@ -322,9 +321,28 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	return nil
 }
 
+// ViewOptions are options for the View method.
+type ViewOptions struct {
+	hash plumbing.Hash
+}
+
+// ViewWithHash configures a call to View with a specific hash.
+func ViewWithHash(hash plumbing.Hash) containers.Option[ViewOptions] {
+	return func(vo *ViewOptions) {
+		vo.hash = hash
+	}
+}
+
 // View reads the head of the default configured branch and passes the resulting git tree via
 // the envsfs.Filesystem abstraction to the provided function.
-func (r *Repository) View(ctx context.Context, fn func(hash plumbing.Hash, fs envsfs.Filesystem) error) (err error) {
+func (r *Repository) View(
+	ctx context.Context,
+	fn func(hash plumbing.Hash, fs envsfs.Filesystem) error,
+	opts ...containers.Option[ViewOptions],
+) (err error) {
+	var vopts ViewOptions
+	containers.ApplyAll(&vopts, opts...)
+
 	var (
 		branch   = r.defaultBranch
 		finished = r.metrics.recordView(ctx, branch)
@@ -337,12 +355,15 @@ func (r *Repository) View(ctx context.Context, fn func(hash plumbing.Hash, fs en
 		finished(err)
 	}()
 
-	r.logger.Debug("view", zap.String("branch", branch))
-
-	hash, err := r.Resolve(branch)
-	if err != nil {
-		return err
+	hash := vopts.hash
+	if hash == plumbing.ZeroHash {
+		hash, err = r.Resolve(branch)
+		if err != nil {
+			return err
+		}
 	}
+
+	r.logger.Debug("view", zap.String("branch", branch), zap.Stringer("hash", hash))
 
 	fs, err := r.newFilesystem(hash)
 	if err != nil {
@@ -357,16 +378,16 @@ type UpdateAndPushOptions struct {
 	ifHeadMatches *plumbing.Hash
 }
 
-// InitialCommit configures a call to UpdateAndPush to intentionally
+// UpdateWithInitialCommit configures a call to UpdateAndPush to intentionally
 // create an initial commit
-func InitialCommit(uapo *UpdateAndPushOptions) {
+func UpdateWithInitialCommit(uapo *UpdateAndPushOptions) {
 	uapo.initialCommit = true
 }
 
-// IfHeadMatches predicates that an update should return an error early if the target branch
+// UpdateIfHeadMatches predicates that an update should return an error early if the target branch
 // does not match the supplied hash.
 // This allows for updates to attempt a form of optimistic update and retry in the case of a conflict.
-func IfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOptions] {
+func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOptions] {
 	return func(uapo *UpdateAndPushOptions) {
 		uapo.ifHeadMatches = hash
 	}
@@ -375,7 +396,11 @@ func IfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOptions] 
 // UpdateAndPush calls the provided function with a Filesystem implementation which intercepts any write
 // operations and builds the changes into a commit.
 // Given an upstream remote is configured, the commit is also pushed to the configured default branch.
-func (r *Repository) UpdateAndPush(ctx context.Context, fn func(fs envsfs.Filesystem) (string, error), opts ...containers.Option[UpdateAndPushOptions]) (hash plumbing.Hash, err error) {
+func (r *Repository) UpdateAndPush(
+	ctx context.Context,
+	fn func(fs envsfs.Filesystem) (string, error),
+	opts ...containers.Option[UpdateAndPushOptions],
+) (hash plumbing.Hash, err error) {
 	var (
 		branch   = r.defaultBranch
 		finished = r.metrics.recordUpdate(ctx, branch)
@@ -483,7 +508,7 @@ func refMatch(ref, pattern string) bool {
 		return ref == pattern
 	}
 
-	return strings.HasPrefix(ref, pattern[:strings.Index(pattern, "*")])
+	return strings.HasPrefix(ref, pattern[:strings.Index(pattern, "*")]) //nolint:gocritic
 }
 
 func (r *Repository) ResolveHead() (plumbing.Hash, error) {
@@ -538,34 +563,12 @@ func (r *Repository) CreateBranchIfNotExists(branch string, opts ...containers.O
 }
 
 func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error) {
-	var (
-		commit *object.Commit
-		tree   = &object.Tree{}
+	return newFilesystem(
+		r.logger,
+		r.Storer,
+		withSignature(r.sigName, r.sigEmail),
+		withBaseCommit(hash),
 	)
-
-	// zero hash assumes we're building from an emptry repository
-	// the caller needs to validate whether this is true or not
-	// before calling newFilesystem with zero hash
-	if hash != plumbing.ZeroHash {
-		commit, err = r.CommitObject(hash)
-		if err != nil {
-			return nil, fmt.Errorf("getting branch commit: %w", err)
-		}
-
-		tree, err = commit.Tree()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &filesystem{
-		logger:   r.logger,
-		base:     commit,
-		tree:     tree,
-		storage:  r.Storer,
-		sigName:  r.sigName,
-		sigEmail: r.sigEmail,
-	}, nil
 }
 
 func WithRemote(name, url string) containers.Option[Repository] {

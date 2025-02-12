@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package flipt.evaluation;
 
-import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
-import "google/api/visibility.proto";
-import "google/api/field_behavior.proto";
 import "gnostic/openapi/v3/annotations.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/visibility.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
 
@@ -32,10 +32,10 @@ message BatchEvaluationResponse {
 }
 
 enum EvaluationReason {
-    UNKNOWN_EVALUATION_REASON = 0;
-    FLAG_DISABLED_EVALUATION_REASON = 1;
-    MATCH_EVALUATION_REASON = 2;
-    DEFAULT_EVALUATION_REASON = 3;
+  UNKNOWN_EVALUATION_REASON = 0;
+  FLAG_DISABLED_EVALUATION_REASON = 1;
+  MATCH_EVALUATION_REASON = 2;
+  DEFAULT_EVALUATION_REASON = 3;
 }
 
 enum ErrorEvaluationReason {
@@ -50,12 +50,12 @@ enum EvaluationResponseType {
 }
 
 message EvaluationResponse {
-    EvaluationResponseType type = 1;
-    oneof response {
-        BooleanEvaluationResponse boolean_response = 2;
-        VariantEvaluationResponse variant_response = 3;
-        ErrorEvaluationResponse error_response = 4;
-    }
+  EvaluationResponseType type = 1;
+  oneof response {
+    BooleanEvaluationResponse boolean_response = 2;
+    VariantEvaluationResponse variant_response = 3;
+    ErrorEvaluationResponse error_response = 4;
+  }
 }
 
 message BooleanEvaluationResponse {
@@ -87,15 +87,24 @@ message ErrorEvaluationResponse {
 
 service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {
-    option (google.api.http) = {post: "/evaluate/v1/boolean" body: "*"};
+    option (google.api.http) = {
+      post: "/evaluate/v1/boolean"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBoolean"};
   }
   rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {
-    option (google.api.http) = {post: "/evaluate/v1/variant" body: "*"};
+    option (google.api.http) = {
+      post: "/evaluate/v1/variant"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluateVariant"};
   }
   rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
-    option (google.api.http) = {post: "/evaluate/v1/batch" body: "*"};
+    option (google.api.http) = {
+      post: "/evaluate/v1/batch"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBatch"};
   }
 }
@@ -189,7 +198,7 @@ enum EvaluationConstraintComparisonType {
 }
 
 message EvaluationConstraint {
-  string id = 1 [deprecated=true];
+  string id = 1 [deprecated = true];
   EvaluationConstraintComparisonType type = 2;
   string property = 3;
   string operator = 4;
@@ -220,7 +229,7 @@ message EvaluationNamespaceSnapshotRequest {
 }
 
 message EvaluationSnapshot {
-    map<string, EvaluationNamespaceSnapshot> namespaces = 1;
+  map<string, EvaluationNamespaceSnapshot> namespaces = 1;
 }
 
 service DataService {
