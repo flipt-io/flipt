@@ -75,8 +75,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		WithoutDirectory("./ui/").
 		WithoutDirectory("./bin/")
 
-	golang = golang.WithEnvVariable("CGO_ENABLED", "1").
-		WithMountedDirectory(".", project)
+	golang = golang.WithMountedDirectory(".", project)
 
 	// fetch and add ui/embed.go on its own
 	embed := dag.Directory().WithFiles("./ui", []*dagger.File{
@@ -127,5 +126,5 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithExec([]string{"addgroup", "flipt"}).
 		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
 		WithUser("flipt").
-		WithDefaultArgs([]string{"/flipt"}), nil
+		WithDefaultArgs([]string{"/flipt", "server"}), nil
 }

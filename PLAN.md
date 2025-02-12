@@ -37,6 +37,7 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 - [x] Refactor and consolidate configuration options
 - [ ] Fix and improve unit test coverage
 - [ ] Fix and improve integration test coverage
+- [ ] Update CI/CD pipeline
 - [ ] Package and release
     - [ ] Binary
     - [ ] Docker image
@@ -45,4 +46,8 @@ If you'd like to discuss this plan or add any additional ideas, please open an i
 - [ ] Documentation
     - [ ] Create v2 docs site
     - [ ] Migrate applicable docs from v1
+    - [ ] Update README
+    - [ ] Update Development docs
+    - [ ] Update Contributing docs
 - [ ] Update examples
+- [ ] Update Development flow (Codespaces, Devcontainer, Docker-compose, etc)

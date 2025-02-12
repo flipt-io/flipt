@@ -7,8 +7,7 @@ RUN apt-get update && \
     curl \
     gnupg \
     sudo \
-    openssh-server \
-    postgresql-client && \
+    openssh-server && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -33,7 +32,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 COPY ./core ./core
 COPY ./errors ./errors
-COPY ./rpc/flipt ./rpc/flipt
+COPY ./rpc ./rpc
 COPY ./sdk ./sdk
 
 RUN go mod download -x
@@ -42,9 +41,6 @@ COPY . .
 
 ENV GOPATH=/workspace/go \
     PATH=/workspace/go/bin:$PATH
-
-# set the sqlite DB path to the user's home because of potential permission issues
-ENV FLIPT_DB_URL=file:$HOME/flipt/flipt.db
 
 EXPOSE 8080
 EXPOSE 9000

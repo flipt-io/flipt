@@ -73,7 +73,7 @@ func Build() error {
 
 	fmt.Println("Done.")
 	fmt.Printf("\nRun the following to start Flipt:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt server [--config config/local.yml]`))
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (g Go) Bench() error {
 
 // Runs the Go server in development mode using the local config, without bundling assets
 func (g Go) Run() error {
-	return sh.RunV("go", "run", "./cmd/flipt/...", "--config", "config/local.yml")
+	return sh.RunV("go", "run", "./cmd/flipt/...", "server", "--config", "config/local.yml")
 }
 
 // Builds the Go server for development, without bundling assets
@@ -173,7 +173,7 @@ func (g Go) Build() error {
 
 	fmt.Println("Done.")
 	fmt.Printf("\nRun the following to start Flipt server:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt server [--config config/local.yml]`))
 	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
 	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
 	return nil
@@ -242,14 +242,6 @@ func (g Go) Proto() error {
 func (g Go) Test() error {
 	fmt.Println("Testing...")
 
-	env := map[string]string{
-		"FLIPT_TEST_DATABASE_PROTOCOL": "sqlite3",
-	}
-
-	if os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL") != "" {
-		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
-	}
-
 	var (
 		testCmd  = "gotest"
 		testArgs = []string{}
@@ -269,7 +261,7 @@ func (g Go) Test() error {
 	}
 
 	testArgs = append(testArgs, "./...")
-	return sh.RunWithV(env, testCmd, testArgs...)
+	return sh.RunV(testCmd, testArgs...)
 }
 
 type UI mg.Namespace

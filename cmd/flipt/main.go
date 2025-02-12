@@ -88,35 +88,22 @@ func main() {
 }
 
 func exec() error {
+	var rootCmd = &cobra.Command{
+		Use:   "flipt <command> <subcommand> [flags]",
+		Short: "Flipt is a cloud-native, self-hosted, feature flag solution that manages feature flags in your Git repositories",
+		Example: heredoc.Doc(`
+			$ flipt server
+			$ flipt config init
+			$ flipt --config /path/to/config.yml migrate
+		`),
+		Version: version,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
+		SilenceUsage: true,
+	}
+
 	var (
-		rootCmd = &cobra.Command{
-			Use:   "flipt <command> <subcommand> [flags]",
-			Short: "Flipt is a modern, self-hosted, feature flag solution",
-			Example: heredoc.Doc(`
-				$ flipt
-				$ flipt config init
-				$ flipt --config /path/to/config.yml migrate
-			`),
-			Version: version,
-			RunE: func(cmd *cobra.Command, _ []string) error {
-				ctx := cmd.Context()
-				logger, cfg, err := buildConfig(ctx)
-				if err != nil {
-					return err
-				}
-
-				defer func() {
-					_ = logger.Sync()
-				}()
-
-				return run(ctx, logger, cfg)
-			},
-			CompletionOptions: cobra.CompletionOptions{
-				DisableDefaultCmd: true,
-			},
-			SilenceUsage: true,
-		}
-
 		t   = template.Must(template.New("banner").Parse(bannerTmpl))
 		buf = new(bytes.Buffer)
 	)
@@ -135,10 +122,30 @@ func exec() error {
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
-	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
+	serverCmd := &cobra.Command{
+		Use:   "server",
+		Short: "Run the Flipt server",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			ctx := cmd.Context()
+			logger, cfg, err := buildConfig(ctx)
+			if err != nil {
+				return err
+			}
+
+			defer func() {
+				_ = logger.Sync()
+			}()
+
+			return run(ctx, logger, cfg)
+		},
+	}
+
+	serverCmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
+	serverCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
+	_ = serverCmd.Flags().MarkHidden("force-migrate")
+
+	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(newMigrateCommand())
 	rootCmd.AddCommand(newValidateCommand())
 	rootCmd.AddCommand(newConfigCommand())
