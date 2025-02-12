@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/cache"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/storage"
 	gitfilesystem "github.com/go-git/go-git/v5/storage/filesystem"
@@ -260,7 +261,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}
 
 	r.mu.Lock()
-	defer r.mu.Unlock()
 
 	heads := specific
 	if len(heads) == 0 {
@@ -298,6 +298,11 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}
 
 	updatedRefs := map[string]plumbing.Hash{}
+	defer func() {
+		r.mu.Unlock()
+		r.updateSubs(ctx, updatedRefs)
+	}()
+
 	if err := allRefs.ForEach(func(ref *plumbing.Reference) error {
 		// we're only interested in updates to remotes
 		if !ref.Name().IsRemote() {
@@ -315,8 +320,6 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 	}); err != nil {
 		return err
 	}
-
-	r.updateSubs(ctx, updatedRefs)
 
 	return nil
 }
@@ -405,6 +408,7 @@ func (r *Repository) UpdateAndPush(
 		branch   = r.defaultBranch
 		finished = r.metrics.recordUpdate(ctx, branch)
 		options  UpdateAndPushOptions
+		commit   *object.Commit
 	)
 
 	containers.ApplyAll(&options, opts...)
@@ -412,7 +416,10 @@ func (r *Repository) UpdateAndPush(
 	r.mu.Lock()
 	defer func() {
 		r.mu.Unlock()
-
+		if commit != nil {
+			// update references
+			r.updateSubs(ctx, map[string]plumbing.Hash{branch: commit.Hash})
+		}
 		finished(err)
 	}()
 
@@ -439,7 +446,7 @@ func (r *Repository) UpdateAndPush(
 		return hash, err
 	}
 
-	commit, err := fs.commit(ctx, msg)
+	commit, err = fs.commit(ctx, msg)
 	if err != nil {
 		return hash, err
 	}
@@ -476,9 +483,6 @@ func (r *Repository) UpdateAndPush(
 	if err := r.Storer.SetReference(remoteRef); err != nil {
 		return hash, err
 	}
-
-	// update references
-	r.updateSubs(ctx, map[string]plumbing.Hash{branch: commit.Hash})
 
 	return commit.Hash, nil
 }
