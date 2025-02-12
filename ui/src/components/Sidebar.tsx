@@ -1,9 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
-import { Link } from 'react-router';
-
-import logoLight from '~/assets/logo-light.png';
 
 import Nav from './Nav';
 
@@ -69,15 +66,6 @@ export default function Sidebar(props: SidebarProps) {
                     </button>
                   </div>
                 </Transition.Child>
-                <div className="mt-2 flex flex-shrink-0 items-center px-4">
-                  <img
-                    src={logoLight}
-                    alt="logo"
-                    width={549}
-                    height={191}
-                    className="h-10 w-auto"
-                  />
-                </div>
                 <div className="mt-5 h-0 flex-1 overflow-y-auto">
                   <Nav
                     sidebarOpen={sidebarOpen}
@@ -94,19 +82,11 @@ export default function Sidebar(props: SidebarProps) {
       </Transition.Root>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+      <div
+        className="hidden md:fixed md:bottom-0 md:flex md:w-64 md:flex-col"
+        style={{ top: '64px' }}
+      >
         <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
-          <div className="relative flex h-16 flex-shrink-0 items-center bg-black px-4 pb-1 pt-2 dark:border-b dark:border-b-background/20">
-            <Link to="/">
-              <img
-                src={logoLight}
-                alt="logo"
-                width={549}
-                height={191}
-                className="h-10 w-auto"
-              />
-            </Link>
-          </div>
           <div className="flex flex-1 flex-col overflow-y-auto">
             <Nav className="py-4" />
           </div>

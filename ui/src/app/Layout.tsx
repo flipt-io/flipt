@@ -91,7 +91,7 @@ function InnerLayout() {
             icon={<StarIcon className="mx-2 inline h-3 w-3" />}
           />
         )}
-        <main className="flex pt-1 sm:pt-4">
+        <main className="flex mt-20">
           <div className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl 2xl:max-w-screen-2xl overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>

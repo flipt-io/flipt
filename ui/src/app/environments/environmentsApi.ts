@@ -44,6 +44,15 @@ export const environmentsSlice = createSlice({
 
 export const { currentEnvironmentChanged } = environmentsSlice.actions;
 
+export const selectEnvironments = createSelector(
+  [(state: RootState) => state.environments.environments],
+  (environments) => {
+    return Object.entries(environments).map(
+      ([_, value]) => value
+    ) as IEnvironment[];
+  }
+);
+
 export const selectCurrentEnvironment = createSelector(
   [(state: RootState) => state.environments],
   (state) => {

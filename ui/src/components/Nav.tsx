@@ -36,15 +36,12 @@ function NavItem(props: NavItemProps) {
       to={to}
       aria-label={name}
       className={({ isActive }) =>
-        cls(
-          'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
-          {
-            'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
-              isActive,
-            'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
-              !isActive
-          }
-        )
+        cls('flex items-center rounded-md p-2 text-sm  text-white', {
+          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
+            isActive,
+          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
+            !isActive
+        })
       }
       onClick={onClick}
     >
@@ -114,8 +111,8 @@ export default function Nav(props: NavProps) {
       className={`${className} flex flex-grow flex-col overflow-y-auto`}
       aria-label="Sidebar"
     >
-      <div className="mb-4 flex flex-shrink-0 flex-col px-2">
-        <NamespaceListbox disabled={!namespaceNavEnabled} />
+      <div className="mb-4 md:mb-6 flex flex-shrink-0 flex-col px-2">
+        <NamespaceListbox className="w-full" disabled={!namespaceNavEnabled} />
       </div>
       <div className="flex flex-grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
