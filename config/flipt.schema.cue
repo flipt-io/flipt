@@ -44,14 +44,11 @@ import "list"
 			csrf?: {
 				key: string
 			}
-
-			storage?: *{
-				type:     "memory"
+			storage?: {
+				type:     *"memory" | "redis"
 				cleanup?: {
 					grace_period?: =~#duration | int | *"30m"
 				}
-			} | {
-				type:     "redis"
 				redis?: {
 					host?:               string | *"localhost"
 					port?:               int | *6379
@@ -67,18 +64,14 @@ import "list"
 					ca_cert_bytes?:      string
 					insecure_skip_tls?:  bool | *false
 				}
-				cleanup?: {
-					grace_period?: =~#duration | int | *"30m"
-				}
 			}
 		}
-
 
 		methods?: {
 			token?: {
 				enabled?: bool | *false
 				storage?: {
-					type: "static"
+					type: string | *"static"
 					tokens: [
 						...{
 							name:       string
@@ -179,6 +172,7 @@ import "list"
 	}
 
 	#environments: [string]: {
+		name:      string
 		default:   bool | *false
 		storage:   string
 		directory: string | *""

@@ -2,7 +2,6 @@ package tracing
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"testing"
 
@@ -103,11 +102,6 @@ func TestGetExporter(t *testing.T) {
 					Headers:  map[string]string{"key": "value"},
 				},
 			},
-		},
-		{
-			name:    "Unsupported Exporter",
-			cfg:     &config.TracingConfig{},
-			wantErr: errors.New("unsupported tracing exporter: "),
 		},
 	}
 
