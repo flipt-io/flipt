@@ -18,6 +18,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	gitstorage "github.com/go-git/go-git/v5/storage"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authn"
 	envfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	"go.uber.org/zap"
@@ -25,6 +26,7 @@ import (
 
 var _ envfs.Filesystem = (*filesystem)(nil)
 
+// filesystem implements the Filesystem interface for a particular git tree object.
 type filesystem struct {
 	logger  *zap.Logger
 	base    *object.Commit
@@ -33,6 +35,82 @@ type filesystem struct {
 
 	sigName  string
 	sigEmail string
+}
+
+type filesystemOption struct {
+	hash              plumbing.Hash
+	sigName, sigEmail string
+}
+
+func withBaseCommit(hash plumbing.Hash) containers.Option[filesystemOption] {
+	return func(o *filesystemOption) {
+		o.hash = hash
+	}
+}
+
+func withSignature(name, email string) containers.Option[filesystemOption] {
+	return func(o *filesystemOption) {
+		o.sigName = name
+		o.sigEmail = email
+	}
+}
+
+// emptyTreeObj is used to construct a tree object with no entries.
+type emptyTreeObj struct {
+	plumbing.EncodedObject
+}
+
+func (e emptyTreeObj) Type() plumbing.ObjectType {
+	return plumbing.TreeObject
+}
+
+func (e emptyTreeObj) Hash() plumbing.Hash {
+	return plumbing.ZeroHash
+}
+
+func (e emptyTreeObj) Size() int64 {
+	return 0
+}
+
+func newFilesystem(logger *zap.Logger, storer gitstorage.Storer, opts ...containers.Option[filesystemOption]) (_ *filesystem, err error) {
+	var (
+		fopts = filesystemOption{
+			sigName:  "flipt",
+			sigEmail: "dev@flipt.io",
+		}
+		commit *object.Commit
+	)
+
+	containers.ApplyAll(&fopts, opts...)
+
+	tree, err := object.DecodeTree(storer, emptyTreeObj{})
+	if err != nil {
+		return nil, err
+	}
+
+	// zero hash assumes we're building from an emptry repository
+	// the caller needs to validate whether this is true or not
+	// before calling newFilesystem with zero hash
+	if fopts.hash != plumbing.ZeroHash {
+		commit, err = object.GetCommit(storer, fopts.hash)
+		if err != nil {
+			return nil, fmt.Errorf("getting branch commit: %w", err)
+		}
+
+		tree, err = commit.Tree()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &filesystem{
+		logger:   logger,
+		base:     commit,
+		tree:     tree,
+		storage:  storer,
+		sigName:  fopts.sigName,
+		sigEmail: fopts.sigEmail,
+	}, nil
 }
 
 // ReadDir reads the directory named by dirname and returns a list of
@@ -50,7 +128,7 @@ func (f *filesystem) ReadDir(path string) (infos []os.FileInfo, err error) {
 
 	for _, entry := range subtree.Entries {
 		entry := entry
-		info, err := entryToFileInfo(&entry)
+		info, err := f.entryToFileInfo(&entry)
 		if err != nil {
 			return nil, err
 		}
@@ -106,6 +184,11 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 		zap.String("path", filename),
 		zap.Bool("create", flag&os.O_CREATE == os.O_CREATE))
 
+	var mod time.Time
+	if f.base != nil {
+		mod = f.base.Committer.When
+	}
+
 	fi, err := f.tree.File(filename)
 	if flag&os.O_CREATE == 0 {
 		if err != nil {
@@ -126,6 +209,7 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 			info: &fileInfo{
 				name: filename,
 				mode: os.ModePerm,
+				mod:  mod,
 			},
 		}, nil
 	}
@@ -138,6 +222,7 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 		info: &fileInfo{
 			name: filename,
 			mode: os.ModePerm,
+			mod:  mod,
 		},
 		logger:  f.logger,
 		tree:    f.tree,
@@ -176,7 +261,7 @@ func (f *filesystem) Stat(filename string) (_ os.FileInfo, err error) {
 		return nil, fmt.Errorf("path %q: %w", filename, err)
 	}
 
-	info, err := entryToFileInfo(entry)
+	info, err := f.entryToFileInfo(entry)
 	if err != nil {
 		return nil, fmt.Errorf("gathering info: %w", err)
 	}
@@ -212,15 +297,21 @@ func (f *filesystem) Remove(filename string) error {
 	)
 }
 
-func entryToFileInfo(entry *object.TreeEntry) (*fileInfo, error) {
+func (f *filesystem) entryToFileInfo(entry *object.TreeEntry) (*fileInfo, error) {
 	mode, err := entry.Mode.ToOSFileMode()
 	if err != nil {
 		return nil, err
 	}
 
+	var mod time.Time
+	if f.base != nil {
+		mod = f.base.Committer.When
+	}
+
 	return &fileInfo{
 		name:  entry.Name,
 		mode:  mode,
+		mod:   mod,
 		isDir: !entry.Mode.IsFile(),
 	}, nil
 }
