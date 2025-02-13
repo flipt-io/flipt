@@ -72,7 +72,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
           <div className="relative">
             <Listbox.Button className="group font-medium flex w-full items-center rounded p-2 text-sm text-gray-900 bg-white hover:bg-gray-100 md:bg-transparent dark:text-white dark:bg-gray-800 md:dark:bg-transparent dark:hover:bg-gray-700/50 disabled:opacity-50">
               <FolderIcon
-                className="mr-3 h-6 w-6 flex-shrink-0 text-gray-500 dark:text-gray-400"
+                className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500"
                 aria-hidden="true"
               />
               <span className="flex-1 text-left">

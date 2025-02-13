@@ -58,6 +58,17 @@ listenerMiddleware.startListening({
 });
 
 listenerMiddleware.startListening({
+  matcher: isAnyOf(environmentsSlice.actions.currentEnvironmentChanged),
+  effect: (_action, api) => {
+    // save to local storage
+    localStorage.setItem(
+      environmentKey,
+      (api.getState() as RootState).environments.currentEnvironment
+    );
+  }
+});
+
+listenerMiddleware.startListening({
   matcher: isAnyOf(namespacesSlice.actions.currentNamespaceChanged),
   effect: (_action, api) => {
     // save to local storage
@@ -69,9 +80,17 @@ listenerMiddleware.startListening({
 });
 
 /*
- * It could be anti-pattern but it feels like the right thing to do.
- * The namespacesSlice holds the namespaces globally and doesn't refetch them
- * from server as often as it could be with `useListNamespacesQuery`.
+ * Each time the the app is loaded or environments changed by user this
+ * listener will propagate the latest environments to the environmentsSlice.
+ */
+listenerMiddleware.startListening({
+  matcher: environmentsApi.endpoints.listEnvironments.matchFulfilled,
+  effect: (action, api) => {
+    api.dispatch(environmentsSlice.actions.environmentsChanged(action.payload));
+  }
+});
+
+/*
  * Each time the the app is loaded or namespaces changed by user this
  * listener will propagate the latest namespaces to the namespacesSlice.
  */

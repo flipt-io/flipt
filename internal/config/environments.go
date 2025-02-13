@@ -20,6 +20,17 @@ func (e *EnvironmentsConfig) validate() error {
 		}
 	}
 
+	defaults := 0
+	for _, v := range *e {
+		if v.Default {
+			defaults++
+		}
+	}
+
+	if defaults > 1 {
+		return fmt.Errorf("only one environment can be default")
+	}
+
 	return nil
 }
 
@@ -53,6 +64,7 @@ func (e *EnvironmentsConfig) setDefaults(v *viper.Viper) error {
 
 type EnvironmentConfig struct {
 	Name      string `json:"name" mapstructure:"name" yaml:"name,omitempty"`
+	Default   bool   `json:"default" mapstructure:"default" yaml:"default,omitempty"`
 	Storage   string `json:"storage" mapstructure:"storage" yaml:"storage,omitempty"`
 	Directory string `json:"directory" mapstructure:"directory" yaml:"directory,omitempty"`
 }

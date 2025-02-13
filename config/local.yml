@@ -19,6 +19,14 @@ log:
 #         interval: 2h
 #         grace_period: 48h
 
+environments:
+  local:
+    name: "local"
+    default: true
+
+  staging:
+    name: "staging"
+
 cors:
   enabled: true
   allowed_origins: ["*"]

@@ -38,11 +38,13 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
 
   return (
     <Listbox
+      as="div"
       value={environment}
+      by="key"
       onChange={(env) => dispatch(currentEnvironmentChanged(env))}
     >
       <div className={cls('relative', className)}>
-        <Listbox.Button className="group flex w-full items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
+        <Listbox.Button className="group flex  items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
           <span>{environment?.name || 'Select Environment'}</span>
           <ChevronDownIcon
             className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:text-white ui-open:rotate-180"
@@ -56,14 +58,16 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-gray-900 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {environments.map((env) => (
               <Listbox.Option
                 key={env.name}
                 className={({ active }) =>
                   cls(
                     'relative cursor-default select-none px-4 py-2',
-                    active ? 'bg-gray-800 text-white' : 'text-gray-300'
+                    active
+                      ? 'bg-violet-50 text-gray-900 dark:bg-violet-600 dark:text-white'
+                      : 'text-gray-900 dark:text-gray-100 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-50'
                   )
                 }
                 value={env}
@@ -72,7 +76,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
                   <span
                     className={cls(
                       'block truncate',
-                      selected ? 'font-medium text-white' : ''
+                      selected ? 'font-medium' : ''
                     )}
                   >
                     {env.name}

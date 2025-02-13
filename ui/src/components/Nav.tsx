@@ -37,16 +37,16 @@ function NavItem(props: NavItemProps) {
       aria-label={name}
       className={({ isActive }) =>
         cls('flex items-center rounded-md p-2 text-sm  text-white', {
-          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
+          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300':
             isActive,
-          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
+          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700':
             !isActive
         })
       }
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
+        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500"
         aria-hidden="true"
       />
       {name}

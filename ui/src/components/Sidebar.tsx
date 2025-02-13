@@ -86,7 +86,7 @@ export default function Sidebar(props: SidebarProps) {
         className="hidden md:fixed md:bottom-0 md:flex md:w-64 md:flex-col"
         style={{ top: '64px' }}
       >
-        <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
+        <div className="flex min-h-0 flex-1 flex-col bg-gray-200 dark:bg-gray-100">
           <div className="flex flex-1 flex-col overflow-y-auto">
             <Nav className="py-4" />
           </div>

@@ -64,6 +64,10 @@ func (e *Environment) Name() string {
 	return e.cfg.Name
 }
 
+func (e *Environment) Default() bool {
+	return e.cfg.Default
+}
+
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {
 	err = e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		ns, err := e.storage.GetNamespace(ctx, environmentsfs.SubFilesystem(fs, e.cfg.Directory), key)

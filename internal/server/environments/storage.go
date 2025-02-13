@@ -39,7 +39,7 @@ func (r ResourceType) String() string {
 
 type Environment interface {
 	Name() string
-
+	Default() bool
 	// Namespaces
 
 	GetNamespace(_ context.Context, key string) (*environments.NamespaceResponse, error)
@@ -102,7 +102,7 @@ func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
 	})
 }
 
-// Get returns the environment identified on the context via the matching host
+// Get returns the environment identified by name.
 func (e *EnvironmentStore) Get(ctx context.Context, name string) (Environment, error) {
 	env, ok := e.byName[name]
 	if !ok {

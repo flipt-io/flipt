@@ -37,7 +37,9 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 
 	for env := range s.envs.List(ctx) {
 		el.Environments = append(el.Environments, &environments.Environment{
-			Key: env.Name(),
+			Key:     env.Name(),
+			Name:    env.Name(),
+			Default: ptr(env.Default()),
 		})
 	}
 
@@ -274,4 +276,8 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 	}
 
 	return resp, nil
+}
+
+func ptr[T any](t T) *T {
+	return &t
 }

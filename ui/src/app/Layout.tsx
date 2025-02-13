@@ -24,7 +24,10 @@ import { LoadingStatus } from '~/types/Meta';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 
-import { selectCurrentEnvironment } from './environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  useListEnvironmentsQuery
+} from './environments/environmentsApi';
 import { selectDismissedBanner } from './events/eventSlice';
 import { fetchInfoAsync, selectInfo } from './meta/metaSlice';
 import {
@@ -44,9 +47,15 @@ function InnerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const environments = useListEnvironmentsQuery();
+
   const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
+
+  const namespaces = useListNamespacesQuery({
+    environmentKey: currentEnvironment.name
+  });
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -62,10 +71,6 @@ function InnerLayout() {
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
-  const namespaces = useListNamespacesQuery({
-    environmentKey: currentEnvironment.name
-  });
-
   useEffect(() => {
     dispatch(fetchInfoAsync());
   }, [dispatch]);
@@ -74,7 +79,11 @@ function InnerLayout() {
     return <Navigate to="/login" />;
   }
 
-  if (namespaces.isLoading || info.status != LoadingStatus.SUCCEEDED) {
+  if (
+    environments.isLoading ||
+    namespaces.isLoading ||
+    info.status != LoadingStatus.SUCCEEDED
+  ) {
     return <Loading fullScreen />;
   }
 
