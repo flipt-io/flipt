@@ -1,0 +1,3 @@
+environments:
+  default:
+    name: default
