@@ -49,8 +49,8 @@ var (
 	AllCases = map[string]testCaseFn{
 		// "fs/git":   git,
 		// "fs/local": local,
-		// "authn":    authn,
 		// "authz":    authz,
+		"authn":         authn(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
 		// "ofrep":         withAuthz(ofrepAPI),
@@ -248,9 +248,47 @@ func take(fn func() error) func() error {
 	}
 }
 
-const configTestdataDir = "build/testing/integration/environments/testdata"
+const (
+	configTestdataDir = "build/testing/integration/environments/testdata"
+	testdataDir       = "build/testing/integration/testdata"
+)
 
 func envsAPI(directory string) testCaseFn {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "environments", base, flipt.WithExec(nil), conf)
+	}, configTestdataDir)
+}
+
+func authn() testCaseFn {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "authn", base, flipt.WithExec(nil), conf)
+	}, testdataDir)
+}
+
+func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		gitea := client.Container().
 			From("gitea/gitea:1.23.3").
@@ -293,7 +331,7 @@ func envsAPI(directory string) testCaseFn {
 		_, err = client.Container().
 			From("ghcr.io/flipt-io/stew:latest").
 			WithWorkdir("/work").
-			WithDirectory("/work/base", base.Directory(configTestdataDir)).
+			WithDirectory("/work/base", base.Directory(dataDir)).
 			WithNewFile("/etc/stew/config.yml", string(contents)).
 			WithServiceBinding("gitea", gitea).
 			WithExec(nil).
@@ -302,20 +340,13 @@ func envsAPI(directory string) testCaseFn {
 			return func() error { return err }
 		}
 
-		flipt = flipt.
-			WithServiceBinding("gitea", gitea).
-			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
-			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
-			WithEnvVariable("UNIQUE", uuid.New().String())
-
-		return suite(ctx, "environments", base, flipt.WithExec(nil), conf)
+		return fn(
+			ctx,
+			client,
+			base,
+			flipt.WithServiceBinding("gitea", gitea),
+			conf,
+		)
 	}
 }
 
