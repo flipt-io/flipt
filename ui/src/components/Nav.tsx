@@ -5,6 +5,7 @@ import {
   QuestionMarkCircleIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
+import { Separator } from '@radix-ui/react-separator';
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router';
 
@@ -36,20 +37,17 @@ function NavItem(props: NavItemProps) {
       to={to}
       aria-label={name}
       className={({ isActive }) =>
-        cls(
-          'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
-          {
-            'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
-              isActive,
-            'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
-              !isActive
-          }
-        )
+        cls('flex items-center rounded-md p-2 text-sm  text-white', {
+          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300':
+            isActive,
+          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700':
+            !isActive
+        })
       }
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
+        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500"
         aria-hidden="true"
       />
       {name}
@@ -114,9 +112,13 @@ export default function Nav(props: NavProps) {
       className={`${className} flex flex-grow flex-col overflow-y-auto`}
       aria-label="Sidebar"
     >
-      <div className="mb-4 flex flex-shrink-0 flex-col px-2">
-        <NamespaceListbox disabled={!namespaceNavEnabled} />
+      <div className="flex flex-shrink-0 flex-col px-2">
+        <NamespaceListbox className="w-full" disabled={!namespaceNavEnabled} />
       </div>
+      <Separator
+        decorative
+        className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-600"
+      />
       <div className="flex flex-grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
           <NavItem

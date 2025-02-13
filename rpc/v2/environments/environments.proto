@@ -26,6 +26,8 @@ service EnvironmentsService {
 
 message Environment {
   string key = 1;
+  string name = 2;
+  optional bool default = 3;
 }
 
 message ListEnvironmentsRequest {}

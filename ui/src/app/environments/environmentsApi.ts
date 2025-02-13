@@ -19,7 +19,7 @@ interface IEnvironmentsState {
 const initialState: IEnvironmentsState = {
   environments: {},
   status: LoadingStatus.IDLE,
-  currentEnvironment: localStorage.getItem(environmentKey) || 'default',
+  currentEnvironment: localStorage.getItem(environmentKey) || '',
   error: undefined
 };
 
@@ -33,16 +33,44 @@ export const environmentsSlice = createSlice({
     },
     environmentsChanged: (state, action) => {
       const environments: { [key: string]: IEnvironment } = {};
+      // First, build the environments map
       action.payload.environments.forEach((environment: IEnvironment) => {
         environments[environment.name] = environment;
       });
       state.environments = environments;
       state.status = LoadingStatus.SUCCEEDED;
+
+      // If no current environment is set, or the current one doesn't exist anymore
+      if (
+        !state.currentEnvironment ||
+        !environments[state.currentEnvironment]
+      ) {
+        // First, try to find the default environment
+        const defaultEnv = action.payload.environments.find(
+          (env: IEnvironment) => env.default === true
+        );
+
+        if (defaultEnv) {
+          state.currentEnvironment = defaultEnv.name;
+        } else if (action.payload.environments.length > 0) {
+          // Only fallback to first environment if no default exists
+          state.currentEnvironment = action.payload.environments[0].name;
+        }
+      }
     }
   }
 });
 
 export const { currentEnvironmentChanged } = environmentsSlice.actions;
+
+export const selectEnvironments = createSelector(
+  [(state: RootState) => state.environments.environments],
+  (environments) => {
+    return Object.entries(environments).map(
+      ([_, value]) => value
+    ) as IEnvironment[];
+  }
+);
 
 export const selectCurrentEnvironment = createSelector(
   [(state: RootState) => state.environments],
