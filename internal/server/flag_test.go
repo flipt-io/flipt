@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/common"
+	"go.flipt.io/flipt/internal/server/environments"
+	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -17,15 +19,20 @@ import (
 
 func TestListFlags_PaginationOffset(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
+		store       = &common.StoreMock{}
+		environment = &environments.MockEnvironment{}
+		envStore    = &evaluation.MockEnvironmentStore{}
+		logger      = zaptest.NewLogger(t)
+		s           = &Server{
 			logger: logger,
-			store:  store,
+			store:  envStore,
 		}
 	)
 
 	defer store.AssertExpectations(t)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
 		storage.ListWithQueryParamOptions[storage.NamespaceRequest](
@@ -56,15 +63,20 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 
 func TestListFlags_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &common.StoreMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
+		store       = &common.StoreMock{}
+		environment = &environments.MockEnvironment{}
+		envStore    = &evaluation.MockEnvironmentStore{}
+		logger      = zaptest.NewLogger(t)
+		s           = &Server{
 			logger: logger,
-			store:  store,
+			store:  envStore,
 		}
 	)
 
 	defer store.AssertExpectations(t)
+
+	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
 		storage.ListWithQueryParamOptions[storage.NamespaceRequest](

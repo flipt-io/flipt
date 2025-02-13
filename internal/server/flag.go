@@ -12,8 +12,13 @@ import (
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
+	store, err := s.getStore(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	ns := storage.NewNamespace(r.NamespaceKey, storage.WithReference(r.GetReference()))
-	results, err := s.store.ListFlags(ctx, storage.ListWithParameters(ns, r))
+	results, err := store.ListFlags(ctx, storage.ListWithParameters(ns, r))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 		})
 	}
 
-	total, err := s.store.CountFlags(ctx, ns)
+	total, err := store.CountFlags(ctx, ns)
 	if err != nil {
 		return nil, err
 	}

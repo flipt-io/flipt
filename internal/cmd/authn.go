@@ -92,6 +92,9 @@ func authenticationGRPC(
 		return nil, nil, err
 	}
 
+	rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
+	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, storageauthmemory.NewStore(logger)))
+
 	shutdown = store.Shutdown
 
 	var interceptors []grpc.UnaryServerInterceptor

@@ -95,19 +95,11 @@ type Server struct {
 	auth.UnimplementedAuthenticationServiceServer
 }
 
-type Option func(*Server)
-
-func NewServer(logger *zap.Logger, store storageauth.Store, opts ...Option) *Server {
-	s := &Server{
+func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
+	return &Server{
 		logger: logger,
 		store:  store,
 	}
-
-	for _, opt := range opts {
-		opt(s)
-	}
-
-	return s
 }
 
 // RegisterGRPC registers the server as an Server on the provided grpc server.
