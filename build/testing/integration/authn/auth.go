@@ -9,8 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/v2/environments"
 	sdk "go.flipt.io/flipt/sdk/go"
+	sdkv2 "go.flipt.io/flipt/sdk/go/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -25,17 +26,13 @@ func Common(t *testing.T, opts integration.TestOpts) {
 			t.Log(`List methods (ensure at-least 1).`)
 
 			methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
-
 			require.NoError(t, err)
-
 			assert.NotEmpty(t, methods)
 		})
 
 		t.Run("Get Self", func(t *testing.T) {
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
 			require.NoError(t, err)
-
 			assert.NotEmpty(t, authn.Id)
 		})
 
@@ -44,140 +41,72 @@ func Common(t *testing.T, opts integration.TestOpts) {
 				t.Run("NoAuth", func(t *testing.T) {
 					client := opts.NoAuthClient(t)
 					cannotReadAnyIn(t, ctx, client, namespace.Key)
+					cannotReadEnvironmentsAnyIn(t, ctx, opts.ClientV2(t), namespace.Key)
 				})
 
 				t.Run("StaticToken", func(t *testing.T) {
 					// ensure we can do resource specific operations across namespaces
 					canReadAllIn(t, ctx, client, namespace.Key)
+					canReadEnvironmentsAllIn(t, ctx, opts.TokenClientV2(t), namespace.Key)
+				})
 
-					t.Run("CreateToken()", func(t *testing.T) {
-						// namespaced scoped tokens can only create tokens
-						// in the same namespace
-						// this ensures that the scope is appropriate for that condition
-						resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
-							Name:         "Access Token",
-							NamespaceKey: namespace.Key,
-							Description:  "Some Description",
-						})
+				t.Run("K8sClient", func(t *testing.T) {
+					canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
+					// k8s auth is not supported for sdkv2
+				})
 
-						require.NoError(t, err)
-
-						assert.NotEmpty(t, resp.ClientToken)
-						assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
-						assert.Equal(t, "Some Description", resp.Authentication.Metadata["io.flipt.auth.token.description"])
-						if namespace.Key != "" {
-							assert.Equal(t, namespace.Expected, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
-						} else {
-							assert.NotContains(t, resp.Authentication.Metadata, "io.flipt.auth.token.namespace")
-						}
-					})
-
-					// ensure we can do resource specific operations in scoped namespace
-					// TODO(georgemac): the options here aren't currently being observed because tokens
-					// can no longer be generated on the fly so we need to adjust the strategy here.
-					// (i.e. precreate the scoped token before the test begins)
-					scopedClient := opts.BootstrapClient(t, integration.WithNamespace(namespace.Key))
-
-					canReadAllIn(t, ctx, scopedClient, namespace.Key)
-
-					if namespace.Key != "" {
-						// ensure we exclude from reading in another namespace
-						otherNS := integration.Namespaces.OtherNamespaceFrom(namespace.Expected)
-						t.Run(fmt.Sprintf("NamespaceScopedIn(%q)", otherNS), func(t *testing.T) {
-							cannotReadAnyIn(t, ctx, scopedClient, otherNS)
-						})
-					}
+				t.Run("JWTClient", func(t *testing.T) {
+					canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
+					canReadEnvironmentsAllIn(t, ctx, opts.JWTClientV2(t), namespace.Key)
 				})
 			})
-
-			t.Run("K8sClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
-			})
-
-			t.Run("JWTClient", func(t *testing.T) {
-				canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
-			})
 		}
-
-		t.Run("Expire Self", func(t *testing.T) {
-			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
-				ExpiresAt: flipt.Now(),
-			})
-
-			require.NoError(t, err)
-
-			t.Log(`Ensure token is no longer valid.`)
-
-			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
-			status, ok := status.FromError(err)
-			require.True(t, ok)
-			assert.Equal(t, codes.Unauthenticated, status.Code())
-		})
-	})
-}
-
-func listFlagsIsUnauthorized(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
-	t.Helper()
-
-	t.Run(fmt.Sprintf("ListFlags(namespace: %q)", namespace), func(t *testing.T) {
-		_, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
-		})
-		require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 	})
 }
 
 func canReadAllIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
 	t.Run("CanReadAll", func(t *testing.T) {
-		clientCallSet{
-			can(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-		}.assert(t, ctx, client)
+		_, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+			NamespaceKey: namespace,
+		})
+		assertErrIsUnauthenticated(t, err, false)
 	})
 }
 
 func cannotReadAnyIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
 	t.Run("CannotReadAny", func(t *testing.T) {
-		clientCallSet{
-			cannot(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
-		}.assert(t, ctx, client)
+		_, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+			NamespaceKey: namespace,
+		})
+		assertErrIsUnauthenticated(t, err, true)
 	})
 }
 
-type clientCallSet []isAuthorized
-
-type isAuthorized struct {
-	call       clientCall
-	authorized bool
+func canReadEnvironmentsAllIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
+	t.Run("EnvironmentsCanReadAll", func(t *testing.T) {
+		// ensure we can do resource specific operations across namespaces
+		client := client.Environments()
+		_, err := client.ListEnvironments(ctx, &environments.ListEnvironmentsRequest{})
+		assertErrIsUnauthenticated(t, err, false)
+	})
 }
 
-func can(c clientCall) isAuthorized    { return isAuthorized{c, true} }
-func cannot(c clientCall) isAuthorized { return isAuthorized{c, false} }
-
-func (s clientCallSet) assert(t *testing.T, ctx context.Context, client sdk.SDK) {
-	for _, c := range s {
-		assertIsAuthorized(t, c.call(t, ctx, client), c.authorized)
-	}
+func cannotReadEnvironmentsAnyIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
+	t.Run("EnvironmentsCannotReadAny", func(t *testing.T) {
+		// ensure we cannot do resource specific operations across namespaces
+		client := client.Environments()
+		_, err := client.ListEnvironments(ctx, &environments.ListEnvironmentsRequest{})
+		assertErrIsUnauthenticated(t, err, true)
+	})
 }
 
-type clientCall func(*testing.T, context.Context, sdk.SDK) error
-
-func ListFlags(in *flipt.ListFlagRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListFlags(ctx, in)
-		return err
-	}
-}
-
-func assertIsAuthorized(t *testing.T, err error, authorized bool) {
-	t.Helper()
-	if !authorized {
-		assert.Equal(t, codes.Unauthenticated, status.Code(err), err)
-		return
-	}
-
-	if err != nil {
-		code := status.Code(err)
-		assert.NotEqual(t, codes.Unauthenticated, code, err)
+func assertErrIsUnauthenticated(t *testing.T, err error, unauthenticated bool) {
+	if !assert.Equal(
+		t,
+		codes.Unauthenticated == status.Code(err),
+		unauthenticated,
+		"expected unauthenticated error",
+	) {
+		t.Logf("error: %v", err)
 	}
 }

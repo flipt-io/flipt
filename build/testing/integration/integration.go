@@ -202,10 +202,12 @@ func K8sAuth(t *testing.T, transport sdk.Transport, opts ...ClientOpt) sdk.Optio
 }
 
 func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
-	return sdk.New(o.newTransport(t), JWTAuth(t, opts...))
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.JWTAuthenticationProvider(jwtClaims(t, opts...)),
+	))
 }
 
-func JWTAuth(t *testing.T, opts ...ClientOpt) sdk.Option {
+func jwtClaims(t *testing.T, opts ...ClientOpt) string {
 	t.Helper()
 
 	var copts ClientOpts
@@ -227,19 +229,25 @@ func JWTAuth(t *testing.T, opts ...ClientOpt) sdk.Option {
 		claims["io.flipt.auth.namespace"] = copts.Namespace
 	}
 
-	return sdk.WithAuthenticationProvider(
-		sdk.JWTAuthenticationProvider(signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)),
-	)
+	return signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)
 }
 
-func (o TestOpts) EnvironmentClient(t *testing.T, opts ...sdkv2.Option) *sdkv2.Environments {
-	t.Helper()
-
-	opts = append(opts, sdkv2.WithAuthenticationProvider(
+func (o TestOpts) TokenClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
+	return sdkv2.New(o.newTransportV2(t), sdkv2.WithAuthenticationProvider(
 		sdkv2.StaticTokenAuthenticationProvider(o.Token),
 	))
+}
 
-	return sdkv2.New(o.newTransportV2(t), opts...).Environments()
+func (o TestOpts) JWTClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
+	return sdkv2.New(o.newTransportV2(t), sdkv2.WithAuthenticationProvider(
+		sdkv2.JWTAuthenticationProvider(jwtClaims(t, opts...)),
+	))
+}
+
+func (o TestOpts) ClientV2(t *testing.T, opts ...sdkv2.Option) sdkv2.SDK {
+	t.Helper()
+
+	return sdkv2.New(o.newTransportV2(t), opts...)
 }
 
 func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]any) string {

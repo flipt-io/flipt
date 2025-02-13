@@ -17,6 +17,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/metrics"
+	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
 	"go.flipt.io/flipt/internal/server/analytics/prometheus"
@@ -33,6 +34,7 @@ import (
 	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage/environments"
 	"go.flipt.io/flipt/internal/tracing"
+	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcmeta "go.flipt.io/flipt/rpc/flipt/meta"
@@ -187,12 +189,15 @@ func NewGRPCServer(
 	}
 
 	var (
+		// legacy services
 		metasrv     = metadata.New(cfg, info)
 		evalsrv     = evaluation.New(logger, environmentStore)
 		evaldatasrv = evaluationdata.New(logger, environmentStore)
-		healthsrv   = health.NewServer()
-		// TODO(georgemac): wire back in legacy flipt compat services
-		ofrepsrv = ofrep.New(logger, evalsrv, nil)
+		fliptv1srv  = serverfliptv1.New(logger, environmentStore)
+		ofrepsrv    = ofrep.New(logger, evalsrv, nil)
+
+		// health service
+		healthsrv = health.NewServer()
 	)
 
 	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
@@ -213,6 +218,7 @@ func NewGRPCServer(
 		}
 	)
 
+	skipAuthnIfExcluded(fliptv1srv, cfg.Authentication.Exclude.Management)
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
@@ -257,6 +263,7 @@ func NewGRPCServer(
 	}
 
 	// register servers
+	rpcflipt.RegisterFliptServer(handlers, fliptv1srv)
 	rpcenv.RegisterEnvironmentsServiceServer(handlers, envsrv)
 	rpcmeta.RegisterMetadataServiceServer(handlers, metasrv)
 	rpcevaluation.RegisterEvaluationServiceServer(handlers, evalsrv)

@@ -22,7 +22,7 @@ func ptr[T any](t T) *T {
 
 func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 	var (
-		envClient  = opts.EnvironmentClient(t)
+		envClient  = opts.TokenClientV2(t).Environments()
 		evalClient = opts.BootstrapClient(t).Evaluation()
 		revision   string
 	)

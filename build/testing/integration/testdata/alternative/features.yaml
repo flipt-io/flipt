@@ -1,7 +1,7 @@
 version: "1.4"
 namespace:
-  key: production
-  name: Production
+  key: altnerative
+  name: Alternative
 flags:
 - key: flag_001
   name: FLAG_001
