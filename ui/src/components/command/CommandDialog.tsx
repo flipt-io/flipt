@@ -6,6 +6,11 @@ import { useSelector } from 'react-redux';
 import { useLocation, useMatches, useNavigate } from 'react-router';
 
 import {
+  currentEnvironmentChanged,
+  selectCurrentEnvironment,
+  selectEnvironments
+} from '~/app/environments/environmentsApi';
+import {
   currentNamespaceChanged,
   selectCurrentNamespace,
   selectNamespaces
@@ -96,10 +101,18 @@ const nonNamespacedRoutes = [
 ];
 
 export default function CommandMenu() {
+  const currentEnvironment = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
 
   const dispatch = useAppDispatch();
-  const namespaces = useSelector(selectNamespaces);
+
+  const environments = useSelector(selectEnvironments).filter(
+    (e) => e.name !== currentEnvironment?.name
+  );
+
+  const namespaces = useSelector(selectNamespaces).filter(
+    (n) => n.key !== currentNamespace?.key
+  );
 
   const matches = useMatches();
   // if the current route is namespaced, we want to allow the namespace nav to be selectable
@@ -171,6 +184,32 @@ export default function CommandMenu() {
                 <Command.Empty className="mt-4 px-4 text-sm text-gray-700">
                   No results found
                 </Command.Empty>
+
+                {page === 'environments' && (
+                  <>
+                    <Command.Item
+                      disabled={true}
+                      className="px-4 py-2.5 font-semibold text-gray-600"
+                    >
+                      Switch Environment
+                    </Command.Item>
+                    {environments.map((environment) => (
+                      <CommandItem
+                        key={environment.name}
+                        item={{
+                          name: environment.name,
+                          onSelected: () => {
+                            setOpen(false);
+                            dispatch(currentEnvironmentChanged(environment));
+                            setSearch('');
+                            setPages((pages) => pages.slice(0, -1));
+                          },
+                          keywords: [environment.name]
+                        }}
+                      />
+                    ))}
+                  </>
+                )}
 
                 {page === 'namespaces' && (
                   <>
@@ -269,7 +308,21 @@ export default function CommandMenu() {
                       />
                     ))}
 
-                    {namespaceNavEnabled && namespaces.length > 1 && (
+                    {environments.length > 0 && (
+                      <CommandItem
+                        item={{
+                          name: 'Switch Environment',
+                          description: 'Switch to a different environment',
+                          onSelected: () => {
+                            setSearch('');
+                            setPages([...pages, 'environments'] as string[]);
+                          },
+                          keywords: ['environments', 'switch']
+                        }}
+                      />
+                    )}
+
+                    {namespaceNavEnabled && namespaces.length > 0 && (
                       <CommandItem
                         item={{
                           name: 'Switch Namespaces',

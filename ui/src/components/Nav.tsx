@@ -5,6 +5,7 @@ import {
   QuestionMarkCircleIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
+import { Separator } from '@radix-ui/react-separator';
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router';
 
@@ -111,9 +112,13 @@ export default function Nav(props: NavProps) {
       className={`${className} flex flex-grow flex-col overflow-y-auto`}
       aria-label="Sidebar"
     >
-      <div className="mb-4 md:mb-6 flex flex-shrink-0 flex-col px-2">
+      <div className="flex flex-shrink-0 flex-col px-2">
         <NamespaceListbox className="w-full" disabled={!namespaceNavEnabled} />
       </div>
+      <Separator
+        decorative
+        className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-600"
+      />
       <div className="flex flex-grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
           <NavItem

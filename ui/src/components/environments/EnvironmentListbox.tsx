@@ -27,29 +27,23 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
   const dispatch = useAppDispatch();
   const environments = useSelector(selectEnvironments);
 
-  // If there's only one environment, render a simple div instead of a listbox
-  if (environments.length <= 1) {
-    return (
-      <div className={cls('px-2 uppercase py-1 text-sm text-white', className)}>
-        {environment?.name || 'No Environment'}
-      </div>
-    );
-  }
-
   return (
     <Listbox
       as="div"
       value={environment}
       by="key"
       onChange={(env) => dispatch(currentEnvironmentChanged(env))}
+      disabled={environments.length <= 1}
     >
       <div className={cls('relative', className)}>
-        <Listbox.Button className="group flex  items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
-          <span>{environment?.name || 'Select Environment'}</span>
-          <ChevronDownIcon
-            className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:text-white ui-open:rotate-180"
-            aria-hidden="true"
-          />
+        <Listbox.Button className="group flex items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
+          <span>{environment?.name || 'Unknown Environment'}</span>
+          {environments.length > 1 && (
+            <ChevronDownIcon
+              className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:text-white ui-open:rotate-180"
+              aria-hidden="true"
+            />
+          )}
         </Listbox.Button>
 
         <Transition
@@ -58,7 +52,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {environments.map((env) => (
               <Listbox.Option
                 key={env.name}
@@ -66,8 +60,8 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
                   cls(
                     'relative cursor-default select-none px-4 py-2',
                     active
-                      ? 'bg-violet-50 text-gray-900 dark:bg-violet-600 dark:text-white'
-                      : 'text-gray-900 dark:text-gray-100 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-50'
+                      ? 'bg-gray-100 text-gray-900 dark:bg-violet-600 dark:text-white'
+                      : 'text-gray-700 dark:text-gray-100'
                   )
                 }
                 value={env}
