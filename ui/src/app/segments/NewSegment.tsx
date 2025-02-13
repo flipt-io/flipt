@@ -1,6 +1,6 @@
 import MoreInfo from '~/components/MoreInfo';
+import { PageHeader } from '~/components/Page';
 import SegmentForm from '~/components/segments/SegmentForm';
-import { PageHeader } from '~/components/ui/page';
 
 export default function NewSegment() {
   return (

@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
 import { Button } from '~/components/Button';
-import Input from '~/components/forms/Input';
-import { JsonEditor } from '~/components/json/JsonEditor';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '~/components/ui/select';
+} from '~/components/Select';
+import Input from '~/components/forms/Input';
+import { JsonEditor } from '~/components/json/JsonEditor';
 
 import type { IFlagMetadata } from '~/types/Flag';
 

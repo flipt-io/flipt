@@ -7,7 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent
-} from '~/components/ui/dropdown-menu';
+} from '~/components/DropdownMenu';
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

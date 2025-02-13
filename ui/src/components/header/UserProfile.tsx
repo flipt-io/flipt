@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '~/components/ui/dropdown-menu';
+} from '~/components/DropdownMenu';
 
 import { User } from '~/types/auth/User';
 

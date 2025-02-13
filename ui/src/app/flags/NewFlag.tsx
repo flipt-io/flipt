@@ -1,6 +1,6 @@
 import MoreInfo from '~/components/MoreInfo';
+import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
-import { PageHeader } from '~/components/ui/page';
 
 export default function NewFlag() {
   return (
