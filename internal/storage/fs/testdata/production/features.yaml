@@ -24,8 +24,8 @@ flags:
             value: 42.99
       - key: foo
     rules:
-      - segment: segment2
-        rank: 1
+      - segment:
+          keys: ["segment2"]
         distributions:
           - variant: prod-variant
             rollout: 100
@@ -37,7 +37,7 @@ flags:
     rollouts:
       - description: enabled for segment2
         segment:
-          key: segment2
+          keys: ["segment2"]
           value: true
       - description: enabled for 50%
         threshold:
