@@ -95,11 +95,12 @@ func NewEnvironmentStore(envs ...Environment) (*EnvironmentStore, error) {
 
 	if store.defaultEnv == nil {
 		env, ok := store.byName["default"]
-		if ok {
+		switch {
+		case ok:
 			store.defaultEnv = env
-		} else if len(envs) == 1 {
+		case len(envs) == 1:
 			store.defaultEnv = envs[0]
-		} else {
+		default:
 			return nil, errors.New("explicit default environment required")
 		}
 	}
