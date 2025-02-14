@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/fs"
 	"os"
 	"testing"
 
@@ -17,20 +18,30 @@ func Test_filesystem(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	storer := memory.NewStorage()
 
-	fs, err := newFilesystem(logger, storer)
+	gitFS, err := newFilesystem(logger, storer)
 	require.NoError(t, err)
 
-	infos, err := fs.ReadDir(".")
+	infos, err := gitFS.ReadDir(".")
 	require.NoError(t, err)
 
 	assert.Empty(t, infos, "unexpected returned set of infos")
 
-	// Test MkdirAll
-	t.Run("MkdirAll", func(t *testing.T) {
-		err := fs.MkdirAll("test", 0755)
+	t.Run(`Stat(".")`, func(t *testing.T) {
+		info, err := gitFS.Stat(".")
 		require.NoError(t, err)
 
-		infos, err := fs.ReadDir(".")
+		assert.Equal(t, ".", info.Name(), "unexpected name")
+		assert.True(t, info.Mode().IsDir(), "unexpected mode")
+		assert.Nil(t, info.Sys(), "unexpected sys")
+		assert.True(t, info.IsDir(), "unexpected is dir")
+	})
+
+	// Test MkdirAll
+	t.Run("MkdirAll", func(t *testing.T) {
+		err := gitFS.MkdirAll("test", 0755)
+		require.NoError(t, err)
+
+		infos, err := gitFS.ReadDir(".")
 		require.NoError(t, err)
 
 		assert.Len(t, infos, 1, "unexpected returned set of infos")
@@ -39,7 +50,7 @@ func Test_filesystem(t *testing.T) {
 
 	// Test OpenFile
 	t.Run(`OpenFile("file.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)`, func(t *testing.T) {
-		file, err := fs.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)
+		file, err := gitFS.OpenFile("test.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0755)
 		require.NoError(t, err)
 		require.NotNil(t, file)
 
@@ -50,7 +61,7 @@ func Test_filesystem(t *testing.T) {
 		err = file.Close()
 		require.NoError(t, err)
 
-		infos, err := fs.ReadDir(".")
+		infos, err := gitFS.ReadDir(".")
 		require.NoError(t, err)
 
 		assert.Len(t, infos, 2, "unexpected returned set of infos")
@@ -58,15 +69,15 @@ func Test_filesystem(t *testing.T) {
 		assert.Equal(t, "test", infos[1].Name(), "unexpected name")
 	})
 
-	commit, err := fs.commit(context.Background(), "add first file")
+	commit, err := gitFS.commit(context.Background(), "add first file")
 	require.NoError(t, err)
 
-	fs, err = newFilesystem(logger, storer, withBaseCommit(commit.Hash))
+	gitFS, err = newFilesystem(logger, storer, withBaseCommit(commit.Hash))
 	require.NoError(t, err)
 
 	// Test OpenFile
 	t.Run(`OpenFile("file.txt", os.O_RDONLY, 0755)`, func(t *testing.T) {
-		file, err := fs.OpenFile("test.txt", os.O_RDONLY, 0755)
+		file, err := gitFS.OpenFile("test.txt", os.O_RDONLY, 0755)
 		require.NoError(t, err)
 		require.NotNil(t, file)
 
@@ -79,8 +90,8 @@ func Test_filesystem(t *testing.T) {
 	})
 
 	// Test Stat
-	t.Run("Stat", func(t *testing.T) {
-		info, err := fs.Stat("test.txt")
+	t.Run(`Stat("test.txt")`, func(t *testing.T) {
+		info, err := gitFS.Stat("test.txt")
 		require.NoError(t, err)
 
 		assert.Equal(t, "test.txt", info.Name(), "unexpected name")
@@ -91,12 +102,27 @@ func Test_filesystem(t *testing.T) {
 		assert.False(t, info.IsDir(), "unexpected is dir")
 	})
 
-	// Test Remove
-	t.Run("Remove", func(t *testing.T) {
-		err := fs.Remove("test.txt")
+	t.Run("ReadDirFile", func(t *testing.T) {
+		fi, err := gitFS.OpenFile(".", os.O_RDONLY, 0755)
 		require.NoError(t, err)
 
-		infos, err := fs.ReadDir(".")
+		dir, ok := fi.(fs.ReadDirFile)
+		require.True(t, ok)
+
+		entries, err := dir.ReadDir(0)
+		require.NoError(t, err)
+
+		assert.Len(t, entries, 2, "unexpected returned set of infos")
+		assert.Equal(t, "test.txt", entries[0].Name(), "unexpected name")
+		assert.Equal(t, "test", entries[1].Name(), "unexpected name")
+	})
+
+	// Test Remove
+	t.Run("Remove", func(t *testing.T) {
+		err := gitFS.Remove("test.txt")
+		require.NoError(t, err)
+
+		infos, err := gitFS.ReadDir(".")
 		require.NoError(t, err)
 
 		assert.Len(t, infos, 1, "unexpected returned set of infos")

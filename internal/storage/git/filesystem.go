@@ -1,7 +1,6 @@
 package git
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -189,33 +188,76 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 		mod = f.base.Committer.When
 	}
 
-	fi, err := f.tree.File(filename)
-	if flag&os.O_CREATE == 0 {
-		if err != nil {
-			if errorIsNotFound(err) {
-				return nil, fmt.Errorf("path %q: %w", filename, os.ErrNotExist)
-			}
+	var (
+		entry *object.TreeEntry
+		err   error
+	)
 
-			return nil, err
+	if filename == "." {
+		entry = &object.TreeEntry{
+			Name: "/",
+			Hash: f.tree.Hash,
+			Mode: filemode.Dir,
 		}
-
-		rd, err := fi.Reader()
-		if err != nil {
-			return nil, err
-		}
-
-		return &file{
-			ReadCloser: rd,
-			info: &fileInfo{
-				name: filename,
-				mode: os.ModePerm,
-				mod:  mod,
-			},
-		}, nil
+	} else {
+		entry, err = f.tree.FindEntry(filename)
 	}
 
-	if (flag&os.O_RDWR > 0 || flag&os.O_WRONLY > 0) && flag&os.O_TRUNC == 0 {
-		return nil, errors.New("truncation currently required when writing to files")
+	if err != nil {
+		if !errorIsNotFound(err) {
+			return nil, err
+		}
+
+		if flag&os.O_CREATE == 0 {
+			return nil, fmt.Errorf("path %q: %w", filename, os.ErrNotExist)
+		}
+	}
+
+	obj := f.storage.NewEncodedObject()
+	obj.SetType(plumbing.BlobObject)
+	if entry != nil {
+		if !entry.Mode.IsFile() {
+			// handle directories
+			tree := f.tree
+			if filename != "." {
+				tree, err = f.tree.Tree(filename)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			dir := dir{
+				stat: &fileInfo{
+					name:  filename,
+					mode:  os.ModeDir,
+					mod:   mod,
+					isDir: true,
+				},
+			}
+
+			for _, entry := range tree.Entries {
+				info, err := f.entryToFileInfo(&entry)
+				if err != nil {
+					return nil, err
+				}
+
+				dir.entries = append(dir.entries, dirEntry{info})
+			}
+
+			return dir, nil
+		}
+
+		if flag&os.O_TRUNC == 0 {
+			obj, err = f.storage.EncodedObject(plumbing.BlobObject, entry.Hash)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	rd, err := obj.Reader()
+	if err != nil {
+		return nil, err
 	}
 
 	file := &file{
@@ -224,41 +266,46 @@ func (f *filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envf
 			mode: os.ModePerm,
 			mod:  mod,
 		},
-		logger:  f.logger,
-		tree:    f.tree,
-		storage: f.storage,
-		obj:     f.storage.NewEncodedObject(),
+		logger:   f.logger,
+		tree:     f.tree,
+		storage:  f.storage,
+		obj:      obj,
+		writable: flag&os.O_WRONLY > 0 || flag&os.O_RDWR > 0,
 	}
 
-	file.obj.SetType(plumbing.BlobObject)
-
-	if err != nil {
-		if !errorIsNotFound(err) {
-			return nil, fmt.Errorf("opening file %q for writing: %w", filename, err)
-		}
-
-		file.ReadCloser = io.NopCloser(&bytes.Buffer{})
-	} else {
-		rd, err := fi.Reader()
+	if flag&os.O_APPEND > 0 {
+		wr, err := file.obj.Writer()
 		if err != nil {
-			return nil, fmt.Errorf("opening reader for file %q: %w", filename, err)
+			return nil, err
 		}
 
-		file.ReadCloser = rd
+		if _, err := io.Copy(wr, rd); err != nil {
+			return nil, err
+		}
 	}
+
+	file.ReadCloser = rd
 
 	return file, nil
 }
 
 // Stat returns a FileInfo describing the named file.
 func (f *filesystem) Stat(filename string) (_ os.FileInfo, err error) {
-	entry, err := f.tree.FindEntry(filename)
-	if err != nil {
-		if errorIsNotFound(err) {
-			return nil, fmt.Errorf("path %q: %w", filename, os.ErrNotExist)
-		}
+	entry := &object.TreeEntry{
+		Name: filename,
+		Mode: filemode.Dir,
+		Hash: f.tree.Hash,
+	}
 
-		return nil, fmt.Errorf("path %q: %w", filename, err)
+	if filename != "." {
+		entry, err = f.tree.FindEntry(filename)
+		if err != nil {
+			if errorIsNotFound(err) {
+				return nil, fmt.Errorf("path %q: %w", filename, os.ErrNotExist)
+			}
+
+			return nil, fmt.Errorf("path %q: %w", filename, err)
+		}
 	}
 
 	info, err := f.entryToFileInfo(entry)
@@ -324,6 +371,9 @@ type file struct {
 	tree    *object.Tree
 	storage gitstorage.Storer
 	obj     plumbing.EncodedObject
+
+	writable bool
+	written  int
 }
 
 func (f *file) Close() error {
@@ -331,7 +381,7 @@ func (f *file) Close() error {
 		return fmt.Errorf("closing %q: %w", f.info.name, err)
 	}
 
-	if f.obj != nil {
+	if f.written > 0 {
 		hash, err := f.storage.SetEncodedObject(f.obj)
 		if err != nil {
 			return err
@@ -355,12 +405,47 @@ func (f *file) Stat() (fs.FileInfo, error) {
 }
 
 func (f *file) Write(p []byte) (n int, err error) {
+	if !f.writable {
+		return 0, fmt.Errorf("writing to read-only file")
+	}
+
+	defer func() {
+		if err == nil {
+			f.written += n
+		}
+	}()
+
 	wr, err := f.obj.Writer()
 	if err != nil {
 		return 0, err
 	}
 
 	return wr.Write(p)
+}
+
+type dir struct {
+	stat    os.FileInfo
+	entries []fs.DirEntry
+}
+
+func (d dir) Read(p []byte) (n int, err error) {
+	return 0, io.EOF
+}
+
+func (d dir) Write(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("writing to directory")
+}
+
+func (d dir) Close() error {
+	return nil
+}
+
+func (d dir) Stat() (fs.FileInfo, error) {
+	return d.stat, nil
+}
+
+func (d dir) ReadDir(n int) ([]fs.DirEntry, error) {
+	return d.entries, nil
 }
 
 type fileInfo struct {
@@ -393,6 +478,26 @@ func (f *fileInfo) IsDir() bool {
 
 func (f *fileInfo) Sys() any {
 	return nil
+}
+
+type dirEntry struct {
+	info *fileInfo
+}
+
+func (d dirEntry) Name() string {
+	return d.info.name
+}
+
+func (d dirEntry) IsDir() bool {
+	return d.info.isDir
+}
+
+func (d dirEntry) Type() fs.FileMode {
+	return d.info.mode
+}
+
+func (d dirEntry) Info() (fs.FileInfo, error) {
+	return d.info, nil
 }
 
 // updatePath recursively descends into the provided tree node and updates

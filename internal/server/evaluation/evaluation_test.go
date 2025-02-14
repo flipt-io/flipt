@@ -28,7 +28,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -59,7 +59,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -92,7 +92,7 @@ func TestVariant_FlagDisabled(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -131,7 +131,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 		}
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
@@ -166,7 +166,7 @@ func TestVariant_Success(t *testing.T) {
 		}
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
@@ -228,7 +228,7 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
@@ -257,7 +257,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -290,7 +290,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -327,7 +327,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -374,7 +374,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -421,7 +421,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -491,7 +491,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -558,7 +558,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -617,7 +617,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -691,7 +691,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -759,7 +759,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -797,7 +797,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
@@ -832,7 +832,7 @@ func TestBatch_Success(t *testing.T) {
 		s              = New(logger, envStore)
 	)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{

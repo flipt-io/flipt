@@ -31,7 +31,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
@@ -75,7 +75,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	envStore.On("Get", mock.Anything, "default").Return(environment, nil)
+	envStore.On("GetDefault", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
