@@ -436,11 +436,11 @@ type EvaluationDistribution struct {
 	VariantAttachment map[string]any
 }
 
-// evaluationDistTransformer allows us to ensure the contents of the attachment
+// storageEvaluationDistTransformer allows us to ensure the contents of the attachment
 // is preserved as JSON. We cannot rely on protojson output to be stable
 // as it is unstable by design.
-func evaluationDistTransformer() cmp.Option {
-	return cmp.Transformer("EvaluationDistribution", func(dist *storage.EvaluationDistribution) EvaluationDistribution {
+func storageEvaluationDistTransformer() cmp.Option {
+	return cmp.Transformer("storage.EvaluationDistribution", func(dist *storage.EvaluationDistribution) EvaluationDistribution {
 		attachment := make(map[string]any)
 		if err := json.Unmarshal([]byte(dist.VariantAttachment), &attachment); err != nil {
 			panic(err)
@@ -540,8 +540,7 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.AllowUnexported(),
 				protocmp.Transform(),
-
-				evaluationDistTransformer(),
+				storageEvaluationDistTransformer(),
 			}
 
 			if !cmp.Equal(tt.want, dists, opts...) {
@@ -650,6 +649,27 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 			}
 		})
 	}
+}
+
+// evaluationDistTransformer allows us to ensure the contents of the attachment
+// is preserved as JSON. We cannot rely on protojson output to be stable
+// as it is unstable by design.
+func evaluationDistTransformer() cmp.Option {
+	return cmp.Transformer("evaluation.EvaluationDistribution", func(dist *evaluation.EvaluationDistribution) EvaluationDistribution {
+		attachment := make(map[string]any)
+		if err := json.Unmarshal([]byte(dist.VariantAttachment), &attachment); err != nil {
+			panic(err)
+		}
+
+		return EvaluationDistribution{
+			ID:                dist.Id,
+			RuleID:            dist.RuleId,
+			VariantID:         dist.VariantId,
+			Rollout:           dist.Rollout,
+			VariantKey:        dist.VariantKey,
+			VariantAttachment: attachment,
+		}
+	})
 }
 
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
