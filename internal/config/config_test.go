@@ -768,10 +768,31 @@ func TestLoad(t *testing.T) {
 					"default": {
 						Name:    "default",
 						Storage: "default",
+						Default: true,
 					},
 				}
 				return cfg
 			},
+		},
+		{
+			name: "environments single environment is default",
+			path: "./testdata/environments/single_is_default.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "environments no default",
+			path:    "./testdata/environments/no_default.yml",
+			wantErr: errors.New("no default environment configured"),
 		},
 	}
 

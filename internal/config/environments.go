@@ -27,6 +27,10 @@ func (e *EnvironmentsConfig) validate() error {
 		}
 	}
 
+	if defaults == 0 {
+		return fmt.Errorf("no default environment configured")
+	}
+
 	if defaults > 1 {
 		return fmt.Errorf("only one environment can be default")
 	}
@@ -40,6 +44,7 @@ func (e *EnvironmentsConfig) setDefaults(v *viper.Viper) error {
 		// Create default environment if no environments are configured
 		v.SetDefault("environments.default.name", "default")
 		v.SetDefault("environments.default.storage", "default")
+		v.SetDefault("environments.default.default", true)
 		return nil
 	}
 
@@ -56,6 +61,13 @@ func (e *EnvironmentsConfig) setDefaults(v *viper.Viper) error {
 
 		if getString("storage") == "" {
 			setDefault("storage", "default")
+		}
+	}
+
+	// if there is only one environment, set it as the default
+	if len(envs) == 1 {
+		for name := range envs {
+			v.SetDefault("environments."+name+".default", true)
 		}
 	}
 
