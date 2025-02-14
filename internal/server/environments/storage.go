@@ -77,19 +77,34 @@ type ResourceStore interface {
 }
 
 type EnvironmentStore struct {
-	byName map[string]Environment
+	byName     map[string]Environment
+	defaultEnv Environment
 }
 
-func NewEnvironmentStore(envs ...Environment) *EnvironmentStore {
+func NewEnvironmentStore(envs ...Environment) (*EnvironmentStore, error) {
 	store := &EnvironmentStore{
 		byName: map[string]Environment{},
 	}
 
 	for _, env := range envs {
 		store.byName[env.Name()] = env
+		if env.Default() {
+			store.defaultEnv = env
+		}
 	}
 
-	return store
+	if store.defaultEnv == nil {
+		env, ok := store.byName["default"]
+		if ok {
+			store.defaultEnv = env
+		} else if len(envs) == 1 {
+			store.defaultEnv = envs[0]
+		} else {
+			return nil, errors.New("explicit default environment required")
+		}
+	}
+
+	return store, nil
 }
 
 func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
@@ -110,4 +125,9 @@ func (e *EnvironmentStore) Get(ctx context.Context, name string) (Environment, e
 	}
 
 	return env, nil
+}
+
+// GetDefault returns the environment identified by name.
+func (e *EnvironmentStore) GetDefault(ctx context.Context) Environment {
+	return e.defaultEnv
 }

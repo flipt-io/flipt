@@ -60,7 +60,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 		}
 	}
 
-	return serverconfig.NewEnvironmentStore(envs...), nil
+	return serverconfig.NewEnvironmentStore(envs...)
 }
 
 type sourceBuilder struct {
