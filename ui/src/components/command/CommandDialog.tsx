@@ -156,6 +156,10 @@ export default function CommandMenu() {
             data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
           >
+            <Dialog.Title className="sr-only">Flipt Command Menu</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Quickly navigate to a page or perform an action.
+            </Dialog.Description>
             <Command
               loop
               className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground"
