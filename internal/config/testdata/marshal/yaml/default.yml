@@ -33,6 +33,9 @@ environments:
   default:
     name: default
     storage: default
+  second:
+    name: second
+    storage: default
 
 storage:
   default:

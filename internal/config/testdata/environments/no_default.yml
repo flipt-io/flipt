@@ -1,0 +1,5 @@
+environments:
+  first:
+    name: first
+  second:
+    name: second

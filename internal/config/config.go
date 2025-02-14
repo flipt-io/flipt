@@ -584,6 +584,7 @@ func Default() *Config {
 			"default": &EnvironmentConfig{
 				Name:    "default",
 				Storage: "default",
+				Default: true,
 			},
 		},
 
@@ -592,7 +593,8 @@ func Default() *Config {
 				Backend: StorageBackendConfig{
 					Type: "memory",
 				},
-				Branch: "main",
+				Branch:       "main",
+				PollInterval: 30 * time.Second,
 			},
 		},
 
