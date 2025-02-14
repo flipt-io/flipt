@@ -31,7 +31,7 @@ updated multiple resources
 )
 
 type Config struct {
-	Matches   []glob.Glob
+	Matchers  []glob.Glob
 	Templates ConfigTemplates
 }
 
@@ -43,7 +43,7 @@ type ConfigTemplates struct {
 // It used when a flipt.yml cannot be located.
 func DefaultFliptConfig() *Config {
 	return &Config{
-		Matches: []glob.Glob{
+		Matchers: []glob.Glob{
 			// must end in either yaml, yml or json
 			// must be nested a single directory below the root
 			glob.MustCompile("*/features.yaml"),
@@ -91,7 +91,7 @@ func (c *Config) List(src fs.FS) (paths []string, err error) {
 			return nil
 		}
 
-		for _, matcher := range c.Matches {
+		for _, matcher := range c.Matchers {
 			if matcher.Match(path) {
 				paths = append(paths, path)
 				break
