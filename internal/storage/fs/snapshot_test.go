@@ -655,21 +655,16 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 // is preserved as JSON. We cannot rely on protojson output to be stable
 // as it is unstable by design.
 func evaluationDistTransformer() cmp.Option {
-	return cmp.Transformer("evaluation.EvaluationDistribution", func(dist *evaluation.EvaluationDistribution) EvaluationDistribution {
+	return cmp.FilterPath(func(p cmp.Path) bool {
+		return p.String() == "flipt.evaluation.EvaluationDistribution.VariantAttachment"
+	}, cmp.Transformer("flipt.evaluation.EvaluationDistribution.VariantAttachment", func(a string) map[string]any {
 		attachment := make(map[string]any)
-		if err := json.Unmarshal([]byte(dist.VariantAttachment), &attachment); err != nil {
+		if err := json.Unmarshal([]byte(a), &attachment); err != nil {
 			panic(err)
 		}
 
-		return EvaluationDistribution{
-			ID:                dist.Id,
-			RuleID:            dist.RuleId,
-			VariantID:         dist.VariantId,
-			Rollout:           dist.Rollout,
-			VariantKey:        dist.VariantKey,
-			VariantAttachment: attachment,
-		}
-	})
+		return attachment
+	}))
 }
 
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
