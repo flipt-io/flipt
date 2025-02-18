@@ -5,7 +5,7 @@ import (
 )
 
 func (req *CreateTokenRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceAuthentication, flipt.ActionCreate, flipt.WithSubject(flipt.SubjectToken))}
+	return []flipt.Request{flipt.NewRequest(flipt.ResourceAuthentication, flipt.ActionCreate)}
 }
 
 func (req *ListAuthenticationsRequest) Request() []flipt.Request {

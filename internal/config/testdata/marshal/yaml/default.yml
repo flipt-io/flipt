@@ -31,10 +31,8 @@ server:
 
 environments:
   default:
+    default: true
     name: default
-    storage: default
-  second:
-    name: second
     storage: default
 
 storage:

@@ -83,14 +83,15 @@ func TestMigratorRun_NoChange(t *testing.T) {
 
 func TestMigratorExpectedVersions(t *testing.T) {
 	for _, driver := range stringToDriver {
-		migrations, err := os.ReadDir(filepath.Join("../../../config/migrations", driver.Migrations()))
+		migrations, err := os.ReadDir(filepath.Join("../../migrations", driver.Migrations()))
 		require.NoError(t, err)
 
 		count := len(migrations)
 		require.Positive(t, count, "no migrations found for %s", driver)
 
-		// migrations start at 0
-		actual := uint(count - 1)
-		assert.Equal(t, actual, expectedVersions[driver], "expectedVersions for %s should be set to %d. you need to increment expectedVersions after adding a new migration", driver, actual)
+		require.Equal(t, count%2, 0, "migrations for %s should be even", driver)
+		// we only care about the up migrations not the down migrations
+		actual := count / 2
+		assert.Equal(t, uint(actual), expectedVersions[driver], "expectedVersions for %s should be set to %d. you need to increment expectedVersions after adding a new migration", driver, actual)
 	}
 }

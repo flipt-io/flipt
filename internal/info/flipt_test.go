@@ -38,5 +38,5 @@ func TestHttpHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	f.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, `{"updateAvailable":false,"isRelease":false,"authentication":{"required":false},"storage":{"type":"database"}}`, w.Body.String())
+	assert.JSONEq(t, `{"updateAvailable":false,"isRelease":false,"authentication":{"required":false}}`, w.Body.String())
 }
