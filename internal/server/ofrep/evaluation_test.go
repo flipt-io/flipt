@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.uber.org/zap/zaptest"
@@ -224,10 +224,10 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 		}, nil)
 
 		store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace("default"))).Return(
-			storage.ResultSet[*flipt.Flag]{
-				Results: []*flipt.Flag{
-					{Key: flagKey, Type: flipt.FlagType_VARIANT_FLAG_TYPE, Enabled: true},
-					{Key: "disabled", Type: flipt.FlagType_VARIANT_FLAG_TYPE},
+			storage.ResultSet[*core.Flag]{
+				Results: []*core.Flag{
+					{Key: flagKey, Type: core.FlagType_VARIANT_FLAG_TYPE, Enabled: true},
+					{Key: "disabled", Type: core.FlagType_VARIANT_FLAG_TYPE},
 				},
 				NextPageToken: "YmFy",
 			}, nil).Once()
@@ -246,7 +246,7 @@ func TestEvaluateBulkSuccess(t *testing.T) {
 
 	t.Run("without flags in the evaluation request failed fetch the flags", func(t *testing.T) {
 		store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace("default"))).Return(
-			storage.ResultSet[*flipt.Flag]{
+			storage.ResultSet[*core.Flag]{
 				Results:       nil,
 				NextPageToken: "",
 			}, errors.New("failed to fetch flags")).Once()
