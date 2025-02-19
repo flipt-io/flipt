@@ -89,7 +89,7 @@ func TestMigratorExpectedVersions(t *testing.T) {
 		count := len(migrations)
 		require.Positive(t, count, "no migrations found for %s", driver)
 
-		require.Equal(t, count%2, 0, "migrations for %s should be even", driver)
+		require.Equal(t, 0, count%2, "migrations for %s should be even", driver)
 		// we only care about the up migrations not the down migrations
 		actual := count / 2
 		assert.Equal(t, expectedVersions[driver], uint(actual), "expectedVersions for %s should be set to %d. you need to increment expectedVersions after adding a new migration", driver, actual)
