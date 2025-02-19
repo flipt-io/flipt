@@ -29,16 +29,6 @@ const (
 	ResourceSegment        Resource = "segment"
 	ResourceAuthentication Resource = "authentication"
 
-	SubjectConstraint   Subject = "constraint"
-	SubjectDistribution Subject = "distribution"
-	SubjectFlag         Subject = "flag"
-	SubjectNamespace    Subject = "namespace"
-	SubjectRollout      Subject = "rollout"
-	SubjectRule         Subject = "rule"
-	SubjectSegment      Subject = "segment"
-	SubjectToken        Subject = "token"
-	SubjectVariant      Subject = "variant"
-
 	ActionCreate Action = "create"
 	ActionDelete Action = "delete"
 	ActionUpdate Action = "update"
@@ -51,7 +41,6 @@ const (
 type Request struct {
 	Namespace string   `json:"namespace,omitempty"`
 	Resource  Resource `json:"resource,omitempty"`
-	Subject   Subject  `json:"subject,omitempty"`
 	Action    Action   `json:"action,omitempty"`
 	Status    Status   `json:"status,omitempty"`
 }
@@ -76,12 +65,6 @@ func WithStatus(s Status) func(*Request) {
 	}
 }
 
-func WithSubject(s Subject) func(*Request) {
-	return func(r *Request) {
-		r.Subject = s
-	}
-}
-
 func NewRequest(r Resource, a Action, opts ...func(*Request)) Request {
 	req := Request{
 		Resource:  r,
@@ -97,10 +80,6 @@ func NewRequest(r Resource, a Action, opts ...func(*Request)) Request {
 	return req
 }
 
-func newFlagScopedRequest(ns string, s Subject, a Action) Request {
-	return NewRequest(ResourceFlag, a, WithNamespace(ns), WithSubject(s))
-}
-
 func (req *ListFlagRequest) Request() []Request {
-	return []Request{newFlagScopedRequest(req.NamespaceKey, SubjectFlag, ActionRead)}
+	return []Request{NewRequest(ResourceFlag, ActionRead, WithNamespace(req.NamespaceKey))}
 }

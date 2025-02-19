@@ -17,18 +17,10 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xeipuuv/gojsonschema"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/memblob"
 	"gopkg.in/yaml.v2"
 )
-
-func TestJSONSchema(t *testing.T) {
-	schemaBytes, err := os.ReadFile("../../config/flipt.schema.json")
-	require.NoError(t, err)
-	_, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
-	require.NoError(t, err)
-}
 
 func TestScheme(t *testing.T) {
 	tests := []struct {

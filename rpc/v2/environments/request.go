@@ -9,7 +9,7 @@ func (r *GetNamespaceRequest) Request() []flipt.Request {
 }
 
 func (r *ListNamespacesRequest) Request() []flipt.Request {
-	return []flipt.Request{flipt.NewRequest(flipt.ResourceNamespace, flipt.ActionRead)}
+	return []flipt.Request{flipt.NewRequest(flipt.ResourceNamespace, flipt.ActionRead, flipt.WithNoNamespace())}
 }
 
 func (r *UpdateNamespaceRequest) Request() []flipt.Request {

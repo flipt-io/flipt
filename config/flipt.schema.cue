@@ -190,28 +190,6 @@ import "list"
 		ca_cert_bytes?:     string
 		insecure_skip_tls?: bool | *false
 		credentials?:       string
-		publishers?: {
-			object?: {
-				type: "s3" | "azblob" | "googlecloud" | *""
-				s3?: {
-					region:         string
-					bucket:         string
-					prefix?:        string
-					endpoint?:      string
-					poll_interval?: =~#duration | *"1m"
-				}
-				azblob?: {
-					container:      string
-					endpoint?:      string
-					poll_interval?: =~#duration | *"1m"
-				}
-				googlecloud?: {
-					bucket:         string
-					prefix?:        string
-					poll_interval?: =~#duration | *"1m"
-				}
-			}
-		}
 	}
 
 	#credentials: [string]: {

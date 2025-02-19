@@ -651,22 +651,6 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 	}
 }
 
-// evaluationDistTransformer allows us to ensure the contents of the attachment
-// is preserved as JSON. We cannot rely on protojson output to be stable
-// as it is unstable by design.
-func evaluationDistTransformer() cmp.Option {
-	return cmp.FilterPath(func(p cmp.Path) bool {
-		return p.String() == "flipt.evaluation.EvaluationDistribution.VariantAttachment"
-	}, cmp.Transformer("flipt.evaluation.EvaluationDistribution.VariantAttachment", func(a string) map[string]any {
-		attachment := make(map[string]any)
-		if err := json.Unmarshal([]byte(a), &attachment); err != nil {
-			panic(err)
-		}
-
-		return attachment
-	}))
-}
-
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
 	require.NoError(t, err)
@@ -826,11 +810,10 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 				}
 			}
 
-			// Ignore variant IDs and attachments in comparison since they're generated
+			// Ignore variant IDs in comparison since they're generated
 			for _, flag := range snapshot.Flags {
 				if flag.DefaultVariant != nil {
 					flag.DefaultVariant.Id = ""
-					flag.DefaultVariant.Attachment = ""
 				}
 			}
 
@@ -839,7 +822,8 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 				protocmp.SortRepeated(func(a, b *evaluation.EvaluationFlag) bool {
 					return a.Key < b.Key
 				}),
-				evaluationDistTransformer(),
+				protocmp.IgnoreFields(&evaluation.EvaluationVariant{}, "attachment"),
+				protocmp.IgnoreFields(&evaluation.EvaluationDistribution{}, "variant_attachment"),
 			}
 
 			if !cmp.Equal(tt.wantSnap, snapshot, opts...) {

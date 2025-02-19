@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type mockPolicyVerifier struct {
@@ -73,6 +74,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				Environment: "default",
 				Namespace:   "default",
 				Key:         "some_flag",
+				Payload: &anypb.Any{
+					TypeUrl: "flipt.core.Flag",
+					Value:   []byte(`{"key":"some_flag","name":"Some Flag","description":"Some description","enabled":true}`),
+				},
 			},
 			validatorAllowed: true,
 			wantAllowed:      true,
@@ -80,8 +85,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				"request": flipt.Request{
 					Namespace: "default",
 					Resource:  flipt.ResourceFlag,
-					Subject:   flipt.SubjectFlag,
-					Action:    flipt.ActionCreate,
+					Action:    flipt.ActionUpdate,
 					Status:    flipt.StatusSuccess,
 				},
 				"authentication": adminAuth,
@@ -97,15 +101,6 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			},
 			validatorAllowed: false,
 			wantAllowed:      false,
-			authzInput: map[string]any{
-				"request": flipt.Request{
-					Namespace: "default",
-					Resource:  flipt.ResourceFlag,
-					Subject:   flipt.SubjectFlag,
-					Action:    flipt.ActionCreate,
-				},
-				"authentication": adminAuth,
-			},
 		},
 		{
 			name: "skips authz",

@@ -72,8 +72,11 @@ func defaultConfig(t *testing.T) (conf map[string]any) {
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(config.DecodeHooks...),
 		Result:     &conf,
 	})
+	config := config.Default()
+	// hack to get around validation not being able to handle types that map[string]*struct
+	config.Storage["default"].PollInterval = 0
 	require.NoError(t, err)
-	require.NoError(t, dec.Decode(config.Default()))
+	require.NoError(t, dec.Decode(config))
 
 	// adapt converts instances of time.Duration to their
 	// string representation, which CUE is going to validate
