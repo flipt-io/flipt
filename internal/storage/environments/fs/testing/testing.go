@@ -84,15 +84,13 @@ func (f *Filesystem) OpenFile(filename string, flag int, perm os.FileMode) (fs.F
 		}
 
 		fi := &File{
+			buf:    []byte{},
 			Reader: &bytes.Buffer{},
+			Writer: &bytes.Buffer{},
 			info: FileInfo{
 				name: filename,
 				mode: perm,
 			},
-		}
-
-		if flag&os.O_RDWR > 0 {
-			fi.Writer = &bytes.Buffer{}
 		}
 
 		n = fi
@@ -261,10 +259,23 @@ type File struct {
 }
 
 func (f *File) Write(p []byte) (n int, err error) {
-	return f.Writer.Write(p)
+	if f.Writer == nil {
+		f.Writer = &bytes.Buffer{}
+	}
+	n, err = f.Writer.Write(p)
+	if err == nil {
+		// Keep buf in sync with Writer
+		f.buf = f.Writer.Bytes()
+		// Keep Reader in sync with latest content
+		f.Reader = bytes.NewBuffer(f.buf)
+	}
+	return n, err
 }
 
 func (f *File) Read(p []byte) (n int, err error) {
+	if f.Reader == nil {
+		f.Reader = bytes.NewBuffer(f.buf)
+	}
 	return f.Reader.Read(p)
 }
 
