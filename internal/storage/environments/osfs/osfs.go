@@ -31,12 +31,12 @@ func (f *Filesystem) Open(filename string) (envsfs.File, error) {
 // perm, (0666 etc.) if applicable. If successful, methods on the returned
 // File can be used for I/O.
 func (f *Filesystem) OpenFile(filename string, flag int, perm os.FileMode) (envsfs.File, error) {
-	stat, err := f.Stat(filename)
+	fi, err := f.Filesystem.OpenFile(filename, flag, perm)
 	if err != nil {
 		return nil, err
 	}
 
-	fi, err := f.Filesystem.OpenFile(filename, flag, perm)
+	stat, err := f.Stat(filename)
 	if err != nil {
 		return nil, err
 	}
