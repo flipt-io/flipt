@@ -25,7 +25,7 @@ func TestReadOnlyEnvironment(t *testing.T) {
 		ref, err := env.PutNamespace(ctx, "main", ns)
 		assert.Empty(t, ref)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrReadOnly)
+		require.ErrorIs(t, err, ErrReadOnly)
 		assert.Contains(t, err.Error(), "put namespace \"test\"")
 	})
 
@@ -33,7 +33,7 @@ func TestReadOnlyEnvironment(t *testing.T) {
 		ref, err := env.DeleteNamespace(ctx, "main", "test")
 		assert.Empty(t, ref)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrReadOnly)
+		require.ErrorIs(t, err, ErrReadOnly)
 		assert.Contains(t, err.Error(), "delete namespace \"test\"")
 	})
 
@@ -43,7 +43,7 @@ func TestReadOnlyEnvironment(t *testing.T) {
 		})
 		assert.Empty(t, ref)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrReadOnly)
+		require.ErrorIs(t, err, ErrReadOnly)
 		assert.Contains(t, err.Error(), "update resource type \"test.Flag\"")
 	})
 }

@@ -87,19 +87,19 @@ func TestFilesystem_Operations(t *testing.T) {
 	t.Run("error cases", func(t *testing.T) {
 		// Test opening non-existent file
 		_, err := fs.Open("nonexistent.txt")
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		// Test stat on non-existent file
 		_, err = fs.Stat("nonexistent.txt")
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		// Test reading non-existent directory
 		_, err = fs.ReadDir("nonexistentdir")
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		// Test removing non-existent file
 		err = fs.Remove("nonexistent.txt")
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 

@@ -93,7 +93,7 @@ func TestGetExporter(t *testing.T) {
 
 			exp, expFunc, err := GetExporter(context.Background(), tt.cfg)
 			if tt.wantErr != nil {
-				assert.EqualError(t, err, tt.wantErr.Error())
+				require.EqualError(t, err, tt.wantErr.Error())
 				assert.Nil(t, exp, "expected nil exporter when error occurs")
 				return
 			}
