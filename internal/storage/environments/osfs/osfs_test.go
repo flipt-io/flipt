@@ -62,7 +62,9 @@ func TestFilesystem_Operations(t *testing.T) {
 
 	t.Run("ReadDir", func(t *testing.T) {
 		// Create a few files in testdir
+		//nolint:gosec
 		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file1.txt"), []byte("content1"), 0644))
+		//nolint:gosec
 		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "testdir", "file2.txt"), []byte("content2"), 0644))
 
 		entries, err := fs.ReadDir("testdir")

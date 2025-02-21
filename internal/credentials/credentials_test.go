@@ -64,7 +64,7 @@ func TestCredentialSource_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := cs.Get(tt.credKey)
 			if tt.wantErr != nil {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Equal(t, tt.wantErr.Error(), err.Error())
 				return
 			}
@@ -128,7 +128,7 @@ func TestCredential_HTTPClient(t *testing.T) {
 
 			client, err := c.HTTPClient(ctx)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, client)
 				return
 			}
@@ -192,7 +192,7 @@ func TestCredential_GitAuthentication(t *testing.T) {
 
 			auth, err := c.GitAuthentication()
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, auth)
 				return
 			}
