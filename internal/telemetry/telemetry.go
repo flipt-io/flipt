@@ -87,14 +87,14 @@ func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, ana
 	}, nil
 }
 
-func (r *Reporter) Run(ctx context.Context) {
-	var (
-		reportInterval = 4 * time.Hour
-		ticker         = time.NewTicker(reportInterval)
-		failures       = 0
-	)
+var (
+	reportInterval = 4 * time.Hour
+	maxFailures    = 3
+)
 
-	const maxFailures = 3
+func (r *Reporter) Run(ctx context.Context) {
+	ticker := time.NewTicker(reportInterval)
+	failures := 0
 
 	defer ticker.Stop()
 

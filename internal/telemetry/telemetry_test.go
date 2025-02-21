@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -346,4 +347,173 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 
 	b, _ := os.ReadFile(path)
 	assert.NotEmpty(t, b)
+}
+
+func TestRun(t *testing.T) {
+	tests := []struct {
+		name           string
+		enqueueErr     error
+		contextCancel  bool
+		shutdownSignal bool
+		wantFailures   bool
+	}{
+		{
+			name:           "successful reporting",
+			enqueueErr:     nil,
+			contextCancel:  false,
+			shutdownSignal: false,
+			wantFailures:   false,
+		},
+		{
+			name:           "context cancellation",
+			enqueueErr:     nil,
+			contextCancel:  true,
+			shutdownSignal: false,
+			wantFailures:   false,
+		},
+		{
+			name:           "shutdown signal",
+			enqueueErr:     nil,
+			contextCancel:  false,
+			shutdownSignal: true,
+			wantFailures:   false,
+		},
+		{
+			name:           "repeated failures",
+			enqueueErr:     assert.AnError,
+			contextCancel:  false,
+			shutdownSignal: false,
+			wantFailures:   true,
+		},
+	}
+
+	reportInterval = 100 * time.Millisecond
+
+	t.Cleanup(func() {
+		reportInterval = 4 * time.Hour
+	})
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				logger        = zaptest.NewLogger(t)
+				mockAnalytics = &mockAnalytics{
+					enqueueErr: tt.enqueueErr,
+				}
+				tmpDir = t.TempDir()
+			)
+
+			reporter := &Reporter{
+				cfg: config.Config{
+					Meta: config.MetaConfig{
+						TelemetryEnabled: true,
+						StateDirectory:   tmpDir,
+					},
+				},
+				logger:   logger,
+				client:   mockAnalytics,
+				info:     info.Flipt{},
+				shutdown: make(chan struct{}),
+			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			// Create a channel to signal when Run has completed
+			done := make(chan struct{})
+			go func() {
+				reporter.Run(ctx)
+				close(done)
+			}()
+
+			// Wait for initial report
+			time.Sleep(100 * time.Millisecond)
+
+			switch {
+			case tt.contextCancel:
+				cancel()
+			case tt.shutdownSignal:
+				require.NoError(t, reporter.Shutdown())
+			case tt.wantFailures:
+				// Wait for multiple reporting cycles to trigger failures
+				time.Sleep(200 * time.Millisecond)
+				// Verify that the reporter has stopped due to failures
+				select {
+				case <-done:
+					// Expected: reporter should stop after max failures
+				case <-time.After(5 * time.Second):
+					t.Fatal("reporter did not stop after max failures")
+				}
+			default:
+				// For successful case, ensure reporter is still running
+				select {
+				case <-done:
+					t.Fatal("reporter stopped unexpectedly")
+				default:
+					// Expected: reporter should still be running
+				}
+				cancel() // Clean up
+			}
+
+			// Wait for Run to complete
+			select {
+			case <-done:
+				// Expected
+			case <-time.After(5 * time.Second):
+				t.Fatal("reporter did not stop within timeout")
+			}
+
+			// Verify telemetry file was created
+			_, err := os.Stat(filepath.Join(tmpDir, filename))
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestRun_TelemetryDisabled(t *testing.T) {
+	var (
+		logger        = zaptest.NewLogger(t)
+		mockAnalytics = &mockAnalytics{}
+		tmpDir        = t.TempDir()
+	)
+
+	reporter := &Reporter{
+		cfg: config.Config{
+			Meta: config.MetaConfig{
+				TelemetryEnabled: false,
+				StateDirectory:   tmpDir,
+			},
+		},
+		logger:   logger,
+		client:   mockAnalytics,
+		info:     info.Flipt{},
+		shutdown: make(chan struct{}),
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create a channel to signal when Run has completed
+	done := make(chan struct{})
+	go func() {
+		reporter.Run(ctx)
+		close(done)
+	}()
+
+	// Wait briefly to ensure reporter has started
+	time.Sleep(100 * time.Millisecond)
+
+	// Verify no telemetry was sent
+	assert.Nil(t, mockAnalytics.msg)
+
+	// Clean up
+	cancel()
+
+	// Wait for Run to complete
+	select {
+	case <-done:
+		// Expected
+	case <-time.After(5 * time.Second):
+		t.Fatal("reporter did not stop within timeout")
+	}
 }
