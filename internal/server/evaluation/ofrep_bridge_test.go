@@ -10,9 +10,9 @@ import (
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc/metadata"
 )
 
 func TestOFREPFlagEvaluation_Variant(t *testing.T) {
@@ -65,7 +65,11 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), &ofrep.EvaluateFlagRequest{
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-namespace": namespaceKey,
+	}))
+
+	output, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
 		Key: flagKey,
 		Context: map[string]string{
 			"hello":        "world",
@@ -75,9 +79,9 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, flagKey, output.Key)
-	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, output.Reason)
+	assert.Equal(t, ofrep.EvaluateReason_TARGETING_MATCH, output.Reason)
 	assert.Equal(t, "boz", output.Variant)
-	assert.Equal(t, "boz", output.Value)
+	assert.Equal(t, "boz", output.Value.GetStringValue())
 }
 
 func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
@@ -103,7 +107,11 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), &ofrep.EvaluateFlagRequest{
+	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
+		"x-flipt-namespace": namespaceKey,
+	}))
+
+	output, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
 		Key: flagKey,
 		Context: map[string]string{
 			"targetingKey": "12345",
@@ -112,7 +120,7 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, flagKey, output.Key)
-	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, output.Reason)
+	assert.Equal(t, ofrep.EvaluateReason_DEFAULT, output.Reason)
 	assert.Equal(t, "true", output.Variant)
-	assert.Equal(t, true, output.Value)
+	assert.Equal(t, true, output.Value.GetBoolValue())
 }
