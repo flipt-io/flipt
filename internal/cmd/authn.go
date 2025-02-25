@@ -21,7 +21,6 @@ import (
 	authgithub "go.flipt.io/flipt/internal/server/authn/method/github"
 	authkubernetes "go.flipt.io/flipt/internal/server/authn/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
-	authtoken "go.flipt.io/flipt/internal/server/authn/method/token"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	authmiddlewarehttp "go.flipt.io/flipt/internal/server/authn/middleware/http"
 	"go.flipt.io/flipt/internal/server/authn/public"
@@ -98,13 +97,6 @@ func authenticationGRPC(
 	shutdown = store.Shutdown
 
 	var interceptors []grpc.UnaryServerInterceptor
-
-	// register auth method token service
-	if authCfg.Methods.Token.Enabled {
-		rpcauth.RegisterAuthenticationMethodTokenServiceServer(handlers, authtoken.NewServer(logger, store))
-
-		logger.Debug("authentication method \"token\" server registered")
-	}
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
@@ -205,10 +197,6 @@ func authenticationGRPC(
 			}
 
 			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
-		}
-
-		if authCfg.Methods.Token.Enabled {
-			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
 
 		// at this point, we have already registered all authentication methods that are enabled

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/containers"
 	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
-	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -105,11 +104,6 @@ func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOpti
 	return func(o *InterceptorOptions) {
 		o.skippedServers = append(o.skippedServers, server)
 	}
-}
-
-// ScopedAuthenticationServer is a grpc.Server which allows for specific scoped authentication.
-type ScopedAuthenticationServer interface {
-	AllowsNamespaceScopedAuthentication(ctx context.Context) bool
 }
 
 // SkipsAuthenticationServer is a grpc.Server which should always skip authentication.
@@ -350,90 +344,6 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 
 		if !matched {
 			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
-			return ctx, errUnauthenticated
-		}
-
-		return handler(ctx, req)
-	}
-}
-
-func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
-	var opts InterceptorOptions
-	containers.ApplyAll(&opts, o...)
-
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// skip auth for any preconfigured servers
-		if skipped(ctx, info, opts) {
-			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
-			return handler(ctx, req)
-		}
-
-		auth := GetAuthenticationFrom(ctx)
-		if auth == nil {
-			panic("authentication not found in context, middleware installed incorrectly")
-		}
-
-		// this mechanism only applies to static toke authentications
-		if auth.Method != authrpc.Method_METHOD_TOKEN {
-			return handler(ctx, req)
-		}
-
-		namespace, ok := auth.Metadata["io.flipt.auth.token.namespace"]
-		if !ok {
-			// if no namespace is provided then we should allow the request
-			return handler(ctx, req)
-		}
-
-		nsServer, ok := info.Server.(ScopedAuthenticationServer)
-		if !ok || !nsServer.AllowsNamespaceScopedAuthentication(ctx) {
-			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed"))
-			return ctx, errUnauthenticated
-		}
-
-		namespace = strings.TrimSpace(namespace)
-		if namespace == "" {
-			return handler(ctx, req)
-		}
-
-		logger := logger.With(zap.String("expected_namespace", namespace))
-
-		var reqNamespace string
-		switch nsReq := req.(type) {
-		case flipt.Namespaced:
-			reqNamespace = nsReq.GetNamespaceKey()
-			if reqNamespace == "" {
-				reqNamespace = "default"
-			}
-		case flipt.BatchNamespaced:
-			// ensure that all namespaces referenced in
-			// the batch are the same
-			for _, ns := range nsReq.GetNamespaceKeys() {
-				if ns == "" {
-					ns = "default"
-				}
-
-				if reqNamespace == "" {
-					reqNamespace = ns
-					continue
-				}
-
-				if reqNamespace != ns {
-					logger.Error("unauthenticated",
-						zap.String("reason", "same namespace is not set for all requests"))
-					return ctx, errUnauthenticated
-				}
-			}
-		default:
-			// if the the token has a namespace but the request does not then we should reject the request
-			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is required when using namespace scoped token"))
-			return ctx, errUnauthenticated
-		}
-
-		if reqNamespace != namespace {
-			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed"))
 			return ctx, errUnauthenticated
 		}
 

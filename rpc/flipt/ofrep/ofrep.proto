@@ -40,7 +40,7 @@ message EvaluateFlagRequest {
   map<string, string> context = 2;
 }
 
-message EvaluatedFlag {
+message EvaluationResponse {
   string key = 1;
   EvaluateReason reason = 2;
   string variant = 3;
@@ -60,7 +60,7 @@ message EvaluateBulkRequest {
 }
 
 message BulkEvaluationResponse {
-  repeated EvaluatedFlag flags = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated EvaluationResponse flags = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 service OFREPService {
@@ -71,7 +71,7 @@ service OFREPService {
     option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.configuration"};
   }
   // OFREP single flag evaluation
-  rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluatedFlag) {
+  rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluationResponse) {
     option (google.api.http) = {
       post: "/ofrep/v1/evaluate/flags/{key}"
       body: "*"

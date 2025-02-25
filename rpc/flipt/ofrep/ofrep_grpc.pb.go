@@ -31,7 +31,7 @@ type OFREPServiceClient interface {
 	// OFREP provider configuration
 	GetProviderConfiguration(ctx context.Context, in *GetProviderConfigurationRequest, opts ...grpc.CallOption) (*GetProviderConfigurationResponse, error)
 	// OFREP single flag evaluation
-	EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluatedFlag, error)
+	EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluationResponse, error)
 	// OFREP bulk flag evaluation
 	EvaluateBulk(ctx context.Context, in *EvaluateBulkRequest, opts ...grpc.CallOption) (*BulkEvaluationResponse, error)
 }
@@ -54,9 +54,9 @@ func (c *oFREPServiceClient) GetProviderConfiguration(ctx context.Context, in *G
 	return out, nil
 }
 
-func (c *oFREPServiceClient) EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluatedFlag, error) {
+func (c *oFREPServiceClient) EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EvaluatedFlag)
+	out := new(EvaluationResponse)
 	err := c.cc.Invoke(ctx, OFREPService_EvaluateFlag_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ type OFREPServiceServer interface {
 	// OFREP provider configuration
 	GetProviderConfiguration(context.Context, *GetProviderConfigurationRequest) (*GetProviderConfigurationResponse, error)
 	// OFREP single flag evaluation
-	EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluatedFlag, error)
+	EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluationResponse, error)
 	// OFREP bulk flag evaluation
 	EvaluateBulk(context.Context, *EvaluateBulkRequest) (*BulkEvaluationResponse, error)
 	mustEmbedUnimplementedOFREPServiceServer()
@@ -97,7 +97,7 @@ type UnimplementedOFREPServiceServer struct{}
 func (UnimplementedOFREPServiceServer) GetProviderConfiguration(context.Context, *GetProviderConfigurationRequest) (*GetProviderConfigurationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProviderConfiguration not implemented")
 }
-func (UnimplementedOFREPServiceServer) EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluatedFlag, error) {
+func (UnimplementedOFREPServiceServer) EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluateFlag not implemented")
 }
 func (UnimplementedOFREPServiceServer) EvaluateBulk(context.Context, *EvaluateBulkRequest) (*BulkEvaluationResponse, error) {

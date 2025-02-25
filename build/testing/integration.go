@@ -47,12 +47,14 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		// "authz":    authz,
+		// "fs/git":   git,
+		// "fs/local": local,
+		//"authz":         authz,
 		"authn":         authn(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
-		// "ofrep":         withAuthz(ofrepAPI),
-		// "snapshot":      withAuthz(snapshotAPI),
+		"ofrep":         withAuthz(ofrepAPI()),
+		"snapshot":      withAuthz(snapshotAPI()),
 	}
 )
 
@@ -284,6 +286,34 @@ func authn() testCaseFn {
 
 		return suite(ctx, "authn", base, flipt, conf)
 	}, testdataDir)
+}
+
+func snapshotAPI() testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+			WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+			WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
+	}
+}
+
+func ofrepAPI() testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+			WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+			WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
+	}
 }
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
