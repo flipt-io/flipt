@@ -37,10 +37,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	flipt.RegisterFliptServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
-	return true
-}
-
 func (s *Server) getStore(ctx context.Context) (storage.ReadOnlyStore, error) {
 	return s.store.GetDefault(ctx).EvaluationStore()
 }

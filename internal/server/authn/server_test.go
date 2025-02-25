@@ -197,13 +197,3 @@ func TestServer(t *testing.T) {
 		require.ErrorContains(t, err, "request was not authenticated")
 	})
 }
-
-func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
-	var (
-		logger = zaptest.NewLogger(t)
-		store  = memory.NewStore(logger)
-		server = authn.NewServer(logger, store)
-	)
-
-	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))
-}
