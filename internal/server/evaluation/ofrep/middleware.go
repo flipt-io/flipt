@@ -19,6 +19,8 @@ const (
 	errorCodeTargetingKeyMissing errorCode = "TARGETING_KEY_MISSING"
 	errorCodeInvalidContext      errorCode = "INVALID_CONTEXT"
 	errorCodeParseGeneral        errorCode = "GENERAL"
+
+	statusFlagKeyPointer = "ofrep-flag-key"
 )
 
 type errorSchema struct {

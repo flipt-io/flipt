@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/environments"
-	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -65,9 +65,8 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 		},
 	}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
-		FlagKey:      flagKey,
-		NamespaceKey: namespaceKey,
+	output, err := s.OFREPFlagEvaluation(context.TODO(), &ofrep.EvaluateFlagRequest{
+		Key: flagKey,
 		Context: map[string]string{
 			"hello":        "world",
 			"targetingKey": "12345",
@@ -75,7 +74,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, flagKey, output.FlagKey)
+	assert.Equal(t, flagKey, output.Key)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, output.Reason)
 	assert.Equal(t, "boz", output.Variant)
 	assert.Equal(t, "boz", output.Value)
@@ -104,16 +103,15 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
-	output, err := s.OFREPFlagEvaluation(context.TODO(), ofrep.EvaluationBridgeInput{
-		FlagKey:      flagKey,
-		NamespaceKey: namespaceKey,
+	output, err := s.OFREPFlagEvaluation(context.TODO(), &ofrep.EvaluateFlagRequest{
+		Key: flagKey,
 		Context: map[string]string{
 			"targetingKey": "12345",
 		},
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, flagKey, output.FlagKey)
+	assert.Equal(t, flagKey, output.Key)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, output.Reason)
 	assert.Equal(t, "true", output.Variant)
 	assert.Equal(t, true, output.Value)

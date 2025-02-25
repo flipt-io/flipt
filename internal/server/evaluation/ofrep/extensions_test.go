@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 )
 
@@ -31,9 +30,7 @@ func TestGetProviderConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := NewMockBridge(t)
-			store := common.NewMockStore(t)
-			s := New(zaptest.NewLogger(t), b, store)
+			s := New(zaptest.NewLogger(t), nil, nil)
 
 			resp, err := s.GetProviderConfiguration(context.TODO(), &ofrep.GetProviderConfigurationRequest{})
 
