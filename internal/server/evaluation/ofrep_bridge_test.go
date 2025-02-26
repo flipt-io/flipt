@@ -122,5 +122,5 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	assert.Equal(t, flagKey, output.Key)
 	assert.Equal(t, ofrep.EvaluateReason_DEFAULT, output.Reason)
 	assert.Equal(t, "true", output.Variant)
-	assert.Equal(t, true, output.Value.GetBoolValue())
+	assert.True(t, output.Value.GetBoolValue())
 }

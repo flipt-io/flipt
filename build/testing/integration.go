@@ -289,31 +289,35 @@ func authn() testCaseFn {
 }
 
 func snapshotAPI() testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
-			WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
-			WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
-			WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
-	}
+	}, testdataDir)
 }
 
 func ofrepAPI() testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
-			WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
-			WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
-			WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
-	}
+	}, testdataDir)
 }
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
