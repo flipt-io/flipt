@@ -86,7 +86,7 @@ func TestShutdown(t *testing.T) {
 	assert.True(t, mockAnalytics.closed)
 }
 
-var experimental = map[string]any{}
+var defaultExperimental = map[string]any{}
 
 func TestPing(t *testing.T) {
 	test := []struct {
@@ -108,7 +108,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -125,7 +125,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -142,7 +142,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "unknown",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -163,7 +163,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -185,7 +185,7 @@ func TestPing(t *testing.T) {
 					"database": "sqlite",
 					"cache":    "redis",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -240,7 +240,7 @@ func TestPing(t *testing.T) {
 						"token",
 					},
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -264,7 +264,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -293,7 +293,7 @@ func TestPing(t *testing.T) {
 						"log",
 					},
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -317,7 +317,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -346,7 +346,7 @@ func TestPing(t *testing.T) {
 						"webhook",
 					},
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -378,7 +378,7 @@ func TestPing(t *testing.T) {
 						"log", "webhook",
 					},
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -399,7 +399,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -423,7 +423,7 @@ func TestPing(t *testing.T) {
 				"tracing": map[string]any{
 					"exporter": "otlp",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -448,7 +448,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
 			},
 		},
 		{
@@ -476,7 +476,38 @@ func TestPing(t *testing.T) {
 				"analytics": map[string]any{
 					"storage": "clickhouse",
 				},
-				"experimental": experimental,
+				"experimental": defaultExperimental,
+			},
+		},
+		{
+			name: "with experimental jira enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Experimental: config.ExperimentalConfig{
+					Jira: config.Jira{
+						Enabled:      true,
+						InstanceName: "INSTANCE_NAME",
+						Authentication: config.JiraAuthentication{
+							OAuth: config.JiraOauth{
+								ClientID:     "CLIENT_ID",
+								ClientSecret: "CLIENT_SECRET",
+							},
+						},
+					},
+				},
+			},
+			want: map[string]any{
+				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
+				"storage": map[string]any{
+					"database": "sqlite",
+				},
+				"experimental": map[string]any{
+					"jira": true,
+				},
 			},
 		},
 	}
