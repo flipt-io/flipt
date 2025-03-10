@@ -29,6 +29,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -351,7 +352,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	// in-process client connection for grpc services
-	ipch := &inprocgrpc.Channel{}
+	var ipch grpc.ClientConnInterface = &inprocgrpc.Channel{}
 
 	// initialize grpc server
 	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
@@ -363,7 +364,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	g.Go(grpcServer.Run)
 
 	if cfg.Tracing.Enabled {
-		ipch = grpchan.InterceptClientConn(ipch, otelgrpc.UnaryClientInterceptor(), nil).(*inprocgrpc.Channel)
+		ipch = grpchan.InterceptClientConn(ipch, otelgrpc.UnaryClientInterceptor(), nil)
 	}
 
 	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
