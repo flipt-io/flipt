@@ -70,7 +70,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -500,8 +499,8 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("unexpected client conn type: %T", ch)
 	}
 
-	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
-	ipchServer := ApplyInterceptorChainToServer(interceptors, nil, ipch)
+	ipch = ipch.WithServerUnaryInterceptor(otelgrpc.UnaryServerInterceptor())
+	ipchServer := applyInterceptorChainToServer(interceptors, ipch)
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)
@@ -698,24 +697,20 @@ func unwrap(ch grpc.ClientConnInterface) grpc.ClientConnInterface {
 	}
 }
 
-func ApplyInterceptorChainToServer(
+func applyInterceptorChainToServer(
 	unaryChain []grpc.UnaryServerInterceptor,
-	streamChain []grpc.StreamServerInterceptor,
 	svr grpc.ServiceRegistrar,
 ) grpc.ServiceRegistrar {
 	return serviceRegistrarFunc(func(desc *grpc.ServiceDesc, impl interface{}) {
-		num := max(len(unaryChain), len(streamChain))
+		num := len(unaryChain)
+		var stream grpc.StreamServerInterceptor
 		for i := range num {
 			// Go reverse order, so the last iterator is executed closest
 			// to the underlying handler.
 			index := num - i - 1
 			var unary grpc.UnaryServerInterceptor
-			var stream grpc.StreamServerInterceptor
 			if index < len(unaryChain) {
 				unary = unaryChain[i]
-			}
-			if index < len(streamChain) {
-				stream = streamChain[i]
 			}
 			desc = grpchan.InterceptServer(desc, unary, stream)
 		}
