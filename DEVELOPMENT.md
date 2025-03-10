@@ -68,7 +68,7 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 
 A sample configuration for running and developing against Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
-`./bin/flipt [--config ./config/local.yml`]
+`./bin/flipt [--config ./config/local.yml]`
 
 To prevent providing the config via config flag every time, you have the option of writing configuration at the location:
 
