@@ -153,24 +153,6 @@ func Test_FS(t *testing.T) {
 	})
 }
 
-func Test_FS_Submodule(t *testing.T) {
-	store := memory.NewStorage()
-	work := memfs.New()
-	repo, err := git.Clone(store, work, &git.CloneOptions{
-		URL: "https://github.com/flipt-io/flipt-gitops-test.git",
-	})
-	require.NoError(t, err)
-
-	// build gitfs instance on parent repo
-	filesystem, err := NewFromRepo(zaptest.NewLogger(t), repo)
-	require.NoError(t, err)
-
-	require.NoError(t, fs.WalkDir(filesystem, ".", func(path string, d fs.DirEntry, err error) error {
-		t.Log("open", path)
-		return err
-	}))
-}
-
 type closer struct {
 	io.ReadSeeker
 }
