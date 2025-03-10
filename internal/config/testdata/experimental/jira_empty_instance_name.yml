@@ -1,0 +1,61 @@
+log:
+  level: INFO
+  encoding: console
+  grpc_level: ERROR
+
+ui:
+  default_theme: system
+
+analytics:
+  buffer:
+    flush_period: "10s"
+
+cors:
+  enabled: false
+  allowed_origins:
+    - "*"
+  allowed_headers:
+    - "Accept"
+    - "Authorization"
+    - "Content-Type"
+    - "X-CSRF-Token"
+    - "X-Fern-Language"
+    - "X-Fern-SDK-Name"
+    - "X-Fern-SDK-Version"
+    - "X-Flipt-Namespace"
+    - "X-Flipt-Accept-Server-Version"
+
+server:
+  host: 0.0.0.0
+  http_port: 8080
+  https_port: 443
+  grpc_port: 9000
+
+metrics:
+  enabled: true
+  exporter: prometheus
+
+storage:
+  type: database
+
+diagnostics:
+  profiling:
+    enabled: true
+
+db:
+  url: file:/var/opt/flipt/flipt.db
+  max_idle_conn: 2
+  prepared_statements_enabled: true
+
+experimental:
+  jira:
+    enabled: true
+    instance_name: ""
+    authentication:
+      oauth:
+        client_id: "CLIENT_ID"
+        client_secret: "CLIENT_SECRET"
+
+meta:
+  check_for_updates: true
+  telemetry_enabled: true
