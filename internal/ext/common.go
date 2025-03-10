@@ -34,11 +34,11 @@ type Flag struct {
 }
 
 type Variant struct {
-	Default     bool        `yaml:"default,omitempty" json:"default,omitempty"`
-	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
-	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
-	Description string      `yaml:"description,omitempty" json:"description,omitempty"`
-	Attachment  interface{} `yaml:"attachment,omitempty" json:"attachment,omitempty"`
+	Default     bool   `yaml:"default,omitempty" json:"default,omitempty"`
+	Key         string `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string `yaml:"name,omitempty" json:"name,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty"`
+	Attachment  any    `yaml:"attachment,omitempty" json:"attachment,omitempty"`
 }
 
 type Rule struct {
@@ -59,9 +59,109 @@ type Rollout struct {
 }
 
 type SegmentRule struct {
-	Keys     []string `yaml:"keys,omitempty" json:"keys,omitempty"`
+	Keys     []string `yaml:"-" json:"-"` // internal storage for keys for backwards compatibility.
 	Operator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
 	Value    bool     `yaml:"value,omitempty" json:"value,omitempty"`
+}
+
+// MarshalYAML implements yaml.Marshaler
+func (s *SegmentRule) MarshalYAML() (interface{}, error) {
+	type Alias SegmentRule
+	return struct {
+		*Alias
+		Keys []string `yaml:"keys,omitempty"`
+	}{
+		Alias: (*Alias)(s),
+		Keys:  s.Keys,
+	}, nil
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler
+func (s *SegmentRule) UnmarshalYAML(unmarshal func(any) error) error {
+	// Try full object with keys first
+	type Alias SegmentRule
+	aux := &struct {
+		*Alias
+		Key  string   `yaml:"key"`
+		Keys []string `yaml:"keys"`
+	}{
+		Alias: (*Alias)(s),
+	}
+
+	if err := unmarshal(&aux); err == nil {
+		if len(aux.Keys) > 0 {
+			s.Keys = aux.Keys
+		} else if aux.Key != "" {
+			s.Keys = []string{aux.Key}
+		}
+		return nil
+	}
+
+	// Try single key string
+	var key string
+	if err := unmarshal(&key); err == nil {
+		s.Keys = []string{key}
+		return nil
+	}
+
+	// Try array of keys
+	var keys []string
+	if err := unmarshal(&keys); err == nil {
+		s.Keys = keys
+		return nil
+	}
+
+	return errors.New("failed to unmarshal segment rule")
+}
+
+// MarshalJSON implements json.Marshaler
+func (s *SegmentRule) MarshalJSON() ([]byte, error) {
+	type Alias SegmentRule
+	return json.Marshal(struct {
+		*Alias
+		Keys []string `json:"keys,omitempty"`
+	}{
+		Alias: (*Alias)(s),
+		Keys:  s.Keys,
+	})
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (s *SegmentRule) UnmarshalJSON(data []byte) error {
+	// Try full object first
+	type Alias SegmentRule
+	aux := &struct {
+		*Alias
+		Key  string   `json:"key"`
+		Keys []string `json:"keys"`
+	}{
+		Alias: (*Alias)(s),
+	}
+
+	if err := json.Unmarshal(data, &aux); err == nil {
+		if len(aux.Keys) > 0 {
+			s.Keys = aux.Keys
+		} else if aux.Key != "" {
+			s.Keys = []string{aux.Key}
+		}
+		return nil
+	}
+
+	// Try single key string
+	var key string
+	if err := json.Unmarshal(data, &key); err == nil {
+		s.Keys = []string{key}
+		return nil
+	}
+
+	// Try array of keys
+	var keys []string
+	if err := json.Unmarshal(data, &keys); err == nil {
+		s.Keys = keys
+		return nil
+	}
+
+	return errors.New("failed to unmarshal segment rule")
 }
 
 type ThresholdRule struct {

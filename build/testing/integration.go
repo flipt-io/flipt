@@ -291,6 +291,7 @@ func authn() testCaseFn {
 func snapshotAPI() testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
@@ -307,6 +308,7 @@ func snapshotAPI() testCaseFn {
 func ofrepAPI() testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
