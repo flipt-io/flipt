@@ -70,6 +70,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -499,7 +500,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("unexpected client conn type: %T", ch)
 	}
 
-	ipch = ipch.WithServerUnaryInterceptor(otelgrpc.UnaryServerInterceptor())
+	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 	ipchServer := applyInterceptorChainToServer(interceptors, ipch)
 
 	// initialize grpc server
