@@ -32,6 +32,8 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/meta"
 	"go.flipt.io/flipt/ui"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -120,6 +122,7 @@ func NewHTTPServer(
 			if _, ok := r.URL.Query()["pretty"]; ok {
 				r.Header.Set("Accept", "application/json+pretty")
 			}
+
 			h.ServeHTTP(w, r)
 		})
 	})
@@ -136,9 +139,23 @@ func NewHTTPServer(
 	r.Group(func(r chi.Router) {
 		r.Use(removeTrailingSlash)
 
-		if cfg.Tracing.Enabled {
+		if cfg.Tracing.Enabled || cfg.Audit.Enabled() {
 			r.Use(func(handler http.Handler) http.Handler {
 				return otelhttp.NewHandler(handler, "grpc-gateway")
+			})
+
+			r.Use(func(handler http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					ctx := r.Context()
+					// Make sure headers contain the trace context set up by otelhttp for
+					// later extraction by our custom grpc-gateway incoming header matcher.
+					// Usually this would be taken care of by otelgrpc client interceptors,
+					// but inprocgrpc does not provide client interceptors.
+					otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
+					// Use the new context with the span
+					r = r.WithContext(ctx)
+					handler.ServeHTTP(w, r)
+				})
 			})
 		}
 
