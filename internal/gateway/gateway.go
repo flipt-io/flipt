@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"net/http"
+	"slices"
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -31,6 +33,16 @@ func NewGatewayServeMux(logger *zap.Logger, opts ...runtime.ServeMuxOption) *run
 				UnmarshalOptions: protojson.UnmarshalOptions{
 					DiscardUnknown: true,
 				},
+			}),
+			// Make sure trace-related headers are propagated from otelhttp through
+			// grpc-gateway.
+			// Usually this would be taken care of by otelgrpc client interceptors,
+			// but inprocgrpc does not provide client interceptors.
+			runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+				if h := http.CanonicalHeaderKey(key); slices.Contains([]string{"Traceparent", "Tracestate", "Baggage"}, h) {
+					return h, true
+				}
+				return runtime.DefaultHeaderMatcher(key)
 			}),
 		}
 	})

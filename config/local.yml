@@ -3,7 +3,6 @@
 # version: "1.0"
 log:
   level: DEBUG
-
 # authentication:
 #   required: false
 #   session:
@@ -18,6 +17,11 @@ log:
 #       cleanup:
 #         interval: 2h
 #         grace_period: 48h
+
+audit:
+  sinks:
+    log:
+      enabled: true
 
 cors:
   enabled: true

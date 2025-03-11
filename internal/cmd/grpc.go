@@ -225,6 +225,8 @@ func NewGRPCServer(
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
 		middlewaregrpc.ErrorUnaryInterceptor,
+		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
+		otelgrpc.UnaryServerInterceptor(),
 	}
 
 	if cfg.Cache.Enabled {
@@ -473,11 +475,9 @@ func NewGRPCServer(
 	// we validate requests after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
-	// add otel interceptor
-	interceptors = append(interceptors, otelgrpc.UnaryServerInterceptor())
-
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
@@ -494,7 +494,7 @@ func NewGRPCServer(
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
 
-	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
+	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)

@@ -28,11 +28,6 @@ func TestAuditEnabled(t *testing.T) {
 			expected: true,
 		},
 		{
-			sink:     "cloud",
-			f:        func() AuditConfig { c := AuditConfig{}; c.Sinks.Cloud.Enabled = true; return c },
-			expected: true,
-		},
-		{
 			sink:     "kafka",
 			f:        func() AuditConfig { c := AuditConfig{}; c.Sinks.Kafka.Enabled = true; return c },
 			expected: true,
