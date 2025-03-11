@@ -40,6 +40,7 @@ jobs:
           globs: |
             **/*.md
             !**/test/**/*
+            !build/PROMPT.md
 
   ui-lint:
     name: "Lint UI"

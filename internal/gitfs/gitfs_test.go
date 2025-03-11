@@ -160,7 +160,7 @@ func Test_FS_Submodule(t *testing.T) {
 	dir := t.TempDir()
 	repo, err := git.PlainInit(dir, false)
 	require.NoError(t, err)
-	err = os.WriteFile(path.Join(dir, "testfile.txt"), []byte("some data"), 0644)
+	err = os.WriteFile(path.Join(dir, "testfile.txt"), []byte("some data"), 0600)
 
 	require.NoError(t, err)
 	wt, err := repo.Worktree()
