@@ -32,10 +32,9 @@ export const preferencesSlice = createSlice({
       const currentPreference = JSON.parse(
         localStorage.getItem(preferencesKey) || '{}'
       ) as IPreferencesState;
-
       // If there isn't currently a set theme, set to the default theme
       if (!currentPreference.theme) {
-        state.theme = action.payload.uiTheme;
+        state.theme = action.payload.ui?.theme || 'system';
       }
 
       if (!currentPreference.timezone) {
