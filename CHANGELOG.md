@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v1.55.1](https://github.com/flipt-io/flipt/releases/tag/v1.55.1) - 2025-03-11
+
+### Changed
+
+- Fix typo in DEVELOPMENT.md (#3973)
+
+### Fixed
+
+- otel interceptor panic/handling after switch to grpchan (#3975)
+- `ui`: use correct default theme on first load (#3976)
+
 ## [v1.55.0](https://github.com/flipt-io/flipt/releases/tag/v1.55.0) - 2025-02-06
 
 ### Changed
