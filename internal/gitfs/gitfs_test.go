@@ -4,12 +4,15 @@ import (
 	"embed"
 	"io"
 	"io/fs"
+	"os"
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
@@ -154,11 +157,27 @@ func Test_FS(t *testing.T) {
 }
 
 func Test_FS_Submodule(t *testing.T) {
-	store := memory.NewStorage()
-	work := memfs.New()
-	repo, err := git.Clone(store, work, &git.CloneOptions{
-		URL: "https://github.com/flipt-io/flipt-gitops-test.git",
+	dir := t.TempDir()
+	repo, err := git.PlainInit(dir, false)
+	require.NoError(t, err)
+	err = os.WriteFile(path.Join(dir, "testfile.txt"), []byte("some data"), 0600)
+
+	require.NoError(t, err)
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add("testfile.txt")
+	require.NoError(t, err)
+	commitHash, err := wt.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Your Name",
+			Email: "you@example.com",
+			When:  time.Now(),
+		},
 	})
+
+	require.NoError(t, err)
+	mainBranchRef := plumbing.NewBranchReferenceName("main")
+	err = repo.Storer.SetReference(plumbing.NewHashReference(mainBranchRef, commitHash))
 	require.NoError(t, err)
 
 	// build gitfs instance on parent repo
