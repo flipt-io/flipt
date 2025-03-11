@@ -16,9 +16,9 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
-	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
@@ -29,7 +29,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -352,7 +351,11 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	// in-process client connection for grpc services
-	var ipch grpc.ClientConnInterface = &inprocgrpc.Channel{}
+	var ipch = &inprocgrpc.Channel{}
+	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(
+		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
+		otelgrpc.UnaryServerInterceptor(),
+	))
 
 	// initialize grpc server
 	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
@@ -362,10 +365,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// starts grpc server
 	g.Go(grpcServer.Run)
-
-	if cfg.Tracing.Enabled {
-		ipch = grpchan.InterceptClientConn(ipch, otelgrpc.UnaryClientInterceptor(), nil)
-	}
 
 	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
 	if err != nil {

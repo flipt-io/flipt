@@ -100,7 +100,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
-	ch grpc.ClientConnInterface,
+	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
 ) (*GRPCServer, error) {
@@ -225,6 +225,8 @@ func NewGRPCServer(
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
 		middlewaregrpc.ErrorUnaryInterceptor,
+		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
+		otelgrpc.UnaryServerInterceptor(),
 	}
 
 	if cfg.Cache.Enabled {
@@ -473,9 +475,6 @@ func NewGRPCServer(
 	// we validate requests after authn and authz
 	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
-	// add otel interceptor
-	interceptors = append(interceptors, otelgrpc.UnaryServerInterceptor())
-
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(interceptors...),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
@@ -495,20 +494,14 @@ func NewGRPCServer(
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
 
-	ipch, ok := unwrap(ch).(*inprocgrpc.Channel)
-	if !ok {
-		return nil, fmt.Errorf("unexpected client conn type: %T", ch)
-	}
-
 	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
-	ipchServer := applyInterceptorChainToServer(interceptors, ipch)
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)
 	grpc_health.RegisterHealthServer(handlers, healthsrv)
 
 	// register grpc services onto the in-process client connection and the grpc server
-	handlers.ForEach(ipchServer.RegisterService)
+	handlers.ForEach(ipch.RegisterService)
 	handlers.ForEach(grpcServer.RegisterService)
 
 	// register grpcServer graceful stop on shutdown
@@ -685,42 +678,4 @@ func getStringSlice[AnyString ~string, Slice []AnyString](slice Slice) []string 
 	}
 
 	return strSlice
-}
-
-func unwrap(ch grpc.ClientConnInterface) grpc.ClientConnInterface {
-	// completely unwrap to find the root ClientConn
-	for {
-		w, ok := ch.(grpchan.WrappedClientConn)
-		if !ok {
-			return ch
-		}
-		ch = w.Unwrap()
-	}
-}
-
-func applyInterceptorChainToServer(
-	unaryChain []grpc.UnaryServerInterceptor,
-	svr grpc.ServiceRegistrar,
-) grpc.ServiceRegistrar {
-	return serviceRegistrarFunc(func(desc *grpc.ServiceDesc, impl interface{}) {
-		num := len(unaryChain)
-		var stream grpc.StreamServerInterceptor
-		for i := range num {
-			// Go reverse order, so the last iterator is executed closest
-			// to the underlying handler.
-			index := num - i - 1
-			var unary grpc.UnaryServerInterceptor
-			if index < len(unaryChain) {
-				unary = unaryChain[i]
-			}
-			desc = grpchan.InterceptServer(desc, unary, stream)
-		}
-		svr.RegisterService(desc, impl)
-	})
-}
-
-type serviceRegistrarFunc func(desc *grpc.ServiceDesc, impl interface{})
-
-func (f serviceRegistrarFunc) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-	f(desc, impl)
 }
