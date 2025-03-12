@@ -924,7 +924,7 @@ func TestEvaluator_FlagDisabled_DefaultVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, resp.Match)
 	assert.Equal(t, "bar", resp.Value)
-	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.JSONEq(t, `{ "bar": "baz" }`, resp.Attachment)
 	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
 }
 
@@ -1024,7 +1024,7 @@ func TestEvaluator_FlagNoRules_DefaultVariant(t *testing.T) {
 			require.NoError(t, err)
 			assert.False(t, resp.Match)
 			assert.Equal(t, "bar", resp.Value)
-			assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+			assert.JSONEq(t, `{ "bar": "baz" }`, resp.Attachment)
 			assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
 		})
 	}
@@ -1387,7 +1387,7 @@ func TestEvaluator_MatchAll_NoDistributions_DefaultVariant(t *testing.T) {
 	assert.True(t, resp.Match)
 	assert.Equal(t, "bar", resp.SegmentKey)
 	assert.Equal(t, "bar", resp.Value)
-	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.JSONEq(t, `{ "bar": "baz" }`, resp.Attachment)
 	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 
@@ -1630,7 +1630,7 @@ func TestEvaluator_DistributionNotMatched_DefaultVariant(t *testing.T) {
 
 	assert.False(t, resp.Match, "distribution not matched")
 	assert.Equal(t, "bar", resp.Value)
-	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.JSONEq(t, `{ "bar": "baz" }`, resp.Attachment)
 	assert.Equal(t, flipt.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
 }
 
@@ -1757,7 +1757,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
-			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
+			assert.JSONEq(t, `{"key":"value"}`, resp.Attachment)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
@@ -2206,7 +2206,7 @@ func TestEvaluator_MatchAny_NoDistributions_DefaultVariant(t *testing.T) {
 	assert.True(t, resp.Match)
 	assert.Equal(t, "bar", resp.SegmentKey)
 	assert.Equal(t, "bar", resp.Value)
-	assert.Equal(t, `{ "bar": "baz" }`, resp.Attachment)
+	assert.JSONEq(t, `{ "bar": "baz" }`, resp.Attachment)
 	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 

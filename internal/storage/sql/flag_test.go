@@ -1237,7 +1237,7 @@ func (s *DBTestSuite) TestGetFlagWithVariantsMultiNamespace() {
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
-	assert.Equal(t, `{"key":"value"}`, variant.Attachment)
+	assert.JSONEq(t, `{"key":"value"}`, variant.Attachment)
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 }
@@ -1294,7 +1294,7 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	assert.Equal(t, variant.Key, updated.Key)
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.Equal(t, `{"key":"value2"}`, updated.Attachment)
+	assert.JSONEq(t, `{"key":"value2"}`, updated.Attachment)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 
@@ -1362,7 +1362,7 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 	assert.Equal(t, variant.Key, updated.Key)
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.Equal(t, `{"key":"value2"}`, updated.Attachment)
+	assert.JSONEq(t, `{"key":"value2"}`, updated.Attachment)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 
