@@ -30,10 +30,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterDataServiceServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
-	return true
-}
-
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	// TODO(georgemac): support overriding via configuration and or metadata header
 	environment := "default"
