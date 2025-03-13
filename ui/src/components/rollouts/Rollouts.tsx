@@ -13,11 +13,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { StarIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
 import { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useUpdateFlagMutation } from '~/app/flags/flagsApi';
 import {
   useDeleteRolloutMutation,
   useListRolloutsQuery,
@@ -26,7 +23,7 @@ import {
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
-import { ButtonWithPlus, TextButton } from '~/components/Button';
+import { ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
@@ -37,155 +34,13 @@ import Slideover from '~/components/Slideover';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
-import Select from '~/components/forms/Select';
-import Loading from '~/components/Loading';
-import { cls } from '~/utils/helpers';
+import EmptyState from '../EmptyState';
 
 type RolloutsProps = {
   flag: IFlag;
 };
-
-interface DefaultRolloutFormValues {
-  defaultValue: string;
-}
-
-export function DefaultRollout(props: RolloutsProps) {
-  const { flag } = props;
-
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
-
-  const namespace = useSelector(selectCurrentNamespace) as INamespace;
-  const readOnly = useSelector(selectReadonly);
-
-  const [updateFlag] = useUpdateFlagMutation();
-
-  const handleSubmit = async (values: DefaultRolloutFormValues) => {
-    await updateFlag({
-      namespaceKey: namespace.key,
-      flagKey: flag.key,
-      values: {
-        ...flag,
-        enabled: values.defaultValue === 'true'
-      }
-    });
-  };
-
-  return (
-    <Formik
-      enableReinitialize
-      initialValues={{
-        defaultValue: flag.enabled ? 'true' : 'false'
-      }}
-      onSubmit={(values: DefaultRolloutFormValues, { setSubmitting }) => {
-        handleSubmit(values)
-          .then(() => {
-            clearError();
-            setSuccess('Successfully updated default rollout');
-          })
-          .catch((err) => {
-            setError(err);
-          })
-          .finally(() => {
-            setSubmitting(false);
-          });
-      }}
-    >
-      {(formik) => {
-        return (
-          <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-              <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
-                <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                  <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                  <h3 className="text-sm font-normal leading-6 text-gray-700">
-                    Default Rollout
-                  </h3>
-                  <span className="hidden h-4 w-4 justify-end sm:flex" />
-                </div>
-              </div>
-
-              <div className="flex grow flex-col items-center justify-center sm:ml-2">
-                <p className="text-center text-sm font-light text-gray-600">
-                  This is the default value that will be returned if no other
-                  rules match. It is directly tied to the flag enabled state.
-                </p>
-              </div>
-
-              <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-                <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
-                  <Form className="flex w-full flex-col">
-                    <div className="w-full flex-1">
-                      <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                        <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
-                          <div>
-                            <label
-                              htmlFor="defaultValue"
-                              className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                            >
-                              Value
-                            </label>
-                          </div>
-                          <div>
-                            <Select
-                              id="defaultValue"
-                              name="defaultValue"
-                              value={formik.values.defaultValue}
-                              options={[
-                                { label: 'True', value: 'true' },
-                                { label: 'False', value: 'false' }
-                              ]}
-                              className={cls(
-                                'w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle',
-                                {
-                                  'cursor-not-allowed bg-gray-100 text-gray-500':
-                                    readOnly
-                                }
-                              )}
-                              disabled={readOnly}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 py-1">
-                      <div className="flex justify-end space-x-2">
-                        <TextButton
-                          disabled={formik.isSubmitting || readOnly}
-                          onClick={() => {
-                            formik.resetForm();
-                          }}
-                        >
-                          Reset
-                        </TextButton>
-                        <TextButton
-                          type="submit"
-                          className="min-w-[80px]"
-                          disabled={
-                            !formik.isValid || formik.isSubmitting || readOnly
-                          }
-                        >
-                          {formik.isSubmitting ? (
-                            <Loading isPrimary />
-                          ) : (
-                            'Update'
-                          )}
-                        </TextButton>
-                      </div>
-                    </div>
-                  </Form>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }}
-    </Formik>
-  );
-}
 
 export default function Rollouts(props: RolloutsProps) {
   const { flag } = props;
@@ -390,25 +245,27 @@ export default function Rollouts(props: RolloutsProps) {
               dropping it into place.
             </p>
           </div>
-          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            <ButtonWithPlus
-              variant="primary"
-              type="button"
-              disabled={readOnly}
-              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-              onClick={() => {
-                setEditingRollout(null);
-                setShowRolloutForm(true);
-              }}
-            >
-              New Rollout
-            </ButtonWithPlus>
-          </div>
+          {rollouts && rollouts.length > 0 && (
+            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+              <ButtonWithPlus
+                variant="primary"
+                type="button"
+                disabled={readOnly}
+                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+                onClick={() => {
+                  setEditingRollout(null);
+                  setShowRolloutForm(true);
+                }}
+              >
+                New Rollout
+              </ButtonWithPlus>
+            </div>
+          )}
         </div>
         <div className="mt-10">
-          <div className="flex">
-            <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
-              {rollouts && rollouts.length > 0 && (
+          {rollouts && rollouts.length > 0 ? (
+            <div className="flex">
+              <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -449,10 +306,18 @@ export default function Rollouts(props: RolloutsProps) {
                     ) : null}
                   </DragOverlay>
                 </DndContext>
-              )}
-              <DefaultRollout flag={flag} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <EmptyState
+              text="New Rollout"
+              disabled={readOnly}
+              onClick={() => {
+                setEditingRollout(null);
+                setShowRolloutForm(true);
+              }}
+            />
+          )}
         </div>
       </div>
     </>

@@ -13,6 +13,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
+import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import { MetadataForm } from '~/components/flags/forms/MetadataForm';
 import { useError } from '~/data/hooks/error';
@@ -33,7 +34,7 @@ const flagTypes = [
     id: FlagType.BOOLEAN,
     name: 'Boolean',
     description:
-      "Can be either 'true' or 'false'. Rollouts can be used to determine which value is returned."
+      "Can be either 'true' or 'false'. The default value is returned when no rollouts match."
   }
 ];
 
@@ -130,6 +131,40 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         formik.setFieldValue('enabled', e);
                       }}
                     />
+                  </div>
+                )}
+                {formik.values.type === FlagType.BOOLEAN && (
+                  <div className="col-span-3 md:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label
+                          htmlFor="defaultValue"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Default Value
+                        </label>
+                        <p className="text-sm text-gray-500">
+                          The default value returned when no rollouts match
+                        </p>
+                      </div>
+                      <Select
+                        id="enabled"
+                        name="enabled"
+                        className="w-32"
+                        disabled={readOnly}
+                        value={enabled ? 'true' : 'false'}
+                        options={[
+                          { label: 'True', value: 'true' },
+                          { label: 'False', value: 'false' }
+                        ]}
+                        onChange={(e) => {
+                          formik.setFieldValue(
+                            'enabled',
+                            e.target.value === 'true'
+                          );
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
                 <div className="col-span-2">
