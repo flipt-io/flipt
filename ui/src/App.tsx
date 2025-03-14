@@ -10,6 +10,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import ErrorLayout from './app/ErrorLayout';
 import Layout from './app/Layout';
 import NotFoundLayout from './app/NotFoundLayout';
+import { selectCurrentEnvironment } from './app/environments/environmentsApi';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
 import { selectTheme } from './app/preferences/preferencesSlice';
@@ -18,7 +19,6 @@ import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
 import { store } from './store';
 import { Theme } from './types/Preferences';
-import { selectCurrentEnvironment } from './app/environments/environmentsApi';
 
 const Flags = loadable(() => import('./app/flags/Flags'));
 const Segments = loadable(() => import('./app/segments/Segments'));
