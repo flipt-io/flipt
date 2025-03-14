@@ -33,7 +33,7 @@ const flagTypes = [
     id: FlagType.BOOLEAN,
     name: 'Boolean',
     description:
-      "Can be either 'true' or 'false'. Rollouts can be used to determine which value is returned."
+      "Can be either 'true' or 'false'. The default value is returned when no rollouts match."
   }
 ];
 
@@ -130,6 +130,32 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         formik.setFieldValue('enabled', e);
                       }}
                     />
+                  </div>
+                )}
+                {formik.values.type === FlagType.BOOLEAN && (
+                  <div className="col-span-3 md:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label
+                          htmlFor="defaultValue"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Default Value
+                        </label>
+                        <p className="text-sm text-gray-500">
+                          The default value returned when no rollouts match
+                        </p>
+                      </div>
+                      <Toggle
+                        id="defaultValue"
+                        name="defaultValue"
+                        disabled={readOnly}
+                        checked={enabled}
+                        onChange={(e) => {
+                          formik.setFieldValue('enabled', e);
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
                 <div className="col-span-2">
