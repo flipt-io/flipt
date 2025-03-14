@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   build:
@@ -152,7 +152,6 @@ jobs:
           # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
           version: v1.14.0
           install-only: true
-
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
