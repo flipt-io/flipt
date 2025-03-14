@@ -36,7 +36,7 @@ import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 import { SegmentOperatorType } from '~/types/Segment';
-import EmptyState from '../EmptyState';
+import EmptyState from '~/components/EmptyState';
 
 type RolloutsProps = {
   flag: IFlag;

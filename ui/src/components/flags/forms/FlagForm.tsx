@@ -13,7 +13,6 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { Button } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
-import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import { MetadataForm } from '~/components/flags/forms/MetadataForm';
 import { useError } from '~/data/hooks/error';
@@ -148,8 +147,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         </p>
                       </div>
                       <Toggle
-                        id="enabled"
-                        name="enabled"
+                        id="defaultValue"
+                        name="defaultValue"
                         disabled={readOnly}
                         checked={enabled}
                         onChange={(e) => {

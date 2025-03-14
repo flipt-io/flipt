@@ -22,11 +22,9 @@ test.describe('Rollouts', () => {
     await expect(
       page.getByRole('heading', { name: 'Default Rollout' })
     ).toBeVisible();
-    await page.locator('#defaultValue').selectOption('true');
+    await page.locator('#defaultValue').click();
     await page.getByRole('button', { name: 'Update' }).last().click();
-    await expect(
-      page.getByText('Successfully updated default rollout')
-    ).toBeVisible();
+    await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
   test('can create rollout', async ({ page }) => {
