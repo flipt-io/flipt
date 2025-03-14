@@ -1,15 +1,15 @@
-FROM golang:1.23-alpine3.19
+FROM golang:1.24-alpine3.21
 
 WORKDIR /server
 
 RUN apk add --update --no-cache git bash gcc build-base binutils-gold \
-    openssl \
-    ca-certificates \
-    postgresql-client
+  openssl \
+  ca-certificates \
+  postgresql-client
 
 RUN git clone https://github.com/magefile/mage && \
-    cd mage && \
-    go run bootstrap.go
+  cd mage && \
+  go run bootstrap.go
 
 COPY go.mod .
 COPY go.sum .
@@ -21,7 +21,7 @@ COPY ./core ./core
 RUN go mod download -x
 
 RUN mkdir -p /etc/flipt && \
-    mkdir -p /var/opt/flipt
+  mkdir -p /var/opt/flipt
 
 EXPOSE 8080
 EXPOSE 9000

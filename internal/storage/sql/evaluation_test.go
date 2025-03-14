@@ -374,7 +374,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
 	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
-	assert.Equal(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
+	assert.JSONEq(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
 	assert.InDelta(t, 50.00, evaluationDistributions[1].Rollout, 0)
 }
 
@@ -479,7 +479,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
 	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
-	assert.Equal(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
+	assert.JSONEq(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
 	assert.InDelta(t, 50.00, evaluationDistributions[1].Rollout, 0)
 }
 
