@@ -27,6 +27,7 @@ linters:
     - exhaustive
     - protogetter
     - musttag
+    - recvcheck
   enable-all: false
   presets:
     - bugs

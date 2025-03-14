@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   nightly-build:
@@ -149,3 +149,4 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

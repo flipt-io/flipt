@@ -20,7 +20,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	golang := dag.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(platform)),
 	}).
-		From("golang:1.23-alpine3.19").
+		From("golang:1.24-alpine3.21").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
