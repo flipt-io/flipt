@@ -147,21 +147,13 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           The default value returned when no rollouts match
                         </p>
                       </div>
-                      <Select
+                      <Toggle
                         id="enabled"
                         name="enabled"
-                        className="w-32"
                         disabled={readOnly}
-                        value={enabled ? 'true' : 'false'}
-                        options={[
-                          { label: 'True', value: 'true' },
-                          { label: 'False', value: 'false' }
-                        ]}
+                        checked={enabled}
                         onChange={(e) => {
-                          formik.setFieldValue(
-                            'enabled',
-                            e.target.value === 'true'
-                          );
+                          formik.setFieldValue('enabled', e);
                         }}
                       />
                     </div>
