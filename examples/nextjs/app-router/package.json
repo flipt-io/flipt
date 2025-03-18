@@ -11,7 +11,7 @@
   "dependencies": {
     "@flipt-io/flipt": "^1.2.0",
     "@flipt-io/flipt-client-react": "^0.1.0",
-    "next": "^14.2.21",
+    "next": "^15.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^4.9.4",
