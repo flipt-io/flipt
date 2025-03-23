@@ -1,20 +1,16 @@
 {
   "name": "flipt",
-  "engineVersion": "v0.14.0",
-  "sdk": "go",
-  "exclude": [
-    ".git",
-    "bin",
-    "ui/node_modules"
+  "engineVersion": "v0.17.0",
+  "sdk": {
+    "source": "go"
+  },
+  "include": [
+    "rpc",
+    "sdk",
+    "!.git",
+    "!.github",
+    "!bin",
+    "!ui/node_modules"
   ],
-  "source": "build",
-  "views": [
-    {
-      "name": "default",
-      "patterns": [
-        "!.git",
-        "!**/node_modules"
-      ]
-    }
-  ]
+  "source": "build"
 }
