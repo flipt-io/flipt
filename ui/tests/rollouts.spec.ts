@@ -73,6 +73,17 @@ test.describe('Rollouts', () => {
   });
 
   test('can create segment with rollout', async ({ page }) => {
+    // create segment
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Segments' }).click();
+    await page.getByRole('button', { name: 'New Segment' }).click();
+    await page.getByLabel('Name').fill('Segment 234');
+    await page.getByLabel('Description').click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Successfully created segment')).toBeVisible();
+    // back to flag
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Flags' }).click();
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
     await page.getByLabel('New Rollout').getByLabel('Segment').check();
@@ -80,7 +91,9 @@ test.describe('Rollouts', () => {
       .getByLabel('New Rollout')
       .locator('#segmentKey-0-select-button')
       .click();
-    await page.getByLabel('New Rollout').getByText('Test Rule').click();
+
+    await page.getByLabel('New Rollout').getByText('Segment 234').click();
+    await page.pause();
     await page
       .getByLabel('New Rollout')
       .getByRole('button', { name: 'Create' })
