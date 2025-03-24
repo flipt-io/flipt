@@ -11,7 +11,7 @@ import (
 
 const (
 	// Default is the default database
-	defaultConfig = "default"
+	defaultDatabase = "default"
 	// Analytics is the analytics database
 	analytics = "analytics"
 )
@@ -54,14 +54,17 @@ func runMigrations(cfg *config.Config, logger *zap.Logger, database string) erro
 }
 
 type migrateCommand struct {
-	root     *rootCommand
-	database string
+	configManager *configManager
+
+	database     string
+	forceMigrate bool
 }
 
-func newMigrateCommand(root *rootCommand) *cobra.Command {
+func newMigrateCommand(configManager *configManager) *cobra.Command {
 	migrateCmd := &migrateCommand{
-		root:     root,
-		database: defaultConfig,
+		configManager: configManager,
+		database:      defaultDatabase,
+		forceMigrate:  false,
 	}
 
 	cmd := &cobra.Command{
@@ -70,16 +73,14 @@ func newMigrateCommand(root *rootCommand) *cobra.Command {
 		RunE:  migrateCmd.run,
 	}
 
-	cmd.Flags().StringVar(&migrateCmd.root.configFile, "config", migrateCmd.root.configFile, "path to config file")
-	cmd.Flags().StringVar(&migrateCmd.database, "database", defaultConfig, "string to denote which database type to migrate")
-
+	cmd.Flags().StringVar(&migrateCmd.database, "database", defaultDatabase, "string to denote which database type to migrate")
 	return cmd
 }
 
 func (c *migrateCommand) run(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 
-	logger, cfg, err := c.root.buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return err
 	}
@@ -90,7 +91,7 @@ func (c *migrateCommand) run(cmd *cobra.Command, _ []string) error {
 
 	// Run the OLTP and OLAP database migrations sequentially because of
 	// potential danger in DB migrations in general.
-	if err := runMigrations(cfg, logger, defaultConfig); err != nil {
+	if err := runMigrations(cfg, logger, defaultDatabase); err != nil {
 		return err
 	}
 

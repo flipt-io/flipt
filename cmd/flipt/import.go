@@ -16,7 +16,8 @@ import (
 )
 
 type importCommand struct {
-	root             *rootCommand
+	configManager *configManager
+
 	forceMigrate     bool
 	dropBeforeImport bool
 	skipExisting     bool
@@ -25,9 +26,9 @@ type importCommand struct {
 	token            string
 }
 
-func newImportCommand(root *rootCommand) *cobra.Command {
+func newImportCommand(configManager *configManager) *cobra.Command {
 	importCmd := &importCommand{
-		root: root,
+		configManager: configManager,
 	}
 
 	cmd := &cobra.Command{
@@ -78,8 +79,6 @@ func newImportCommand(root *rootCommand) *cobra.Command {
 		"",
 		"client token used to authenticate access to Flipt instance.",
 	)
-
-	cmd.Flags().StringVar(&importCmd.root.configFile, "config", importCmd.root.configFile, "path to config file")
 
 	return cmd
 }
@@ -132,7 +131,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return ext.NewImporter(client).Import(ctx, enc, in, c.skipExisting)
 	}
 
-	logger, cfg, err := c.root.buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return err
 	}

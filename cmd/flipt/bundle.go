@@ -15,12 +15,12 @@ import (
 )
 
 type bundleCommand struct {
-	root *rootCommand
+	configManager *configManager
 }
 
-func newBundleCommand(root *rootCommand) *cobra.Command {
+func newBundleCommand(configManager *configManager) *cobra.Command {
 	bundle := &bundleCommand{
-		root: root,
+		configManager: configManager,
 	}
 
 	cmd := &cobra.Command{
@@ -158,7 +158,7 @@ func (c *bundleCommand) pull(cmd *cobra.Command, args []string) error {
 }
 
 func (c *bundleCommand) getStore(ctx context.Context) (*oci.Store, error) {
-	logger, cfg, err := c.root.buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return nil, err
 	}

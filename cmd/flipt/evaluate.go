@@ -20,7 +20,6 @@ import (
 )
 
 type evaluateCommand struct {
-	root          *rootCommand
 	address       string
 	requestID     string
 	entityID      string
@@ -31,73 +30,69 @@ type evaluateCommand struct {
 	contextValues []string
 }
 
-func newEvaluateCommand(root *rootCommand) *cobra.Command {
-	c := &evaluateCommand{
-		root: root,
-	}
+func newEvaluateCommand() *cobra.Command {
+	evaluate := &evaluateCommand{}
 
 	cmd := &cobra.Command{
 		Use:   "evaluate [flagKey]",
 		Short: "Evaluate a flag",
 		Args:  cobra.ExactArgs(1),
-		RunE:  c.run,
+		RunE:  evaluate.run,
 	}
 
 	cmd.Flags().StringVarP(
-		&c.namespace,
+		&evaluate.namespace,
 		"namespace", "n",
 		"default",
 		"flag namespace.",
 	)
 	cmd.Flags().StringVarP(
-		&c.entityID,
+		&evaluate.entityID,
 		"entity-id", "e",
 		uuid.NewString(),
 		"evaluation request entity id.",
 	)
 	cmd.Flags().StringVarP(
-		&c.requestID,
+		&evaluate.requestID,
 		"request-id", "r",
 		"",
 		"evaluation request id.",
 	)
 
 	cmd.Flags().StringArrayVarP(
-		&c.contextValues,
+		&evaluate.contextValues,
 		"context", "c",
 		[]string{},
 		"evaluation request context as key=value.",
 	)
 
 	cmd.Flags().StringVarP(
-		&c.address,
+		&evaluate.address,
 		"address", "a",
 		"http://localhost:8080",
 		"address of Flipt instance.",
 	)
 
 	cmd.Flags().StringVarP(
-		&c.token,
+		&evaluate.token,
 		"token", "t",
 		"",
 		"client token used to authenticate access to Flipt instance.",
 	)
 
 	cmd.Flags().BoolVarP(
-		&c.watch,
+		&evaluate.watch,
 		"watch", "w",
 		false,
 		"watch for changes to evaluations",
 	)
 
 	cmd.Flags().DurationVarP(
-		&c.interval,
+		&evaluate.interval,
 		"interval", "i",
 		5*time.Second,
 		"interval at which to poll for changes",
 	)
-
-	cmd.Flags().StringVar(&c.root.configFile, "config", c.root.configFile, "path to config file")
 
 	return cmd
 }

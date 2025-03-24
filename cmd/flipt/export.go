@@ -14,7 +14,8 @@ import (
 )
 
 type exportCommand struct {
-	root          *rootCommand
+	configManager *configManager
+
 	filename      string
 	address       string
 	token         string
@@ -23,9 +24,9 @@ type exportCommand struct {
 	sortByKey     bool
 }
 
-func newExportCommand(root *rootCommand) *cobra.Command {
+func newExportCommand(configManager *configManager) *cobra.Command {
 	export := &exportCommand{
-		root: root,
+		configManager: configManager,
 	}
 
 	cmd := &cobra.Command{
@@ -83,8 +84,6 @@ func newExportCommand(root *rootCommand) *cobra.Command {
 		"sort exported resources by key",
 	)
 
-	cmd.Flags().StringVar(&export.root.configFile, "config", export.root.configFile, "path to config file")
-
 	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
 
 	// We can ignore the error here since "namespace" will be a flag that exists.
@@ -110,7 +109,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 		defer fi.Close()
 
-		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", c.root.version, time.Now().UTC().Format(time.RFC3339))
+		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
 
 		out = fi
 
@@ -129,7 +128,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		return c.export(ctx, enc, out, client)
 	}
 
-	logger, cfg, err := c.root.buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return err
 	}

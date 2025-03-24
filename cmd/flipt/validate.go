@@ -13,7 +13,8 @@ import (
 )
 
 type validateCommand struct {
-	root          *rootCommand
+	configManager *configManager
+
 	issueExitCode int
 	format        string
 	extraPath     string
@@ -25,35 +26,35 @@ const (
 	textFormat = "text"
 )
 
-func newValidateCommand(root *rootCommand) *cobra.Command {
-	v := &validateCommand{
-		root: root,
+func newValidateCommand(configManager *configManager) *cobra.Command {
+	validate := &validateCommand{
+		configManager: configManager,
 	}
 
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate Flipt flag state (.yaml, .yml) files",
-		RunE:  v.run,
+		RunE:  validate.run,
 	}
 
-	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "exit code to use when issues are found")
+	cmd.Flags().IntVar(&validate.issueExitCode, "issue-exit-code", 1, "exit code to use when issues are found")
 
 	cmd.Flags().StringVarP(
-		&v.format,
+		&validate.format,
 		"format", "F",
 		"text",
 		"output format: json, text",
 	)
 
 	cmd.Flags().StringVarP(
-		&v.extraPath,
+		&validate.extraPath,
 		"extra-schema", "e",
 		"",
 		"path to extra schema constraints",
 	)
 
 	cmd.Flags().StringVarP(
-		&v.workDirectory,
+		&validate.workDirectory,
 		"work-dir", "d",
 		".",
 		"set the working directory",
@@ -64,7 +65,7 @@ func newValidateCommand(root *rootCommand) *cobra.Command {
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	logger, _, err := v.root.buildConfig(ctx)
+	logger, _, err := v.configManager.build(ctx)
 	if err != nil {
 		return err
 	}

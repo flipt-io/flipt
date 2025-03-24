@@ -20,6 +20,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
@@ -33,6 +34,15 @@ import (
 
 // Global variables for configs and logging
 var (
+	version           = "dev" // These values can be set at build time
+	commit            = ""    // via -ldflags "-X main.version=1.0.0 -X main.commit=abcdef"
+	date              = ""
+	goVersion         = runtime.Version()
+	goOS              = runtime.GOOS
+	goArch            = runtime.GOARCH
+	analyticsKey      = ""
+	analyticsEndpoint = ""
+
 	defaultEncoding = zapcore.EncoderConfig{
 		// Keys can be anything except the empty string.
 		TimeKey:        "T",
@@ -73,20 +83,10 @@ type rootCommand struct {
 	configFile   string
 	forceMigrate bool
 
-	// Build info - moved from global variables
-	version   string
-	commit    string
-	date      string
-	goVersion string
-	goOS      string
-	goArch    string
-
-	// Analytics
-	analyticsKey      string
-	analyticsEndpoint string
-
 	// Banner template
 	banner string
+
+	configManager *configManager
 }
 
 func main() {
@@ -96,19 +96,10 @@ func main() {
 }
 
 func exec() error {
-	// Initialize rootCommand with build info
-	root := &rootCommand{
-		version:           "dev", // These values can be set at build time
-		commit:            "",    // via -ldflags "-X main.version=1.0.0 -X main.commit=abcdef"
-		date:              "",
-		goVersion:         runtime.Version(),
-		goOS:              runtime.GOOS,
-		goArch:            runtime.GOARCH,
-		analyticsKey:      "",
-		analyticsEndpoint: "",
-	}
-
-	cmd := root.newCommand()
+	var (
+		root = &rootCommand{}
+		cmd  = root.newCommand()
+	)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -120,6 +111,22 @@ func exec() error {
 		<-interrupt
 		cancel()
 	}()
+
+	// Parse the flags first to get the config file
+	if err := cmd.ParseFlags(os.Args[1:]); err != nil {
+		// Ignore flag parsing errors, they will be handled by cobra during ExecuteContext
+		if !errors.Is(err, pflag.ErrHelp) {
+			defaultLogger.Debug("parsing flags", zap.Error(err))
+		}
+	}
+
+	// Update the config file from flags
+	if cfgFlag, err := cmd.Flags().GetString("config"); err == nil && cfgFlag != "" {
+		root.configFile = cfgFlag
+	}
+
+	// Make sure all subcommands also use the updated config manager
+	cmd = root.newCommand()
 
 	return cmd.ExecuteContext(ctx)
 }
@@ -134,7 +141,7 @@ func (r *rootCommand) newCommand() *cobra.Command {
 			$ flipt config init
 			$ flipt --config /path/to/config.yml migrate
 		`),
-		Version: r.version,
+		Version: version,
 		RunE:    r.run,
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd: true,
@@ -147,12 +154,12 @@ func (r *rootCommand) newCommand() *cobra.Command {
 	buf := new(bytes.Buffer)
 
 	if err := t.Execute(buf, &bannerOpts{
-		Version:   r.version,
-		Commit:    r.commit,
-		Date:      r.date,
-		GoVersion: r.goVersion,
-		GoOS:      r.goOS,
-		GoArch:    r.goArch,
+		Version:   version,
+		Commit:    commit,
+		Date:      date,
+		GoVersion: goVersion,
+		GoOS:      goOS,
+		GoArch:    goArch,
 	}); err != nil {
 		defaultLogger.Error("executing template", zap.Error(err))
 	}
@@ -162,19 +169,26 @@ func (r *rootCommand) newCommand() *cobra.Command {
 
 	// Set up flags
 	cmd.Flags().StringVar(&r.configFile, "config", "", "path to config file")
+	cmd.PersistentFlags().StringVar(&r.configFile, "config", "", "path to config file")
+
 	cmd.Flags().BoolVar(&r.forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = cmd.Flags().MarkHidden("force-migrate")
 
+	// Initialize config manager with empty config file for now
+	// It will be updated in exec() after flag parsing
+	configManager := newConfigManager(r.configFile)
+	r.configManager = configManager
+
 	// Add subcommands with root command reference
-	cmd.AddCommand(newMigrateCommand(r))
-	cmd.AddCommand(newExportCommand(r))
-	cmd.AddCommand(newImportCommand(r))
-	cmd.AddCommand(newValidateCommand(r))
-	cmd.AddCommand(newConfigCommand(r))
-	cmd.AddCommand(newCompletionCommand()) // May not need config
-	cmd.AddCommand(newDocCommand())        // May not need config
-	cmd.AddCommand(newBundleCommand(r))
-	cmd.AddCommand(newEvaluateCommand(r))
+	cmd.AddCommand(newMigrateCommand(configManager))
+	cmd.AddCommand(newExportCommand(configManager))
+	cmd.AddCommand(newImportCommand(configManager))
+	cmd.AddCommand(newValidateCommand(configManager))
+	cmd.AddCommand(newConfigCommand(configManager))
+	cmd.AddCommand(newCompletionCommand())
+	cmd.AddCommand(newDocCommand())
+	cmd.AddCommand(newBundleCommand(configManager))
+	cmd.AddCommand(newEvaluateCommand())
 
 	return cmd
 }
@@ -182,7 +196,14 @@ func (r *rootCommand) newCommand() *cobra.Command {
 // run implements the main command logic
 func (r *rootCommand) run(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
-	logger, cfg, err := r.buildConfig(ctx)
+
+	// Get the config file from the command line flag
+	if cfgFlag, err := cmd.Flags().GetString("config"); err == nil && cfgFlag != "" {
+		// Update the config manager's config file if needed
+		r.configManager.configFile = cfgFlag
+	}
+
+	logger, cfg, err := r.configManager.build(ctx)
 	if err != nil {
 		return err
 	}
@@ -192,93 +213,6 @@ func (r *rootCommand) run(cmd *cobra.Command, _ []string) error {
 	}()
 
 	return r.runServer(ctx, logger, cfg)
-}
-
-// determineConfig will figure out which file to use for Flipt configuration.
-func (r *rootCommand) determineConfig() (string, bool) {
-	// if config file is provided, use it
-	if r.configFile != "" {
-		return r.configFile, true
-	}
-
-	// otherwise, check if user config file exists on filesystem
-	_, err := os.Stat(userConfigFile)
-	if err == nil {
-		return userConfigFile, true
-	}
-
-	if !errors.Is(err, fs.ErrNotExist) {
-		defaultLogger.Warn("unexpected error checking configuration file", zap.String("config_file", userConfigFile), zap.Error(err))
-	}
-
-	// finally, check if default config file exists on filesystem
-	_, err = os.Stat(defaultConfigFile)
-	if err == nil {
-		return defaultConfigFile, true
-	}
-
-	if !errors.Is(err, fs.ErrNotExist) {
-		defaultLogger.Warn("unexpected error checking configuration file", zap.String("config_file", defaultConfigFile), zap.Error(err))
-	}
-
-	return "", false
-}
-
-func (r *rootCommand) buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
-	path, found := r.determineConfig()
-
-	// read in config if it exists
-	// otherwise, use defaults
-	res, err := config.Load(ctx, path)
-	if err != nil {
-		return nil, nil, fmt.Errorf("loading configuration: %w", err)
-	}
-
-	if !found {
-		defaultLogger.Info("no configuration file found, using defaults")
-	}
-
-	cfg := res.Config
-
-	encoding := defaultEncoding
-	encoding.TimeKey = cfg.Log.Keys.Time
-	encoding.LevelKey = cfg.Log.Keys.Level
-	encoding.MessageKey = cfg.Log.Keys.Message
-
-	loggerConfig := loggerConfig(encoding)
-
-	// log to file if enabled
-	if cfg.Log.File != "" {
-		loggerConfig.OutputPaths = []string{cfg.Log.File}
-	}
-
-	// parse/set log level
-	loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
-	if err != nil {
-		defaultLogger.Warn("parsing log level, defaulting to INFO", zap.String("level", cfg.Log.Level), zap.Error(err))
-		// default to info level
-		loggerConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-	}
-
-	if cfg.Log.Encoding > config.LogEncodingConsole {
-		loggerConfig.Encoding = cfg.Log.Encoding.String()
-
-		// don't encode with colors if not using console log output
-		loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	}
-
-	logger := zap.Must(loggerConfig.Build())
-
-	// print out any warnings from config parsing
-	for _, warning := range res.Warnings {
-		logger.Warn("configuration warning", zap.String("message", warning))
-	}
-
-	if found {
-		logger.Debug("configuration source", zap.String("path", path))
-	}
-
-	return logger, cfg, nil
 }
 
 const (
@@ -297,14 +231,14 @@ func (r *rootCommand) runServer(ctx context.Context, logger *zap.Logger, cfg *co
 		color.Cyan("%s\n", r.banner)
 	} else {
 		logger.Info("flipt starting",
-			zap.String("version", r.version),
-			zap.String("commit", r.commit),
-			zap.String("date", r.date),
-			zap.String("go_version", r.goVersion))
+			zap.String("version", version),
+			zap.String("commit", commit),
+			zap.String("date", date),
+			zap.String("go_version", goVersion))
 	}
 
 	var (
-		isRelease   = release.Is(r.version)
+		isRelease   = release.Is(version)
 		releaseInfo release.Info
 		err         error
 	)
@@ -312,7 +246,7 @@ func (r *rootCommand) runServer(ctx context.Context, logger *zap.Logger, cfg *co
 	if cfg.Meta.CheckForUpdates && isRelease {
 		logger.Debug("checking for updates")
 
-		releaseInfo, err = release.Check(ctx, r.version)
+		releaseInfo, err = release.Check(ctx, version)
 		if err != nil {
 			logger.Warn("checking for updates", zap.Error(err))
 		}
@@ -360,9 +294,9 @@ func (r *rootCommand) runServer(ctx context.Context, logger *zap.Logger, cfg *co
 	}
 
 	serverInfo := info.New(
-		info.WithBuild(r.commit, r.date, r.goVersion, r.version, isRelease),
+		info.WithBuild(commit, date, goVersion, version, isRelease),
 		info.WithLatestRelease(releaseInfo),
-		info.WithOS(r.goOS, r.goArch),
+		info.WithOS(goOS, goArch),
 		info.WithConfig(cfg),
 	)
 
@@ -370,7 +304,7 @@ func (r *rootCommand) runServer(ctx context.Context, logger *zap.Logger, cfg *co
 		logger := logger.With(zap.String("component", "telemetry"))
 
 		g.Go(func() error {
-			reporter, err := telemetry.NewReporter(*cfg, logger, r.analyticsKey, r.analyticsEndpoint, serverInfo)
+			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, analyticsEndpoint, serverInfo)
 			if err != nil {
 				logger.Debug("initializing telemetry reporter", zap.Error(err))
 				return nil
