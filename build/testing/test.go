@@ -12,13 +12,11 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 	// create Redis service container
 	redisSrv := client.Container().
 		From("redis:alpine").
-		WithExposedPort(6379).
-		WithExec(nil)
+		WithExposedPort(6379)
 
 	gitea := client.Container().
 		From("gitea/gitea:1.21.1").
-		WithExposedPort(3000).
-		WithExec(nil)
+		WithExposedPort(3000)
 
 	flipt = flipt.
 		WithServiceBinding("gitea", gitea.AsService()).
