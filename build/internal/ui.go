@@ -15,6 +15,6 @@ func UI(ctx context.Context, client *dagger.Client, source *dagger.Directory) (*
 			WithoutDirectory("node_modules")).
 		WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
-		WithExec([]string{"npm", "install"}).
+		WithExec([]string{"npm", "ci"}).
 		WithExec([]string{"npm", "run", "build"}), nil
 }

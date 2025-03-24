@@ -53,7 +53,7 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		// import testdata into latest Flipt instance (using latest image for import)
 		_, err = latest.
 			WithFile("import.yaml", fi).
-			WithServiceBinding("flipt", latest.WithExec(nil).AsService()).
+			WithServiceBinding("flipt", latest.AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})).
 			WithExec([]string{"sh", "-c", "sleep 5 && /flipt import --address grpc://flipt:9000 import.yaml"}).
 			Sync(ctx)
 		if err != nil {
@@ -81,14 +81,15 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 			WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", "secret").
-			WithExec(nil).
-			AsService()).
+			AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})).
 		WithWorkdir("build/testing/integration/readonly").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec([]string{"go", "test", "-v", "-race",
+		WithExec([]string{
+			"go", "test", "-v", "-race",
 			"--flipt-addr", "grpc://flipt:9000",
 			"--flipt-token", "secret",
-			"."}).
+			".",
+		}).
 		Sync(ctx)
 
 	return err

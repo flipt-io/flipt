@@ -29,14 +29,16 @@ func redpandaTLSService(_ context.Context, client *dagger.Client, hostAlias, sup
 		WithExposedPort(9644, dagger.ContainerWithExposedPortOpts{
 			Description: "admin api endpoint",
 		}).
-		WithExec([]string{"redpanda",
+		WithDefaultArgs([]string{
+			"redpanda",
 			"start",
 			"--mode=dev-container",
 			"--smp=1",
 			"--overprovisioned",
 			"--check=false",
-			"--memory=200M"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-		AsService()
+			"--memory=200M",
+		}).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 	return kafka, nil
 }
 
