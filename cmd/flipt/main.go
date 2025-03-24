@@ -31,20 +31,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var (
-	providedConfigFile string
-	forceMigrate       bool
-	version            = "dev"
-	commit             string
-	date               string
-	goVersion          = runtime.Version()
-	goOS               = runtime.GOOS
-	goArch             = runtime.GOARCH
-	analyticsKey       string
-	analyticsEndpoint  string
-	banner             string
-)
-
+// Global variables for configs and logging
 var (
 	defaultEncoding = zapcore.EncoderConfig{
 		// Keys can be anything except the empty string.
@@ -81,6 +68,27 @@ func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
 	}
 }
 
+// rootCommand holds all configuration for the root command
+type rootCommand struct {
+	configFile   string
+	forceMigrate bool
+
+	// Build info - moved from global variables
+	version   string
+	commit    string
+	date      string
+	goVersion string
+	goOS      string
+	goArch    string
+
+	// Analytics
+	analyticsKey      string
+	analyticsEndpoint string
+
+	// Banner template
+	banner string
+}
+
 func main() {
 	if err := exec(); err != nil {
 		os.Exit(1)
@@ -88,66 +96,19 @@ func main() {
 }
 
 func exec() error {
-	var (
-		rootCmd = &cobra.Command{
-			Use:   "flipt <command> <subcommand> [flags]",
-			Short: "Flipt is a modern, self-hosted, feature flag solution",
-			Example: heredoc.Doc(`
-				$ flipt
-				$ flipt config init
-				$ flipt --config /path/to/config.yml migrate
-			`),
-			Version: version,
-			RunE: func(cmd *cobra.Command, _ []string) error {
-				ctx := cmd.Context()
-				logger, cfg, err := buildConfig(ctx)
-				if err != nil {
-					return err
-				}
-
-				defer func() {
-					_ = logger.Sync()
-				}()
-
-				return run(ctx, logger, cfg)
-			},
-			CompletionOptions: cobra.CompletionOptions{
-				DisableDefaultCmd: true,
-			},
-			SilenceUsage: true,
-		}
-
-		t   = template.Must(template.New("banner").Parse(bannerTmpl))
-		buf = new(bytes.Buffer)
-	)
-
-	if err := t.Execute(buf, &bannerOpts{
-		Version:   version,
-		Commit:    commit,
-		Date:      date,
-		GoVersion: goVersion,
-		GoOS:      goOS,
-		GoArch:    goArch,
-	}); err != nil {
-		return fmt.Errorf("executing template %w", err)
+	// Initialize rootCommand with build info
+	root := &rootCommand{
+		version:           "dev", // These values can be set at build time
+		commit:            "",    // via -ldflags "-X main.version=1.0.0 -X main.commit=abcdef"
+		date:              "",
+		goVersion:         runtime.Version(),
+		goOS:              runtime.GOOS,
+		goArch:            runtime.GOARCH,
+		analyticsKey:      "",
+		analyticsEndpoint: "",
 	}
 
-	banner = buf.String()
-
-	rootCmd.SetVersionTemplate(banner)
-	rootCmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
-	_ = rootCmd.Flags().MarkHidden("force-migrate")
-
-	rootCmd.AddCommand(newMigrateCommand())
-	rootCmd.AddCommand(newExportCommand())
-	rootCmd.AddCommand(newImportCommand())
-	rootCmd.AddCommand(newValidateCommand())
-	rootCmd.AddCommand(newConfigCommand())
-	rootCmd.AddCommand(newCompletionCommand())
-	rootCmd.AddCommand(newDocCommand())
-	rootCmd.AddCommand(newBundleCommand())
-	rootCmd.AddCommand(newEvaluateCommand())
+	cmd := root.newCommand()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -160,14 +121,84 @@ func exec() error {
 		cancel()
 	}()
 
-	return rootCmd.ExecuteContext(ctx)
+	return cmd.ExecuteContext(ctx)
+}
+
+// newCommand creates a new root cobra command
+func (r *rootCommand) newCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "flipt <command> <subcommand> [flags]",
+		Short: "Flipt is a modern, self-hosted, feature flag solution",
+		Example: heredoc.Doc(`
+			$ flipt
+			$ flipt config init
+			$ flipt --config /path/to/config.yml migrate
+		`),
+		Version: r.version,
+		RunE:    r.run,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
+		SilenceUsage: true,
+	}
+
+	// Generate banner from template
+	t := template.Must(template.New("banner").Parse(bannerTmpl))
+	buf := new(bytes.Buffer)
+
+	if err := t.Execute(buf, &bannerOpts{
+		Version:   r.version,
+		Commit:    r.commit,
+		Date:      r.date,
+		GoVersion: r.goVersion,
+		GoOS:      r.goOS,
+		GoArch:    r.goArch,
+	}); err != nil {
+		defaultLogger.Error("executing template", zap.Error(err))
+	}
+
+	r.banner = buf.String()
+	cmd.SetVersionTemplate(r.banner)
+
+	// Set up flags
+	cmd.Flags().StringVar(&r.configFile, "config", "", "path to config file")
+	cmd.Flags().BoolVar(&r.forceMigrate, "force-migrate", false, "force migrations before running")
+	_ = cmd.Flags().MarkHidden("force-migrate")
+
+	// Add subcommands with root command reference
+	cmd.AddCommand(newMigrateCommand(r))
+	cmd.AddCommand(newExportCommand(r))
+	cmd.AddCommand(newImportCommand(r))
+	cmd.AddCommand(newValidateCommand(r))
+	cmd.AddCommand(newConfigCommand(r))
+	cmd.AddCommand(newCompletionCommand()) // May not need config
+	cmd.AddCommand(newDocCommand())        // May not need config
+	cmd.AddCommand(newBundleCommand(r))
+	cmd.AddCommand(newEvaluateCommand(r))
+
+	return cmd
+}
+
+// run implements the main command logic
+func (r *rootCommand) run(cmd *cobra.Command, _ []string) error {
+	ctx := cmd.Context()
+	logger, cfg, err := r.buildConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = logger.Sync()
+	}()
+
+	return r.runServer(ctx, logger, cfg)
 }
 
 // determineConfig will figure out which file to use for Flipt configuration.
-func determineConfig(configFile string) (string, bool) {
+func (r *rootCommand) determineConfig() (string, bool) {
 	// if config file is provided, use it
-	if configFile != "" {
-		return configFile, true
+	if r.configFile != "" {
+		return r.configFile, true
 	}
 
 	// otherwise, check if user config file exists on filesystem
@@ -193,8 +224,8 @@ func determineConfig(configFile string) (string, bool) {
 	return "", false
 }
 
-func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
-	path, found := determineConfig(providedConfigFile)
+func (r *rootCommand) buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
+	path, found := r.determineConfig()
 
 	// read in config if it exists
 	// otherwise, use defaults
@@ -259,17 +290,21 @@ func isSet(env string) bool {
 	return os.Getenv(env) == "true" || os.Getenv(env) == "1"
 }
 
-func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
+func (r *rootCommand) runServer(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
 	if isConsole {
-		color.Cyan("%s\n", banner)
+		color.Cyan("%s\n", r.banner)
 	} else {
-		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+		logger.Info("flipt starting",
+			zap.String("version", r.version),
+			zap.String("commit", r.commit),
+			zap.String("date", r.date),
+			zap.String("go_version", r.goVersion))
 	}
 
 	var (
-		isRelease   = release.Is(version)
+		isRelease   = release.Is(r.version)
 		releaseInfo release.Info
 		err         error
 	)
@@ -277,7 +312,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	if cfg.Meta.CheckForUpdates && isRelease {
 		logger.Debug("checking for updates")
 
-		releaseInfo, err = release.Check(ctx, version)
+		releaseInfo, err = release.Check(ctx, r.version)
 		if err != nil {
 			logger.Warn("checking for updates", zap.Error(err))
 		}
@@ -324,10 +359,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
-	info := info.New(
-		info.WithBuild(commit, date, goVersion, version, isRelease),
+	serverInfo := info.New(
+		info.WithBuild(r.commit, r.date, r.goVersion, r.version, isRelease),
 		info.WithLatestRelease(releaseInfo),
-		info.WithOS(goOS, goArch),
+		info.WithOS(r.goOS, r.goArch),
 		info.WithConfig(cfg),
 	)
 
@@ -335,7 +370,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger := logger.With(zap.String("component", "telemetry"))
 
 		g.Go(func() error {
-			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, analyticsEndpoint, info)
+			reporter, err := telemetry.NewReporter(*cfg, logger, r.analyticsKey, r.analyticsEndpoint, serverInfo)
 			if err != nil {
 				logger.Debug("initializing telemetry reporter", zap.Error(err))
 				return nil
@@ -358,7 +393,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	))
 
 	// initialize grpc server
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, serverInfo, r.forceMigrate)
 	if err != nil {
 		return err
 	}
@@ -366,7 +401,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts grpc server
 	g.Go(grpcServer.Run)
 
-	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, info)
+	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, ipch, serverInfo)
 	if err != nil {
 		return err
 	}

@@ -14,6 +14,7 @@ import (
 )
 
 type exportCommand struct {
+	root          *rootCommand
 	filename      string
 	address       string
 	token         string
@@ -22,8 +23,10 @@ type exportCommand struct {
 	sortByKey     bool
 }
 
-func newExportCommand() *cobra.Command {
-	export := &exportCommand{}
+func newExportCommand(root *rootCommand) *cobra.Command {
+	export := &exportCommand{
+		root: root,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "export",
@@ -80,7 +83,7 @@ func newExportCommand() *cobra.Command {
 		"sort exported resources by key",
 	)
 
-	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
+	cmd.Flags().StringVar(&export.root.configFile, "config", export.root.configFile, "path to config file")
 
 	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
 
@@ -107,7 +110,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 		defer fi.Close()
 
-		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
+		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", c.root.version, time.Now().UTC().Format(time.RFC3339))
 
 		out = fi
 
@@ -126,8 +129,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		return c.export(ctx, enc, out, client)
 	}
 
-	// Otherwise, go direct to the DB using Flipt configuration file.
-	logger, cfg, err := buildConfig(ctx)
+	logger, cfg, err := c.root.buildConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -136,6 +138,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		_ = logger.Sync()
 	}()
 
+	// Otherwise, go direct to the DB using Flipt configuration file.
 	server, cleanup, err := fliptServer(logger, cfg)
 	if err != nil {
 		return err

@@ -13,6 +13,7 @@ import (
 )
 
 type validateCommand struct {
+	root          *rootCommand
 	issueExitCode int
 	format        string
 	extraPath     string
@@ -24,8 +25,10 @@ const (
 	textFormat = "text"
 )
 
-func newValidateCommand() *cobra.Command {
-	v := &validateCommand{}
+func newValidateCommand(root *rootCommand) *cobra.Command {
+	v := &validateCommand{
+		root: root,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "validate",
@@ -61,7 +64,7 @@ func newValidateCommand() *cobra.Command {
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	logger, _, err := buildConfig(ctx)
+	logger, _, err := v.root.buildConfig(ctx)
 	if err != nil {
 		return err
 	}
