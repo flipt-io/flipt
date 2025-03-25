@@ -68,8 +68,8 @@ func (s *DBTestSuite) TestGetRule() {
 	assert.Equal(t, rule.FlagKey, got.FlagKey)
 	assert.Equal(t, rule.SegmentKey, got.SegmentKey)
 	assert.Equal(t, rule.Rank, got.Rank)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetRule_MultipleSegments() {
@@ -135,8 +135,8 @@ func (s *DBTestSuite) TestGetRule_MultipleSegments() {
 	assert.Equal(t, firstSegment.Key, rule.SegmentKeys[0])
 	assert.Equal(t, secondSegment.Key, rule.SegmentKeys[1])
 	assert.Equal(t, rule.Rank, got.Rank)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetRuleNamespace() {
@@ -194,8 +194,8 @@ func (s *DBTestSuite) TestGetRuleNamespace() {
 	assert.Equal(t, rule.FlagKey, got.FlagKey)
 	assert.Equal(t, rule.SegmentKey, got.SegmentKey)
 	assert.Equal(t, rule.Rank, got.Rank)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetRule_NotFound() {
@@ -278,8 +278,8 @@ func (s *DBTestSuite) TestListRules() {
 
 	for _, rule := range got {
 		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
-		assert.NotZero(t, rule.CreatedAt)
-		assert.NotZero(t, rule.UpdatedAt)
+		assert.NotEmpty(t, rule.CreatedAt)
+		assert.NotEmpty(t, rule.UpdatedAt)
 	}
 }
 
@@ -359,8 +359,8 @@ func (s *DBTestSuite) TestListRules_MultipleSegments() {
 		assert.Len(t, rule.SegmentKeys, 2)
 		assert.Contains(t, rule.SegmentKeys, firstSegment.Key)
 		assert.Contains(t, rule.SegmentKeys, secondSegment.Key)
-		assert.NotZero(t, rule.CreatedAt)
-		assert.NotZero(t, rule.UpdatedAt)
+		assert.NotEmpty(t, rule.CreatedAt)
+		assert.NotEmpty(t, rule.UpdatedAt)
 	}
 }
 
@@ -427,8 +427,8 @@ func (s *DBTestSuite) TestListRulesNamespace() {
 
 	for _, rule := range got {
 		assert.Equal(t, s.namespace, rule.NamespaceKey)
-		assert.NotZero(t, rule.CreatedAt)
-		assert.NotZero(t, rule.UpdatedAt)
+		assert.NotEmpty(t, rule.CreatedAt)
+		assert.NotEmpty(t, rule.UpdatedAt)
 	}
 }
 
@@ -731,11 +731,11 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	assert.NotZero(t, rule.Id)
+	assert.NotEmpty(t, rule.Id)
 	assert.Equal(t, flag.Key, rule.FlagKey)
 	assert.Equal(t, segment.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
-	assert.NotZero(t, rule.CreatedAt)
+	assert.NotEmpty(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
@@ -746,11 +746,11 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	})
 
 	require.NoError(t, err)
-	assert.NotZero(t, distribution.Id)
+	assert.NotEmpty(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variant.Id, distribution.VariantId)
 	assert.InDelta(t, 100, distribution.Rollout, 0)
-	assert.NotZero(t, distribution.CreatedAt)
+	assert.NotEmpty(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 }
 
@@ -801,11 +801,11 @@ func (s *DBTestSuite) TestCreateRuleAndDistributionNamespace() {
 	assert.NotNil(t, rule)
 
 	assert.Equal(t, s.namespace, rule.NamespaceKey)
-	assert.NotZero(t, rule.Id)
+	assert.NotEmpty(t, rule.Id)
 	assert.Equal(t, flag.Key, rule.FlagKey)
 	assert.Equal(t, segment.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
-	assert.NotZero(t, rule.CreatedAt)
+	assert.NotEmpty(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 	assert.Equal(t, flipt.SegmentOperator_OR_SEGMENT_OPERATOR, rule.SegmentOperator)
 
@@ -818,11 +818,11 @@ func (s *DBTestSuite) TestCreateRuleAndDistributionNamespace() {
 	})
 
 	require.NoError(t, err)
-	assert.NotZero(t, distribution.Id)
+	assert.NotEmpty(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variant.Id, distribution.VariantId)
 	assert.InDelta(t, 100, distribution.Rollout, 0)
-	assert.NotZero(t, distribution.CreatedAt)
+	assert.NotEmpty(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 }
 
@@ -981,11 +981,11 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	assert.NotZero(t, rule.Id)
+	assert.NotEmpty(t, rule.Id)
 	assert.Equal(t, flag.Key, rule.FlagKey)
 	assert.Equal(t, segmentOne.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
-	assert.NotZero(t, rule.CreatedAt)
+	assert.NotEmpty(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
@@ -996,11 +996,11 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	})
 
 	require.NoError(t, err)
-	assert.NotZero(t, distribution.Id)
+	assert.NotEmpty(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variantOne.Id, distribution.VariantId)
 	assert.InDelta(t, 100, distribution.Rollout, 0)
-	assert.NotZero(t, distribution.CreatedAt)
+	assert.NotEmpty(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 
 	segmentTwo, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
@@ -1028,7 +1028,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, int32(1), updatedRule.Rank)
 	assert.Equal(t, flipt.SegmentOperator_OR_SEGMENT_OPERATOR, updatedRule.SegmentOperator)
 	// assert.Equal(t, rule.CreatedAt.Seconds, updatedRule.CreatedAt.Seconds)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	t.Log("Update rule to references two segments.")
 
@@ -1048,7 +1048,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Contains(t, updatedRule.SegmentKeys, segmentTwo.Key)
 	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, updatedRule.SegmentOperator)
 	assert.Equal(t, int32(1), updatedRule.Rank)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	// update distribution rollout
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
@@ -1064,7 +1064,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
 	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	// update distribution variant
 	updatedDistribution, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
@@ -1080,7 +1080,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
 	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	err = s.store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,
@@ -1147,11 +1147,11 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.NotNil(t, rule)
 
 	assert.Equal(t, s.namespace, rule.NamespaceKey)
-	assert.NotZero(t, rule.Id)
+	assert.NotEmpty(t, rule.Id)
 	assert.Equal(t, flag.Key, rule.FlagKey)
 	assert.Equal(t, segmentOne.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
-	assert.NotZero(t, rule.CreatedAt)
+	assert.NotEmpty(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
@@ -1163,11 +1163,11 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	})
 
 	require.NoError(t, err)
-	assert.NotZero(t, distribution.Id)
+	assert.NotEmpty(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
 	assert.Equal(t, variantOne.Id, distribution.VariantId)
 	assert.InDelta(t, 100, distribution.Rollout, 0)
-	assert.NotZero(t, distribution.CreatedAt)
+	assert.NotEmpty(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
 
 	segmentTwo, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
@@ -1196,7 +1196,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, segmentTwo.Key, updatedRule.SegmentKey)
 	assert.Equal(t, int32(1), updatedRule.Rank)
 	// assert.Equal(t, rule.CreatedAt.Seconds, updatedRule.CreatedAt.Seconds)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	// update distribution rollout
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
@@ -1214,7 +1214,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
 	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	// update distribution variant
 	updatedDistribution, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
@@ -1232,7 +1232,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
 	assert.InDelta(t, 10, updatedDistribution.Rollout, 0)
 	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
-	assert.NotZero(t, rule.UpdatedAt)
+	assert.NotEmpty(t, rule.UpdatedAt)
 
 	err = s.store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,

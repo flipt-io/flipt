@@ -21,7 +21,7 @@ var (
 		"github.com/bufbuild/buf/cmd/buf",
 		"github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking",
 		"github.com/bufbuild/buf/cmd/protoc-gen-buf-lint",
-		"github.com/golangci/golangci-lint/cmd/golangci-lint",
+		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint",
 		"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway",
 		"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2",
 		"golang.org/x/tools/cmd/goimports",

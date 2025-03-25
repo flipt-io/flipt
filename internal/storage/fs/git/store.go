@@ -298,7 +298,8 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	if updated, err := s.fetch(ctx, s.snaps.References()); !(err == nil && updated) {
+	// nolint:staticcheck
+	if updated, err := s.fetch(ctx, s.snaps.References()); !(err == nil && updated) { // TODO: double check this
 		// either nothing updated or err != nil
 		return updated, err
 	}

@@ -19,6 +19,7 @@ func ListAll[P, V any](ctx context.Context, fn ListFunc[P, V], params ListAllPar
 	var req *ListRequest[P]
 
 	for {
+		// nolint:staticcheck
 		if req != nil && req.QueryParams.PageToken == "" {
 			break
 		}

@@ -1,76 +1,101 @@
-run:
-  # timeout for analysis, e.g. 30s, 5m, default is 1m
-  timeout: 5m
+version: "2"
 
-  # include test files or not, default is true
-  # tests: true
+run:
+  timeout: 5m
 
 linters:
   enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
     - depguard
-    - errcheck
+    - durationcheck
+    - errchkjson
+    - errorlint
+    - gocheckcompilerdirectives
+    - gochecksumtype
     - goconst
     - gocritic
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
+    - gosmopolitan
+    - loggercheck
+    - makezero
     - misspell
-    - staticcheck
-    - stylecheck
+    - nilerr
+    - nilnesserr
+    - noctx
+    - reassign
+    - rowserrcheck
+    - spancheck
     - sqlclosecheck
+    - staticcheck
+    - testifylint
     - unconvert
     - unparam
-    - unused
+    - zerologlint
   disable:
     - contextcheck
     - exhaustive
-    - protogetter
     - musttag
+    - protogetter
     - recvcheck
-  enable-all: false
-  presets:
-    - bugs
-    - unused
-
-issues:
-  # List of regexps of issue texts to exclude, empty list by default.
-  # But independently from this option we use default exclude patterns,
-  # it can be disabled by `exclude-use-default: false`. To list all
-  # excluded by default patterns execute `golangci-lint run --help`
-  exclude:
-    - "composite literal uses unkeyed fields"
-  exclude-dirs:
-    - "bin"
-    - "_tools"
-    - "dist"
-    - "rpc/flipt"
-    - "ui"
-
-  exclude-files:
-    - ".*pb.go"
-
-linters-settings:
-  depguard:
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: Should be replaced by standard lib errors package
+    gosec:
+      excludes:
+        - G501
+        - G401
+        - G404
+        - G602
+        - G115
+    staticcheck:
+      checks:
+        - "-SA1019"
+        - "-ST1003"
+        - "-QF1008"
+        - all
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
     rules:
-      main:
-        deny:
-          - pkg: "github.com/pkg/errors"
-            desc: Should be replaced by standard lib errors package
-  staticcheck:
-    checks:
-      - all
-      - "-SA1019" # exclude staticcheck messages from github.com/golang/protobuf
-  stylecheck:
-    checks:
-      - all
-      - "-ST1003" # exclude underscores
-  gosec:
-    excludes: # exclude gosec messages about weak crypto
-      - "G501"
-      - "G401"
-      - "G404"
-      - "G602" # False positive for this rule in v1.54.2 https://github.com/securego/gosec/issues/1005
-      - "G115"
-  goconst:
-    ignore-tests: true
+      - path: (.+)\.go$
+        text: composite literal uses unkeyed fields
+      - linters:
+          - goconst
+        path: (.+)_test\.go
+      - text: "SA1019: "
+        linters:
+          - staticcheck
+      - text: "ST1003: "
+        linters:
+          - staticcheck
+      - text: "QF1008: "
+        linters:
+          - staticcheck
+    paths:
+      - .*pb.go
+      - bin
+      - _tools
+      - dist
+      - rpc/flipt
+      - ui
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

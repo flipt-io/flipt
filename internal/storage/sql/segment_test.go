@@ -40,8 +40,8 @@ func (s *DBTestSuite) TestGetSegment() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -68,8 +68,8 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -116,8 +116,8 @@ func (s *DBTestSuite) TestGetSegment_WithConstraint() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 
 	require.Len(t, got.Constraints, 1)
@@ -154,8 +154,8 @@ func (s *DBTestSuite) TestListSegments() {
 
 	for _, segment := range got {
 		assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
-		assert.NotZero(t, segment.CreatedAt)
-		assert.NotZero(t, segment.UpdatedAt)
+		assert.NotEmpty(t, segment.CreatedAt)
+		assert.NotEmpty(t, segment.UpdatedAt)
 	}
 }
 
@@ -189,8 +189,8 @@ func (s *DBTestSuite) TestListSegmentsNamespace() {
 
 	for _, segment := range got {
 		assert.Equal(t, s.namespace, segment.NamespaceKey)
-		assert.NotZero(t, segment.CreatedAt)
-		assert.NotZero(t, segment.UpdatedAt)
+		assert.NotEmpty(t, segment.CreatedAt)
+		assert.NotEmpty(t, segment.UpdatedAt)
 	}
 }
 
@@ -317,7 +317,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the middle segment
 	assert.Equal(t, middle.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
@@ -336,7 +336,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the oldest segment
 	assert.Equal(t, oldest.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
@@ -465,7 +465,7 @@ func (s *DBTestSuite) TestCreateSegment() {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
-	assert.NotZero(t, segment.CreatedAt)
+	assert.NotEmpty(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
@@ -487,7 +487,7 @@ func (s *DBTestSuite) TestCreateSegmentNamespace() {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
-	assert.NotZero(t, segment.CreatedAt)
+	assert.NotEmpty(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
@@ -550,7 +550,7 @@ func (s *DBTestSuite) TestUpdateSegment() {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
-	assert.NotZero(t, segment.CreatedAt)
+	assert.NotEmpty(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
@@ -567,8 +567,8 @@ func (s *DBTestSuite) TestUpdateSegment() {
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, updated.MatchType)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateSegmentNamespace() {
@@ -589,7 +589,7 @@ func (s *DBTestSuite) TestUpdateSegmentNamespace() {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
-	assert.NotZero(t, segment.CreatedAt)
+	assert.NotEmpty(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
@@ -607,8 +607,8 @@ func (s *DBTestSuite) TestUpdateSegmentNamespace() {
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, updated.MatchType)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateSegment_NotFound() {
@@ -837,14 +837,14 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	require.NoError(t, err)
 	assert.NotNil(t, constraint)
 
-	assert.NotZero(t, constraint.Id)
+	assert.NotEmpty(t, constraint.Id)
 	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
 	assert.Equal(t, flipt.OpEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
-	assert.NotZero(t, constraint.CreatedAt)
+	assert.NotEmpty(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 	assert.Equal(t, "desc", constraint.Description)
 
@@ -883,14 +883,14 @@ func (s *DBTestSuite) TestCreateConstraintNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, constraint)
 
-	assert.NotZero(t, constraint.Id)
+	assert.NotEmpty(t, constraint.Id)
 	assert.Equal(t, s.namespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
 	assert.Equal(t, flipt.OpEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
-	assert.NotZero(t, constraint.CreatedAt)
+	assert.NotEmpty(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 	assert.Equal(t, "desc", constraint.Description)
 
@@ -960,14 +960,14 @@ func (s *DBTestSuite) TestGetSegmentWithConstraintMultiNamespace() {
 		require.NoError(t, err)
 		assert.NotNil(t, constraint)
 
-		assert.NotZero(t, constraint.Id)
+		assert.NotEmpty(t, constraint.Id)
 		assert.Equal(t, namespace, constraint.NamespaceKey)
 		assert.Equal(t, segment.Key, constraint.SegmentKey)
 		assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 		assert.Equal(t, "foo", constraint.Property)
 		assert.Equal(t, flipt.OpEQ, constraint.Operator)
 		assert.Equal(t, "bar", constraint.Value)
-		assert.NotZero(t, constraint.CreatedAt)
+		assert.NotEmpty(t, constraint.CreatedAt)
 		assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 		assert.Equal(t, "desc", constraint.Description)
 	}
@@ -982,14 +982,14 @@ func (s *DBTestSuite) TestGetSegmentWithConstraintMultiNamespace() {
 	assert.Len(t, segment.Constraints, 1)
 
 	constraint := segment.Constraints[0]
-	assert.NotZero(t, constraint.Id)
+	assert.NotEmpty(t, constraint.Id)
 	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
 	assert.Equal(t, flipt.OpEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
-	assert.NotZero(t, constraint.CreatedAt)
+	assert.NotEmpty(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 	assert.Equal(t, "desc", constraint.Description)
 }
@@ -1017,14 +1017,14 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	require.NoError(t, err)
 	assert.NotNil(t, constraint)
 
-	assert.NotZero(t, constraint.Id)
+	assert.NotEmpty(t, constraint.Id)
 	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
 	assert.Equal(t, flipt.OpEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
-	assert.NotZero(t, constraint.CreatedAt)
+	assert.NotEmpty(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
@@ -1046,8 +1046,8 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.Equal(t, constraint.Property, updated.Property)
 	assert.Equal(t, flipt.OpEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again
@@ -1084,14 +1084,14 @@ func (s *DBTestSuite) TestUpdateConstraintNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, constraint)
 
-	assert.NotZero(t, constraint.Id)
+	assert.NotEmpty(t, constraint.Id)
 	assert.Equal(t, s.namespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
 	assert.Equal(t, flipt.OpEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
-	assert.NotZero(t, constraint.CreatedAt)
+	assert.NotEmpty(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
@@ -1114,8 +1114,8 @@ func (s *DBTestSuite) TestUpdateConstraintNamespace() {
 	assert.Equal(t, constraint.Property, updated.Property)
 	assert.Equal(t, flipt.OpEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again

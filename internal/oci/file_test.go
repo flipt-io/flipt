@@ -511,7 +511,7 @@ func testEcrStub(t testing.TB, tokenTtl time.Duration) (registry string, endpoin
 		switch amzTarget {
 		case "AmazonEC2ContainerRegistry_V20150921.GetAuthorizationToken":
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(fmt.Sprintf(`{"authorizationData": [{"authorizationToken": "%s", "expiresAt": %d}]}`, token, requestTime.Unix())))
+			_, _ = fmt.Fprintf(w, `{"authorizationData": [{"authorizationToken": "%s", "expiresAt": %d}]}`, token, requestTime.Unix())
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 		}

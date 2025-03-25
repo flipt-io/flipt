@@ -54,8 +54,8 @@ func (s *DBTestSuite) TestGetRollout() {
 	assert.Equal(t, rollout.Rank, got.Rank)
 	assert.Equal(t, rollout.Type, got.Type)
 	assert.Equal(t, rollout.Rule, got.Rule)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetRolloutNamespace() {
@@ -99,8 +99,8 @@ func (s *DBTestSuite) TestGetRolloutNamespace() {
 	assert.Equal(t, rollout.Rank, got.Rank)
 	assert.Equal(t, rollout.Type, got.Type)
 	assert.Equal(t, rollout.Rule, got.Rule)
-	assert.NotZero(t, got.CreatedAt)
-	assert.NotZero(t, got.UpdatedAt)
+	assert.NotEmpty(t, got.CreatedAt)
+	assert.NotEmpty(t, got.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetRollout_NotFound() {
@@ -177,8 +177,8 @@ func (s *DBTestSuite) TestListRollouts() {
 
 	for _, rollout := range got {
 		assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
-		assert.NotZero(t, rollout.CreatedAt)
-		assert.NotZero(t, rollout.UpdatedAt)
+		assert.NotEmpty(t, rollout.CreatedAt)
+		assert.NotEmpty(t, rollout.UpdatedAt)
 	}
 }
 
@@ -256,8 +256,8 @@ func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
 		assert.Len(t, rs.Segment.SegmentKeys, 2)
 		assert.Contains(t, rs.Segment.SegmentKeys, firstSegment.Key)
 		assert.Contains(t, rs.Segment.SegmentKeys, secondSegment.Key)
-		assert.NotZero(t, rollout.CreatedAt)
-		assert.NotZero(t, rollout.UpdatedAt)
+		assert.NotEmpty(t, rollout.CreatedAt)
+		assert.NotEmpty(t, rollout.UpdatedAt)
 	}
 }
 
@@ -314,8 +314,8 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 
 	for _, rollout := range got {
 		assert.Equal(t, s.namespace, rollout.NamespaceKey)
-		assert.NotZero(t, rollout.CreatedAt)
-		assert.NotZero(t, rollout.UpdatedAt)
+		assert.NotEmpty(t, rollout.CreatedAt)
+		assert.NotEmpty(t, rollout.UpdatedAt)
 	}
 }
 
@@ -557,14 +557,14 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	assert.NotZero(t, rollout.Id)
+	assert.NotEmpty(t, rollout.Id)
 	assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
 	assert.Equal(t, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE, rollout.Type)
 	assert.Equal(t, segmentOne.Key, rollout.GetSegment().SegmentKey)
 	assert.True(t, rollout.GetSegment().Value)
-	assert.NotZero(t, rollout.CreatedAt)
+	assert.NotEmpty(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 	assert.Equal(t, flipt.SegmentOperator_OR_SEGMENT_OPERATOR, rollout.GetSegment().SegmentOperator)
 
@@ -593,8 +593,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Contains(t, updated.GetSegment().SegmentKeys, segmentTwo.Key)
 	assert.False(t, updated.GetSegment().Value)
 	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, updated.GetSegment().SegmentOperator)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateRollout_OneSegment() {
@@ -643,7 +643,7 @@ func (s *DBTestSuite) TestUpdateRollout_OneSegment() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	assert.NotZero(t, rollout.Id)
+	assert.NotEmpty(t, rollout.Id)
 	assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
@@ -651,7 +651,7 @@ func (s *DBTestSuite) TestUpdateRollout_OneSegment() {
 	assert.Contains(t, rollout.GetSegment().SegmentKeys, segmentOne.Key)
 	assert.Contains(t, rollout.GetSegment().SegmentKeys, segmentTwo.Key)
 	assert.True(t, rollout.GetSegment().Value)
-	assert.NotZero(t, rollout.CreatedAt)
+	assert.NotEmpty(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, rollout.GetSegment().SegmentOperator)
 
@@ -679,8 +679,8 @@ func (s *DBTestSuite) TestUpdateRollout_OneSegment() {
 	assert.Equal(t, segmentOne.Key, updated.GetSegment().SegmentKey)
 	assert.False(t, updated.GetSegment().Value)
 	assert.Equal(t, flipt.SegmentOperator_OR_SEGMENT_OPERATOR, updated.GetSegment().SegmentOperator)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateRolloutNamespace() {
@@ -712,14 +712,14 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	assert.NotZero(t, rollout.Id)
+	assert.NotEmpty(t, rollout.Id)
 	assert.Equal(t, s.namespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
 	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, rollout.Type)
 	assert.InDelta(t, 40, rollout.GetThreshold().Percentage, 0)
 	assert.True(t, rollout.GetThreshold().Value)
-	assert.NotZero(t, rollout.CreatedAt)
+	assert.NotEmpty(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateRollout(context.TODO(), &flipt.UpdateRolloutRequest{
@@ -745,8 +745,8 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, updated.Type)
 	assert.InDelta(t, 80, updated.GetThreshold().Percentage, 0)
 	assert.False(t, updated.GetThreshold().Value)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
@@ -788,14 +788,14 @@ func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
 	require.NoError(t, err)
 	assert.NotNil(t, rollout)
 
-	assert.NotZero(t, rollout.Id)
+	assert.NotEmpty(t, rollout.Id)
 	assert.Equal(t, s.namespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
 	assert.Equal(t, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE, rollout.Type)
 	assert.Equal(t, "segment_one", rollout.GetSegment().SegmentKey)
 	assert.True(t, rollout.GetSegment().Value)
-	assert.NotZero(t, rollout.CreatedAt)
+	assert.NotEmpty(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
 	_, err = s.store.UpdateRollout(context.TODO(), &flipt.UpdateRolloutRequest{

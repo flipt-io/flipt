@@ -52,8 +52,8 @@ func (s *DBTestSuite) TestGetFlag() {
 	assert.Equal(t, flag.Enabled, got.Enabled)
 	assert.Equal(t, flag.Metadata.String(), got.Metadata.String())
 
-	assert.NotZero(t, flag.CreatedAt)
-	assert.NotZero(t, flag.UpdatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetFlagNamespace() {
@@ -80,8 +80,8 @@ func (s *DBTestSuite) TestGetFlagNamespace() {
 	assert.Equal(t, flag.Name, got.Name)
 	assert.Equal(t, flag.Description, got.Description)
 	assert.Equal(t, flag.Enabled, got.Enabled)
-	assert.NotZero(t, flag.CreatedAt)
-	assert.NotZero(t, flag.UpdatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetFlag_NotFound() {
@@ -134,8 +134,8 @@ func (s *DBTestSuite) TestListFlags() {
 
 	for _, flag := range got {
 		assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
-		assert.NotZero(t, flag.CreatedAt)
-		assert.NotZero(t, flag.UpdatedAt)
+		assert.NotEmpty(t, flag.CreatedAt)
+		assert.NotEmpty(t, flag.UpdatedAt)
 	}
 }
 
@@ -171,8 +171,8 @@ func (s *DBTestSuite) TestListFlagsNamespace() {
 
 	for _, flag := range got {
 		assert.Equal(t, s.namespace, flag.NamespaceKey)
-		assert.NotZero(t, flag.CreatedAt)
-		assert.NotZero(t, flag.UpdatedAt)
+		assert.NotEmpty(t, flag.CreatedAt)
+		assert.NotEmpty(t, flag.UpdatedAt)
 	}
 }
 
@@ -329,7 +329,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the middle flag
 	assert.Equal(t, middle.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	req.QueryParams.PageToken = res.NextPageToken
 
@@ -349,7 +349,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the oldest flag
 	assert.Equal(t, oldest.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	req.QueryParams.Limit = 1
 	req.QueryParams.Order = storage.OrderDesc
@@ -486,7 +486,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
 	assert.Equal(t, metadata.String(), flag.Metadata.String())
-	assert.NotZero(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
@@ -508,7 +508,7 @@ func (s *DBTestSuite) TestCreateFlagNamespace() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
-	assert.NotZero(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
@@ -582,7 +582,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
 	assert.Equal(t, metadata.String(), flag.Metadata.String())
-	assert.NotZero(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
 	updatedMetadataMap := map[string]any{
@@ -607,8 +607,8 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
 	assert.Equal(t, updatedMetadata.String(), updated.Metadata.String())
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateFlagNamespace() {
@@ -629,7 +629,7 @@ func (s *DBTestSuite) TestUpdateFlagNamespace() {
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
-	assert.NotZero(t, flag.CreatedAt)
+	assert.NotEmpty(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
@@ -647,8 +647,8 @@ func (s *DBTestSuite) TestUpdateFlagNamespace() {
 	assert.Equal(t, flag.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateFlag_NotFound() {
@@ -912,14 +912,14 @@ func (s *DBTestSuite) TestCreateVariant() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	assert.NotZero(t, variant.Id)
+	assert.NotEmpty(t, variant.Id)
 	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.Equal(t, attachment, variant.Attachment)
-	assert.NotZero(t, variant.CreatedAt)
+	assert.NotEmpty(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
@@ -958,14 +958,14 @@ func (s *DBTestSuite) TestCreateVariantNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	assert.NotZero(t, variant.Id)
+	assert.NotEmpty(t, variant.Id)
 	assert.Equal(t, s.namespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.Equal(t, attachment, variant.Attachment)
-	assert.NotZero(t, variant.CreatedAt)
+	assert.NotEmpty(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
@@ -1098,7 +1098,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateKey_DifferentFlag() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant1)
 
-	assert.NotZero(t, variant1.Id)
+	assert.NotEmpty(t, variant1.Id)
 	assert.Equal(t, flag1.Key, variant1.FlagKey)
 	assert.Equal(t, "foo", variant1.Key)
 
@@ -1122,7 +1122,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateKey_DifferentFlag() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant2)
 
-	assert.NotZero(t, variant2.Id)
+	assert.NotEmpty(t, variant2.Id)
 	assert.Equal(t, flag2.Key, variant2.FlagKey)
 	assert.Equal(t, "foo", variant2.Key)
 }
@@ -1152,7 +1152,7 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateKey() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant1)
 
-	assert.NotZero(t, variant1.Id)
+	assert.NotEmpty(t, variant1.Id)
 	assert.Equal(t, s.namespace, variant1.NamespaceKey)
 	assert.Equal(t, flag1.Key, variant1.FlagKey)
 	assert.Equal(t, "foo", variant1.Key)
@@ -1177,7 +1177,7 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateKey() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant2)
 
-	assert.NotZero(t, variant2.Id)
+	assert.NotEmpty(t, variant2.Id)
 	assert.Equal(t, storage.DefaultNamespace, variant2.NamespaceKey)
 	assert.Equal(t, flag2.Key, variant2.FlagKey)
 	assert.Equal(t, "foo", variant2.Key)
@@ -1211,14 +1211,14 @@ func (s *DBTestSuite) TestGetFlagWithVariantsMultiNamespace() {
 		require.NoError(t, err)
 		assert.NotNil(t, variant)
 
-		assert.NotZero(t, variant.Id)
+		assert.NotEmpty(t, variant.Id)
 		assert.Equal(t, namespace, variant.NamespaceKey)
 		assert.Equal(t, flag.Key, variant.FlagKey)
 		assert.Equal(t, t.Name(), variant.Key)
 		assert.Equal(t, "foo", variant.Name)
 		assert.Equal(t, "bar", variant.Description)
 		assert.Equal(t, attachment, variant.Attachment)
-		assert.NotZero(t, variant.CreatedAt)
+		assert.NotEmpty(t, variant.CreatedAt)
 		assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 	}
 
@@ -1231,14 +1231,14 @@ func (s *DBTestSuite) TestGetFlagWithVariantsMultiNamespace() {
 	assert.Len(t, flag.Variants, 1)
 
 	variant := flag.Variants[0]
-	assert.NotZero(t, variant.Id)
+	assert.NotEmpty(t, variant.Id)
 	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.JSONEq(t, `{"key":"value"}`, variant.Attachment)
-	assert.NotZero(t, variant.CreatedAt)
+	assert.NotEmpty(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 }
 
@@ -1267,14 +1267,14 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	assert.NotZero(t, variant.Id)
+	assert.NotEmpty(t, variant.Id)
 	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, "foo", variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.Equal(t, attachment1, variant.Attachment)
-	assert.NotZero(t, variant.CreatedAt)
+	assert.NotEmpty(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
@@ -1295,8 +1295,8 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.JSONEq(t, `{"key":"value2"}`, updated.Attachment)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 
 	// get the flag again
 	flag, err = s.store.GetFlag(context.TODO(), storage.NewResource(storage.DefaultNamespace, flag.Key))
@@ -1334,14 +1334,14 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	assert.NotZero(t, variant.Id)
+	assert.NotEmpty(t, variant.Id)
 	assert.Equal(t, s.namespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, "foo", variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.Equal(t, attachment1, variant.Attachment)
-	assert.NotZero(t, variant.CreatedAt)
+	assert.NotEmpty(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
@@ -1363,8 +1363,8 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.JSONEq(t, `{"key":"value2"}`, updated.Attachment)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 
 	// get the flag again
 	flag, err = s.store.GetFlag(context.TODO(), storage.NewResource(s.namespace, flag.Key))
