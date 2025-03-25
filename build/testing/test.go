@@ -12,16 +12,15 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 	// create Redis service container
 	redisSrv := client.Container().
 		From("redis:alpine").
-		WithExposedPort(6379).
-		WithExec(nil)
+		WithExposedPort(6379)
 
 	gitea := client.Container().
 		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
-		WithExec(nil)
+		AsService()
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea.AsService()).
+		WithServiceBinding("gitea", gitea).
 		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", "./internal/storage/fs/git/testdata"})
 
 	out, err := flipt.Stdout(ctx)
@@ -40,24 +39,25 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true})
+		WithDefaultArgs([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 	azurite := client.Container().
 		From("mcr.microsoft.com/azure-storage/azurite").
 		WithExposedPort(10000).
-		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		WithDefaultArgs([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
 		AsService()
 
 	gcs := client.Container().
 		From("fsouza/fake-gcs-server").
 		WithExposedPort(4443).
-		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-		AsService()
+		WithDefaultArgs([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 	// S3 unit testing
 
 	flipt = flipt.
-		WithServiceBinding("minio", minio.AsService()).
+		WithServiceBinding("minio", minio).
 		WithEnvVariable("TEST_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password")
@@ -103,5 +103,4 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (
 
 	// attempt to export coverage if its exists
 	return flipt.File("coverage.txt"), nil
-
 }

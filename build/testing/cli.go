@@ -128,8 +128,8 @@ exit $?`,
 			WithEnvVariable("MINIO_ROOT_USER", "user").
 			WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 			WithEnvVariable("MINIO_BROWSER", "off").
-			WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-			AsService()
+			WithDefaultArgs([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+			AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 		if _, err := assertExec(ctx,
 			container.WithServiceBinding("minio", minio).

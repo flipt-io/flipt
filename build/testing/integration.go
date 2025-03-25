@@ -267,7 +267,7 @@ func take(fn func() error) func() error {
 func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return suite(ctx, "api", base,
 		// create unique instance for test case
-		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
+		flipt.WithEnvVariable("UNIQUE", uuid.New().String()), conf)
 }
 
 func snapshot(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -278,7 +278,7 @@ func snapshot(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "snapshot", base, flipt, conf)
 }
 
 func ofrep(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -289,7 +289,7 @@ func ofrep(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "ofrep", base, flipt, conf)
 }
 
 func withSQLite(fn testCaseFn) testCaseFn {
@@ -348,10 +348,8 @@ func withCockroach(fn testCaseFn) testCaseFn {
 				WithEnvVariable("COCKROACH_DATABASE", "defaultdb").
 				WithEnvVariable("UNIQUE", uuid.New().String()).
 				WithExposedPort(26257).
-				WithExec(
-					[]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"},
-					dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-				AsService()),
+				WithDefaultArgs([]string{"start-single-node", "--single-node", "--insecure", "--store=type=mem,size=0.7Gb", "--accept-sql-without-tls", "--logtostderr=ERROR"}).
+				AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})),
 			conf,
 		)
 	}
@@ -363,7 +361,7 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
 		WithEnvVariable("FLIPT_CACHE_TTL", "1s")
 
-	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "api", base, flipt, conf)
 }
 
 func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -376,7 +374,7 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 		WithExposedPort(6379).
 		WithNewFile("/opt/tls/key", string(keyBytes)).
 		WithNewFile("/opt/tls/crt", string(crtBytes)).
-		WithExec([]string{
+		WithDefaultArgs([]string{
 			"redis-server", "--tls-port", "6379", "--port", "0",
 			"--tls-key-file", "/opt/tls/key", "--tls-cert-file",
 			"/opt/tls/crt", "--tls-ca-cert-file", "/opt/tls/crt",
@@ -394,7 +392,7 @@ func cacheWithTLS(ctx context.Context, client *dagger.Client, base, flipt *dagge
 		WithEnvVariable("FLIPT_CACHE_REDIS_CA_CERT_PATH", "/opt/tls/crt").
 		WithNewFile("/opt/tls/crt", string(crtBytes)).
 		WithServiceBinding("redis", redis)
-	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "api", base, flipt, conf)
 }
 
 const (
@@ -410,13 +408,14 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
 		From("gitea/gitea:1.21.1").
-		WithExposedPort(3000)
+		WithExposedPort(3000).
+		AsService()
 
 	stew := config.Config{
 		URL: "http://gitea:3000",
@@ -458,15 +457,15 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithWorkdir("/work").
 		WithDirectory("/work/base", base.Directory(rootReadOnlyTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
-		WithServiceBinding("gitea", gitea.AsService()).
-		WithExec(nil).
+		WithServiceBinding("gitea", gitea).
+		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
 		return func() error { return err }
 	}
 
 	flipt = flipt.
-		WithServiceBinding("gitea", gitea.AsService()).
+		WithServiceBinding("gitea", gitea).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
@@ -477,7 +476,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	// Git backend supports arbitrary references
 	conf.references = true
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -488,8 +487,8 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("MINIO_ROOT_USER", "user").
 		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
 		WithEnvVariable("MINIO_BROWSER", "off").
-		WithExec([]string{"server", "/data", "--address", ":9009", "--quiet"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-		AsService()
+		WithDefaultArgs([]string{"server", "/data", "--address", ":9009", "--quiet"}).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 	_, err := base.
 		WithServiceBinding("minio", minio).
@@ -512,7 +511,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -549,12 +548,13 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 			platforms.MustParse(string(platform)).Architecture)).
 		WithExposedPort(5000).
 		WithNewFile("/etc/zot/htpasswd", htpasswd).
-		WithNewFile("/etc/zot/config.json", zotConfig)
+		WithNewFile("/etc/zot/config.json", zotConfig).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 	if _, err := flipt.
 		WithDirectory("/tmp/testdata", base.Directory(singleRevisionTestdataDir)).
 		WithWorkdir("/tmp/testdata").
-		WithServiceBinding("zot", zot.AsService()).
+		WithServiceBinding("zot", zot).
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
@@ -566,7 +566,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	}
 
 	flipt = flipt.
-		WithServiceBinding("zot", zot.AsService()).
+		WithServiceBinding("zot", zot).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
 		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
@@ -574,7 +574,7 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 func importInto(ctx context.Context, base, flipt, fliptToTest *dagger.Container, flags ...string) error {
@@ -609,8 +609,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 		// create unique instance for test case
 		fliptToTest := flipt.
-			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(nil)
+			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		if err := importInto(ctx, base, flipt, fliptToTest, flags...); err != nil {
 			return err
@@ -660,7 +659,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 func authn(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	// create unique instance for test case
-	fliptToTest := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil)
+	fliptToTest := flipt.WithEnvVariable("UNIQUE", uuid.New().String())
 	// import state into instance before running test
 	if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
 		return func() error { return err }
@@ -673,8 +672,7 @@ func authz(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 	return withAuthz(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		// create unique instance for test case
 		fliptToTest := flipt.
-			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(nil)
+			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		// import state into instance before running test
 		if err := importInto(ctx, base, flipt, fliptToTest, "--address", conf.address, "--token", bootstrapToken); err != nil {
@@ -906,7 +904,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		From("mcr.microsoft.com/azure-storage/azurite").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(10000).
-		WithExec([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
+		WithDefaultArgs([]string{"azurite-blob", "--blobHost", "0.0.0.0", "--silent"}).
 		AsService()
 
 	_, err := base.
@@ -930,7 +928,7 @@ func azblob(ctx context.Context, client *dagger.Client, base, flipt *dagger.Cont
 		WithEnvVariable("AZURE_STORAGE_KEY", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 // gcs simulates the Google Cloud Storage service
@@ -939,8 +937,8 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		From("fsouza/fake-gcs-server").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExposedPort(4443).
-		WithExec([]string{"-scheme", "http", "-public-host", "gcs:4443"}, dagger.ContainerWithExecOpts{UseEntrypoint: true}).
-		AsService()
+		WithDefaultArgs([]string{"-scheme", "http", "-public-host", "gcs:4443"}).
+		AsService(dagger.ContainerAsServiceOpts{UseEntrypoint: true})
 
 	_, err := base.
 		WithServiceBinding("gcs", gcs).
@@ -960,7 +958,7 @@ func gcs(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("STORAGE_EMULATOR_HOST", "gcs:4443").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+	return suite(ctx, "readonly", base, flipt, conf)
 }
 
 func signJWT(key crypto.PrivateKey, claims interface{}) string {
@@ -989,7 +987,7 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 // The function generates two JWTs, one for Flipt to identify itself and one which is returned to the caller.
 // The caller can use this as the service account token identity to be mounted into the container with the
 // client used for running the test and authenticating with Flipt.
-func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, []byte, error) {
+func serveOIDC(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container) (*dagger.Container, []byte, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, nil, err
@@ -1072,7 +1070,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 				WithNewFile("/server.key", caPrivKeyPEM.String()).
 				WithNewFile("/priv.pem", rsaSigningKey.String()).
 				WithExposedPort(443).
-				WithExec([]string{
+				WithDefaultArgs([]string{
 					"sh",
 					"-c",
 					"go run ./build/internal/cmd/discover/... --private-key /priv.pem",

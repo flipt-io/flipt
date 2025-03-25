@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.24"
-  DAGGER_VERSION: "0.14.0"
+  DAGGER_VERSION: "0.17.1"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -28,7 +28,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default cli
+          args: test --source . cli
 
   test:
     name: Integration Tests
@@ -70,7 +70,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default integration --cases ${{ matrix.test }}
+          args: test --source . integration --cases ${{ matrix.test }}
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v4
@@ -93,4 +93,4 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source .:default ui
+          args: test --source . ui
