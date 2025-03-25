@@ -14,19 +14,24 @@ import (
 )
 
 type initCommand struct {
+	configManager *configManager
+
 	force bool
 }
 
 func (c *initCommand) run(cmd *cobra.Command, args []string) error {
-	defaultFile := providedConfigFile
+	defaultFile := c.configManager.configFile
 
 	if defaultFile == "" {
 		defaultFile = userConfigFile
 	}
 
-	file := defaultFile
+	var (
+		file string
+		ack  bool
+	)
 
-	ack := c.force
+	ack = c.force
 	if !ack {
 		q := []*survey.Question{
 			{
@@ -82,11 +87,13 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-type editCommand struct{}
+type editCommand struct {
+	configManager *configManager
+}
 
 func (c *editCommand) run(cmd *cobra.Command, args []string) error {
 	// TODO: check if no TTY
-	file := providedConfigFile
+	file := c.configManager.configFile
 
 	if file == "" {
 		file = userConfigFile
@@ -124,7 +131,7 @@ func (c *editCommand) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func newConfigCommand() *cobra.Command {
+func newConfigCommand(configManager *configManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "config",
 		Short:   "Manage Flipt configuration",
@@ -132,8 +139,12 @@ func newConfigCommand() *cobra.Command {
 	}
 
 	var (
-		initCmd = &initCommand{}
-		editCmd = &editCommand{}
+		initCmd = &initCommand{
+			configManager: configManager,
+		}
+		editCmd = &editCommand{
+			configManager: configManager,
+		}
 	)
 
 	var init = &cobra.Command{
@@ -150,7 +161,6 @@ func newConfigCommand() *cobra.Command {
 		RunE:  editCmd.run,
 	}
 
-	cmd.PersistentFlags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	cmd.AddCommand(init)
 	cmd.AddCommand(edit)
 

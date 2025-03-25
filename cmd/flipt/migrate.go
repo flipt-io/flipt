@@ -10,71 +10,96 @@ import (
 )
 
 const (
-	defaultConfig = "default"
-	analytics     = "analytics"
+	// Default is the default database
+	defaultDatabase = "default"
+	// Analytics is the analytics database
+	analytics = "analytics"
 )
 
-var database string
-
 func runMigrations(cfg *config.Config, logger *zap.Logger, database string) error {
-	var (
-		migrator *sql.Migrator
-		err      error
-	)
-
+	var err error
 	if database == analytics {
-		migrator, err = sql.NewAnalyticsMigrator(*cfg, logger)
+		logger.Info("analytics migrations running")
+		logger.Debug("migrating analytics database")
+
+		migrator, err := sql.NewAnalyticsMigrator(*cfg, logger)
 		if err != nil {
-			return err
+			return fmt.Errorf("creating migrator: %w", err)
 		}
-	} else {
-		migrator, err = sql.NewMigrator(*cfg, logger)
-		if err != nil {
-			return err
+
+		if err := migrator.Up(false); err != nil {
+			return fmt.Errorf("running migrator %w", err)
 		}
+
+		if _, err := migrator.Close(); err != nil {
+			return fmt.Errorf("closing migrator: %w", err)
+		}
+
+		return nil
 	}
 
-	defer migrator.Close()
+	logger.Info("migrations running")
+	logger.Debug("migrating config/default database")
 
-	if err := migrator.Up(true); err != nil {
+	migrator, err := sql.NewMigrator(*cfg, logger)
+	if err != nil {
+		return fmt.Errorf("creating migrator: %w", err)
+	}
+
+	if err := migrator.Up(false); err != nil {
 		return fmt.Errorf("running migrator %w", err)
 	}
 
 	return nil
 }
 
-func newMigrateCommand() *cobra.Command {
+type migrateCommand struct {
+	configManager *configManager
+
+	database     string
+	forceMigrate bool
+}
+
+func newMigrateCommand(configManager *configManager) *cobra.Command {
+	migrateCmd := &migrateCommand{
+		configManager: configManager,
+		database:      defaultDatabase,
+		forceMigrate:  false,
+	}
+
 	cmd := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run pending database migrations",
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			ctx := cmd.Context()
-			logger, cfg, err := buildConfig(ctx)
-			if err != nil {
-				return err
-			}
-
-			defer func() {
-				_ = logger.Sync()
-			}()
-
-			// Run the OLTP and OLAP database migrations sequentially because of
-			// potential danger in DB migrations in general.
-			if err := runMigrations(cfg, logger, defaultConfig); err != nil {
-				return err
-			}
-
-			if database == analytics {
-				if err := runMigrations(cfg, logger, analytics); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		},
+		RunE:  migrateCmd.run,
 	}
 
-	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-	cmd.Flags().StringVar(&database, "database", "default", "string to denote which database type to migrate")
+	cmd.Flags().StringVar(&migrateCmd.database, "database", defaultDatabase, "string to denote which database type to migrate")
 	return cmd
+}
+
+func (c *migrateCommand) run(cmd *cobra.Command, _ []string) error {
+	ctx := cmd.Context()
+
+	logger, cfg, err := c.configManager.build(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = logger.Sync()
+	}()
+
+	// Run the OLTP and OLAP database migrations sequentially because of
+	// potential danger in DB migrations in general.
+	if err := runMigrations(cfg, logger, defaultDatabase); err != nil {
+		return err
+	}
+
+	if c.database == analytics {
+		if err := runMigrations(cfg, logger, analytics); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

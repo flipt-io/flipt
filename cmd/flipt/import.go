@@ -16,6 +16,9 @@ import (
 )
 
 type importCommand struct {
+	configManager *configManager
+
+	forceMigrate     bool
 	dropBeforeImport bool
 	skipExisting     bool
 	importStdin      bool
@@ -23,14 +26,25 @@ type importCommand struct {
 	token            string
 }
 
-func newImportCommand() *cobra.Command {
-	importCmd := &importCommand{}
+func newImportCommand(configManager *configManager) *cobra.Command {
+	importCmd := &importCommand{
+		configManager: configManager,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import Flipt data from file/stdin",
 		RunE:  importCmd.run,
 	}
+
+	cmd.Flags().BoolVar(
+		&importCmd.forceMigrate,
+		"force-migrate",
+		false,
+		"force migrations before running",
+	)
+
+	_ = cmd.Flags().MarkHidden("force-migrate")
 
 	cmd.Flags().BoolVar(
 		&importCmd.dropBeforeImport,
@@ -66,7 +80,6 @@ func newImportCommand() *cobra.Command {
 		"client token used to authenticate access to Flipt instance.",
 	)
 
-	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
 
@@ -118,7 +131,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return ext.NewImporter(client).Import(ctx, enc, in, c.skipExisting)
 	}
 
-	logger, cfg, err := buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return err
 	}
@@ -129,7 +142,6 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	// drop tables if specified
 	if c.dropBeforeImport {
-
 		migrator, err := sql.NewMigrator(*cfg, logger)
 		if err != nil {
 			return err
@@ -149,7 +161,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := migrator.Up(forceMigrate); err != nil {
+	if err := migrator.Up(c.forceMigrate); err != nil {
 		return err
 	}
 

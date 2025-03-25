@@ -14,10 +14,14 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 )
 
-type bundleCommand struct{}
+type bundleCommand struct {
+	configManager *configManager
+}
 
-func newBundleCommand() *cobra.Command {
-	bundle := &bundleCommand{}
+func newBundleCommand(configManager *configManager) *cobra.Command {
+	bundle := &bundleCommand{
+		configManager: configManager,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "bundle",
@@ -154,7 +158,7 @@ func (c *bundleCommand) pull(cmd *cobra.Command, args []string) error {
 }
 
 func (c *bundleCommand) getStore(ctx context.Context) (*oci.Store, error) {
-	logger, cfg, err := buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return nil, err
 	}

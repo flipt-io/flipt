@@ -14,6 +14,8 @@ import (
 )
 
 type exportCommand struct {
+	configManager *configManager
+
 	filename      string
 	address       string
 	token         string
@@ -22,8 +24,10 @@ type exportCommand struct {
 	sortByKey     bool
 }
 
-func newExportCommand() *cobra.Command {
-	export := &exportCommand{}
+func newExportCommand(configManager *configManager) *cobra.Command {
+	export := &exportCommand{
+		configManager: configManager,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "export",
@@ -80,8 +84,6 @@ func newExportCommand() *cobra.Command {
 		"sort exported resources by key",
 	)
 
-	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
-
 	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
 
 	// We can ignore the error here since "namespace" will be a flag that exists.
@@ -126,8 +128,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		return c.export(ctx, enc, out, client)
 	}
 
-	// Otherwise, go direct to the DB using Flipt configuration file.
-	logger, cfg, err := buildConfig(ctx)
+	logger, cfg, err := c.configManager.build(ctx)
 	if err != nil {
 		return err
 	}
@@ -136,6 +137,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		_ = logger.Sync()
 	}()
 
+	// Otherwise, go direct to the DB using Flipt configuration file.
 	server, cleanup, err := fliptServer(logger, cfg)
 	if err != nil {
 		return err
