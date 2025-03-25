@@ -1,42 +1,46 @@
 package flipt
 
 const (
-	OpEQ         = "eq"
-	OpNEQ        = "neq"
-	OpLT         = "lt"
-	OpLTE        = "lte"
-	OpGT         = "gt"
-	OpGTE        = "gte"
-	OpEmpty      = "empty"
-	OpNotEmpty   = "notempty"
-	OpTrue       = "true"
-	OpFalse      = "false"
-	OpPresent    = "present"
-	OpNotPresent = "notpresent"
-	OpPrefix     = "prefix"
-	OpSuffix     = "suffix"
-	OpIsOneOf    = "isoneof"
-	OpIsNotOneOf = "isnotoneof"
+	OpEQ          = "eq"
+	OpNEQ         = "neq"
+	OpLT          = "lt"
+	OpLTE         = "lte"
+	OpGT          = "gt"
+	OpGTE         = "gte"
+	OpEmpty       = "empty"
+	OpNotEmpty    = "notempty"
+	OpTrue        = "true"
+	OpFalse       = "false"
+	OpPresent     = "present"
+	OpNotPresent  = "notpresent"
+	OpPrefix      = "prefix"
+	OpSuffix      = "suffix"
+	OpIsOneOf     = "isoneof"
+	OpIsNotOneOf  = "isnotoneof"
+	OpContains    = "contains"
+	OpNotContains = "notcontains"
 )
 
 var (
 	ValidOperators = map[string]struct{}{
-		OpEQ:         {},
-		OpNEQ:        {},
-		OpLT:         {},
-		OpLTE:        {},
-		OpGT:         {},
-		OpGTE:        {},
-		OpEmpty:      {},
-		OpNotEmpty:   {},
-		OpTrue:       {},
-		OpFalse:      {},
-		OpPresent:    {},
-		OpNotPresent: {},
-		OpPrefix:     {},
-		OpSuffix:     {},
-		OpIsOneOf:    {},
-		OpIsNotOneOf: {},
+		OpEQ:          {},
+		OpNEQ:         {},
+		OpLT:          {},
+		OpLTE:         {},
+		OpGT:          {},
+		OpGTE:         {},
+		OpEmpty:       {},
+		OpNotEmpty:    {},
+		OpTrue:        {},
+		OpFalse:       {},
+		OpPresent:     {},
+		OpNotPresent:  {},
+		OpPrefix:      {},
+		OpSuffix:      {},
+		OpIsOneOf:     {},
+		OpIsNotOneOf:  {},
+		OpContains:    {},
+		OpNotContains: {},
 	}
 	NoValueOperators = map[string]struct{}{
 		OpTrue:       {},
@@ -47,14 +51,16 @@ var (
 		OpNotPresent: {},
 	}
 	StringOperators = map[string]struct{}{
-		OpEQ:         {},
-		OpNEQ:        {},
-		OpEmpty:      {},
-		OpNotEmpty:   {},
-		OpPrefix:     {},
-		OpSuffix:     {},
-		OpIsOneOf:    {},
-		OpIsNotOneOf: {},
+		OpEQ:          {},
+		OpNEQ:         {},
+		OpEmpty:       {},
+		OpNotEmpty:    {},
+		OpPrefix:      {},
+		OpSuffix:      {},
+		OpIsOneOf:     {},
+		OpIsNotOneOf:  {},
+		OpContains:    {},
+		OpNotContains: {},
 	}
 	NumberOperators = map[string]struct{}{
 		OpEQ:         {},
@@ -75,9 +81,11 @@ var (
 		OpNotPresent: {},
 	}
 	EntityIdOperators = map[string]struct{}{
-		OpEQ:         {},
-		OpNEQ:        {},
-		OpIsOneOf:    {},
-		OpIsNotOneOf: {},
+		OpEQ:          {},
+		OpNEQ:         {},
+		OpIsOneOf:     {},
+		OpIsNotOneOf:  {},
+		OpContains:    {},
+		OpNotContains: {},
 	}
 )

@@ -357,6 +357,10 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 			return false
 		}
 		return !slices.Contains(values, v)
+	case flipt.OpContains:
+		return strings.Contains(v, value)
+	case flipt.OpNotContains:
+		return !strings.Contains(v, value)
 	}
 
 	return false
