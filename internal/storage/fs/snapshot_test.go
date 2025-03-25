@@ -287,8 +287,8 @@ func (fis *FSIndexSuite) TestGetNamespace() {
 
 		assert.Equal(t, tc.fliptNs.Key, ns.Key)
 		assert.Equal(t, tc.fliptNs.Name, ns.Name)
-		assert.NotZero(t, ns.CreatedAt)
-		assert.NotZero(t, ns.UpdatedAt)
+		assert.NotEmpty(t, ns.CreatedAt)
+		assert.NotEmpty(t, ns.UpdatedAt)
 	}
 }
 
@@ -312,8 +312,8 @@ func (fis *FSIndexSuite) TestListNamespaces() {
 	assert.Equal(t, "2", namespaces.NextPageToken)
 
 	for _, ns := range namespaces.Results {
-		assert.NotZero(t, ns.CreatedAt)
-		assert.NotZero(t, ns.UpdatedAt)
+		assert.NotEmpty(t, ns.CreatedAt)
+		assert.NotEmpty(t, ns.UpdatedAt)
 	}
 }
 

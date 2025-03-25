@@ -290,8 +290,8 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 				assert.Equal(t, test.requestID, resp.GetRequestId())
 			}
 
-			assert.NotZero(t, resp.GetTimestamp())
-			assert.NotZero(t, resp.GetRequestDurationMillis())
+			assert.NotEmpty(t, resp.GetTimestamp())
+			assert.NotEmpty(t, resp.GetRequestDurationMillis())
 		})
 	}
 }
@@ -333,7 +333,7 @@ func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
 	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
 	// check that the requestID was created and set
 	assert.NotEmpty(t, resp.RequestId)
-	assert.NotZero(t, resp.RequestDurationMillis)
+	assert.NotEmpty(t, resp.RequestDurationMillis)
 
 	req = &flipt.BatchEvaluationRequest{
 		RequestId: "bar",
@@ -360,7 +360,7 @@ func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
 	assert.Equal(t, "bar", resp.RequestId)
 
 	// TODO(yquansah): flakey assertion
-	// assert.NotZero(t, resp.RequestDurationMillis)
+	// assert.NotEmpty(t, resp.RequestDurationMillis)
 }
 
 type checkerDummy struct{}

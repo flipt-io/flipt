@@ -309,9 +309,10 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 	// we need to re-parse since we modified the query params
 	url, err = dburl.Parse(url.URL.String())
 
-	if url.Scheme == "http" {
+	switch url.Scheme {
+	case "http":
 		url.DSN = "http://" + url.DSN
-	} else if url.Scheme == "https" {
+	case "https":
 		url.DSN = "https://" + url.DSN
 	}
 

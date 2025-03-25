@@ -33,8 +33,8 @@ func (s *DBTestSuite) TestGetNamespace() {
 	assert.Equal(t, ns.Key, got.Key)
 	assert.Equal(t, ns.Name, got.Name)
 	assert.Equal(t, ns.Description, got.Description)
-	assert.NotZero(t, ns.CreatedAt)
-	assert.NotZero(t, ns.UpdatedAt)
+	assert.NotEmpty(t, ns.CreatedAt)
+	assert.NotEmpty(t, ns.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestGetNamespaceNotFound() {
@@ -82,8 +82,8 @@ func (s *DBTestSuite) TestListNamespaces() {
 	assert.NotEmpty(t, got)
 
 	for _, ns := range got {
-		assert.NotZero(t, ns.CreatedAt)
-		assert.NotZero(t, ns.UpdatedAt)
+		assert.NotEmpty(t, ns.CreatedAt)
+		assert.NotEmpty(t, ns.UpdatedAt)
 	}
 }
 
@@ -232,7 +232,7 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the middle namespace
 	assert.Equal(t, middle.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
@@ -254,7 +254,7 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	require.NoError(t, err)
 	// next page should be the oldest namespace
 	assert.Equal(t, oldest.Key, pageToken.Key)
-	assert.NotZero(t, pageToken.Offset)
+	assert.NotEmpty(t, pageToken.Offset)
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
@@ -298,7 +298,7 @@ func (s *DBTestSuite) TestCreateNamespace() {
 	assert.Equal(t, t.Name(), ns.Key)
 	assert.Equal(t, "foo", ns.Name)
 	assert.Equal(t, "bar", ns.Description)
-	assert.NotZero(t, ns.CreatedAt)
+	assert.NotEmpty(t, ns.CreatedAt)
 	assert.Equal(t, ns.CreatedAt.Seconds, ns.UpdatedAt.Seconds)
 }
 
@@ -336,7 +336,7 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 	assert.Equal(t, t.Name(), ns.Key)
 	assert.Equal(t, "foo", ns.Name)
 	assert.Equal(t, "bar", ns.Description)
-	assert.NotZero(t, ns.CreatedAt)
+	assert.NotEmpty(t, ns.CreatedAt)
 	assert.Equal(t, ns.CreatedAt.Seconds, ns.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateNamespace(context.TODO(), &flipt.UpdateNamespaceRequest{
@@ -350,8 +350,8 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 	assert.Equal(t, ns.Key, updated.Key)
 	assert.Equal(t, ns.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.NotZero(t, updated.CreatedAt)
-	assert.NotZero(t, updated.UpdatedAt)
+	assert.NotEmpty(t, updated.CreatedAt)
+	assert.NotEmpty(t, updated.UpdatedAt)
 }
 
 func (s *DBTestSuite) TestUpdateNamespace_NotFound() {

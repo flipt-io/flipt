@@ -31,8 +31,8 @@ func TestReadOnly(t *testing.T) {
 		assert.Equal(t, integration.DefaultNamespace, ns.Key)
 
 		assert.Equal(t, "Default", ns.Name)
-		assert.NotZero(t, ns.CreatedAt)
-		assert.NotZero(t, ns.UpdatedAt)
+		assert.NotEmpty(t, ns.CreatedAt)
+		assert.NotEmpty(t, ns.UpdatedAt)
 
 		t.Run(protocol.String(), func(t *testing.T) {
 			t.Run("ListNamespaces", func(t *testing.T) {
