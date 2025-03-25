@@ -267,7 +267,7 @@ func envsAPI(directory string) testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "environments", base, flipt.WithExec(nil), conf)
+		return suite(ctx, "environments", base, flipt, conf)
 	}, configTestdataDir)
 }
 
@@ -284,7 +284,7 @@ func authn() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "authn", base, flipt.WithExec(nil), conf)
+		return suite(ctx, "authn", base, flipt, conf)
 	}, testdataDir)
 }
 
@@ -294,7 +294,6 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			From("gitea/gitea:1.23.3").
 			WithExposedPort(3000).
 			WithEnvVariable("UNIQUE", time.Now().String()).
-			WithExec(nil).
 			AsService()
 
 		stew := config.Config{
@@ -334,7 +333,7 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			WithDirectory("/work/base", base.Directory(dataDir)).
 			WithNewFile("/etc/stew/config.yml", string(contents)).
 			WithServiceBinding("gitea", gitea).
-			WithExec(nil).
+			WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 			Sync(ctx)
 		if err != nil {
 			return func() error { return err }
@@ -635,7 +634,7 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 				WithNewFile("/server.key", caPrivKeyPEM.String()).
 				WithNewFile("/priv.pem", rsaSigningKey.String()).
 				WithExposedPort(443).
-				WithExec([]string{
+				WithDefaultArgs([]string{
 					"sh",
 					"-c",
 					"go run ./build/internal/cmd/discover/... --private-key /priv.pem",

@@ -16,7 +16,6 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		From("gitea/gitea:1.21.1").
 		WithExposedPort(3000).
 		WithEnvVariable("UNIQUE", time.Now().String()).
-		WithExec(nil).
 		AsService()
 
 	contents, err := yaml.Marshal(&config.Config{
@@ -53,7 +52,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithDirectory("/work/base", base.Directory(configTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
 		WithServiceBinding("gitea", gitea).
-		WithExec(nil).
+		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
 		Sync(ctx)
 	if err != nil {
 		return nil, err
@@ -117,7 +116,6 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithServiceBinding("flipt", flipt.
 			WithEnvVariable("CI", os.Getenv("CI")).
 			WithEnvVariable("UNIQUE", time.Now().String()).
-			WithExec(nil).
 			AsService()).
 		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
