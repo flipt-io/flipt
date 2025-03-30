@@ -1,17 +1,16 @@
 "use server";
 
-import { FliptClient } from "@flipt-io/flipt";
+import { FliptClient } from "@flipt-io/flipt-client-js";
 import { v4 as uuidv4 } from "uuid";
-
 export async function getGreeting() {
-  const flipt = new FliptClient({
-    url: process.env.FLIPT_ADDR ?? "http://flipt:8080",
+  const flipt = await FliptClient.init({
+    url: process.env.FLIPT_ADDR ?? "http://localhost:8080",
+    updateInterval: 10,
   });
 
   const uuid = uuidv4();
 
-  const result = await flipt.evaluation.variant({
-    namespaceKey: "default",
+  const result = flipt.evaluateVariant({
     flagKey: "language",
     entityId: uuid,
     context: {

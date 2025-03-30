@@ -2,10 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
-  experimental: {
-    esmExternals: "loose",
-  },
-  webpack: function (config, options) {
+  webpack: function (config, _) {
     config.experiments = { asyncWebAssembly: true, layers: true };
     return config;
   },
