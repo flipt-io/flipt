@@ -1,6 +1,7 @@
 module go.flipt.io/flipt
 
 go 1.24.0
+
 require (
 	cloud.google.com/go/storage v1.50.0
 	cuelang.org/go v0.11.2
