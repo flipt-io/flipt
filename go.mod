@@ -2,14 +2,12 @@ module go.flipt.io/flipt
 
 go 1.24.0
 
-toolchain go1.24.1
-
 require (
 	cloud.google.com/go/storage v1.50.0
-	cuelang.org/go v0.11.2
+	cuelang.org/go v0.12.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.0
-	github.com/ClickHouse/clickhouse-go/v2 v2.33.0
+	github.com/ClickHouse/clickhouse-go/v2 v2.33.1
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/Masterminds/squirrel v1.5.4
@@ -19,14 +17,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.29.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc/v3 v3.12.0
+	github.com/coreos/go-oidc/v3 v3.13.0
 	github.com/docker/go-connections v0.5.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/cors v1.2.1
 	github.com/go-git/go-billy/v5 v5.6.2
-	github.com/go-git/go-git/v5 v5.13.2
+	github.com/go-git/go-git/v5 v5.14.0
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-sql-driver/mysql v1.9.0
@@ -85,9 +83,9 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.35.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.34.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.32.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.34.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.35.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.55.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.35.0
 	go.opentelemetry.io/otel/metric v1.35.0
@@ -103,7 +101,7 @@ require (
 	golang.org/x/sync v0.12.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -163,7 +161,7 @@ require (
 	github.com/bytecodealliance/wasmtime-go/v3 v3.0.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.1.1 // indirect
@@ -175,7 +173,7 @@ require (
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
-	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
+	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -197,7 +195,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -270,7 +268,7 @@ require (
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/skeema/knownhosts v1.3.0 // indirect
+	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
