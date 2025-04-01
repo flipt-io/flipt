@@ -27,6 +27,11 @@ log:
 #   staging:
 #     name: "staging"
 
+audit:
+  sinks:
+    log:
+      enabled: true
+
 cors:
   enabled: true
   allowed_origins: ["*"]
