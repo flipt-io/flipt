@@ -22,8 +22,16 @@ func NewCache(cfg config.CacheConfig, r *redis.Cache) *Cache {
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
-	var value []byte
-	key = cache.Key(key)
+	var (
+		value   []byte
+		keyOpts = []cache.KeyOption{}
+	)
+
+	if c.cfg.Redis.Prefix != "" {
+		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
+	}
+
+	key = cache.Key(key, keyOpts...)
 	if err := c.c.Get(ctx, key, &value); err != nil {
 		if errors.Is(err, redis.ErrCacheMiss) {
 			cache.Observe(ctx, cacheType, cache.Miss)
@@ -39,7 +47,15 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 }
 
 func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
-	key = cache.Key(key)
+	var (
+		keyOpts = []cache.KeyOption{}
+	)
+
+	if c.cfg.Redis.Prefix != "" {
+		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
+	}
+
+	key = cache.Key(key, keyOpts...)
 	if err := c.c.Set(&redis.Item{
 		Ctx:   ctx,
 		Key:   key,
@@ -54,7 +70,15 @@ func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
 }
 
 func (c *Cache) Delete(ctx context.Context, key string) error {
-	key = cache.Key(key)
+	var (
+		keyOpts = []cache.KeyOption{}
+	)
+
+	if c.cfg.Redis.Prefix != "" {
+		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
+	}
+
+	key = cache.Key(key, keyOpts...)
 	if err := c.c.Delete(ctx, key); err != nil {
 		cache.Observe(ctx, cacheType, cache.Error)
 		return err

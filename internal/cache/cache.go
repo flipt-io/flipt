@@ -17,6 +17,26 @@ type Cacher interface {
 	fmt.Stringer
 }
 
-func Key(k string) string {
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
+type KeyOptions struct {
+	prefix string
+}
+
+type KeyOption func(*KeyOptions)
+
+func WithPrefix(prefix string) KeyOption {
+	return func(o *KeyOptions) {
+		o.prefix = prefix
+	}
+}
+
+func Key(k string, opts ...KeyOption) string {
+	ko := KeyOptions{
+		prefix: "flipt",
+	}
+
+	for _, opt := range opts {
+		opt(&ko)
+	}
+
+	return fmt.Sprintf("%s:%x", ko.prefix, md5.Sum([]byte(k)))
 }
