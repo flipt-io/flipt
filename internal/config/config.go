@@ -573,7 +573,6 @@ func Default() *Config {
 				MinIdleConn:     0,
 				ConnMaxIdleTime: 0,
 				NetTimeout:      0,
-				Mode:            RedisCacheModeSingle,
 			},
 		},
 
