@@ -78,13 +78,6 @@ func (c CacheBackend) MarshalYAML() (interface{}, error) {
 	return c.String(), nil
 }
 
-var (
-	stringToCacheBackend = map[string]CacheBackend{
-		"memory": CacheBackendMemory,
-		"redis":  CacheBackendRedis,
-	}
-)
-
 // MemoryCacheConfig contains fields, which configure in-memory caching.
 type MemoryCacheConfig struct {
 	EvictionInterval time.Duration `json:"evictionInterval,omitempty" mapstructure:"eviction_interval" yaml:"eviction_interval,omitempty"`
