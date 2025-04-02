@@ -18,6 +18,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/cache/redis"
@@ -595,6 +596,18 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 			}
 			cacheFunc = func(_ context.Context) error {
 				return rdb.Close()
+			}
+
+			if cfg.Tracing.Enabled {
+				if err := redisotel.InstrumentTracing(rdb); err != nil {
+					cacheErr = fmt.Errorf("instrumenting redis: %w", err)
+					return
+				}
+
+				if err := redisotel.InstrumentMetrics(rdb); err != nil {
+					cacheErr = fmt.Errorf("instrumenting redis: %w", err)
+					return
+				}
 			}
 
 			status := rdb.Ping(ctx)
