@@ -36,7 +36,6 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 	stringToEnvsubstHookFunc(),
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
-	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToTracingExporter),
 	stringToEnumHookFunc(stringToScheme),
 	stringToEnumHookFunc(stringToDatabaseProtocol),
@@ -559,7 +558,7 @@ func Default() *Config {
 
 		Cache: CacheConfig{
 			Enabled: false,
-			Backend: CacheMemory,
+			Backend: CacheBackendMemory,
 			TTL:     1 * time.Minute,
 			Memory: MemoryCacheConfig{
 				EvictionInterval: 5 * time.Minute,
@@ -574,6 +573,7 @@ func Default() *Config {
 				MinIdleConn:     0,
 				ConnMaxIdleTime: 0,
 				NetTimeout:      0,
+				Mode:            RedisCacheModeSingle,
 			},
 		},
 

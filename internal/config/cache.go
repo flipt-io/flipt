@@ -28,7 +28,7 @@ type CacheConfig struct {
 func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cache", map[string]any{
 		"enabled": false,
-		"backend": CacheMemory,
+		"backend": CacheBackendMemory,
 		"ttl":     1 * time.Minute,
 		"redis": map[string]any{
 			"host":     "localhost",
@@ -46,7 +46,7 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 }
 
 func (c *CacheConfig) validate() error {
-	if c.Enabled && c.Backend == CacheRedis {
+	if c.Enabled && c.Backend == CacheBackendRedis {
 		return c.Redis.validate()
 	}
 	return nil
@@ -59,11 +59,15 @@ func (c CacheConfig) IsZero() bool {
 }
 
 // CacheBackend is either memory or redis
-// TODO: can we use a string here instead?
-type CacheBackend uint8
+type CacheBackend string
+
+const (
+	CacheBackendMemory CacheBackend = "memory"
+	CacheBackendRedis  CacheBackend = "redis"
+)
 
 func (c CacheBackend) String() string {
-	return cacheBackendToString[c]
+	return string(c)
 }
 
 func (c CacheBackend) MarshalJSON() ([]byte, error) {
@@ -74,23 +78,10 @@ func (c CacheBackend) MarshalYAML() (interface{}, error) {
 	return c.String(), nil
 }
 
-const (
-	_ CacheBackend = iota
-	// CacheMemory ...
-	CacheMemory
-	// CacheRedis ...
-	CacheRedis
-)
-
 var (
-	cacheBackendToString = map[CacheBackend]string{
-		CacheMemory: "memory",
-		CacheRedis:  "redis",
-	}
-
 	stringToCacheBackend = map[string]CacheBackend{
-		"memory": CacheMemory,
-		"redis":  CacheRedis,
+		"memory": CacheBackendMemory,
+		"redis":  CacheBackendRedis,
 	}
 )
 
@@ -100,25 +91,41 @@ type MemoryCacheConfig struct {
 }
 
 // cheers up the unparam linter
-var _ validator = (*RedisCacheConfig)(nil)
+var (
+	_ defaulter = (*RedisCacheConfig)(nil)
+	_ validator = (*RedisCacheConfig)(nil)
+)
+
+type RedisCacheMode string
+
+const (
+	RedisCacheModeSingle  RedisCacheMode = "single"
+	RedisCacheModeCluster RedisCacheMode = "cluster"
+)
 
 // RedisCacheConfig contains fields, which configure the connection
 // credentials for redis backed caching.
 type RedisCacheConfig struct {
-	Host            string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Port            int           `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
-	RequireTLS      bool          `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
-	Username        string        `json:"-" mapstructure:"username" yaml:"-"`
-	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
-	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
-	Prefix          string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
-	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
-	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
-	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
-	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
-	CaCertBytes     string        `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
-	CaCertPath      string        `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
-	InsecureSkipTLS bool          `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Host            string         `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Port            int            `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	RequireTLS      bool           `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	Username        string         `json:"-" mapstructure:"username" yaml:"-"`
+	Password        string         `json:"-" mapstructure:"password" yaml:"-"`
+	DB              int            `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	Prefix          string         `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
+	PoolSize        int            `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
+	MinIdleConn     int            `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
+	ConnMaxIdleTime time.Duration  `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	NetTimeout      time.Duration  `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
+	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Mode            RedisCacheMode `json:"mode,omitempty" mapstructure:"mode" yaml:"mode,omitempty"`
+}
+
+func (cfg *RedisCacheConfig) setDefaults(v *viper.Viper) error {
+	v.SetDefault("redis.mode", RedisCacheModeSingle)
+	return nil
 }
 
 func (cfg *RedisCacheConfig) validate() error {

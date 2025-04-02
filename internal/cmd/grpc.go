@@ -586,9 +586,9 @@ var (
 func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, error) {
 	cacheOnce.Do(func() {
 		switch cfg.Cache.Backend {
-		case config.CacheMemory:
+		case config.CacheBackendMemory:
 			cacher = memory.NewCache(cfg.Cache)
-		case config.CacheRedis:
+		case config.CacheBackendRedis:
 			rdb, err := redis.NewClient(cfg.Cache.Redis)
 			if err != nil {
 				cacheErr = err
