@@ -17,26 +17,16 @@ type Cacher interface {
 	fmt.Stringer
 }
 
-type KeyOptions struct {
+var DefaultKeyer = NewKeyer("flipt")
+
+type Keyer struct {
 	prefix string
 }
 
-type KeyOption func(*KeyOptions)
-
-func WithPrefix(prefix string) KeyOption {
-	return func(o *KeyOptions) {
-		o.prefix = prefix
-	}
+func NewKeyer(prefix string) *Keyer {
+	return &Keyer{prefix: prefix}
 }
 
-func Key(k string, opts ...KeyOption) string {
-	ko := KeyOptions{
-		prefix: "flipt",
-	}
-
-	for _, opt := range opts {
-		opt(&ko)
-	}
-
-	return fmt.Sprintf("%s:%x", ko.prefix, md5.Sum([]byte(k)))
+func (k *Keyer) Key(key string) string {
+	return fmt.Sprintf("%s:%x", k.prefix, md5.Sum([]byte(key)))
 }

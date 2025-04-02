@@ -14,24 +14,21 @@ const cacheType = "redis"
 type Cache struct {
 	c   *redis.Cache
 	cfg config.CacheConfig
+	k   *cache.Keyer
 }
 
 // NewCache creates a new redis cache with the provided cache config
 func NewCache(cfg config.CacheConfig, r *redis.Cache) *Cache {
-	return &Cache{cfg: cfg, c: r}
+	keyer := cache.DefaultKeyer
+	if cfg.Redis.Prefix != "" {
+		keyer = cache.NewKeyer(cfg.Redis.Prefix)
+	}
+	return &Cache{cfg: cfg, c: r, k: keyer}
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
-	var (
-		value   []byte
-		keyOpts = []cache.KeyOption{}
-	)
-
-	if c.cfg.Redis.Prefix != "" {
-		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
-	}
-
-	key = cache.Key(key, keyOpts...)
+	key = c.k.Key(key)
+	var value []byte
 	if err := c.c.Get(ctx, key, &value); err != nil {
 		if errors.Is(err, redis.ErrCacheMiss) {
 			cache.Observe(ctx, cacheType, cache.Miss)
@@ -47,15 +44,8 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 }
 
 func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
-	var (
-		keyOpts = []cache.KeyOption{}
-	)
+	key = c.k.Key(key)
 
-	if c.cfg.Redis.Prefix != "" {
-		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
-	}
-
-	key = cache.Key(key, keyOpts...)
 	if err := c.c.Set(&redis.Item{
 		Ctx:   ctx,
 		Key:   key,
@@ -70,15 +60,8 @@ func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
 }
 
 func (c *Cache) Delete(ctx context.Context, key string) error {
-	var (
-		keyOpts = []cache.KeyOption{}
-	)
+	key = c.k.Key(key)
 
-	if c.cfg.Redis.Prefix != "" {
-		keyOpts = append(keyOpts, cache.WithPrefix(c.cfg.Redis.Prefix))
-	}
-
-	key = cache.Key(key, keyOpts...)
 	if err := c.c.Delete(ctx, key); err != nil {
 		cache.Observe(ctx, cacheType, cache.Error)
 		return err
