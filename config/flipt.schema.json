@@ -505,8 +505,7 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["single", "cluster"],
-              "default": "single"
+              "enum": ["", "single", "cluster"]
             }
           },
           "required": [],
