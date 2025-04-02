@@ -16,7 +16,6 @@ import "list"
 	authentication?: #authentication
 	authorization?:  #authorization
 	cache?:          #cache
-	cloud?:          #cloud
 	cors?:           #cors
 	diagnostics?:    #diagnostics
 	storage?:        #storage
@@ -55,10 +54,6 @@ import "list"
 					expiration: =~#duration | int
 					metadata?: [string]: string
 				}
-			}
-
-			cloud?: {
-				enabled?: bool | *false
 			}
 
 			oidc?: {
@@ -122,7 +117,7 @@ import "list"
 
 	#authorization: {
 		required?: bool | *false
-		backend:   "local" | "object" | "bundle" | "cloud" | *""
+		backend:   "local" | "object" | "bundle" | *""
 		local?: {
 			policy?: {
 				poll_interval: =~#duration | *"5m"
@@ -145,9 +140,6 @@ import "list"
 		bundle?: {
 			configuration: string
 		}
-		cloud?: {
-			poll_interval: =~#duration | *"5m"
-		}
 	}
 
 	#cache: {
@@ -160,6 +152,7 @@ import "list"
 			port?:               int | *6379
 			require_tls?:        bool | *false
 			db?:                 int | *0
+			prefix?:             string
 			username?:           string
 			password?:           string
 			pool_size?:          int | *0
@@ -175,15 +168,6 @@ import "list"
 			enabled?:           bool | *false
 			eviction_interval?: =~#duration | int | *"5m"
 			expiration?:        =~#duration | int | *"60s"
-		}
-	}
-
-	#cloud: {
-		host?:         string | *"flipt.cloud"
-		organization?: string
-		gateway?:      string
-		authentication?: {
-			api_key?: string
 		}
 	}
 
@@ -329,10 +313,6 @@ import "list"
 		grpc_conn_max_idle_time?: =~#duration
 		grpc_conn_max_age?:       =~#duration
 		grpc_conn_max_age_grace?: =~#duration
-		cloud?: {
-			enabled?: bool | *false
-			port?:    int | *8443
-		}
 	}
 
 	#metrics: {
@@ -396,9 +376,6 @@ import "list"
 					headers?: [string]: string
 				}]
 			}
-			cloud?: {
-				enabled?: bool | *false
-			}
 			kafka?: {
 				enabled?: bool | *false
 				topic:    string
@@ -441,9 +418,6 @@ import "list"
 	}
 
 	#experimental: {
-		cloud?: {
-			enabled?: bool | *false
-		}
 	}
 
 	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"

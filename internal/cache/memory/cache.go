@@ -13,15 +13,16 @@ const cacheType = "memory"
 // Cache wraps gocache.Cache in order to implement Cacher
 type Cache struct {
 	c *gocache.Cache
+	k *cache.Keyer
 }
 
 // NewCache creates a new in memory cache with the provided cache config
 func NewCache(cfg config.CacheConfig) *Cache {
-	return &Cache{c: gocache.New(cfg.TTL, cfg.Memory.EvictionInterval)}
+	return &Cache{c: gocache.New(cfg.TTL, cfg.Memory.EvictionInterval), k: cache.DefaultKeyer}
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
-	key = cache.Key(key)
+	key = c.k.Key(key)
 	v, ok := c.c.Get(key)
 	if !ok {
 		cache.Observe(ctx, cacheType, cache.Miss)
@@ -33,13 +34,13 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 }
 
 func (c *Cache) Set(_ context.Context, key string, value []byte) error {
-	key = cache.Key(key)
+	key = c.k.Key(key)
 	c.c.SetDefault(key, value)
 	return nil
 }
 
 func (c *Cache) Delete(_ context.Context, key string) error {
-	key = cache.Key(key)
+	key = c.k.Key(key)
 	c.c.Delete(key)
 	return nil
 }

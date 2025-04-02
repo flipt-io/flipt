@@ -17,6 +17,16 @@ type Cacher interface {
 	fmt.Stringer
 }
 
-func Key(k string) string {
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
+var DefaultKeyer = NewKeyer("flipt")
+
+type Keyer struct {
+	prefix string
+}
+
+func NewKeyer(prefix string) *Keyer {
+	return &Keyer{prefix: prefix}
+}
+
+func (k *Keyer) Key(key string) string {
+	return fmt.Sprintf("%s:%x", k.prefix, md5.Sum([]byte(key)))
 }

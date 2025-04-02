@@ -111,6 +111,7 @@ type RedisCacheConfig struct {
 	Username        string        `json:"-" mapstructure:"username" yaml:"-"`
 	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
 	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	Prefix          string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
 	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
 	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
 	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`

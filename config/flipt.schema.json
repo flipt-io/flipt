@@ -23,9 +23,6 @@
     "cache": {
       "$ref": "#/definitions/cache"
     },
-    "cloud": {
-      "$ref": "#/definitions/cloud"
-    },
     "cors": {
       "$ref": "#/definitions/cors"
     },
@@ -135,15 +132,6 @@
               "required": [],
               "title": "Token",
               "additionalProperties": false
-            },
-            "cloud": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                }
-              }
             },
             "oidc": {
               "type": "object",
@@ -345,7 +333,7 @@
         },
         "backend": {
           "type": "string",
-          "enum": ["", "local", "object", "bundle", "cloud"],
+          "enum": ["", "local", "object", "bundle"],
           "default": ""
         },
         "local": {
@@ -416,17 +404,6 @@
               "type": "string"
             }
           }
-        },
-        "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "poll_interval": {
-              "type": "string",
-              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$",
-              "default": "5m"
-            }
-          }
         }
       }
     },
@@ -474,6 +451,9 @@
             "db": {
               "type": "integer",
               "default": 0
+            },
+            "prefix": {
+              "type": "string"
             },
             "username": {
               "type": "string"
@@ -568,31 +548,6 @@
       },
       "required": [],
       "title": "Cache"
-    },
-    "cloud": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "host": {
-          "type": "string",
-          "default": "flipt.cloud"
-        },
-        "organization": {
-          "type": "string"
-        },
-        "gateway": {
-          "type": "string"
-        },
-        "authentication": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "api_key": {
-              "type": "string"
-            }
-          }
-        }
-      }
     },
     "cors": {
       "type": "object",
@@ -1106,20 +1061,6 @@
         "grpc_conn_max_age_grace": {
           "type": "string",
           "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
-        },
-        "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "port": {
-              "type": "integer",
-              "default": 8443
-            }
-          }
         }
       },
       "required": [],
@@ -1347,17 +1288,6 @@
               },
               "title": "Webhook"
             },
-            "cloud": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "default": false
-                }
-              },
-              "title": "Cloud"
-            },
             "kafka": {
               "type": "object",
               "additionalProperties": false,
@@ -1495,16 +1425,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "cloud": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        }
       },
       "title": "Experimental"
     }

@@ -19,10 +19,10 @@ import (
 func TestSet(t *testing.T) {
 	var (
 		ctx         = context.Background()
-		c, teardown = newCache(t, ctx)
+		c, teardown = newCache(t, ctx, nil)
 	)
 
-	defer teardown()
+	t.Cleanup(teardown)
 
 	err := c.Set(ctx, "key", []byte("value"))
 	assert.NoError(t, err)
@@ -31,10 +31,10 @@ func TestSet(t *testing.T) {
 func TestGet(t *testing.T) {
 	var (
 		ctx         = context.Background()
-		c, teardown = newCache(t, ctx)
+		c, teardown = newCache(t, ctx, nil)
 	)
 
-	defer teardown()
+	t.Cleanup(teardown)
 
 	err := c.Set(ctx, "key", []byte("value"))
 	require.NoError(t, err)
@@ -58,10 +58,10 @@ func TestGet(t *testing.T) {
 func TestDelete(t *testing.T) {
 	var (
 		ctx         = context.Background()
-		c, teardown = newCache(t, ctx)
+		c, teardown = newCache(t, ctx, nil)
 	)
 
-	defer teardown()
+	t.Cleanup(teardown)
 
 	err := c.Set(ctx, "key", []byte("value"))
 	require.NoError(t, err)
@@ -78,6 +78,23 @@ func TestDelete(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, ok)
 	assert.Nil(t, v)
+}
+
+func TestGetWithPrefix(t *testing.T) {
+	var (
+		ctx         = context.Background()
+		c, teardown = newCache(t, ctx, &config.CacheConfig{Redis: config.RedisCacheConfig{Prefix: "test"}})
+	)
+
+	t.Cleanup(teardown)
+
+	err := c.Set(ctx, "key", []byte("value"))
+	require.NoError(t, err)
+
+	v, ok, err := c.Get(ctx, "key")
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, []byte("value"), v)
 }
 
 type redisContainer struct {
@@ -113,7 +130,7 @@ func setupRedis(ctx context.Context) (*redisContainer, error) {
 	return &redisContainer{Container: container, host: hostIP, port: mappedPort.Port()}, nil
 }
 
-func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
+func newCache(t *testing.T, ctx context.Context, cfg *config.CacheConfig) (*Cache, func()) {
 	t.Helper()
 
 	if testing.Short() {
@@ -139,9 +156,13 @@ func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
 		Addr: redisAddr,
 	})
 
-	cache := NewCache(config.CacheConfig{
-		TTL: 30 * time.Second,
-	}, goredis_cache.New(&goredis_cache.Options{
+	if cfg == nil {
+		cfg = &config.CacheConfig{
+			TTL: 30 * time.Second,
+		}
+	}
+
+	cache := NewCache(*cfg, goredis_cache.New(&goredis_cache.Options{
 		Redis: rdb,
 	}))
 
