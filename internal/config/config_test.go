@@ -73,12 +73,12 @@ func TestCacheBackend(t *testing.T) {
 	}{
 		{
 			name:    "memory",
-			backend: CacheMemory,
+			backend: CacheBackendMemory,
 			want:    "memory",
 		},
 		{
 			name:    "redis",
-			backend: CacheRedis,
+			backend: CacheBackendRedis,
 			want:    "redis",
 		},
 	}
@@ -291,7 +291,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.Backend = CacheBackendMemory
 				cfg.Cache.TTL = 30 * time.Minute
 				return cfg
 			},
@@ -302,7 +302,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.Backend = CacheBackendMemory
 				cfg.Cache.TTL = 5 * time.Minute
 				cfg.Cache.Memory.EvictionInterval = 10 * time.Minute
 				return cfg
@@ -314,7 +314,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Backend = CacheBackendRedis
 				cfg.Cache.TTL = time.Minute
 				cfg.Cache.Redis.Host = "localhost"
 				cfg.Cache.Redis.Port = 6378
@@ -334,7 +334,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Backend = CacheBackendRedis
 				cfg.Cache.Redis.Username = "app"
 				cfg.Cache.Redis.Password = "s3cr3t!"
 				return cfg
@@ -346,7 +346,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Backend = CacheBackendRedis
 				cfg.Cache.Redis.InsecureSkipTLS = true
 				return cfg
 			},
@@ -357,7 +357,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Backend = CacheBackendRedis
 				cfg.Cache.Redis.CaCertPath = "internal/config/testdata/ca.pem"
 				return cfg
 			},
@@ -368,7 +368,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.Backend = CacheBackendRedis
 				cfg.Cache.Redis.CaCertBytes = "pemblock\n"
 				return cfg
 			},
@@ -793,7 +793,7 @@ func TestLoad(t *testing.T) {
 				}
 
 				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.Backend = CacheBackendMemory
 				cfg.Cache.TTL = 1 * time.Minute
 				cfg.Cache.Memory = MemoryCacheConfig{
 					EvictionInterval: 5 * time.Minute,

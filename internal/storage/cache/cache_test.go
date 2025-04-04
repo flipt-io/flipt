@@ -105,7 +105,7 @@ func TestGetEvaluationRules(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -152,7 +152,7 @@ func TestGetEvaluationRollouts(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -196,7 +196,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -239,7 +239,7 @@ func TestGetFlag(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -284,7 +284,7 @@ func TestListFlags(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -331,7 +331,7 @@ func TestUpdateNamespace(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -359,7 +359,7 @@ func TestDeleteNamespace(t *testing.T) {
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
-			Backend: config.CacheMemory,
+			Backend: config.CacheBackendMemory,
 		})
 		cacher = newCacheSpy(cache)
 
@@ -620,7 +620,7 @@ func TestCUD(t *testing.T) {
 				cache = memory.NewCache(config.CacheConfig{
 					TTL:     time.Second,
 					Enabled: true,
-					Backend: config.CacheMemory,
+					Backend: config.CacheBackendMemory,
 				})
 				cacher = newCacheSpy(cache)
 

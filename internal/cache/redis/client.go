@@ -10,7 +10,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 )
 
-func NewClient(cfg config.RedisCacheConfig) (*goredis.Client, error) {
+func NewClient(cfg config.RedisCacheConfig) (goredis.UniversalClient, error) {
 	var tlsConfig *tls.Config
 	if cfg.RequireTLS {
 		tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12}
@@ -29,21 +29,43 @@ func NewClient(cfg config.RedisCacheConfig) (*goredis.Client, error) {
 		}
 	}
 
-	rdb := goredis.NewClient(&goredis.Options{
-		Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		TLSConfig:       tlsConfig,
-		Username:        cfg.Username,
-		Password:        cfg.Password,
-		DB:              cfg.DB,
-		PoolSize:        cfg.PoolSize,
-		MinIdleConns:    cfg.MinIdleConn,
-		ConnMaxIdleTime: cfg.ConnMaxIdleTime,
-		DialTimeout:     cfg.NetTimeout,
-		ReadTimeout:     cfg.NetTimeout * 2,
-		WriteTimeout:    cfg.NetTimeout * 2,
-		PoolTimeout:     cfg.NetTimeout * 2,
-	})
-	return rdb, nil
+	rwPoolTimeout := cfg.NetTimeout * 2
+
+	switch cfg.Mode {
+	case config.RedisCacheModeSingle:
+		rdb := goredis.NewClient(&goredis.Options{
+			Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+			TLSConfig:       tlsConfig,
+			Username:        cfg.Username,
+			Password:        cfg.Password,
+			DB:              cfg.DB,
+			PoolSize:        cfg.PoolSize,
+			MinIdleConns:    cfg.MinIdleConn,
+			ConnMaxIdleTime: cfg.ConnMaxIdleTime,
+			DialTimeout:     cfg.NetTimeout,
+			ReadTimeout:     rwPoolTimeout,
+			WriteTimeout:    rwPoolTimeout,
+			PoolTimeout:     rwPoolTimeout,
+		})
+		return rdb, nil
+	case config.RedisCacheModeCluster:
+		rdb := goredis.NewClusterClient(&goredis.ClusterOptions{
+			Addrs:           []string{fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)},
+			TLSConfig:       tlsConfig,
+			Username:        cfg.Username,
+			Password:        cfg.Password,
+			PoolSize:        cfg.PoolSize,
+			MinIdleConns:    cfg.MinIdleConn,
+			ConnMaxIdleTime: cfg.ConnMaxIdleTime,
+			DialTimeout:     cfg.NetTimeout,
+			ReadTimeout:     rwPoolTimeout,
+			WriteTimeout:    rwPoolTimeout,
+			PoolTimeout:     rwPoolTimeout,
+		})
+		return rdb, nil
+	default:
+		return nil, fmt.Errorf("invalid redis mode: %s", cfg.Mode)
+	}
 }
 
 func caBundle(cfg config.RedisCacheConfig) ([]byte, error) {
