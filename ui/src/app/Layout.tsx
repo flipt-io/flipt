@@ -83,7 +83,7 @@ function InnerLayout() {
           />
         )}
         <main className="flex pt-1 sm:pt-4">
-          <div className="mx-auto w-full max-w-screen-lg overflow-x-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-(--breakpoint-lg) overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

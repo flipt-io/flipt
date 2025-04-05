@@ -41,7 +41,7 @@ export default function MultiDistributionFormInputs(
             </div>
             <input
               type="number"
-              className="block w-full rounded-md border-gray-300 bg-gray-50 pl-10 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 bg-gray-50 pl-10 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
               value={dist.rollout}
               name={dist.variantKey}
               // eslint-disable-next-line react/no-unknown-property

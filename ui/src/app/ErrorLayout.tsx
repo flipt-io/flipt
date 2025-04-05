@@ -8,7 +8,7 @@ export default function ErrorLayout() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div className="flex-shrink-0 pt-16">
+        <div className="shrink-0 pt-16">
           <Link to="/">
             <img
               src={logoFlag}

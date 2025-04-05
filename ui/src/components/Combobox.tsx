@@ -61,7 +61,7 @@ export default function Combobox<T extends IFilterable>(
             <C.Input
               //id={id}
               className={cls(
-                'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-gray-900 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm',
+                'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pr-10 pl-3 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-hidden sm:text-sm',
                 inputClassName
               )}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +74,7 @@ export default function Combobox<T extends IFilterable>(
               autoComplete="off"
             />
             <C.Button
-              className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-none"
+              className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-hidden"
               id={`${id}-select-button`}
             >
               <ChevronUpDownIcon
@@ -85,7 +85,7 @@ export default function Combobox<T extends IFilterable>(
           </div>
           {open && (
             <C.Options
-              className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+              className="bg-background z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded py-1 text-base shadow-lg ring-1 ring-gray-300 focus:outline-hidden sm:text-sm"
               id={`${id}-select-options`}
               static={openOptions}
             >
@@ -96,7 +96,7 @@ export default function Combobox<T extends IFilterable>(
                     value={v}
                     className={({ active }) =>
                       cls(
-                        'relative w-full cursor-default select-none py-2 pl-3 pr-9',
+                        'relative w-full cursor-default py-2 pr-9 pl-3 select-none',
                         {
                           'bg-violet-300': active
                         }
@@ -109,7 +109,7 @@ export default function Combobox<T extends IFilterable>(
                           {v?.status && (
                             <span
                               className={cls(
-                                'mr-3 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-gray-200',
+                                'mr-3 inline-block h-2 w-2 shrink-0 rounded-full bg-gray-200',
                                 { 'bg-green-400': v.status === 'active' },
                                 {
                                   'bg-green-600':

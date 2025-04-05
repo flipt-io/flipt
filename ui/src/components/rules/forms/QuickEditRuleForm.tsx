@@ -369,7 +369,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         key={index}
                                         type="number"
                                         className={cls(
-                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
+                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
                                           {
                                             'cursor-not-allowed bg-gray-100 text-gray-500':
                                               readOnly
@@ -407,7 +407,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 py-1">
+            <div className="shrink-0 py-1">
               <div className="flex justify-end space-x-3">
                 <TextButton
                   disabled={formik.isSubmitting || !formik.dirty}

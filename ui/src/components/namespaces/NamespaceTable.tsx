@@ -235,7 +235,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                            <span className="ml-2 flex-none rounded-sm text-gray-400 group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon

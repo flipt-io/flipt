@@ -45,7 +45,7 @@ export default function Searchbox(props: SearchboxProps) {
           <input
             id="search"
             name="search"
-            className="block w-full rounded-md border border-gray-300 bg-background py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 shadow-sm focus:border-violet-400 focus:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-violet-400 sm:text-sm"
+            className="block w-full rounded-md border border-gray-300 bg-background py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 shadow-xs focus:border-violet-400 focus:placeholder-gray-400 focus:outline-hidden focus:ring-1 focus:ring-violet-400 sm:text-sm"
             placeholder="Search"
             type="search"
             value={value}

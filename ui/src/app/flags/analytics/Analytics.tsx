@@ -101,7 +101,7 @@ export default function Analytics() {
   }, [selectedDuration]);
 
   return (
-    <div className="mt-2 max-w-screen-lg">
+    <div className="mt-2 max-w-(--breakpoint-lg)">
       {config.analyticsEnabled ? (
         <>
           <div className="sm:flex sm:items-center">

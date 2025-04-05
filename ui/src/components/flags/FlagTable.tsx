@@ -222,7 +222,7 @@ export default function FlagTable(props: FlagTableProps) {
                 </div>
                 <Badge
                   variant="outlinemuted"
-                  className="ml-2 hidden flex-shrink-0 sm:flex"
+                  className="ml-2 hidden shrink-0 sm:flex"
                 >
                   {item.key}
                 </Badge>

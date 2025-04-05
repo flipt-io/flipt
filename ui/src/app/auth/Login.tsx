@@ -124,7 +124,7 @@ function InnerLoginButtons() {
             <div key={provider.name}>
               <a
                 href="#"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:text-violet-500 hover:shadow-violet-300"
+                className="inline-flex w-full justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 shadow-xs hover:text-violet-500 hover:shadow-violet-300"
                 onClick={(e) => {
                   e.preventDefault();
                   authorize(provider.authorize_url);
@@ -143,7 +143,7 @@ function InnerLoginButtons() {
         </div>
       )}
       {providers.length === 0 && (
-        <div className="bg-background shadow sm:rounded-lg">
+        <div className="bg-background shadow-xs sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-base font-semibold leading-6 text-gray-900">
               No Providers
