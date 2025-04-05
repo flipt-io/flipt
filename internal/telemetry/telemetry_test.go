@@ -153,7 +153,7 @@ func TestPing(t *testing.T) {
 				},
 				Cache: config.CacheConfig{
 					Enabled: false,
-					Backend: config.CacheRedis,
+					Backend: config.CacheBackendMemory,
 				},
 			},
 			want: map[string]any{
@@ -174,7 +174,7 @@ func TestPing(t *testing.T) {
 				},
 				Cache: config.CacheConfig{
 					Enabled: true,
-					Backend: config.CacheRedis,
+					Backend: config.CacheBackendRedis,
 				},
 			},
 			want: map[string]any{
