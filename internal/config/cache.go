@@ -35,6 +35,7 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 			"port":     6379,
 			"password": "",
 			"db":       0,
+			"mode":     RedisCacheModeSingle,
 		},
 		"memory": map[string]any{
 			"enabled":           false, // deprecated (see below)
@@ -85,7 +86,6 @@ type MemoryCacheConfig struct {
 
 // cheers up the unparam linter
 var (
-	_ defaulter = (*RedisCacheConfig)(nil)
 	_ validator = (*RedisCacheConfig)(nil)
 )
 
@@ -114,11 +114,6 @@ type RedisCacheConfig struct {
 	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
 	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
 	Mode            RedisCacheMode `json:"mode,omitempty" mapstructure:"mode" yaml:"mode,omitempty"`
-}
-
-func (cfg *RedisCacheConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("redis.mode", RedisCacheModeSingle)
-	return nil
 }
 
 func (cfg *RedisCacheConfig) validate() error {

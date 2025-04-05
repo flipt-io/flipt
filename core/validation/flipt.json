@@ -142,7 +142,9 @@
               "prefix",
               "suffix",
               "isoneof",
-              "isnotoneof"
+              "isnotoneof",
+              "contains",
+              "notcontains"
             ]
           }
         }
@@ -231,7 +233,18 @@
       "then": {
         "properties": {
           "operator": {
-            "enum": ["eq", "neq", "isoneof", "isnotoneof"]
+            "enum": [
+              "eq",
+              "neq",
+              "empty",
+              "notempty",
+              "prefix",
+              "suffix",
+              "isoneof",
+              "isnotoneof",
+              "contains",
+              "notcontains"
+            ]
           }
         }
       }

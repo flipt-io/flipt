@@ -92,7 +92,7 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof"
+	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
@@ -116,5 +116,5 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "isoneof" | "isnotoneof"
+	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof" | "contains" | "notcontains"
 })
