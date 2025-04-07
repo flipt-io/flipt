@@ -17,7 +17,7 @@ const supportItems: SupportItemProps[] = [
     children: (
       <Link
         to="/onboarding"
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
       >
         <span className="text-sm text-gray-700">Let&apos;s Go</span>
       </Link>
@@ -29,7 +29,7 @@ const supportItems: SupportItemProps[] = [
     description: 'Get support from the community',
     children: (
       <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="https://github.com/flipt-io/flipt/issues/new/choose"
       >
         <span className="text-sm text-gray-700">Create GitHub Issue</span>
@@ -42,7 +42,7 @@ const supportItems: SupportItemProps[] = [
     description: 'Ask a question in our Discord community',
     children: (
       <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="https://www.flipt.io/discord"
       >
         <span className="text-sm text-gray-700">Join Discord Server</span>
@@ -55,7 +55,7 @@ const supportItems: SupportItemProps[] = [
     description: 'Send an email to our shared inbox',
     children: (
       <a
-        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
+        className="rounded-md border border-gray-200 px-2 py-1 hover:border-gray-300 hover:shadow-xs hover:shadow-violet-300 sm:px-3 sm:py-2"
         href="mailto:dev@flipt.io?subject=Support Inquiry"
       >
         <span className="text-sm text-gray-700">Send Email</span>
@@ -102,7 +102,7 @@ export default function Support() {
         </div>
         <div className="mt-4">
           <a
-            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:cursor-pointer hover:bg-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
+            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:cursor-pointer hover:bg-violet-600 focus:outline-hidden focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
             target="_blank"
             rel="noreferrer"
             href="https://www.flipt.io/docs?utm_source=app"

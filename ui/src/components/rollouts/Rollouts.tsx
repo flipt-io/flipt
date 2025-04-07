@@ -106,7 +106,7 @@ export function DefaultRollout() {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 py-1">
+              <div className="shrink-0 py-1">
                 <div className="flex justify-end space-x-2">
                   <TextButton
                     disabled={formik.isSubmitting}

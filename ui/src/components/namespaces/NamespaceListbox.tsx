@@ -54,7 +54,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
           <div className="relative">
             <Listbox.Button className="group font-medium flex w-full items-center rounded p-2 text-sm text-gray-900 bg-white hover:bg-gray-100 md:bg-transparent dark:text-white dark:bg-gray-800 md:dark:bg-transparent dark:hover:bg-gray-300">
               <FolderIcon
-                className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500"
+                className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500"
                 aria-hidden="true"
               />
               <span className="flex-1 text-left">
@@ -78,7 +78,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm">
                 {namespaces.map((ns) => (
                   <Listbox.Option
                     key={ns.key}

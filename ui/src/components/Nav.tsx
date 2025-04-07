@@ -47,7 +47,7 @@ function NavItem(props: NavItemProps) {
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500"
+        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500"
         aria-hidden="true"
       />
       {name}
@@ -109,17 +109,17 @@ export default function Nav(props: NavProps) {
 
   return (
     <nav
-      className={`${className} flex flex-grow flex-col overflow-y-auto`}
+      className={`${className} flex grow flex-col overflow-y-auto`}
       aria-label="Sidebar"
     >
-      <div className="flex flex-shrink-0 flex-col px-2">
+      <div className="flex shrink-0 flex-col px-2">
         <NamespaceListbox className="w-full" disabled={!namespaceNavEnabled} />
       </div>
       <Separator
         decorative
         className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-600"
       />
-      <div className="flex flex-grow flex-col space-y-1 px-2">
+      <div className="flex grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
           <NavItem
             key={item.name}
@@ -132,7 +132,7 @@ export default function Nav(props: NavProps) {
           />
         ))}
       </div>
-      <div className="flex-shrink-0 space-y-1 px-2">
+      <div className="shrink-0 space-y-1 px-2">
         {secondaryNavigation.map((item) => (
           <NavItem
             key={item.name}
@@ -145,8 +145,8 @@ export default function Nav(props: NavProps) {
           />
         ))}
         <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-400">
-          <span className="flex-shrink-0">Command Mode:</span>
-          <div className="flex-shrink-0">
+          <span className="shrink-0">Command Mode:</span>
+          <div className="shrink-0">
             <kbd className="text-gray-400">ctrl</kbd> +{' '}
             <kbd className="text-gray-400">k</kbd>
           </div>

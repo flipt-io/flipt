@@ -241,7 +241,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   key={index}
                                   type="number"
                                   className={cls(
-                                    'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm'
+                                    'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm'
                                   )}
                                   value={dist.rollout}
                                   name={`${fieldPrefix}distributions.[${index}].rollout`}

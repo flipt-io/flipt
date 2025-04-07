@@ -41,7 +41,7 @@ export default function NotFoundLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div className="flex-shrink-0 pt-16">
+        <div className="shrink-0 pt-16">
           <Link to="/">
             <img
               src={logoFlag}
@@ -75,7 +75,7 @@ export default function NotFoundLayout() {
                   key={linkIdx}
                   className="relative flex items-start space-x-4 py-6"
                 >
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-100">
                       <link.icon
                         className="h-6 w-6 text-violet-600"
@@ -88,7 +88,7 @@ export default function NotFoundLayout() {
                       <span className="rounded-sm focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2">
                         <a
                           href={link.href}
-                          className="focus:outline-none"
+                          className="focus:outline-hidden"
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -104,7 +104,7 @@ export default function NotFoundLayout() {
                       {link.description}
                     </p>
                   </div>
-                  <div className="flex-shrink-0 self-center">
+                  <div className="shrink-0 self-center">
                     <ChevronRightIcon
                       className="h-5 w-5 text-gray-400"
                       aria-hidden="true"

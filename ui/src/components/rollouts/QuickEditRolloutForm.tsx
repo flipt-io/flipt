@@ -187,7 +187,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 py-1">
+      <div className="shrink-0 py-1">
         <div className="flex justify-end space-x-3">
           <TextButton
             disabled={formik.isSubmitting || !formik.dirty}

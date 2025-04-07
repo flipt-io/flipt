@@ -29,7 +29,7 @@ export default function Sidebar(props: SidebarProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-300 bg-opacity-75" />
+            <div className="fixed inset-0 bg-gray-300/75 " />
           </Transition.Child>
 
           <div className="fixed inset-0 z-40 flex">
@@ -55,7 +55,7 @@ export default function Sidebar(props: SidebarProps) {
                   <div className="absolute right-0 top-0 -mr-12 pt-2">
                     <button
                       type="button"
-                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-white"
                       onClick={() => setSidebarOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
@@ -74,7 +74,7 @@ export default function Sidebar(props: SidebarProps) {
                 </div>
               </Dialog.Panel>
             </Transition.Child>
-            <div className="w-14 flex-shrink-0" aria-hidden="true">
+            <div className="w-14 shrink-0" aria-hidden="true">
               {/* Dummy element to force sidebar to shrink to fit close icon */}
             </div>
           </div>

@@ -41,12 +41,12 @@ function CommandItem(props: CommandItemProps) {
     <Command.Item
       value={item.name + ' ' + item.keywords?.join(' ')}
       key={item.name}
-      className="flex cursor-pointer place-items-center px-4 py-2 data-[selected]:bg-violet-200 data-[selected]:dark:bg-gray-100"
+      className="flex cursor-pointer place-items-center px-4 py-2 data-selected:bg-violet-200 dark:data-selected:bg-gray-100"
       onSelect={() => {
         item.onSelected();
       }}
     >
-      <div className="flex flex-grow flex-col">
+      <div className="flex grow flex-col">
         <span className="font-semibold">{item.name}</span>
         {item.description && (
           <span className="truncate text-xs text-gray-500">
@@ -149,7 +149,7 @@ export default function CommandMenu() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500 bg-opacity-75 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500/75 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <div className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]">
           <Dialog.Content
             className="mx-auto max-w-xl transform rounded-xl bg-background p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all

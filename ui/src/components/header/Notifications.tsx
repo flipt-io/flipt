@@ -40,7 +40,7 @@ export function Notification(props: NotificationProps) {
             <div className="bg-backgroung pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="p-4">
                 <div className="flex items-start">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <SparklesIcon
                       className="h-6 w-6 text-gray-400"
                       aria-hidden="true"
@@ -58,12 +58,12 @@ export function Notification(props: NotificationProps) {
                         href={info.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-md bg-background text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-none"
+                        className="rounded-md bg-background text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-hidden"
                       >
                         Check It Out
                       </a>
                       <a
-                        className="rounded-md bg-background text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none"
+                        className="rounded-md bg-background text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-hidden"
                         onClick={(e) => {
                           e.preventDefault();
                           setShow(false);
@@ -74,10 +74,10 @@ export function Notification(props: NotificationProps) {
                       </a>
                     </div>
                   </div>
-                  <div className="ml-4 flex flex-shrink-0">
+                  <div className="ml-4 flex shrink-0">
                     <button
                       type="button"
-                      className="inline-flex rounded-md bg-background text-gray-400 hover:text-gray-500 focus:outline-none"
+                      className="inline-flex rounded-md bg-background text-gray-400 hover:text-gray-500 focus:outline-hidden"
                       onClick={() => {
                         setShow(false);
                         markSeen();

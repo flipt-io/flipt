@@ -102,7 +102,7 @@ export function DefaultVariant(props: RulesProps) {
                   )}
                 </div>
               </div>
-              <div className="flex-shrink-0 py-1">
+              <div className="shrink-0 py-1">
                 <div className="flex justify-end space-x-3">
                   <TextButton
                     className="min-w-[80px]"
