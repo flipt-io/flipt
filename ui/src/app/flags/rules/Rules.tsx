@@ -125,11 +125,11 @@ export function DefaultVariant(props: RulesProps) {
       {(formik) => {
         return (
           <div className="flex flex-col p-2">
-            <div className="w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
+            <div className="bg-background w-full items-center space-y-2 rounded-md border border-violet-300 shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2">
               <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
                 <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
                   <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                  <h3 className="text-sm font-normal leading-6 text-gray-700">
+                  <h3 className="text-sm leading-6 font-normal text-gray-700">
                     Default Rule
                   </h3>
                   <span className="hidden h-4 w-4 justify-end sm:flex" />
@@ -416,7 +416,7 @@ export default function Rules() {
             </p>
           </div>
           {((rules && rules.length > 0) || showDefaultVariant) && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
               <ButtonWithPlus
                 variant="primary"
                 type="button"
@@ -432,7 +432,7 @@ export default function Rules() {
         <div className="mt-10">
           {(rules && rules.length > 0) || showDefaultVariant ? (
             <div className="flex">
-              <div className="pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
+              <div className="pattern-boxes pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid w-full border border-gray-200 p-4 lg:p-6">
                 {rules && rules.length > 0 && (
                   <DndContext
                     sensors={sensors}

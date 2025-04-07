@@ -92,7 +92,7 @@ export default function Support() {
     <>
       <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+          <h1 className="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl">
             Support
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -101,7 +101,7 @@ export default function Support() {
         </div>
         <div className="mt-4">
           <a
-            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:cursor-pointer hover:bg-violet-600 focus:outline-hidden focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
+            className="mb-1 inline-flex items-center justify-center rounded-md border border-transparent bg-violet-500 px-4 py-2 text-sm font-medium text-white shadow-xs hover:cursor-pointer hover:bg-violet-600 focus:ring-1 focus:ring-violet-500 focus:ring-offset-1 focus:outline-hidden"
             target="_blank"
             rel="noreferrer"
             href="https://www.flipt.io/docs?utm_source=app"

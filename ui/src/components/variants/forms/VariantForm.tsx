@@ -90,7 +90,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
       validationSchema={variantValidationSchema}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-background shadow-xl">
+        <Form className="bg-background flex h-full flex-col overflow-y-scroll shadow-xl">
           <div className="flex-1">
             <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">

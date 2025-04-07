@@ -246,7 +246,7 @@ export default function Rollouts(props: RolloutsProps) {
             </p>
           </div>
           {rollouts && rollouts.length > 0 && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
               <ButtonWithPlus
                 variant="primary"
                 type="button"
@@ -265,7 +265,7 @@ export default function Rollouts(props: RolloutsProps) {
         <div className="mt-10">
           {rollouts && rollouts.length > 0 ? (
             <div className="flex">
-              <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
+              <div className="dark:pattern-bg-solidwhite pattern-boxes pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid w-full border border-gray-200 p-4 lg:p-6">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}

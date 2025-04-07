@@ -35,9 +35,9 @@ function NavItem(props: NavItemProps) {
         cls(
           'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
           {
-            'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
+            'bg-gray-800 md:bg-gray-50 md:text-gray-700 dark:bg-gray-300 md:dark:bg-gray-300 md:dark:text-gray-950':
               isActive,
-            'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
+            'hover:bg-gray-700 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:dark:text-gray-400':
               !isActive
           }
         )

@@ -30,7 +30,7 @@ export default function MultiDistributionFormInputs(
           <div>
             <label
               htmlFor={dist.variantKey}
-              className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
+              className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pt-2 sm:pr-2"
             >
               {dist.variantKey}
             </label>

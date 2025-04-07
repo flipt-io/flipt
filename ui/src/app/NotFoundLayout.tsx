@@ -38,7 +38,7 @@ const links = [
 
 export default function NotFoundLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="bg-background flex min-h-screen flex-col">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="shrink-0 pt-16">
           <Link to="/">
@@ -67,7 +67,7 @@ export default function NotFoundLayout() {
             </h2>
             <ul
               role="list"
-              className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200"
+              className="mt-4 divide-y divide-gray-200 border-t border-b border-gray-200"
             >
               {links.map((link, linkIdx) => (
                 <li

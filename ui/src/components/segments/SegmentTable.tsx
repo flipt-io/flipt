@@ -38,7 +38,7 @@ type SegmentTableProps = {
 function SegmentDetails({ item }: { item: ISegment }) {
   const { inTimezone } = useTimezone();
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="text-muted-foreground flex items-center gap-2 text-xs">
       <span className="flex items-center gap-1">
         {item.matchType === SegmentMatchType.ALL ? (
           <SigmaIcon className="h-4 w-4" />
@@ -196,7 +196,7 @@ export default function SegmentTable(props: SegmentTableProps) {
             role="link"
             key={row.id}
             className={cls(
-              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
+              'hover:bg-accent flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all'
             )}
             onClick={() => navigate(`${path}/${item.key}`)}
           >
@@ -210,7 +210,7 @@ export default function SegmentTable(props: SegmentTableProps) {
                 </div>
               </div>
             </div>
-            <div className="line-clamp-2 text-xs text-secondary-foreground">
+            <div className="text-secondary-foreground line-clamp-2 text-xs">
               {item.description}
             </div>
             <SegmentDetails item={item} />

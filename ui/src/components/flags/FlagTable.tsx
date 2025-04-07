@@ -38,7 +38,7 @@ function FlagDetails({ item }: { item: IFlag }) {
   const { inTimezone } = useTimezone();
 
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="text-muted-foreground flex items-center gap-2 text-xs">
       {item.type === FlagType.BOOLEAN ? (
         <Badge variant={item.enabled ? 'enabled' : 'destructiveoutline'}>
           {item.enabled ? 'True' : 'False'}
@@ -211,7 +211,7 @@ export default function FlagTable(props: FlagTableProps) {
             role="link"
             key={row.id}
             className={cls(
-              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
+              'hover:bg-accent flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all'
             )}
             onClick={() => navigate(`${path}/${item.key}`)}
           >
@@ -228,7 +228,7 @@ export default function FlagTable(props: FlagTableProps) {
                 </Badge>
               </div>
             </div>
-            <div className="line-clamp-2 text-xs text-secondary-foreground">
+            <div className="text-secondary-foreground line-clamp-2 text-xs">
               {item.description}
             </div>
             <FlagDetails item={item} />

@@ -359,7 +359,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
-                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
+                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pt-2 sm:pr-2"
                                       >
                                         {dist.variant.key}
                                       </label>
@@ -369,7 +369,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         key={index}
                                         type="number"
                                         className={cls(
-                                          'block w-full rounded-md border-gray-300 bg-gray-50 pl-7 pr-12 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
+                                          'block w-full rounded-md border-gray-300 bg-gray-50 pr-12 pl-7 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm',
                                           {
                                             'cursor-not-allowed bg-gray-100 text-gray-500':
                                               readOnly

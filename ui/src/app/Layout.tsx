@@ -72,7 +72,7 @@ function InnerLayout() {
   return (
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-background md:pl-64">
+      <div className="bg-background flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner

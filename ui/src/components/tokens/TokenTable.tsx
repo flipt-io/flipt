@@ -297,7 +297,7 @@ export default function TokenTable(props: TokenTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-background">
+              <tbody className="bg-background divide-y divide-gray-200">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

@@ -36,7 +36,7 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
+      className={`${className} bg-background w-full items-center space-y-2 rounded-md border border-violet-300 shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
     >
       <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
@@ -54,7 +54,7 @@ const Rule = forwardRef(
             {rule.rank}
           </span>
           <h3
-            className={cls('text-sm font-normal leading-6 text-gray-700', {
+            className={cls('text-sm leading-6 font-normal text-gray-700', {
               'hover:cursor-not-allowed': readOnly,
               'hover:cursor-move': !readOnly
             })}

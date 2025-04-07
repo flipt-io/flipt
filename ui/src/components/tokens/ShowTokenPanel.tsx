@@ -31,7 +31,7 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title
             as="h3"
-            className="text-lg font-medium leading-6 text-gray-900"
+            className="text-lg leading-6 font-medium text-gray-900"
           >
             Created Token
           </Dialog.Title>

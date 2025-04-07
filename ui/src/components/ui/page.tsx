@@ -6,7 +6,7 @@ export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const PageHeader = ({ title, children, className }: PageHeaderProps) => (
   <div className={cn('flex items-center justify-between', className)}>
-    <h1 className="text-2xl font-bold leading-[2.75rem] tracking-tight">
+    <h1 className="text-2xl leading-[2.75rem] font-bold tracking-tight">
       {title}
     </h1>
     {children}
