@@ -87,8 +87,8 @@ github.com/OneOfOne/xxhash v1.2.8 h1:31czK/TI9sNkxIKfaUfGlU47BAxQ0ztGgd9vPyqimf8
 github.com/OneOfOne/xxhash v1.2.8/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=
 github.com/ProtonMail/go-crypto v1.1.5 h1:eoAQfK2dwL+tFSFpr7TbOaPNUbPiJj4fLYwwGE1FQO4=
 github.com/ProtonMail/go-crypto v1.1.5/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
-github.com/XSAM/otelsql v0.37.0 h1:ya5RNw028JW0eJW8Ma4AmoKxAYsJSGuNVbC7F1J457A=
-github.com/XSAM/otelsql v0.37.0/go.mod h1:LHbCu49iU8p255nCn1oi04oX2UjSoRcUMiKEHo2a5qM=
+github.com/XSAM/otelsql v0.38.0 h1:zWU0/YM9cJhPE71zJcQ2EBHwQDp+G4AX2tPpljslaB8=
+github.com/XSAM/otelsql v0.38.0/go.mod h1:5ePOgcLEkWvZtN9H3GV4BUlPeM3p3pzLDCnRG73X8h8=
 github.com/agnivade/levenshtein v1.2.1 h1:EHBY3UOn1gwdy/VbFwgo4cxecRznFk7fKWN1KOX7eoM=
 github.com/agnivade/levenshtein v1.2.1/go.mod h1:QVVI16kDrtSuwcpd0p1+xMC6Z/VfhtCyDIjcwga4/DU=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
