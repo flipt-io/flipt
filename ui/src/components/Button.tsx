@@ -30,17 +30,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         type={type}
         className={cls(
-          'cursor-hand inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-offset-1',
+          'cursor-hand inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:ring-1 focus:ring-offset-1 focus:outline-hidden',
           className,
           {
             'cursor-not-allowed': props.disabled,
-            'border border-transparent bg-violet-400 text-background shadow-sm enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
+            'text-background border border-transparent bg-violet-400 shadow-xs enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
               variant === 'primary',
-            'border border-violet-300 bg-background text-gray-500 shadow-sm enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
+            'bg-background border border-violet-300 text-gray-500 shadow-xs enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
               variant === 'secondary',
             'border-violet-300 text-violet-600 enabled:hover:bg-violet-100 enabled:focus:ring-violet-500':
               variant === 'soft',
-            'enabled:cursor-hand enabled:cursor mb-1 inline-flex items-center justify-center border-0 px-0 py-0 text-sm font-medium text-gray-300 focus:outline-none focus:ring-0 enabled:text-gray-500 enabled:hover:text-gray-600 disabled:cursor-not-allowed':
+            'enabled:cursor-hand enabled:cursor mb-1 inline-flex items-center justify-center border-0 px-0 py-0 text-sm font-medium text-gray-300 focus:ring-0 focus:outline-hidden enabled:text-gray-500 enabled:hover:text-gray-600 disabled:cursor-not-allowed':
               variant === 'link',
             'bg-transparent text-gray-500 hover:bg-gray-50 enabled:focus:ring-gray-500':
               variant === 'ghost'
@@ -64,7 +64,7 @@ export const ButtonWithPlus = (props: ButtonProps) => {
     <Button {...props}>
       <FontAwesomeIcon
         icon={faPlus}
-        className="-ml-1.5 mr-1.5 h-4 w-4 text-background"
+        className="text-background mr-1.5 -ml-1.5 h-4 w-4"
         aria-hidden="true"
       />
       {props.children}

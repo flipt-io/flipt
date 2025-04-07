@@ -93,7 +93,7 @@ export default function Footer() {
             </span>
           </p>
         </div>
-        <span className="mt-4 inline-flex justify-center space-x-5 sm:ml-auto sm:mt-0 sm:justify-start">
+        <span className="mt-4 inline-flex justify-center space-x-5 sm:mt-0 sm:ml-auto sm:justify-start">
           {social.map((item) => (
             <a
               key={item.name}

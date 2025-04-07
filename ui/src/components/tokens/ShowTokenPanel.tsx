@@ -31,7 +31,7 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title
             as="h3"
-            className="text-lg font-medium leading-6 text-gray-900"
+            className="text-lg leading-6 font-medium text-gray-900"
           >
             Created Token
           </Dialog.Title>
@@ -47,7 +47,7 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
           <div className="m-auto mt-4 flex content-center bg-[#1a1b26]">
             <div className="m-auto flex">
               <pre className="p-4 text-sm text-[#9aa5ce] md:h-full">
-                <code className="text rounded-sm md:h-full">{copiedText}</code>
+                <code className="text rounded-xs md:h-full">{copiedText}</code>
               </pre>
               {token?.clientToken && (
                 <button

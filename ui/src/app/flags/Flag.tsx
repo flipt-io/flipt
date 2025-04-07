@@ -185,7 +185,7 @@ export default function Flag() {
                   key={tab.name}
                   to={tab.to}
                   className={({ isActive }) =>
-                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
+                    cls('border-b-2 px-1 py-2 font-medium whitespace-nowrap', {
                       'border-violet-500 text-violet-600': isActive,
                       'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
                         !isActive
@@ -204,7 +204,7 @@ export default function Flag() {
                   key={tab.name}
                   to={tab.to}
                   className={({ isActive }) =>
-                    cls('whitespace-nowrap border-b-2 px-1 py-2 font-medium', {
+                    cls('border-b-2 px-1 py-2 font-medium whitespace-nowrap', {
                       'border-violet-500 text-violet-600': isActive,
                       'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
                         !isActive

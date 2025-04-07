@@ -16,7 +16,7 @@ export default function ChipList({
     <div className="flex flex-wrap gap-2">
       {visibleValues.map((value, i) => (
         <div
-          className="max-w-32 truncate rounded bg-gray-200 px-1.5 py-0.5 text-gray-900"
+          className="max-w-32 truncate rounded-sm bg-gray-200 px-1.5 py-0.5 text-gray-900"
           key={i}
         >
           {value}
@@ -24,7 +24,7 @@ export default function ChipList({
       ))}
       {!showAll && values.length > maxItemCount && (
         <button
-          className="rounded px-1.5 text-gray-700"
+          className="rounded-sm px-1.5 text-gray-700"
           onClick={() => setShowAllValues((b) => !b)}
         >
           {showAllValues ? 'show less' : '...'}

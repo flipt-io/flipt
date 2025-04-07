@@ -17,7 +17,7 @@ export default function Toggle(props: ToggleProps) {
 
   return (
     <div className="flex items-center justify-between">
-      <span className="flex flex-grow flex-col">
+      <span className="flex grow flex-col">
         {label && (
           <span
             className="text-sm font-medium text-gray-900"

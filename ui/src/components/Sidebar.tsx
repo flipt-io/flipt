@@ -34,7 +34,7 @@ export default function Sidebar(props: SidebarProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-300 bg-opacity-75" />
+            <div className="fixed inset-0 bg-gray-300/75" />
           </Transition.Child>
 
           <div className="fixed inset-0 z-40 flex">
@@ -47,7 +47,7 @@ export default function Sidebar(props: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-black pb-4 pt-5">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-black pt-5 pb-4">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -57,10 +57,10 @@ export default function Sidebar(props: SidebarProps) {
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <div className="absolute right-0 top-0 -mr-12 pt-2">
+                  <div className="absolute top-0 right-0 -mr-12 pt-2">
                     <button
                       type="button"
-                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                      className="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset"
                       onClick={() => setSidebarOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
@@ -71,7 +71,7 @@ export default function Sidebar(props: SidebarProps) {
                     </button>
                   </div>
                 </Transition.Child>
-                <div className="mt-2 flex flex-shrink-0 items-center px-4">
+                <div className="mt-2 flex shrink-0 items-center px-4">
                   <img
                     src={logoLight}
                     alt="logo"
@@ -88,7 +88,7 @@ export default function Sidebar(props: SidebarProps) {
                 </div>
               </Dialog.Panel>
             </Transition.Child>
-            <div className="w-14 flex-shrink-0" aria-hidden="true">
+            <div className="w-14 shrink-0" aria-hidden="true">
               {/* Dummy element to force sidebar to shrink to fit close icon */}
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function Sidebar(props: SidebarProps) {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
           <div
-            className="relative flex h-16 flex-shrink-0 items-center bg-black px-4 pb-1 pt-2 dark:border-b dark:border-b-background/20"
+            className="dark:border-b-background/20 relative flex h-16 shrink-0 items-center bg-black px-4 pt-2 pb-1 dark:border-b"
             style={topbarStyle}
           >
             <Link to="/">

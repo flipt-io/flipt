@@ -87,7 +87,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
       }}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-background shadow-xl">
+        <Form className="bg-background flex h-full flex-col overflow-y-scroll shadow-xl">
           <div className="flex-1">
             <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
@@ -186,7 +186,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                         id="namespaced"
                         name="namespaced"
                         type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-600"
+                        className="h-4 w-4 rounded-sm border-gray-300 text-violet-600 focus:ring-violet-600"
                         onChange={(e) => {
                           setNamespaceScoped(e.target.checked);
                           formik.setFieldValue(
@@ -227,7 +227,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div className="shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

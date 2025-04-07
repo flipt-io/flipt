@@ -22,7 +22,7 @@ export function Notification(props: NotificationProps) {
     <>
       <div
         aria-live="assertive"
-        className="z-11 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-4"
+        className="pointer-events-none fixed inset-0 z-11 flex items-end px-4 py-6 sm:items-start sm:p-4"
       >
         <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
           <Transition
@@ -35,10 +35,10 @@ export function Notification(props: NotificationProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="bg-backgroung pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="bg-backgroung 5 pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
               <div className="p-4">
                 <div className="flex items-start">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <SparklesIcon
                       className="h-6 w-6 text-gray-400"
                       aria-hidden="true"
@@ -56,12 +56,12 @@ export function Notification(props: NotificationProps) {
                         href={info.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-md bg-background text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-none"
+                        className="bg-background rounded-md text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-hidden"
                       >
                         Check It Out
                       </a>
                       <a
-                        className="rounded-md bg-background text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none"
+                        className="bg-background rounded-md text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-hidden"
                         onClick={(e) => {
                           e.preventDefault();
                           setShow(false);
@@ -72,10 +72,10 @@ export function Notification(props: NotificationProps) {
                       </a>
                     </div>
                   </div>
-                  <div className="ml-4 flex flex-shrink-0">
+                  <div className="ml-4 flex shrink-0">
                     <button
                       type="button"
-                      className="inline-flex rounded-md bg-background text-gray-400 hover:text-gray-500 focus:outline-none"
+                      className="bg-background inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-hidden"
                       onClick={() => {
                         setShow(false);
                         markSeen();
@@ -122,7 +122,7 @@ export default function Notifications(props: NotificationsProps) {
         className="without-ring relative rounded-full text-violet-100"
       >
         {newNotifications && (
-          <span className="absolute right-0 top-0 flex h-3 w-3">
+          <span className="absolute top-0 right-0 flex h-3 w-3">
             <span className="relative inline-flex h-3 w-3 rounded-full bg-violet-100"></span>
           </span>
         )}

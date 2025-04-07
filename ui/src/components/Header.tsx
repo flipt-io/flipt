@@ -22,7 +22,7 @@ export default function Header(props: HeaderProps) {
   const user = getUser(session);
 
   return (
-    <div className="sticky top-0 z-20 flex h-16 flex-shrink-0 bg-black dark:border-b dark:border-b-white/20 dark:md:border-b-0">
+    <div className="sticky top-0 z-20 flex h-16 shrink-0 bg-black dark:border-b dark:border-b-white/20 dark:md:border-b-0">
       <button
         type="button"
         className="without-ring px-4 text-white md:hidden"

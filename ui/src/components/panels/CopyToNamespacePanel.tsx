@@ -44,16 +44,16 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   return (
     <>
       <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-violet-100 sm:mx-0 sm:h-10 sm:w-10">
+        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-violet-100 sm:mx-0 sm:h-10 sm:w-10">
           <DocumentDuplicateIcon
             className="h-6 w-6 text-violet-500"
             aria-hidden="true"
           />
         </div>
-        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
           <Dialog.Title
             as="h3"
-            className="text-lg font-medium leading-6 text-gray-900"
+            className="text-lg leading-6 font-medium text-gray-900"
           >
             Copy {panelType}
           </Dialog.Title>

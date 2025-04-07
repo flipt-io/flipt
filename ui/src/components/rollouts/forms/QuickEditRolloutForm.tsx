@@ -170,7 +170,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-700 sm:block"
+                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle sm:block dark:bg-gray-700"
                   />
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
@@ -291,7 +291,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 py-1">
+          <div className="shrink-0 py-1">
             <div className="flex justify-end space-x-3">
               <TextButton
                 disabled={formik.isSubmitting || !formik.dirty}

@@ -15,10 +15,10 @@ export default function SuccessNotification() {
 
   return (
     <Transition show={success !== null}>
-      <div className="max-w-s fixed bottom-0 right-2 z-10 m-4">
+      <div className="max-w-s fixed right-2 bottom-0 z-10 m-4">
         <div className="rounded-md bg-green-100 p-4">
           <div className="flex">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <CheckCircleIcon
                 className="h-5 w-5 text-green-400"
                 aria-hidden="true"
@@ -32,7 +32,7 @@ export default function SuccessNotification() {
                 <button
                   type="button"
                   onClick={() => clearSuccess()}
-                  className="inline-flex rounded-md bg-green-100 p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50"
+                  className="inline-flex rounded-md bg-green-100 p-1.5 text-green-500 hover:bg-green-100 focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50 focus:outline-hidden"
                 >
                   <span className="sr-only">Dismiss</span>
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />

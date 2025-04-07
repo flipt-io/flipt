@@ -104,7 +104,7 @@ function OnboardingTile(props: OnboardingTileProps) {
         // light styles
         'bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]',
         // dark styles
-        'transform-gpu dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]',
+        'transform-gpu dark:bg-transparent dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)]',
         className
       )}
     >
@@ -130,7 +130,7 @@ function OnboardingTile(props: OnboardingTileProps) {
           <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
         </a>
       </div>
-      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-gray-800/10" />
+      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] dark:group-hover:bg-gray-800/10" />
     </div>
   );
 }
@@ -147,7 +147,7 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
     <>
       <div className="flex flex-row justify-between pb-5 sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+          <h1 className="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl">
             Onboarding
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -178,7 +178,7 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
       </div>
       <div className="mt-12 flex flex-row justify-between pb-5 sm:mt-16 sm:items-center">
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold leading-7 text-gray-900 sm:truncate sm:text-2xl">
+          <h2 className="text-xl leading-7 font-bold text-gray-900 sm:truncate sm:text-2xl">
             More Resources
           </h2>
           <p className="mt-2 text-sm text-gray-500">

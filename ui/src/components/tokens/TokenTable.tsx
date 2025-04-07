@@ -71,7 +71,7 @@ function IndeterminateCheckbox({
       ref={ref}
       className={
         className +
-        ' h-4 w-4 cursor-pointer rounded border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500'
+        ' h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-gray-100 text-purple-600 focus:ring-purple-500'
       }
       {...rest}
     />
@@ -261,7 +261,7 @@ export default function TokenTable(props: TokenTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                            <span className="ml-2 flex-none rounded-sm text-gray-400 group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon
@@ -297,7 +297,7 @@ export default function TokenTable(props: TokenTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-background">
+              <tbody className="bg-background divide-y divide-gray-200">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

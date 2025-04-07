@@ -72,7 +72,7 @@ function InnerLayout() {
   return (
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-background md:pl-64">
+      <div className="bg-background flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
           <Banner
@@ -83,7 +83,7 @@ function InnerLayout() {
           />
         )}
         <main className="flex pt-1 sm:pt-4">
-          <div className="mx-auto w-full max-w-screen-lg overflow-x-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-(--breakpoint-lg) overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

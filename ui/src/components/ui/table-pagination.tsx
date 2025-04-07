@@ -28,7 +28,7 @@ export function DataTablePagination<TData>({
     return null;
   }
   return (
-    <div className="flex items-center justify-end py-2 text-muted-foreground">
+    <div className="text-muted-foreground flex items-center justify-end py-2">
       <div className="flex items-center justify-end space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>

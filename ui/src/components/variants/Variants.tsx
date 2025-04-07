@@ -82,7 +82,7 @@ export default function Variants({ flag }: VariantsProps) {
             </p>
           </div>
           {flag.variants && flag.variants.length > 0 && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
               <ButtonWithPlus
                 variant="primary"
                 type="button"
@@ -105,7 +105,7 @@ export default function Variants({ flag }: VariantsProps) {
                 <tr>
                   <th
                     scope="col"
-                    className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                    className="pr-3 pb-3.5 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                   >
                     Key
                   </th>
@@ -121,7 +121,7 @@ export default function Variants({ flag }: VariantsProps) {
                   >
                     Description
                   </th>
-                  <th scope="col" className="relative pb-3.5 pl-3 pr-4 sm:pr-6">
+                  <th scope="col" className="relative pr-4 pb-3.5 pl-3 sm:pr-6">
                     <span className="sr-only">Edit</span>
                   </th>
                 </tr>
@@ -129,16 +129,16 @@ export default function Variants({ flag }: VariantsProps) {
               <tbody className="divide-y divide-gray-200">
                 {flag.variants.map((variant) => (
                   <tr key={variant.key}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
+                    <td className="py-4 pr-3 pl-4 text-sm whitespace-nowrap text-gray-600 sm:pl-6">
                       {variant.key}
                     </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                    <td className="hidden px-3 py-4 text-sm whitespace-nowrap text-gray-500 sm:table-cell">
                       {variant.name}
                     </td>
-                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                    <td className="hidden truncate px-3 py-4 text-sm whitespace-nowrap text-gray-500 lg:table-cell">
                       {variant.description}
                     </td>
-                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <td className="py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
                       {!readOnly && (
                         <>
                           <a

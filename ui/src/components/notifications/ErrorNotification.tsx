@@ -7,13 +7,13 @@ export default function ErrorNotification() {
 
   return (
     <Transition show={error !== null}>
-      <div className="max-w-s fixed bottom-0 right-2 z-50 m-4 w-1/3">
+      <div className="max-w-s fixed right-2 bottom-0 z-50 m-4 w-1/3">
         <div
-          className="rounded-md border border-red-100 bg-red-50 p-4 shadow"
+          className="rounded-md border border-red-100 bg-red-50 p-4 shadow-xs"
           role="alert"
         >
           <div className="flex">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <XCircleIcon
                 className="h-5 w-5 text-red-400"
                 aria-hidden="true"
@@ -32,7 +32,7 @@ export default function ErrorNotification() {
                   onClick={() => {
                     clearError();
                   }}
-                  className="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
+                  className="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50 focus:outline-hidden"
                 >
                   <span className="sr-only">Dismiss</span>
                   <XMarkIcon className="h-4 w-4" aria-hidden="true" />

@@ -35,9 +35,9 @@ function NavItem(props: NavItemProps) {
         cls(
           'flex items-center rounded-md px-2 py-2 text-sm font-medium text-white',
           {
-            'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300 md:dark:text-gray-950':
+            'bg-gray-800 md:bg-gray-50 md:text-gray-700 dark:bg-gray-300 md:dark:bg-gray-300 md:dark:text-gray-950':
               isActive,
-            'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:text-gray-400':
+            'hover:bg-gray-700 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:dark:text-gray-400':
               !isActive
           }
         )
@@ -45,7 +45,7 @@ function NavItem(props: NavItemProps) {
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 flex-shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
+        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500 md:dark:text-gray-400"
         aria-hidden="true"
       />
       {name}
@@ -107,13 +107,13 @@ export default function Nav(props: NavProps) {
 
   return (
     <nav
-      className={`${className} flex flex-grow flex-col overflow-y-auto`}
+      className={`${className} flex grow flex-col overflow-y-auto`}
       aria-label="Sidebar"
     >
-      <div className="mb-4 flex flex-shrink-0 flex-col px-2">
+      <div className="mb-4 flex shrink-0 flex-col px-2">
         <NamespaceListbox disabled={!namespaceNavEnabled} />
       </div>
-      <div className="flex flex-grow flex-col space-y-1 px-2">
+      <div className="flex grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
           <NavItem
             key={item.name}
@@ -126,7 +126,7 @@ export default function Nav(props: NavProps) {
           />
         ))}
       </div>
-      <div className="flex-shrink-0 space-y-1 px-2">
+      <div className="shrink-0 space-y-1 px-2">
         {secondaryNavigation.map((item) => (
           <NavItem
             key={item.name}
@@ -139,8 +139,8 @@ export default function Nav(props: NavProps) {
           />
         ))}
         <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-400">
-          <span className="flex-shrink-0">Command Mode:</span>
-          <div className="flex-shrink-0">
+          <span className="shrink-0">Command Mode:</span>
+          <div className="shrink-0">
             <kbd className="text-gray-400">ctrl</kbd> +{' '}
             <kbd className="text-gray-400">k</kbd>
           </div>

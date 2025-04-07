@@ -20,7 +20,7 @@ export function DataTableViewOptions<TData>({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="-ml-3 h-8 data-[state=open]:bg-accent"
+          className="data-[state=open]:bg-accent -ml-3 h-8"
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           View

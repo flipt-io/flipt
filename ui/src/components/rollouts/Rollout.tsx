@@ -38,7 +38,7 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} bg-background w-full items-center space-y-2 rounded-md border border-violet-300 shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
       <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
@@ -56,7 +56,7 @@ const Rollout = forwardRef(
             {rollout.rank}
           </span>
           <h3
-            className={cls('text-sm font-normal leading-6 text-gray-700', {
+            className={cls('text-sm leading-6 font-normal text-gray-700', {
               'hover:cursor-not-allowed': readOnly,
               'hover:cursor-move': !readOnly
             })}
@@ -94,7 +94,7 @@ const Rollout = forwardRef(
       <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
           {rollout.description && (
-            <div className="flex pb-4 pt-2">
+            <div className="flex pt-2 pb-4">
               <p className="text-sm font-light text-gray-600">
                 {rollout.description}
               </p>
