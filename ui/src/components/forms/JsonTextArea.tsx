@@ -32,7 +32,7 @@ function JsonInput({
         value={inputValue}
         onChange={handleChange}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm',
+          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-violet-500 sm:text-sm',
           className,
           {
             'border-red-400': meta?.touched && meta?.error

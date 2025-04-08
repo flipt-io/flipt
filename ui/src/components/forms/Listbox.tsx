@@ -37,10 +37,10 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
           <div className="relative mt-2">
             <L.Button
               className={cls(
-                'relative w-full cursor-default rounded-md px-2 py-2 pl-3 pr-10 text-left text-gray-900 focus:outline-none sm:text-sm sm:leading-6',
+                'relative w-full cursor-default rounded-md px-2 py-2 pl-3 pr-10 text-left text-gray-900 focus:outline-hidden sm:text-sm sm:leading-6',
                 {
                   'bg-gray-100': disabled,
-                  'bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-violet-600':
+                  'bg-gray-50 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-violet-600':
                     !disabled
                 }
               )}
@@ -69,7 +69,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
               leaveTo="opacity-0"
             >
               <L.Options
-                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-50 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-50 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm"
                 id={`${id}-select-options`}
               >
                 {values?.map((v) => (

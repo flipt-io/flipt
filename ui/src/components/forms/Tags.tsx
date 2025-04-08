@@ -96,7 +96,7 @@ export default function Tags(props: TagsProps) {
         <div className="relative flex w-full">
           <input
             className={cls(
-              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-sm focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
+              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
               {
                 'border-red-400': hasError
               }
@@ -110,7 +110,7 @@ export default function Tags(props: TagsProps) {
             }}
           />
           <button
-            className="z-1 border-1 !absolute right-1 top-1 select-none rounded border border-violet-300 px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500"
+            className="z-1 border-1 absolute! right-1 top-1 select-none rounded border border-violet-300 px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500"
             type="button"
             onClick={addTag}
           >

@@ -36,7 +36,7 @@ export default function Select(props: SelectProps) {
       id={id}
       name={name}
       className={cls(
-        'block rounded-md border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-base text-gray-900 focus:border-violet-300 focus:outline-none focus:ring-violet-300 sm:text-sm',
+        'block rounded-md border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-base text-gray-900 focus:border-violet-300 focus:outline-hidden focus:ring-violet-300 sm:text-sm',
         className
       )}
       value={value}

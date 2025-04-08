@@ -23,7 +23,7 @@ export default function EmptyState(props: EmptyStateProps) {
   return (
     <button
       className={cls(
-        'hover:cursor-hand relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center selection:border-gray-300 hover:border-gray-400 focus:outline-none',
+        'hover:cursor-hand relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center selection:border-gray-300 hover:border-gray-400 focus:outline-hidden',
         {
           'hover:cursor-not-allowed': disabled
         }
