@@ -52,8 +52,9 @@ export const metaSlice = createSlice({
           state.config.storage.type = action.payload.storage?.type;
           state.config.storage.git = action.payload.storage?.metadata;
           state.config.storage.readOnly =
-            action.payload.storage &&
-            action.payload.storage.type !== StorageType.DATABASE;
+            action.payload.storage.readOnly ||
+            (action.payload.storage &&
+              action.payload.storage.type !== StorageType.DATABASE);
         }
         state.config.ui = {
           defaultTheme: action.payload.ui?.theme || Theme.SYSTEM,
