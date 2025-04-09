@@ -55,6 +55,10 @@ func (c *StorageConfig) Info() map[string]string {
 	return nil
 }
 
+func (c *StorageConfig) IsReadOnly() bool {
+	return (c.ReadOnly != nil && *c.ReadOnly) || c.Type != DatabaseStorageType
+}
+
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	switch v.GetString("storage.type") {
 	case string(LocalStorageType):

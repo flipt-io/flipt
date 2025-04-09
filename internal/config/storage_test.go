@@ -23,3 +23,22 @@ func TestStorageConfigInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestIsReadOnly(t *testing.T) {
+	readOnlyEnabled := true
+	tests := []struct {
+		config   StorageConfig
+		expected bool
+	}{
+		{StorageConfig{Type: DatabaseStorageType}, false},
+		{StorageConfig{Type: DatabaseStorageType, ReadOnly: &readOnlyEnabled}, true},
+		{StorageConfig{Type: LocalStorageType}, true},
+		{StorageConfig{Type: LocalStorageType, ReadOnly: &readOnlyEnabled}, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.config.Type), func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.config.IsReadOnly())
+		})
+	}
+}
