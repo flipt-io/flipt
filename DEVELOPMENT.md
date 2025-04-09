@@ -98,7 +98,7 @@ To develop the project with the UI also in development mode (with hot reloading)
 
 1. Run `mage ui:dev` from the root of this repository. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
 2. In another terminal, run `mage dev` (or `mage go:run`) from the root of this repository. This will run the backend server making it accessible on port `8080`.
-3. Visit `http://localhost:8080` to see the UI.
+3. Visit `http://localhost:5173` to see the UI.
 4. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 
 ### Ports
@@ -119,7 +119,7 @@ This will start two Docker containers:
 - `server` will run the Flipt server, mounting the contents of this repository as a bind mount. This means that the database (SQLite by default) will be persisted between runs. Currently the server does not support hot reloading, so you'll need to restart the container to pick up any changes.
 - `ui` will run the UI development server, mounting the `ui` directory as a bind mount. This means that any changes made to the UI will be picked up by the development server and the UI will be reloaded (thanks to Vite).
 
-To start the containers, run `docker-compose up` from the root of this repository. After the containers are started, you can visit `http://localhost:8080` to see the UI.
+To start the containers, run `docker-compose up` from the root of this repository. After the containers are started, you can visit `http://localhost:5173` to see the UI.
 
 ## CDEs
 
