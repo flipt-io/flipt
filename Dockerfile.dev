@@ -25,3 +25,4 @@ RUN mkdir -p /etc/flipt && \
 
 EXPOSE 8080
 EXPOSE 9000
+EXPOSE 5173

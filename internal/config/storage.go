@@ -45,6 +45,10 @@ type StorageConfig struct {
 	ReadOnly *bool                `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
+func (c *StorageConfig) IsReadOnly() bool {
+	return (c.ReadOnly != nil && *c.ReadOnly) || c.Type != DatabaseStorageType
+}
+
 func (c *StorageConfig) Info() map[string]string {
 	if c.Type == GitStorageType {
 		return map[string]string{
