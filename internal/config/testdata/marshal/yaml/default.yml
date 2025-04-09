@@ -4,6 +4,7 @@ log:
   grpc_level: ERROR
 
 ui:
+  enabled: true
   default_theme: system
 
 analytics:

@@ -1192,14 +1192,12 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "default": true,
-          "deprecated": true
+          "default": true
         },
         "default_theme": {
           "type": "string",
           "enum": ["light", "dark", "system"],
-          "default": "system",
-          "deprecated": false
+          "default": "system"
         },
         "topbar": {
           "type": "object",
