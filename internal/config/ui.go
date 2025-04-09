@@ -36,12 +36,14 @@ func (u *UITopbar) validate() error {
 // UIConfig contains fields, which control the behaviour
 // of Flipt's user interface.
 type UIConfig struct {
+	Enabled      bool     `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	DefaultTheme UITheme  `json:"defaultTheme" mapstructure:"default_theme" yaml:"default_theme"`
 	Topbar       UITopbar `json:"topbar,omitempty" mapstructure:"topbar" yaml:"topbar,omitempty"`
 }
 
 func (c *UIConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("ui", map[string]any{
+		"enabled":       true,
 		"default_theme": SystemUITheme,
 	})
 

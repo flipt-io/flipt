@@ -53,11 +53,6 @@ The following options were deprecated in the past and were already removed.
 > deprecated in [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2)
 > removed in [v1.36.0](https://github.com/flipt-io/flipt/releases/tag/v1.36.0)
 
-### ui.enabled
-
-> deprecated in [v1.17.0](https://github.com/flipt-io/flipt/releases/tag/v1.17.0)
-> removed in [v1.28.0](https://github.com/flipt-io/flipt/releases/tag/v1.28.0)
-
 ### db.migrations.path and db.migrations_path
 
 > deprecated in [v1.14.0](https://github.com/flipt-io/flipt/releases/tag/v1.14.0)
