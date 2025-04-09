@@ -44,7 +44,7 @@ func WithOS(os, arch string) Option {
 func WithConfig(cfg *config.Config) Option {
 	return func(f *Flipt) {
 		f.Authentication = authentication{Required: cfg.Authentication.Required}
-		f.Storage = storage{Type: cfg.Storage.Type, ReadOnly: cfg.Storage.ReadOnly != nil && *cfg.Storage.ReadOnly, Metadata: cfg.Storage.Info()}
+		f.Storage = storage{Type: cfg.Storage.Type, ReadOnly: cfg.Storage.IsReadOnly(), Metadata: cfg.Storage.Info()}
 		f.Analytics = &analytics{Enabled: cfg.Analytics.Enabled()}
 		f.UI = &ui{Theme: cfg.UI.DefaultTheme, TopbarColor: cfg.UI.Topbar.Color}
 	}
