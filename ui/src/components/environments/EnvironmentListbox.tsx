@@ -34,6 +34,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
       by="key"
       onChange={(env) => dispatch(currentEnvironmentChanged(env))}
       disabled={environments.length <= 1}
+      data-testid="environment-listbox"
     >
       <div className={cls('relative', className)}>
         <Listbox.Button className="group flex items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
