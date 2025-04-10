@@ -275,6 +275,7 @@ import "list"
 	}
 
 	#ui: {
+		enabled?: bool | *true
 		default_theme?: "light" | "dark" | *"system"
 		topbar?: {
 			color?: string

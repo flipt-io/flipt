@@ -1131,6 +1131,10 @@
       "title": "UI",
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
         "default_theme": {
           "type": "string",
           "enum": [

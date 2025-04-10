@@ -229,21 +229,23 @@ func NewHTTPServer(
 	// mount health endpoint to use the grpc health check service
 	r.Mount("/health", runtime.NewServeMux(runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(conn), "/health")))
 
-	fs, err := ui.FS()
-	if err != nil {
-		return nil, fmt.Errorf("mounting ui: %w", err)
-	}
+	if cfg.UI.Enabled {
+		fs, err := ui.FS()
+		if err != nil {
+			return nil, fmt.Errorf("mounting ui: %w", err)
+		}
 
-	r.With(func(next http.Handler) http.Handler {
-		// set additional headers enabling the UI to be served securely
-		// ie: Content-Security-Policy, X-Content-Type-Options, etc.
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			for k, v := range ui.AdditionalHeaders() {
-				w.Header().Set(k, v)
-			}
-			next.ServeHTTP(w, r)
-		})
-	}).Mount("/", http.FileServer(http.FS(fs)))
+		r.With(func(next http.Handler) http.Handler {
+			// set additional headers enabling the UI to be served securely
+			// ie: Content-Security-Policy, X-Content-Type-Options, etc.
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				for k, v := range ui.AdditionalHeaders() {
+					w.Header().Set(k, v)
+				}
+				next.ServeHTTP(w, r)
+			})
+		}).Mount("/", http.FileServer(http.FS(fs)))
+	}
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
@@ -262,12 +264,16 @@ func NewHTTPServer(
 
 	if isConsole {
 		color.Green("\nAPI: %s", apiAddr)
-		color.Green("UI: %s", uiAddr)
+		if cfg.UI.Enabled {
+			color.Green("UI: %s", uiAddr)
+		}
 
 		fmt.Println()
 	} else {
 		logger.Info("api available", zap.String("address", apiAddr))
-		logger.Info("ui available", zap.String("address", uiAddr))
+		if cfg.UI.Enabled {
+			logger.Info("ui available", zap.String("address", uiAddr))
+		}
 	}
 
 	if cfg.Server.Protocol != config.HTTPS {
