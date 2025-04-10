@@ -51,6 +51,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
+	"go.flipt.io/flipt/internal/storage/unmodifiable"
 	"go.flipt.io/flipt/internal/tracing"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
@@ -246,6 +247,10 @@ func NewGRPCServer(
 		store = storagecache.NewStore(store, cacher, logger)
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
+	}
+
+	if cfg.Storage.IsReadOnly() {
+		store = unmodifiable.NewStore(store)
 	}
 
 	var (
