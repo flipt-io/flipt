@@ -4,6 +4,19 @@ This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [v1.58.0](https://github.com/flipt-io/flipt/releases/tag/v1.58.0) - 2025-04-10
+
+### Added
+
+- add back ability to disable UI via config (#4060)
+
+### Fixed
+
+- `store`: disable modification of the store in read only mode (#4061)
+- regression with setting ui to readonly (#4057)
+- `ui`: display missing shadows in dark mode with tailwind v4 (#4053)
+
 ## [v1.57.0](https://github.com/flipt-io/flipt/releases/tag/v1.57.0) - 2025-04-06
 
 ### Added
