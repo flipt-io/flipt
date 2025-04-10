@@ -1,7 +1,0 @@
-analytics:
-  storage:
-    prometheus:
-      enabled: true
-      url: http://prometheus:9090
-      headers:
-        Authorization: ${PROMETHEUS_AUTH_TOKEN}
