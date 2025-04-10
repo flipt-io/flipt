@@ -73,11 +73,20 @@ nightly:
 
 changelog:
   use: github
-  # ai:
-  #   use: anthropic
-  #   prompt:
-  #     from_file:
-  #       path: ./build/PROMPT.md
+  format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
+  sort: asc
+  groups:
+    - title: "Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Dependencies"
+      regexp: '^.*?deps(\([[:word:]]+\))??!?:.+$'
+      order: 999
+    - title: "Other"
+      order: 3
 
 dockers:
   - dockerfile: ./build/Dockerfile
