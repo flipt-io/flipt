@@ -23,7 +23,6 @@ var (
 // UITopbar represents the configuration of a user interface top bar component.
 type UITopbar struct {
 	Color string `json:"color" mapstructure:"color" yaml:"color"`
-	Label string `json:"label" mapstructure:"label" yaml:"label"`
 }
 
 func (u *UITopbar) validate() error {

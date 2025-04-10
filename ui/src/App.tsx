@@ -18,6 +18,7 @@ import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
 import { store } from './store';
 import { Theme } from './types/Preferences';
+import { selectCurrentEnvironment } from './app/environments/environmentsApi';
 
 const Flags = loadable(() => import('./app/flags/Flags'));
 const Segments = loadable(() => import('./app/segments/Segments'));
@@ -153,9 +154,10 @@ export default function App() {
     }
   }, [theme, systemPrefersDark]);
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  let title = `Flipt · ${namespace.key}`;
+  let title = `Flipt | ${environment.name} · ${namespace.name}`;
 
   return (
     <>

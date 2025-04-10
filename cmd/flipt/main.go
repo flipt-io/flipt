@@ -330,7 +330,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, version, isRelease),
 		info.WithLatestRelease(releaseInfo),
-		info.WithOS(goOS, goArch),
 		info.WithConfig(cfg),
 	)
 

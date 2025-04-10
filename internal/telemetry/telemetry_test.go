@@ -99,8 +99,6 @@ func TestPing(t *testing.T) {
 
 			want: map[string]any{
 				"version":      "1.0.0",
-				"os":           "linux",
-				"arch":         "amd64",
 				"experimental": experimental,
 			},
 		},
@@ -118,8 +116,6 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version":      "1.0.0",
-				"os":           "linux",
-				"arch":         "amd64",
 				"experimental": experimental,
 			},
 		},
@@ -137,8 +133,6 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
 				"authentication": map[string]any{
 					"methods": []any{
 						"token",
@@ -161,8 +155,6 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version":      "1.0.0",
-				"os":           "linux",
-				"arch":         "amd64",
 				"experimental": experimental,
 			},
 		},
@@ -180,8 +172,6 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
-				"os":      "linux",
-				"arch":    "amd64",
 				"analytics": map[string]any{
 					"storage": "clickhouse",
 				},
@@ -206,9 +196,9 @@ func TestPing(t *testing.T) {
 					logger: logger,
 					client: mockAnalytics,
 					info: info.Flipt{
-						Version: "1.0.0",
-						OS:      "linux",
-						Arch:    "amd64",
+						Build: &info.Build{
+							Version: "1.0.0",
+						},
 					},
 				}
 
@@ -229,7 +219,7 @@ func TestPing(t *testing.T) {
 			assert.NotEmpty(t, msg.AnonymousId)
 			assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
 			assert.Equal(t, "2.0", msg.Properties["version"])
-			assert.Equal(t, tt.want, msg.Properties["flipt"])
+			assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
 			assert.NotEmpty(t, out.String())
 		})
@@ -250,9 +240,9 @@ func TestPing_Existing(t *testing.T) {
 			logger: logger,
 			client: mockAnalytics,
 			info: info.Flipt{
-				Version: "1.0.0",
-				OS:      "linux",
-				Arch:    "amd64",
+				Build: &info.Build{
+					Version: "1.0.0",
+				},
 			},
 		}
 
@@ -293,9 +283,9 @@ func TestPing_Disabled(t *testing.T) {
 			logger: logger,
 			client: mockAnalytics,
 			info: info.Flipt{
-				Version: "1.0.0",
-				OS:      "linux",
-				Arch:    "amd64",
+				Build: &info.Build{
+					Version: "1.0.0",
+				},
 			},
 		}
 	)
@@ -323,9 +313,9 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 			logger: logger,
 			client: mockAnalytics,
 			info: info.Flipt{
-				Version: "1.0.0",
-				OS:      "linux",
-				Arch:    "amd64",
+				Build: &info.Build{
+					Version: "1.0.0",
+				},
 			},
 		}
 	)

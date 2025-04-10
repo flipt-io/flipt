@@ -149,7 +149,7 @@ func NewGRPCServer(
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
-	tracingProvider, err := tracing.NewProvider(ctx, info.Version, cfg.Tracing)
+	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version, cfg.Tracing)
 	if err != nil {
 		return nil, err
 	}

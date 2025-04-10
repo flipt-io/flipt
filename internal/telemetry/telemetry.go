@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/google/uuid"
@@ -175,9 +176,9 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var (
 		props = segment.NewProperties()
 		flipt = flipt{
-			OS:           info.OS,
-			Arch:         info.Arch,
-			Version:      info.Version,
+			OS:           runtime.GOOS,
+			Arch:         runtime.GOARCH,
+			Version:      info.Build.Version,
 			Experimental: r.cfg.Experimental,
 		}
 	)
