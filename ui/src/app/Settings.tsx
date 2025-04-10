@@ -1,5 +1,6 @@
 import { Outlet, useOutletContext } from 'react-router';
 
+import { PageHeader } from '~/components/Page';
 import TabBar from '~/components/TabBar';
 
 export default function Settings() {
@@ -15,16 +16,10 @@ export default function Settings() {
   ];
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Settings
-          </h1>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Settings" />
       <TabBar tabs={tabs} />
       <Outlet context={useOutletContext()} />
-    </>
+    </div>
   );
 }

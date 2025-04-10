@@ -15,7 +15,7 @@ export default function TabBar(props: TabBarProps) {
   const { tabs } = props;
 
   return (
-    <div className="mt-3 flex flex-row sm:mt-5">
+    <div className="flex flex-row">
       <div className="border-b-2 border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
