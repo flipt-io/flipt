@@ -28,8 +28,7 @@ jobs:
 
       - uses: bufbuild/buf-action@v1
         with:
-          version: 1.46.0
-          push: false
+          lint: true
 
   proto-check:
     name: "Check Generated Code"
@@ -43,8 +42,9 @@ jobs:
           check-latest: true
           cache: true
 
-      - uses: bufbuild/buf-setup-action@v1.26.0
+      - uses: bufbuild/buf-action@v1
         with:
+          setup_only: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: magefile/mage-action@v3
