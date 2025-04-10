@@ -48,6 +48,7 @@ jobs:
             "api/cachetls",
             "api/snapshot",
             "api/ofrep",
+            "api/readonly",
             "fs/git",
             "fs/local",
             "fs/s3",

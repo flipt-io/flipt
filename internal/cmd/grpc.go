@@ -50,6 +50,7 @@ import (
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
+	"go.flipt.io/flipt/internal/storage/sql/readonly"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.flipt.io/flipt/internal/tracing"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
@@ -144,6 +145,11 @@ func NewGRPCServer(
 		}
 
 		logger.Debug("database driver configured", zap.Stringer("driver", driver))
+
+		// if read only is enabled, wrap the sql store in a readonly store
+		if cfg.Storage.ReadOnly != nil && *cfg.Storage.ReadOnly {
+			store = readonly.NewStore(store)
+		}
 	default:
 		// otherwise, attempt to configure a declarative backend store
 		store, err = fsstore.NewStore(ctx, logger, cfg)

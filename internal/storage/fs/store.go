@@ -2,7 +2,6 @@ package fs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path"
 
@@ -13,11 +12,6 @@ import (
 
 var (
 	_ storage.Store = (*Store)(nil)
-
-	// ErrNotImplemented is returned when a method has intentionally not been implemented
-	// This is usually reserved for the store write actions when the store is read-only
-	// but still needs to implement storage.Store
-	ErrNotImplemented = errors.New("not implemented")
 )
 
 // ReferencedSnapshotStore is a type which has a single function View.
@@ -213,107 +207,107 @@ func (s *Store) CountRollouts(ctx context.Context, flag storage.ResourceRequest)
 // unimplemented write paths below
 
 func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	return nil, ErrNotImplemented
+	return nil, storage.ErrReadOnlyStore
 }
 
 func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
-	return ErrNotImplemented
+	return storage.ErrReadOnlyStore
 }
 
 func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (version string, err error) {

@@ -39,6 +39,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.opentelemetry.io/proto/otlp v1.5.0
+	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
 	golang.org/x/mod v0.24.0
 	golang.org/x/sync v0.12.0
 	google.golang.org/grpc v1.71.0
@@ -63,7 +64,6 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.34.0 // indirect
-	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7 // indirect
 )
 
 require (

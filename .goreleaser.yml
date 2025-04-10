@@ -73,11 +73,6 @@ nightly:
 
 changelog:
   use: github
-  # ai:
-  #   use: anthropic
-  #   prompt:
-  #     from_file:
-  #       path: ./build/PROMPT.md
 
 dockers:
   - dockerfile: ./build/Dockerfile

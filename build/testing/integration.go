@@ -60,6 +60,7 @@ var (
 		"api/cachetls":      cacheWithTLS,
 		"api/snapshot":      withAuthz(snapshot),
 		"api/ofrep":         withAuthz(ofrep),
+		"api/readonly":      readonly,
 		"fs/git":            git,
 		"fs/local":          local,
 		"fs/s3":             s3,
@@ -583,19 +584,16 @@ func importInto(ctx context.Context, base, flipt, fliptToTest *dagger.Container,
 
 		importCmd := append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
 		// use target flipt binary to invoke import
-		_, err := flipt.
+		output, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
 			WithFile("import.yaml", seed).
 			WithServiceBinding("flipt", fliptToTest.AsService()).
-			// it appears it takes a little while for Flipt to come online
-			// For the go tests they have to compile and that seems to be enough
-			// time for the target Flipt to come up.
-			// However, in this case the flipt binary is prebuilt and needs a little sleep.
-			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
-			Sync(ctx)
+			// increase sleep time to 10 seconds to ensure Flipt is ready
+			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 10 && %s", strings.Join(importCmd, " "))}).
+			Stdout(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to import %s namespace: %v\nOutput: %s", ns, err, output)
 		}
 	}
 
@@ -654,6 +652,27 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		}
 
 		return nil
+	}
+}
+
+func readonly(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func() error {
+		// import testdata before running readonly suite
+		flags := []string{"--address", conf.address, "--token", bootstrapToken}
+
+		// create unique instance for test case
+		fliptToTest := flipt.
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		if err := importInto(ctx, base, flipt, fliptToTest, flags...); err != nil {
+			return err
+		}
+
+		fliptToTest = fliptToTest.
+			WithEnvVariable("FLIPT_STORAGE_READONLY", "true")
+
+		// run readonly suite against imported Flipt instance
+		return suite(ctx, "readonly", base, fliptToTest, conf)()
 	}
 }
 

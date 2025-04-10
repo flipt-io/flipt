@@ -33,7 +33,7 @@ type PageToken struct {
 }
 
 func (s *Store) String() string {
-	return ""
+	return "sql"
 }
 
 func (s *Store) GetVersion(ctx context.Context, ns storage.NamespaceRequest) (string, error) {

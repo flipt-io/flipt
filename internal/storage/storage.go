@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path"
 
@@ -15,6 +16,12 @@ const (
 
 	// MaxListLimit is the upper limit applied to any list operation page size.
 	MaxListLimit uint64 = 100
+)
+
+var (
+	// ErrReadOnlyStore is returned when a method has intentionally not been implemented
+	// This is usually reserved for the store write actions when the store is read-only
+	ErrReadOnlyStore = errors.New("read-only store")
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
