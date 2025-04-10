@@ -34,17 +34,15 @@ import SortableRollout from '~/components/rollouts/SortableRollout';
 
 import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
-import { SegmentOperatorType } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
 
 type RolloutsProps = {
   flag: IFlag;
+  rollouts: IRollout[];
 };
 
-export default function Rollouts(props: RolloutsProps) {
-  const { flag } = props;
-
+export default function Rollouts({ flag, rollouts }: RolloutsProps) {
   const [activeRollout, setActiveRollout] = useState<IRollout | null>(null);
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
 
@@ -74,31 +72,6 @@ export default function Rollouts(props: RolloutsProps) {
 
   const { setRollouts, createRollout, updateRollout, deleteRollout } =
     useContext(FlagFormContext);
-
-  const rollouts = useMemo(() => {
-    return flag.rollouts!.map((rollout) => {
-      if (rollout.segment) {
-        let segments: string[] = [];
-        if (rollout.segment.segments && rollout.segment.segments.length > 0) {
-          segments = rollout.segment.segments;
-        }
-
-        return {
-          ...rollout,
-          segment: {
-            segmentOperator:
-              rollout.segment.segmentOperator || SegmentOperatorType.OR,
-            segments,
-            value: rollout.segment.value
-          }
-        };
-      }
-
-      return {
-        ...rollout
-      };
-    });
-  }, [flag.rollouts]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
