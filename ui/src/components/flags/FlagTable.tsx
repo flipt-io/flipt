@@ -38,12 +38,17 @@ type FlagTableProps = {
 };
 
 function FlagDetails({ item }: { item: IFlag }) {
-  const enabled = item.type === FlagType.BOOLEAN || item.enabled;
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Badge variant={enabled ? 'enabled' : 'muted'}>
-        {enabled ? 'Enabled' : 'Disabled'}
-      </Badge>
+      {item.type === FlagType.BOOLEAN ? (
+        <Badge variant={item.enabled ? 'enabled' : 'destructiveoutline'}>
+          {item.enabled ? 'True' : 'False'}
+        </Badge>
+      ) : (
+        <Badge variant={item.enabled ? 'enabled' : 'muted'}>
+          {item.enabled ? 'Enabled' : 'Disabled'}
+        </Badge>
+      )}
       <span className="flex items-center gap-1">
         {item.type === FlagType.BOOLEAN ? (
           <ToggleLeftIcon className="h-4 w-4" />
@@ -176,13 +181,16 @@ export default function FlagTable(props: FlagTableProps) {
             onClick={() => navigate(`${path}/${item.key}`)}
           >
             <div className="flex w-full flex-col gap-1">
-              <div className="flex items-center">
-                <div className="flex items-center gap-2">
+              <div className="flex w-full items-center justify-between">
+                <div className="flex max-w-[70%] items-center gap-2">
                   <div className="truncate font-semibold">{item.name}</div>
-                  <Badge variant="outlinemuted" className="hidden sm:block">
-                    {item.key}
-                  </Badge>
                 </div>
+                <Badge
+                  variant="outlinemuted"
+                  className="ml-2 hidden flex-shrink-0 sm:flex"
+                >
+                  {item.key}
+                </Badge>
               </div>
             </div>
             <div className="line-clamp-2 text-xs text-secondary-foreground">

@@ -40,14 +40,18 @@ export const ConstraintStringOperators: Record<string, string> = {
   prefix: 'HAS PREFIX',
   suffix: 'HAS SUFFIX',
   isoneof: 'IS ONE OF',
-  isnotoneof: 'IS NOT ONE OF'
+  isnotoneof: 'IS NOT ONE OF',
+  contains: 'CONTAINS',
+  notcontains: 'DOES NOT CONTAIN'
 };
 
 export const ConstraintEntityIdOperators: Record<string, string> = {
   eq: '==',
   neq: '!=',
   isoneof: 'IS ONE OF',
-  isnotoneof: 'IS NOT ONE OF'
+  isnotoneof: 'IS NOT ONE OF',
+  contains: 'CONTAINS',
+  notcontains: 'DOES NOT CONTAIN'
 };
 
 export const ConstraintNumberOperators: Record<string, string> = {

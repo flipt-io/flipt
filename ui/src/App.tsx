@@ -10,6 +10,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import ErrorLayout from './app/ErrorLayout';
 import Layout from './app/Layout';
 import NotFoundLayout from './app/NotFoundLayout';
+import { selectCurrentEnvironment } from './app/environments/environmentsApi';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
 import { selectTheme } from './app/preferences/preferencesSlice';
@@ -153,9 +154,10 @@ export default function App() {
     }
   }, [theme, systemPrefersDark]);
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  let title = `Flipt · ${namespace.key}`;
+  let title = `Flipt | ${environment.name} · ${namespace.name}`;
 
   return (
     <>

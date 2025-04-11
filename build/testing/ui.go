@@ -60,8 +60,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 
 	flipt = flipt.
 		WithServiceBinding("gitea", gitea).
-		WithEnvVariable("FLIPT_GENERAL_ENABLED", "true").
-		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_HOST", "flipt").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_ORGANIZATION", "myorg").
 		WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_SOURCE", "gitea").

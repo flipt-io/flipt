@@ -38,7 +38,7 @@ export const preferencesSlice = createSlice({
 
       // If there isn't currently a set theme, set to the default theme
       if (!currentPreference.theme) {
-        state.theme = action.payload.uiTheme;
+        state.theme = action.payload.ui.theme ?? Theme.SYSTEM;
       }
 
       if (!currentPreference.timezone) {

@@ -19,6 +19,8 @@ type HeaderProps = {
 export default function Header(props: HeaderProps) {
   const { setSidebarOpen } = props;
   const info = useSelector(selectInfo);
+  const topbarStyle = { backgroundColor: info?.ui?.topbarColor };
+
   const { session } = useSession();
   const user = getUser(session);
 
@@ -27,6 +29,7 @@ export default function Header(props: HeaderProps) {
       <button
         type="button"
         className="without-ring px-4 text-white md:hidden"
+        style={topbarStyle}
         onClick={() => setSidebarOpen(true)}
       >
         <span className="sr-only">Open sidebar</span>
@@ -49,7 +52,7 @@ export default function Header(props: HeaderProps) {
 
         <div className="flex items-center gap-2 pr-2">
           {/* notifications */}
-          {info && info.updateAvailable && <Notifications info={info} />}
+          {info && info.build.updateAvailable && <Notifications info={info} />}
 
           {/* user profile */}
           {user && <UserProfile user={user} />}

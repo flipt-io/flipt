@@ -47,8 +47,6 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		// "fs/git":   git,
-		// "fs/local": local,
 		// "authz":    authz,
 		"authn":         authn(),
 		"envs":          envsAPI(""),
@@ -256,7 +254,7 @@ const (
 func envsAPI(directory string) testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
@@ -274,7 +272,7 @@ func envsAPI(directory string) testCaseFn {
 func authn() testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").

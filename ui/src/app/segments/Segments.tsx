@@ -17,7 +17,7 @@ export default function Segments() {
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader title="Segments">
         <ButtonWithPlus
           variant="primary"
@@ -26,9 +26,9 @@ export default function Segments() {
           New Segment
         </ButtonWithPlus>
       </PageHeader>
-      <div className="flex flex-col gap-1 space-y-2 py-2">
+      <div className="flex flex-col gap-1 space-y-2">
         <SegmentTable environment={environment} namespace={namespace} />
       </div>
-    </>
+    </div>
   );
 }

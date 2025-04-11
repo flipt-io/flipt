@@ -48,6 +48,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
       onChange={setCurrentNamespace}
       disabled={disabled || namespaces.length <= 1}
       className={className}
+      data-testid="namespace-listbox"
     >
       {({ open }) => (
         <>
