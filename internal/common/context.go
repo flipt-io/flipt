@@ -3,28 +3,8 @@ package common
 import (
 	"context"
 
-	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
 )
-
-type fliptAcceptServerVersionContextKey struct{}
-
-// WithFliptAcceptServerVersion sets the flipt version in the context.
-func WithFliptAcceptServerVersion(ctx context.Context, version semver.Version) context.Context {
-	return context.WithValue(ctx, fliptAcceptServerVersionContextKey{}, version)
-}
-
-// The last version that does not support the x-flipt-accept-server-version header.
-var preFliptAcceptServerVersion = semver.MustParse("1.37.1")
-
-// FliptAcceptServerVersionFromContext returns the flipt-accept-server-version from the context if it exists or the default version.
-func FliptAcceptServerVersionFromContext(ctx context.Context) semver.Version {
-	v, ok := ctx.Value(fliptAcceptServerVersionContextKey{}).(semver.Version)
-	if !ok {
-		return preFliptAcceptServerVersion
-	}
-	return v
-}
 
 type fliptEnvironmentContextKey struct{}
 

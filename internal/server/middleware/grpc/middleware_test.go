@@ -11,10 +11,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	cctx "go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -143,6 +145,79 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 				return
 			}
 
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestFliptHeadersInterceptor(t *testing.T) {
+	type want struct {
+		environment string
+		namespace   string
+	}
+
+	tests := []struct {
+		name string
+		md   metadata.MD
+		want want
+	}{
+		{
+			name: "no flipt environment",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt environment",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo"}),
+			want: want{
+				environment: "foo",
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "no flipt namespace",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   "bar",
+			},
+		},
+		{
+			name: "flipt environment and namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo", common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: "foo",
+				namespace:   "bar",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			if tt.md != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.md)
+			}
+
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+				environment, _ := cctx.FliptEnvironmentFromContext(ctx)
+				assert.Equal(t, tt.want.environment, environment)
+
+				namespace, _ := cctx.FliptNamespaceFromContext(ctx)
+				assert.Equal(t, tt.want.namespace, namespace)
+				return nil, nil
+			})
+
+			_, err := FliptHeadersInterceptor()(ctx, nil, nil, spyHandler)
 			require.NoError(t, err)
 		})
 	}
