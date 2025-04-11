@@ -8,11 +8,12 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap"
 
-	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	cctx "go.flipt.io/flipt/internal/common"
+	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -150,6 +151,79 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 	}
 }
 
+func TestFliptHeadersInterceptor(t *testing.T) {
+	type want struct {
+		environment string
+		namespace   string
+	}
+
+	tests := []struct {
+		name string
+		md   metadata.MD
+		want want
+	}{
+		{
+			name: "no flipt environment",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt environment",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo"}),
+			want: want{
+				environment: "foo",
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "no flipt namespace",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   "bar",
+			},
+		},
+		{
+			name: "flipt environment and namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo", common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: "foo",
+				namespace:   "bar",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			if tt.md != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.md)
+			}
+
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+				environment, _ := cctx.FliptEnvironmentFromContext(ctx)
+				assert.Equal(t, tt.want.environment, environment)
+
+				namespace, _ := cctx.FliptNamespaceFromContext(ctx)
+				assert.Equal(t, tt.want.namespace, namespace)
+				return nil, nil
+			})
+
+			_, err := FliptHeadersInterceptor(zap.NewNop())(ctx, nil, nil, spyHandler)
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 	var (
 		req = &flipt.ListFlagRequest{
@@ -269,93 +343,22 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 	}
 }
 
-func TestFliptAcceptServerVersionUnaryInterceptor(t *testing.T) {
-	tests := []struct {
-		name          string
-		metadata      metadata.MD
-		expectVersion string
-	}{
-		{
-			name:     "does not contain x-flipt-accept-server-version header",
-			metadata: metadata.MD{},
-		},
-		{
-			name: "contains valid x-flipt-accept-server-version header with v prefix",
-			metadata: metadata.MD{
-				"x-flipt-accept-server-version": []string{"v1.0.0"},
-			},
-			expectVersion: "1.0.0",
-		},
-		{
-			name: "contains valid x-flipt-accept-server-version header no prefix",
-			metadata: metadata.MD{
-				"x-flipt-accept-server-version": []string{"1.0.0"},
-			},
-			expectVersion: "1.0.0",
-		},
-		{
-			name: "contains invalid x-flipt-accept-server-version header",
-			metadata: metadata.MD{
-				"x-flipt-accept-server-version": []string{"invalid"},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				ctx          = context.Background()
-				retrievedCtx = ctx
-				called       int
-
-				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
-					called++
-					retrievedCtx = ctx
-					return nil, nil
-				})
-				logger      = zaptest.NewLogger(t)
-				interceptor = FliptAcceptServerVersionUnaryInterceptor(logger)
-			)
-
-			if tt.metadata != nil {
-				ctx = metadata.NewIncomingContext(context.Background(), tt.metadata)
-			}
-
-			_, _ = interceptor(ctx, nil, nil, spyHandler)
-			assert.Equal(t, 1, called)
-
-			v := FliptAcceptServerVersionFromContext(retrievedCtx)
-			require.NotNil(t, v)
-
-			if tt.expectVersion != "" {
-				assert.Equal(t, semver.MustParse(tt.expectVersion), v)
-			} else {
-				assert.Equal(t, preFliptAcceptServerVersion, v)
-			}
-		})
-	}
-}
-
-func TestForwardFliptAcceptServerVersion(t *testing.T) {
+func TestForwardFliptEnvironment(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
-	md := ForwardFliptAcceptServerVersion(context.Background(), req)
-	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
-	req.Header.Add(fliptAcceptServerVersionHeaderKey, "v1.32.0")
+	md := ForwardFliptEnvironment(context.Background(), req)
+	assert.Empty(t, md.Get(common.HeaderFliptEnvironment))
+	req.Header.Add(common.HeaderFliptEnvironment, "extra-environment")
 
-	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("key", "value"))
-	md = ForwardFliptAcceptServerVersion(ctx, req)
-	assert.Equal(t, []string{"v1.32.0"}, md.Get(fliptAcceptServerVersionHeaderKey))
-	assert.Equal(t, []string{"value"}, md.Get("key"))
+	md = ForwardFliptEnvironment(context.Background(), req)
+	assert.Equal(t, []string{"extra-environment"}, md.Get(common.HeaderFliptEnvironment))
 }
 
 func TestForwardFliptNamespace(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	md := ForwardFliptNamespace(context.Background(), req)
-	assert.Empty(t, md.Get(fliptAcceptServerVersionHeaderKey))
-	req.Header.Add(fliptNamespaceHeaderKey, "extra-namespace")
+	assert.Empty(t, md.Get(common.HeaderFliptNamespace))
+	req.Header.Add(common.HeaderFliptNamespace, "extra-namespace")
 
 	md = ForwardFliptNamespace(context.Background(), req)
-	assert.Equal(t, []string{"extra-namespace"}, md.Get(fliptNamespaceHeaderKey))
+	assert.Equal(t, []string{"extra-namespace"}, md.Get(common.HeaderFliptNamespace))
 }

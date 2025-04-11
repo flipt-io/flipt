@@ -283,7 +283,7 @@ func NewGRPCServer(
 	// add auth interceptors to the server
 	interceptors = append(interceptors,
 		append(authInterceptors,
-			middlewaregrpc.FliptAcceptServerVersionUnaryInterceptor(logger),
+			middlewaregrpc.FliptHeadersInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)

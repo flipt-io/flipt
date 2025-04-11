@@ -67,12 +67,23 @@ func NewHTTPServer(
 		}
 		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
 
-		r               = chi.NewRouter()
-		api             = gateway.NewGatewayServeMux(logger)
-		evaluateAPI     = gateway.NewGatewayServeMux(logger)
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptAcceptServerVersion), runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier))
-		analyticsAPI    = gateway.NewGatewayServeMux(logger)
-		ofrepAPI        = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptNamespace), runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)))
+		r   = chi.NewRouter()
+		api = gateway.NewGatewayServeMux(logger)
+
+		evaluateAPI = gateway.NewGatewayServeMux(logger,
+			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
+
+		evaluateDataAPI = gateway.NewGatewayServeMux(logger,
+			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
+			runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier),
+		)
+		analyticsAPI = gateway.NewGatewayServeMux(logger)
+
+		ofrepAPI = gateway.NewGatewayServeMux(logger,
+			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
+			runtime.WithMetadata(grpc_middleware.ForwardFliptNamespace),
+			runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)),
+		)
 
 		v2Environments = gateway.NewGatewayServeMux(logger)
 

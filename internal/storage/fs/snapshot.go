@@ -29,10 +29,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	defaultNs = "default"
-)
-
 var _ storage.ReadOnlyStore = (*Snapshot)(nil)
 
 // Snapshot contains the structures necessary for serving
@@ -169,7 +165,7 @@ func WalkDocuments(logger *zap.Logger, conf *Config, src fs.FS, fn func(*ext.Doc
 func EmptySnapshot() *Snapshot {
 	return &Snapshot{
 		ns: map[string]*namespace{
-			defaultNs: newNamespace(),
+			flipt.DefaultNamespace: newNamespace(),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
 		evalSnap: &evaluation.EvaluationSnapshot{

@@ -93,7 +93,7 @@ function InnerLayout() {
       <div className="flex min-h-screen flex-col bg-background md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
         {!dismissedBanner && (
-          <div className="sticky top-0 z-50 mt-16">
+          <div className="sticky top-0 mt-16">
             <Banner
               title="Like Flipt? Give us a star on GitHub!"
               description="It really means a lot to us. Thank you!"
