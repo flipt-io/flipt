@@ -78,7 +78,7 @@ export async function request(
   uri: string,
   body?: any,
   headers?: Record<string, string>
-  ) {
+) {
   const req = {
     method,
     headers: { ...defaultHeaders(), ...headers },
@@ -102,15 +102,29 @@ export async function request(
   return res.json();
 }
 
-async function get(uri: string, base = apiURL, headers?: Record<string, string>) {
+async function get(
+  uri: string,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
   return request('GET', base + uri, undefined, headers);
 }
 
-async function post<T>(uri: string, values: T, base = apiURL, headers?: Record<string, string>) {
+async function post<T>(
+  uri: string,
+  values: T,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
   return request('POST', base + uri, values, headers);
 }
 
-async function put<T>(uri: string, values: T, base = apiURL, headers?: Record<string, string>) {
+async function put<T>(
+  uri: string,
+  values: T,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
   return request('PUT', base + uri, values, headers);
 }
 
