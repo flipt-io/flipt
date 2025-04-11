@@ -24,9 +24,8 @@ func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 			"Authorization",
 			"Content-Type",
 			"X-CSRF-Token",
-			common.HeaderFliptNamespace,
 			common.HeaderFliptEnvironment,
-			common.HeaderFliptAcceptServerVersion,
+			common.HeaderFliptNamespace,
 		},
 	})
 
