@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.uber.org/zap"
 )
 
 type ResourceType struct {
@@ -79,12 +80,14 @@ type ResourceStore interface {
 }
 
 type EnvironmentStore struct {
+	logger     *zap.Logger
 	byName     map[string]Environment
 	defaultEnv Environment
 }
 
-func NewEnvironmentStore(envs ...Environment) (*EnvironmentStore, error) {
+func NewEnvironmentStore(logger *zap.Logger, envs ...Environment) (*EnvironmentStore, error) {
 	store := &EnvironmentStore{
+		logger: logger,
 		byName: map[string]Environment{},
 	}
 
@@ -134,12 +137,12 @@ func (e *EnvironmentStore) Get(ctx context.Context, name string) (Environment, e
 func (e *EnvironmentStore) GetFromContext(ctx context.Context) Environment {
 	env, ok := common.FliptEnvironmentFromContext(ctx)
 	if ok {
-		env, err := e.Get(ctx, env)
+		ee, err := e.Get(ctx, env)
 		if err != nil {
-			// TODO: log error or return?
+			e.logger.Error("failed to get environment from context", zap.String("environment", env), zap.Error(err))
 			return e.defaultEnv
 		}
-		return env
+		return ee
 	}
 
 	return e.defaultEnv

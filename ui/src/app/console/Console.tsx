@@ -27,7 +27,7 @@ import { Command } from '~/types/Cli';
 import { FilterableFlag, FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
-import { evaluateURL, evaluateV2 } from '~/data/api';
+import { evaluateURL, evaluate } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
@@ -135,7 +135,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluateV2(namespace.key, flag.key, flag.type, rest)
+    evaluate(environment.name, namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
