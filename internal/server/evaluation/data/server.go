@@ -30,10 +30,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterDataServiceServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
-	return true
-}
-
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	// TODO(georgemac): support overriding via configuration and or metadata header
 	environment := "default"
@@ -50,8 +46,11 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok && snap.Digest != "" {
+		etag := snap.Digest
+		// set etag header in the response
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
 		// get If-None-Match header from request
-		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && snap.Digest == vals[0] {
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && etag == vals[0] {
 			return &evaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", r.Key)
 		}
 	}

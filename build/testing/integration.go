@@ -47,12 +47,11 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		// "authz":    authz,
 		"authn":         authn(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
-		// "ofrep":         withAuthz(ofrepAPI),
-		// "snapshot":      withAuthz(snapshotAPI),
+		"ofrep":         withAuthz(ofrepAPI()),
+		"snapshot":      withAuthz(snapshotAPI()),
 	}
 )
 
@@ -283,6 +282,40 @@ func authn() testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "authn", base, flipt, conf)
+	}, testdataDir)
+}
+
+func snapshotAPI() testCaseFn {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "snapshot", base, flipt, conf)
+	}, testdataDir)
+}
+
+func ofrepAPI() testCaseFn {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "ofrep", base, flipt, conf)
 	}, testdataDir)
 }
 

@@ -4,12 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"go.uber.org/zap/zaptest"
-
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
+	"go.uber.org/zap/zaptest"
 )
+
+func Test_Server_SkipsAuthorization(t *testing.T) {
+	server := &Server{}
+	assert.True(t, server.SkipsAuthorization(context.Background()))
+}
 
 func TestGetProviderConfiguration(t *testing.T) {
 	testCases := []struct {
@@ -31,9 +35,7 @@ func TestGetProviderConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := NewMockBridge(t)
-			store := common.NewMockStore(t)
-			s := New(zaptest.NewLogger(t), b, store)
+			s := New(zaptest.NewLogger(t), nil, nil)
 
 			resp, err := s.GetProviderConfiguration(context.TODO(), &ofrep.GetProviderConfigurationRequest{})
 

@@ -29,9 +29,9 @@ import (
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
+	"go.flipt.io/flipt/internal/server/evaluation/ofrep"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/server/ofrep"
 	"go.flipt.io/flipt/internal/storage/environments"
 	"go.flipt.io/flipt/internal/tracing"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
@@ -196,7 +196,7 @@ func NewGRPCServer(
 		evalsrv     = evaluation.New(logger, environmentStore)
 		evaldatasrv = evaluationdata.New(logger, environmentStore)
 		fliptv1srv  = serverfliptv1.New(logger, environmentStore)
-		ofrepsrv    = ofrep.New(logger, evalsrv, nil)
+		ofrepsrv    = ofrep.New(logger, evalsrv, environmentStore)
 
 		// health service
 		healthsrv = health.NewServer()

@@ -1,6 +1,6 @@
 version: "1.4"
 namespace:
-  key: altnerative
+  key: alternative
   name: Alternative
 flags:
 - key: flag_001

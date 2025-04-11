@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ["envs", "envs_with_dir", "authn"]
+        test: ["envs", "envs_with_dir", "authn", "ofrep", "snapshot"]
     steps:
       - uses: actions/checkout@v4
 

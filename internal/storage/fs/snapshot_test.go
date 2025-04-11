@@ -665,6 +665,7 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 			name:      "production namespace",
 			namespace: "production",
 			wantSnap: &evaluation.EvaluationNamespaceSnapshot{
+				Digest: "09da9bff218a2826e61325bcc9b72f20def6b096",
 				Namespace: &evaluation.EvaluationNamespace{
 					Key: "production",
 				},
@@ -770,6 +771,7 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 			name:      "empty namespace",
 			namespace: "empty",
 			wantSnap: &evaluation.EvaluationNamespaceSnapshot{
+				Digest: "cb2710c073be3f2e8c51a1f8474b9725f51b6522",
 				Namespace: &evaluation.EvaluationNamespace{
 					Key: "empty",
 				},

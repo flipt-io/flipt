@@ -34,11 +34,11 @@ type Flag struct {
 }
 
 type Variant struct {
-	Default     bool        `yaml:"default,omitempty" json:"default,omitempty"`
-	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
-	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
-	Description string      `yaml:"description,omitempty" json:"description,omitempty"`
-	Attachment  interface{} `yaml:"attachment,omitempty" json:"attachment,omitempty"`
+	Default     bool   `yaml:"default,omitempty" json:"default,omitempty"`
+	Key         string `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string `yaml:"name,omitempty" json:"name,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty"`
+	Attachment  any    `yaml:"attachment,omitempty" json:"attachment,omitempty"`
 }
 
 type Rule struct {
@@ -62,6 +62,77 @@ type SegmentRule struct {
 	Keys     []string `yaml:"keys,omitempty" json:"keys,omitempty"`
 	Operator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
 	Value    bool     `yaml:"value,omitempty" json:"value,omitempty"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler
+func (s *SegmentRule) UnmarshalYAML(unmarshal func(any) error) error {
+	// Try full object with keys first
+	aux := struct {
+		Key      string   `yaml:"key"`
+		Keys     []string `yaml:"keys"`
+		Operator string   `yaml:"operator"`
+		Value    bool     `yaml:"value"`
+	}{}
+
+	// Try to unmarshal the full object first
+	if err := unmarshal(&aux); err == nil {
+		*s = SegmentRule{
+			Operator: aux.Operator,
+			Value:    aux.Value,
+		}
+
+		// Handle the key/keys fields
+		if len(aux.Keys) > 0 {
+			s.Keys = aux.Keys
+		} else if aux.Key != "" {
+			s.Keys = []string{aux.Key}
+		}
+		return nil
+	}
+
+	// Try single key string
+	var key string
+	if err := unmarshal(&key); err == nil {
+		s.Keys = []string{key}
+		return nil
+	}
+
+	// Try array of keys
+	var keys []string
+	if err := unmarshal(&keys); err == nil {
+		s.Keys = keys
+		return nil
+	}
+
+	return errors.New("failed to unmarshal segment rule")
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (s *SegmentRule) UnmarshalJSON(data []byte) error {
+	aux := struct {
+		Key      string   `json:"key"`
+		Keys     []string `json:"keys"`
+		Operator string   `json:"operator"`
+		Value    bool     `json:"value"`
+	}{}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	*s = SegmentRule{
+		Operator: aux.Operator,
+		Value:    aux.Value,
+	}
+
+	// Handle the key/keys fields
+	if len(aux.Keys) > 0 {
+		s.Keys = aux.Keys
+	} else if aux.Key != "" {
+		s.Keys = []string{aux.Key}
+	}
+
+	return nil
 }
 
 type ThresholdRule struct {
@@ -104,7 +175,7 @@ func (n *NamespaceEmbed) String() string {
 
 // MarshalYAML tries to type assert to either of the following types that implement
 // IsNamespace, and returns the marshaled value.
-func (n *NamespaceEmbed) MarshalYAML() (interface{}, error) {
+func (n *NamespaceEmbed) MarshalYAML() (any, error) {
 	switch t := n.IsNamespace.(type) {
 	case NamespaceKey:
 		return string(t), nil
@@ -122,7 +193,7 @@ func (n *NamespaceEmbed) MarshalYAML() (interface{}, error) {
 
 // UnmarshalYAML attempts to unmarshal a string or `Namespace`, and fails if it can not
 // do so.
-func (n *NamespaceEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (n *NamespaceEmbed) UnmarshalYAML(unmarshal func(any) error) error {
 	var nk NamespaceKey
 
 	if err := unmarshal(&nk); err == nil {

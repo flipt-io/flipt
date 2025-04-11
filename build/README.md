@@ -10,24 +10,6 @@ This directory contains a Go module dedicated to building and testing Flipt usin
 
 All the commands in this directory can be invoked from the root of the Flipt repo using `dagger call`.
 
-```console
-USAGE
-  dagger call [options] [arguments] <function>
-
-EXAMPLES
-  dagger call test
-  dagger call build -o ./bin/myapp
-  dagger call lint stdout
-
-FUNCTIONS
-  base             Returns a container with all the assets compiled and ready for testing and distribution
-  base-container
-  build            Return container with Flipt binaries in a thinner alpine distribution
-  generate         Execute generate function with subcommand
-  source
-  test             Execute test specific by subcommand
-```
-
 This version of the command runs using the `dagger` cli (`brew install dagger/tap/dagger`).
 It comes with a nice TUI.
 
@@ -53,15 +35,12 @@ USAGE
   dagger call test [arguments] <function>
 
 FUNCTIONS
-  base-container
-  cli               Run all cli tests
-  flipt-container
+  base-container    -
+  flipt-container   -
   integration       Run all integration tests
-  load              Run all load tests
-  migration         Run all migration tests
-  source
+  source            -
   ui                Run all ui tests
-  uicontainer
+  uicontainer       -
   unit              Run all unit tests
 
 ARGUMENTS
@@ -70,11 +49,8 @@ ARGUMENTS
 Use "dagger call test [command] --help" for more information about a command.
 ```
 
-- `dagger call test --source=. cli`: Runs a suite of tests against `flipt` CLI commands
 - `dagger call test --source=. unit`: Runs the entire suite of unit style tests
 - `dagger call test --source=. ui`: Runs the entire suite of UI integration style tests (playwright against running Flipt)
-- `dagger call test --source=. migration`: Ensures backwards compatibility after running database migrations
-- `dagger call test --source=. load`: Run Flipt and measure performance running evaluations under load
 
 ### Integration Tests
 
@@ -91,7 +67,11 @@ ARGUMENTS
       --cases string    (default "*")
 ```
 
-By default, it runs all cases concurrently against the target dagger runtime.
+- `dagger call test --source=. integration`: Runs all cases concurrently against the target dagger runtime.
+
 However, cases can be constrained to the individual top-level suites via the `--cases` flag.
+
+- `dagger call test --source=. integration --cases="authn"`: Runs only the authn suite.
+
 This flag expects a space delimited list of the case names.
 The case names are maintained near the top of [integration.go](./testing/integration.go).
