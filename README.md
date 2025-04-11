@@ -111,7 +111,7 @@ Not sure how to get started? You can:
 - [Book a pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
 
-- Dive into any of the open issues, here are some examples: 
+- Dive into any of the open issues, here are some examples:
   - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
   - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
   - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
@@ -264,12 +264,6 @@ We welcome contributions of any kind, including but not limited to bug fixes, fe
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/flipt-io/flipt)
-
-<br clear="both"/>
-
-## Examples
-
-Check out the [examples](/examples) to see how Flipt works in different use cases.
 
 <br clear="both"/>
 
