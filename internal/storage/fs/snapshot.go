@@ -3,6 +3,7 @@ package fs
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -190,11 +191,12 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		return nil, err
 	}
 
-	buf := &bytes.Buffer{}
-	reader := io.TeeReader(fi, buf)
-
-	var docs []*ext.Document
-	extn := filepath.Ext(stat.Name())
+	var (
+		buf    = &bytes.Buffer{}
+		reader = io.TeeReader(fi, buf)
+		docs   []*ext.Document
+		extn   = filepath.Ext(stat.Name())
+	)
 
 	var decode func(any) error
 	switch extn {
@@ -215,6 +217,13 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		return nil, err
 	}
 
+	var (
+		hash = sha1.New() //nolint:gosec
+		_, _ = hash.Write(buf.Bytes())
+		// etag is the sha1 hash of the document
+		etag = fmt.Sprintf("%x", hash.Sum(nil))
+	)
+
 	for {
 		doc := &ext.Document{}
 		if err := decode(doc); err != nil {
@@ -228,6 +237,8 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 		if doc.Namespace == nil {
 			doc.Namespace = ext.DefaultNamespace
 		}
+
+		doc.Etag = etag
 
 		docs = append(docs, doc)
 	}
@@ -250,6 +261,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 	if ns == nil {
 		ns = newNamespace()
+		s.ns[namespaceKey] = ns
 	}
 
 	if snap == nil {
@@ -259,6 +271,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 			},
 			Flags: make([]*evaluation.EvaluationFlag, 0, len(doc.Flags)),
 		}
+		s.evalSnap.Namespaces[namespaceKey] = snap
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
@@ -589,6 +602,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 	ns.etag = doc.Etag
 	s.ns[namespaceKey] = ns
+	snap.Digest = doc.Etag
 	s.evalSnap.Namespaces[namespaceKey] = snap
 	s.evalDists = evalDists
 
