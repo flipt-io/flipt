@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	errs "go.flipt.io/flipt/errors"
+	cctx "go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/metrics"
@@ -96,6 +97,32 @@ type RequestIdentifiable interface {
 type ResponseDurationRecordable interface {
 	// SetTimestamps records the start and end times on the target instance.
 	SetTimestamps(start, end time.Time)
+}
+
+// FliptHeadersInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
+func FliptHeadersInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return handler(ctx, req)
+		}
+
+		if fliptEnvironment := md.Get(common.HeaderFliptEnvironment); len(fliptEnvironment) > 0 {
+			environment := fliptEnvironment[0]
+			if environment != "" {
+				ctx = cctx.WithFliptEnvironment(ctx, environment)
+			}
+		}
+
+		if fliptNamespace := md.Get(common.HeaderFliptNamespace); len(fliptNamespace) > 0 {
+			namespace := fliptNamespace[0]
+			if namespace != "" {
+				ctx = cctx.WithFliptNamespace(ctx, namespace)
+			}
+		}
+
+		return handler(ctx, req)
+	}
 }
 
 // EvaluationUnaryInterceptor sets required request/response fields.
