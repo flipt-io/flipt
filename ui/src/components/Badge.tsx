@@ -15,7 +15,8 @@ const badgeVariants = cva(
         muted:
           'border-transparent bg-secondary text-muted-foreground hover:bg-secondary/80',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80',
+          'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
+        destructiveoutline: 'border-destructive text-destructive shadow',
         outline: 'text-foreground',
         outlinemuted: 'text-muted-foreground',
         enabled: 'text-destructive-foreground bg-green-500'

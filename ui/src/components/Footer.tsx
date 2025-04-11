@@ -12,21 +12,21 @@ export default function Footer() {
   const info = useSelector(selectInfo);
 
   const ref = () => {
-    if (info?.isRelease && info?.version) {
-      return info.version;
+    if (info?.build?.isRelease && info?.build?.version) {
+      return info.build.version;
     }
-    if (info?.commit) {
-      return info.commit.substring(0, 7);
+    if (info?.build?.commit) {
+      return info.build.commit.substring(0, 7);
     }
     return '';
   };
 
   const refURL = () => {
-    if (info?.isRelease && info?.version) {
-      return `https://github.com/flipt-io/flipt/releases/tag/${info.version}`;
+    if (info?.build?.isRelease && info?.build?.version) {
+      return `https://github.com/flipt-io/flipt/releases/tag/${info.build.version}`;
     }
-    if (info?.commit) {
-      return `https://github.com/flipt-io/flipt/commit/${info?.commit}`;
+    if (info?.build?.commit) {
+      return `https://github.com/flipt-io/flipt/commit/${info?.build?.commit}`;
     }
     return 'https://github.com/flipt-io/flipt';
   };

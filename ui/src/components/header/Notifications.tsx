@@ -55,7 +55,7 @@ export function Notification(props: NotificationProps) {
                     </p>
                     <div className="mt-3 flex space-x-7 hover:cursor-pointer">
                       <a
-                        href={info.latestVersionURL}
+                        href={info.build.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
                         className="rounded-md bg-background text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-hidden"
@@ -107,7 +107,7 @@ export default function Notifications(props: NotificationsProps) {
 
   const [newNotifications, setNewNotification] = useSessionStorage(
     'new_notifications',
-    info.updateAvailable
+    info.build.updateAvailable
   );
 
   return (

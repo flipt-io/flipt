@@ -1,8 +1,6 @@
 package info
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,31 +10,19 @@ import (
 
 func TestNew(t *testing.T) {
 	f := New(
-		WithOS("linux", "amd64"),
 		WithBuild("commit", "date", "goVersion", "version", true),
 		WithLatestRelease(release.Info{LatestVersion: "latestVersion", LatestVersionURL: "latestVersionURL", UpdateAvailable: true}),
 		WithConfig(config.Default()),
 	)
 
-	assert.Equal(t, "commit", f.Commit)
-	assert.Equal(t, "date", f.BuildDate)
-	assert.Equal(t, "goVersion", f.GoVersion)
-	assert.Equal(t, "version", f.Version)
-	assert.True(t, f.IsRelease)
-	assert.Equal(t, "latestVersion", f.LatestVersion)
-	assert.Equal(t, "latestVersionURL", f.LatestVersionURL)
-	assert.True(t, f.UpdateAvailable)
-	assert.Equal(t, "linux", f.OS)
-	assert.Equal(t, "amd64", f.Arch)
+	assert.Equal(t, "commit", f.Build.Commit)
+	assert.Equal(t, "date", f.Build.BuildDate)
+	assert.Equal(t, "goVersion", f.Build.GoVersion)
+	assert.Equal(t, "version", f.Build.Version)
+	assert.True(t, f.Build.IsRelease)
+	assert.Equal(t, "latestVersion", f.Build.LatestVersion)
+	assert.Equal(t, "latestVersionURL", f.Build.LatestVersionURL)
+	assert.True(t, f.Build.UpdateAvailable)
 	assert.False(t, f.Authentication.Required)
 	assert.False(t, f.Analytics.Enabled)
-}
-
-func TestHttpHandler(t *testing.T) {
-	f := New()
-	r := httptest.NewRequest("GET", "/info", nil)
-	w := httptest.NewRecorder()
-	f.ServeHTTP(w, r)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.JSONEq(t, `{"updateAvailable":false,"isRelease":false,"authentication":{"required":false}}`, w.Body.String())
 }

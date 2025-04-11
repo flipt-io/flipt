@@ -112,7 +112,7 @@ test.describe('Flags', () => {
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Flags', exact: true }).click();
-    await page.getByRole('button', { name: 'Default' }).click();
+    await page.getByTestId('namespace-listbox').getByRole('button', { name: 'Default' }).click();
     await page.getByText('copy flag').click();
 
     // verify flag was copied

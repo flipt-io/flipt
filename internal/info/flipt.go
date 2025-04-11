@@ -18,70 +18,73 @@ func New(opts ...Option) Flipt {
 
 func WithBuild(commit, date, goVersion, version string, isRelease bool) Option {
 	return func(f *Flipt) {
-		f.Commit = commit
-		f.BuildDate = date
-		f.GoVersion = goVersion
-		f.IsRelease = isRelease
-		f.Version = version
+		if f.Build == nil {
+			f.Build = &Build{}
+		}
+
+		f.Build.Commit = commit
+		f.Build.BuildDate = date
+		f.Build.GoVersion = goVersion
+		f.Build.IsRelease = isRelease
+		f.Build.Version = version
 	}
 }
 
 func WithLatestRelease(releaseInfo release.Info) Option {
 	return func(f *Flipt) {
-		f.LatestVersion = releaseInfo.LatestVersion
-		f.LatestVersionURL = releaseInfo.LatestVersionURL
-		f.UpdateAvailable = releaseInfo.UpdateAvailable
-	}
-}
+		if f.Build == nil {
+			f.Build = &Build{}
+		}
 
-func WithOS(os, arch string) Option {
-	return func(f *Flipt) {
-		f.OS = os
-		f.Arch = arch
+		f.Build.LatestVersion = releaseInfo.LatestVersion
+		f.Build.LatestVersionURL = releaseInfo.LatestVersionURL
+		f.Build.UpdateAvailable = releaseInfo.UpdateAvailable
 	}
 }
 
 func WithConfig(cfg *config.Config) Option {
 	return func(f *Flipt) {
-		f.Authentication = authentication{Required: cfg.Authentication.Required}
-		f.Analytics = &analytics{Enabled: cfg.Analytics.Enabled()}
-		f.UI = &ui{Theme: cfg.UI.DefaultTheme, TopbarColor: cfg.UI.Topbar.Color}
+		f.Authentication = &Authentication{Required: cfg.Authentication.Required}
+		f.Analytics = &Analytics{Enabled: cfg.Analytics.Enabled()}
+		f.UI = &UI{Theme: cfg.UI.DefaultTheme, TopbarColor: cfg.UI.Topbar.Color}
 	}
 }
 
 type Option func(f *Flipt)
 
-type authentication struct {
+type Build struct {
+	Version          string `json:"version,omitempty"`
+	LatestVersion    string `json:"latestVersion,omitempty"`
+	LatestVersionURL string `json:"latestVersionURL,omitempty"`
+	Commit           string `json:"commit,omitempty"`
+	BuildDate        string `json:"buildDate,omitempty"`
+	GoVersion        string `json:"goVersion,omitempty"`
+	UpdateAvailable  bool   `json:"updateAvailable"`
+	IsRelease        bool   `json:"isRelease"`
+}
+
+type Authentication struct {
 	Required bool `json:"required"`
 }
 
-type analytics struct {
+type Analytics struct {
 	Enabled bool `json:"enabled,omitempty"`
 }
 
-type ui struct {
+type UI struct {
 	Theme       config.UITheme `json:"theme,omitempty"`
 	TopbarColor string         `json:"topbarColor,omitempty"`
 }
 
 type Flipt struct {
-	Version          string         `json:"version,omitempty"`
-	LatestVersion    string         `json:"latestVersion,omitempty"`
-	LatestVersionURL string         `json:"latestVersionURL,omitempty"`
-	Commit           string         `json:"commit,omitempty"`
-	BuildDate        string         `json:"buildDate,omitempty"`
-	GoVersion        string         `json:"goVersion,omitempty"`
-	UpdateAvailable  bool           `json:"updateAvailable"`
-	IsRelease        bool           `json:"isRelease"`
-	OS               string         `json:"os,omitempty"`
-	Arch             string         `json:"arch,omitempty"`
-	Authentication   authentication `json:"authentication"`
-	Analytics        *analytics     `json:"analytics,omitempty"`
-	UI               *ui            `json:"ui,omitempty"`
+	Build          *Build          `json:"build,omitempty"`
+	Authentication *Authentication `json:"authentication,omitempty"`
+	Analytics      *Analytics      `json:"analytics,omitempty"`
+	UI             *UI             `json:"ui,omitempty"`
 }
 
 func (f Flipt) IsDevelopment() bool {
-	return f.Version == "dev"
+	return f.Build.Version == "dev"
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ import { Switch } from '~/components/Switch';
 type ToggleProps = {
   id: string;
   name: string;
-  label: string;
+  label?: string;
   description?: string;
   checked: boolean;
   disabled?: boolean;
@@ -19,12 +19,14 @@ export default function Toggle(props: ToggleProps) {
   return (
     <div className="flex items-center justify-between">
       <span className="flex grow flex-col">
-        <span
-          className="text-sm font-medium text-gray-900"
-          id={'switch-label:' + id}
-        >
-          {label}
-        </span>
+        {label && (
+          <span
+            className="text-sm font-medium text-gray-900"
+            id={'switch-label:' + id}
+          >
+            {label}
+          </span>
+        )}
         {description && (
           <span className="text-sm text-gray-500">{description}</span>
         )}

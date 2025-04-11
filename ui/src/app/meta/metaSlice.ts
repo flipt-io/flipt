@@ -11,15 +11,15 @@ interface IMetaSlice {
 
 const initialState: IMetaSlice = {
   info: {
-    version: '0.0.0',
-    latestVersion: '0.0.0',
-    latestVersionURL: '',
-    commit: '',
-    buildDate: '',
-    goVersion: '',
-    updateAvailable: false,
-    isRelease: false,
-    analyticsEnabled: false,
+    build: {
+      version: '0.0.0',
+      latestVersion: '0.0.0',
+      latestVersionURL: '',
+      commit: '',
+      buildDate: '',
+      updateAvailable: false,
+      isRelease: false
+    },
     status: LoadingStatus.IDLE
   }
 };

@@ -160,7 +160,7 @@ func Load(ctx context.Context, path string) (*Result, error) {
 	var skippedTypes []reflect.Type
 
 	val := reflect.ValueOf(cfg).Elem()
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		// search for all expected env vars since Viper cannot
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
@@ -550,6 +550,7 @@ func Default() *Config {
 		},
 
 		UI: UIConfig{
+			Enabled:      true,
 			DefaultTheme: SystemUITheme,
 		},
 

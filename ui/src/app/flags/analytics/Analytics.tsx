@@ -86,7 +86,7 @@ export default function Analytics(props: AnalyticsProps) {
     },
     {
       pollingInterval,
-      skip: !info.analyticsEnabled
+      skip: !info.analytics?.enabled
     }
   );
 
@@ -105,7 +105,7 @@ export default function Analytics(props: AnalyticsProps) {
 
   return (
     <div className="mt-2">
-      {info.analyticsEnabled ? (
+      {info.analytics?.enabled ? (
         <>
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">

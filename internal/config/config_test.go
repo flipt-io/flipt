@@ -737,7 +737,6 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.UI.Topbar.Color = "#42bda0"
-				cfg.UI.Topbar.Label = "World"
 				return cfg
 			},
 		},

@@ -23,7 +23,6 @@ var (
 // UITopbar represents the configuration of a user interface top bar component.
 type UITopbar struct {
 	Color string `json:"color" mapstructure:"color" yaml:"color"`
-	Label string `json:"label" mapstructure:"label" yaml:"label"`
 }
 
 func (u *UITopbar) validate() error {
@@ -36,12 +35,14 @@ func (u *UITopbar) validate() error {
 // UIConfig contains fields, which control the behaviour
 // of Flipt's user interface.
 type UIConfig struct {
+	Enabled      bool     `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	DefaultTheme UITheme  `json:"defaultTheme" mapstructure:"default_theme" yaml:"default_theme"`
 	Topbar       UITopbar `json:"topbar,omitempty" mapstructure:"topbar" yaml:"topbar,omitempty"`
 }
 
 func (c *UIConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("ui", map[string]any{
+		"enabled":       true,
 		"default_theme": SystemUITheme,
 	})
 
