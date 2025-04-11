@@ -47,9 +47,6 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		// "fs/git":   git,
-		// "fs/local": local,
-		//"authz":         authz,
 		"authn":         authn(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
