@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"gopkg.in/yaml.v3"
@@ -34,7 +35,7 @@ func getDocsAndNamespace(ctx context.Context, fs environmentsfs.Filesystem, key 
 	}
 
 	if !found {
-		if key != "default" {
+		if key != flipt.DefaultNamespace {
 			return nil, -1, fmt.Errorf("namespace not found: %q", key)
 		}
 

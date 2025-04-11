@@ -176,8 +176,6 @@ type ResultSet[T any] struct {
 	NextPageToken string `json:"next_page_token"`
 }
 
-const DefaultNamespace = "default"
-
 // EvaluationStore returns data necessary for evaluation
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided

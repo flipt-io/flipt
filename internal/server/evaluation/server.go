@@ -12,7 +12,7 @@ import (
 
 // EnvironmentStore is the minimal abstraction for interacting with the storage layer for evaluation.
 type EnvironmentStore interface {
-	GetDefault(context.Context) environments.Environment
+	GetFromContext(context.Context) environments.Environment
 }
 
 // Server serves the Flipt evaluate v2 gRPC Server.
@@ -41,7 +41,5 @@ func (s *Server) SkipsAuthorization(ctx context.Context) bool {
 
 // getEvalStore returns the relevant instance of storage used to fetch data for evaluations.
 func (s *Server) getEvalStore(ctx context.Context) (storage.ReadOnlyStore, error) {
-	// TODO(georgemac): update this to support overriding default environment based
-	// on configuration or header metadata on the request
-	return s.store.GetDefault(ctx).EvaluationStore()
+	return s.store.GetFromContext(ctx).EvaluationStore()
 }
