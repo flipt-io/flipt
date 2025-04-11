@@ -46,8 +46,11 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok && snap.Digest != "" {
+		etag := snap.Digest
+		// set etag header in the response
+		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
 		// get If-None-Match header from request
-		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && snap.Digest == vals[0] {
+		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && etag == vals[0] {
 			return &evaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", r.Key)
 		}
 	}
