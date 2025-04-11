@@ -121,17 +121,10 @@ func (o TestOpts) BootstrapClient(t *testing.T, _ ...ClientOpt) sdk.SDK {
 }
 
 type ClientOpts struct {
-	Namespace string
-	Role      string
+	Role string
 }
 
 type ClientOpt func(*ClientOpts)
-
-func WithNamespace(ns string) ClientOpt {
-	return func(co *ClientOpts) {
-		co.Namespace = ns
-	}
-}
 
 func WithRole(role string) ClientOpt {
 	return func(co *ClientOpts) {
@@ -223,10 +216,6 @@ func jwtClaims(t *testing.T, opts ...ClientOpt) string {
 
 	if copts.Role != "" {
 		claims["io.flipt.auth.role"] = copts.Role
-	}
-
-	if copts.Namespace != "" {
-		claims["io.flipt.auth.namespace"] = copts.Namespace
 	}
 
 	return signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)
