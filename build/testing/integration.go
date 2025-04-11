@@ -298,7 +298,7 @@ func snapshotAPI() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "snapshot", base, flipt.WithExec(nil), conf)
+		return suite(ctx, "snapshot", base, flipt, conf)
 	}, testdataDir)
 }
 
@@ -315,7 +315,7 @@ func ofrepAPI() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "ofrep", base, flipt.WithExec(nil), conf)
+		return suite(ctx, "ofrep", base, flipt, conf)
 	}, testdataDir)
 }
 

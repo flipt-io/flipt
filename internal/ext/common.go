@@ -59,21 +59,9 @@ type Rollout struct {
 }
 
 type SegmentRule struct {
-	Keys     []string `yaml:"-" json:"-"` // internal storage for keys for backwards compatibility.
+	Keys     []string `yaml:"keys,omitempty" json:"keys,omitempty"`
 	Operator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
 	Value    bool     `yaml:"value,omitempty" json:"value,omitempty"`
-}
-
-// MarshalYAML implements yaml.Marshaler
-func (s *SegmentRule) MarshalYAML() (any, error) {
-	type Alias SegmentRule
-	return struct {
-		*Alias
-		Keys []string `yaml:"keys,omitempty"`
-	}{
-		Alias: (*Alias)(s),
-		Keys:  s.Keys,
-	}, nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler
@@ -117,18 +105,6 @@ func (s *SegmentRule) UnmarshalYAML(unmarshal func(any) error) error {
 	}
 
 	return errors.New("failed to unmarshal segment rule")
-}
-
-// MarshalJSON implements json.Marshaler
-func (s *SegmentRule) MarshalJSON() ([]byte, error) {
-	type Alias SegmentRule
-	return json.Marshal(struct {
-		*Alias
-		Keys []string `json:"keys,omitempty"`
-	}{
-		Alias: (*Alias)(s),
-		Keys:  s.Keys,
-	})
 }
 
 // UnmarshalJSON implements json.Unmarshaler
