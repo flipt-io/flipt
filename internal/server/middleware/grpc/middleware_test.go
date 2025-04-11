@@ -8,6 +8,7 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -217,7 +218,7 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 				return nil, nil
 			})
 
-			_, err := FliptHeadersInterceptor()(ctx, nil, nil, spyHandler)
+			_, err := FliptHeadersInterceptor(zap.NewNop())(ctx, nil, nil, spyHandler)
 			require.NoError(t, err)
 		})
 	}

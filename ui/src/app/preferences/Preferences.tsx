@@ -32,7 +32,7 @@ export default function Preferences() {
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
-      <div className="my-10 divide-y divide-gray-200">
+      <div className="my-10">
         <div className="space-y-1">
           <h3 className="text-xl font-semibold text-gray-700">Preferences</h3>
           <p className="mt-2 text-sm text-gray-500">

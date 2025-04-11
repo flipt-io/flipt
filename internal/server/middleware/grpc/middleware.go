@@ -18,6 +18,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -100,16 +101,18 @@ type ResponseDurationRecordable interface {
 }
 
 // FliptHeadersInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
-func FliptHeadersInterceptor() grpc.UnaryServerInterceptor {
+func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
+			logger.Debug("no metadata found in context")
 			return handler(ctx, req)
 		}
 
 		if fliptEnvironment := md.Get(common.HeaderFliptEnvironment); len(fliptEnvironment) > 0 {
 			environment := fliptEnvironment[0]
 			if environment != "" {
+				logger.Debug("setting flipt environment in request context", zap.String("environment", environment))
 				ctx = cctx.WithFliptEnvironment(ctx, environment)
 			}
 		}
@@ -117,6 +120,7 @@ func FliptHeadersInterceptor() grpc.UnaryServerInterceptor {
 		if fliptNamespace := md.Get(common.HeaderFliptNamespace); len(fliptNamespace) > 0 {
 			namespace := fliptNamespace[0]
 			if namespace != "" {
+				logger.Debug("setting flipt namespace in request context", zap.String("namespace", namespace))
 				ctx = cctx.WithFliptNamespace(ctx, namespace)
 			}
 		}
