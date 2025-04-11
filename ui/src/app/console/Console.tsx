@@ -27,7 +27,7 @@ import { Command } from '~/types/Cli';
 import { FilterableFlag, FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
-import { evaluateURL, evaluate } from '~/data/api';
+import { evaluate, evaluateURL } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
