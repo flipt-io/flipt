@@ -3,7 +3,7 @@ package fs
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 	"encoding/json"
 	"errors"
 	"fmt"
