@@ -1,10 +1,11 @@
 package config
 
-import "github.com/spf13/viper"
-
-var (
-	_ defaulter = (*CorsConfig)(nil)
+import (
+	"github.com/spf13/viper"
+	"go.flipt.io/flipt/internal/server/common"
 )
+
+var _ defaulter = (*CorsConfig)(nil)
 
 // CorsConfig contains fields, which configure behaviour in the
 // HTTPServer relating to the CORS header-based mechanisms.
@@ -23,8 +24,9 @@ func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 			"Authorization",
 			"Content-Type",
 			"X-CSRF-Token",
-			"X-Flipt-Namespace",
-			"X-Flipt-Accept-Server-Version",
+			common.HeaderFliptNamespace,
+			common.HeaderFliptEnvironment,
+			common.HeaderFliptAcceptServerVersion,
 		},
 	})
 
