@@ -1,6 +1,6 @@
 package common
 
 const (
-	HeaderFliptEnvironment = "x-flipt-environment"
-	HeaderFliptNamespace   = "x-flipt-namespace"
+	HeaderFliptEnvironment = "X-Flipt-Environment"
+	HeaderFliptNamespace   = "X-Flipt-Namespace"
 )

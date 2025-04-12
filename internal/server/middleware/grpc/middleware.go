@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -287,6 +288,7 @@ func ForwardFliptNamespace(ctx context.Context, req *http.Request) metadata.MD {
 }
 
 func forwardHeader(ctx context.Context, req *http.Request, headerKey string) metadata.MD {
+	headerKey = strings.ToLower(headerKey)
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		md = metadata.MD{}

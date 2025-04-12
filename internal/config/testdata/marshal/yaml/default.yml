@@ -20,8 +20,8 @@ cors:
     - "Authorization"
     - "Content-Type"
     - "X-CSRF-Token"
+    - "X-Flipt-Environment"
     - "X-Flipt-Namespace"
-    - "X-Flipt-Accept-Server-Version"
 
 server:
   host: 0.0.0.0

@@ -564,7 +564,6 @@ func Default() *Config {
 				"X-CSRF-Token",
 				"X-Flipt-Environment",
 				"X-Flipt-Namespace",
-				"X-Flipt-Accept-Server-Version",
 			},
 		},
 
