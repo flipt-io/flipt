@@ -103,7 +103,7 @@ func API(t *testing.T, ctx context.Context, opts integration.TestOpts) {
 				assert.Len(t, ns.Items, len(namespaces))
 
 				for _, namespace := range ns.Items {
-					assert.Contains(t, namespaces, namespace)
+					assert.Contains(t, namespaces, integration.KeyedExpectation{Key: namespace.Key, Expected: namespace.Name})
 				}
 
 				t.Log(`Update namespace.`)
