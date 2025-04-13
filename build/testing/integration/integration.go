@@ -47,19 +47,19 @@ const (
 	ProductionEnvironment = "production"
 )
 
-type NamespaceExpectation struct {
+type KeyedExpectation struct {
 	Key      string
 	Expected string
 }
 
-type NamespaceExpectations []NamespaceExpectation
+type KeyedExpectations []KeyedExpectation
 
-// OtherNamespaceFrom returns any other namespace in the set of expected
-// namespaces different from the namespace provided
-func (n NamespaceExpectations) OtherNamespaceFrom(from string) string {
+// OtherKeyFrom returns any other key in the set of expected
+// keys different from the key provided
+func (n KeyedExpectations) OtherKeyFrom(from string) string {
 	ns := map[string]struct{}{}
 	for _, e := range n {
-		if e.Expected == from {
+		if e.Key == from {
 			continue
 		}
 
@@ -73,7 +73,13 @@ func (n NamespaceExpectations) OtherNamespaceFrom(from string) string {
 	panic("we expected to be at-least one alternative")
 }
 
-var Namespaces = NamespaceExpectations{
+var Environments = KeyedExpectations{
+	{Key: "", Expected: DefaultEnvironment},
+	{Key: DefaultEnvironment, Expected: DefaultEnvironment},
+	{Key: ProductionEnvironment, Expected: ProductionEnvironment},
+}
+
+var Namespaces = KeyedExpectations{
 	{Key: "", Expected: DefaultNamespace},
 	{Key: DefaultNamespace, Expected: DefaultNamespace},
 	{Key: AlternativeNamespace, Expected: AlternativeNamespace},

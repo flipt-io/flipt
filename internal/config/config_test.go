@@ -785,6 +785,46 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/environments/no_default.yml",
 			wantErr: errors.New("no default environment configured"),
 		},
+		{
+			name:    "environments sharing storage without distinct directories",
+			path:    "./testdata/environments/shared_storage_no_directories.yml",
+			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" but have no distinct directory values"),
+		},
+		{
+			name:    "environments sharing storage with same directory",
+			path:    "./testdata/environments/shared_storage_same_directory.yml",
+			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" and directory \"repo\""),
+		},
+		{
+			name: "environments sharing storage with different directories",
+			path: "./testdata/environments/shared_storage_different_directories.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StoragesConfig{
+					"git": {
+						Backend: StorageBackendConfig{
+							Type: MemoryStorageBackendType,
+						},
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				cfg.Environments = EnvironmentsConfig{
+					"prod": {
+						Name:      "prod",
+						Storage:   "git",
+						Directory: "prod",
+						Default:   true,
+					},
+					"staging": {
+						Name:      "staging",
+						Storage:   "git",
+						Directory: "staging",
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {

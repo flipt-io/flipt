@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -14,10 +16,27 @@ var (
 type EnvironmentsConfig map[string]*EnvironmentConfig
 
 func (e *EnvironmentsConfig) validate() error {
+	// map of storage key to directories used
+	storageDirectories := make(map[string]map[string][]string) // storage -> directory -> []environment names
+
 	for name, v := range *e {
 		if err := v.validate(); err != nil {
 			return fmt.Errorf("environment %q: %w", name, err)
 		}
+
+		// Initialize map for this storage if not exists
+		if _, ok := storageDirectories[v.Storage]; !ok {
+			storageDirectories[v.Storage] = make(map[string][]string)
+		}
+
+		// Use empty string if directory not specified
+		dir := v.Directory
+		if dir == "" {
+			dir = ""
+		}
+
+		// Add this environment to the map
+		storageDirectories[v.Storage][dir] = append(storageDirectories[v.Storage][dir], name)
 	}
 
 	defaults := 0
@@ -33,6 +52,32 @@ func (e *EnvironmentsConfig) validate() error {
 
 	if defaults > 1 {
 		return fmt.Errorf("only one environment can be default")
+	}
+
+	// Check for duplicate directory usage within same storage
+	for storage, directories := range storageDirectories {
+		// If only one environment uses this storage, no need to check
+		totalEnvs := 0
+		for _, envs := range directories {
+			totalEnvs += len(envs)
+		}
+		if totalEnvs <= 1 {
+			continue
+		}
+
+		// If multiple environments use this storage and share empty directory
+		if envs, exists := directories[""]; exists && len(envs) > 1 {
+			sort.Strings(envs) // Sort for deterministic output
+			return fmt.Errorf("environments [%s] share the same storage %q but have no distinct directory values", strings.Join(envs, ", "), storage)
+		}
+
+		// Check for any directory shared by multiple environments
+		for dir, envs := range directories {
+			if len(envs) > 1 {
+				sort.Strings(envs) // Sort for deterministic output
+				return fmt.Errorf("environments [%s] share the same storage %q and directory %q", strings.Join(envs, ", "), storage, dir)
+			}
+		}
 	}
 
 	return nil

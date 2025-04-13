@@ -256,9 +256,15 @@ func envsAPI(directory string) testCaseFn {
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
+			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_STORAGE", "production").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_DIRECTORY", directory).
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DEFAULT", "true").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_PRODUCTION_REMOTE", "http://gitea:3000/root/production.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_PRODUCTION_BRANCH", "main").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_STORAGE_PRODUCTION_CREDENTIALS", "default").
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
@@ -345,7 +351,17 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 						{
 							// we always at-least create "main"
 							Branch:  "main",
-							Path:    "/work/base",
+							Path:    "/work/default",
+							Message: "feat: add directory contents",
+						},
+					},
+				},
+				{
+					Name: "production",
+					Contents: []config.Content{
+						{
+							Branch:  "main",
+							Path:    "/work/production",
 							Message: "feat: add directory contents",
 						},
 					},
@@ -361,7 +377,8 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 		_, err = client.Container().
 			From("ghcr.io/flipt-io/stew:latest").
 			WithWorkdir("/work").
-			WithDirectory("/work/base", base.Directory(dataDir)).
+			WithDirectory("/work/default", base.Directory(dataDir)).
+			WithDirectory("/work/production", base.Directory(dataDir)).
 			WithNewFile("/etc/stew/config.yml", string(contents)).
 			WithServiceBinding("gitea", gitea).
 			WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
