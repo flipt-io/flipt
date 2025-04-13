@@ -13,6 +13,7 @@ import (
 	"time"
 
 	errs "go.flipt.io/flipt/errors"
+	environments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/metrics"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
@@ -27,7 +28,9 @@ import (
 
 // Variant evaluates a request for a multi-variate flag and entity.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	store, err := s.getEvalStore(ctx)
+	env := s.store.GetFromContext(ctx)
+
+	store, err := env.EvaluationStore()
 	if err != nil {
 		return nil, err
 	}
@@ -41,13 +44,13 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	resp, err := s.variant(ctx, store, flag, r)
+	resp, err := s.variant(ctx, store, env, flag, r)
 	if err != nil {
 		return nil, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		// TODO: fliptotel.AttributeEnvironment.String(r.EnvironmentKey),
+		fliptotel.AttributeEnvironment.String(env.Name()),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -68,7 +71,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	return resp, nil
 }
 
-func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env environments.Environment, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
 	var (
 		resp = &rpcevaluation.VariantEvaluationResponse{
 			FlagKey:   flag.Key,
@@ -77,10 +80,10 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 		err      error
 		lastRank int32
 
-		startTime = time.Now().UTC()
-		// TODO: environmentAttr = metrics.AttributeEnvironment.String(r.EnvironmentKey)
-		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
-		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+		startTime       = time.Now().UTC()
+		environmentAttr = metrics.AttributeEnvironment.String(env.Name())
+		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
 	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
@@ -90,7 +93,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
 				metric.WithAttributeSet(
 					attribute.NewSet(
-						// TODO: environmentAttr,
+						environmentAttr,
 						namespaceAttr,
 						flagAttr,
 						metrics.AttributeMatch.Bool(resp.Match),
@@ -110,6 +113,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 			float64(time.Since(startTime).Nanoseconds())/1e6,
 			metric.WithAttributeSet(
 				attribute.NewSet(
+					environmentAttr,
 					namespaceAttr,
 					flagAttr,
 				),
@@ -259,7 +263,9 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, flag 
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	store, err := s.getEvalStore(ctx)
+	env := s.store.GetFromContext(ctx)
+
+	store, err := env.EvaluationStore()
 	if err != nil {
 		return nil, err
 	}
@@ -273,13 +279,13 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	resp, err := s.boolean(ctx, store, flag, r)
+	resp, err := s.boolean(ctx, store, env, flag, r)
 	if err != nil {
 		return nil, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		// TODO: fliptotel.AttributeEnvironment.String(r.EnvironmentKey),
+		fliptotel.AttributeEnvironment.String(env.Name()),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -298,7 +304,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	return resp, nil
 }
 
-func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
+func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env environments.Environment, flag *core.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
 	rollouts, err := store.GetEvaluationRollouts(ctx, storage.NewResource(r.NamespaceKey, flag.Key, storage.WithReference(r.Reference)))
 	if err != nil {
 		return nil, err
@@ -312,10 +318,10 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 	)
 
 	var (
-		startTime = time.Now().UTC()
-		// TODO: environmentAttr = metrics.AttributeEnvironment.String(r.EnvironmentKey)
-		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
-		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+		startTime       = time.Now().UTC()
+		environmentAttr = metrics.AttributeEnvironment.String(env.Name())
+		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
 	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
@@ -325,7 +331,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
 				metric.WithAttributeSet(
 					attribute.NewSet(
-						// TODO: environmentAttr,
+						environmentAttr,
 						namespaceAttr,
 						flagAttr,
 						metrics.AttributeValue.Bool(resp.Enabled),
@@ -343,6 +349,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 			float64(time.Since(startTime).Nanoseconds())/1e6,
 			metric.WithAttributeSet(
 				attribute.NewSet(
+					environmentAttr,
 					namespaceAttr,
 					flagAttr,
 				),
@@ -425,7 +432,9 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, flag 
 
 // Batch takes in a list of *evaluation.EvaluationRequest and returns their respective responses.
 func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
-	store, err := s.getEvalStore(ctx)
+	env := s.store.GetFromContext(ctx)
+
+	store, err := env.EvaluationStore()
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +468,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 		switch f.Type {
 		case core.FlagType_BOOLEAN_FLAG_TYPE:
-			res, err := s.boolean(ctx, store, f, req)
+			res, err := s.boolean(ctx, store, env, f, req)
 			if err != nil {
 				return nil, err
 			}
@@ -473,7 +482,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 
 			resp.Responses = append(resp.Responses, eresp)
 		case core.FlagType_VARIANT_FLAG_TYPE:
-			res, err := s.variant(ctx, store, f, req)
+			res, err := s.variant(ctx, store, env, f, req)
 			if err != nil {
 				return nil, err
 			}

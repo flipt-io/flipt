@@ -29,7 +29,9 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluationResponse, error) {
-	store, err := s.getEvalStore(ctx)
+	env := s.store.GetFromContext(ctx)
+
+	store, err := env.EvaluationStore()
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +51,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 	}
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
+		fliptotel.AttributeEnvironment.String(env.Name()),
 		fliptotel.AttributeNamespace.String(namespaceKey),
 		fliptotel.AttributeFlag.String(r.Key),
 		fliptotel.AttributeProviderName,
@@ -63,7 +66,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 
 	switch flag.Type {
 	case core.FlagType_VARIANT_FLAG_TYPE:
-		resp, err := s.variant(ctx, store, flag, req)
+		resp, err := s.variant(ctx, store, env, flag, req)
 		if err != nil {
 			return nil, transformError(r.Key, err)
 		}
@@ -102,7 +105,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}, nil
 
 	case core.FlagType_BOOLEAN_FLAG_TYPE:
-		resp, err := s.boolean(ctx, store, flag, req)
+		resp, err := s.boolean(ctx, store, env, flag, req)
 		if err != nil {
 			return nil, transformError(r.Key, err)
 		}
@@ -130,7 +133,9 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 }
 
 func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
-	store, err := s.getEvalStore(ctx)
+	env := s.store.GetFromContext(ctx)
+
+	store, err := env.EvaluationStore()
 	if err != nil {
 		return nil, err
 	}
