@@ -33,7 +33,7 @@ func (v *validatable) Validate() error {
 func TestValidationUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name       string
-		req        interface{}
+		req        any
 		wantCalled int
 	}{
 		{
@@ -60,7 +60,7 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				called++
 				return nil, nil
 			})
@@ -134,7 +134,7 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				return nil, wantErr
 			})
 
@@ -209,7 +209,7 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 				ctx = metadata.NewIncomingContext(ctx, tt.md)
 			}
 
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				environment, _ := cctx.FliptEnvironmentFromContext(ctx)
 				assert.Equal(t, tt.want.environment, environment)
 
@@ -230,7 +230,7 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 			NamespaceKey: "foo",
 		}
 
-		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+		handler = func(ctx context.Context, r any) (any, error) {
 			return &flipt.FlagList{
 				Flags: []*flipt.Flag{
 					{Key: "foo"},
@@ -255,7 +255,92 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 	assert.Equal(t, "foo", resp.Flags[0].Key)
 }
 
-func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
+func TestEvaluationUnaryInterceptor_EnvironmentAndNamespace(t *testing.T) {
+	tests := []struct {
+		name string
+		req  *evaluation.EvaluationRequest
+		want *evaluation.EvaluationRequest
+	}{
+		{
+			name: "no environment or namespace",
+			req: &evaluation.EvaluationRequest{
+				FlagKey: "foo",
+			},
+			want: &evaluation.EvaluationRequest{
+				EnvironmentKey: "test-environment",
+				NamespaceKey:   "test-namespace",
+				FlagKey:        "foo",
+			},
+		},
+		{
+			name: "existing environment and namespace",
+			req: &evaluation.EvaluationRequest{
+				EnvironmentKey: "foo-environment",
+				NamespaceKey:   "foo-namespace",
+				FlagKey:        "foo",
+			},
+			want: &evaluation.EvaluationRequest{
+				EnvironmentKey: "foo-environment",
+				NamespaceKey:   "foo-namespace",
+				FlagKey:        "foo",
+			},
+		},
+		{
+			name: "existing environment and no namespace",
+			req: &evaluation.EvaluationRequest{
+				EnvironmentKey: "foo-environment",
+				FlagKey:        "foo",
+			},
+			want: &evaluation.EvaluationRequest{
+				EnvironmentKey: "foo-environment",
+				NamespaceKey:   "test-namespace",
+				FlagKey:        "foo",
+			},
+		},
+		{
+			name: "existing namespace and no environment",
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo-namespace",
+				FlagKey:      "foo",
+			},
+			want: &evaluation.EvaluationRequest{
+				EnvironmentKey: "test-environment",
+				NamespaceKey:   "foo-namespace",
+				FlagKey:        "foo",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		ctx := context.Background()
+		ctx = cctx.WithFliptEnvironment(ctx, "test-environment")
+		ctx = cctx.WithFliptNamespace(ctx, "test-namespace")
+
+		var (
+			handler = func(_ context.Context, r any) (any, error) {
+				// ensure request has ID once it reaches the handler
+				req, ok := r.(*evaluation.EvaluationRequest)
+				require.True(t, ok)
+
+				assert.Equal(t, tt.want.EnvironmentKey, req.GetEnvironmentKey())
+				assert.Equal(t, tt.want.NamespaceKey, req.GetNamespaceKey())
+
+				return &evaluation.EvaluationResponse{}, nil
+			}
+
+			info = &grpc.UnaryServerInfo{
+				FullMethod: "FakeMethod",
+			}
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := EvaluationUnaryInterceptor(false)(ctx, tt.req, info, handler)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 	type request interface {
 		GetRequestId() string
 	}
@@ -300,7 +385,7 @@ func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var (
-				handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, r any) (any, error) {
 					// ensure request has ID once it reaches the handler
 					req, ok := r.(request)
 					require.True(t, ok)

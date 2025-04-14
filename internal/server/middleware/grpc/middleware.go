@@ -132,9 +132,17 @@ func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
+// Note: this should be added after the FliptHeadersInterceptor to ensure the environment and namespace are set in the context.
 func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := time.Now().UTC()
+
+		if r, ok := req.(*evaluation.EvaluationRequest); ok {
+			environmentKey, _ := cctx.FliptEnvironmentFromContext(ctx)
+			namespaceKey, _ := cctx.FliptNamespaceFromContext(ctx)
+			r.SetEnvironmentKeyIfNotBlank(environmentKey)
+			r.SetNamespaceKeyIfNotBlank(namespaceKey)
+		}
 
 		// set request ID if not present
 		requestID := uuid.NewString()
