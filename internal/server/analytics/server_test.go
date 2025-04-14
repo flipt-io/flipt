@@ -24,10 +24,11 @@ func TestServer(t *testing.T) {
 	server := New(zap.NewNop(), &testClient{})
 
 	res, err := server.GetFlagEvaluationsCount(context.TODO(), &analytics.GetFlagEvaluationsCountRequest{
-		NamespaceKey: "default",
-		FlagKey:      "flag1",
-		From:         "2024-01-01 00:00:00",
-		To:           "2024-01-01 00:00:00",
+		EnvironmentKey: "default",
+		NamespaceKey:   "default",
+		FlagKey:        "flag1",
+		From:           "2024-01-01 00:00:00",
+		To:             "2024-01-01 00:00:00",
 	})
 	require.NoError(t, err)
 

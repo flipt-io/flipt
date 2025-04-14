@@ -37,8 +37,8 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 
 	for env := range s.envs.List(ctx) {
 		el.Environments = append(el.Environments, &environments.Environment{
-			Key:     env.Name(),
-			Name:    env.Name(),
+			Key:     env.Key(),
+			Name:    env.Key(),
 			Default: ptr(env.Default()),
 		})
 	}

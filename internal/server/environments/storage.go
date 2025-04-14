@@ -41,7 +41,7 @@ func (r ResourceType) String() string {
 }
 
 type Environment interface {
-	Name() string
+	Key() string
 	Default() bool
 	// Namespaces
 
@@ -92,7 +92,7 @@ func NewEnvironmentStore(logger *zap.Logger, envs ...Environment) (*EnvironmentS
 	}
 
 	for _, env := range envs {
-		store.byName[env.Name()] = env
+		store.byName[env.Key()] = env
 		if env.Default() {
 			store.defaultEnv = env
 		}

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.flipt.io/flipt/internal/server/environments"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -37,9 +36,4 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
 	return true
-}
-
-// getEvalStore returns the relevant instance of storage used to fetch data for evaluations.
-func (s *Server) getEvalStore(ctx context.Context) (storage.ReadOnlyStore, error) {
-	return s.store.GetFromContext(ctx).EvaluationStore()
 }

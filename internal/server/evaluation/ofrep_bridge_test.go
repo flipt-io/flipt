@@ -17,19 +17,22 @@ import (
 
 func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
-		flag         = &core.Flag{
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
+
+	environment.On("Key").Return(environmentKey)
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
@@ -66,7 +69,8 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 	}, nil)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
-		"x-flipt-namespace": namespaceKey,
+		"x-flipt-environment": environmentKey,
+		"x-flipt-namespace":   namespaceKey,
 	}))
 
 	output, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{
@@ -86,19 +90,22 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 
 func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
-		flag         = &core.Flag{
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
 		}
 	)
+
+	environment.On("Key").Return(environmentKey)
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
@@ -108,7 +115,8 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{}, nil)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.New(map[string]string{
-		"x-flipt-namespace": namespaceKey,
+		"x-flipt-environment": environmentKey,
+		"x-flipt-namespace":   namespaceKey,
 	}))
 
 	output, err := s.OFREPFlagEvaluation(ctx, &ofrep.EvaluateFlagRequest{

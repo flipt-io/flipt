@@ -11,6 +11,7 @@ message GetFlagEvaluationsCountRequest {
   string flag_key = 2;
   string from = 3;
   string to = 4;
+  string environment_key = 5;
 }
 
 message GetFlagEvaluationsCountResponse {

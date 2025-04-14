@@ -1,7 +1,8 @@
-CREATE TABLE flipt_counter_aggregated_analytics
+CREATE TABLE flipt_counter_aggregated_analytics_v2
 (
     `timestamp` DateTime('UTC'),
     `analytic_name` LowCardinality(String),
+    `environment_key` LowCardinality(String),
     `namespace_key` LowCardinality(String),
     `flag_key` LowCardinality(String),
     `reason` LowCardinality(String),
@@ -12,6 +13,7 @@ ENGINE = SummingMergeTree
 ORDER BY (
     timestamp,
     analytic_name,
+    environment_key,
     namespace_key,
     flag_key,
     reason,

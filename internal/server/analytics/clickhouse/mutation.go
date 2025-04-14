@@ -22,6 +22,7 @@ func (c *Client) IncrementFlagEvaluationCounts(ctx context.Context, responses []
 		valuePlaceHolders = append(valuePlaceHolders, "(toDateTime(?, 'UTC'),?,?,?,?,?,?,?,?,?)")
 		valueArgs = append(valueArgs, response.Timestamp.Format(time.DateTime))
 		valueArgs = append(valueArgs, counterAnalyticsName)
+		valueArgs = append(valueArgs, response.EnvironmentKey)
 		valueArgs = append(valueArgs, response.NamespaceKey)
 		valueArgs = append(valueArgs, response.FlagKey)
 		valueArgs = append(valueArgs, response.FlagType)

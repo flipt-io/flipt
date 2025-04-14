@@ -362,6 +362,51 @@ func (_c *MockEnvironment_GetNamespace_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// Key provides a mock function with no fields
+func (_m *MockEnvironment) Key() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Key")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// MockEnvironment_Key_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Key'
+type MockEnvironment_Key_Call struct {
+	*mock.Call
+}
+
+// Key is a helper method to define mock.On call
+func (_e *MockEnvironment_Expecter) Key() *MockEnvironment_Key_Call {
+	return &MockEnvironment_Key_Call{Call: _e.mock.On("Key")}
+}
+
+func (_c *MockEnvironment_Key_Call) Run(run func()) *MockEnvironment_Key_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_Key_Call) Return(_a0 string) *MockEnvironment_Key_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockEnvironment_Key_Call) RunAndReturn(run func() string) *MockEnvironment_Key_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListNamespaces provides a mock function with given fields: _a0
 func (_m *MockEnvironment) ListNamespaces(_a0 context.Context) (*v2environments.ListNamespacesResponse, error) {
 	ret := _m.Called(_a0)
@@ -416,51 +461,6 @@ func (_c *MockEnvironment_ListNamespaces_Call) Return(_a0 *v2environments.ListNa
 }
 
 func (_c *MockEnvironment_ListNamespaces_Call) RunAndReturn(run func(context.Context) (*v2environments.ListNamespacesResponse, error)) *MockEnvironment_ListNamespaces_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Name provides a mock function with no fields
-func (_m *MockEnvironment) Name() string {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Name")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
-// MockEnvironment_Name_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Name'
-type MockEnvironment_Name_Call struct {
-	*mock.Call
-}
-
-// Name is a helper method to define mock.On call
-func (_e *MockEnvironment_Expecter) Name() *MockEnvironment_Name_Call {
-	return &MockEnvironment_Name_Call{Call: _e.mock.On("Name")}
-}
-
-func (_c *MockEnvironment_Name_Call) Run(run func()) *MockEnvironment_Name_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockEnvironment_Name_Call) Return(_a0 string) *MockEnvironment_Name_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockEnvironment_Name_Call) RunAndReturn(run func() string) *MockEnvironment_Name_Call {
 	_c.Call.Return(run)
 	return _c
 }

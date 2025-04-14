@@ -6,6 +6,28 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// SetEnvironmentKeyIfNotBlank attempts to set the provided environment key on the instance
+// If the environment key was blank, it returns the environment key provided to this call.
+// If the environment key was not blank, it returns the environment key found on the instance.
+func (x *EvaluationRequest) SetEnvironmentKeyIfNotBlank(key string) string {
+	if x.EnvironmentKey == "" {
+		x.EnvironmentKey = key
+	}
+
+	return x.EnvironmentKey
+}
+
+// SetNamespaceKeyIfNotBlank attempts to set the provided namespace key on the instance
+// If the namespace key was blank, it returns the namespace key provided to this call.
+// If the namespace key was not blank, it returns the namespace key found on the instance.
+func (x *EvaluationRequest) SetNamespaceKeyIfNotBlank(key string) string {
+	if x.NamespaceKey == "" {
+		x.NamespaceKey = key
+	}
+
+	return x.NamespaceKey
+}
+
 // SetRequestIDIfNotBlank attempts to set the provided ID on the instance
 // If the ID was blank, it returns the ID provided to this call.
 // If the ID was not blank, it returns the ID found on the instance.

@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS flipt_counter_analytics;
+DROP TABLE IF EXISTS flipt_counter_analytics_v2;

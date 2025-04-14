@@ -53,13 +53,13 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const handleSubmit = async (values: INamespace) => {
     if (isNew) {
       return createNamespace({
-        environmentKey: environment.name,
+        environmentKey: environment.key,
         values,
         revision
       }).unwrap();
     }
     return updateNamespace({
-      environmentKey: environment.name,
+      environmentKey: environment.key,
       values,
       revision
     }).unwrap();

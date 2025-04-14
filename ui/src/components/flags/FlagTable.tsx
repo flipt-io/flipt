@@ -106,7 +106,7 @@ export default function FlagTable(props: FlagTableProps) {
   const sorting = useSelector(selectSorting);
 
   const { data, isLoading, error } = useListFlagsQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key
   });
   const flags = useMemo(() => data?.flags || [], [data]);

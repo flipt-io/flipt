@@ -44,7 +44,8 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm])) or vector(0)`,
+		`sum(increase(flipt_evaluations_requests_total{flipt_environment="%s", flipt_namespace="%s", flipt_flag="%s"}[%dm])) or vector(0)`,
+		req.EnvironmentKey,
 		req.NamespaceKey,
 		req.FlagKey,
 		req.StepMinutes,

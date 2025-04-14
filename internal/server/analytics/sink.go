@@ -20,6 +20,7 @@ type AnalyticsStoreMutator interface {
 type EvaluationResponse struct {
 	FlagKey         string    `json:"flagKey,omitempty"`
 	FlagType        string    `json:"flagType,omitempty"`
+	EnvironmentKey  string    `json:"environmentKey,omitempty"`
 	NamespaceKey    string    `json:"namespaceKey,omitempty"`
 	Reason          string    `json:"reason,omitempty"`
 	Match           *bool     `json:"match,omitempty"`
@@ -83,5 +84,9 @@ func (a *AnalyticsSinkSpanExporter) ExportSpans(ctx context.Context, spans []sdk
 
 // Shutdown closes resources for an AnalyticsStoreMutator.
 func (a *AnalyticsSinkSpanExporter) Shutdown(_ context.Context) error {
-	return a.analyticsStoreMutator.Close()
+	if a != nil && a.analyticsStoreMutator != nil {
+		return a.analyticsStoreMutator.Close()
+	}
+
+	return nil
 }

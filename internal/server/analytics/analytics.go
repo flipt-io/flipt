@@ -28,11 +28,12 @@ func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 	}
 
 	r := &FlagEvaluationsCountRequest{
-		NamespaceKey: req.NamespaceKey,
-		FlagKey:      req.FlagKey,
-		From:         fromTime,
-		To:           toTime,
-		StepMinutes:  getStepFromDuration(toTime.Sub(fromTime)),
+		EnvironmentKey: req.EnvironmentKey,
+		NamespaceKey:   req.NamespaceKey,
+		FlagKey:        req.FlagKey,
+		From:           fromTime,
+		To:             toTime,
+		StepMinutes:    getStepFromDuration(toTime.Sub(fromTime)),
 	}
 
 	timestamps, values, err := s.client.GetFlagEvaluationsCount(ctx, r)

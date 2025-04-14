@@ -27,7 +27,7 @@ func init() {
 
 // This is memoized in the OTEL library to avoid creating multiple instances of the same exporter.
 func meter() metric.Meter {
-	return otel.Meter("github.com/flipt-io/flipt")
+	return otel.Meter("go.flipt.io/flipt/v2")
 }
 
 // MustInt64 returns an instrument provider based on the global Meter.
@@ -232,6 +232,7 @@ func GetResources(ctx context.Context) (*resource.Resource, error) {
 		resource.WithSchemaURL(semconv.SchemaURL),
 		resource.WithAttributes(
 			semconv.ServiceName("flipt"),
+			// semconv.ServiceVersion("v2"), TODO: set this from the semver of the flipt binary
 		),
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),

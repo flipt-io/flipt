@@ -24,8 +24,8 @@ type Step struct {
 var dbOnce sync.Once
 
 const (
-	counterAnalyticsTable           = "flipt_counter_analytics"
-	counterAggregatedAnalyticsTable = "flipt_counter_aggregated_analytics"
+	counterAnalyticsTable           = "flipt_counter_analytics_v2"
+	counterAggregatedAnalyticsTable = "flipt_counter_aggregated_analytics_v2"
 	counterAnalyticsName            = "flag_evaluation_count"
 )
 
@@ -104,7 +104,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Fla
 			toStartOfInterval(timestamp, INTERVAL %[4]d %[5]s) AS timestamp
 		FROM %[1]s
 		WHERE
-			namespace_key = ? AND flag_key = ? AND
+			environment_key = ? AND namespace_key = ? AND flag_key = ? AND
 			timestamp >= toStartOfInterval(toDateTime('%[2]s', 'UTC'),  INTERVAL %[4]d %[5]s) AND
 			timestamp < timestamp_add(toStartOfInterval(toDateTime('%[3]s', 'UTC'), INTERVAL %[4]d %[5]s), INTERVAL %[4]d %[5]s)
 		GROUP BY timestamp
@@ -117,6 +117,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Fla
 		step.intervalValue,
 		step.intervalStep,
 	),
+		req.EnvironmentKey,
 		req.NamespaceKey,
 		req.FlagKey,
 	)
@@ -132,6 +133,7 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Fla
 		timestamps = make([]string, 0)
 		values     = make([]float32, 0)
 	)
+
 	for rows.Next() {
 		var (
 			timestamp string
@@ -155,7 +157,11 @@ func (c *Client) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Fla
 
 // Close will close the DB connection.
 func (c *Client) Close() error {
-	return c.Conn.Close()
+	if c != nil && c.Conn != nil {
+		return c.Conn.Close()
+	}
+
+	return nil
 }
 
 func (c *Client) String() string {
