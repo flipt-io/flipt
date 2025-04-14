@@ -91,7 +91,7 @@ func canReadEnvironmentsAllIn(t *testing.T, ctx context.Context, client sdkv2.SD
 	})
 }
 
-func cannotReadEnvironmentsAnyIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
+func cannotReadEnvironmentsAnyIn(t *testing.T, ctx context.Context, client sdkv2.SDK, _namespace string) {
 	t.Run("EnvironmentsCannotReadAny", func(t *testing.T) {
 		// ensure we cannot do resource specific operations across namespaces
 		client := client.Environments()

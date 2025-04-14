@@ -23,7 +23,10 @@ test.describe('Namespaces', () => {
 
   test('can switch to newly created namespace', async ({ page }) => {
     await page.getByRole('link', { name: 'logo' }).click();
-    await page.getByTestId('namespace-listbox').getByRole('button', { name: 'Default' }).click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'Default' })
+      .click();
     await page.getByText('staging').click();
     await expect(page.getByRole('heading', { name: 'Flags' })).toBeVisible();
   });
@@ -47,7 +50,10 @@ test.describe('Namespaces', () => {
     page
   }) => {
     await page.getByRole('link', { name: 'logo' }).click();
-    await page.getByTestId('namespace-listbox').getByRole('button', { name: 'Default' }).click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'Default' })
+      .click();
     await page.getByText('test', { exact: true }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();

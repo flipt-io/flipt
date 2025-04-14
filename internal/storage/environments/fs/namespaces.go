@@ -9,12 +9,13 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/rpc/flipt"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 )
 
 const (
-	defaultKey       = "default"
+	defaultKey       = flipt.DefaultNamespace
 	FeaturesFilename = "features.yaml"
 )
 

@@ -7,9 +7,12 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.uber.org/zap"
 )
 
 type ResourceType struct {
@@ -77,12 +80,14 @@ type ResourceStore interface {
 }
 
 type EnvironmentStore struct {
+	logger     *zap.Logger
 	byName     map[string]Environment
 	defaultEnv Environment
 }
 
-func NewEnvironmentStore(envs ...Environment) (*EnvironmentStore, error) {
+func NewEnvironmentStore(logger *zap.Logger, envs ...Environment) (*EnvironmentStore, error) {
 	store := &EnvironmentStore{
+		logger: logger,
 		byName: map[string]Environment{},
 	}
 
@@ -94,7 +99,7 @@ func NewEnvironmentStore(envs ...Environment) (*EnvironmentStore, error) {
 	}
 
 	if store.defaultEnv == nil {
-		env, ok := store.byName["default"]
+		env, ok := store.byName[flipt.DefaultEnvironment]
 		switch {
 		case ok:
 			store.defaultEnv = env
@@ -128,7 +133,17 @@ func (e *EnvironmentStore) Get(ctx context.Context, name string) (Environment, e
 	return env, nil
 }
 
-// GetDefault returns the environment identified by name.
-func (e *EnvironmentStore) GetDefault(ctx context.Context) Environment {
+// GetFromContext returns the environment identified by name from the context or the default environment if no name is provided.
+func (e *EnvironmentStore) GetFromContext(ctx context.Context) Environment {
+	env, ok := common.FliptEnvironmentFromContext(ctx)
+	if ok {
+		ee, err := e.Get(ctx, env)
+		if err != nil {
+			e.logger.Error("failed to get environment from context", zap.String("environment", env), zap.Error(err))
+			return e.defaultEnv
+		}
+		return ee
+	}
+
 	return e.defaultEnv
 }

@@ -119,7 +119,7 @@ func Common(t *testing.T, opts integration.TestOpts) {
 							// can read in designated namespace
 							canReadAllIn(t, ctx, client, namespace.Key)
 							// cannot read in other namespace
-							cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherNamespaceFrom(namespace.Expected))
+							cannotReadAnyIn(t, ctx, client, integration.Namespaces.OtherKeyFrom(namespace.Key))
 							// cannot write namespaces
 							cannotWriteNamespaces(t, ctx, client)
 							// cannot write in namespaces either

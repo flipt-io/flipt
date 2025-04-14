@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/blang/semver/v4"
+	"go.flipt.io/flipt/rpc/flipt"
 )
 
 var (
@@ -167,7 +168,7 @@ type NamespaceEmbed struct {
 	IsNamespace `yaml:"-"`
 }
 
-var DefaultNamespace = &NamespaceEmbed{&Namespace{Key: "default", Name: "Default"}}
+var DefaultNamespace = &NamespaceEmbed{&Namespace{Key: flipt.DefaultNamespace, Name: "Default"}}
 
 func (n *NamespaceEmbed) String() string {
 	return n.IsNamespace.GetKey()

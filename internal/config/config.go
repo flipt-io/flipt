@@ -18,6 +18,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"go.flipt.io/flipt/internal/storage/fs/object"
+	"go.flipt.io/flipt/rpc/flipt"
 	"gocloud.dev/blob"
 	"golang.org/x/exp/constraints"
 )
@@ -166,7 +167,6 @@ func Load(ctx context.Context, path string) (*Result, error) {
 		// see: https://github.com/spf13/viper/issues/761
 		structField := val.Type().Field(i)
 		if exp := structField.Tag.Get("experiment"); exp != "" {
-			// TODO(georgemac): register target for skipping
 			if !v.GetBool(fmt.Sprintf("experimental.%s.enabled", exp)) {
 				skippedTypes = append(skippedTypes, structField.Type)
 			}
@@ -562,8 +562,8 @@ func Default() *Config {
 				"Authorization",
 				"Content-Type",
 				"X-CSRF-Token",
+				"X-Flipt-Environment",
 				"X-Flipt-Namespace",
-				"X-Flipt-Accept-Server-Version",
 			},
 		},
 
@@ -583,7 +583,7 @@ func Default() *Config {
 
 		Environments: EnvironmentsConfig{
 			"default": &EnvironmentConfig{
-				Name:    "default",
+				Name:    flipt.DefaultEnvironment,
 				Storage: "default",
 				Default: true,
 			},

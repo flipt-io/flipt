@@ -11,8 +11,11 @@ export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
 export const internalURL = 'internal/v1';
 export const metaURL = 'meta/info';
-const csrfTokenHeaderKey = 'x-csrf-token';
+
 export const sessionKey = 'session';
+
+const csrfTokenHeaderKey = 'x-csrf-token';
+const fliptEnvironmentHeaderKey = 'x-flipt-environment';
 
 export type Session = {
   required: boolean;
@@ -39,7 +42,6 @@ function headerCsrf(): Record<string, string> {
   return {};
 }
 
-// TODO: find a better name for this
 export function checkResponse(response: Response) {
   if (!response.ok && response.status === 401) {
     const session = window.localStorage.getItem(sessionKey);
@@ -71,10 +73,15 @@ export function defaultHeaders(): Record<string, string> {
   return headers;
 }
 
-export async function request(method: string, uri: string, body?: any) {
+export async function request(
+  method: string,
+  uri: string,
+  body?: any,
+  headers?: Record<string, string>
+) {
   const req = {
     method,
-    headers: defaultHeaders(),
+    headers: { ...defaultHeaders(), ...headers },
     body: JSON.stringify(body)
   };
 
@@ -95,16 +102,30 @@ export async function request(method: string, uri: string, body?: any) {
   return res.json();
 }
 
-async function get(uri: string, base = apiURL) {
-  return request('GET', base + uri);
+async function get(
+  uri: string,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
+  return request('GET', base + uri, undefined, headers);
 }
 
-async function post<T>(uri: string, values: T, base = apiURL) {
-  return request('POST', base + uri, values);
+async function post<T>(
+  uri: string,
+  values: T,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
+  return request('POST', base + uri, values, headers);
 }
 
-async function put<T>(uri: string, values: T, base = apiURL) {
-  return request('PUT', base + uri, values);
+async function put<T>(
+  uri: string,
+  values: T,
+  base = apiURL,
+  headers?: Record<string, string>
+) {
+  return request('PUT', base + uri, values, headers);
 }
 
 //
@@ -120,21 +141,7 @@ export async function expireAuthSelf() {
 //
 // evaluate
 export async function evaluate(
-  namespaceKey: string,
-  flagKey: string,
-  values: any
-) {
-  const body = {
-    namespaceKey,
-    flagKey,
-    ...values
-  };
-  return post('/evaluate', body);
-}
-
-//
-// evaluateV2
-export async function evaluateV2(
+  environmentName: string,
   namespaceKey: string,
   flagKey: string,
   flagType: FlagType,
@@ -146,7 +153,9 @@ export async function evaluateV2(
     flagKey: flagKey,
     ...values
   };
-  return post(route, body, evaluateURL);
+  return post(route, body, evaluateURL, {
+    [fliptEnvironmentHeaderKey]: environmentName
+  });
 }
 
 //

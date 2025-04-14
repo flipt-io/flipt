@@ -9,8 +9,10 @@ import (
 
 	"github.com/google/uuid"
 	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/common"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
+	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
@@ -188,12 +190,12 @@ func getTargetingKey(context map[string]string) string {
 func getNamespace(ctx context.Context) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "default"
+		return flipt.DefaultNamespace
 	}
 
-	namespace := md.Get("x-flipt-namespace")
+	namespace := md.Get(common.HeaderFliptNamespace)
 	if len(namespace) == 0 {
-		return "default"
+		return flipt.DefaultNamespace
 	}
 
 	return namespace[0]

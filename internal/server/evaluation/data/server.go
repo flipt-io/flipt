@@ -31,13 +31,7 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
-	// TODO(georgemac): support overriding via configuration and or metadata header
-	environment := "default"
-
-	env, err := s.envs.Get(ctx, environment)
-	if err != nil {
-		return nil, err
-	}
+	env := s.envs.GetFromContext(ctx)
 
 	snap, err := env.EvaluationNamespaceSnapshot(ctx, r.Key)
 	if err != nil {

@@ -1,0 +1,13 @@
+storage:
+  git:
+    backend:
+      type: memory
+
+environments:
+  prod:
+    name: prod
+    storage: git
+    default: true
+  staging:
+    name: staging
+    storage: git 

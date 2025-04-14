@@ -14,7 +14,7 @@ var _ flipt.FliptServer = &Server{}
 
 // EnvironmentStore is the minimal abstraction for interacting with the storage layer for evaluation.
 type EnvironmentStore interface {
-	GetDefault(context.Context) environments.Environment
+	GetFromContext(context.Context) environments.Environment
 }
 
 // Server serves the Flipt backend
@@ -38,5 +38,5 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) getStore(ctx context.Context) (storage.ReadOnlyStore, error) {
-	return s.store.GetDefault(ctx).EvaluationStore()
+	return s.store.GetFromContext(ctx).EvaluationStore()
 }

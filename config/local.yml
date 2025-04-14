@@ -19,6 +19,12 @@ log:
 #         interval: 2h
 #         grace_period: 48h
 
+# storage:
+#   default:
+#     name: "local" 
+#   staging:
+#     name: "staging"
+
 # environments:
 #   local:
 #     name: "local"
@@ -26,6 +32,7 @@ log:
 
 #   staging:
 #     name: "staging"
+#     storage: "staging"
 
 cors:
   enabled: true
