@@ -71,7 +71,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="bar", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="bar", flipt_flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -117,7 +117,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="victoria", flag="metrics"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="victoria", flipt_flag="metrics"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -148,7 +148,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("no data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="no-data", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="no-data", flipt_flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -176,7 +176,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("wrong data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="wrong-data", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="wrong-data", flipt_flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -204,7 +204,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="error", flag="foo"}[5m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="error", flipt_flag="foo"}[5m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(5 * time.Minute),
