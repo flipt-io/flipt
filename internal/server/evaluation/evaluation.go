@@ -86,7 +86,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
-	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
 
 	defer func() {
 		if err == nil {
@@ -105,7 +105,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 				),
 			)
 		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
 		}
 
 		metrics.EvaluationLatency.Record(
@@ -324,7 +324,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
-	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
 
 	defer func() {
 		if err == nil {
@@ -341,7 +341,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 				),
 			)
 		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(environmentAttr, namespaceAttr, flagAttr)))
 		}
 
 		metrics.EvaluationLatency.Record(
