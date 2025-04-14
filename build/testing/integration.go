@@ -256,9 +256,9 @@ func envsAPI(directory string) testCaseFn {
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DIRECTORY", directory).
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DEFAULT", "true").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_STORAGE", "production").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_PRODUCTION_DIRECTORY", directory).
-			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_DEFAULT", "true").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_PRODUCTION_REMOTE", "http://gitea:3000/root/production.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").

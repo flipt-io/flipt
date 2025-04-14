@@ -29,14 +29,8 @@ func (e *EnvironmentsConfig) validate() error {
 			storageDirectories[v.Storage] = make(map[string][]string)
 		}
 
-		// Use empty string if directory not specified
-		dir := v.Directory
-		if dir == "" {
-			dir = ""
-		}
-
 		// Add this environment to the map
-		storageDirectories[v.Storage][dir] = append(storageDirectories[v.Storage][dir], name)
+		storageDirectories[v.Storage][v.Directory] = append(storageDirectories[v.Storage][v.Directory], name)
 	}
 
 	defaults := 0
@@ -65,13 +59,6 @@ func (e *EnvironmentsConfig) validate() error {
 			continue
 		}
 
-		// If multiple environments use this storage and share empty directory
-		if envs, exists := directories[""]; exists && len(envs) > 1 {
-			sort.Strings(envs) // Sort for deterministic output
-			return fmt.Errorf("environments [%s] share the same storage %q but have no distinct directory values", strings.Join(envs, ", "), storage)
-		}
-
-		// Check for any directory shared by multiple environments
 		for dir, envs := range directories {
 			if len(envs) > 1 {
 				sort.Strings(envs) // Sort for deterministic output

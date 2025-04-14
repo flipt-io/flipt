@@ -788,7 +788,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "environments sharing storage without distinct directories",
 			path:    "./testdata/environments/shared_storage_no_directories.yml",
-			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" but have no distinct directory values"),
+			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" and directory \"\""),
 		},
 		{
 			name:    "environments sharing storage with same directory",
