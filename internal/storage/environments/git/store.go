@@ -60,7 +60,7 @@ func NewEnvironmentFromRepo(
 	}, nil
 }
 
-func (e *Environment) Name() string {
+func (e *Environment) Key() string {
 	return e.cfg.Name
 }
 

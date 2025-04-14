@@ -23,13 +23,14 @@ const (
 )
 
 type GetFlagEvaluationsCountRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	NamespaceKey  string                 `protobuf:"bytes,1,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
-	FlagKey       string                 `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
-	From          string                 `protobuf:"bytes,3,opt,name=from,proto3" json:"from,omitempty"`
-	To            string                 `protobuf:"bytes,4,opt,name=to,proto3" json:"to,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NamespaceKey   string                 `protobuf:"bytes,1,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	FlagKey        string                 `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
+	From           string                 `protobuf:"bytes,3,opt,name=from,proto3" json:"from,omitempty"`
+	To             string                 `protobuf:"bytes,4,opt,name=to,proto3" json:"to,omitempty"`
+	EnvironmentKey string                 `protobuf:"bytes,5,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetFlagEvaluationsCountRequest) Reset() {
@@ -90,6 +91,13 @@ func (x *GetFlagEvaluationsCountRequest) GetTo() string {
 	return ""
 }
 
+func (x *GetFlagEvaluationsCountRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
 type GetFlagEvaluationsCountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamps    []string               `protobuf:"bytes,1,rep,name=timestamps,proto3" json:"timestamps,omitempty"`
@@ -146,12 +154,13 @@ var File_analytics_analytics_proto protoreflect.FileDescriptor
 
 const file_analytics_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x19analytics/analytics.proto\x12\x0fflipt.analytics\x1a\x1bgoogle/api/visibility.proto\"\x84\x01\n" +
+	"\x19analytics/analytics.proto\x12\x0fflipt.analytics\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
 	"\x1eGetFlagEvaluationsCountRequest\x12#\n" +
 	"\rnamespace_key\x18\x01 \x01(\tR\fnamespaceKey\x12\x19\n" +
 	"\bflag_key\x18\x02 \x01(\tR\aflagKey\x12\x12\n" +
 	"\x04from\x18\x03 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x04 \x01(\tR\x02to\"Y\n" +
+	"\x02to\x18\x04 \x01(\tR\x02to\x12'\n" +
+	"\x0fenvironment_key\x18\x05 \x01(\tR\x0eenvironmentKey\"Y\n" +
 	"\x1fGetFlagEvaluationsCountResponse\x12\x1e\n" +
 	"\n" +
 	"timestamps\x18\x01 \x03(\tR\n" +

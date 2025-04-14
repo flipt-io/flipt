@@ -1,5 +1,5 @@
 export interface IEnvironment {
-  name: string;
+  key: string;
   storage: string;
   directory: string;
   default?: boolean;

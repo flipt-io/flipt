@@ -157,7 +157,7 @@ export default function App() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  let title = `Flipt | ${environment.name} · ${namespace.name}`;
+  let title = `Flipt | ${environment.key} · ${namespace.name}`;
 
   return (
     <>

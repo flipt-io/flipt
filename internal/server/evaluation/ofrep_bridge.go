@@ -51,17 +51,18 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 	}
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
-		fliptotel.AttributeEnvironment.String(env.Name()),
+		fliptotel.AttributeEnvironment.String(env.Key()),
 		fliptotel.AttributeNamespace.String(namespaceKey),
 		fliptotel.AttributeFlag.String(r.Key),
 		fliptotel.AttributeProviderName,
 	)
 
 	req := &rpcevaluation.EvaluationRequest{
-		NamespaceKey: namespaceKey,
-		FlagKey:      r.Key,
-		EntityId:     entityId,
-		Context:      r.Context,
+		EnvironmentKey: env.Key(),
+		NamespaceKey:   namespaceKey,
+		FlagKey:        r.Key,
+		EntityId:       entityId,
+		Context:        r.Context,
 	}
 
 	switch flag.Type {

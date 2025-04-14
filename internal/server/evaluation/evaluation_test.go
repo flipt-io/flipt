@@ -29,7 +29,6 @@ func TestVariant_FlagNotFound(t *testing.T) {
 	)
 
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
-
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
@@ -83,15 +82,17 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 
 func TestVariant_FlagDisabled(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -117,20 +118,22 @@ func TestVariant_FlagDisabled(t *testing.T) {
 
 func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
-		flag         = &core.Flag{
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -152,20 +155,22 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 
 func TestVariant_Success(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
-		flag         = &core.Flag{
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
+		flag           = &core.Flag{
 			Key:     flagKey,
 			Enabled: true,
 			Type:    core.FlagType_VARIANT_FLAG_TYPE,
 		}
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -281,15 +286,17 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 
 func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -318,15 +325,17 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 
 func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -365,15 +374,17 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 
 func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -412,15 +423,17 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 
 func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -433,11 +446,25 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	store.On("GetEvaluationRollouts", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
-			Rank:         1,
 			RolloutType:  core.RolloutType_THRESHOLD_ROLLOUT_TYPE,
-			Threshold: &storage.RolloutThreshold{
-				Percentage: 5,
-				Value:      false,
+			Rank:         1,
+			Segment: &storage.RolloutSegment{
+				Value:           true,
+				SegmentOperator: core.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  core.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     core.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				},
 			},
 		},
 		{
@@ -482,15 +509,17 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 
 func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -549,15 +578,17 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 
 func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -608,15 +639,17 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 
 func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -682,15 +715,17 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 
 func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	var (
-		flagKey      = "test-flag"
-		namespaceKey = "test-namespace"
-		envStore     = NewMockEnvironmentStore(t)
-		environment  = environments.NewMockEnvironment(t)
-		store        = storage.NewMockReadOnlyStore(t)
-		logger       = zaptest.NewLogger(t)
-		s            = New(logger, envStore)
+		flagKey        = "test-flag"
+		environmentKey = "test-environment"
+		namespaceKey   = "test-namespace"
+		envStore       = NewMockEnvironmentStore(t)
+		environment    = environments.NewMockEnvironment(t)
+		store          = storage.NewMockReadOnlyStore(t)
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
@@ -822,6 +857,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 func TestBatch_Success(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
+		environmentKey = "test-environment"
 		anotherFlagKey = "another-test-flag"
 		variantFlagKey = "variant-test-flag"
 		namespaceKey   = "test-namespace"
@@ -832,6 +868,7 @@ func TestBatch_Success(t *testing.T) {
 		s              = New(logger, envStore)
 	)
 
+	environment.On("Key").Return(environmentKey)
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 

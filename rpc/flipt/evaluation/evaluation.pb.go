@@ -418,15 +418,16 @@ func (EvaluationConstraintComparisonType) EnumDescriptor() ([]byte, []int) {
 }
 
 type EvaluationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RequestId     string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	NamespaceKey  string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
-	FlagKey       string                 `protobuf:"bytes,3,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
-	EntityId      string                 `protobuf:"bytes,4,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
-	Context       map[string]string      `protobuf:"bytes,5,rep,name=context,proto3" json:"context,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Reference     string                 `protobuf:"bytes,6,opt,name=reference,proto3" json:"reference,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestId      string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	NamespaceKey   string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	FlagKey        string                 `protobuf:"bytes,3,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
+	EntityId       string                 `protobuf:"bytes,4,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	Context        map[string]string      `protobuf:"bytes,5,rep,name=context,proto3" json:"context,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Reference      string                 `protobuf:"bytes,6,opt,name=reference,proto3" json:"reference,omitempty"`
+	EnvironmentKey string                 `protobuf:"bytes,7,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EvaluationRequest) Reset() {
@@ -497,6 +498,13 @@ func (x *EvaluationRequest) GetContext() map[string]string {
 func (x *EvaluationRequest) GetReference() string {
 	if x != nil {
 		return x.Reference
+	}
+	return ""
+}
+
+func (x *EvaluationRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
 	}
 	return ""
 }
@@ -1903,7 +1911,7 @@ var File_evaluation_evaluation_proto protoreflect.FileDescriptor
 
 const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\n" +
-	"\x1bevaluation/evaluation.proto\x12\x10flipt.evaluation\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc9\x02\n" +
+	"\x1bevaluation/evaluation.proto\x12\x10flipt.evaluation\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf7\x02\n" +
 	"\x11EvaluationRequest\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12(\n" +
@@ -1911,7 +1919,8 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\bflag_key\x18\x03 \x01(\tB\x03\xe0A\x02R\aflagKey\x12 \n" +
 	"\tentity_id\x18\x04 \x01(\tB\x03\xe0A\x02R\bentityId\x12O\n" +
 	"\acontext\x18\x05 \x03(\v20.flipt.evaluation.EvaluationRequest.ContextEntryB\x03\xe0A\x02R\acontext\x12\x1c\n" +
-	"\treference\x18\x06 \x01(\tR\treference\x1a:\n" +
+	"\treference\x18\x06 \x01(\tR\treference\x12,\n" +
+	"\x0fenvironment_key\x18\a \x01(\tB\x03\xe0A\x02R\x0eenvironmentKey\x1a:\n" +
 	"\fContextEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x01\n" +

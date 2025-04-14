@@ -107,7 +107,7 @@ export default function CommandMenu() {
   const dispatch = useAppDispatch();
 
   const environments = useSelector(selectEnvironments).filter(
-    (e) => e.name !== currentEnvironment?.name
+    (e) => e.key !== currentEnvironment?.key
   );
 
   const namespaces = useSelector(selectNamespaces).filter(
@@ -199,16 +199,16 @@ export default function CommandMenu() {
                     </Command.Item>
                     {environments.map((environment) => (
                       <CommandItem
-                        key={environment.name}
+                        key={environment.key}
                         item={{
-                          name: environment.name,
+                          name: environment.key,
                           onSelected: () => {
                             setOpen(false);
                             dispatch(currentEnvironmentChanged(environment));
                             setSearch('');
                             setPages((pages) => pages.slice(0, -1));
                           },
-                          keywords: [environment.name]
+                          keywords: [environment.key]
                         }}
                       />
                     ))}

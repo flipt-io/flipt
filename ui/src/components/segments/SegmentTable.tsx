@@ -93,7 +93,7 @@ export default function SegmentTable(props: SegmentTableProps) {
   const sorting = useSelector(selectSorting);
 
   const { data, isLoading, error } = useListSegmentsQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key
   });
   const segments = useMemo(() => data?.segments || [], [data]);

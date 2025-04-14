@@ -29,13 +29,13 @@ export const environmentsSlice = createSlice({
   reducers: {
     currentEnvironmentChanged: (state, action) => {
       const environment = action.payload;
-      state.currentEnvironment = environment.name;
+      state.currentEnvironment = environment.key;
     },
     environmentsChanged: (state, action) => {
       const environments: { [key: string]: IEnvironment } = {};
       // First, build the environments map
       action.payload.environments.forEach((environment: IEnvironment) => {
-        environments[environment.name] = environment;
+        environments[environment.key] = environment;
       });
       state.environments = environments;
       state.status = LoadingStatus.SUCCEEDED;
@@ -88,7 +88,7 @@ export const selectCurrentEnvironment = createSelector(
       return state.environments[envs[0]];
     }
 
-    return { name: 'default', storage: '', directory: '' } as IEnvironment;
+    return { key: 'default', storage: '', directory: '' } as IEnvironment;
   }
 );
 
@@ -100,7 +100,7 @@ export const environmentsApi = createApi({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({
       query: () => '',
       providesTags: (result, _error) =>
-        result?.environments.map(({ name }) => ({
+        result?.environments.map(({ key: name }) => ({
           type: 'Environment' as const,
           id: name
         })) || []

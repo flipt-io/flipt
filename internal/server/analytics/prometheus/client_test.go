@@ -71,7 +71,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="bar", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="bar", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -85,11 +85,12 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 
 		labels, values, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
-			NamespaceKey: "bar",
-			FlagKey:      "foo",
-			From:         from,
-			To:           to,
-			StepMinutes:  1,
+			EnvironmentKey: "default",
+			NamespaceKey:   "bar",
+			FlagKey:        "foo",
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
 		})
 
 		require.NoError(t, err)
@@ -116,7 +117,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="victoria", flag="metrics"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="victoria", flag="metrics"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -130,11 +131,12 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 
 		labels, values, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
-			NamespaceKey: "victoria",
-			FlagKey:      "metrics",
-			From:         from,
-			To:           to,
-			StepMinutes:  1,
+			EnvironmentKey: "default",
+			NamespaceKey:   "victoria",
+			FlagKey:        "metrics",
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
 		})
 
 		require.NoError(t, err)
@@ -146,7 +148,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("no data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="no-data", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="no-data", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -160,11 +162,12 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 
 		_, _, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
-			NamespaceKey: "no-data",
-			FlagKey:      "foo",
-			From:         from,
-			To:           to,
-			StepMinutes:  1,
+			EnvironmentKey: "default",
+			NamespaceKey:   "no-data",
+			FlagKey:        "foo",
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
 		})
 
 		require.Error(t, err)
@@ -173,7 +176,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("wrong data type", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="wrong-data", flag="foo"}[1m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="wrong-data", flag="foo"}[1m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(time.Minute),
@@ -187,11 +190,12 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 
 		_, _, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
-			NamespaceKey: "wrong-data",
-			FlagKey:      "foo",
-			From:         from,
-			To:           to,
-			StepMinutes:  1,
+			EnvironmentKey: "default",
+			NamespaceKey:   "wrong-data",
+			FlagKey:        "foo",
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
 		})
 
 		require.Error(t, err)
@@ -200,7 +204,7 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		mock.EXPECT().QueryRange(
 			ctx,
-			`sum(increase(flipt_evaluations_requests_total{namespace="error", flag="foo"}[5m])) or vector(0)`,
+			`sum(increase(flipt_evaluations_requests_total{environment="default", namespace="error", flag="foo"}[5m])) or vector(0)`,
 			promapi.Range{
 				Start: from,
 				End:   to.Add(5 * time.Minute),
@@ -214,11 +218,12 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		}
 
 		_, _, err := client.GetFlagEvaluationsCount(ctx, &panalytics.FlagEvaluationsCountRequest{
-			NamespaceKey: "error",
-			FlagKey:      "foo",
-			From:         from,
-			To:           to,
-			StepMinutes:  5,
+			EnvironmentKey: "default",
+			NamespaceKey:   "error",
+			FlagKey:        "foo",
+			From:           from,
+			To:             to,
+			StepMinutes:    5,
 		})
 
 		require.Error(t, err)

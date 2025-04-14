@@ -27,7 +27,7 @@ import (
 )
 
 // ValidationUnaryInterceptor validates incoming requests
-func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func ValidationUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	if v, ok := req.(flipt.Validator); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
@@ -38,7 +38,7 @@ func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 // ErrorUnaryInterceptor intercepts known errors and returns the appropriate GRPC status code
-func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+func ErrorUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	resp, err = handler(ctx, req)
 	if err == nil {
 		return resp, nil
@@ -103,7 +103,7 @@ type ResponseDurationRecordable interface {
 
 // FliptHeadersInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
 func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Debug("no metadata found in context")
@@ -133,7 +133,7 @@ func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := time.Now().UTC()
 
 		// set request ID if not present
@@ -170,6 +170,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
+								EnvironmentKey:  evaluationRequest.GetEnvironmentKey(),
 								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
 								FlagKey:         r.GetFlagKey(),
 								FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
@@ -196,6 +197,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 						evaluationValue := fmt.Sprint(r.GetEnabled())
 						evaluationResponses := []*analytics.EvaluationResponse{
 							{
+								EnvironmentKey:  evaluationRequest.GetEnvironmentKey(),
 								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
 								FlagKey:         r.GetFlagKey(),
 								FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
@@ -230,6 +232,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								}
 
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
+									EnvironmentKey:  batchEvaluationRequest.Requests[idx].GetEnvironmentKey(),
 									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
 									FlagKey:         variantResponse.GetFlagKey(),
 									FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
@@ -243,6 +246,7 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 								booleanResponse := response.GetBooleanResponse()
 								evaluationValue := fmt.Sprint(booleanResponse.GetEnabled())
 								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
+									EnvironmentKey:  batchEvaluationRequest.Requests[idx].GetEnvironmentKey(),
 									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
 									FlagKey:         booleanResponse.GetFlagKey(),
 									FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),

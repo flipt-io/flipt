@@ -11,11 +11,12 @@ import (
 )
 
 type FlagEvaluationsCountRequest struct {
-	NamespaceKey string
-	FlagKey      string
-	From         time.Time
-	To           time.Time
-	StepMinutes  int
+	EnvironmentKey string
+	NamespaceKey   string
+	FlagKey        string
+	From           time.Time
+	To             time.Time
+	StepMinutes    int
 }
 
 // Client is a contract that each analytics store needs to conform to for

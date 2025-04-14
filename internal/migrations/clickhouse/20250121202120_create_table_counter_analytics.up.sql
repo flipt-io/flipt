@@ -1,6 +1,7 @@
-CREATE TABLE IF NOT EXISTS flipt_counter_analytics (
+CREATE TABLE IF NOT EXISTS flipt_counter_analytics_v2 (
     `timestamp` DateTime('UTC'),
     `analytic_name` String,
+    `environment_key` String,
     `namespace_key` String,
     `flag_key` String,
     `flag_type` Enum(

@@ -17,6 +17,7 @@ message EvaluationRequest {
   string entity_id = 4 [(google.api.field_behavior) = REQUIRED];
   map<string, string> context = 5 [(google.api.field_behavior) = REQUIRED];
   string reference = 6;
+  string environment_key = 7 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BatchEvaluationRequest {

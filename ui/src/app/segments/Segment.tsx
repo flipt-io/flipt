@@ -52,7 +52,7 @@ export default function Segment() {
     isLoading,
     isError
   } = useGetSegmentQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key,
     segmentKey: segmentKey || ''
   });
@@ -86,7 +86,7 @@ export default function Segment() {
           setOpen={setShowDeleteSegmentModal}
           handleDelete={() =>
             deleteSegment({
-              environmentKey: environment.name,
+              environmentKey: environment.key,
               namespaceKey: namespace.key,
               segmentKey: segment.key,
               revision
@@ -113,7 +113,7 @@ export default function Segment() {
           setOpen={setShowCopySegmentModal}
           handleCopy={(namespaceKey: string) =>
             copySegment({
-              environmentKey: environment.name,
+              environmentKey: environment.key,
               from: { namespaceKey: namespace.key, segmentKey: segment.key },
               to: { namespaceKey: namespaceKey, segmentKey: segment.key }
             }).unwrap()

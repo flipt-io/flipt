@@ -50,7 +50,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		fliptotel.AttributeEnvironment.String(env.Name()),
+		fliptotel.AttributeEnvironment.String(env.Key()),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -81,7 +81,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 		lastRank int32
 
 		startTime       = time.Now().UTC()
-		environmentAttr = metrics.AttributeEnvironment.String(env.Name())
+		environmentAttr = metrics.AttributeEnvironment.String(env.Key())
 		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
 		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
@@ -100,7 +100,7 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 						metrics.AttributeSegments.StringSlice(resp.SegmentKeys),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeValue.String(resp.VariantKey),
-						metrics.AttributeType.String("variant"),
+						metrics.AttributeFlagType.String("variant"),
 					),
 				),
 			)
@@ -285,7 +285,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		fliptotel.AttributeEnvironment.String(env.Name()),
+		fliptotel.AttributeEnvironment.String(env.Key()),
 		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
@@ -319,7 +319,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 
 	var (
 		startTime       = time.Now().UTC()
-		environmentAttr = metrics.AttributeEnvironment.String(env.Name())
+		environmentAttr = metrics.AttributeEnvironment.String(env.Key())
 		namespaceAttr   = metrics.AttributeNamespace.String(r.NamespaceKey)
 		flagAttr        = metrics.AttributeFlag.String(r.FlagKey)
 	)
@@ -336,7 +336,7 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 						flagAttr,
 						metrics.AttributeValue.Bool(resp.Enabled),
 						metrics.AttributeReason.String(resp.Reason.String()),
-						metrics.AttributeType.String("boolean"),
+						metrics.AttributeFlagType.String("boolean"),
 					),
 				),
 			)

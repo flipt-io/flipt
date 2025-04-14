@@ -51,7 +51,7 @@ export default function Flag() {
     isLoading,
     isError
   } = useGetFlagQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key,
     flagKey: flagKey || ''
   });
@@ -85,7 +85,7 @@ export default function Flag() {
           setOpen={setShowDeleteFlagModal}
           handleDelete={() =>
             deleteFlag({
-              environmentKey: environment.name,
+              environmentKey: environment.key,
               namespaceKey: namespace.key,
               flagKey: flag.key,
               revision
@@ -112,7 +112,7 @@ export default function Flag() {
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
             copyFlag({
-              environmentKey: environment.name,
+              environmentKey: environment.key,
               from: { namespaceKey: namespace.key, flagKey: flag.key },
               to: { namespaceKey: namespaceKey, flagKey: flag.key }
             }).unwrap()

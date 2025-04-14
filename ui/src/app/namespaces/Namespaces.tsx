@@ -76,7 +76,7 @@ export default function Namespaces() {
           setOpen={setShowDeleteNamespaceModal}
           handleDelete={() =>
             deleteNamespace({
-              environmentKey: environment.name,
+              environmentKey: environment.key,
               namespaceKey: deletingNamespace?.key!,
               revision: revision
             }).unwrap()

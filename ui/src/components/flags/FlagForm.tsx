@@ -108,7 +108,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
 
     if (isNew) {
       return createFlag({
-        environmentKey: environment.name,
+        environmentKey: environment.key,
         namespaceKey: namespace.key,
         values: v,
         revision
@@ -116,7 +116,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
     }
 
     return updateFlag({
-      environmentKey: environment.name,
+      environmentKey: environment.key,
       namespaceKey: namespace.key,
       flagKey: flag?.key,
       values: v,

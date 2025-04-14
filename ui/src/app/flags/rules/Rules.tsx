@@ -138,7 +138,7 @@ export default function Rules({ flag, rules }: RulesProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const segmentsList = useListSegmentsQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key
   });
   const segments = useMemo(

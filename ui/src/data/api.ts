@@ -15,7 +15,6 @@ export const metaURL = 'meta/info';
 export const sessionKey = 'session';
 
 const csrfTokenHeaderKey = 'x-csrf-token';
-const fliptEnvironmentHeaderKey = 'x-flipt-environment';
 
 export type Session = {
   required: boolean;
@@ -141,7 +140,7 @@ export async function expireAuthSelf() {
 //
 // evaluate
 export async function evaluate(
-  environmentName: string,
+  environmentKey: string,
   namespaceKey: string,
   flagKey: string,
   flagType: FlagType,
@@ -149,13 +148,12 @@ export async function evaluate(
 ) {
   let route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
   const body = {
+    environmentKey,
     namespaceKey,
     flagKey: flagKey,
     ...values
   };
-  return post(route, body, evaluateURL, {
-    [fliptEnvironmentHeaderKey]: environmentName
-  });
+  return post(route, body, evaluateURL);
 }
 
 //

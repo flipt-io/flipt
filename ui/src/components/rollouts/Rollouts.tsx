@@ -62,7 +62,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const segmentsList = useListSegmentsQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key
   });
   const segments = useMemo(

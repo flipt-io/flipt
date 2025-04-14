@@ -15,7 +15,7 @@ import { ISelectable } from '~/types/Selectable';
 import { useAppDispatch } from '~/data/hooks/store';
 import { cls } from '~/utils/helpers';
 
-export type SelectableEnvironment = Pick<IEnvironment, 'name'> & ISelectable;
+export type SelectableEnvironment = Pick<IEnvironment, 'key'> & ISelectable;
 
 type EnvironmentListboxProps = {
   className?: string;
@@ -38,7 +38,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
     >
       <div className={cls('relative', className)}>
         <Listbox.Button className="group flex items-center gap-1 rounded px-2 py-1 text-sm text-white hover:bg-white/10 uppercase">
-          <span>{environment?.name || 'Unknown Environment'}</span>
+          <span>{environment?.key || 'Unknown Environment'}</span>
           {environments.length > 1 && (
             <ChevronDownIcon
               className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:text-white ui-open:rotate-180"
@@ -56,7 +56,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
           <Listbox.Options className="absolute right-0 z-50 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm">
             {environments.map((env) => (
               <Listbox.Option
-                key={env.name}
+                key={env.key}
                 className={({ active }) =>
                   cls(
                     'relative cursor-default select-none px-4 py-2',
@@ -74,7 +74,7 @@ export default function EnvironmentListbox(props: EnvironmentListboxProps) {
                       selected ? 'font-medium' : ''
                     )}
                   >
-                    {env.name}
+                    {env.key}
                   </span>
                 )}
               </Listbox.Option>

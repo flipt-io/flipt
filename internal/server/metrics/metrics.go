@@ -57,7 +57,7 @@ var (
 	//nolint
 	AttributeMatch       = attribute.Key("flipt.match")
 	AttributeFlag        = attribute.Key("flipt.flag")
-	AttributeType        = attribute.Key("flipt.type")
+	AttributeFlagType    = attribute.Key("flipt.flag_type")
 	AttributeSegments    = attribute.Key("flipt.segments")
 	AttributeReason      = attribute.Key("flipt.reason")
 	AttributeValue       = attribute.Key("flipt.value")

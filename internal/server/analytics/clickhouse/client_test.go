@@ -55,47 +55,53 @@ func (a *AnalyticsDBTestSuite) TestAnalyticsMutationAndQuery() {
 	t := a.T()
 
 	now := time.Now().UTC()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		err := a.client.IncrementFlagEvaluationCounts(context.TODO(), []*panalytics.EvaluationResponse{
 			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				FlagKey:        "flag1",
+				Reason:         "MATCH_EVALUATION_REASON",
+				Timestamp:      now,
 			},
 			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				FlagKey:        "flag1",
+				Reason:         "MATCH_EVALUATION_REASON",
+				Timestamp:      now,
 			},
 			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				FlagKey:        "flag1",
+				Reason:         "MATCH_EVALUATION_REASON",
+				Timestamp:      now,
 			},
 			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				FlagKey:        "flag1",
+				Reason:         "MATCH_EVALUATION_REASON",
+				Timestamp:      now,
 			},
 			{
-				NamespaceKey: "default",
-				FlagKey:      "flag1",
-				Reason:       "MATCH_EVALUATION_REASON",
-				Timestamp:    now,
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				FlagKey:        "flag1",
+				Reason:         "MATCH_EVALUATION_REASON",
+				Timestamp:      now,
 			},
 		})
 		require.NoError(t, err)
 	}
 
 	res, err := a.service.GetFlagEvaluationsCount(context.TODO(), &analytics.GetFlagEvaluationsCountRequest{
-		NamespaceKey: "default",
-		FlagKey:      "flag1",
-		From:         now.Add(-time.Hour).Format(time.DateTime),
-		To:           now.Format(time.DateTime),
+		EnvironmentKey: "default",
+		NamespaceKey:   "default",
+		FlagKey:        "flag1",
+		From:           now.Add(-time.Hour).Format(time.DateTime),
+		To:             now.Format(time.DateTime),
 	})
 	require.NoError(t, err)
 

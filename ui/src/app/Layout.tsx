@@ -54,7 +54,7 @@ function InnerLayout() {
   const info = useSelector(selectInfo);
 
   const namespaces = useListNamespacesQuery({
-    environmentKey: currentEnvironment.name
+    environmentKey: currentEnvironment.key
   });
 
   useEffect(() => {

@@ -77,7 +77,7 @@ export default function Console() {
   const namespace = useSelector(selectCurrentNamespace);
 
   const { data, error } = useListFlagsQuery({
-    environmentKey: environment.name,
+    environmentKey: environment.key,
     namespaceKey: namespace.key
   });
 
@@ -135,7 +135,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluate(environment.name, namespace.key, flag.key, flag.type, rest)
+    evaluate(environment.key, namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));

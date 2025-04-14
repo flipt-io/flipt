@@ -74,14 +74,14 @@ export default function SegmentForm(props: SegmentFormProps) {
   const handleSubmit = (values: ISegment) => {
     if (isNew) {
       return createSegment({
-        environmentKey: environment.name,
+        environmentKey: environment.key,
         namespaceKey: namespace.key,
         values,
         revision
       }).unwrap();
     }
     return updateSegment({
-      environmentKey: environment.name,
+      environmentKey: environment.key,
       namespaceKey: namespace.key,
       segmentKey: segment?.key,
       values,
