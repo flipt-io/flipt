@@ -209,6 +209,7 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 				ctx = metadata.NewIncomingContext(ctx, tt.md)
 			}
 
+			//nolint:all
 			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				environment, _ := cctx.FliptEnvironmentFromContext(ctx)
 				assert.Equal(t, tt.want.environment, environment)
@@ -230,6 +231,7 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 			NamespaceKey: "foo",
 		}
 
+		//nolint:all
 		handler = func(ctx context.Context, r any) (any, error) {
 			return &flipt.FlagList{
 				Flags: []*flipt.Flag{
@@ -317,6 +319,7 @@ func TestEvaluationUnaryInterceptor_EnvironmentAndNamespace(t *testing.T) {
 		ctx = cctx.WithFliptNamespace(ctx, "test-namespace")
 
 		var (
+			//nolint:all
 			handler = func(_ context.Context, r any) (any, error) {
 				// ensure request has ID once it reaches the handler
 				req, ok := r.(*evaluation.EvaluationRequest)
@@ -385,6 +388,7 @@ func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var (
+				//nolint:all
 				handler = func(ctx context.Context, r any) (any, error) {
 					// ensure request has ID once it reaches the handler
 					req, ok := r.(request)
