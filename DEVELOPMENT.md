@@ -12,7 +12,7 @@ Also check out our [Contributing](CONTRIBUTING.md) guide for more information on
 Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
-- [Go 1.23+](https://golang.org/doc/install)
+- [Go 1.24+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
@@ -89,7 +89,7 @@ These ports will be forwarded to your local machine automatically if you are dev
 
 ## Docker Compose
 
-If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository. 
+If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository.
 
 This will start two Docker containers:
 

@@ -1,8 +1,8 @@
 module go.flipt.io/flipt/core
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.23.2
+toolchain go1.24.2
 
 require (
 	cuelang.org/go v0.11.1
@@ -19,9 +19,9 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/tools v0.31.0 // indirect
 )

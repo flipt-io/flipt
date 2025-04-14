@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine3.19 AS build
+FROM golang:1.24-alpine3.21 AS build
 
 WORKDIR /home/flipt
 
@@ -22,7 +22,7 @@ COPY . /home/flipt
 RUN mage bootstrap && \
     mage build
 
-FROM alpine:3.19
+FROM alpine:3.21
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"

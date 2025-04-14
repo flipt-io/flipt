@@ -20,7 +20,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	golang := dag.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(platform)),
 	}).
-		From("golang:1.23-alpine3.19").
+		From("golang:1.24-alpine3.21").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -90,7 +90,6 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 	}
 
 	// TODO(georgemac): wire in version ldflag
-	// TODO(mark): does version make sense now?
 	var (
 		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
 		path       = path.Join("/bin", platforms.Format(platform))
@@ -118,7 +117,7 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 	}
 
 	// build container with just Flipt + config
-	return client.Container().From("alpine:3.19").
+	return client.Container().From("alpine:3.21").
 		WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 		WithFile("/flipt",

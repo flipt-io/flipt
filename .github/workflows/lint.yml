@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   go-lint:
@@ -26,7 +26,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6.2.0
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.61.0
+          version: v1.64.0
           args: --timeout=10m
 
   ui-lint:

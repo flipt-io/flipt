@@ -93,7 +93,7 @@ func buildUI(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithMountedCache("/src/node_modules", cache).
 		// install dependencies for build and test
 		WithExec([]string{"npm", "install"}).
-		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
+		WithExec([]string{"npx", "playwright", "install", "chromium", "--only-shell", "--with-deps"}).
 		// mount the rest of the project
 		WithMountedDirectory("/src", source.
 			WithoutDirectory("dist").
