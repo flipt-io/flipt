@@ -62,7 +62,11 @@ test.describe('Namespaces', () => {
     ).toBeVisible();
     await page.getByRole('link', { name: 'Delete , test' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
-    await expect(page.getByRole('button', { name: 'Default' })).toBeVisible();
+    await expect(
+      page.getByTestId('namespace-listbox').getByRole('button', {
+        name: 'Default'
+      })
+    ).toBeVisible();
   });
 
   test('cannot delete default namespace', async ({ page }) => {
