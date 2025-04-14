@@ -90,6 +90,6 @@ func TestJSONField_Value(t *testing.T) {
 	require.NoError(t, err)
 
 	if b, ok := b.([]byte); ok {
-		assert.Equal(t, `{"hello":"world"}`, string(b))
+		assert.JSONEq(t, `{"hello":"world"}`, string(b))
 	}
 }

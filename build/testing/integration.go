@@ -85,19 +85,11 @@ type IntegrationOptions func(*integrationOptions)
 type integrationOptions struct {
 	// The test cases to run. If empty, all test cases are run.
 	cases []string
-	// Whether to export the logs from the test run.
-	exportLogs bool
 }
 
 func WithTestCases(cases ...string) func(*integrationOptions) {
 	return func(opts *integrationOptions) {
 		opts.cases = cases
-	}
-}
-
-func WithExportLogs() func(*integrationOptions) {
-	return func(opts *integrationOptions) {
-		opts.exportLogs = true
 	}
 }
 
@@ -111,22 +103,6 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	cases, err := filterCases(options.cases...)
 	if err != nil {
 		return err
-	}
-
-	var (
-		exportLogs = options.exportLogs
-		logs       *dagger.CacheVolume
-	)
-
-	if exportLogs {
-		logs = client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
-		_, err = flipt.WithUser("root").
-			WithMountedCache("/logs", logs).
-			WithExec([]string{"chown", "flipt:flipt", "/logs"}).
-			Sync(ctx)
-		if err != nil {
-			return err
-		}
 	}
 
 	var configs []testConfig
@@ -143,7 +119,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var g errgroup.Group
 
-	for caseName, fn := range cases {
+	for _, fn := range cases {
 		for _, config := range configs {
 			var (
 				fn     = fn
@@ -204,34 +180,17 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
 				}
 
-				name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
 				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 					WithExposedPort(config.port)
-
-				if exportLogs {
-					flipt = flipt.WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-						WithMountedCache("/var/opt/flipt/logs", logs)
-				}
 
 				return fn(ctx, client, base, flipt, config)()
 			}))
 		}
 	}
 
-	err = g.Wait()
-
-	if exportLogs {
-		_, _ = client.Container().From("alpine:3.16").
-			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithMountedCache("/logs", logs).
-			WithExec([]string{"cp", "-r", "/logs", "/out"}).
-			Directory("/out").
-			Export(ctx, "build/logs")
-	}
-
-	return err
+	return g.Wait()
 }
 
 func take(fn func() error) func() error {

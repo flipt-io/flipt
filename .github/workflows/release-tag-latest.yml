@@ -11,7 +11,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: "1.23"
+  GO_VERSION: "1.24"
 
 jobs:
   tag-latest:
@@ -66,9 +66,6 @@ jobs:
           if [[ $TAG == $(mage release:latest go.flipt.io/flipt) ]]; then
             docker pull flipt/flipt:$TAG
             skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
-
-            docker pull markphelps/flipt:$TAG
-            skopeo copy --all docker://markphelps/flipt:$TAG docker://markphelps/flipt:latest
 
             docker pull ghcr.io/flipt-io/flipt:$TAG
             skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest

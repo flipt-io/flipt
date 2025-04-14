@@ -121,9 +121,6 @@ func (t *Test) Integration(
 	// +optional
 	// +default="*"
 	cases string,
-	// +optional
-	// +default=false
-	exportLogs bool,
 ) error {
 	if cases == "list" {
 		fmt.Println("Integration test cases:")
@@ -137,10 +134,6 @@ func (t *Test) Integration(
 	var opts []testing.IntegrationOptions
 	if cases != "*" {
 		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
-	}
-
-	if exportLogs {
-		opts = append(opts, testing.WithExportLogs())
 	}
 
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
