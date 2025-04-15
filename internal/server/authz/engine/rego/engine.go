@@ -184,7 +184,7 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 	return environments, nil
 }
 
-func (e *Engine) ViewableNamespacesForEnvironment(ctx context.Context, env string, input map[string]any) ([]string, error) {
+func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[string]any) ([]string, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 

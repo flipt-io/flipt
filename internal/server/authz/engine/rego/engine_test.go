@@ -227,7 +227,7 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 	}
 }
 
-func TestEngine_ViewableNamespacesForEnvironment(t *testing.T) {
+func TestEngine_ViewableNamespaces(t *testing.T) {
 	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
 
@@ -300,7 +300,7 @@ func TestEngine_ViewableNamespacesForEnvironment(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			namespaces, err := engine.ViewableNamespacesForEnvironment(ctx, tt.env, tt.input)
+			namespaces, err := engine.ViewableNamespaces(ctx, tt.env, tt.input)
 			if tt.shouldError {
 				require.Error(t, err)
 				return

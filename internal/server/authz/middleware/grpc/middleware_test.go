@@ -33,7 +33,7 @@ func (v *mockPolicyVerifier) ViewableEnvironments(_ context.Context, _ map[strin
 	return v.viewableEnvironments, nil
 }
 
-func (v *mockPolicyVerifier) ViewableNamespacesForEnvironment(_ context.Context, env string, _ map[string]any) ([]string, error) {
+func (v *mockPolicyVerifier) ViewableNamespaces(_ context.Context, env string, _ map[string]any) ([]string, error) {
 	return v.viewableNamespacesForEnvironment[env], nil
 }
 

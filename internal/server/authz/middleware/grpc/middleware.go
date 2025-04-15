@@ -110,7 +110,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				}
 				continue
 			case environments.EnvironmentsService_ListNamespaces_FullMethodName:
-				namespaces, err := policyVerifier.ViewableNamespacesForEnvironment(ctx, *request.Environment, map[string]any{
+				namespaces, err := policyVerifier.ViewableNamespaces(ctx, *request.Environment, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})

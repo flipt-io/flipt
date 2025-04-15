@@ -7,8 +7,8 @@ type Verifier interface {
 	IsAllowed(ctx context.Context, input map[string]any) (bool, error)
 	// ViewableEnvironments returns the list of environments the user has access to
 	ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error)
-	// ViewableNamespacesForEnvironment returns the list of namespaces the user has access to in a specific environment
-	ViewableNamespacesForEnvironment(ctx context.Context, env string, input map[string]any) ([]string, error)
+	// ViewableNamespaces returns the list of namespaces the user has access to in a specific environment
+	ViewableNamespaces(ctx context.Context, env string, input map[string]any) ([]string, error)
 	// Shutdown is called when the server is shutting down
 	Shutdown(ctx context.Context) error
 }

@@ -132,7 +132,7 @@ viewable_environments := ["*"] if {
 }
 
 # Get list of viewable namespaces for a specific environment
-viewable_namespaces_for_environment(env) := ["*"] if {
+viewable_namespaces(env) := ["*"] if {
 	# If wildcard access for this environment, return wildcard
 	has_wildcard_access(env)
 } else := ns if {
