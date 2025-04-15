@@ -1,4 +1,0 @@
-version: "1.0"
-include:
-- a.features.yml
-- b.features.json

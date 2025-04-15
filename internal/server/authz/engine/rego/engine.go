@@ -276,7 +276,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	// Prepare namespaces query
 	r = rego.New(
-		rego.Query("x = data.flipt.authz.v2.viewable_namespaces_for_environment(input.environment)"),
+		rego.Query("x = data.flipt.authz.v2.viewable_namespaces(input.environment)"),
 		m,
 		s,
 	)

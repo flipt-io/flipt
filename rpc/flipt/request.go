@@ -13,7 +13,6 @@ type Requester interface {
 type ScopeType string
 
 const (
-	ScopeGlobal    ScopeType = "global"    // Global operations (full access)
 	ScopeNamespace ScopeType = "namespace" // Namespace management
 	ScopeResource  ScopeType = "resource"  // Operations within a namespace
 )
