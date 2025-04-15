@@ -109,7 +109,7 @@ func TestSegmentStorage_GetResource(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.namespace, resource.Namespace)
+			assert.Equal(t, tt.namespace, resource.NamespaceKey)
 			assert.Equal(t, tt.key, resource.Key)
 
 			var segment core.Segment
@@ -172,7 +172,7 @@ func TestSegmentStorage_ListResources(t *testing.T) {
 			assert.Len(t, resources, tt.want)
 
 			for _, resource := range resources {
-				assert.Equal(t, tt.namespace, resource.Namespace)
+				assert.Equal(t, tt.namespace, resource.NamespaceKey)
 				var segment core.Segment
 				err = resource.Payload.UnmarshalTo(&segment)
 				require.NoError(t, err)
@@ -215,9 +215,9 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 		require.NoError(t, err)
 
 		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
-			Namespace: "default",
-			Key:       segment.Key,
-			Payload:   any,
+			NamespaceKey: "default",
+			Key:          segment.Key,
+			Payload:      any,
 		})
 		require.NoError(t, err)
 
@@ -247,9 +247,9 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 		require.NoError(t, err)
 
 		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
-			Namespace: "default",
-			Key:       segment.Key,
-			Payload:   any,
+			NamespaceKey: "default",
+			Key:          segment.Key,
+			Payload:      any,
 		})
 		require.NoError(t, err)
 

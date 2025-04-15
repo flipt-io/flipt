@@ -24,10 +24,7 @@ type InterceptorOptions struct {
 }
 
 // methods which should always skip authorization
-var skippedMethods = map[string]any{
-	"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
-	"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
-}
+var skippedMethods = map[string]any{}
 
 func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
 	// if we skip authentication then we must skip authorization
@@ -100,7 +97,7 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 			}
 
 			if info.FullMethod == environments.EnvironmentsService_ListNamespaces_FullMethodName {
-				namespaces, err := policyVerifier.Namespaces(ctx, map[string]any{
+				namespaces, err := policyVerifier.ViewableNamespacesForEnvironment(ctx, *request.Environment, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})

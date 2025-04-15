@@ -61,9 +61,9 @@ func (f *SegmentStorage) GetResource(ctx context.Context, fs environmentsfs.File
 				}
 
 				return &rpcenvironments.Resource{
-					Namespace: namespace,
-					Key:       s.Key,
-					Payload:   payload,
+					NamespaceKey: namespace,
+					Key:          s.Key,
+					Payload:      payload,
 				}, nil
 			}
 		}
@@ -97,9 +97,9 @@ func (f *SegmentStorage) ListResources(ctx context.Context, fs environmentsfs.Fi
 			}
 
 			rs = append(rs, &rpcenvironments.Resource{
-				Namespace: namespace,
-				Key:       s.Key,
-				Payload:   payload,
+				NamespaceKey: namespace,
+				Key:          s.Key,
+				Payload:      payload,
 			})
 		}
 	}
@@ -111,7 +111,7 @@ func (f *SegmentStorage) ListResources(ctx context.Context, fs environmentsfs.Fi
 func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.Filesystem, rs *rpcenvironments.Resource) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("putting segment %s/%s: %w", rs.Namespace, rs.Key, err)
+			err = fmt.Errorf("putting segment %s/%s: %w", rs.NamespaceKey, rs.Key, err)
 		}
 	}()
 
@@ -120,7 +120,7 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 		return err
 	}
 
-	docs, idx, err := getDocsAndNamespace(ctx, fs, rs.Namespace)
+	docs, idx, err := getDocsAndNamespace(ctx, fs, rs.NamespaceKey)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 		docs[idx].Segments = append(docs[idx].Segments, segment)
 	}
 
-	fi, err := fs.OpenFile(path.Join(rs.Namespace, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}

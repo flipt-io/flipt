@@ -1,0 +1,82 @@
+{
+  "version": "0.1.0",
+  "roles": [
+    {
+      "name": "admin",
+      "description": "Full access to all namespaces and resources"
+    },
+    {
+      "name": "namespace_admin",
+      "description": "Can manage namespaces in specific environments"
+    },
+    {
+      "name": "developer",
+      "description": "Can work with resources in specific namespaces"
+    },
+    {
+      "name": "readonly",
+      "description": "Read-only access to specific namespaces"
+    }
+  ],
+  "role_bindings": [
+    {
+      "role": "admin",
+      "subjects": ["user:admin@company.com"],
+      "scope": {
+        "type": "global"
+      }
+    },
+    {
+      "role": "namespace_admin",
+      "subjects": ["group:platform-team"],
+      "scope": {
+        "type": "namespace",
+        "bindings": [
+          {
+            "environment": "development",
+            "namespaces": ["*"],
+            "permissions": ["create", "read", "update", "delete"]
+          },
+          {
+            "environment": "staging",
+            "namespaces": ["*"],
+            "permissions": ["create", "read", "update", "delete"]
+          }
+        ]
+      }
+    },
+    {
+      "role": "developer",
+      "subjects": ["group:dev-team"],
+      "scope": {
+        "type": "resource",
+        "bindings": [
+          {
+            "environment": "development",
+            "namespaces": ["frontend", "backend"],
+            "permissions": ["read", "write", "create", "delete"]
+          },
+          {
+            "environment": "staging",
+            "namespaces": ["frontend", "backend"],
+            "permissions": ["read"]
+          }
+        ]
+      }
+    },
+    {
+      "role": "readonly",
+      "subjects": ["user:analyst@company.com"],
+      "scope": {
+        "type": "resource",
+        "bindings": [
+          {
+            "environment": "production",
+            "namespaces": ["analytics", "reporting"],
+            "permissions": ["read"]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1812,11 +1812,12 @@ func (x *EvaluationNamespaceSnapshot) GetDigest() string {
 }
 
 type EvaluationNamespaceSnapshotRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Reference     string                 `protobuf:"bytes,2,opt,name=reference,proto3" json:"reference,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Reference      string                 `protobuf:"bytes,2,opt,name=reference,proto3" json:"reference,omitempty"`
+	EnvironmentKey string                 `protobuf:"bytes,3,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EvaluationNamespaceSnapshotRequest) Reset() {
@@ -1859,6 +1860,13 @@ func (x *EvaluationNamespaceSnapshotRequest) GetKey() string {
 func (x *EvaluationNamespaceSnapshotRequest) GetReference() string {
 	if x != nil {
 		return x.Reference
+	}
+	return ""
+}
+
+func (x *EvaluationNamespaceSnapshotRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
 	}
 	return ""
 }
@@ -2038,10 +2046,11 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\x1bEvaluationNamespaceSnapshot\x12C\n" +
 	"\tnamespace\x18\x01 \x01(\v2%.flipt.evaluation.EvaluationNamespaceR\tnamespace\x126\n" +
 	"\x05flags\x18\x02 \x03(\v2 .flipt.evaluation.EvaluationFlagR\x05flags\x12\x16\n" +
-	"\x06digest\x18\x03 \x01(\tR\x06digest\"T\n" +
+	"\x06digest\x18\x03 \x01(\tR\x06digest\"}\n" +
 	"\"EvaluationNamespaceSnapshotRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1c\n" +
-	"\treference\x18\x02 \x01(\tR\treference\"\xd8\x01\n" +
+	"\treference\x18\x02 \x01(\tR\treference\x12'\n" +
+	"\x0fenvironment_key\x18\x03 \x01(\tR\x0eenvironmentKey\"\xd8\x01\n" +
 	"\x12EvaluationSnapshot\x12T\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v24.flipt.evaluation.EvaluationSnapshot.NamespacesEntryR\n" +

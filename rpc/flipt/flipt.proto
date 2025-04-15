@@ -42,6 +42,7 @@ message ListFlagRequest {
   string page_token = 3;
   string namespace_key = 4;
   string reference = 5;
+  string environment_key = 6;
 }
 
 message Variant {

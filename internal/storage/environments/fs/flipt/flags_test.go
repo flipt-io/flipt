@@ -137,7 +137,7 @@ func TestFlagStorage_GetResource(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.namespace, resource.Namespace)
+			assert.Equal(t, tt.namespace, resource.NamespaceKey)
 			assert.Equal(t, tt.key, resource.Key)
 
 			var flag core.Flag
@@ -200,7 +200,7 @@ func TestFlagStorage_ListResources(t *testing.T) {
 			assert.Len(t, resources, tt.want)
 
 			for _, resource := range resources {
-				assert.Equal(t, tt.namespace, resource.Namespace)
+				assert.Equal(t, tt.namespace, resource.NamespaceKey)
 				var flag core.Flag
 				err = resource.Payload.UnmarshalTo(&flag)
 				require.NoError(t, err)
@@ -241,9 +241,9 @@ func TestFlagStorage_PutResource(t *testing.T) {
 		require.NoError(t, err)
 
 		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
-			Namespace: "default",
-			Key:       flag.Key,
-			Payload:   any,
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
 		})
 		require.NoError(t, err)
 
@@ -283,9 +283,9 @@ func TestFlagStorage_PutResource(t *testing.T) {
 		require.NoError(t, err)
 
 		err = storage.PutResource(ctx, fs, &rpcenvironments.Resource{
-			Namespace: "default",
-			Key:       flag.Key,
-			Payload:   any,
+			NamespaceKey: "default",
+			Key:          flag.Key,
+			Payload:      any,
 		})
 		require.NoError(t, err)
 

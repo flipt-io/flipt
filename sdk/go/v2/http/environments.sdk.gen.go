@@ -49,7 +49,7 @@ func (x *EnvironmentsServiceClient) ListEnvironments(ctx context.Context, v *env
 func (x *EnvironmentsServiceClient) GetNamespace(ctx context.Context, v *environments.GetNamespaceRequest, _ ...grpc.CallOption) (*environments.NamespaceResponse, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v", v.Environment, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v", v.EnvironmentKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (x *EnvironmentsServiceClient) GetNamespace(ctx context.Context, v *environ
 func (x *EnvironmentsServiceClient) ListNamespaces(ctx context.Context, v *environments.ListNamespacesRequest, _ ...grpc.CallOption) (*environments.ListNamespacesResponse, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.Environment), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.EnvironmentKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (x *EnvironmentsServiceClient) CreateNamespace(ctx context.Context, v *envi
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.Environment), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.EnvironmentKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (x *EnvironmentsServiceClient) UpdateNamespace(ctx context.Context, v *envi
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.Environment), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces", v.EnvironmentKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (x *EnvironmentsServiceClient) DeleteNamespace(ctx context.Context, v *envi
 	var body io.Reader
 	values := url.Values{}
 	values.Set("revision", v.Revision)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v", v.Environment, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v", v.EnvironmentKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (x *EnvironmentsServiceClient) DeleteNamespace(ctx context.Context, v *envi
 func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environments.GetResourceRequest, _ ...grpc.CallOption) (*environments.ResourceResponse, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.Environment, v.Namespace, v.TypeUrl, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.EnvironmentKey, v.NamespaceKey, v.TypeUrl, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func (x *EnvironmentsServiceClient) GetResource(ctx context.Context, v *environm
 func (x *EnvironmentsServiceClient) ListResources(ctx context.Context, v *environments.ListResourcesRequest, _ ...grpc.CallOption) (*environments.ListResourcesResponse, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v", v.Environment, v.Namespace, v.TypeUrl), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v", v.EnvironmentKey, v.NamespaceKey, v.TypeUrl), body)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func (x *EnvironmentsServiceClient) CreateResource(ctx context.Context, v *envir
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources", v.Environment, v.Namespace), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources", v.EnvironmentKey, v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func (x *EnvironmentsServiceClient) UpdateResource(ctx context.Context, v *envir
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources", v.Environment, v.Namespace), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources", v.EnvironmentKey, v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +314,7 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 	var body io.Reader
 	values := url.Values{}
 	values.Set("revision", v.Revision)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.Environment, v.Namespace, v.TypeUrl, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/v2/environments/%v/namespaces/%v/resources/%v/%v", v.EnvironmentKey, v.NamespaceKey, v.TypeUrl, v.Key), body)
 	if err != nil {
 		return nil, err
 	}

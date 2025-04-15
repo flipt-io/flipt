@@ -47,7 +47,7 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 }
 
 func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespaceRequest) (ns *environments.NamespaceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespac
 }
 
 func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNamespacesRequest) (nl *environments.ListNamespacesResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNames
 }
 
 func (s *Server) CreateNamespace(ctx context.Context, ns *environments.UpdateNamespaceRequest) (*environments.NamespaceResponse, error) {
-	env, err := s.envs.Get(ctx, ns.Environment)
+	env, err := s.envs.Get(ctx, ns.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (s *Server) CreateNamespace(ctx context.Context, ns *environments.UpdateNam
 }
 
 func (s *Server) UpdateNamespace(ctx context.Context, ns *environments.UpdateNamespaceRequest) (*environments.NamespaceResponse, error) {
-	env, err := s.envs.Get(ctx, ns.Environment)
+	env, err := s.envs.Get(ctx, ns.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (s *Server) UpdateNamespace(ctx context.Context, ns *environments.UpdateNam
 }
 
 func (s *Server) DeleteNamespace(ctx context.Context, req *environments.DeleteNamespaceRequest) (_ *environments.DeleteNamespaceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, req *environments.DeleteNa
 }
 
 func (s *Server) GetResource(ctx context.Context, req *environments.GetResourceRequest) (r *environments.ResourceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (s *Server) GetResource(ctx context.Context, req *environments.GetResourceR
 	}
 
 	return r, env.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) (err error) {
-		r, err = sv.GetResource(ctx, req.Namespace, req.Key)
+		r, err = sv.GetResource(ctx, req.NamespaceKey, req.Key)
 		if err != nil {
 			return err
 		}
@@ -161,7 +161,7 @@ func (s *Server) GetResource(ctx context.Context, req *environments.GetResourceR
 }
 
 func (s *Server) ListResources(ctx context.Context, req *environments.ListResourcesRequest) (rl *environments.ListResourcesResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (s *Server) ListResources(ctx context.Context, req *environments.ListResour
 	}
 
 	if err := env.View(ctx, typ, func(ctx context.Context, sv ResourceStoreView) (err error) {
-		rl, err = sv.ListResources(ctx, req.Namespace)
+		rl, err = sv.ListResources(ctx, req.NamespaceKey)
 		if err != nil {
 			return err
 		}
@@ -186,16 +186,16 @@ func (s *Server) ListResources(ctx context.Context, req *environments.ListResour
 }
 
 func (s *Server) CreateResource(ctx context.Context, req *environments.UpdateResourceRequest) (_ *environments.ResourceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
 
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
-			Namespace: req.Namespace,
-			Key:       req.Key,
-			Payload:   req.Payload,
+			NamespaceKey: req.NamespaceKey,
+			Key:          req.Key,
+			Payload:      req.Payload,
 		},
 	}
 
@@ -205,9 +205,9 @@ func (s *Server) CreateResource(ctx context.Context, req *environments.UpdateRes
 	}
 
 	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
-		_, err := sv.GetResource(ctx, req.Namespace, req.Key)
+		_, err := sv.GetResource(ctx, req.NamespaceKey, req.Key)
 		if err == nil {
-			return errors.ErrAlreadyExistsf(`create resource "%s/%s/%s"`, req.Payload.GetTypeUrl(), req.Namespace, req.Key)
+			return errors.ErrAlreadyExistsf(`create resource "%s/%s/%s"`, req.Payload.GetTypeUrl(), req.NamespaceKey, req.Key)
 		}
 
 		if !errors.AsMatch[errors.ErrNotFound](err) {
@@ -224,28 +224,28 @@ func (s *Server) CreateResource(ctx context.Context, req *environments.UpdateRes
 }
 
 func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateResourceRequest) (_ *environments.ResourceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
 
 	resp := &environments.ResourceResponse{
 		Resource: &environments.Resource{
-			Namespace: req.Namespace,
-			Key:       req.Key,
-			Payload:   req.Payload,
+			NamespaceKey: req.NamespaceKey,
+			Key:          req.Key,
+			Payload:      req.Payload,
 		},
 	}
 
-	typ, err := ParseResourceType(req.GetTypeUrl())
+	typ, err := ParseResourceType(req.Payload.GetTypeUrl())
 	if err != nil {
 		return nil, err
 	}
 
 	resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) error {
-		_, err := sv.GetResource(ctx, req.Namespace, req.Key)
+		_, err := sv.GetResource(ctx, req.NamespaceKey, req.Key)
 		if err != nil {
-			return fmt.Errorf(`update resource "%s/%s/%s": %w`, req.Payload.GetTypeUrl(), req.Namespace, req.Key, err)
+			return fmt.Errorf(`update resource "%s/%s/%s": %w`, req.Payload.GetTypeUrl(), req.NamespaceKey, req.Key, err)
 		}
 
 		return sv.UpdateResource(ctx, resp.Resource)
@@ -258,7 +258,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *environments.UpdateRes
 }
 
 func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteResourceRequest) (_ *environments.DeleteResourceResponse, err error) {
-	env, err := s.envs.Get(ctx, req.Environment)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (s *Server) DeleteResource(ctx context.Context, req *environments.DeleteRes
 
 	resp := &environments.DeleteResourceResponse{}
 	if resp.Revision, err = env.Update(ctx, req.Revision, typ, func(ctx context.Context, sv ResourceStore) (err error) {
-		return sv.DeleteResource(ctx, req.Namespace, req.Key)
+		return sv.DeleteResource(ctx, req.NamespaceKey, req.Key)
 	}); err != nil {
 		return nil, err
 	}

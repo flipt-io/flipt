@@ -260,12 +260,13 @@ type ListFlagRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Limit int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Deprecated: Marked as deprecated in flipt.proto.
-	Offset        int32  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	NamespaceKey  string `protobuf:"bytes,4,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
-	Reference     string `protobuf:"bytes,5,opt,name=reference,proto3" json:"reference,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Offset         int32  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	PageToken      string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	NamespaceKey   string `protobuf:"bytes,4,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	Reference      string `protobuf:"bytes,5,opt,name=reference,proto3" json:"reference,omitempty"`
+	EnvironmentKey string `protobuf:"bytes,6,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListFlagRequest) Reset() {
@@ -330,6 +331,13 @@ func (x *ListFlagRequest) GetNamespaceKey() string {
 func (x *ListFlagRequest) GetReference() string {
 	if x != nil {
 		return x.Reference
+	}
+	return ""
+}
+
+func (x *ListFlagRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
 	}
 	return ""
 }
@@ -468,14 +476,15 @@ const file_flipt_proto_rawDesc = "" +
 	"\x05flags\x18\x01 \x03(\v2\v.flipt.FlagR\x05flags\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
 	"\vtotal_count\x18\x03 \x01(\x05R\n" +
-	"totalCount\"\xa5\x01\n" +
+	"totalCount\"\xce\x01\n" +
 	"\x0fListFlagRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x1a\n" +
 	"\x06offset\x18\x02 \x01(\x05B\x02\x18\x01R\x06offset\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\x12#\n" +
 	"\rnamespace_key\x18\x04 \x01(\tR\fnamespaceKey\x12\x1c\n" +
-	"\treference\x18\x05 \x01(\tR\treference\"\xb7\x02\n" +
+	"\treference\x18\x05 \x01(\tR\treference\x12'\n" +
+	"\x0fenvironment_key\x18\x06 \x01(\tR\x0eenvironmentKey\"\xb7\x02\n" +
 	"\aVariant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bflag_key\x18\x02 \x01(\tR\aflagKey\x12\x10\n" +

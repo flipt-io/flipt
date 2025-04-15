@@ -11,37 +11,37 @@ http:
     # namespaces
     #
     - selector: environments.EnvironmentsService.GetNamespace
-      get: /v2/environments/{environment}/namespaces/{key}
+      get: /v2/environments/{environment_key}/namespaces/{key}
 
     - selector: environments.EnvironmentsService.ListNamespaces
-      get: /v2/environments/{environment}/namespaces
+      get: /v2/environments/{environment_key}/namespaces
 
     - selector: environments.EnvironmentsService.CreateNamespace
-      post: /v2/environments/{environment}/namespaces
+      post: /v2/environments/{environment_key}/namespaces
       body: "*"
 
     - selector: environments.EnvironmentsService.UpdateNamespace
-      put: /v2/environments/{environment}/namespaces
+      put: /v2/environments/{environment_key}/namespaces
       body: "*"
 
     - selector: environments.EnvironmentsService.DeleteNamespace
-      delete: /v2/environments/{environment}/namespaces/{key}
+      delete: /v2/environments/{environment_key}/namespaces/{key}
 
     # resources
     #
     - selector: environments.EnvironmentsService.GetResource
-      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}/{key}
+      get: /v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}
 
     - selector: environments.EnvironmentsService.ListResources
-      get: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}
+      get: /v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}
 
     - selector: environments.EnvironmentsService.CreateResource
-      post: /v2/environments/{environment}/namespaces/{namespace}/resources
+      post: /v2/environments/{environment_key}/namespaces/{namespace_key}/resources
       body: "*"
 
     - selector: environments.EnvironmentsService.UpdateResource
-      put: /v2/environments/{environment}/namespaces/{namespace}/resources
+      put: /v2/environments/{environment_key}/namespaces/{namespace_key}/resources
       body: "*"
 
     - selector: environments.EnvironmentsService.DeleteResource
-      delete: /v2/environments/{environment}/namespaces/{namespace}/resources/{type_url=*}/{key}
+      delete: /v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}

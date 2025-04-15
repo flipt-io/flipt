@@ -274,7 +274,7 @@ func (s *store) CreateResource(ctx context.Context, r *rpcenvironments.Resource)
 		Verb: storagefs.VerbCreate,
 		Resource: storagefs.Resource{
 			Type:      s.typ,
-			Namespace: r.Namespace,
+			Namespace: r.NamespaceKey,
 			Key:       r.Key,
 		},
 	})
@@ -287,7 +287,7 @@ func (s *store) UpdateResource(ctx context.Context, r *rpcenvironments.Resource)
 		Verb: storagefs.VerbUpdate,
 		Resource: storagefs.Resource{
 			Type:      s.typ,
-			Namespace: r.Namespace,
+			Namespace: r.NamespaceKey,
 			Key:       r.Key,
 		},
 	})

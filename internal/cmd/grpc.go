@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	otlpRuntime "go.opentelemetry.io/contrib/instrumentation/runtime"
+	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
@@ -138,7 +138,7 @@ func NewGRPCServer(
 		// We only want to start the runtime metrics by open telemetry if the user have chosen
 		// to use OTLP because the Prometheus endpoint already exposes those metrics.
 		if cfg.Metrics.Exporter == config.MetricsOTLP {
-			err = otlpRuntime.Start(otlpRuntime.WithMeterProvider(meterProvider))
+			err = otlpruntime.Start(otlpruntime.WithMeterProvider(meterProvider))
 			if err != nil {
 				return nil, fmt.Errorf("starting runtime metric exporter: %w", err)
 			}

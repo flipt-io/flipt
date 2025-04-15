@@ -95,6 +95,10 @@ type Server struct {
 	auth.UnimplementedAuthenticationServiceServer
 }
 
+func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}
+
 func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
 	return &Server{
 		logger: logger,
