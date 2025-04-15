@@ -50,7 +50,7 @@ func TestEngine_IsAllowed(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "admin can create namespace",
+			name: "admin can create namespace in default environment",
 			input: map[string]interface{}{
 				"authentication": map[string]interface{}{
 					"metadata": map[string]interface{}{
@@ -58,15 +58,16 @@ func TestEngine_IsAllowed(t *testing.T) {
 					},
 				},
 				"request": flipt.Request{
-					Scope:    flipt.ScopeNamespace,
-					Resource: flipt.ResourceNamespace,
-					Action:   flipt.ActionCreate,
+					Scope:       flipt.ScopeNamespace,
+					Environment: ptr("default"),
+					Resource:    flipt.ResourceNamespace,
+					Action:      flipt.ActionCreate,
 				},
 			},
 			expected: true,
 		},
 		{
-			name: "namespace_admin can create namespace in development",
+			name: "namespace_admin can create namespace in development environment",
 			input: map[string]interface{}{
 				"authentication": map[string]interface{}{
 					"metadata": map[string]interface{}{
@@ -176,7 +177,7 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 					},
 				},
 			},
-			expected: []string{"development", "staging", "production"},
+			expected: []string{"*"},
 		},
 		{
 			name: "namespace_admin can see development and staging",
@@ -257,7 +258,7 @@ func TestEngine_ViewableNamespacesForEnvironment(t *testing.T) {
 					},
 				},
 			},
-			expected: []string{"frontend", "backend", "analytics", "reporting"},
+			expected: []string{"*"},
 		},
 		{
 			name: "namespace_admin can see all namespaces in development",
@@ -269,7 +270,7 @@ func TestEngine_ViewableNamespacesForEnvironment(t *testing.T) {
 					},
 				},
 			},
-			expected: []string{"frontend", "backend", "analytics", "reporting"},
+			expected: []string{"*"},
 		},
 		{
 			name: "developer can see frontend and backend in development",
