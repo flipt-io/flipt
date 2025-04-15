@@ -23,9 +23,6 @@ type Resource string
 // Action represents the action being taken on the resource.
 type Action string
 
-// Status represents the status of the request.
-type Status string
-
 const (
 	ResourceUnknown Resource = "-"
 
@@ -39,9 +36,6 @@ const (
 	ActionRead   Action = "read"
 	ActionUpdate Action = "update"
 	ActionDelete Action = "delete"
-
-	StatusSuccess Status = "success"
-	StatusDenied  Status = "denied"
 )
 
 // Request represents an authorization request
@@ -56,8 +50,6 @@ type Request struct {
 	Resource Resource `json:"resource,omitempty"`
 	// Action is the action being performed
 	Action Action `json:"action,omitempty"`
-	// Status is the result of the authorization check
-	Status *Status `json:"status,omitempty"`
 }
 
 // NewRequest creates a new Request with the given parameters
@@ -96,12 +88,6 @@ func WithNamespace(ns string) func(*Request) {
 		if ns != "" {
 			r.Namespace = &ns
 		}
-	}
-}
-
-func WithStatus(s Status) func(*Request) {
-	return func(r *Request) {
-		r.Status = &s
 	}
 }
 
