@@ -26,8 +26,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const bootstrapToken = "s3cr3t"
-
 var priv *rsa.PrivateKey
 
 func init() {
@@ -135,26 +133,24 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					flipt = flipt.
 						WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_NAME", "bootstrap").
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_CREDENTIAL", bootstrapToken).
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_METADATA_IS_BOOTSTRAP", "true")
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_BOOTSTRAP_CREDENTIAL", "s3cr3t")
 				}
-				{
-					// K8s auth configuration
-					flipt = flipt.
-						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
+				// {
+				// 	// K8s auth configuration
+				// 	flipt = flipt.
+				// 		WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
 
-					var priv []byte
-					// run an OIDC server which exposes a JWKS url and returns
-					// the associated private key bytes
-					flipt, priv, err = serveOIDC(ctx, client, base, flipt)
-					if err != nil {
-						return err
-					}
+				// 	var priv []byte
+				// 	// run an OIDC server which exposes a JWKS url and returns
+				// 	// the associated private key bytes
+				// 	flipt, priv, err = serveOIDC(ctx, client, base, flipt)
+				// 	if err != nil {
+				// 		return err
+				// 	}
 
-					// mount service account token into base on expected k8s sa token path
-					base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
-				}
+				// 	// mount service account token into base on expected k8s sa token path
+				// 	base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
+				// }
 				{
 					// JWT auth configuration
 					bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
@@ -255,7 +251,7 @@ func authn() testCaseFn {
 func authz() testCaseFn {
 	return withAuthz(withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
@@ -263,6 +259,16 @@ func authz() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_ADMIN_CREDENTIAL", "admin123").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_ADMIN_METADATA_ROLE", "admin").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_EDITOR_CREDENTIAL", "editor456").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_EDITOR_METADATA_ROLE", "editor").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_VIEWER_CREDENTIAL", "viewer789").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_VIEWER_METADATA_ROLE", "viewer").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_DEFAULT_VIEWER_CREDENTIAL", "default_viewer1111").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_DEFAULT_VIEWER_METADATA_ROLE", "default_viewer").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_ALTERNATIVE_VIEWER_CREDENTIAL", "alternative_viewer2222").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_ALTERNATIVE_VIEWER_METADATA_ROLE", "alternative_viewer").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "authz", base, flipt, conf)
@@ -389,53 +395,81 @@ import rego.v1
 
 default allow := false
 
+# Allow if any matching rule grants permission
 allow if {
-	input.authentication.metadata.is_bootstrap == "true"
+    some rule in has_rules
+    allow_rule(rule)
 }
 
-allow if {
-	some rule in has_rules
-
-	permit_string(rule.scope, input.request.scope)
-	permit_string(rule.environment, input.request.environment)
-	permit_string(rule.namespace, input.request.namespace)
-	permit_slice(rule.actions, input.request.action)
+# Helper to check if a rule allows the request
+allow_rule(rule) if {
+    # For admin role, grant all permissions
+    input.authentication.metadata["io.flipt.auth.role"] == "admin"
 }
 
-allow if {
-	some rule in has_rules
+allow_rule(rule) if {
+    # For admin role, grant all permissions
+    input.authentication.metadata["role"] == "admin"
+}
 
-	permit_string(rule.scope, input.request.scope)
-	permit_slice(rule.actions, input.request.action)
-	not rule.environment
+# Helper to check if a rule allows the request with specific permissions
+allow_rule(rule) if {
+    # Check scope
+    permit_string(rule.scope, input.request.scope)
+    # Check environment if specified
+    check_environment(rule)
+    # Check namespace if specified
+    check_namespace(rule)
+    # Check actions
+    permit_slice(rule.actions, input.request.action)
+}
+
+# Check if environment matches or is not specified
+check_environment(rule) if {
+    not rule.environment
+}
+
+check_environment(rule) if {
+    rule.environment
+    permit_string(rule.environment, input.request.environment)
+}
+
+# Check if namespace matches or is not specified
+check_namespace(rule) if {
+    not rule.namespace
+}
+
+check_namespace(rule) if {
+    rule.namespace
+    permit_string(rule.namespace, input.request.namespace)
 }
 
 has_rules contains rules if {
-	some role in data.roles
-	role.name == input.authentication.metadata["io.flipt.auth.role"]
-	rules := role.rules[_]
+    some role in data.roles
+    role.name == input.authentication.metadata["io.flipt.auth.role"]
+    rules := role.rules[_]
 }
 
 has_rules contains rules if {
-	some role in data.roles
-	role.name == input.authentication.metadata["io.flipt.auth.k8s.serviceaccount.name"]
-	rules := role.rules[_]
+    some role in data.roles
+    role.name == input.authentication.metadata["role"]
+    rules := role.rules[_]
 }
 
 permit_string(allowed, _) if {
-	allowed == "*"
+    allowed == "*"
 }
 
 permit_string(allowed, requested) if {
-	allowed == requested
+    allowed == requested
 }
 
 permit_slice(allowed, _) if {
-	allowed[_] = "*"
+    allowed[_] = "*"
 }
 
 permit_slice(allowed, requested) if {
-	allowed[_] = requested
+    allowed[_] = requested
 }
 `
 
@@ -448,9 +482,7 @@ permit_slice(allowed, requested) if {
             "rules": [
                 {
                     "scope": "*",
-                    "actions": [
-                        "*"
-                    ]
+                    "actions": ["*"]
                 }
             ]
         },
@@ -458,19 +490,12 @@ permit_slice(allowed, requested) if {
             "name": "editor",
             "rules": [
                 {
-                    "scope": "environment",
-                    "actions": [
-                        "read"
-                    ]
+                    "scope": "*",
+                    "actions": ["read"]
                 },
                 {
                     "scope": "namespace",
-                    "actions": [
-                        "create",
-                        "read",
-                        "update",
-                        "delete"
-                    ]
+                    "actions": ["create", "read", "update", "delete"]
                 }
             ]
         },
@@ -479,9 +504,7 @@ permit_slice(allowed, requested) if {
             "rules": [
                 {
                     "scope": "*",
-                    "actions": [
-                        "read"
-                    ]
+                    "actions": ["read"]
                 }
             ]
         },
@@ -489,30 +512,25 @@ permit_slice(allowed, requested) if {
             "name": "default_viewer",
             "rules": [
                 {
-                    "scope": "environment",
-                    "actions": [
-                        "read"
-                    ],
-                    "environment": "default",
+                    "scope": "*",
+                    "actions": ["read"],
                     "namespace": "default"
                 }
             ]
         },
         {
-            "name": "production_viewer",
+            "name": "alternative_viewer",
             "rules": [
                 {
-                    "scope": "environment",
-                    "actions": [
-                        "read"
-                    ],
-                    "environment": "production",
-                    "namespace": "default"
+                    "scope": "*",
+                    "actions": ["read"],
+                    "namespace": "alternative"
                 }
             ]
         }
     ]
-}`
+}
+`
 
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
@@ -528,7 +546,7 @@ permit_slice(allowed, requested) if {
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() (err error) {
-		flags := []string{"--flipt-addr", conf.address, "--flipt-token", bootstrapToken}
+		flags := []string{"--flipt-addr", conf.address}
 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).

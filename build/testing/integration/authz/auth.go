@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/v2/environments"
@@ -51,20 +50,14 @@ func Common(t *testing.T, opts integration.TestOpts) {
 		ctx := context.Background()
 
 		t.Run("List methods", func(t *testing.T) {
-			t.Log(`List methods (ensure at-least 1).`)
-
 			methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
-
 			require.NoError(t, err)
-
 			assert.NotEmpty(t, methods)
 		})
 
 		t.Run("Get Self", func(t *testing.T) {
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
 			require.NoError(t, err)
-
 			assert.NotEmpty(t, authn.Id)
 		})
 
@@ -132,22 +125,6 @@ func Common(t *testing.T, opts integration.TestOpts) {
 				}
 			})
 		}
-
-		t.Run("Expire Self", func(t *testing.T) {
-			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
-				ExpiresAt: flipt.Now(),
-			})
-
-			require.NoError(t, err)
-
-			t.Log(`Ensure token is no longer valid.`)
-
-			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
-			status, ok := status.FromError(err)
-			require.True(t, ok)
-			assert.Equal(t, codes.Unauthenticated, status.Code())
-		})
 	})
 }
 

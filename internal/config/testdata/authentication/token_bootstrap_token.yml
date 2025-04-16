@@ -6,5 +6,5 @@ authentication:
       storage:
         type: static
         tokens:
-          - name: "bootstrap token"
+          bootstrap:
             credential: "s3cr3t!"

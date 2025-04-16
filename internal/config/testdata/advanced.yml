@@ -61,7 +61,7 @@ authentication:
       storage:
         type: static
         tokens:
-          - name: "some static token"
+          static:
             credential: "abcdefg"
     oidc:
       enabled: true

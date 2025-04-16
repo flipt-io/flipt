@@ -33,10 +33,6 @@ func (t authClient) AuthenticationServiceClient() auth.AuthenticationServiceClie
 	return auth.NewAuthenticationServiceClient(t.cc)
 }
 
-func (t authClient) AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient {
-	return auth.NewAuthenticationMethodTokenServiceClient(t.cc)
-}
-
 func (t authClient) AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient {
 	return auth.NewAuthenticationMethodOIDCServiceClient(t.cc)
 }

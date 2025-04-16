@@ -56,7 +56,7 @@ func getAuthStore(
 	// which is populated with the configured tokens
 	if cfg.Authentication.Methods.Token.Enabled {
 		var err error
-		store, err = static.NewStore(store, cfg.Authentication.Methods.Token.Method.Storage)
+		store, err = static.NewStore(store, logger, cfg.Authentication.Methods.Token.Method.Storage)
 		if err != nil {
 			return nil, err
 		}
@@ -234,10 +234,6 @@ func authenticationHTTPMount(
 			runtime.WithErrorHandler(authmiddleware.ErrorHandler),
 		}
 	)
-
-	if cfg.Methods.Token.Enabled {
-		muxOpts = append(muxOpts, register(ctx, rpcauth.NewAuthenticationMethodTokenServiceClient(conn), rpcauth.RegisterAuthenticationMethodTokenServiceHandlerClient))
-	}
 
 	if cfg.SessionEnabled() {
 		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies), runtime.WithMetadata(method.ForwardPrefix))

@@ -11,7 +11,6 @@ import (
 type AuthClient interface {
 	PublicAuthenticationServiceClient() auth.PublicAuthenticationServiceClient
 	AuthenticationServiceClient() auth.AuthenticationServiceClient
-	AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient
 	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
 	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
 	AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient
@@ -92,25 +91,6 @@ func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v 
 	}
 	_, err = x.transport.ExpireAuthenticationSelf(ctx, v)
 	return err
-}
-
-type AuthenticationMethodTokenService struct {
-	transport              auth.AuthenticationMethodTokenServiceClient
-	authenticationProvider ClientAuthenticationProvider
-}
-
-func (s Auth) AuthenticationMethodTokenService() *AuthenticationMethodTokenService {
-	return &AuthenticationMethodTokenService{
-		transport:              s.transport.AuthenticationMethodTokenServiceClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
-}
-func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
-	ctx, err := authenticate(ctx, x.authenticationProvider)
-	if err != nil {
-		return nil, err
-	}
-	return x.transport.CreateToken(ctx, v)
 }
 
 type AuthenticationMethodOIDCService struct {

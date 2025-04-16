@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 )
 
 var _ authn.Store = (*Store)(nil)
@@ -22,17 +23,19 @@ var _ authn.Store = (*Store)(nil)
 type Store struct {
 	authn.Store
 
+	logger  *zap.Logger
 	byToken map[string]*rpcauth.Authentication
 }
 
 // NewStore instantiates a new in-memory implementation of storage.AuthenticationStore
-func NewStore(store authn.Store, storage config.AuthenticationMethodTokenStorage) (*Store, error) {
+func NewStore(store authn.Store, logger *zap.Logger, storage config.AuthenticationMethodTokenStorage) (*Store, error) {
 	s := &Store{
 		Store:   store,
+		logger:  logger,
 		byToken: map[string]*rpcauth.Authentication{},
 	}
 
-	for _, token := range storage.Tokens {
+	for name, token := range storage.Tokens {
 		hashedToken, err := authn.HashClientToken(token.Credential)
 		if err != nil {
 			return nil, err
@@ -40,7 +43,7 @@ func NewStore(store authn.Store, storage config.AuthenticationMethodTokenStorage
 
 		s.byToken[hashedToken] = &rpcauth.Authentication{
 			Method:    rpcauth.Method_METHOD_TOKEN,
-			Id:        token.Name,
+			Id:        name,
 			Metadata:  token.Metadata,
 			CreatedAt: flipt.Now(),
 			UpdatedAt: flipt.Now(),

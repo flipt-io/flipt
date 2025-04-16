@@ -219,7 +219,6 @@ func NewGRPCServer(
 		}
 	)
 
-	skipAuthnIfExcluded(fliptv1srv, cfg.Authentication.Exclude.Management)
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
