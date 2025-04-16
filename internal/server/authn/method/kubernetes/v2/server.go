@@ -51,6 +51,8 @@ func (s *Server) VerifyServiceAccount(ctx context.Context, req *auth.VerifyServi
 		return nil, fmt.Errorf("authenticating service account token: %w", err)
 	}
 
+	s.logger.Debug("authentication", zap.Any("authentication", authentication))
+
 	// For v1 compatibility, return the same token as client_token
 	return &auth.VerifyServiceAccountResponse{
 		ClientToken:    req.ServiceAccountToken,

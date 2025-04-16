@@ -12,47 +12,6 @@ type Transport interface {
 	EnvironmentsClient() environments.EnvironmentsServiceClient
 }
 
-// ClientTokenProvider is a type which when requested provides a
-// client token which can be used to authenticate RPC/API calls
-// invoked through the SDK.
-// Deprecated: Use ClientAuthenticationProvider instead.
-type ClientTokenProvider interface {
-	ClientToken() (string, error)
-}
-
-// WithClientTokenProviders returns an Option which configures
-// any supplied SDK with the provided ClientTokenProvider.
-// Deprecated: Use WithAuthenticationProvider instead.
-func WithClientTokenProvider(p ClientTokenProvider) Option {
-	return func(s *SDK) {
-		s.authenticationProvider = authenticationProviderFunc(func(context.Context) (string, error) {
-			clientToken, err := p.ClientToken()
-			if err != nil {
-				return "", err
-			}
-
-			return "Bearer " + string(clientToken), nil
-		})
-	}
-}
-
-type authenticationProviderFunc func(context.Context) (string, error)
-
-func (f authenticationProviderFunc) Authentication(ctx context.Context) (string, error) {
-	return f(ctx)
-}
-
-// StaticClientTokenProvider is a string which is supplied as a static client token
-// on each RPC which requires authentication.
-// Deprecated: Use StaticTokenAuthenticationProvider instead.
-type StaticClientTokenProvider string
-
-// ClientToken returns the underlying string that is the StaticClientTokenProvider.
-// Deprecated: Use StaticTokenAuthenticationProvider instead.
-func (p StaticClientTokenProvider) ClientToken() (string, error) {
-	return string(p), nil
-}
-
 // ClientAuthenticationProvider is a type which when requested provides a
 // client authentication which can be used to authenticate RPC/API calls
 // invoked through the SDK.

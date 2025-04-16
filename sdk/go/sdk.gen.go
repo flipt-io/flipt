@@ -6,7 +6,6 @@ import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
-	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	metadata "google.golang.org/grpc/metadata"
 )
 
@@ -14,48 +13,6 @@ type Transport interface {
 	AuthClient() AuthClient
 	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient
-	MetaClient() meta.MetadataServiceClient
-}
-
-// ClientTokenProvider is a type which when requested provides a
-// client token which can be used to authenticate RPC/API calls
-// invoked through the SDK.
-// Deprecated: Use ClientAuthenticationProvider instead.
-type ClientTokenProvider interface {
-	ClientToken() (string, error)
-}
-
-// WithClientTokenProviders returns an Option which configures
-// any supplied SDK with the provided ClientTokenProvider.
-// Deprecated: Use WithAuthenticationProvider instead.
-func WithClientTokenProvider(p ClientTokenProvider) Option {
-	return func(s *SDK) {
-		s.authenticationProvider = authenticationProviderFunc(func(context.Context) (string, error) {
-			clientToken, err := p.ClientToken()
-			if err != nil {
-				return "", err
-			}
-
-			return "Bearer " + string(clientToken), nil
-		})
-	}
-}
-
-type authenticationProviderFunc func(context.Context) (string, error)
-
-func (f authenticationProviderFunc) Authentication(ctx context.Context) (string, error) {
-	return f(ctx)
-}
-
-// StaticClientTokenProvider is a string which is supplied as a static client token
-// on each RPC which requires authentication.
-// Deprecated: Use StaticTokenAuthenticationProvider instead.
-type StaticClientTokenProvider string
-
-// ClientToken returns the underlying string that is the StaticClientTokenProvider.
-// Deprecated: Use StaticTokenAuthenticationProvider instead.
-func (p StaticClientTokenProvider) ClientToken() (string, error) {
-	return string(p), nil
 }
 
 // ClientAuthenticationProvider is a type which when requested provides a
@@ -133,13 +90,6 @@ func (s SDK) Evaluation() *Evaluation {
 func (s SDK) Flipt() *Flipt {
 	return &Flipt{
 		transport:              s.transport.FliptClient(),
-		authenticationProvider: s.authenticationProvider,
-	}
-}
-
-func (s SDK) Meta() *Meta {
-	return &Meta{
-		transport:              s.transport.MetaClient(),
 		authenticationProvider: s.authenticationProvider,
 	}
 }

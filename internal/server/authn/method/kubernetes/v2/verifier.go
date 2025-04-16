@@ -4,15 +4,17 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
-	"golang.org/x/oauth2"
 )
 
 type kubernetesOIDCVerifier struct {
@@ -21,20 +23,22 @@ type kubernetesOIDCVerifier struct {
 }
 
 func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationMethodKubernetesConfig) (*kubernetesOIDCVerifier, error) {
-	// Read CA cert if provided
-	var rootCAs *x509.CertPool
-	if config.CAPath != "" {
-		rootCAs = x509.NewCertPool()
-		b, err := os.ReadFile(config.CAPath)
-		if err != nil {
-			return nil, fmt.Errorf("reading CA cert: %w", err)
-		}
-		if !rootCAs.AppendCertsFromPEM(b) {
-			return nil, fmt.Errorf("appending CA cert to pool")
-		}
+	ctx := context.Background()
+	caCert, err := os.ReadFile(config.CAPath)
+	if err != nil {
+		logger.Error("reading CA certificate", zap.Error(err))
+
+		return nil, fmt.Errorf("building OIDC client: %w", err)
 	}
 
-	// Configure HTTP client with custom transport
+	rootCAs := x509.NewCertPool()
+	if !rootCAs.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to append cert from path: %q", config.CAPath)
+	}
+
+	// adapted from the Go net/http.DefaultTransport
+	// This transport only uses the configured CA certificate
+	// PEM found at the configured path on the filesystem.
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
@@ -48,16 +52,32 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 				MinVersion: tls.VersionTLS12,
 			},
 		},
-		Timeout: 30 * time.Second,
 	}
 
-	// Configure OIDC provider with custom client
-	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
-	provider, err := oidc.NewProvider(ctx, config.DiscoveryURL)
+	// Kubernetes is not an OIDC / OAuth provider in the traditional sense
+	// and they go off-specification. The Issuer returned by the "well-known" endpoint
+	// does not match the supplied discovery URL.
+	// To ensure this isn't a problem we skip the OIDC libraries requirement
+	// that both URLs should match.
+	// We also instruct the library to use the issuer retrieved from the discovery
+	// endpoint when we verify service account ID tokens.
+	issuer, err := resolveTokenIssuer(ctx, client, config.DiscoveryURL)
 	if err != nil {
-		return nil, fmt.Errorf("creating OIDC provider: %w", err)
+		return nil, err
 	}
 
+	provider, err := oidc.NewProvider(
+		// skip issuer verification when NewProvider requests the discovery document.
+		oidc.InsecureIssuerURLContext(
+			oidc.ClientContext(ctx, client),
+			// override the issuer to match the discovery endpoint response.
+			issuer,
+		),
+		config.DiscoveryURL,
+	)
+	if err != nil {
+		return nil, err
+	}
 	// Configure verifier
 	verifier := provider.Verifier(&oidc.Config{
 		SkipClientIDCheck: true,
@@ -83,4 +103,40 @@ func (k *kubernetesOIDCVerifier) verify(ctx context.Context, jwt string) (claims
 	}
 
 	return c, nil
+}
+
+func resolveTokenIssuer(ctx context.Context, client *http.Client, discoveryURL string) (string, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		"GET",
+		strings.TrimSuffix(discoveryURL, "/")+"/.well-known/openid-configuration",
+		nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("fetching OIDC configuration: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading OIDC configuration: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("OIDC configuration response status %q: %w", resp.Status, err)
+	}
+
+	var config struct {
+		Issuer string `json:"issuer"`
+	}
+
+	if err = json.Unmarshal(body, &config); err != nil {
+		return "", fmt.Errorf("OIDC configuration unmarshal: %w", err)
+	}
+
+	return config.Issuer, nil
 }

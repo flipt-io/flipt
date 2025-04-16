@@ -135,22 +135,22 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_STORAGE_TOKENS_BOOTSTRAP_CREDENTIAL", "s3cr3t")
 				}
-				// {
-				// 	// K8s auth configuration
-				// 	flipt = flipt.
-				// 		WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
+				{
+					// K8s auth configuration
+					flipt = flipt.
+						WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
 
-				// 	var priv []byte
-				// 	// run an OIDC server which exposes a JWKS url and returns
-				// 	// the associated private key bytes
-				// 	flipt, priv, err = serveOIDC(ctx, client, base, flipt)
-				// 	if err != nil {
-				// 		return err
-				// 	}
+					var priv []byte
+					// run an OIDC server which exposes a JWKS url and returns
+					// the associated private key bytes
+					flipt, priv, err = serveOIDC(ctx, client, base, flipt)
+					if err != nil {
+						return err
+					}
 
-				// 	// mount service account token into base on expected k8s sa token path
-				// 	base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
-				// }
+					// mount service account token into base on expected k8s sa token path
+					base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
+				}
 				{
 					// JWT auth configuration
 					bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
@@ -234,7 +234,7 @@ func envsAPI(directory string) testCaseFn {
 func authn() testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
@@ -599,23 +599,6 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 		return nil, nil, err
 	}
 
-	// generate a SA style JWT for identifying the Flipt service
-	fliptSAToken := signJWT(priv, map[string]any{
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"iss": "https://discover.srv",
-		"kubernetes.io": map[string]any{
-			"namespace": "flipt",
-			"pod": map[string]any{
-				"name": "flipt-7d26f049-kdurb",
-				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-			},
-			"serviceaccount": map[string]any{
-				"name": "flipt",
-				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-			},
-		},
-	})
-
 	// generate a CA certificate to share between Flipt and the mini OIDC server
 	ca := &x509.Certificate{
 		SerialNumber: big.NewInt(2019),
@@ -661,7 +644,6 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 	})
 
 	return flipt.
-			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_DISCOVERY_URL", "https://discover.svc").
 			WithServiceBinding("discover.svc", base.
 				WithNewFile("/server.crt", caCert.String()).
@@ -674,8 +656,6 @@ func serveOIDC(_ context.Context, _ *dagger.Client, base, flipt *dagger.Containe
 					"go run ./build/internal/cmd/discover/... --private-key /priv.pem",
 				}).
 				AsService()).
-			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/token",
-				fliptSAToken).
 			WithNewFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt", caCert.String()),
 		rsaSigningKey.Bytes(), nil
 }
