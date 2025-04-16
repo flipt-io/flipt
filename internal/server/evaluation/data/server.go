@@ -51,3 +51,7 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 
 	return snap, nil
 }
+
+func (s *Server) SkipsAuthorization(ctx context.Context) bool {
+	return true
+}

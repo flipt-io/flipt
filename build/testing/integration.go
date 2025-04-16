@@ -49,8 +49,8 @@ var (
 		"authz":         authz(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
-		"ofrep":         withAuthz(ofrepAPI()),
-		"snapshot":      withAuthz(snapshotAPI()),
+		"ofrep":         ofrepAPI(),
+		"snapshot":      snapshotAPI(),
 	}
 )
 
