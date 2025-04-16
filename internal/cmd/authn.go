@@ -19,7 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/server/authn"
 	"go.flipt.io/flipt/internal/server/authn/method"
 	authgithub "go.flipt.io/flipt/internal/server/authn/method/github"
-	authkubernetes "go.flipt.io/flipt/internal/server/authn/method/kubernetes"
+	authkubernetes "go.flipt.io/flipt/internal/server/authn/method/kubernetes/v2"
 	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	authmiddlewarehttp "go.flipt.io/flipt/internal/server/authn/middleware/http"
@@ -112,7 +112,7 @@ func authenticationGRPC(
 	}
 
 	if authCfg.Methods.Kubernetes.Enabled {
-		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
+		kubernetesServer, err := authkubernetes.NewServer(logger, authCfg)
 		if err != nil {
 			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
