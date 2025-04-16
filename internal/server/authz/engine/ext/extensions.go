@@ -18,10 +18,12 @@ func init() {
 }
 
 var labelMethodTable = map[string]*ast.Term{
-	"token":  ast.IntNumberTerm(int(authrpc.Method_METHOD_TOKEN.Number())),
-	"oidc":   ast.IntNumberTerm(int(authrpc.Method_METHOD_OIDC.Number())),
-	"github": ast.IntNumberTerm(int(authrpc.Method_METHOD_GITHUB.Number())),
-	"jwt":    ast.IntNumberTerm(int(authrpc.Method_METHOD_JWT.Number())),
+	"token":      ast.IntNumberTerm(int(authrpc.Method_METHOD_TOKEN.Number())),
+	"oidc":       ast.IntNumberTerm(int(authrpc.Method_METHOD_OIDC.Number())),
+	"k8s":        ast.IntNumberTerm(int(authrpc.Method_METHOD_KUBERNETES.Number())),
+	"kubernetes": ast.IntNumberTerm(int(authrpc.Method_METHOD_KUBERNETES.Number())),
+	"github":     ast.IntNumberTerm(int(authrpc.Method_METHOD_GITHUB.Number())),
+	"jwt":        ast.IntNumberTerm(int(authrpc.Method_METHOD_JWT.Number())),
 }
 
 var (
