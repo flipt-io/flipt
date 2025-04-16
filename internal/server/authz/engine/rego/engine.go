@@ -38,8 +38,8 @@ type Engine struct {
 
 	mu                sync.RWMutex
 	queryAllow        rego.PreparedEvalQuery
-	queryEnvironments rego.PreparedEvalQuery
-	queryNamespaces   rego.PreparedEvalQuery
+	queryEnvironments *rego.PreparedEvalQuery
+	queryNamespaces   *rego.PreparedEvalQuery
 	store             storage.Store
 
 	policySource PolicySource
@@ -163,6 +163,12 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 	defer e.mu.RUnlock()
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
+
+	if e.queryEnvironments == nil {
+		e.logger.Debug("environments query not prepared, skipping evaluation")
+		return nil, nil
+	}
+
 	results, err := e.queryEnvironments.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return nil, fmt.Errorf("evaluating viewable environments: %w", err)
@@ -191,6 +197,11 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 	e.logger.Debug("evaluating viewable namespaces",
 		zap.String("environment", env),
 		zap.Any("input", input))
+
+	if e.queryNamespaces == nil {
+		e.logger.Debug("namespaces query not prepared, skipping evaluation")
+		return nil, nil
+	}
 
 	// Add environment to input for Rego evaluation
 	input["environment"] = env
@@ -270,8 +281,9 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryEnvironments, err := r.PrepareForEval(ctx)
-	if err != nil {
-		return fmt.Errorf("preparing policy environments: %w", err)
+	if err == nil {
+		// queryEnvironments is optional, so we dont error here
+		e.queryEnvironments = &queryEnvironments
 	}
 
 	// Prepare namespaces query
@@ -282,8 +294,9 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	)
 
 	queryNamespaces, err := r.PrepareForEval(ctx)
-	if err != nil {
-		return fmt.Errorf("preparing policy namespaces: %w", err)
+	if err == nil {
+		// queryNamespaces is optional, so we dont error here
+		e.queryNamespaces = &queryNamespaces
 	}
 
 	e.mu.Lock()
@@ -294,8 +307,6 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	}
 	e.policyHash = hash
 	e.queryAllow = queryAllow
-	e.queryEnvironments = queryEnvironments
-	e.queryNamespaces = queryNamespaces
 
 	return nil
 }

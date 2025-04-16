@@ -48,6 +48,7 @@ var (
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
 		"authn":         authn(),
+		"authz":         authz(),
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
 		"ofrep":         withAuthz(ofrepAPI()),
@@ -205,8 +206,9 @@ func take(fn func() error) func() error {
 }
 
 const (
-	configTestdataDir = "build/testing/integration/environments/testdata"
-	testdataDir       = "build/testing/integration/testdata"
+	testdataDir             = "build/testing/integration/testdata"
+	environmentsTestdataDir = testdataDir + "/environments"
+	namespacesTestdataDir   = testdataDir + "/namespaces"
 )
 
 func envsAPI(directory string) testCaseFn {
@@ -230,7 +232,7 @@ func envsAPI(directory string) testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "environments", base, flipt, conf)
-	}, configTestdataDir)
+	}, environmentsTestdataDir)
 }
 
 func authn() testCaseFn {
@@ -247,7 +249,24 @@ func authn() testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "authn", base, flipt, conf)
-	}, testdataDir)
+	}, namespacesTestdataDir)
+}
+
+func authz() testCaseFn {
+	return withAuthz(withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_REMOTE", "http://gitea:3000/root/features.git").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
+			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return suite(ctx, "authz", base, flipt, conf)
+	}, namespacesTestdataDir))
 }
 
 func snapshotAPI() testCaseFn {
@@ -264,7 +283,7 @@ func snapshotAPI() testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "snapshot", base, flipt, conf)
-	}, testdataDir)
+	}, namespacesTestdataDir)
 }
 
 func ofrepAPI() testCaseFn {
@@ -281,7 +300,7 @@ func ofrepAPI() testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		return suite(ctx, "ofrep", base, flipt, conf)
-	}, testdataDir)
+	}, namespacesTestdataDir)
 }
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
@@ -363,39 +382,32 @@ func withAuthz(fn testCaseFn) testCaseFn {
 			policyData = "/etc/flipt/authz/data.json"
 		)
 
-		return fn(ctx, client, base, flipt.
-			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
-			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_CREDENTIALS", "default").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_TYPE", "basic").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_USERNAME", "root").
-			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
-			WithNewFile(policyPath, `package flipt.authz.v1
+		policy := `
+package flipt.authz.v2
 
-import data
 import rego.v1
 
-default allow = false
+default allow := false
 
 allow if {
-    input.authentication.metadata["is_bootstrap"] == "true"
+	input.authentication.metadata.is_bootstrap == "true"
 }
 
 allow if {
 	some rule in has_rules
 
-	permit_string(rule.resource, input.request.resource)
-	permit_slice(rule.actions, input.request.action)
+	permit_string(rule.scope, input.request.scope)
+	permit_string(rule.environment, input.request.environment)
 	permit_string(rule.namespace, input.request.namespace)
+	permit_slice(rule.actions, input.request.action)
 }
 
 allow if {
 	some rule in has_rules
 
-	permit_string(rule.resource, input.request.resource)
+	permit_string(rule.scope, input.request.scope)
 	permit_slice(rule.actions, input.request.action)
-	not rule.namespace
+	not rule.environment
 }
 
 has_rules contains rules if {
@@ -424,16 +436,18 @@ permit_slice(allowed, _) if {
 
 permit_slice(allowed, requested) if {
 	allowed[_] = requested
-}`).
-			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
-			WithNewFile(policyData, `{
+}
+`
+
+		data := `
+{
     "version": "0.1.0",
     "roles": [
         {
             "name": "admin",
             "rules": [
                 {
-                    "resource": "*",
+                    "scope": "*",
                     "actions": [
                         "*"
                     ]
@@ -444,28 +458,13 @@ permit_slice(allowed, requested) if {
             "name": "editor",
             "rules": [
                 {
-                    "resource": "namespace",
+                    "scope": "environment",
                     "actions": [
                         "read"
                     ]
                 },
                 {
-                    "resource": "authentication",
-                    "actions": [
-                        "read"
-                    ]
-                },
-                {
-                    "resource": "flag",
-                    "actions": [
-                        "create",
-                        "read",
-                        "update",
-                        "delete"
-                    ]
-                },
-                {
-                    "resource": "segment",
+                    "scope": "namespace",
                     "actions": [
                         "create",
                         "read",
@@ -479,7 +478,7 @@ permit_slice(allowed, requested) if {
             "name": "viewer",
             "rules": [
                 {
-                    "resource": "*",
+                    "scope": "*",
                     "actions": [
                         "read"
                     ]
@@ -490,10 +489,11 @@ permit_slice(allowed, requested) if {
             "name": "default_viewer",
             "rules": [
                 {
-                    "resource": "*",
+                    "scope": "environment",
                     "actions": [
                         "read"
                     ],
+                    "environment": "default",
                     "namespace": "default"
                 }
             ]
@@ -502,16 +502,25 @@ permit_slice(allowed, requested) if {
             "name": "production_viewer",
             "rules": [
                 {
-                    "resource": "*",
+                    "scope": "environment",
                     "actions": [
                         "read"
                     ],
-                    "namespace": "production"
+                    "environment": "production",
+                    "namespace": "default"
                 }
             ]
         }
     ]
-}`),
+}`
+
+		return fn(ctx, client, base, flipt.
+			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
+			WithEnvVariable("FLIPT_AUTHORIZATION_BACKEND", "local").
+			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_POLICY_PATH", policyPath).
+			WithNewFile(policyPath, string(policy)).
+			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
+			WithNewFile(policyData, string(data)),
 			conf,
 		)
 	}

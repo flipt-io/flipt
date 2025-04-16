@@ -86,10 +86,9 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			wantAllowed:      true,
 			authzInput: map[string]any{
 				"request": flipt.Request{
-					Scope:       flipt.ScopeResource,
+					Scope:       flipt.ScopeNamespace,
 					Environment: ptr("default"),
 					Namespace:   ptr("default"),
-					Resource:    flipt.ResourceAny,
 					Action:      flipt.ActionUpdate,
 				},
 				"authentication": adminAuth,
@@ -142,9 +141,8 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			serverFullMethod:                 "/environments.EnvironmentsService/ListNamespaces",
 			authzInput: map[string]any{
 				"request": flipt.Request{
-					Scope:       flipt.ScopeNamespace,
+					Scope:       flipt.ScopeEnvironment,
 					Environment: ptr("default"),
-					Resource:    flipt.ResourceNamespace,
 					Action:      flipt.ActionRead,
 				},
 				"authentication": adminAuth,

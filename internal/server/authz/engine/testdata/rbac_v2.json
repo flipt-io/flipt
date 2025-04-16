@@ -30,17 +30,17 @@
       "role": "namespace_admin",
       "subjects": ["group:platform-team"],
       "scope": {
-        "type": "namespace",
+        "type": "environment",
         "bindings": [
           {
             "environment": "development",
             "namespaces": ["*"],
-            "permissions": ["create", "read", "update", "delete"]
+            "permissions": ["*"]
           },
           {
             "environment": "staging",
             "namespaces": ["*"],
-            "permissions": ["create", "read", "update", "delete"]
+            "permissions": ["*"]
           }
         ]
       }
@@ -49,12 +49,12 @@
       "role": "developer",
       "subjects": ["group:dev-team"],
       "scope": {
-        "type": "resource",
+        "type": "namespace",
         "bindings": [
           {
             "environment": "development",
             "namespaces": ["frontend", "backend"],
-            "permissions": ["read", "write", "create", "delete"]
+            "permissions": ["*"]
           },
           {
             "environment": "staging",
@@ -68,7 +68,7 @@
       "role": "readonly",
       "subjects": ["user:analyst@company.com"],
       "scope": {
-        "type": "resource",
+        "type": "namespace",
         "bindings": [
           {
             "environment": "production",

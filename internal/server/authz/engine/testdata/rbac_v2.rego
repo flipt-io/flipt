@@ -39,7 +39,7 @@ has_wildcard_access(env) if {
 	some subject in binding.subjects
 	some id in subject_ids
 	subject == id
-	binding.scope.type == "namespace"
+	binding.scope.type == "environment"
 	some b in binding.scope.bindings
 	b.environment == env
 	some n in b.namespaces
@@ -58,7 +58,7 @@ has_namespace_access(env, ns) if {
 	some subject in binding.subjects
 	some id in subject_ids
 	subject == id
-	binding.scope.type == "namespace"
+	binding.scope.type == "environment"
 	some b in binding.scope.bindings
 	b.environment == env
 	some n in b.namespaces
@@ -71,7 +71,7 @@ has_namespace_access(env, ns) if {
 	some subject in binding.subjects
 	some id in subject_ids
 	subject == id
-	binding.scope.type == "resource"
+	binding.scope.type == "namespace"
 	some b in binding.scope.bindings
 	b.environment == env
 	some n in b.namespaces
@@ -96,7 +96,7 @@ has_permission(scope_type, env, _, action) if {
 	some n in b.namespaces
 	n == "*"
 	some perm in b.permissions
-	perm == action
+	perm in {"*", action}
 }
 
 has_permission(scope_type, env, ns, action) if {
@@ -111,7 +111,7 @@ has_permission(scope_type, env, ns, action) if {
 	some n in b.namespaces
 	n == ns
 	some perm in b.permissions
-	perm == action
+	perm in {"*", action}
 }
 
 # Get list of viewable environments
@@ -122,7 +122,7 @@ viewable_environments := ["*"] if {
 	# Return environments user has access to based on bindings
 	envs := {env |
 		some binding in data.role_bindings
-		binding.scope.type in {"resource", "namespace"}
+		binding.scope.type in {"environment", "namespace"}
 		some subject in binding.subjects
 		some id in subject_ids
 		subject == id
@@ -142,7 +142,7 @@ viewable_namespaces(env) := ["*"] if {
 		some subject in binding.subjects
 		some id in subject_ids
 		subject == id
-		binding.scope.type in {"resource", "namespace"}
+		binding.scope.type in {"environment", "namespace"}
 		some b in binding.scope.bindings
 		b.environment == env
 		some n in b.namespaces
@@ -163,7 +163,7 @@ allow if {
 	action := input.request.action
 
 	# For namespace creation only, just check permission
-	scope == "namespace"
+	scope == "environment"
 	action == "create"
 	has_permission(scope, env, "", action)
 }

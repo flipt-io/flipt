@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,10 +11,13 @@ import (
 	"go.flipt.io/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
-	sdk "go.flipt.io/flipt/sdk/go"
+	"go.flipt.io/flipt/rpc/v2/environments"
+	sdkv2 "go.flipt.io/flipt/sdk/go/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func Common(t *testing.T, opts integration.TestOpts) {
@@ -68,11 +72,10 @@ func Common(t *testing.T, opts integration.TestOpts) {
 			t.Run(fmt.Sprintf("InNamespace(%q)", namespace.Key), func(t *testing.T) {
 				for _, test := range []struct {
 					name   string
-					client func(*testing.T, ...integration.ClientOpt) sdk.SDK
+					client func(*testing.T, ...integration.ClientOpt) sdkv2.SDK
 				}{
-					{"StaticToken", opts.BootstrapClient},
-					{"JWT", opts.JWTClient},
-					{"K8s", opts.K8sClient},
+					{"StaticToken", opts.TokenClientV2},
+					{"JWT", opts.JWTClientV2},
 				} {
 					t.Run(test.name, func(t *testing.T) {
 						t.Run("NoRole", func(t *testing.T) {
@@ -148,53 +151,117 @@ func Common(t *testing.T, opts integration.TestOpts) {
 	})
 }
 
-func canReadAllIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
+func canReadAllIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
 	t.Run("CanReadAll", func(t *testing.T) {
 		clientCallSet{
-			can(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
+			can(ListFlags(&flipt.ListFlagRequest{
+				EnvironmentKey: "default",
+				NamespaceKey:   namespace,
+			})),
 		}.assert(t, ctx, client)
 	})
 }
 
-func canWriteNamespaces(t *testing.T, ctx context.Context, client sdk.SDK) {
+func canWriteNamespaces(t *testing.T, ctx context.Context, client sdkv2.SDK) {
 	t.Run("CanWriteNamespaces", func(t *testing.T) {
-		// TODO(georgemac): restore by testing new environments AP
-		// namespace := fmt.Sprintf("%x", rand.Int63()
-		clientCallSet{}.assert(t, ctx, client)
+		namespace := fmt.Sprintf("%x", rand.Int63())
+		clientCallSet{
+			can(CreateNamespace(&environments.UpdateNamespaceRequest{
+				EnvironmentKey: "default",
+				Key:            namespace,
+			})),
+		}.assert(t, ctx, client)
 	})
 }
 
-func cannotWriteNamespaces(t *testing.T, ctx context.Context, client sdk.SDK) {
+func cannotWriteNamespaces(t *testing.T, ctx context.Context, client sdkv2.SDK) {
 	t.Run("CannotWriteNamespaces", func(t *testing.T) {
-		// TODO(georgemac): restore by testing new environments AP
-		// namespace := fmt.Sprintf("%x", rand.Int63())
-		clientCallSet{}.assert(t, ctx, client)
+		namespace := fmt.Sprintf("%x", rand.Int63())
+		clientCallSet{
+			cannot(CreateNamespace(&environments.UpdateNamespaceRequest{
+				EnvironmentKey: "default",
+				Key:            namespace,
+			})),
+		}.assert(t, ctx, client)
 	})
 }
 
-func canWriteNamespacedIn(t *testing.T, ctx context.Context, client sdk.SDK, _ string) {
+func canWriteNamespacedIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
 	t.Run("CanWriteNamespacedIn", func(t *testing.T) {
-		// TODO(georgemac): restore by testing new environments API
-		// flag := fmt.Sprintf("%x", rand.Int63())
-		// segment := fmt.Sprintf("%x", rand.Int63())
-		clientCallSet{}.assert(t, ctx, client)
+		flagKey := fmt.Sprintf("%x", rand.Int63())
+		flagPayload := &core.Flag{
+			Key:         flagKey,
+			Name:        "Test",
+			Description: "This is a test flag",
+			Enabled:     true,
+			Variants: []*core.Variant{
+				{
+					Key:  "foo",
+					Name: "Foo",
+				},
+				{
+					Key:  "bar",
+					Name: "Bar",
+				},
+			},
+		}
+
+		flag, err := anypb.New(flagPayload)
+		require.NoError(t, err)
+
+		clientCallSet{
+			can(CreateResource(&environments.UpdateResourceRequest{
+				EnvironmentKey: "default",
+				NamespaceKey:   namespace,
+				Key:            flagKey,
+				Payload:        flag,
+			})),
+		}.assert(t, ctx, client)
 	})
 }
 
-func cannotReadAnyIn(t *testing.T, ctx context.Context, client sdk.SDK, namespace string) {
+func cannotReadAnyIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
 	t.Run("CannotReadAny", func(t *testing.T) {
 		clientCallSet{
-			cannot(ListFlags(&flipt.ListFlagRequest{NamespaceKey: namespace})),
+			cannot(ListFlags(&flipt.ListFlagRequest{
+				EnvironmentKey: "default",
+				NamespaceKey:   namespace,
+			})),
 		}.assert(t, ctx, client)
 	})
 }
 
-func cannotWriteNamespacedIn(t *testing.T, ctx context.Context, client sdk.SDK, _ string) {
+func cannotWriteNamespacedIn(t *testing.T, ctx context.Context, client sdkv2.SDK, namespace string) {
 	t.Run("CannotWriteNamespacedIn", func(t *testing.T) {
-		// TODO(georgemac): restore by testing new environments API
-		// flag := fmt.Sprintf("%x", rand.Int63())
-		// segment := fmt.Sprintf("%x", rand.Int63())
-		clientCallSet{}.assert(t, ctx, client)
+		flagKey := fmt.Sprintf("%x", rand.Int63())
+		flagPayload := &core.Flag{
+			Key:         flagKey,
+			Name:        "Test",
+			Description: "This is a test flag",
+			Enabled:     true,
+			Variants: []*core.Variant{
+				{
+					Key:  "foo",
+					Name: "Foo",
+				},
+				{
+					Key:  "bar",
+					Name: "Bar",
+				},
+			},
+		}
+
+		flag, err := anypb.New(flagPayload)
+		require.NoError(t, err)
+
+		clientCallSet{
+			cannot(CreateResource(&environments.UpdateResourceRequest{
+				EnvironmentKey: "default",
+				NamespaceKey:   namespace,
+				Key:            flagKey,
+				Payload:        flag,
+			})),
+		}.assert(t, ctx, client)
 	})
 }
 
@@ -208,18 +275,48 @@ type isAuthorized struct {
 func can(c clientCall) isAuthorized    { return isAuthorized{c, true} }
 func cannot(c clientCall) isAuthorized { return isAuthorized{c, false} }
 
-func (s clientCallSet) assert(t *testing.T, ctx context.Context, client sdk.SDK) {
+func (s clientCallSet) assert(t *testing.T, ctx context.Context, client sdkv2.SDK) {
 	for _, c := range s {
 		assertIsAuthorized(t, c.call(t, ctx, client), c.authorized)
 	}
 }
 
-type clientCall func(*testing.T, context.Context, sdk.SDK) error
+type clientCall func(*testing.T, context.Context, sdkv2.SDK) error
 
 func ListFlags(in *flipt.ListFlagRequest) clientCall {
-	return func(t *testing.T, ctx context.Context, s sdk.SDK) error {
-		_, err := s.Flipt().ListFlags(ctx, in)
-		return fmt.Errorf("ListFlags: %w", err)
+	return func(t *testing.T, ctx context.Context, s sdkv2.SDK) error {
+		_, err := s.Environments().ListResources(ctx, &environments.ListResourcesRequest{
+			EnvironmentKey: in.EnvironmentKey,
+			NamespaceKey:   in.NamespaceKey,
+			TypeUrl:        "flipt.core.Flag",
+		})
+		if err != nil {
+			return fmt.Errorf("ListFlags: %w", err)
+		}
+
+		return nil
+	}
+}
+
+func CreateNamespace(in *environments.UpdateNamespaceRequest) clientCall {
+	return func(t *testing.T, ctx context.Context, s sdkv2.SDK) error {
+		_, err := s.Environments().CreateNamespace(ctx, in)
+		if err != nil {
+			return fmt.Errorf("CreateNamespace: %w", err)
+		}
+
+		return nil
+	}
+}
+
+func CreateResource(in *environments.UpdateResourceRequest) clientCall {
+	return func(t *testing.T, ctx context.Context, s sdkv2.SDK) error {
+		_, err := s.Environments().CreateResource(ctx, in)
+		if err != nil {
+			return fmt.Errorf("CreateResource: %w", err)
+		}
+
+		return nil
 	}
 }
 

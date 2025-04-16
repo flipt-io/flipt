@@ -430,7 +430,7 @@ func (r *Repository) UpdateAndPush(
 		}
 	}
 
-	if options.ifHeadMatches != nil && *options.ifHeadMatches != hash {
+	if options.ifHeadMatches != nil && !options.ifHeadMatches.IsZero() && *options.ifHeadMatches != hash {
 		return hash, errors.ErrConflictf("expected head revision %q has changed (now %q)", *options.ifHeadMatches, hash)
 	}
 

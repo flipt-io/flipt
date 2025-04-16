@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/samber/lo"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/authz"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -31,15 +33,28 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 
 // ListEnvironments returns a list of all environments.
 func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnvironmentsRequest) (el *environments.ListEnvironmentsResponse, err error) {
-	el = &environments.ListEnvironmentsResponse{
-		Environments: make([]*environments.Environment, 0),
-	}
+	el = &environments.ListEnvironmentsResponse{}
 
+	// First collect all environments
 	for env := range s.envs.List(ctx) {
 		el.Environments = append(el.Environments, &environments.Environment{
 			Key:     env.Key(),
 			Name:    env.Key(),
 			Default: ptr(env.Default()),
+		})
+	}
+
+	// Only filter if we have viewable environments in context
+	viewableEnvironments, ok := ctx.Value(authz.EnvironmentsKey).([]string)
+	if ok {
+		// if user has access to all environments, return all environments
+		if len(viewableEnvironments) == 1 && viewableEnvironments[0] == "*" {
+			return el, nil
+		}
+
+		// filter environments based on viewable environments
+		el.Environments = lo.Filter(el.Environments, func(env *environments.Environment, _ int) bool {
+			return lo.Contains(viewableEnvironments, env.Key)
 		})
 	}
 
@@ -61,7 +76,24 @@ func (s *Server) ListNamespaces(ctx context.Context, req *environments.ListNames
 		return nil, err
 	}
 
-	return env.ListNamespaces(ctx)
+	namespaces, err := env.ListNamespaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	viewableNamespaces, ok := ctx.Value(authz.NamespacesKey).([]string)
+	if ok {
+		// if user has access to all namespaces, return all namespaces
+		if len(viewableNamespaces) == 1 && viewableNamespaces[0] == "*" {
+			return namespaces, nil
+		}
+
+		namespaces.Items = lo.Filter(namespaces.Items, func(ns *environments.Namespace, _ int) bool {
+			return lo.Contains(viewableNamespaces, ns.Key)
+		})
+	}
+
+	return namespaces, nil
 }
 
 func (s *Server) CreateNamespace(ctx context.Context, ns *environments.UpdateNamespaceRequest) (*environments.NamespaceResponse, error) {

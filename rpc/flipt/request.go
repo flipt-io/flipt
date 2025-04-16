@@ -13,8 +13,8 @@ type Requester interface {
 type ScopeType string
 
 const (
-	ScopeNamespace ScopeType = "namespace" // Namespace management
-	ScopeResource  ScopeType = "resource"  // Operations within a namespace
+	ScopeEnvironment ScopeType = "environment" // Operations within an environment
+	ScopeNamespace   ScopeType = "namespace"   // Operations within a namespace
 )
 
 // Resource represents what resource or parent resource is being acted on.
@@ -24,12 +24,6 @@ type Resource string
 type Action string
 
 const (
-	ResourceUnknown Resource = "-"
-
-	// Core resources that can be managed
-	ResourceEnvironment Resource = "environment" // Environment listing/reading
-	ResourceNamespace   Resource = "namespace"   // Namespace management
-	ResourceAny         Resource = "*"           // Any resource within a namespace
 
 	// Actions that can be performed
 	ActionCreate Action = "create"
@@ -46,23 +40,19 @@ type Request struct {
 	Environment *string `json:"environment,omitempty"`
 	// Namespace is the namespace in which the action is being performed
 	Namespace *string `json:"namespace,omitempty"`
-	// Resource is the resource being acted upon
-	Resource Resource `json:"resource,omitempty"`
 	// Action is the action being performed
 	Action Action `json:"action,omitempty"`
 }
 
 // NewRequest creates a new Request with the given parameters
-func NewRequest(scope ScopeType, r Resource, a Action, opts ...func(*Request)) Request {
+func NewRequest(scope ScopeType, a Action, opts ...func(*Request)) Request {
 	req := Request{
-		Scope:    scope,
-		Resource: r,
-		Action:   a,
+		Scope:       scope,
+		Environment: ptr(DefaultEnvironment),
+		Action:      a,
 	}
 
-	// Only set default environment and namespace for resource-level operations
-	if scope == ScopeResource {
-		req.Environment = ptr(DefaultEnvironment)
+	if scope == ScopeNamespace {
 		req.Namespace = ptr(DefaultNamespace)
 	}
 
@@ -107,11 +97,10 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-// Example request implementation
 func (req *ListFlagRequest) Request() []Request {
 	return []Request{
 		// Reading any resource in a namespace
-		NewRequest(ScopeResource, ResourceAny, ActionRead,
+		NewRequest(ScopeNamespace, ActionRead,
 			WithEnvironment(req.EnvironmentKey),
 			WithNamespace(req.NamespaceKey)),
 	}
