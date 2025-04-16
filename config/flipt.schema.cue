@@ -72,13 +72,10 @@ import "list"
 				enabled?: bool | *false
 				storage?: {
 					type: string | *"static"
-					tokens: [
-						...{
-							name:       string
-							credential: string
-							metadata: [string]: string
-						},
-					]
+					tokens: [string]: {
+						credential: string
+						metadata: [string]: string
+					},
 				}
 			}
 
