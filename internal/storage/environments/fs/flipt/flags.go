@@ -66,9 +66,9 @@ func (f *FlagStorage) GetResource(ctx context.Context, fs environmentsfs.Filesys
 				}
 
 				return &rpcenvironments.Resource{
-					Namespace: namespace,
-					Key:       ff.Key,
-					Payload:   payload,
+					NamespaceKey: namespace,
+					Key:          ff.Key,
+					Payload:      payload,
 				}, nil
 			}
 		}
@@ -102,9 +102,9 @@ func (f *FlagStorage) ListResources(ctx context.Context, fs environmentsfs.Files
 			}
 
 			rs = append(rs, &rpcenvironments.Resource{
-				Namespace: namespace,
-				Key:       f.Key,
-				Payload:   payload,
+				NamespaceKey: namespace,
+				Key:          f.Key,
+				Payload:      payload,
 			})
 		}
 	}
@@ -116,7 +116,7 @@ func (f *FlagStorage) ListResources(ctx context.Context, fs environmentsfs.Files
 func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesystem, rs *rpcenvironments.Resource) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("putting flag %s/%s: %w", rs.Namespace, rs.Key, err)
+			err = fmt.Errorf("putting flag %s/%s: %w", rs.NamespaceKey, rs.Key, err)
 		}
 	}()
 
@@ -125,7 +125,7 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 		return err
 	}
 
-	docs, idx, err := getDocsAndNamespace(ctx, fs, rs.Namespace)
+	docs, idx, err := getDocsAndNamespace(ctx, fs, rs.NamespaceKey)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 		docs[idx].Flags = append(docs[idx].Flags, flag)
 	}
 
-	fi, err := fs.OpenFile(path.Join(rs.Namespace, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}

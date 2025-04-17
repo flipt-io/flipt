@@ -48,13 +48,13 @@ option (gnostic.openapi.v3.document) = {
 };
 
 enum Method {
+  reserved 6;
   METHOD_NONE = 0;
   METHOD_TOKEN = 1;
   METHOD_OIDC = 2;
   METHOD_KUBERNETES = 3;
   METHOD_GITHUB = 4;
   METHOD_JWT = 5;
-  METHOD_CLOUD = 6 [deprecated = true];
 }
 
 message MethodInfo {
@@ -124,29 +124,6 @@ service AuthenticationService {
   rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {put: "/auth/v1/self/expire"};
     option (gnostic.openapi.v3.operation) = {operation_id: "expireAuthSelf"};
-  }
-}
-
-message CreateTokenRequest {
-  string name = 1;
-  string description = 2;
-  google.protobuf.Timestamp expires_at = 3;
-  string namespace_key = 4;
-  map<string, string> metadata = 7;
-}
-
-message CreateTokenResponse {
-  string client_token = 1;
-  Authentication authentication = 2;
-}
-
-service AuthenticationMethodTokenService {
-  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse) {
-    option (google.api.http) = {
-      post: "/auth/v1/method/token"
-      body: "*"
-    };
-    option (gnostic.openapi.v3.operation) = {operation_id: "createMethodToken"};
   }
 }
 

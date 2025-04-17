@@ -17,10 +17,11 @@ import (
 )
 
 type mockPolicyVerifier struct {
-	isAllowed          bool
-	wantErr            error
-	input              map[string]any
-	viewableNamespaces []string
+	isAllowed                        bool
+	wantErr                          error
+	input                            map[string]any
+	viewableEnvironments             []string
+	viewableNamespacesForEnvironment map[string][]string
 }
 
 func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
@@ -28,11 +29,12 @@ func (v *mockPolicyVerifier) IsAllowed(ctx context.Context, input map[string]any
 	return v.isAllowed, v.wantErr
 }
 
-func (v *mockPolicyVerifier) Namespaces(_ context.Context, _ map[string]any) ([]string, error) {
-	if v.viewableNamespaces != nil {
-		return v.viewableNamespaces, nil
-	}
-	return nil, errors.ErrUnsupported
+func (v *mockPolicyVerifier) ViewableEnvironments(_ context.Context, _ map[string]any) ([]string, error) {
+	return v.viewableEnvironments, nil
+}
+
+func (v *mockPolicyVerifier) ViewableNamespaces(_ context.Context, env string, _ map[string]any) ([]string, error) {
+	return v.viewableNamespacesForEnvironment[env], nil
 }
 
 func (v *mockPolicyVerifier) Shutdown(_ context.Context) error {
@@ -56,24 +58,25 @@ var adminAuth = &authrpc.Authentication{
 
 func TestAuthorizationRequiredInterceptor(t *testing.T) {
 	tests := []struct {
-		name               string
-		server             any
-		req                any
-		authn              *authrpc.Authentication
-		validatorAllowed   bool
-		validatorErr       error
-		wantAllowed        bool
-		authzInput         map[string]any
-		viewableNamespaces []string
-		serverFullMethod   string
+		name                             string
+		server                           any
+		req                              any
+		authn                            *authrpc.Authentication
+		validatorAllowed                 bool
+		validatorErr                     error
+		wantAllowed                      bool
+		authzInput                       map[string]any
+		viewableEnvironments             []string
+		viewableNamespacesForEnvironment map[string][]string
+		serverFullMethod                 string
 	}{
 		{
 			name:  "allowed",
 			authn: adminAuth,
 			req: &environments.UpdateResourceRequest{
-				Environment: "default",
-				Namespace:   "default",
-				Key:         "some_flag",
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				Key:            "some_flag",
 				Payload: &anypb.Any{
 					TypeUrl: "flipt.core.Flag",
 					Value:   []byte(`{"key":"some_flag","name":"Some Flag","description":"Some description","enabled":true}`),
@@ -83,10 +86,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			wantAllowed:      true,
 			authzInput: map[string]any{
 				"request": flipt.Request{
-					Namespace: "default",
-					Resource:  flipt.ResourceFlag,
-					Action:    flipt.ActionUpdate,
-					Status:    flipt.StatusSuccess,
+					Scope:       flipt.ScopeNamespace,
+					Environment: ptr("default"),
+					Namespace:   ptr("default"),
+					Action:      flipt.ActionUpdate,
 				},
 				"authentication": adminAuth,
 			},
@@ -95,9 +98,9 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			name:  "not allowed",
 			authn: adminAuth,
 			req: &environments.UpdateResourceRequest{
-				Environment: "default",
-				Namespace:   "default",
-				Key:         "some_other_flag",
+				EnvironmentKey: "default",
+				NamespaceKey:   "default",
+				Key:            "some_other_flag",
 			},
 			validatorAllowed: false,
 			wantAllowed:      false,
@@ -129,17 +132,18 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			wantAllowed:  false,
 		},
 		{
-			name:               "list namespaces",
-			authn:              adminAuth,
-			req:                &environments.ListNamespacesRequest{},
-			wantAllowed:        true,
-			viewableNamespaces: []string{"special"},
-			serverFullMethod:   "/environments.EnvironmentsService/ListNamespaces",
+			name:                             "list namespaces",
+			authn:                            adminAuth,
+			req:                              &environments.ListNamespacesRequest{EnvironmentKey: "default"},
+			wantAllowed:                      true,
+			viewableEnvironments:             []string{"default"},
+			viewableNamespacesForEnvironment: map[string][]string{"default": {"default"}},
+			serverFullMethod:                 "/environments.EnvironmentsService/ListNamespaces",
 			authzInput: map[string]any{
 				"request": flipt.Request{
-					Resource: flipt.ResourceNamespace,
-					Action:   flipt.ActionRead,
-					Status:   flipt.StatusSuccess,
+					Scope:       flipt.ScopeEnvironment,
+					Environment: ptr("default"),
+					Action:      flipt.ActionRead,
 				},
 				"authentication": adminAuth,
 			},
@@ -160,9 +164,10 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 
 				srv           = &grpc.UnaryServerInfo{Server: &mockServer{}}
 				policyVerfier = &mockPolicyVerifier{
-					isAllowed:          tt.validatorAllowed,
-					wantErr:            tt.validatorErr,
-					viewableNamespaces: tt.viewableNamespaces,
+					isAllowed:                        tt.validatorAllowed,
+					wantErr:                          tt.validatorErr,
+					viewableEnvironments:             tt.viewableEnvironments,
+					viewableNamespacesForEnvironment: tt.viewableNamespacesForEnvironment,
 				}
 			)
 
@@ -184,4 +189,8 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }

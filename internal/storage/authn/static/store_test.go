@@ -15,7 +15,8 @@ import (
 
 func TestAuthenticationStoreStatic(t *testing.T) {
 	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) authn.Store {
-		store, err := NewStore(memory.NewStore(zaptest.NewLogger(t)), config.AuthenticationMethodTokenStorage{})
+		logger := zaptest.NewLogger(t)
+		store, err := NewStore(memory.NewStore(logger), logger, config.AuthenticationMethodTokenStorage{})
 		require.NoError(t, err)
 
 		return store
@@ -23,11 +24,11 @@ func TestAuthenticationStoreStatic(t *testing.T) {
 }
 
 func TestAuthenticationStoreStatic_HasToken(t *testing.T) {
-	store, err := NewStore(memory.NewStore(zaptest.NewLogger(t)), config.AuthenticationMethodTokenStorage{
+	logger := zaptest.NewLogger(t)
+	store, err := NewStore(memory.NewStore(logger), logger, config.AuthenticationMethodTokenStorage{
 		Type: config.AuthenticationMethodTokenStorageTypeStatic,
-		Tokens: []config.AuthenticationMethodStaticToken{
-			{
-				Name:       "sometoken",
+		Tokens: map[string]config.AuthenticationMethodStaticToken{
+			"sometoken": {
 				Credential: "somesecretstring",
 			},
 		},

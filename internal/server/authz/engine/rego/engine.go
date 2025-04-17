@@ -36,10 +36,11 @@ type DataSource CachedSource[map[string]any]
 type Engine struct {
 	logger *zap.Logger
 
-	mu              sync.RWMutex
-	queryAllow      rego.PreparedEvalQuery
-	queryNamespaces rego.PreparedEvalQuery
-	store           storage.Store
+	mu                sync.RWMutex
+	queryAllow        rego.PreparedEvalQuery
+	queryEnvironments *rego.PreparedEvalQuery
+	queryNamespaces   *rego.PreparedEvalQuery
+	store             storage.Store
 
 	policySource PolicySource
 	policyHash   source.Hash
@@ -157,27 +158,78 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (b
 	return results[0].Expressions[0].Value.(bool), nil
 }
 
-func (e *Engine) Shutdown(_ context.Context) error {
-	return nil
-}
+func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
 
-func (e *Engine) Namespaces(ctx context.Context, input map[string]any) ([]string, error) {
-	results, err := e.queryNamespaces.Eval(ctx, rego.EvalInput(input))
+	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
+
+	if e.queryEnvironments == nil {
+		e.logger.Debug("environments query not prepared, skipping evaluation")
+		return nil, nil
+	}
+
+	results, err := e.queryEnvironments.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("evaluating viewable environments: %w", err)
 	}
+
 	if len(results) == 0 {
-		return nil, errors.New("no results found")
+		return nil, nil
 	}
+
 	values, ok := results[0].Expressions[0].Value.([]any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected result type: %T", results[0].Expressions[0].Value)
 	}
+
+	environments := make([]string, len(values))
+	for i, env := range values {
+		environments[i] = fmt.Sprintf("%s", env)
+	}
+	return environments, nil
+}
+
+func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[string]any) ([]string, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	e.logger.Debug("evaluating viewable namespaces",
+		zap.String("environment", env),
+		zap.Any("input", input))
+
+	if e.queryNamespaces == nil {
+		e.logger.Debug("namespaces query not prepared, skipping evaluation")
+		return nil, nil
+	}
+
+	// Add environment to input for Rego evaluation
+	input["environment"] = env
+
+	results, err := e.queryNamespaces.Eval(ctx, rego.EvalInput(input))
+	if err != nil {
+		return nil, fmt.Errorf("evaluating viewable namespaces: %w", err)
+	}
+
+	if len(results) == 0 {
+		return nil, nil
+	}
+
+	// The result will be in the "x" variable from our query
+	values, ok := results[0].Bindings["x"].([]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type: %T", results[0].Bindings["x"])
+	}
+
 	namespaces := make([]string, len(values))
 	for i, ns := range values {
 		namespaces[i] = fmt.Sprintf("%s", ns)
 	}
 	return namespaces, nil
+}
+
+func (e *Engine) Shutdown(_ context.Context) error {
+	return nil
 }
 
 func poll(ctx context.Context, d time.Duration, fn func()) {
@@ -209,8 +261,9 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	m := rego.Module("policy.rego", string(policy))
 	s := rego.Store(e.store)
 
+	// Prepare allow query
 	r := rego.New(
-		rego.Query("data.flipt.authz.v1.allow"),
+		rego.Query("data.flipt.authz.v2.allow"),
 		m,
 		s,
 	)
@@ -220,15 +273,30 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return fmt.Errorf("preparing policy allow: %w", err)
 	}
 
+	// Prepare environments query
 	r = rego.New(
-		rego.Query("data.flipt.authz.v1.viewable_namespaces"),
+		rego.Query("data.flipt.authz.v2.viewable_environments"),
+		m,
+		s,
+	)
+
+	queryEnvironments, err := r.PrepareForEval(ctx)
+	if err == nil {
+		// queryEnvironments is optional, so we dont error here
+		e.queryEnvironments = &queryEnvironments
+	}
+
+	// Prepare namespaces query
+	r = rego.New(
+		rego.Query("x = data.flipt.authz.v2.viewable_namespaces(input.environment)"),
 		m,
 		s,
 	)
 
 	queryNamespaces, err := r.PrepareForEval(ctx)
-	if err != nil {
-		return fmt.Errorf("preparing policy namespaces: %w", err)
+	if err == nil {
+		// queryNamespaces is optional, so we dont error here
+		e.queryNamespaces = &queryNamespaces
 	}
 
 	e.mu.Lock()
@@ -239,7 +307,6 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 	}
 	e.policyHash = hash
 	e.queryAllow = queryAllow
-	e.queryNamespaces = queryNamespaces
 
 	return nil
 }

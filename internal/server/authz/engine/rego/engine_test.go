@@ -3,7 +3,6 @@ package rego
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -11,303 +10,298 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/authz/engine/rego/source"
-	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
 )
 
 func TestEngine_NewEngine(t *testing.T) {
 	ctx := context.Background()
 
-	policy, err := os.ReadFile("../testdata/rbac.rego")
+	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
 
-	data, err := os.ReadFile("../testdata/rbac.json")
+	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(string(policy))),
+		withDataSource(dataSource(string(data)), 5*time.Second))
 	require.NoError(t, err)
 	require.NotNil(t, engine)
 }
 
 func TestEngine_IsAllowed(t *testing.T) {
-	policy, err := os.ReadFile("../testdata/rbac.rego")
+	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
 
-	data, err := os.ReadFile("../testdata/rbac.json")
+	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(string(policy))),
+		withDataSource(dataSource(string(data)), 5*time.Second))
 	require.NoError(t, err)
 
 	tests := []struct {
 		name     string
-		input    string
+		input    map[string]interface{}
 		expected bool
 	}{
 		{
-			name: "admin is allowed to create",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "admin"
-                    }
-                },
-                "request": {
-                    "action": "create",
-                    "resource": "flag"
-                }
-            }`,
+			name: "admin can create namespace in default environment",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "admin@company.com",
+					},
+				},
+				"request": flipt.Request{
+					Scope:       flipt.ScopeEnvironment,
+					Environment: ptr("default"),
+					Action:      flipt.ActionCreate,
+				},
+			},
 			expected: true,
 		},
 		{
-			name: "admin is allowed to read",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "admin"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "flag"
-                }
-            }`,
+			name: "namespace_admin can create namespace in development environment",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"platform-team"},
+					},
+				},
+				"request": flipt.Request{
+					Scope:       flipt.ScopeEnvironment,
+					Environment: ptr("development"),
+					Action:      flipt.ActionCreate,
+				},
+			},
 			expected: true,
 		},
 		{
-			name: "editor is allowed to create flags",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "editor"
-                    }
-                },
-                "request": {
-                    "action": "create",
-                    "resource": "flag"
-                }
-            }`,
+			name: "developer can create resource in frontend namespace",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"dev-team"},
+					},
+				},
+				"request": flipt.Request{
+					Scope:       flipt.ScopeNamespace,
+					Environment: ptr("development"),
+					Namespace:   ptr("frontend"),
+					Action:      flipt.ActionCreate,
+				},
+			},
 			expected: true,
 		},
 		{
-			name: "editor is allowed to read",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "editor"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "flag"
-                }
-            }`,
+			name: "readonly can only read in analytics namespace",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "analyst@company.com",
+					},
+				},
+				"request": flipt.Request{
+					Scope:       flipt.ScopeNamespace,
+					Environment: ptr("production"),
+					Namespace:   ptr("analytics"),
+					Action:      flipt.ActionRead,
+				},
+			},
 			expected: true,
 		},
 		{
-			name: "editor is not allowed to create namespaces",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "editor"
-                    }
-                },
-                "request": {
-                    "action": "create",
-                    "resource": "namespace"
-                }
-            }`,
-			expected: false,
-		},
-		{
-			name: "viewer is allowed to read",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "viewer"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "segment"
-                }
-            }`,
-			expected: true,
-		},
-		{
-			name: "viewer is not allowed to create",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "viewer"
-                    }
-                },
-                "request": {
-                    "action": "create",
-                    "resource": "flag"
-                }
-            }`,
-			expected: false,
-		},
-		{
-			name: "namespaced_viewer is allowed to read in namespace",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "namespaced_viewer"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "flag",
-                    "namespace": "foo"
-                }
-            }`,
-			expected: true,
-		},
-		{
-			name: "namespaced_viewer is not allowed to read in unexpected namespace",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "namespaced_viewer"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "flag",
-                    "namespace": "bar"
-                }
-            }`,
-			expected: false,
-		},
-		{
-			name: "namespaced_viewer is not allowed to read in without namespace scope",
-			input: `{
-                "authentication": {
-                    "method": 5,
-                    "metadata": {
-                        "io.flipt.auth.role": "namespaced_viewer"
-                    }
-                },
-                "request": {
-                    "action": "read",
-                    "resource": "flag"
-                }
-            }`,
+			name: "readonly cannot create in analytics namespace",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "analyst@company.com",
+					},
+				},
+				"request": flipt.Request{
+					Scope:       flipt.ScopeNamespace,
+					Environment: ptr("production"),
+					Namespace:   ptr("analytics"),
+					Action:      flipt.ActionCreate,
+				},
+			},
 			expected: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var input map[string]interface{}
-
-			err = json.Unmarshal([]byte(tt.input), &input)
+			allowed, err := engine.IsAllowed(ctx, tt.input)
 			require.NoError(t, err)
-
-			allowed, err := engine.IsAllowed(ctx, input)
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, allowed)
+			assert.Equal(t, tt.expected, allowed)
 		})
 	}
-
-	t.Run("viewable namespaces without definition", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		t.Cleanup(cancel)
-		namespaces, err := engine.Namespaces(ctx, map[string]any{})
-		require.Error(t, err)
-		require.Nil(t, namespaces)
-	})
 }
 
-func TestEngine_IsAuthMethod(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    authrpc.Method
-		expected bool
-	}{
-		{name: "token", input: authrpc.Method_METHOD_TOKEN, expected: true},
-		{name: "oidc", input: authrpc.Method_METHOD_OIDC, expected: true},
-		{name: "k8s", input: authrpc.Method_METHOD_KUBERNETES, expected: true},
-		{name: "kubernetes", input: authrpc.Method_METHOD_KUBERNETES, expected: true},
-		{name: "github", input: authrpc.Method_METHOD_GITHUB, expected: true},
-		{name: "jwt", input: authrpc.Method_METHOD_JWT, expected: true},
-		{name: "none", input: authrpc.Method_METHOD_OIDC, expected: false},
-	}
-	data, err := os.ReadFile("../testdata/rbac.json")
+func TestEngine_ViewableEnvironments(t *testing.T) {
+	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
+
+	data, err := os.ReadFile("../testdata/rbac_v2.json")
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(string(policy))),
+		withDataSource(dataSource(string(data)), 5*time.Second))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		input       map[string]interface{}
+		expected    []string
+		shouldError bool
+	}{
+		{
+			name: "admin can see all environments",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "admin@company.com",
+					},
+				},
+			},
+			expected: []string{"*"},
+		},
+		{
+			name: "namespace_admin can see development and staging",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"platform-team"},
+					},
+				},
+			},
+			expected: []string{"development", "staging"},
+		},
+		{
+			name: "developer can see development and staging",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"dev-team"},
+					},
+				},
+			},
+			expected: []string{"development", "staging"},
+		},
+		{
+			name: "readonly can see production",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "analyst@company.com",
+					},
+				},
+			},
+			expected: []string{"production"},
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithCancel(context.Background())
-			t.Cleanup(cancel)
-
-			input := map[string]any{
-				"authentication": authrpc.Authentication{Method: tt.input},
+			environments, err := engine.ViewableEnvironments(ctx, tt.input)
+			if tt.shouldError {
+				require.Error(t, err)
+				return
 			}
-
-			policy := fmt.Sprintf(`package flipt.authz.v1
-
-            import rego.v1
-
-            default allow := false
-
-            allow if {
-               flipt.is_auth_method(input, "%s")
-            }
-            `, tt.name)
-
-			engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(policy)), withDataSource(dataSource(string(data)), 5*time.Second))
 			require.NoError(t, err)
-
-			allowed, err := engine.IsAllowed(ctx, input)
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, allowed)
+			assert.ElementsMatch(t, tt.expected, environments)
 		})
 	}
 }
 
-func TestViewableNamespaces(t *testing.T) {
-	policy, err := os.ReadFile("../testdata/viewable_namespaces.rego")
+func TestEngine_ViewableNamespaces(t *testing.T) {
+	policy, err := os.ReadFile("../testdata/rbac_v2.rego")
 	require.NoError(t, err)
 
-	data, err := os.ReadFile("../testdata/viewable_namespaces.json")
+	data, err := os.ReadFile("../testdata/rbac_v2.json")
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	engine, err := newEngine(ctx, zaptest.NewLogger(t), withPolicySource(policySource(string(policy))), withDataSource(dataSource(string(data)), 5*time.Second))
+	engine, err := newEngine(ctx, zaptest.NewLogger(t),
+		withPolicySource(policySource(string(policy))),
+		withDataSource(dataSource(string(data)), 5*time.Second))
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		assert.NoError(t, engine.Shutdown(ctx))
-	})
-
-	tt := []struct {
-		name       string
-		roles      []string
-		namespaces []string
+	tests := []struct {
+		name        string
+		env         string
+		input       map[string]interface{}
+		expected    []string
+		shouldError bool
 	}{
-		{"empty", []string{}, []string{}},
-		{"devs", []string{"devs"}, []string{"local", "staging"}},
-		{"devsops", []string{"devs", "ops"}, []string{"local", "production", "staging"}},
+		{
+			name: "admin can see all namespaces in production",
+			env:  "production",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "admin@company.com",
+					},
+				},
+			},
+			expected: []string{"*"},
+		},
+		{
+			name: "namespace_admin can see all namespaces in development",
+			env:  "development",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"platform-team"},
+					},
+				},
+			},
+			expected: []string{"*"},
+		},
+		{
+			name: "developer can see frontend and backend in development",
+			env:  "development",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.groups": []string{"dev-team"},
+					},
+				},
+			},
+			expected: []string{"frontend", "backend"},
+		},
+		{
+			name: "readonly can see analytics and reporting in production",
+			env:  "production",
+			input: map[string]interface{}{
+				"authentication": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"io.flipt.auth.user": "analyst@company.com",
+					},
+				},
+			},
+			expected: []string{"analytics", "reporting"},
+		},
 	}
-	for _, tt := range tt {
+
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			namespaces, err := engine.Namespaces(ctx, map[string]any{"roles": tt.roles})
+			namespaces, err := engine.ViewableNamespaces(ctx, tt.env, tt.input)
+			if tt.shouldError {
+				require.Error(t, err)
+				return
+			}
 			require.NoError(t, err)
-			require.Equal(t, tt.namespaces, namespaces)
+			assert.ElementsMatch(t, tt.expected, namespaces)
 		})
 	}
 }
@@ -322,4 +316,8 @@ type dataSource string
 
 func (d dataSource) Get(context.Context, source.Hash) (data map[string]any, _ source.Hash, _ error) {
 	return data, nil, json.Unmarshal([]byte(d), &data)
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }

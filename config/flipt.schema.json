@@ -296,19 +296,15 @@
                     },
                     "tokens": {
                       "type": [
-                        "array",
+                        "object",
                         "null"
                       ],
-                      "items": {
+                      "additionalProperties": {
                         "type": "object",
                         "required": [
-                          "name",
                           "credential"
                         ],
                         "properties": {
-                          "name": {
-                            "type": "string"
-                          },
                           "credential": {
                             "type": "string"
                           },

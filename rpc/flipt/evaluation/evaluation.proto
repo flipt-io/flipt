@@ -227,6 +227,7 @@ message EvaluationNamespaceSnapshot {
 message EvaluationNamespaceSnapshotRequest {
   string key = 1;
   string reference = 2;
+  string environment_key = 3;
 }
 
 message EvaluationSnapshot {

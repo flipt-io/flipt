@@ -220,47 +220,6 @@ func (x *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Conte
 	return &output, nil
 }
 
-func (t authClient) AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient {
-	return &authenticationMethodTokenServiceClient{client: t.client, addr: t.addr}
-}
-
-type authenticationMethodTokenServiceClient struct {
-	client *http.Client
-	addr   string
-}
-
-func (x *authenticationMethodTokenServiceClient) CreateToken(ctx context.Context, v *auth.CreateTokenRequest, _ ...grpc.CallOption) (*auth.CreateTokenResponse, error) {
-	var body io.Reader
-	var values url.Values
-	reqData, err := protojson.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/auth/v1/method/token", body)
-	if err != nil {
-		return nil, err
-	}
-	req.URL.RawQuery = values.Encode()
-	resp, err := x.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var output auth.CreateTokenResponse
-	respData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp, respData); err != nil {
-		return nil, err
-	}
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
-		return nil, err
-	}
-	return &output, nil
-}
-
 func (t authClient) AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient {
 	return &authenticationMethodOIDCServiceClient{client: t.client, addr: t.addr}
 }

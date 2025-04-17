@@ -1,6 +1,0 @@
-{
-  "roles_to_namespaces": {
-    "devs": ["local", "staging"],
-    "ops": ["staging", "production"]
-  }
-}

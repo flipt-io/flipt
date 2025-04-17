@@ -29,7 +29,7 @@ func TestOFREP(t *testing.T) {
 				t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
 					t.Logf("Boolean evaluation.")
 
-					provider := ofrep.NewProvider(opts.URL.String(), ofrep.WithBearerToken(opts.Token), ofrep.WithHeaderProvider(func() (string, string) {
+					provider := ofrep.NewProvider(opts.URL.String(), ofrep.WithBearerToken(opts.Tokens["bootstrap"]), ofrep.WithHeaderProvider(func() (string, string) {
 						return "X-Flipt-Namespace", namespace.Key
 					}))
 
@@ -81,7 +81,7 @@ func TestOFREP(t *testing.T) {
 
 		t.Run("OFREP Bulk", func(t *testing.T) {
 			for _, namespace := range integration.Namespaces {
-				provider := ofrep.NewBulkProvider(opts.URL.String(), ofrep.WithBearerToken(opts.Token), ofrep.WithHeaderProvider(func() (string, string) {
+				provider := ofrep.NewBulkProvider(opts.URL.String(), ofrep.WithBearerToken(opts.Tokens["bootstrap"]), ofrep.WithHeaderProvider(func() (string, string) {
 					return "X-Flipt-Namespace", namespace.Key
 				}), ofrep.WithPollingInterval(0))
 

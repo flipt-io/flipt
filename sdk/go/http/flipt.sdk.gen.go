@@ -28,6 +28,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
 	values.Set("reference", v.Reference)
+	values.Set("environmentKey", v.EnvironmentKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err

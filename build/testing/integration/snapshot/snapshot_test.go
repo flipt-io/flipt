@@ -23,14 +23,10 @@ func TestSnapshot(t *testing.T) {
 		}
 
 		t.Run("Evaluation Data", func(t *testing.T) {
-			for _, role := range []string{"admin", "editor", "viewer"} {
-				t.Run(fmt.Sprintf("role %q", role), func(t *testing.T) {
-					httpClient := opts.HTTPClient(t, integration.WithRole(role))
-					for _, namespace := range integration.Namespaces {
-						t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
-							testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
-						})
-					}
+			httpClient := opts.HTTPClient(t)
+			for _, namespace := range integration.Namespaces {
+				t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
+					testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
 				})
 			}
 		})

@@ -24,10 +24,7 @@ type InterceptorOptions struct {
 }
 
 // methods which should always skip authorization
-var skippedMethods = map[string]any{
-	"/flipt.auth.AuthenticationService/GetAuthenticationSelf":    struct{}{},
-	"/flipt.auth.AuthenticationService/ExpireAuthenticationSelf": struct{}{},
-}
+var skippedMethods = map[string]any{}
 
 func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
 	// if we skip authentication then we must skip authorization
@@ -99,8 +96,21 @@ func AuthorizationRequiredInterceptor(logger *zap.Logger, policyVerifier authz.V
 				return ctx, errUnauthorized
 			}
 
-			if info.FullMethod == environments.EnvironmentsService_ListNamespaces_FullMethodName {
-				namespaces, err := policyVerifier.Namespaces(ctx, map[string]any{
+			switch info.FullMethod {
+			case environments.EnvironmentsService_ListEnvironments_FullMethodName:
+				environments, err := policyVerifier.ViewableEnvironments(ctx, map[string]any{
+					"request":        request,
+					"authentication": auth,
+				})
+				// if user has no access to `default` environment the api call to list environments
+				// will return unauthorized error even if user has access to other environments.
+				// This is a workaround to allow user to list environments in this case.
+				if err == nil && len(environments) > 0 {
+					ctx = context.WithValue(ctx, authz.EnvironmentsKey, environments)
+				}
+				continue
+			case environments.EnvironmentsService_ListNamespaces_FullMethodName:
+				namespaces, err := policyVerifier.ViewableNamespaces(ctx, *request.Environment, map[string]any{
 					"request":        request,
 					"authentication": auth,
 				})

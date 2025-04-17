@@ -224,9 +224,8 @@ func TestLoad(t *testing.T) {
 						Method: AuthenticationMethodTokenConfig{
 							Storage: AuthenticationMethodTokenStorage{
 								Type: AuthenticationMethodTokenStorageTypeStatic,
-								Tokens: []AuthenticationMethodStaticToken{
-									{
-										Name:       "bootstrap token",
+								Tokens: map[string]AuthenticationMethodStaticToken{
+									"bootstrap": {
 										Credential: "s3cr3t!",
 									},
 								},
@@ -571,9 +570,8 @@ func TestLoad(t *testing.T) {
 							Method: AuthenticationMethodTokenConfig{
 								Storage: AuthenticationMethodTokenStorage{
 									Type: AuthenticationMethodTokenStorageTypeStatic,
-									Tokens: []AuthenticationMethodStaticToken{
-										{
-											Name:       "some static token",
+									Tokens: map[string]AuthenticationMethodStaticToken{
+										"static": {
 											Credential: "abcdefg",
 										},
 									},

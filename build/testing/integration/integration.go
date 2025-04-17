@@ -26,9 +26,18 @@ import (
 )
 
 var (
-	fliptAddr       = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
-	fliptToken      = flag.String("flipt-token", "", "Full-Access authentication token to be used during test suite")
-	fliptReferences = flag.Bool("flipt-supports-references", false, "Identifies the backend as supporting references")
+	fliptAddr = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
+	// tokens are used to authenticate requests to the Flipt instance
+	// they are used to create a new token for each role
+	// and then use that token to authenticate requests to the Flipt instance
+	tokens = map[string]string{
+		"bootstrap":          "s3cr3t",
+		"admin":              "admin123",
+		"editor":             "editor456",
+		"viewer":             "viewer789",
+		"default_viewer":     "default_viewer1111",
+		"alternative_viewer": "alternative_viewer2222",
+	}
 )
 
 type Protocol string
@@ -54,23 +63,26 @@ type KeyedExpectation struct {
 
 type KeyedExpectations []KeyedExpectation
 
-// OtherKeyFrom returns any other key in the set of expected
-// keys different from the key provided
+// OtherKeyFrom returns any other key in the set that has a different Expected value
+// than the Expected value of the provided key
 func (n KeyedExpectations) OtherKeyFrom(from string) string {
-	ns := map[string]struct{}{}
+	// First find the Expected value for our input key
+	var fromExpected string
 	for _, e := range n {
 		if e.Key == from {
-			continue
+			fromExpected = e.Expected
+			break
 		}
-
-		ns[e.Expected] = struct{}{}
 	}
 
-	for to := range ns {
-		return to
+	// Now find a key with a different Expected value
+	for _, e := range n {
+		if e.Expected != fromExpected {
+			return e.Key
+		}
 	}
 
-	panic("we expected to be at-least one alternative")
+	panic("we expected to be at-least one alternative with different Expected value")
 }
 
 var Environments = KeyedExpectations{
@@ -92,16 +104,14 @@ func Harness(t *testing.T, fn func(t *testing.T, opts TestOpts)) {
 	}
 
 	fn(t, TestOpts{
-		URL:        u,
-		References: *fliptReferences,
-		Token:      *fliptToken,
+		URL:    u,
+		Tokens: tokens,
 	})
 }
 
 type TestOpts struct {
-	URL        *url.URL
-	References bool
-	Token      string
+	URL    *url.URL
+	Tokens map[string]string
 }
 
 func (o TestOpts) Protocol() Protocol {
@@ -116,14 +126,6 @@ func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
 	t.Helper()
 
 	return sdk.New(o.newTransport(t))
-}
-
-func (o TestOpts) BootstrapClient(t *testing.T, _ ...ClientOpt) sdk.SDK {
-	t.Helper()
-
-	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
-		sdk.StaticTokenAuthenticationProvider(o.Token),
-	))
 }
 
 type ClientOpts struct {
@@ -144,60 +146,39 @@ func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 	return f(r)
 }
 
+func (o TestOpts) BootstrapClient(t *testing.T, _ ...ClientOpt) sdk.SDK {
+	t.Helper()
+
+	return sdk.New(o.newTransport(t), sdk.WithAuthenticationProvider(
+		sdk.StaticTokenAuthenticationProvider(o.Tokens["bootstrap"]),
+	))
+}
+
 func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
 	t.Helper()
 
+	var options ClientOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	// Default to bootstrap token if no specific token name provided
+	token := o.Tokens["bootstrap"]
+	if options.Role != "" {
+		if tok, ok := o.Tokens[options.Role]; ok {
+			token = tok
+		} else {
+			t.Fatalf("token with name %q not found", options.Role)
+		}
+	}
+
 	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", o.Token))
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		r.Header.Set("X-Forwarded-Host", o.URL.Host)
 		return http.DefaultTransport.RoundTrip(r)
 	})
 
 	return &http.Client{Transport: transport}
-}
-
-func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
-	transport := o.newTransport(t)
-	return sdk.New(transport, K8sAuth(t, transport, opts...))
-}
-
-func K8sAuth(t *testing.T, transport sdk.Transport, opts ...ClientOpt) sdk.Option {
-	t.Helper()
-
-	var copts ClientOpts
-	for _, opt := range opts {
-		opt(&copts)
-	}
-
-	saName := "integration-test"
-	if copts.Role != "" {
-		saName = copts.Role
-	}
-
-	saToken := signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/k8s.pem", map[string]any{
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"iss": "https://discover.svc",
-		"kubernetes.io": map[string]any{
-			"namespace": "integration",
-			"pod": map[string]any{
-				"name": "integration-test-7d26f049-kdurb",
-				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-			},
-			"serviceaccount": map[string]any{
-				"name": saName,
-				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-			},
-		},
-	})
-
-	// write out JWT into service account token slot
-	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
-
-	tokenPath := fmt.Sprintf("/var/run/secrets/kubernetes.io/serviceaccount/%s.token", saName)
-	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
-	return sdk.WithAuthenticationProvider(
-		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(tokenPath)),
-	)
 }
 
 func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
@@ -228,12 +209,31 @@ func jwtClaims(t *testing.T, opts ...ClientOpt) string {
 }
 
 func (o TestOpts) TokenClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
+	t.Helper()
+
+	var options ClientOpts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	// Default to bootstrap token if no specific token name provided
+	token := o.Tokens["bootstrap"]
+	if options.Role != "" {
+		if tok, ok := o.Tokens[options.Role]; ok {
+			token = tok
+		} else {
+			t.Fatalf("token with name %q not found", options.Role)
+		}
+	}
+
 	return sdkv2.New(o.newTransportV2(t), sdkv2.WithAuthenticationProvider(
-		sdkv2.StaticTokenAuthenticationProvider(o.Token),
+		sdkv2.StaticTokenAuthenticationProvider(token),
 	))
 }
 
 func (o TestOpts) JWTClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
+	t.Helper()
+
 	return sdkv2.New(o.newTransportV2(t), sdkv2.WithAuthenticationProvider(
 		sdkv2.JWTAuthenticationProvider(jwtClaims(t, opts...)),
 	))

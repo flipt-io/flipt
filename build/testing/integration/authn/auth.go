@@ -50,11 +50,6 @@ func Common(t *testing.T, opts integration.TestOpts) {
 					canReadEnvironmentsAllIn(t, ctx, opts.TokenClientV2(t), namespace.Key)
 				})
 
-				t.Run("K8sClient", func(t *testing.T) {
-					canReadAllIn(t, ctx, opts.K8sClient(t), namespace.Key)
-					// k8s auth is not supported for sdkv2
-				})
-
 				t.Run("JWTClient", func(t *testing.T) {
 					canReadAllIn(t, ctx, opts.JWTClient(t), namespace.Key)
 					canReadEnvironmentsAllIn(t, ctx, opts.JWTClientV2(t), namespace.Key)

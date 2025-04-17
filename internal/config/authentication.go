@@ -48,10 +48,6 @@ type AuthenticationConfig struct {
 	// top-level sections of the API.
 	// By default, given required == true, the API is fully protected.
 	Exclude struct {
-		// Management refers to the section of the API with the prefix /api/v1
-		Management bool `json:"management,omitempty" mapstructure:"management" yaml:"management,omitempty"`
-		// Metadata refers to the section of the API with the prefix /meta
-		Metadata bool `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 		// Evaluation refers to the section of the API with the prefix /evaluation/v1
 		Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation" yaml:"evaluation,omitempty"`
 		// OFREP refers to the section of the API with the prefix /ofrep
@@ -413,14 +409,13 @@ const (
 )
 
 type AuthenticationMethodTokenStorage struct {
-	Type   AuthenticationMethodTokenStorageType `json:"type" mapstructure:"type" yaml:"type"`
-	Tokens []AuthenticationMethodStaticToken    `json:"tokens" mapstructure:"tokens" yaml:"tokens"`
+	Type   AuthenticationMethodTokenStorageType       `json:"type" mapstructure:"type" yaml:"type"`
+	Tokens map[string]AuthenticationMethodStaticToken `json:"tokens" mapstructure:"tokens" yaml:"tokens"`
 }
 
-// AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
-// bootstrap process for the authentication method "token".
+// AuthenticationMethodStaticToken contains fields used to configure the
+// static token authentication method.
 type AuthenticationMethodStaticToken struct {
-	Name       string            `json:"name" mapstructure:"name" yaml:"name"`
 	Credential string            `json:"-" mapstructure:"credential" yaml:"-"`
 	Metadata   map[string]string `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 }

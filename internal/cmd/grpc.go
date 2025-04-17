@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	otlpRuntime "go.opentelemetry.io/contrib/instrumentation/runtime"
+	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 
@@ -23,7 +23,6 @@ import (
 	"go.flipt.io/flipt/internal/server/analytics/prometheus"
 	authnmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/authz"
-	authzbundle "go.flipt.io/flipt/internal/server/authz/engine/bundle"
 	authzrego "go.flipt.io/flipt/internal/server/authz/engine/rego"
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
@@ -138,7 +137,7 @@ func NewGRPCServer(
 		// We only want to start the runtime metrics by open telemetry if the user have chosen
 		// to use OTLP because the Prometheus endpoint already exposes those metrics.
 		if cfg.Metrics.Exporter == config.MetricsOTLP {
-			err = otlpRuntime.Start(otlpRuntime.WithMeterProvider(meterProvider))
+			err = otlpruntime.Start(otlpruntime.WithMeterProvider(meterProvider))
 			if err != nil {
 				return nil, fmt.Errorf("starting runtime metric exporter: %w", err)
 			}
@@ -220,7 +219,6 @@ func NewGRPCServer(
 		}
 	)
 
-	skipAuthnIfExcluded(fliptv1srv, cfg.Authentication.Exclude.Management)
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
 
@@ -411,13 +409,7 @@ var (
 func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (authz.Verifier, errFunc, error) {
 	authzOnce.Do(func() {
 		var err error
-		switch cfg.Authorization.Backend {
-		case config.AuthorizationBackendLocal:
-			validator, err = authzrego.NewEngine(ctx, logger, cfg)
-
-		default:
-			validator, err = authzbundle.NewEngine(ctx, logger, cfg)
-		}
+		validator, err = authzrego.NewEngine(ctx, logger, cfg)
 
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)

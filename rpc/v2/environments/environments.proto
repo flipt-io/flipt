@@ -46,7 +46,7 @@ message Namespace {
 }
 
 message GetNamespaceRequest {
-  string environment = 1;
+  string environment_key = 1;
   string key = 2;
 }
 
@@ -56,7 +56,7 @@ message NamespaceResponse {
 }
 
 message ListNamespacesRequest {
-  string environment = 1;
+  string environment_key = 1;
 }
 
 message ListNamespacesResponse {
@@ -65,7 +65,7 @@ message ListNamespacesResponse {
 }
 
 message UpdateNamespaceRequest {
-  string environment = 1;
+  string environment_key = 1;
   string key = 2;
   string name = 3;
   optional string description = 4;
@@ -74,7 +74,7 @@ message UpdateNamespaceRequest {
 }
 
 message DeleteNamespaceRequest {
-  string environment = 1;
+  string environment_key = 1;
   string key = 2;
   string revision = 100;
 }
@@ -86,14 +86,14 @@ message DeleteNamespaceResponse {
 /* Resource */
 
 message GetResourceRequest {
-  string environment = 1;
-  string namespace = 2;
+  string environment_key = 1;
+  string namespace_key = 2;
   string type_url = 3;
   string key = 4;
 }
 
 message Resource {
-  string namespace = 1;
+  string namespace_key = 1;
   string key = 2;
   google.protobuf.Any payload = 3;
 }
@@ -104,8 +104,8 @@ message ResourceResponse {
 }
 
 message ListResourcesRequest {
-  string environment = 1;
-  string namespace = 2;
+  string environment_key = 1;
+  string namespace_key = 2;
   string type_url = 3;
 }
 
@@ -115,8 +115,8 @@ message ListResourcesResponse {
 }
 
 message UpdateResourceRequest {
-  string environment = 1;
-  string namespace = 2;
+  string environment_key = 1;
+  string namespace_key = 2;
   string key = 3;
   google.protobuf.Any payload = 4;
   string revision = 100;
@@ -124,8 +124,8 @@ message UpdateResourceRequest {
 
 message DeleteResourceRequest {
   // type is the fully-qualified protobuf message name
-  string environment = 1;
-  string namespace = 2;
+  string environment_key = 1;
+  string namespace_key = 2;
   string type_url = 3;
   string key = 4;
   string revision = 100;

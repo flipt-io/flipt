@@ -49,7 +49,7 @@ func UI(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	_, err = client.Container().
 		From("ghcr.io/flipt-io/stew:latest").
 		WithWorkdir("/work").
-		WithDirectory("/work/base", base.Directory(configTestdataDir)).
+		WithDirectory("/work/base", base.Directory(environmentsTestdataDir)).
 		WithNewFile("/etc/stew/config.yml", string(contents)).
 		WithServiceBinding("gitea", gitea).
 		WithExec([]string{"/usr/local/bin/stew", "-config", "/etc/stew/config.yml"}).
