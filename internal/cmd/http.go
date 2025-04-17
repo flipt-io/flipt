@@ -13,7 +13,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/environments"
 
-	"github.com/fatih/color"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -65,7 +64,6 @@ func NewHTTPServer(
 		server = &HTTPServer{
 			logger: logger,
 		}
-		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
 
 		r   = chi.NewRouter()
 		api = gateway.NewGatewayServeMux(logger)
@@ -208,7 +206,7 @@ func NewHTTPServer(
 		r.Mount("/internal/v1", evaluateDataAPI)
 		r.Mount("/ofrep", ofrepAPI)
 
-		r.Mount("/v2/environments", v2Environments)
+		r.Mount("/api/v2/environments", v2Environments)
 
 		// mount all authentication related HTTP components
 		// to the chi router.
@@ -266,26 +264,7 @@ func NewHTTPServer(
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	logger.Debug("starting http server")
-
-	var (
-		apiAddr = fmt.Sprintf("%s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
-		uiAddr  = fmt.Sprintf("%s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
-	)
-
-	if isConsole {
-		color.Green("\nAPI: %s", apiAddr)
-		if cfg.UI.Enabled {
-			color.Green("UI: %s", uiAddr)
-		}
-
-		fmt.Println()
-	} else {
-		logger.Info("api available", zap.String("address", apiAddr))
-		if cfg.UI.Enabled {
-			logger.Info("ui available", zap.String("address", uiAddr))
-		}
-	}
+	logger.Info("starting http server", zap.String("address", fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort)))
 
 	if cfg.Server.Protocol != config.HTTPS {
 		server.listenAndServe = server.ListenAndServe

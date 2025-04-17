@@ -6,7 +6,7 @@ info:
     title: EnvironmentsService API
     version: 0.0.1
 paths:
-    /v2/environments:
+    /api/v2/environments:
         get:
             tags:
                 - EnvironmentsService
@@ -18,7 +18,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListEnvironmentsResponse'
-    /v2/environments/*:
+    /api/v2/environments/*:
         get:
             tags:
                 - EnvironmentsService
@@ -45,7 +45,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListResourcesResponse'
-    /v2/environments/*}/{*}}:
+    /api/v2/environments/*}/{*}}:
         get:
             tags:
                 - EnvironmentsService
@@ -125,7 +125,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
-    /v2/environments/{environmentKey}/namespaces:
+    /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
                 - EnvironmentsService
@@ -189,7 +189,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/NamespaceResponse'
-    /v2/environments/{environmentKey}/namespaces/{key}:
+    /api/v2/environments/{environmentKey}/namespaces/{key}:
         get:
             tags:
                 - EnvironmentsService
@@ -238,7 +238,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteNamespaceResponse'
-    /v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources:
+    /api/v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources:
         put:
             tags:
                 - EnvironmentsService

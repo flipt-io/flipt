@@ -111,8 +111,6 @@ func NewGRPCServer(
 		return nil, err
 	}
 
-	logger.Debug("store enabled")
-
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {
 		metricsResource, err := metrics.GetResources(ctx)
@@ -373,7 +371,7 @@ func NewGRPCServer(
 // Run begins serving gRPC requests.
 // This methods blocks until Shutdown is called.
 func (s *GRPCServer) Run() error {
-	s.logger.Debug("starting grpc server")
+	s.logger.Info("starting grpc server", zap.String("address", fmt.Sprintf("%s:%d", s.cfg.Server.Host, s.cfg.Server.GRPCPort)))
 	return s.Serve(s.ln)
 }
 
