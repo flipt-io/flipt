@@ -31,14 +31,6 @@ type ping struct {
 	Flipt   flipt  `json:"flipt"`
 }
 
-type authentication struct {
-	Methods []string `json:"methods,omitempty"`
-}
-
-type analytics struct {
-	Storage string `json:"storage,omitempty"`
-}
-
 type flipt struct {
 	Version string `json:"version"`
 	OS      string `json:"os"`
