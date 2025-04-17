@@ -1,0 +1,415 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: EnvironmentsService API
+    version: 0.0.1
+paths:
+    /v2/environments:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listEnvironments
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListEnvironmentsResponse'
+    /v2/environments/*:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listResources
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListResourcesResponse'
+    /v2/environments/*}/{*}}:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: getResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: '*}'
+                  in: path
+                  description: The *} id.
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+        delete:
+            tags:
+                - EnvironmentsService
+            operationId: deleteResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  description: type is the fully-qualified protobuf message name
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: '*}'
+                  in: path
+                  description: The *} id.
+                  required: true
+                  schema:
+                    type: string
+                - name: typeUrl
+                  in: query
+                  schema:
+                    type: string
+                - name: revision
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteResourceResponse'
+    /v2/environments/{environmentKey}/namespaces:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listNamespaces
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListNamespacesResponse'
+        put:
+            tags:
+                - EnvironmentsService
+            operationId: updateNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceResponse'
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: createNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceResponse'
+    /v2/environments/{environmentKey}/namespaces/{key}:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: getNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NamespaceResponse'
+        delete:
+            tags:
+                - EnvironmentsService
+            operationId: deleteNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: revision
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteNamespaceResponse'
+    /v2/environments/{environmentKey}/namespaces/{namespaceKey}/resources:
+        put:
+            tags:
+                - EnvironmentsService
+            operationId: updateResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateResourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: createResource
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateResourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+components:
+    schemas:
+        DeleteNamespaceResponse:
+            type: object
+            properties:
+                revision:
+                    type: string
+        DeleteResourceResponse:
+            type: object
+            properties:
+                revision:
+                    type: string
+        Environment:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                default:
+                    type: boolean
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListEnvironmentsResponse:
+            type: object
+            properties:
+                environments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Environment'
+        ListNamespacesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Namespace'
+                revision:
+                    type: string
+        ListResourcesResponse:
+            type: object
+            properties:
+                resources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Resource'
+                revision:
+                    type: string
+        Namespace:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                protected:
+                    type: boolean
+        NamespaceResponse:
+            type: object
+            properties:
+                namespace:
+                    $ref: '#/components/schemas/Namespace'
+                revision:
+                    type: string
+        Resource:
+            type: object
+            properties:
+                namespaceKey:
+                    type: string
+                key:
+                    type: string
+                payload:
+                    $ref: '#/components/schemas/GoogleProtobufAny'
+        ResourceResponse:
+            type: object
+            properties:
+                resource:
+                    $ref: '#/components/schemas/Resource'
+                revision:
+                    type: string
+        UpdateNamespaceRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                protected:
+                    type: boolean
+                revision:
+                    type: string
+        UpdateResourceRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                key:
+                    type: string
+                payload:
+                    $ref: '#/components/schemas/GoogleProtobufAny'
+                revision:
+                    type: string
+tags:
+    - name: EnvironmentsService
