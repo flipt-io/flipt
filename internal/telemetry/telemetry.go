@@ -31,21 +31,10 @@ type ping struct {
 	Flipt   flipt  `json:"flipt"`
 }
 
-type authentication struct {
-	Methods []string `json:"methods,omitempty"`
-}
-
-type analytics struct {
-	Storage string `json:"storage,omitempty"`
-}
-
 type flipt struct {
-	Version        string                    `json:"version"`
-	OS             string                    `json:"os"`
-	Arch           string                    `json:"arch"`
-	Authentication *authentication           `json:"authentication,omitempty"`
-	Analytics      *analytics                `json:"analytics,omitempty"`
-	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
+	Version string `json:"version"`
+	OS      string `json:"os"`
+	Arch    string `json:"arch"`
 }
 
 type state struct {
@@ -176,33 +165,11 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var (
 		props = segment.NewProperties()
 		flipt = flipt{
-			OS:           runtime.GOOS,
-			Arch:         runtime.GOARCH,
-			Version:      info.Build.Version,
-			Experimental: r.cfg.Experimental,
+			OS:      runtime.GOOS,
+			Arch:    runtime.GOARCH,
+			Version: info.Build.Version,
 		}
 	)
-
-	// authentication
-	authMethods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
-
-	for _, m := range r.cfg.Authentication.Methods.EnabledMethods() {
-		authMethods = append(authMethods, m.Name())
-	}
-
-	// only report authentications if enabled
-	if len(authMethods) > 0 {
-		flipt.Authentication = &authentication{
-			Methods: authMethods,
-		}
-	}
-
-	// only report analytics if enabled
-	if r.cfg.Analytics.Enabled() {
-		flipt.Analytics = &analytics{
-			Storage: r.cfg.Analytics.Storage.String(),
-		}
-	}
 
 	p := ping{
 		Version: version,

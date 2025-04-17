@@ -155,6 +155,10 @@ func (c *AuthenticationConfig) validate() error {
 		}
 	}
 
+	if c.Methods.Kubernetes.Enabled && c.Methods.JWT.Enabled {
+		return fmt.Errorf("authentication: kubernetes and jwt methods cannot currently both be enabled at the same time")
+	}
+
 	return nil
 }
 

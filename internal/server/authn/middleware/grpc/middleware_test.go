@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	authjwt "go.flipt.io/flipt/internal/server/authn/method/jwt"
 	"go.flipt.io/flipt/internal/storage/authn"
 	"go.flipt.io/flipt/internal/storage/authn/memory"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
@@ -248,6 +249,8 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			validator, err := jwt.NewValidator(ks)
 			require.NoError(t, err)
 
+			jwtValidator := authjwt.NewValidator(validator, tt.expectedJWT)
+
 			var (
 				logger = zaptest.NewLogger(t)
 
@@ -273,7 +276,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationInterceptor(logger, *validator, tt.expectedJWT)(
+			_, err = JWTAuthenticationInterceptor(logger, jwtValidator)(
 				ctx,
 				nil,
 				srv,
@@ -292,6 +295,8 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 			validator, err := jwt.NewValidator(ks)
 			require.NoError(t, err)
 
+			jwtValidator := authjwt.NewValidator(validator, tt.expectedJWT)
+
 			var (
 				logger = zaptest.NewLogger(t)
 
@@ -317,7 +322,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationInterceptor(logger, *validator, tt.expectedJWT)(
+			_, err = JWTAuthenticationInterceptor(logger, jwtValidator)(
 				ctx,
 				nil,
 				srv,

@@ -159,7 +159,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 			// domains must have at least two dots to be considered valid, so we
 			// `localhost` is not a valid domain. See:
 			// https://curl.se/rfc/cookie_spec.html
-			if m.config.Domain != "localhost" {
+			if !strings.HasPrefix(m.config.Domain, "localhost") {
 				cookie.Domain = m.config.Domain
 			}
 

@@ -1,4 +1,4 @@
-package snapshot_test
+package snapshot
 
 import (
 	"fmt"

@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/server/authn"
 	"go.flipt.io/flipt/internal/server/authn/method"
 	authgithub "go.flipt.io/flipt/internal/server/authn/method/github"
+	authjwt "go.flipt.io/flipt/internal/server/authn/method/jwt"
 	authkubernetes "go.flipt.io/flipt/internal/server/authn/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/authn/method/oidc"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
@@ -111,8 +112,15 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"github\" registered")
 	}
 
+	var jwtValidator method.JWTValidator
+
 	if authCfg.Methods.Kubernetes.Enabled {
-		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
+		jwtValidator, err = authkubernetes.NewValidator(logger, authCfg.Methods.Kubernetes.Method)
+		if err != nil {
+			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+		}
+
+		kubernetesServer, err := authkubernetes.NewServer(logger, authCfg, jwtValidator)
 		if err != nil {
 			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
@@ -121,61 +129,68 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
+	// Set up JWT validator if JWT auth is enabled
+	if authCfg.Methods.JWT.Enabled {
+		var (
+			authJWT = authCfg.Methods.JWT
+			ks      jwt.KeySet
+		)
+
+		if authJWT.Method.JWKSURL != "" {
+			ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+			}
+		} else if authJWT.Method.PublicKeyFile != "" {
+			keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to read key file: %w", err)
+			}
+
+			publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+			}
+
+			ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+			}
+		}
+
+		validator, err := jwt.NewValidator(ks)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+		}
+
+		// intentionally restricted to a set of common asymmetric algorithms
+		// if we want to support symmetric algorithms, we need to add support for
+		// private keys in the configuration
+		exp := jwt.Expected{
+			SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512, jwt.EdDSA},
+		}
+
+		if authJWT.Method.ValidateClaims.Issuer != "" {
+			exp.Issuer = authJWT.Method.ValidateClaims.Issuer
+		}
+
+		if authJWT.Method.ValidateClaims.Subject != "" {
+			exp.Subject = authJWT.Method.ValidateClaims.Subject
+		}
+
+		if len(authJWT.Method.ValidateClaims.Audiences) != 0 {
+			exp.Audiences = authJWT.Method.ValidateClaims.Audiences
+		}
+
+		// wrap the validator in a method.JWTValidator implementation
+		jwtValidator = authjwt.NewValidator(validator, exp)
+	}
+
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
-		if authCfg.Methods.JWT.Enabled {
-			var (
-				authJWT = authCfg.Methods.JWT
-				ks      jwt.KeySet
-			)
-
-			if authJWT.Method.JWKSURL != "" {
-				ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
-				if err != nil {
-					return nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
-				}
-			} else if authJWT.Method.PublicKeyFile != "" {
-				keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
-				if err != nil {
-					return nil, nil, fmt.Errorf("failed to read key file: %w", err)
-				}
-
-				publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
-				if err != nil {
-					return nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
-				}
-
-				ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
-				if err != nil {
-					return nil, nil, fmt.Errorf("failed to create static key set: %w", err)
-				}
-			}
-
-			validator, err := jwt.NewValidator(ks)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
-			}
-
-			// intentionally restricted to a set of common asymmetric algorithms
-			// if we want to support symmetric algorithms, we need to add support for
-			// private keys in the configuration
-			exp := jwt.Expected{
-				SigningAlgorithms: []jwt.Alg{jwt.RS256, jwt.RS512, jwt.ES256, jwt.ES512, jwt.EdDSA},
-			}
-
-			if authJWT.Method.ValidateClaims.Issuer != "" {
-				exp.Issuer = authJWT.Method.ValidateClaims.Issuer
-			}
-
-			if authJWT.Method.ValidateClaims.Subject != "" {
-				exp.Subject = authJWT.Method.ValidateClaims.Subject
-			}
-
-			if len(authJWT.Method.ValidateClaims.Audiences) != 0 {
-				exp.Audiences = authJWT.Method.ValidateClaims.Audiences
-			}
-
-			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, *validator, exp, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+		// Register JWT validation middleware if either JWT or Kubernetes auth is enabled
+		if authCfg.Methods.JWT.Enabled || authCfg.Methods.Kubernetes.Enabled {
+			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 		}
 
 		interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(

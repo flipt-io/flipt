@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,10 +17,12 @@ import (
 
 var (
 	errVerify        = errors.New("token invalid")
-	staticID         = "staticID"
-	staticToken      = "staticToken"
 	staticTime       = timestamppb.New(time.Date(2023, 2, 17, 8, 0, 0, 0, time.UTC))
 	staticExpiration = timestamppb.New(time.Date(2023, 2, 17, 12, 0, 0, 0, time.UTC))
+)
+
+const (
+	staticToken = "somevalidtoken"
 )
 
 func Test_Server_VerifyServiceAccount(t *testing.T) {
@@ -31,14 +33,14 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 
 	for _, test := range []struct {
 		name          string
-		verifier      mockTokenVerifier
+		validator     mockTokenValidator
 		req           *auth.VerifyServiceAccountRequest
 		expectedResp  *auth.VerifyServiceAccountResponse
 		expectedErrIs error
 	}{
 		{
-			name:     "invalid service account token",
-			verifier: mockTokenVerifier{},
+			name:      "invalid service account token",
+			validator: mockTokenValidator{},
 			req: &auth.VerifyServiceAccountRequest{
 				ServiceAccountToken: "someinvalidtoken",
 			},
@@ -46,8 +48,8 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 		},
 		{
 			name: "valid service account token",
-			verifier: mockTokenVerifier{
-				"somevalidtoken": claims{
+			validator: mockTokenValidator{
+				staticToken: claims{
 					Expiration: staticExpiration.AsTime().Unix(),
 					Identity: identity{
 						Namespace: "applications",
@@ -68,7 +70,6 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 			expectedResp: &auth.VerifyServiceAccountResponse{
 				ClientToken: staticToken,
 				Authentication: &auth.Authentication{
-					Id:        staticID,
 					Method:    auth.Method_METHOD_KUBERNETES,
 					ExpiresAt: staticExpiration,
 					CreatedAt: staticTime,
@@ -86,21 +87,18 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 	} {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			var (
-				store = memory.NewStore(logger,
-					memory.WithIDGeneratorFunc(func() string { return staticID }),
-					memory.WithTokenGeneratorFunc(func() string { return staticToken }),
-					memory.WithNowFunc(func() *timestamppb.Timestamp { return staticTime }),
-				)
-				conf = config.AuthenticationConfig{}
-			)
+
+			conf := config.AuthenticationConfig{}
 
 			server := &Server{
 				logger: logger,
-				store:  store,
 				config: conf,
-				// override token verifier for unit test
-				verifier: test.verifier,
+				// override now for unit test
+				now: func() *timestamppb.Timestamp {
+					return staticTime
+				},
+				// override token validator for unit test
+				validator: test.validator,
 			}
 
 			resp, err := server.VerifyServiceAccount(ctx, test.req)
@@ -120,13 +118,23 @@ func Test_Server_SkipsAuthentication(t *testing.T) {
 	assert.True(t, server.SkipsAuthentication(context.Background()))
 }
 
-type mockTokenVerifier map[string]claims
+type mockTokenValidator map[string]claims
 
-func (m mockTokenVerifier) verify(_ context.Context, jwt string) (claims, error) {
+func (m mockTokenValidator) Validate(_ context.Context, jwt string) (map[string]any, error) {
 	claims, ok := m[jwt]
 	if !ok {
-		return claims, errVerify
+		return nil, errVerify
 	}
 
-	return claims, nil
+	jsonBytes, err := json.Marshal(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal(jsonBytes, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

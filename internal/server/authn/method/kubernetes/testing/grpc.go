@@ -10,7 +10,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/authn/method/kubernetes"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/storage/authn/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -21,7 +20,6 @@ type GRPCServer struct {
 	*grpc.Server
 
 	ClientConn *grpc.ClientConn
-	Store      *memory.Store
 
 	errc chan error
 }
@@ -34,7 +32,6 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 	t.Helper()
 
 	var (
-		store    = memory.NewStore(logger)
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
@@ -43,15 +40,15 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		)
 		grpcServer = &GRPCServer{
 			Server: server,
-			Store:  store,
 			errc:   make(chan error, 1),
 		}
 	)
 
-	srv, err := kubernetes.New(logger, store, conf)
-	if err != nil {
-		panic(err)
-	}
+	validator, err := kubernetes.NewValidator(logger, conf.Methods.Kubernetes.Method)
+	require.NoError(t, err)
+
+	srv, err := kubernetes.NewServer(logger, conf, validator)
+	require.NoError(t, err)
 
 	auth.RegisterAuthenticationMethodKubernetesServiceServer(server, srv)
 
