@@ -39,10 +39,6 @@ type identity struct {
 	ServiceAccount resource `json:"serviceaccount"`
 }
 
-type tokenVerifier interface {
-	verify(ctx context.Context, jwt string) (claims, error)
-}
-
 // Server is the core server-side implementation of the "kubernetes" authentication method.
 //
 // The method allows services deployed into the same Kubernetes cluster as Flipt to leverage
