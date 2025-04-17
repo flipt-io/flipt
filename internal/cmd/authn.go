@@ -93,7 +93,7 @@ func authenticationGRPC(
 	}
 
 	rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
-	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, storageauthmemory.NewStore(logger)))
+	rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, store))
 
 	shutdown = store.Shutdown
 

@@ -39,6 +39,7 @@ type Store interface {
 	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
 	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
 	Shutdown(context.Context) error
+	fmt.Stringer
 }
 
 // CreateAuthenticationRequest is the argument passed when creating instances

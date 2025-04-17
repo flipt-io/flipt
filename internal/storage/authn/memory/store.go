@@ -74,6 +74,10 @@ func NewStore(logger *zap.Logger, opts ...Option) *Store {
 	return store
 }
 
+func (s *Store) String() string {
+	return "memory"
+}
+
 // WithNowFunc overrides the stores now() function used to obtain
 // a protobuf timestamp representative of the current time of evaluation.
 func WithNowFunc(fn func() *timestamppb.Timestamp) Option {
