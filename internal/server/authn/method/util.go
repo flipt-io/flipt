@@ -26,3 +26,9 @@ func CallbackValidateState(ctx context.Context, state string) error {
 
 	return nil
 }
+
+// JWTValidator is a function that validates a JWT token.
+// It is the common interface between the JWT and Kubernetes methods.
+type JWTValidator interface {
+	Validate(ctx context.Context, token string) (map[string]any, error)
+}

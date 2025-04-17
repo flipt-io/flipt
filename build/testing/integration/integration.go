@@ -187,6 +187,48 @@ func (o TestOpts) JWTClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
 	))
 }
 
+func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+	t.Helper()
+
+	transport := o.newTransport(t)
+	return sdk.New(transport, sdk.WithAuthenticationProvider(
+		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(k8sServiceAccountToken(t, opts...))),
+	))
+}
+
+func k8sServiceAccountToken(t *testing.T, opts ...ClientOpt) string {
+	t.Helper()
+
+	var copts ClientOpts
+	for _, opt := range opts {
+		opt(&copts)
+	}
+
+	saToken := signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/k8s.pem", map[string]any{
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iss": "https://discover.svc",
+		"kubernetes.io": map[string]any{
+			"namespace": "integration",
+			"pod": map[string]any{
+				"name": "integration-test-7d26f049-kdurb",
+				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+			},
+			"serviceaccount": map[string]any{
+				"name": "flipt",
+				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+			},
+		},
+	})
+
+	// write out JWT into service account token slot
+	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
+
+	tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
+
+	return tokenPath
+}
+
 func jwtClaims(t *testing.T, opts ...ClientOpt) string {
 	t.Helper()
 
@@ -206,6 +248,12 @@ func jwtClaims(t *testing.T, opts ...ClientOpt) string {
 	}
 
 	return signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/jwt.pem", claims)
+}
+
+func (o TestOpts) NoAuthClientV2(t *testing.T, opts ...sdkv2.Option) sdkv2.SDK {
+	t.Helper()
+
+	return sdkv2.New(o.newTransportV2(t), opts...)
 }
 
 func (o TestOpts) TokenClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
@@ -239,46 +287,12 @@ func (o TestOpts) JWTClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
 	))
 }
 
-func (o TestOpts) K8sClient(t *testing.T, opts ...ClientOpt) sdk.SDK {
+func (o TestOpts) K8sClientV2(t *testing.T, opts ...ClientOpt) sdkv2.SDK {
 	t.Helper()
 
-	var copts ClientOpts
-	for _, opt := range opts {
-		opt(&copts)
-	}
-
-	saToken := signWithPrivateKeyClaims(t, "/var/run/secrets/flipt/k8s.pem", map[string]any{
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"iss": "https://discover.svc",
-		"kubernetes.io": map[string]any{
-			"namespace": "integration",
-			"pod": map[string]any{
-				"name": "integration-test-7d26f049-kdurb",
-				"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-			},
-			"serviceaccount": map[string]any{
-				"name": "flipt",
-				"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
-			},
-		},
-	})
-
-	// write out JWT into service account token slot
-	require.NoError(t, os.MkdirAll("/var/run/secrets/kubernetes.io/serviceaccount", 0755))
-
-	tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
-	require.NoError(t, os.WriteFile(tokenPath, []byte(saToken), 0644))
-
-	transport := o.newTransport(t)
-	return sdk.New(transport, sdk.WithAuthenticationProvider(
-		sdk.NewKubernetesAuthenticationProvider(transport, sdk.WithKubernetesServiceAccountTokenPath(tokenPath)),
+	return sdkv2.New(o.newTransportV2(t), sdkv2.WithAuthenticationProvider(
+		sdk.NewKubernetesAuthenticationProvider(o.newTransport(t), sdk.WithKubernetesServiceAccountTokenPath(k8sServiceAccountToken(t, opts...))),
 	))
-}
-
-func (o TestOpts) ClientV2(t *testing.T, opts ...sdkv2.Option) sdkv2.SDK {
-	t.Helper()
-
-	return sdkv2.New(o.newTransportV2(t), opts...)
 }
 
 func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]any) string {

@@ -17,19 +17,19 @@ import (
 	"go.uber.org/zap"
 )
 
-// kubernetesOIDCVerifier uses the go-oidc library to obtain the OIDC configuration
+// kubernetesOIDCValidator uses the go-oidc library to obtain the OIDC configuration
 // and JWKS key material, in order to verify Kubernetes issued service account tokens.
 // It is configured to leverage the local systems own service account token and the clusters
 // CA certificate in order to obtain this information from the local cluster.
 // The material returned from the OIDC configuration endpoints is trusted as the signing party
 // in order to validate presented service account tokens.
-type kubernetesOIDCVerifier struct {
+type kubernetesOIDCValidator struct {
 	logger   *zap.Logger
 	config   config.AuthenticationMethodKubernetesConfig
 	provider *oidc.Provider
 }
 
-func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationMethodKubernetesConfig) (*kubernetesOIDCVerifier, error) {
+func NewValidator(logger *zap.Logger, config config.AuthenticationMethodKubernetesConfig) (*kubernetesOIDCValidator, error) {
 	ctx := context.Background()
 	caCert, err := os.ReadFile(config.CAPath)
 	if err != nil {
@@ -107,28 +107,33 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 		return nil, err
 	}
 
-	return &kubernetesOIDCVerifier{
+	return &kubernetesOIDCValidator{
 		logger:   logger,
 		config:   config,
 		provider: provider,
 	}, nil
 }
 
-func (k *kubernetesOIDCVerifier) verify(ctx context.Context, jwt string) (c claims, err error) {
+func (k *kubernetesOIDCValidator) Validate(ctx context.Context, jwt string) (map[string]any, error) {
 	token, err := k.provider.Verifier(&oidc.Config{
 		// we're not interested in the OIDC client ID
 		// as we're not doing a real OAuth 2 flow.
 		SkipClientIDCheck: true,
 	}).Verify(ctx, jwt)
 	if err != nil {
-		return c, err
+		return nil, err
 	}
 
-	c.Expiration = token.Expiry.Unix()
+	claims := map[string]any{
+		"exp": token.Expiry.Unix(),
+	}
 
-	err = token.Claims(&c)
+	err = token.Claims(&claims)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return claims, nil
 }
 
 type transportFunc func(*http.Request) (*http.Response, error)

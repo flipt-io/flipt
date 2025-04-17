@@ -1,4 +1,4 @@
-package ofrep_test
+package ofrep
 
 import (
 	"context"

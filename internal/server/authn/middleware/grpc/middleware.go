@@ -14,8 +14,8 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/server/authn/method"
 	middlewarecommon "go.flipt.io/flipt/internal/server/authn/middleware/common"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -148,7 +148,7 @@ func JWTInterceptorSelector() selector.Matcher {
 	})
 }
 
-func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, expected jwt.Expected, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func JWTAuthenticationInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -174,7 +174,7 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator jwt.Validator, e
 			return ctx, errUnauthenticated
 		}
 
-		jwtClaims, err := validator.Validate(ctx, token, expected)
+		jwtClaims, err := validator.Validate(ctx, token)
 		if err != nil {
 			logger.Error("unauthenticated",
 				zap.String("reason", "error validating jwt"),
