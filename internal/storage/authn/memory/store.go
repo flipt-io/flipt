@@ -290,6 +290,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expires
 	}
 
 	authentication.ExpiresAt = expiresAt
+	authentication.UpdatedAt = s.now()
 	return nil
 }
 
