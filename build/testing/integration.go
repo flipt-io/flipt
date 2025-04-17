@@ -276,6 +276,30 @@ func authz() testCaseFn {
 			WithEnvVariable("FLIPT_AUTHORIZATION_REQUIRED", "true").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
+		// JWT auth configuration
+		bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+		if err != nil {
+			return func() error { return err }
+		}
+
+		bytes = pem.EncodeToMemory(&pem.Block{
+			Type:  "public key",
+			Bytes: bytes,
+		})
+
+		flipt = flipt.
+			WithNewFile("/etc/flipt/jwt.pem", string(bytes)).
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_ENABLED", "true").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_PUBLIC_KEY_FILE", "/etc/flipt/jwt.pem").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_JWT_VALIDATE_CLAIMS_ISSUER", "https://flipt.io")
+
+		privBytes := pem.EncodeToMemory(&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(priv),
+		})
+
+		base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
+
 		return suite(ctx, "authz", base, flipt, conf)
 	}, namespacesTestdataDir))
 }
