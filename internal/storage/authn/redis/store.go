@@ -347,8 +347,37 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		return fmt.Errorf("getting authentication by id: %w", err)
 	}
 
+	// Then get the authentication record
+	authJSON, err := s.client.HGet(ctx, idKey, authenticationKey).Result()
+	if err != nil {
+		if errs.Is(err, goredis.Nil) {
+			return errors.ErrNotFoundf("getting authentication record")
+		}
+		return fmt.Errorf("getting authentication record: %w", err)
+	}
+
+	// Unmarshal the existing authentication
+	auth := &auth.Authentication{}
+	if err := protojson.Unmarshal([]byte(authJSON), auth); err != nil {
+		return fmt.Errorf("unmarshalling authentication: %w", err)
+	}
+
+	// Update the ExpiresAt field in the authentication record
+	auth.ExpiresAt = expireAt
+	// Update UpdatedAt to current time
+	auth.UpdatedAt = s.now()
+
+	// Marshal the updated authentication record
+	updatedAuthJSON, err := protojson.Marshal(auth)
+	if err != nil {
+		return fmt.Errorf("marshalling authentication: %w", err)
+	}
+
 	// Update expiry in a pipeline
 	pipe := s.client.Pipeline()
+
+	// Update the authentication record with new ExpiresAt
+	pipe.HSet(ctx, idKey, authenticationKey, updatedAuthJSON)
 
 	// Update expiry in hash
 	pipe.HSet(ctx, idKey, expiresAtKey, expireAt.AsTime().UnixNano())
