@@ -64,7 +64,7 @@ type Option func(*Store)
 func NewStore(c *goredis.Client, logger *zap.Logger, opts ...Option) *Store {
 	store := &Store{
 		client:             c,
-		logger:             logger,
+		logger:             logger.With(zap.String("store", "redis")),
 		now:                rpcflipt.Now,
 		generateID:         uuid.NewString,
 		generateToken:      authn.GenerateRandomToken,
@@ -76,6 +76,10 @@ func NewStore(c *goredis.Client, logger *zap.Logger, opts ...Option) *Store {
 	}
 
 	return store
+}
+
+func (s *Store) String() string {
+	return "redis"
 }
 
 // WithNowFunc overrides the stores now() function used to obtain
