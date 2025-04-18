@@ -5,7 +5,6 @@ toolchain go1.23.2
 use (
 	.
 	./_tools
-	./build
 	./core
 	./errors
 	./internal/cmd/protoc-gen-go-flipt-sdk
