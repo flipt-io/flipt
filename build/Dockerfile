@@ -16,7 +16,6 @@ RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
 COPY $BINARY /
-COPY config/*.yml /etc/flipt/config/
 
 RUN addgroup flipt && \
     adduser -S -D -g '' -G flipt -s /bin/sh flipt && \
