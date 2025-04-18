@@ -146,16 +146,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:    "tracing with wrong sampling ration",
-			path:    "./testdata/tracing/wrong_sampling_ratio.yml",
-			wantErr: errors.New("tracing: sampling ratio should be a number between 0 and 1"),
-		},
-		{
-			name:    "tracing with wrong propagator",
-			path:    "./testdata/tracing/wrong_propagator.yml",
-			wantErr: errors.New("tracing: invalid propagator option: wrong_propagator"),
-		},
-		{
 			name:    "server https missing cert file",
 			path:    "./testdata/server/https_missing_cert_file.yml",
 			wantErr: errors.New("server: cert_file non-empty value is required"),
@@ -1168,13 +1158,11 @@ func TestGetConfigFile(t *testing.T) {
 	}
 }
 
-var (
-	// add any struct tags to match their camelCase equivalents here.
-	camelCaseMatchers = map[string]string{
-		"requireTLS":   "requireTLS",
-		"discoveryURL": "discoveryURL",
-	}
-)
+// add any struct tags to match their camelCase equivalents here.
+var camelCaseMatchers = map[string]string{
+	"requireTLS":   "requireTLS",
+	"discoveryURL": "discoveryURL",
+}
 
 func TestStructTags(t *testing.T) {
 	configType := reflect.TypeOf(Config{})

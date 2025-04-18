@@ -6,6 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/bufbuild/buf v1.46.0
+	github.com/golangci/golangci-lint/v2 v2.1.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.32.0

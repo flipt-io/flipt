@@ -408,7 +408,6 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 	authzOnce.Do(func() {
 		var err error
 		validator, err = authzrego.NewEngine(ctx, logger, cfg)
-
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return
@@ -416,16 +415,4 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 	})
 
 	return validator, authzFunc, authzErr
-}
-
-// getStringSlice receives any slice which the underline member type is "string"
-// and return a new slice with the same members but transformed to "string" type.
-// This is useful when we want to convert an enum slice of strings.
-func getStringSlice[AnyString ~string, Slice []AnyString](slice Slice) []string {
-	strSlice := make([]string, 0, len(slice))
-	for _, anyString := range slice {
-		strSlice = append(strSlice, string(anyString))
-	}
-
-	return strSlice
 }

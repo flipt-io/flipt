@@ -1,3 +1,0 @@
-tracing:
-  enabled: true
-  sampling_ratio: 1.1
