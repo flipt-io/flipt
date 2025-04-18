@@ -605,15 +605,7 @@ func Default() *Config {
 		},
 
 		Tracing: TracingConfig{
-			Enabled:       false,
-			SamplingRatio: 1,
-			Propagators: []TracingPropagator{
-				TracingPropagatorTraceContext,
-				TracingPropagatorBaggage,
-			},
-			OTLP: OTLPTracingConfig{
-				Endpoint: "localhost:4317",
-			},
+			Enabled: false,
 		},
 
 		Meta: MetaConfig{

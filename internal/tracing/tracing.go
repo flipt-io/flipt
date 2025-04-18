@@ -2,14 +2,10 @@ package tracing
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 	"sync"
 
 	"go.flipt.io/flipt/internal/config"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -44,7 +40,6 @@ func NewProvider(ctx context.Context, fliptVersion string, cfg config.TracingCon
 
 	return tracesdk.NewTracerProvider(
 		tracesdk.WithResource(traceResource),
-		tracesdk.WithSampler(tracesdk.TraceIDRatioBased(cfg.SamplingRatio)),
 	), nil
 }
 
@@ -59,45 +54,12 @@ var (
 // Supports Jaeger, Zipkin and OTLP
 func GetExporter(ctx context.Context, cfg *config.TracingConfig) (tracesdk.SpanExporter, func(context.Context) error, error) {
 	traceExpOnce.Do(func() {
-
-		u, err := url.Parse(cfg.OTLP.Endpoint)
+		traceExp, err := autoexport.NewSpanExporter(ctx)
 		if err != nil {
-			traceExpErr = fmt.Errorf("parsing otlp endpoint: %w", err)
+			traceExpErr = err
 			return
 		}
 
-		var client otlptrace.Client
-		switch u.Scheme {
-		case "https":
-			client = otlptracehttp.NewClient(
-				otlptracehttp.WithEndpoint(u.Host+u.Path),
-				otlptracehttp.WithHeaders(cfg.OTLP.Headers),
-			)
-		case "http":
-			client = otlptracehttp.NewClient(
-				otlptracehttp.WithEndpoint(u.Host+u.Path),
-				otlptracehttp.WithHeaders(cfg.OTLP.Headers),
-				otlptracehttp.WithInsecure(),
-			)
-		case "grpc":
-			// TODO: support additional configuration options
-			client = otlptracegrpc.NewClient(
-				otlptracegrpc.WithEndpoint(u.Host+u.Path),
-				otlptracegrpc.WithHeaders(cfg.OTLP.Headers),
-				// TODO: support TLS
-				otlptracegrpc.WithInsecure(),
-			)
-		default:
-			// because of url parsing ambiguity, we'll assume that the endpoint is a host:port with no scheme
-			client = otlptracegrpc.NewClient(
-				otlptracegrpc.WithEndpoint(cfg.OTLP.Endpoint),
-				otlptracegrpc.WithHeaders(cfg.OTLP.Headers),
-				// TODO: support TLS
-				otlptracegrpc.WithInsecure(),
-			)
-		}
-
-		traceExp, traceExpErr = otlptrace.New(ctx, client)
 		traceExpFunc = func(ctx context.Context) error {
 			return traceExp.Shutdown(ctx)
 		}

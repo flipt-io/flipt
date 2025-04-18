@@ -23,11 +23,6 @@ server:
   cert_file: "./testdata/ssl_cert.pem"
   cert_key: "./testdata/ssl_key.pem"
 
-tracing:
-  enabled: true
-  otlp:
-    endpoint: "localhost:4318"
-
 storage:
   default:
     remote: https://github.com/flipt-io/flipt.git

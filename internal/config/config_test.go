@@ -52,31 +52,6 @@ func TestScheme(t *testing.T) {
 	}
 }
 
-func TestTracingExporter(t *testing.T) {
-	tests := []struct {
-		name     string
-		exporter TracingExporter
-		want     string
-	}{
-		{
-			name:     "otlp",
-			exporter: TracingOTLP,
-			want:     "otlp",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			exporter = tt.exporter
-			want     = tt.want
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, want, exporter.String())
-		})
-	}
-}
-
 func TestLogEncoding(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -179,18 +154,6 @@ func TestLoad(t *testing.T) {
 			name:    "tracing with wrong propagator",
 			path:    "./testdata/tracing/wrong_propagator.yml",
 			wantErr: errors.New("tracing: invalid propagator option: wrong_propagator"),
-		},
-		{
-			name: "tracing OTLP",
-			path: "./testdata/tracing/otlp.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Tracing.SamplingRatio = 0.5
-				cfg.Tracing.Enabled = true
-				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
-				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
-				return cfg
-			},
 		},
 		{
 			name:    "server https missing cert file",
@@ -527,18 +490,6 @@ func TestLoad(t *testing.T) {
 							Username: "user",
 							Password: "pass",
 						},
-					},
-				}
-
-				cfg.Tracing = TracingConfig{
-					Enabled:       true,
-					SamplingRatio: 1,
-					Propagators: []TracingPropagator{
-						TracingPropagatorTraceContext,
-						TracingPropagatorBaggage,
-					},
-					OTLP: OTLPTracingConfig{
-						Endpoint: "localhost:4318",
 					},
 				}
 

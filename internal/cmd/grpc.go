@@ -290,7 +290,7 @@ func NewGRPCServer(
 
 	otel.SetTracerProvider(tracingProvider)
 
-	textMapPropagator, err := autoprop.TextMapPropagator(getStringSlice(cfg.Tracing.Propagators)...)
+	textMapPropagator, err := autoprop.TextMapPropagator()
 	if err != nil {
 		return nil, fmt.Errorf("error constructing tracing text map propagator: %w", err)
 	}
