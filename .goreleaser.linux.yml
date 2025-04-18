@@ -10,7 +10,7 @@ monorepo:
   tag_prefix: v
 
 changelog:
-  disable: "{{ .IsNightly }}"
+  disable: true
 
 builds:
   - main: ./cmd/flipt/.
