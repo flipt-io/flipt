@@ -35,7 +35,6 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     files:
       - LICENSE
-      - CHANGELOG.md
       - ./config/default.yml
 
 checksum:
