@@ -20,7 +20,7 @@ builds:
     goamd64:
       - v1
     prebuilt:
-      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
+      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}{{ with .Arm64 }}_{{ . }}{{ end }}/flipt
     binary: flipt
 
 sboms:
@@ -35,8 +35,6 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     files:
       - LICENSE
-      - CHANGELOG.md
-      - ./config/default.yml
 
 checksum:
   name_template: "checksums.txt"
@@ -48,7 +46,7 @@ release:
     ## Installation
     ### Homebrew :beer:
     ```bash
-      brew install flipt-io/brew/flipt
+      brew install flipt-io/brew/flipt@2
     ```
     ### Docker Images :whale:
     ```bash
@@ -62,16 +60,17 @@ release:
     - [Discord](https://flipt.io/discord)
     - [Github Discussions](https://github.com/flipt-io/flipt/discussions)
     - [Github Issues](https://github.com/flipt-io/flipt/issues)
-    - [Newsletter](https://www.flipt.io/#newsletter)    
+    - [Website](https://flipt.io)
 
 snapshot:
-  version_template: "{{ .ShortCommit }}-snapshot"
+  version_template: "v2-{{ .ShortCommit }}-snapshot"
 
 nightly:
   # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  version_template: "{{ incpatch .Version }}-nightly"
+  version_template: "v2-nightly"
 
 changelog:
+  disable: true
   use: github
   format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
   sort: asc
@@ -94,46 +93,51 @@ dockers:
     goos: linux
     goarch: amd64
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-amd64{{ else }}flipt/flipt:v{{ .Major }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64{{ end }}"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-    extra_files:
-      - config/default.yml
 
   - dockerfile: ./build/Dockerfile
     use: buildx
     goos: linux
     goarch: arm64
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-arm64{{ else }}flipt/flipt:v{{ .Major }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64{{ end }}"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-    extra_files:
-      - config/default.yml
 
 docker_manifests:
-  - name_template: "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly{{ else }}flipt/flipt:v{{ .Tag }}{{ end }}"
+  - name_template: "{{ if .IsNightly }}flipt/flipt:v2-nightly{{ else }}flipt/flipt:v{{ .Tag }}{{ end }}"
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
 
-  - name_template: "{{ if .IsNightly }}markphelps/flipt:v{{ incpatch .Version }}-nightly{{ else }}markphelps/flipt:v{{ .Tag }}{{ end }}" # TODO: deprecate
+  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}{{ end }}"
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
 
-  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}{{ end }}"
+  - name_template: "{{ if .IsNightly }}flipt/flipt:v2-nightly{{ else }}flipt/flipt:v{{ .Major }}{{ end }}"
     image_templates:
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-amd64{{ else }}flipt/flipt:v{{ .Major }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}flipt/flipt:v2-nightly-arm64{{ else }}flipt/flipt:v{{ .Major }}-arm64{{ end }}"
+
+  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}{{ end }}"
+    image_templates:
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64{{ end }}"
+      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-nightly-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64{{ end }}"
 
 announce:
   discord:
@@ -143,10 +147,10 @@ announce:
     channel: "#releases"
 
 brews:
-  - name: flipt
+  - name: flipt@2
     homepage: https://flipt.io
-    description: Enterprise-ready, GitOps enabled, CloudNative feature management solution
-    license: GPL-3.0-only
+    description: A Git-first, CloudNative feature management solution
+    license: FCL-1.0-MIT
     directory: Formula
     skip_upload: auto
     install: |
@@ -160,7 +164,7 @@ brews:
       (var/"log/flipt").mkpath
 
     service: |
-      run [opt_bin/"flipt"]
+      run [opt_bin/"flipt", "server"]
       environment_variables PATH: std_service_path_env
       keep_alive true
       error_log_path "#{var}/log/flipt/server-stderr.log"

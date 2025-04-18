@@ -16,19 +16,23 @@ jobs:
           setup_only: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      # TODO: also include v2/environments
       - uses: bufbuild/buf-action@v1
         with:
           input: "rpc/flipt"
           lint: true
 
+      # TODO: also include v2/environments
       - uses: bufbuild/buf-action@v1
         with:
           input: "rpc/flipt"
           breaking: true
-          breaking_against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
+          breaking_against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=v2"
 
-      - uses: bufbuild/buf-action@v1
-        with:
-          input: "rpc/flipt"
-          push: true
-          token: ${{ secrets.BUF_TOKEN }}
+      # TODO: we need to version the protos for pushing
+      # TODO: also include v2/environments
+#       - uses: bufbuild/buf-action@v1
+#         with:
+#           input: "rpc/flipt"
+#           push: true
+#           token: ${{ secrets.BUF_TOKEN }}

@@ -102,7 +102,7 @@ function InnerLayout() {
             />
           </div>
         )}
-        <main className={`flex flex-1 ${!dismissedBanner ? 'pt-8' : 'pt-20'}`}>
+        <main className={`flex flex-1 ${!dismissedBanner ? 'pt-8' : 'pt-24'}`}>
           <div className="mx-auto w-full lg:max-w-(--breakpoint-lg) xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>

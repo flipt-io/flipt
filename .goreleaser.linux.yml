@@ -9,11 +9,14 @@ git:
 monorepo:
   tag_prefix: v
 
+changelog:
+  disable: true
+
 builds:
   - main: ./cmd/flipt/.
     ldflags:
       - -s -w
-      - -X main.version={{ .PrefixedTag }}
+      - -X main.v=v2.0.0
       - -X main.commit={{ .Commit }}
       - -X main.date={{ .Date }}
       - -X main.analyticsKey={{ .Env.ANALYTICS_WRITE_KEY }}
