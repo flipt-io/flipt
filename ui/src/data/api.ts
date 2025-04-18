@@ -6,7 +6,7 @@ import { IAuthOIDCInternal } from '~/types/auth/OIDC';
 
 import { getUser } from '~/data/user';
 
-export const apiURL = 'v2/environments';
+export const apiURL = 'api/v2/environments';
 export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
 export const internalURL = 'internal/v1';

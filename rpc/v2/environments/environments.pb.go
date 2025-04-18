@@ -7,6 +7,8 @@
 package environments
 
 import (
+	_ "github.com/google/gnostic/openapiv3"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -1111,7 +1113,7 @@ var File_environments_proto protoreflect.FileDescriptor
 
 const file_environments_proto_rawDesc = "" +
 	"\n" +
-	"\x12environments.proto\x12\fenvironments\x1a\x19google/protobuf/any.proto\"^\n" +
+	"\x12environments.proto\x12\fenvironments\x1a\x19google/protobuf/any.proto\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\"^\n" +
 	"\vEnvironment\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -1188,19 +1190,19 @@ const file_environments_proto_rawDesc = "" +
 	"\x03key\x18\x04 \x01(\tR\x03key\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"4\n" +
 	"\x16DeleteResourceResponse\x12\x1a\n" +
-	"\brevision\x18d \x01(\tR\brevision2\x89\b\n" +
-	"\x13EnvironmentsService\x12c\n" +
-	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"\x00\x12T\n" +
-	"\fGetNamespace\x12!.environments.GetNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"\x00\x12]\n" +
-	"\x0eListNamespaces\x12#.environments.ListNamespacesRequest\x1a$.environments.ListNamespacesResponse\"\x00\x12Z\n" +
-	"\x0fCreateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"\x00\x12Z\n" +
-	"\x0fUpdateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"\x00\x12`\n" +
-	"\x0fDeleteNamespace\x12$.environments.DeleteNamespaceRequest\x1a%.environments.DeleteNamespaceResponse\"\x00\x12Q\n" +
-	"\vGetResource\x12 .environments.GetResourceRequest\x1a\x1e.environments.ResourceResponse\"\x00\x12Z\n" +
-	"\rListResources\x12\".environments.ListResourcesRequest\x1a#.environments.ListResourcesResponse\"\x00\x12W\n" +
-	"\x0eCreateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"\x00\x12W\n" +
-	"\x0eUpdateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"\x00\x12]\n" +
-	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"\x00B'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
+	"\brevision\x18d \x01(\tR\brevision2\x87\x10\n" +
+	"\x13EnvironmentsService\x12\x94\x01\n" +
+	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xa4\x01\n" +
+	"\fGetNamespace\x12!.environments.GetNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x0e*\fgetNamespace\x82\xd3\xe4\x93\x029\x127/api/v2/environments/{environment_key}/namespaces/{key}\x12\xa9\x01\n" +
+	"\x0eListNamespaces\x12#.environments.ListNamespacesRequest\x1a$.environments.ListNamespacesResponse\"L\xbaG\x10*\x0elistNamespaces\x82\xd3\xe4\x93\x023\x121/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +
+	"\x0fCreateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x11*\x0fcreateNamespace\x82\xd3\xe4\x93\x026:\x01*\"1/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +
+	"\x0fUpdateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x11*\x0fupdateNamespace\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v2/environments/{environment_key}/namespaces\x12\xb3\x01\n" +
+	"\x0fDeleteNamespace\x12$.environments.DeleteNamespaceRequest\x1a%.environments.DeleteNamespaceResponse\"S\xbaG\x11*\x0fdeleteNamespace\x82\xd3\xe4\x93\x029*7/api/v2/environments/{environment_key}/namespaces/{key}\x12\xc7\x01\n" +
+	"\vGetResource\x12 .environments.GetResourceRequest\x1a\x1e.environments.ResourceResponse\"v\xbaG\r*\vgetResource\x82\xd3\xe4\x93\x02`\x12^/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}\x12\xcc\x01\n" +
+	"\rListResources\x12\".environments.ListResourcesRequest\x1a#.environments.ListResourcesResponse\"r\xbaG\x0f*\rlistResources\x82\xd3\xe4\x93\x02Z\x12X/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}\x12\xc0\x01\n" +
+	"\x0eCreateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0ecreateResource\x82\xd3\xe4\x93\x02P:\x01*\"K/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xc0\x01\n" +
+	"\x0eUpdateResource\x12#.environments.UpdateResourceRequest\x1a\x1e.environments.ResourceResponse\"i\xbaG\x10*\x0eupdateResource\x82\xd3\xe4\x93\x02P:\x01*\x1aK/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources\x12\xd6\x01\n" +
+	"\x0eDeleteResource\x12#.environments.DeleteResourceRequest\x1a$.environments.DeleteResourceResponse\"y\xbaG\x10*\x0edeleteResource\x82\xd3\xe4\x93\x02`*^/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}B'Z%go.flipt.io/flipt/rpc/v2/environmentsb\x06proto3"
 
 var (
 	file_environments_proto_rawDescOnce sync.Once

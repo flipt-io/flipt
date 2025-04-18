@@ -25,7 +25,7 @@ export default defineConfig({
       '/evaluate/v1': fliptAddr,
       '/internal/v1': fliptAddr,
       '/meta': fliptAddr,
-      '/v2': fliptAddr
+      '/api/v2': fliptAddr
     },
     origin: 'http://localhost:5173'
   }
