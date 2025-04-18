@@ -42,11 +42,9 @@ func TestHandler(t *testing.T) {
 
 func TestErrorHandler(t *testing.T) {
 	const defaultResponseBody = "default handler called"
-	var (
-		middleware = NewHTTPMiddleware(config.AuthenticationSessionConfig{
-			Domain: "localhost",
-		})
-	)
+	middleware := NewHTTPMiddleware(config.AuthenticationSessionConfig{
+		Domain: "localhost",
+	})
 
 	middleware.defaultErrHandler = func(ctx context.Context, sm *runtime.ServeMux, m runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
 		_, _ = w.Write([]byte(defaultResponseBody))
@@ -82,7 +80,7 @@ func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
 
 	for _, cookieName := range []string{stateCookieKey, middlewarecommon.TokenCookieKey} {
 		assert.Contains(t, cookiesMap, cookieName)
-		assert.Equal(t, "", cookiesMap[cookieName].Value)
+		assert.Empty(t, cookiesMap[cookieName].Value)
 		assert.Equal(t, "localhost", cookiesMap[cookieName].Domain)
 		assert.Equal(t, "/", cookiesMap[cookieName].Path)
 		assert.Equal(t, -1, cookiesMap[cookieName].MaxAge)

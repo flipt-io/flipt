@@ -118,7 +118,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// 	expected[i], expected[j] = expected[j], expected[i]
 		// }
 
-		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		assert.Len(t, all, len(expected), "number of authentications should match")
 		for i := 0; i < len(expected); i++ {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
@@ -191,7 +191,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		assert.Len(t, all, 24, "number of authentications should match")
 
 		expected := allAuths(append(created[:1], created[76:99]...))
-		assert.Equal(t, len(expected), len(all), "number of authentications should match")
+		assert.Len(t, all, len(expected), "number of authentications should match")
 		for i := 0; i < len(expected); i++ {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
