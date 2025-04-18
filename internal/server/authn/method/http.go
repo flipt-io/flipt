@@ -111,6 +111,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		prefix, method := path.Split(r.URL.Path)
 
+		//nolint:staticcheck
 		if !((strings.HasPrefix(prefix, oidcPrefix) || strings.HasPrefix(prefix, githubPrefix)) && method == "authorize") {
 			next.ServeHTTP(w, r)
 			return
