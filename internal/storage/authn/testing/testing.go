@@ -226,6 +226,6 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 		auth, err := store.GetAuthenticationByClientToken(ctx, created[0].Token)
 		require.NoError(t, err)
-		assert.True(t, auth.ExpiresAt.AsTime().Before(time.Now().UTC()))
+		assert.True(t, auth.ExpiresAt.AsTime().UTC().Before(time.Now().UTC()))
 	})
 }
