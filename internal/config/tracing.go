@@ -98,19 +98,6 @@ func (t TracingPropagator) isValid() bool {
 	return validOptions[t]
 }
 
-// JaegerTracingConfig contains fields, which configure
-// Jaeger span and tracing output destination.
-type JaegerTracingConfig struct {
-	Host string `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Port int    `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
-}
-
-// ZipkinTracingConfig contains fields, which configure
-// Zipkin span and tracing output destination.
-type ZipkinTracingConfig struct {
-	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
-}
-
 // OTLPTracingConfig contains fields, which configure
 // OTLP span and tracing output destination.
 type OTLPTracingConfig struct {
