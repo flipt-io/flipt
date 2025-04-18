@@ -20,7 +20,7 @@ builds:
     goamd64:
       - v1
     prebuilt:
-      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
+      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}{{ with .Arm64 }}_{{ . }}{{ end }}/flipt
     binary: flipt
 
 sboms:
