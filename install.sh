@@ -6,21 +6,49 @@
 #  / __/ / / / /_/ / /_  
 # /_/   /_/_/ .___/\__/  
 #          /_/           
+# (v2)
 #
 # Flipt installer
 #
 # Usage:
-#   curl -fsSL https://github.com/flipt-io/flipt/raw/main/install.sh | sh
+#   curl -fsSL https://github.com/flipt-io/flipt/raw/v2/install.sh | sh
 set -e
 
 file_issue_prompt() {
     echo "If you wish us to support your platform, please file an issue"
-    echo "https://github.com/flipt-io/flipt/issues/new"
+    echo "https://github.com/flipt-io/flipt/issues/new?labels=v2"
     exit 1
 }
 
 get_latest_version() {
-    res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases/latest | grep tag_name | cut -d '"' -f 4)
+    # Check if jq is available
+    if command -v jq >/dev/null 2>&1; then
+        # Use jq to parse JSON and get the latest v2.x.x release
+        # This approach properly handles semver sorting
+        res=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases" | 
+              jq -r '[.[] | select(.tag_name | startswith("v2.")) | .tag_name] | sort_by(sub("^v"; "") | split(".") | map(tonumber)) | reverse | .[0]')
+    else
+        # Fallback method if jq is not available
+        # Gets all v2.x.x releases and uses sort -V for version sorting (if available)
+        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases" | 
+                  grep -E '"tag_name": "v2\.' | 
+                  sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
+
+        if command -v sort >/dev/null 2>&1 && sort --version 2>&1 | grep -q 'GNU'; then
+            # Use GNU sort with -V for version sorting
+            res=$(echo "$releases" | sort -rV | head -n1)
+        else
+            # Fallback to basic sorting which might not handle versions correctly
+            res=$(echo "$releases" | sort -r | head -n1)
+        fi
+    fi
+
+    # If no v2.x.x release is found, output an error message
+    if [ -z "$res" ] || [ "$res" = "null" ]; then
+        echo "No v2.x.x release found" >&2
+        exit 1
+    fi
+
     echo "$res"
 }
 

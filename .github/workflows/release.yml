@@ -167,22 +167,3 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-
-        # TODO: see if we can wire up the `release-tag-latest` workflow to run
-        # after release with the same tag
-      - name: Tag and Push latest
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          cd build
-
-          if [[ $TAG == $(mage release:latest go.flipt.io/flipt) ]]; then
-            docker pull flipt/flipt:$TAG
-            skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
-
-            docker pull markphelps/flipt:$TAG
-            skopeo copy --all docker://markphelps/flipt:$TAG docker://markphelps/flipt:latest
-
-            docker pull ghcr.io/flipt-io/flipt:$TAG
-            skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
-          fi

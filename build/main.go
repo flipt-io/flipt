@@ -57,31 +57,6 @@ func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Co
 	return internal.Package(ctx, dag, base)
 }
 
-// Publishes the flipt-private container image to a target repository
-func (f *Flipt) Publish(
-	ctx context.Context,
-	source *dagger.Directory,
-	password *dagger.Secret,
-	//+optional
-	//+default="ghcr.io"
-	registry string,
-	//+optional
-	//+default="flipt-io"
-	username string,
-	//+optional
-	//+default="flipt"
-	image string,
-) (string, error) {
-	container, err := f.Build(ctx, source)
-	if err != nil {
-		return "", err
-	}
-
-	return container.
-		WithRegistryAuth(registry, username, password).
-		Publish(ctx, fmt.Sprintf("%s/%s/%s", registry, username, image))
-}
-
 type Test struct {
 	Source         *dagger.Directory
 	BaseContainer  *dagger.Container
