@@ -9,6 +9,9 @@ git:
 monorepo:
   tag_prefix: v
 
+changelog:
+  disable: "{{ .IsNightly }}"
+
 builds:
   - main: ./cmd/flipt/.
     ldflags:

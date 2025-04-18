@@ -72,7 +72,6 @@ nightly:
   version_template: "v2-nightly"
 
 changelog:
-  disable: "{{ .IsNightly }}"
   use: github
   format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
   sort: asc
