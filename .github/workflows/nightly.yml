@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: v2
 
       - uses: actions/setup-go@v5
         with:
@@ -66,9 +67,9 @@ jobs:
       - name: Prep Build
         run: mage prep
 
-      - name: Git Tag
-        run: |
-          echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+      # - name: Git Tag
+      #   run: |
+      #     echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
 
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v6
@@ -77,7 +78,7 @@ jobs:
           version: "~> v2.3.0"
           args: release --clean --nightly -f .goreleaser.${{ matrix.name }}.yml
         env:
-          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
+          # GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
@@ -135,9 +136,9 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Git Tag
-        run: |
-          echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+      # - name: Git Tag
+      #   run: |
+      #     echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
 
       - name: GoReleaser (Nightly) Release
         uses: goreleaser/goreleaser-action@v6
@@ -146,6 +147,6 @@ jobs:
           version: "~> v2.3.0"
           args: release --nightly -f .goreleaser.nightly.yml
         env:
-          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
+          # GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

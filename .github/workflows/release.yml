@@ -1,8 +1,11 @@
 name: Release
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name (e.g., v2.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -26,6 +29,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.tag_name }}
 
       - uses: actions/setup-go@v5
         with:
@@ -94,6 +98,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.tag_name }}
 
       - uses: actions/setup-go@v5
         with:
@@ -143,6 +148,7 @@ jobs:
         with:
           app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          installation_retrieval_mode: id
           installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
 
       - name: Install Mage
@@ -151,7 +157,6 @@ jobs:
           # mac build currently doesn't exist for v1.15.0 https://github.com/magefile/mage/issues/481
           version: v1.14.0
           install-only: true
-
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
