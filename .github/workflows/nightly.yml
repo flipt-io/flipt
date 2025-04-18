@@ -78,7 +78,6 @@ jobs:
           version: "~> v2.8.0"
           args: release --clean --nightly -f .goreleaser.${{ matrix.name }}.yml
         env:
-          GORELEASER_CURRENT_TAG: v2.0.0
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
@@ -147,6 +146,5 @@ jobs:
           version: "~> v2.8.0"
           args: release --nightly -f .goreleaser.nightly.yml
         env:
-          GORELEASER_CURRENT_TAG: v2.0.0
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
