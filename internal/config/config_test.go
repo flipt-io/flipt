@@ -140,8 +140,6 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Metrics.Enabled = true
 				cfg.Metrics.Exporter = MetricsOTLP
-				cfg.Metrics.OTLP.Endpoint = "http://localhost:9999"
-				cfg.Metrics.OTLP.Headers = map[string]string{"api-key": "test-key"}
 				return cfg
 			},
 		},

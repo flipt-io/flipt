@@ -53,10 +53,8 @@ var (
 // Supports Jaeger, Zipkin and OTLP
 func GetExporter(ctx context.Context) (tracesdk.SpanExporter, func(context.Context) error, error) {
 	traceExpOnce.Do(func() {
-		var err error
-		traceExp, err = autoexport.NewSpanExporter(ctx)
-		if err != nil {
-			traceExpErr = err
+		traceExp, traceExpErr = autoexport.NewSpanExporter(ctx)
+		if traceExpErr != nil {
 			return
 		}
 
