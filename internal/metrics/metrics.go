@@ -3,16 +3,14 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"sync"
 
+	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
@@ -160,62 +158,13 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 			}
 
 		case config.MetricsOTLP:
-			u, err := url.Parse(cfg.OTLP.Endpoint)
-			if err != nil {
-				metricExpErr = fmt.Errorf("parsing otlp endpoint: %w", err)
+			metricExp, metricExpErr = autoexport.NewMetricReader(ctx)
+			if metricExpErr != nil {
 				return
 			}
 
-			var exporter sdkmetric.Exporter
-
-			switch u.Scheme {
-			case "https":
-				exporter, err = otlpmetrichttp.New(ctx,
-					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
-					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
-				)
-				if err != nil {
-					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
-					return
-				}
-			case "http":
-				exporter, err = otlpmetrichttp.New(ctx,
-					otlpmetrichttp.WithEndpoint(u.Host+u.Path),
-					otlpmetrichttp.WithHeaders(cfg.OTLP.Headers),
-					otlpmetrichttp.WithInsecure(),
-				)
-				if err != nil {
-					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
-					return
-				}
-			case "grpc":
-				exporter, err = otlpmetricgrpc.New(ctx,
-					otlpmetricgrpc.WithEndpoint(u.Host+u.Path),
-					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
-					// TODO: support TLS
-					otlpmetricgrpc.WithInsecure(),
-				)
-				if err != nil {
-					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
-					return
-				}
-			default:
-				// because of url parsing ambiguity, we'll assume that the endpoint is a host:port with no scheme
-				exporter, err = otlpmetricgrpc.New(ctx,
-					otlpmetricgrpc.WithEndpoint(cfg.OTLP.Endpoint),
-					otlpmetricgrpc.WithHeaders(cfg.OTLP.Headers),
-					// TODO: support TLS
-					otlpmetricgrpc.WithInsecure(),
-				)
-				if err != nil {
-					metricExpErr = fmt.Errorf("creating otlp metrics exporter: %w", err)
-					return
-				}
-			}
-
-			metricExp = sdkmetric.NewPeriodicReader(exporter)
 			metricExpFunc = func(ctx context.Context) error {
-				return exporter.Shutdown(ctx)
+				return metricExp.Shutdown(ctx)
 			}
 		default:
 			metricExpErr = fmt.Errorf("unsupported metrics exporter: %s", cfg.Exporter)

@@ -1030,29 +1030,6 @@
             "otlp"
           ],
           "default": "prometheus"
-        },
-        "otlp": {
-          "type": [
-            "object",
-            "null"
-          ],
-          "title": "Metrics OTLP",
-          "additionalProperties": false,
-          "properties": {
-            "endpoint": {
-              "type": "string",
-              "default": "localhost:4317"
-            },
-            "headers": {
-              "type": [
-                "object",
-                "null"
-              ],
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
         }
       }
     },
@@ -1067,55 +1044,6 @@
         "enabled": {
           "type": "boolean",
           "default": false
-        },
-        "sampling_ratio": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "default": 1
-        },
-        "propagators": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "tracecontext",
-              "baggage",
-              "b3",
-              "b3multi",
-              "jaeger",
-              "xray",
-              "ottrace",
-              "none"
-            ]
-          },
-          "default": [
-            "tracecontext",
-            "baggage"
-          ]
-        },
-        "otlp": {
-          "type": [
-            "object",
-            "null"
-          ],
-          "title": "Tracing OTLP",
-          "additionalProperties": false,
-          "properties": {
-            "endpoint": {
-              "type": "string",
-              "default": "localhost:4317"
-            },
-            "headers": {
-              "type": [
-                "object",
-                "null"
-              ],
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
         }
       }
     },

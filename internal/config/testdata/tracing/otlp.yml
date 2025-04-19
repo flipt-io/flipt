@@ -1,8 +1,2 @@
 tracing:
   enabled: true
-  exporter: otlp
-  sampling_ratio: 0.5
-  otlp:
-    endpoint: http://localhost:9999
-    headers:
-      api-key: test-key

@@ -25,54 +25,10 @@ func TestGetExporter(t *testing.T) {
 			},
 		},
 		{
-			name: "otlp http exporter",
+			name: "otlp exporter",
 			cfg: &config.MetricsConfig{
 				Exporter: config.MetricsOTLP,
-				OTLP: config.OTLPMetricsConfig{
-					Endpoint: "http://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
 			},
-		},
-		{
-			name: "otlp https exporter",
-			cfg: &config.MetricsConfig{
-				Exporter: config.MetricsOTLP,
-				OTLP: config.OTLPMetricsConfig{
-					Endpoint: "https://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "otlp grpc exporter",
-			cfg: &config.MetricsConfig{
-				Exporter: config.MetricsOTLP,
-				OTLP: config.OTLPMetricsConfig{
-					Endpoint: "grpc://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "otlp default grpc exporter",
-			cfg: &config.MetricsConfig{
-				Exporter: config.MetricsOTLP,
-				OTLP: config.OTLPMetricsConfig{
-					Endpoint: "localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "invalid otlp endpoint",
-			cfg: &config.MetricsConfig{
-				Exporter: config.MetricsOTLP,
-				OTLP: config.OTLPMetricsConfig{
-					Endpoint: "://invalid",
-				},
-			},
-			wantErr: errors.New("parsing otlp endpoint: parse \"://invalid\": missing protocol scheme"),
 		},
 		{
 			name: "unsupported exporter",

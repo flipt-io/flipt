@@ -40,6 +40,7 @@ func request_EnvironmentsService_ListEnvironments_0(ctx context.Context, marshal
 		protoReq ListEnvironmentsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.ListEnvironments(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -59,6 +60,7 @@ func request_EnvironmentsService_GetNamespace_0(ctx context.Context, marshaler r
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -111,6 +113,7 @@ func request_EnvironmentsService_ListNamespaces_0(ctx context.Context, marshaler
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -233,6 +236,7 @@ func request_EnvironmentsService_DeleteNamespace_0(ctx context.Context, marshale
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -297,6 +301,7 @@ func request_EnvironmentsService_GetResource_0(ctx context.Context, marshaler ru
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -381,6 +386,7 @@ func request_EnvironmentsService_ListResources_0(ctx context.Context, marshaler 
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
@@ -567,6 +573,7 @@ func request_EnvironmentsService_DeleteResource_0(ctx context.Context, marshaler
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")

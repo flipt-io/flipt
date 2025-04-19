@@ -146,7 +146,7 @@ func NewGRPCServer(
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
-	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version, cfg.Tracing)
+	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func NewGRPCServer(
 	})
 
 	if cfg.Tracing.Enabled {
-		exp, traceExpShutdown, err := tracing.GetExporter(ctx, &cfg.Tracing)
+		exp, traceExpShutdown, err := tracing.GetExporter(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("creating tracing exporter: %w", err)
 		}
@@ -290,11 +290,7 @@ func NewGRPCServer(
 
 	otel.SetTracerProvider(tracingProvider)
 
-	textMapPropagator, err := autoprop.TextMapPropagator(getStringSlice(cfg.Tracing.Propagators)...)
-	if err != nil {
-		return nil, fmt.Errorf("error constructing tracing text map propagator: %w", err)
-	}
-	otel.SetTextMapPropagator(textMapPropagator)
+	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	if cfg.Authorization.Required {
 		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{
@@ -408,7 +404,6 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 	authzOnce.Do(func() {
 		var err error
 		validator, err = authzrego.NewEngine(ctx, logger, cfg)
-
 		if err != nil {
 			authzErr = fmt.Errorf("creating authorization policy engine: %w", err)
 			return
@@ -416,16 +411,4 @@ func getAuthz(ctx context.Context, logger *zap.Logger, cfg *config.Config) (auth
 	})
 
 	return validator, authzFunc, authzErr
-}
-
-// getStringSlice receives any slice which the underline member type is "string"
-// and return a new slice with the same members but transformed to "string" type.
-// This is useful when we want to convert an enum slice of strings.
-func getStringSlice[AnyString ~string, Slice []AnyString](slice Slice) []string {
-	strSlice := make([]string, 0, len(slice))
-	for _, anyString := range slice {
-		strSlice = append(strSlice, string(anyString))
-	}
-
-	return strSlice
 }

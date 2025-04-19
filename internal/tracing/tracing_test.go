@@ -2,12 +2,10 @@ package tracing
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
@@ -57,69 +55,6 @@ func TestNewResourceDefault(t *testing.T) {
 					assert.Equal(t, wantKeyValue, keyValue)
 				}
 			}
-		})
-	}
-}
-
-func TestGetExporter(t *testing.T) {
-	tests := []struct {
-		name    string
-		cfg     *config.TracingConfig
-		wantErr error
-	}{
-		{
-			name: "OTLP HTTP",
-			cfg: &config.TracingConfig{
-				OTLP: config.OTLPTracingConfig{
-					Endpoint: "http://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "OTLP HTTPS",
-			cfg: &config.TracingConfig{
-				OTLP: config.OTLPTracingConfig{
-					Endpoint: "https://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "OTLP GRPC",
-			cfg: &config.TracingConfig{
-				OTLP: config.OTLPTracingConfig{
-					Endpoint: "grpc://localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-		{
-			name: "OTLP default",
-			cfg: &config.TracingConfig{
-				OTLP: config.OTLPTracingConfig{
-					Endpoint: "localhost:4317",
-					Headers:  map[string]string{"key": "value"},
-				},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			traceExpOnce = sync.Once{}
-			exp, expFunc, err := GetExporter(context.Background(), tt.cfg)
-			if tt.wantErr != nil {
-				assert.EqualError(t, err, tt.wantErr.Error())
-				return
-			}
-			t.Cleanup(func() {
-				err := expFunc(context.Background())
-				assert.NoError(t, err)
-			})
-			require.NoError(t, err)
-			assert.NotNil(t, exp)
-			assert.NotNil(t, expFunc)
 		})
 	}
 }

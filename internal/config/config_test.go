@@ -52,31 +52,6 @@ func TestScheme(t *testing.T) {
 	}
 }
 
-func TestTracingExporter(t *testing.T) {
-	tests := []struct {
-		name     string
-		exporter TracingExporter
-		want     string
-	}{
-		{
-			name:     "otlp",
-			exporter: TracingOTLP,
-			want:     "otlp",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			exporter = tt.exporter
-			want     = tt.want
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, want, exporter.String())
-		})
-	}
-}
-
 func TestLogEncoding(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -165,30 +140,6 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Metrics.Enabled = true
 				cfg.Metrics.Exporter = MetricsOTLP
-				cfg.Metrics.OTLP.Endpoint = "http://localhost:9999"
-				cfg.Metrics.OTLP.Headers = map[string]string{"api-key": "test-key"}
-				return cfg
-			},
-		},
-		{
-			name:    "tracing with wrong sampling ration",
-			path:    "./testdata/tracing/wrong_sampling_ratio.yml",
-			wantErr: errors.New("tracing: sampling ratio should be a number between 0 and 1"),
-		},
-		{
-			name:    "tracing with wrong propagator",
-			path:    "./testdata/tracing/wrong_propagator.yml",
-			wantErr: errors.New("tracing: invalid propagator option: wrong_propagator"),
-		},
-		{
-			name: "tracing OTLP",
-			path: "./testdata/tracing/otlp.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Tracing.SamplingRatio = 0.5
-				cfg.Tracing.Enabled = true
-				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
-				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
 				return cfg
 			},
 		},
@@ -527,18 +478,6 @@ func TestLoad(t *testing.T) {
 							Username: "user",
 							Password: "pass",
 						},
-					},
-				}
-
-				cfg.Tracing = TracingConfig{
-					Enabled:       true,
-					SamplingRatio: 1,
-					Propagators: []TracingPropagator{
-						TracingPropagatorTraceContext,
-						TracingPropagatorBaggage,
-					},
-					OTLP: OTLPTracingConfig{
-						Endpoint: "localhost:4318",
 					},
 				}
 
@@ -1217,13 +1156,11 @@ func TestGetConfigFile(t *testing.T) {
 	}
 }
 
-var (
-	// add any struct tags to match their camelCase equivalents here.
-	camelCaseMatchers = map[string]string{
-		"requireTLS":   "requireTLS",
-		"discoveryURL": "discoveryURL",
-	}
-)
+// add any struct tags to match their camelCase equivalents here.
+var camelCaseMatchers = map[string]string{
+	"requireTLS":   "requireTLS",
+	"discoveryURL": "discoveryURL",
+}
 
 func TestStructTags(t *testing.T) {
 	configType := reflect.TypeOf(Config{})

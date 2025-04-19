@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package flipt.meta;
 
-import "google/api/visibility.proto";
 import "google/api/httpbody.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/empty.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/meta";
 
 service MetadataService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
- 
+
   rpc GetInfo(google.protobuf.Empty) returns (google.api.HttpBody) {}
 }

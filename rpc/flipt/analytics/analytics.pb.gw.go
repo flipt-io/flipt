@@ -43,6 +43,7 @@ func request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Context, mar
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["namespace_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
