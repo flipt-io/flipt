@@ -28,7 +28,7 @@ var File_meta_meta_proto protoreflect.FileDescriptor
 const file_meta_meta_proto_rawDesc = "" +
 	"\n" +
 	"\x0fmeta/meta.proto\x12\n" +
-	"flipt.meta\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/api/httpbody.proto\x1a\x1bgoogle/protobuf/empty.proto2f\n" +
+	"flipt.meta\x1a\x19google/api/httpbody.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1bgoogle/protobuf/empty.proto2f\n" +
 	"\x0fMetadataService\x129\n" +
 	"\aGetInfo\x12\x16.google.protobuf.Empty\x1a\x14.google.api.HttpBody\"\x00\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB\"Z go.flipt.io/flipt/rpc/flipt/metab\x06proto3"
 

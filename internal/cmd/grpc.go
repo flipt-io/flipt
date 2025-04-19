@@ -146,7 +146,7 @@ func NewGRPCServer(
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
-	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version, cfg.Tracing)
+	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func NewGRPCServer(
 	})
 
 	if cfg.Tracing.Enabled {
-		exp, traceExpShutdown, err := tracing.GetExporter(ctx, &cfg.Tracing)
+		exp, traceExpShutdown, err := tracing.GetExporter(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("creating tracing exporter: %w", err)
 		}
@@ -290,11 +290,7 @@ func NewGRPCServer(
 
 	otel.SetTracerProvider(tracingProvider)
 
-	textMapPropagator, err := autoprop.TextMapPropagator()
-	if err != nil {
-		return nil, fmt.Errorf("error constructing tracing text map propagator: %w", err)
-	}
-	otel.SetTextMapPropagator(textMapPropagator)
+	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	if cfg.Authorization.Required {
 		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{

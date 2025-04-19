@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -32,7 +31,7 @@ func newResource(ctx context.Context, fliptVersion string) (*resource.Resource, 
 }
 
 // NewProvider creates a new TracerProvider configured for Flipt tracing.
-func NewProvider(ctx context.Context, fliptVersion string, cfg config.TracingConfig) (*tracesdk.TracerProvider, error) {
+func NewProvider(ctx context.Context, fliptVersion string) (*tracesdk.TracerProvider, error) {
 	traceResource, err := newResource(ctx, fliptVersion)
 	if err != nil {
 		return nil, err
@@ -52,7 +51,7 @@ var (
 
 // GetExporter retrieves a configured tracesdk.SpanExporter based on the provided configuration.
 // Supports Jaeger, Zipkin and OTLP
-func GetExporter(ctx context.Context, cfg *config.TracingConfig) (tracesdk.SpanExporter, func(context.Context) error, error) {
+func GetExporter(ctx context.Context) (tracesdk.SpanExporter, func(context.Context) error, error) {
 	traceExpOnce.Do(func() {
 		traceExp, err := autoexport.NewSpanExporter(ctx)
 		if err != nil {
@@ -63,7 +62,6 @@ func GetExporter(ctx context.Context, cfg *config.TracingConfig) (tracesdk.SpanE
 		traceExpFunc = func(ctx context.Context) error {
 			return traceExp.Shutdown(ctx)
 		}
-
 	})
 
 	return traceExp, traceExpFunc, traceExpErr
