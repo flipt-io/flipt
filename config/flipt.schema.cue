@@ -251,24 +251,10 @@ import "list"
 	#metrics: {
 		enabled?:  bool | *true
 		exporter?: *"prometheus" | "otlp"
-
-		otlp?: {
-			endpoint?: string | *"localhost:4317"
-			headers?: [string]: string
-		}
 	}
 
 	#tracing: {
 		enabled?:        bool | *false
-		sampling_ratio?: float & >=0 & <=1 | *1
-		propagators?: [
-			..."tracecontext" | "baggage" | "b3" | "b3multi" | "jaeger" | "xray" | "ottrace" | "none",
-		] | *["tracecontext", "baggage"]
-
-		otlp?: {
-			endpoint?: string | *"localhost:4317"
-			headers?: [string]: string
-		}
 	}
 
 	#ui: {
