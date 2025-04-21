@@ -121,26 +121,3 @@ func TestMustFloat64Meter(t *testing.T) {
 		assert.NotNil(t, histogram)
 	})
 }
-
-func TestGetResources(t *testing.T) {
-	ctx := context.Background()
-
-	resources, err := GetResources(ctx)
-	require.NoError(t, err)
-	assert.NotNil(t, resources)
-
-	// Verify that the resource has the required attributes
-	attrs := resources.Attributes()
-	assert.NotEmpty(t, attrs)
-
-	// Check for required service name
-	var hasServiceName bool
-	for _, attr := range attrs {
-		if attr.Key == "service.name" {
-			hasServiceName = true
-			assert.Equal(t, "flipt", attr.Value.AsString())
-			break
-		}
-	}
-	assert.True(t, hasServiceName, "service.name attribute not found")
-}

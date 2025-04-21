@@ -5,23 +5,13 @@ import (
 	"fmt"
 	"sync"
 
-	"go.opentelemetry.io/contrib/exporters/autoexport"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-
 	"go.flipt.io/flipt/internal/config"
+	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
-	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
-
-func init() {
-	if otel.GetMeterProvider() == nil {
-		otel.SetMeterProvider(metricnoop.NewMeterProvider())
-	}
-}
 
 // This is memoized in the OTEL library to avoid creating multiple instances of the same exporter.
 func meter() metric.Meter {
@@ -173,20 +163,4 @@ func GetExporter(ctx context.Context, cfg *config.MetricsConfig) (sdkmetric.Read
 	})
 
 	return metricExp, metricExpFunc, metricExpErr
-}
-
-func GetResources(ctx context.Context) (*resource.Resource, error) {
-	return resource.New(
-		ctx,
-		resource.WithSchemaURL(semconv.SchemaURL),
-		resource.WithAttributes(
-			semconv.ServiceName("flipt"),
-			// semconv.ServiceVersion("v2"), TODO: set this from the semver of the flipt binary
-		),
-		resource.WithFromEnv(),
-		resource.WithTelemetrySDK(),
-		resource.WithHost(),
-		resource.WithProcessRuntimeVersion(),
-		resource.WithProcessRuntimeName(),
-	)
 }

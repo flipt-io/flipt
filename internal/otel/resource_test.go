@@ -1,4 +1,4 @@
-package tracing
+package otel
 
 import (
 	"context"
@@ -42,7 +42,7 @@ func TestNewResourceDefault(t *testing.T) {
 			for k, v := range tt.envs {
 				t.Setenv(k, v)
 			}
-			r, err := newResource(context.Background(), "test")
+			r, err := NewResource(context.Background(), "test")
 			require.NoError(t, err)
 
 			want := make(map[attribute.Key]attribute.KeyValue)
