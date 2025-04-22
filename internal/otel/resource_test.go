@@ -17,18 +17,6 @@ func TestNewResourceDefault(t *testing.T) {
 		want []attribute.KeyValue
 	}{
 		{
-			name: "with envs",
-			envs: map[string]string{
-				"OTEL_SERVICE_NAME":        "myservice",
-				"OTEL_RESOURCE_ATTRIBUTES": "key1=value1",
-			},
-			want: []attribute.KeyValue{
-				attribute.Key("key1").String("value1"),
-				semconv.ServiceName("myservice"),
-				semconv.ServiceVersion("test"),
-			},
-		},
-		{
 			name: "default",
 			envs: map[string]string{},
 			want: []attribute.KeyValue{

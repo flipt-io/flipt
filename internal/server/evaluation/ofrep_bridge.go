@@ -10,7 +10,8 @@ import (
 	"github.com/google/uuid"
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/common"
-	fliptotel "go.flipt.io/flipt/internal/server/otel"
+	"go.flipt.io/flipt/internal/server/tracing"
+	fliptotel "go.flipt.io/flipt/internal/server/tracing"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -51,10 +52,10 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 	}
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
-		fliptotel.AttributeEnvironment.String(env.Key()),
-		fliptotel.AttributeNamespace.String(namespaceKey),
-		fliptotel.AttributeFlag.String(r.Key),
-		fliptotel.AttributeProviderName,
+		tracing.AttributeEnvironment.String(env.Key()),
+		tracing.AttributeNamespace.String(namespaceKey),
+		tracing.AttributeFlag.String(r.Key),
+		tracing.AttributeProviderName,
 	)
 
 	req := &rpcevaluation.EvaluationRequest{
@@ -73,12 +74,12 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		span.SetAttributes(
-			fliptotel.AttributeMatch.Bool(resp.Match),
-			fliptotel.AttributeValue.String(resp.VariantKey),
-			fliptotel.AttributeReason.String(resp.Reason.String()),
-			fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
-			fliptotel.AttributeFlagKey(resp.FlagKey),
-			fliptotel.AttributeFlagVariant(resp.VariantKey),
+			tracing.AttributeMatch.Bool(resp.Match),
+			tracing.AttributeValue.String(resp.VariantKey),
+			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+			tracing.AttributeFlagKey(resp.FlagKey),
+			tracing.AttributeFlagVariant(resp.VariantKey),
 		)
 
 		mm := map[string]any{}

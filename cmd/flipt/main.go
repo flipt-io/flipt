@@ -268,37 +268,41 @@ func isSet(env string) bool {
 }
 
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
-	otelResource, err := otel.NewResource(ctx, v)
-	if err != nil {
-		return fmt.Errorf("creating otel resource: %w", err)
+	var err error
+
+	if isSet("OTEL_LOGS_EXPORTER") {
+		otelResource, err := otel.NewResource(ctx, v)
+		if err != nil {
+			return fmt.Errorf("creating otel resource: %w", err)
+		}
+
+		logsExp, logsExpShutdown, err := logs.GetExporter(ctx)
+		if err != nil {
+			return fmt.Errorf("creating otel log exporter: %w", err)
+		}
+
+		defer func() {
+			_ = logsExpShutdown(ctx)
+		}()
+
+		logProcessor := log.NewBatchProcessor(logsExp)
+		defer func() {
+			_ = logProcessor.Shutdown(ctx)
+		}()
+
+		loggerProvider := log.NewLoggerProvider(
+			log.WithResource(otelResource),
+			log.WithProcessor(logProcessor),
+		)
+
+		defer func() {
+			_ = loggerProvider.Shutdown(ctx)
+		}()
+
+		global.SetLoggerProvider(loggerProvider)
+		lcore := zapcore.NewTee(logger.Core(), otelzap.NewCore("flipt", otelzap.WithLoggerProvider(loggerProvider)))
+		logger = zap.New(lcore)
 	}
-
-	logsExp, logsExpShutdown, err := logs.GetExporter(ctx)
-	if err != nil {
-		return fmt.Errorf("creating otel log exporter: %w", err)
-	}
-
-	defer func() {
-		_ = logsExpShutdown(ctx)
-	}()
-
-	logProcessor := log.NewBatchProcessor(logsExp)
-	defer func() {
-		_ = logProcessor.Shutdown(ctx)
-	}()
-
-	loggerProvider := log.NewLoggerProvider(
-		log.WithResource(otelResource),
-		log.WithProcessor(logProcessor),
-	)
-
-	defer func() {
-		_ = loggerProvider.Shutdown(ctx)
-	}()
-
-	global.SetLoggerProvider(loggerProvider)
-	lcore := zapcore.NewTee(logger.Core(), otelzap.NewCore("flipt", otelzap.WithLoggerProvider(loggerProvider)))
-	logger = zap.New(lcore)
 
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
