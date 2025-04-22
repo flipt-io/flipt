@@ -11,7 +11,6 @@ import (
 	flipterrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/tracing"
-	fliptotel "go.flipt.io/flipt/internal/server/tracing"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -113,9 +112,9 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 		}
 
 		span.SetAttributes(
-			fliptotel.AttributeValue.Bool(resp.Enabled),
-			fliptotel.AttributeReason.String(resp.Reason.String()),
-			fliptotel.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+			tracing.AttributeValue.Bool(resp.Enabled),
+			tracing.AttributeReason.String(resp.Reason.String()),
+			tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
 		)
 
 		value, err := structpb.NewValue(resp.Enabled)
