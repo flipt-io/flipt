@@ -270,7 +270,7 @@ func isSet(env string) bool {
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
-	if isSet("OTEL_LOGS_EXPORTER") {
+	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
 		otelResource, err := otel.NewResource(ctx, v)
 		if err != nil {
 			return fmt.Errorf("creating otel resource: %w", err)
