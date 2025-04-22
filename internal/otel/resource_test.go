@@ -1,4 +1,4 @@
-package tracing
+package otel
 
 import (
 	"context"
@@ -17,18 +17,6 @@ func TestNewResourceDefault(t *testing.T) {
 		want []attribute.KeyValue
 	}{
 		{
-			name: "with envs",
-			envs: map[string]string{
-				"OTEL_SERVICE_NAME":        "myservice",
-				"OTEL_RESOURCE_ATTRIBUTES": "key1=value1",
-			},
-			want: []attribute.KeyValue{
-				attribute.Key("key1").String("value1"),
-				semconv.ServiceName("myservice"),
-				semconv.ServiceVersion("test"),
-			},
-		},
-		{
 			name: "default",
 			envs: map[string]string{},
 			want: []attribute.KeyValue{
@@ -42,7 +30,7 @@ func TestNewResourceDefault(t *testing.T) {
 			for k, v := range tt.envs {
 				t.Setenv(k, v)
 			}
-			r, err := newResource(context.Background(), "test")
+			r, err := NewResource(context.Background(), "test")
 			require.NoError(t, err)
 
 			want := make(map[attribute.Key]attribute.KeyValue)

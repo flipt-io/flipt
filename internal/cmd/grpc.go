@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
@@ -16,7 +15,9 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
-	"go.flipt.io/flipt/internal/metrics"
+	"go.flipt.io/flipt/internal/otel"
+	"go.flipt.io/flipt/internal/otel/metrics"
+	tracing "go.flipt.io/flipt/internal/otel/traces"
 	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
@@ -32,7 +33,6 @@ import (
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/environments"
-	"go.flipt.io/flipt/internal/tracing"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
 	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -40,7 +40,7 @@ import (
 	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
+	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
@@ -111,13 +111,13 @@ func NewGRPCServer(
 		return nil, err
 	}
 
+	otelResource, err := otel.NewResource(ctx, info.Build.Version)
+	if err != nil {
+		return nil, fmt.Errorf("creating otel resource: %w", err)
+	}
+
 	// Initialize metrics exporter if enabled
 	if cfg.Metrics.Enabled {
-		metricsResource, err := metrics.GetResources(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("creating metrics resource: %w", err)
-		}
-
 		metricExp, metricExpShutdown, err := metrics.GetExporter(ctx, &cfg.Metrics)
 		if err != nil {
 			return nil, fmt.Errorf("creating metrics exporter: %w", err)
@@ -126,10 +126,10 @@ func NewGRPCServer(
 		server.onShutdown(metricExpShutdown)
 
 		meterProvider := metricsdk.NewMeterProvider(
-			metricsdk.WithResource(metricsResource),
+			metricsdk.WithResource(otelResource),
 			metricsdk.WithReader(metricExp),
 		)
-		otel.SetMeterProvider(meterProvider)
+		opentelemetry.SetMeterProvider(meterProvider)
 		server.onShutdown(meterProvider.Shutdown)
 
 		// We only want to start the runtime metrics by open telemetry if the user have chosen
@@ -146,13 +146,11 @@ func NewGRPCServer(
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
-	tracingProvider, err := tracing.NewProvider(ctx, info.Build.Version)
-	if err != nil {
-		return nil, err
-	}
-	server.onShutdown(func(ctx context.Context) error {
-		return tracingProvider.Shutdown(ctx)
-	})
+	tracingProvider := tracesdk.NewTracerProvider(
+		tracesdk.WithResource(otelResource),
+	)
+
+	server.onShutdown(tracingProvider.Shutdown)
 
 	if cfg.Tracing.Enabled {
 		exp, traceExpShutdown, err := tracing.GetExporter(ctx)
@@ -162,10 +160,15 @@ func NewGRPCServer(
 
 		server.onShutdown(traceExpShutdown)
 
-		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
+		tracingProcessor := tracesdk.NewBatchSpanProcessor(exp)
+		server.onShutdown(tracingProcessor.Shutdown)
 
+		tracingProvider.RegisterSpanProcessor(tracingProcessor)
 		logger.Debug("otel tracing enabled")
 	}
+
+	opentelemetry.SetTracerProvider(tracingProvider)
+	opentelemetry.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	// base inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
@@ -283,14 +286,6 @@ func NewGRPCServer(
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
 		)...,
 	)
-
-	server.onShutdown(func(ctx context.Context) error {
-		return tracingProvider.Shutdown(ctx)
-	})
-
-	otel.SetTracerProvider(tracingProvider)
-
-	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	if cfg.Authorization.Required {
 		authzOpts := []containers.Option[authzmiddlewaregrpc.InterceptorOptions]{

@@ -23,9 +23,14 @@ import (
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/otel"
+	"go.flipt.io/flipt/internal/otel/logs"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
+	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/sdk/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -263,6 +268,42 @@ func isSet(env string) bool {
 }
 
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
+	var err error
+
+	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
+		otelResource, err := otel.NewResource(ctx, v)
+		if err != nil {
+			return fmt.Errorf("creating otel resource: %w", err)
+		}
+
+		logsExp, logsExpShutdown, err := logs.GetExporter(ctx)
+		if err != nil {
+			return fmt.Errorf("creating otel log exporter: %w", err)
+		}
+
+		defer func() {
+			_ = logsExpShutdown(ctx)
+		}()
+
+		logProcessor := log.NewBatchProcessor(logsExp)
+		defer func() {
+			_ = logProcessor.Shutdown(ctx)
+		}()
+
+		loggerProvider := log.NewLoggerProvider(
+			log.WithResource(otelResource),
+			log.WithProcessor(logProcessor),
+		)
+
+		defer func() {
+			_ = loggerProvider.Shutdown(ctx)
+		}()
+
+		global.SetLoggerProvider(loggerProvider)
+		lcore := zapcore.NewTee(logger.Core(), otelzap.NewCore("flipt", otelzap.WithLoggerProvider(loggerProvider)))
+		logger = zap.New(lcore)
+	}
+
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
 	if isConsole {
@@ -274,7 +315,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var (
 		isRelease   = release.Is(v)
 		releaseInfo release.Info
-		err         error
 	)
 
 	if cfg.Meta.CheckForUpdates && isRelease {

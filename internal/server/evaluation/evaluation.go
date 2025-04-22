@@ -15,7 +15,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	environments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/metrics"
-	fliptotel "go.flipt.io/flipt/internal/server/otel"
+	"go.flipt.io/flipt/internal/server/tracing"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -50,18 +50,18 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		fliptotel.AttributeEnvironment.String(env.Key()),
-		fliptotel.AttributeNamespace.String(r.NamespaceKey),
-		fliptotel.AttributeFlag.String(r.FlagKey),
-		fliptotel.AttributeEntityID.String(r.EntityId),
-		fliptotel.AttributeRequestID.String(r.RequestId),
-		fliptotel.AttributeMatch.Bool(resp.Match),
-		fliptotel.AttributeValue.String(resp.VariantKey),
-		fliptotel.AttributeReason.String(resp.Reason.String()),
-		fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
-		fliptotel.AttributeFlagKey(resp.FlagKey),
-		fliptotel.AttributeProviderName,
-		fliptotel.AttributeFlagVariant(resp.VariantKey),
+		tracing.AttributeEnvironment.String(env.Key()),
+		tracing.AttributeNamespace.String(r.NamespaceKey),
+		tracing.AttributeFlag.String(r.FlagKey),
+		tracing.AttributeEntityID.String(r.EntityId),
+		tracing.AttributeRequestID.String(r.RequestId),
+		tracing.AttributeMatch.Bool(resp.Match),
+		tracing.AttributeValue.String(resp.VariantKey),
+		tracing.AttributeReason.String(resp.Reason.String()),
+		tracing.AttributeSegments.StringSlice(resp.SegmentKeys),
+		tracing.AttributeFlagKey(resp.FlagKey),
+		tracing.AttributeProviderName,
+		tracing.AttributeFlagVariant(resp.VariantKey),
 	}
 
 	// add otel attributes to span
@@ -285,16 +285,16 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		fliptotel.AttributeEnvironment.String(env.Key()),
-		fliptotel.AttributeNamespace.String(r.NamespaceKey),
-		fliptotel.AttributeFlag.String(r.FlagKey),
-		fliptotel.AttributeEntityID.String(r.EntityId),
-		fliptotel.AttributeRequestID.String(r.RequestId),
-		fliptotel.AttributeValue.Bool(resp.Enabled),
-		fliptotel.AttributeReason.String(resp.Reason.String()),
-		fliptotel.AttributeFlagKey(r.FlagKey),
-		fliptotel.AttributeProviderName,
-		fliptotel.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+		tracing.AttributeEnvironment.String(env.Key()),
+		tracing.AttributeNamespace.String(r.NamespaceKey),
+		tracing.AttributeFlag.String(r.FlagKey),
+		tracing.AttributeEntityID.String(r.EntityId),
+		tracing.AttributeRequestID.String(r.RequestId),
+		tracing.AttributeValue.Bool(resp.Enabled),
+		tracing.AttributeReason.String(resp.Reason.String()),
+		tracing.AttributeFlagKey(r.FlagKey),
+		tracing.AttributeProviderName,
+		tracing.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
 	}
 
 	// add otel attributes to span
