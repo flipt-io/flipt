@@ -1,15 +1,15 @@
 :root.dark {
   --gray-50: 17 24 39;
-  --gray-100: 31 41 55;
-  --gray-200: 55 65 81;
-  --gray-300: 75 85 99;
-  --gray-400: 107 114 128;
-  --gray-500: 156 163 175;
-  --gray-600: 176 183 195;
-  --gray-700: 209 213 219;
-  --gray-800: 229 231 235;
+  --gray-100: 17 24 39;
+  --gray-200: 31 41 55;
+  --gray-300: 55 65 81;
+  --gray-400: 156 163 175;
+  --gray-500: 107 114 128;
+  --gray-600: 156 163 175;
+  --gray-700: 249 250 251;
+  --gray-800: 31 41 55;
   --gray-900: 243 244 246;
-  --gray-950: 249 250 251;
+  --gray-950: 243 244 246;
   --violet-600: 167 139 250;
   --violet-400: 139 92 246;
   --violet-300: 167 139 250;
@@ -28,10 +28,16 @@
   --red-100: 127 29 29;
   --red-50: 127 29 29;
 
-  .shadow {
+  .shadow-xs {
+    --tw-shadow-color: rgb(255 255 255 / 0.1);
     --tw-shadow:
       0 1px 3px 0 rgba(255, 255, 255, 0.1),
       0 1px 2px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .shadow {
+    --tw-shadow-color: rgb(255 255 255 / 0.05);
+    --tw-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0.05);
   }
 
   .shadow-sm {
@@ -40,25 +46,28 @@
   }
 
   .shadow-md {
+    --tw-shadow-color: rgb(255 255 255 / 0.1);
     --tw-shadow:
       0 4px 6px -1px rgba(255, 255, 255, 0.1),
       0 2px 4px -1px rgba(255, 255, 255, 0.06);
   }
 
   .shadow-lg {
+    --tw-shadow-color: rgb(255 255 255 / 0.1);
     --tw-shadow:
       0 10px 15px -3px rgba(255, 255, 255, 0.1),
       0 4px 6px -2px rgba(255, 255, 255, 0.05);
+    box-shadow: var(--tw-shadow);
   }
 
   .shadow-xl {
+    --tw-shadow-color: rgb(255 255 255 / 0.1);
     --tw-shadow:
       0 20px 25px -5px rgba(255, 255, 255, 0.1),
       0 10px 10px -5px rgba(255, 255, 255, 0.04);
   }
 
   .shadow-2xl {
-    --tw-shadow-color: rgb(255 255 255 / 0.25);
     --tw-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.25);
   }
 }

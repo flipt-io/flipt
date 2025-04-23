@@ -237,6 +237,8 @@ type AuthenticationSessionStorageRedisConfig struct {
 	CaCertBytes     string        `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
 	CaCertPath      string        `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
 	InsecureSkipTLS bool          `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	// TODO: add prefix support
+	// TODO: add cluster support
 }
 
 func (cfg *AuthenticationSessionStorageRedisConfig) validate() error {
