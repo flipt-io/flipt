@@ -14,14 +14,16 @@ import {
   useGetSegmentQuery
 } from '~/app/segments/segmentsApi';
 
+import { Badge } from '~/components/Badge';
+import ClipboardCopy from '~/components/ClipboardCopy';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/Page';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
+import { SegmentDetails } from '~/components/segments/SegmentTable';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -152,10 +154,12 @@ export default function Segment() {
       </PageHeader>
 
       {/* Info Section */}
-      <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
-          Learn more about segments
-        </MoreInfo>
+      <div className="mb-8 mt-1 flex items-center">
+        <SegmentDetails item={segment} className="text-sm" />
+        <Badge variant="outlinemuted" className="ml-2 mr-2 text-sm" title="Key">
+          {segment.key}
+        </Badge>
+        <ClipboardCopy text={segment?.key || ''} />
       </div>
 
       {/* Form Section - Full Width */}

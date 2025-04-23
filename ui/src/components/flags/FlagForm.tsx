@@ -1,4 +1,3 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -28,12 +27,7 @@ import { FlagType, IFlag } from '~/types/Flag';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import {
-  cls,
-  copyTextToClipboard,
-  getRevision,
-  stringAsKey
-} from '~/utils/helpers';
+import { cls, getRevision, stringAsKey } from '~/utils/helpers';
 
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
@@ -137,7 +131,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
     metadata: flag?.metadata || {}
   };
 
-  const [keyCopied, setKeyCopied] = useState(false);
   const [hasMetadataErrors, setHasMetadataErrors] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(
@@ -269,112 +262,84 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     }}
                   />
                 </div>
-                <div className="col-span-2">
-                  <label
-                    htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Key
-                  </label>
-                  <div
-                    className={cls({
-                      'flex items-center justify-between': !isNew
-                    })}
-                  >
-                    <Input
-                      className={cls('mt-1', { 'md:mr-2': !isNew })}
-                      name="key"
-                      id="key"
-                      disabled={!isNew}
-                      onChange={(e) => {
-                        const formatted = stringAsKey(e.target.value);
-                        formik.setFieldValue('key', formatted);
-                      }}
-                    />
-                    {!isNew && (
-                      <button
-                        aria-label="Copy to clipboard"
-                        title="Copy to Clipboard"
-                        className="hidden md:block"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          copyTextToClipboard(flag?.key || '');
-                          setKeyCopied(true);
-                          setTimeout(() => {
-                            setKeyCopied(false);
-                          }, 2000);
+                {isNew && (
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="key"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Key
+                    </label>
+                    <div
+                      className={cls({
+                        'flex items-center justify-between': !isNew
+                      })}
+                    >
+                      <Input
+                        className={cls('mt-1', { 'md:mr-2': !isNew })}
+                        name="key"
+                        id="key"
+                        disabled={!isNew}
+                        onChange={(e) => {
+                          const formatted = stringAsKey(e.target.value);
+                          formik.setFieldValue('key', formatted);
                         }}
-                      >
-                        <CheckIcon
-                          className={cls(
-                            'invisible absolute m-auto h-5 w-5 justify-center align-middle text-green-400 opacity-0 transition-opacity duration-300 ease-in-out',
-                            {
-                              'visible opacity-100': keyCopied
-                            }
-                          )}
-                        />
-                        <ClipboardDocumentIcon
-                          className={cls(
-                            'visible m-auto h-5 w-5 justify-center align-middle text-gray-300 opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                            {
-                              'invisible opacity-0': keyCopied
-                            }
-                          )}
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="col-span-3">
-                  <label
-                    htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Type
-                  </label>
-                  <fieldset className="mt-2">
-                    <legend className="sr-only">Type</legend>
-                    <div className="space-y-5">
-                      {flagTypes.map((flagType) => (
-                        <div
-                          key={flagType.id}
-                          className="relative flex items-start"
-                        >
-                          <div className="flex h-5 items-center">
-                            <input
-                              id={flagType.id}
-                              aria-describedby={`${flagType.id}-description`}
-                              name="type"
-                              type="radio"
-                              disabled={!isNew}
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                              onChange={() => {
-                                formik.setFieldValue('type', flagType.id);
-                                formik.setFieldValue('enabled', false);
-                              }}
-                              checked={flagType.id === formik.values.type}
-                              value={flagType.id}
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor={flagType.id}
-                              className="font-medium text-gray-700"
-                            >
-                              {flagType.name}
-                            </label>
-                            <p
-                              id={`${flagType.id}-description`}
-                              className="text-gray-500"
-                            >
-                              {flagType.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      />
                     </div>
-                  </fieldset>
-                </div>
+                  </div>
+                )}
+                {isNew && (
+                  <div className="col-span-3">
+                    <label
+                      htmlFor="type"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Type
+                    </label>
+                    <fieldset className="mt-2">
+                      <legend className="sr-only">Type</legend>
+                      <div className="space-y-5">
+                        {flagTypes.map((flagType) => (
+                          <div
+                            key={flagType.id}
+                            className="relative flex items-start"
+                          >
+                            <div className="flex h-5 items-center">
+                              <input
+                                id={flagType.id}
+                                aria-describedby={`${flagType.id}-description`}
+                                name="type"
+                                type="radio"
+                                disabled={!isNew}
+                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                                onChange={() => {
+                                  formik.setFieldValue('type', flagType.id);
+                                  formik.setFieldValue('enabled', false);
+                                }}
+                                checked={flagType.id === formik.values.type}
+                                value={flagType.id}
+                              />
+                            </div>
+                            <div className="ml-3 text-sm">
+                              <label
+                                htmlFor={flagType.id}
+                                className="font-medium text-gray-700"
+                              >
+                                {flagType.name}
+                              </label>
+                              <p
+                                id={`${flagType.id}-description`}
+                                className="text-gray-500"
+                              >
+                                {flagType.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
+                )}
                 <div className="col-span-3">
                   <div className="flex justify-between">
                     <label

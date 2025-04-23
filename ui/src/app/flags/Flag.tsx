@@ -9,12 +9,14 @@ import {
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 
+import { Badge } from '~/components/Badge';
+import ClipboardCopy from '~/components/ClipboardCopy';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
+import { FlagBadge } from '~/components/flags/FlagTable';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 
@@ -151,10 +153,14 @@ export default function Flag() {
       </PageHeader>
 
       {/* Info Section */}
-      <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#flags">
-          Learn more about flags
-        </MoreInfo>
+      <div className="mb-8  text-sm mt-1 flex item-center">
+        <FlagBadge item={flag} />
+
+        <Badge variant="outlinemuted" className="ml-2 mr-2 text-sm" title="Key">
+          {flag.key}
+        </Badge>
+
+        <ClipboardCopy text={flag?.key || ''} />
       </div>
 
       {/* Form Section - Full Width */}

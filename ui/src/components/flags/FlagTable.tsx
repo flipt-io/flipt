@@ -37,7 +37,20 @@ type FlagTableProps = {
   namespace: INamespace;
 };
 
-function FlagDetails({ item }: { item: IFlag }) {
+export function FlagBadge({ item }: { item: IFlag }) {
+  return (
+    <span className="flex items-center gap-1 text-muted-foreground">
+      {item.type === FlagType.BOOLEAN ? (
+        <ToggleLeftIcon className="h-4 w-4" />
+      ) : (
+        <VariableIcon className="h-4 w-4" />
+      )}
+      {flagTypeToLabel(item.type)}
+    </span>
+  );
+}
+
+export function FlagDetails({ item }: { item: IFlag }) {
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       {item.type === FlagType.BOOLEAN ? (
@@ -49,14 +62,7 @@ function FlagDetails({ item }: { item: IFlag }) {
           {item.enabled ? 'Enabled' : 'Disabled'}
         </Badge>
       )}
-      <span className="flex items-center gap-1">
-        {item.type === FlagType.BOOLEAN ? (
-          <ToggleLeftIcon className="h-4 w-4" />
-        ) : (
-          <VariableIcon className="h-4 w-4" />
-        )}
-        {flagTypeToLabel(item.type)}
-      </span>
+      <FlagBadge item={item} />
     </div>
   );
 }

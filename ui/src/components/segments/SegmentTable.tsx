@@ -38,9 +38,20 @@ type SegmentTableProps = {
   namespace: INamespace;
 };
 
-function SegmentDetails({ item }: { item: ISegment }) {
+export function SegmentDetails({
+  item,
+  className
+}: {
+  item: ISegment;
+  className?: string;
+}) {
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div
+      className={cls(
+        'flex items-center gap-2 text-xs text-muted-foreground',
+        className
+      )}
+    >
       <span className="flex items-center gap-1">
         {item.matchType === SegmentMatchType.ALL ? (
           <SigmaIcon className="h-4 w-4" />
