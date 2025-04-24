@@ -7,6 +7,9 @@ import { IRollout } from '~/types/Rollout';
 import { IRule } from '~/types/Rule';
 import { IVariant } from '~/types/Variant';
 
+// Import IFlagFormValues from FlagForm
+import { IFlagFormValues } from './FlagForm';
+
 interface FlagFormContextProps {
   variants: IVariant[];
   rules: IRule[];
@@ -48,7 +51,7 @@ export const FlagFormContext = createContext<FlagFormContextProps>({
 
 interface FlagFormProviderProps {
   children: ReactNode;
-  formik: FormikProps<IFlag>;
+  formik: FormikProps<IFlagFormValues>;
 }
 
 export const FlagFormProvider: React.FC<FlagFormProviderProps> = ({
