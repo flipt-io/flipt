@@ -15,6 +15,7 @@ import {
 } from '@dnd-kit/sortable';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
+import { SplitSquareVerticalIcon } from 'lucide-react';
 import { useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -22,11 +23,11 @@ import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
-import { ButtonWithPlus, TextButton } from '~/components/Button';
-import EmptyState from '~/components/EmptyState';
+import { Button, ButtonWithPlus, TextButton } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Rule from '~/components/rules/Rule';
@@ -312,13 +313,20 @@ export default function Rules({ flag, rules }: RulesProps) {
               </div>
             </div>
           ) : (
-            <EmptyState
-              text="New Rule"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowRuleForm(true);
-              }}
-            />
+            <Well>
+              <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+                No Rules Yet
+              </h3>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setShowRuleForm(true);
+                }}
+              >
+                Create Rule
+              </Button>
+            </Well>
           )}
         </div>
       </div>

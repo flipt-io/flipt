@@ -1,12 +1,13 @@
+import { FolderIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 import { ButtonWithPlus } from '~/components/Button';
-import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -116,13 +117,25 @@ export default function Namespaces() {
               setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}
             />
           ) : (
-            <EmptyState
-              text="New Namespace"
-              onClick={() => {
-                setEditingNamespace(null);
-                setShowNamespaceForm(true);
-              }}
-            />
+            <Well>
+              <FolderIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No Namespaces Yet
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Namespaces allow you to group your flags, segments and rules
+                under a single name
+              </p>
+              <button
+                onClick={() => {
+                  setEditingNamespace(null);
+                  setShowNamespaceForm(true);
+                }}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
+              >
+                Create Your First Namespace
+              </button>
+            </Well>
           )}
         </div>
       </div>

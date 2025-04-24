@@ -22,6 +22,7 @@ import { PageHeader } from '~/components/Page';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import SegmentForm from '~/components/segments/SegmentForm';
+import { SegmentMatchTypeBadge } from '~/components/segments/SegmentMatchTypeBadge';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -127,7 +128,14 @@ export default function Segment() {
       </Modal>
 
       {/* segment header / actions */}
-      <PageHeader title={segment.name}>
+      <PageHeader
+        title={
+          <div className="flex items-center">
+            {segment.name}
+            <SegmentMatchTypeBadge type={segment.matchType} className="ml-4" />
+          </div>
+        }
+      >
         <Dropdown
           label="Actions"
           actions={[

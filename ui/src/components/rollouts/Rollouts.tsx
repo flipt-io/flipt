@@ -13,6 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
+import { SplitSquareVerticalIcon } from 'lucide-react';
 import { useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -20,11 +21,11 @@ import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
-import { ButtonWithPlus } from '~/components/Button';
-import EmptyState from '~/components/EmptyState';
+import { Button, ButtonWithPlus } from '~/components/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/EditRolloutForm';
@@ -257,13 +258,21 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
               </div>
             </div>
           ) : (
-            <EmptyState
-              text="New Rollout"
-              onClick={() => {
-                setEditingRollout(null);
-                setShowRolloutForm(true);
-              }}
-            />
+            <Well>
+              <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+                No Rollouts Yet
+              </h3>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditingRollout(null);
+                  setShowRolloutForm(true);
+                }}
+              >
+                Create Rollout
+              </Button>
+            </Well>
           )}
         </div>
       </div>

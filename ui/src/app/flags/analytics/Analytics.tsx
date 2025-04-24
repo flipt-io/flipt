@@ -1,6 +1,7 @@
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
+import { LineChartIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -146,11 +147,14 @@ export default function Analytics(props: AnalyticsProps) {
       ) : (
         <div className="mt-10">
           <Well>
-            <p>Analytics Disabled</p>
-            <p className="mt-4">
+            <LineChartIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground mb-2">
+              Analytics Disabled
+            </h3>
+            <p className="text-sm text-muted-foreground">
               See the configuration{' '}
               <a
-                className="text-violet-500"
+                className="text-violet-500 hover:text-violet-600 transition-colors"
                 href="https://www.flipt.io/docs/configuration/analytics"
               >
                 documentation

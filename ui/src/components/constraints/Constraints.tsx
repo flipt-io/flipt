@@ -1,10 +1,11 @@
+import { FilterIcon } from 'lucide-react';
 import { useContext, useMemo, useRef, useState } from 'react';
 
-import { ButtonWithPlus } from '~/components/Button';
+import { Button, ButtonWithPlus } from '~/components/Button';
 import Chips from '~/components/Chips';
-import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
 import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import { SegmentFormContext } from '~/components/segments/SegmentFormContext';
@@ -240,14 +241,22 @@ export default function Constraints({ constraints }: ConstraintsProps) {
               </tbody>
             </table>
           ) : (
-            <EmptyState
-              text="New Constraint"
-              onClick={(e) => {
-                e.preventDefault();
-                setEditingConstraint(null);
-                setShowConstraintForm(true);
-              }}
-            />
+            <Well>
+              <FilterIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+                No Constraints Yet
+              </h3>
+              <Button
+                variant="primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEditingConstraint(null);
+                  setShowConstraintForm(true);
+                }}
+              >
+                Create Constraint
+              </Button>
+            </Well>
           )}
         </div>
       </div>

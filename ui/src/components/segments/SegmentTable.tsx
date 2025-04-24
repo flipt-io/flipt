@@ -40,16 +40,55 @@ type SegmentTableProps = {
 
 function SegmentDetails({ item }: { item: ISegment }) {
   return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
+      <Badge variant="outlinemuted" className="flex items-center gap-1">
         {item.matchType === SegmentMatchType.ALL ? (
           <SigmaIcon className="h-4 w-4" />
         ) : (
           <AsteriskIcon className="h-4 w-4" />
         )}
-        Matches {segmentMatchTypeToLabel(item.matchType)}
-      </span>
+        {segmentMatchTypeToLabel(item.matchType)}
+      </Badge>
+      {item.constraints && item.constraints.length > 0 && (
+        <Badge variant="outlinemuted">
+          {item.constraints.length} constraint
+          {item.constraints.length !== 1 ? 's' : ''}
+        </Badge>
+      )}
     </div>
+  );
+}
+
+function SegmentListItem({
+  item,
+  onClick
+}: {
+  item: ISegment;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      role="link"
+      className="flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent"
+      onClick={onClick}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="truncate font-semibold">{item.name}</span>
+        </div>
+        <code className="text-xs text-muted-foreground font-mono">
+          {item.key}
+        </code>
+        {item.description && (
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 pl-3">
+        <SegmentDetails item={item} />
+      </div>
+    </button>
   );
 }
 
@@ -75,6 +114,25 @@ const columns = [
   })
 ];
 
+function EmptySegmentList({ path }: { path: string }) {
+  return (
+    <Well>
+      <div className="flex flex-col items-center text-center p-4">
+        <SigmaIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+        <p className="text-sm text-muted-foreground mb-4">
+          Segments enable request targeting based on defined criteria.
+        </p>
+        <Link
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
+          to={`${path}/new`}
+        >
+          Create Your First Segment
+        </Link>
+      </div>
+    </Well>
+  );
+}
+
 export default function SegmentTable(props: SegmentTableProps) {
   const { environment, namespace } = props;
 
@@ -97,6 +155,7 @@ export default function SegmentTable(props: SegmentTableProps) {
     namespaceKey: namespace.key
   });
   const segments = useMemo(() => data?.segments || [], [data]);
+  const hasSegments = segments.length > 0;
 
   const { setError } = useError();
   useEffect(() => {
@@ -132,59 +191,46 @@ export default function SegmentTable(props: SegmentTableProps) {
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center justify-between">
-          <Searchbox value={filter ?? ''} onChange={setFilter} />
-          <DataTableViewOptions table={table} />
+    <div className={cls(hasSegments ? 'w-full' : '')}>
+      <div className={cls('space-y-4')}>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-1 items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Searchbox value={filter ?? ''} onChange={setFilter} />
+            </div>
+            {hasSegments && <DataTableViewOptions table={table} />}
+          </div>
         </div>
+
+        {table.getRowCount() === 0 && filter.length === 0 && (
+          <EmptySegmentList path={path} />
+        )}
+        {table.getRowCount() === 0 && filter.length > 0 && (
+          <Well>
+            <div className="flex flex-col items-center text-center p-4">
+              <SigmaIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <p className="text-sm text-muted-foreground">
+                No segments matched your search
+              </p>
+            </div>
+          </Well>
+        )}
+
+        <div className="space-y-2">
+          {table.getRowModel().rows.map((row) => {
+            const item = row.original;
+            return (
+              <SegmentListItem
+                key={row.id}
+                item={item}
+                onClick={() => navigate(`${path}/${item.key}`)}
+              />
+            );
+          })}
+        </div>
+
+        {hasSegments && <DataTablePagination table={table} />}
       </div>
-      {table.getRowCount() === 0 && filter.length !== 0 && (
-        <Well>
-          <p>No segments matched your search.</p>
-        </Well>
-      )}
-      {table.getRowCount() === 0 && filter.length === 0 && (
-        <Well>
-          <p>
-            Segments enable request targeting based on defined criteria. Create
-            a{' '}
-            <Link className="text-violet-500" to={`${path}/new`}>
-              new segment
-            </Link>{' '}
-            to get started.
-          </p>
-        </Well>
-      )}
-      {table.getRowModel().rows.map((row) => {
-        const item = row.original;
-        return (
-          <button
-            role="link"
-            key={row.id}
-            className={cls(
-              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent'
-            )}
-            onClick={() => navigate(`${path}/${item.key}`)}
-          >
-            <div className="flex w-full flex-col gap-1">
-              <div className="flex items-center">
-                <div className="flex items-center gap-2">
-                  <div className="truncate font-semibold">{item.name}</div>
-                  <Badge variant="outlinemuted" className="hidden sm:block">
-                    {item.key}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            <div className="line-clamp-2 text-xs text-secondary-foreground">
-              {item.description}
-            </div>
-            <SegmentDetails item={item} />
-          </button>
-        );
-      })}
-      <DataTablePagination table={table} />
-    </>
+    </div>
   );
 }
