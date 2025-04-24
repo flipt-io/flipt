@@ -66,7 +66,7 @@ export const ButtonWithPlus = (props: ButtonProps) => {
     <Button {...props}>
       <FontAwesomeIcon
         icon={faPlus}
-        className="-ml-1.5 mr-1.5 h-4 w-4 text-background"
+        className="-ml-1.5 mr-1.5 h-4 w-4 text-white"
         aria-hidden="true"
       />
       {props.children}

@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { ChevronRightIcon, FlagIcon } from 'lucide-react';
+import { FlagIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router';
@@ -18,6 +18,7 @@ import {
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
 
+import { Badge } from '~/components/Badge';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
@@ -25,56 +26,45 @@ import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
 
 import { IEnvironment } from '~/types/Environment';
-import { IFlag, flagTypeToLabel } from '~/types/Flag';
+import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
-import { cls } from '~/utils/helpers';
 
-import { EmptyFlagDetails, FlagDetailPanel, FlagDetails } from './FlagDetails';
 import { FlagTypeBadge } from './FlagTypeBadge';
 
-type FlagTableProps = {
-  environment: IEnvironment;
-  namespace: INamespace;
-};
+function FlagDetails({ item }: { item: IFlag }) {
+  return (
+    <div className="flex items-center gap-2">
+      <FlagTypeBadge type={item.type} />
+      {item.type === FlagType.BOOLEAN ? (
+        <Badge variant="secondary" state={item.enabled ? 'success' : 'error'}>
+          Default: {item.enabled ? 'True' : 'False'}
+        </Badge>
+      ) : (
+        <Badge variant="secondary" state={item.enabled ? 'none' : 'muted'}>
+          Status: {item.enabled ? 'Enabled' : 'Disabled'}
+        </Badge>
+      )}
+    </div>
+  );
+}
 
-function FlagListItem({
-  item,
-  isSelected,
-  onClick,
-  namespace
-}: {
-  item: IFlag;
-  isSelected: boolean;
-  onClick: () => void;
-  namespace: string;
-}) {
+function FlagListItem({ item }: { item: IFlag & { namespace: string } }) {
   const navigate = useNavigate();
-
-  // Stop event propagation when clicking details button
-  const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClick();
-  };
 
   return (
     <div className="flex gap-2">
       <button
         role="link"
-        className={cls(
-          'flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-all',
-          {
-            'border-violet-500 bg-violet-50 dark:bg-violet-900/10': isSelected,
-            'hover:bg-accent': !isSelected
-          }
-        )}
-        onClick={() => navigate(`/namespaces/${namespace}/flags/${item.key}`)}
+        className="flex w-full items-center justify-between rounded-lg border p-5 text-left text-sm transition-all hover:bg-accent"
+        onClick={() =>
+          navigate(`/namespaces/${item.namespace}/flags/${item.key}`)
+        }
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate font-semibold">{item.name}</span>
-            <FlagTypeBadge type={item.type} />
           </div>
           <code className="text-xs text-muted-foreground font-mono">
             {item.key}
@@ -88,13 +78,6 @@ function FlagListItem({
         <div className="flex items-center gap-2 pl-3">
           <FlagDetails item={item} />
         </div>
-      </button>
-      <button
-        className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent"
-        onClick={handleDetailsClick}
-        title="View details"
-      >
-        <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
       </button>
     </div>
   );
@@ -147,9 +130,13 @@ const columns = [
   })
 ];
 
+type FlagTableProps = {
+  environment: IEnvironment;
+  namespace: INamespace;
+};
+
 export default function FlagTable(props: FlagTableProps) {
   const { environment, namespace } = props;
-  const [selectedFlag, setSelectedFlag] = useState<IFlag | null>(null);
 
   const dispatch = useDispatch();
 
@@ -169,6 +156,7 @@ export default function FlagTable(props: FlagTableProps) {
     namespaceKey: namespace.key
   });
   const flags = useMemo(() => data?.flags || [], [data]);
+  const hasFlags = flags.length > 0;
 
   const { setError } = useError();
   useEffect(() => {
@@ -203,12 +191,10 @@ export default function FlagTable(props: FlagTableProps) {
     return <TableSkeleton />;
   }
 
-  const hasFlags = table.getRowCount() > 0;
-
   return (
-    <div className={cls(hasFlags ? 'flex gap-6' : '')}>
+    <div className={'flex gap-6'}>
       {/* Flag List */}
-      <div className={cls(hasFlags ? 'w-1/2' : 'w-full', 'space-y-4')}>
+      <div className={'w-full space-y-4'}>
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -238,10 +224,7 @@ export default function FlagTable(props: FlagTableProps) {
             return (
               <FlagListItem
                 key={row.id}
-                item={item}
-                isSelected={selectedFlag?.key === item.key}
-                onClick={() => setSelectedFlag(item)}
-                namespace={namespace.key}
+                item={item as IFlag & { namespace: string }}
               />
             );
           })}
@@ -249,19 +232,6 @@ export default function FlagTable(props: FlagTableProps) {
 
         {hasFlags && <DataTablePagination table={table} />}
       </div>
-
-      {/* Flag Details - Only show when there are flags */}
-      {hasFlags && (
-        <div className="w-1/2">
-          {selectedFlag ? (
-            <FlagDetailPanel flag={selectedFlag} namespace={namespace.key} />
-          ) : (
-            <div className="h-[400px] rounded-lg border">
-              <EmptyFlagDetails />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

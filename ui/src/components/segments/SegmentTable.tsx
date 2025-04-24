@@ -31,12 +31,6 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { cls } from '~/utils/helpers';
-
-type SegmentTableProps = {
-  environment: IEnvironment;
-  namespace: INamespace;
-};
 
 function SegmentDetails({ item }: { item: ISegment }) {
   return (
@@ -47,7 +41,7 @@ function SegmentDetails({ item }: { item: ISegment }) {
         ) : (
           <AsteriskIcon className="h-4 w-4" />
         )}
-        {segmentMatchTypeToLabel(item.matchType)}
+        Matches: {segmentMatchTypeToLabel(item.matchType)}
       </Badge>
       {item.constraints && item.constraints.length > 0 && (
         <Badge variant="outlinemuted">
@@ -59,18 +53,16 @@ function SegmentDetails({ item }: { item: ISegment }) {
   );
 }
 
-function SegmentListItem({
-  item,
-  onClick
-}: {
-  item: ISegment;
-  onClick: () => void;
-}) {
+function SegmentListItem({ item }: { item: ISegment & { namespace: string } }) {
+  const navigate = useNavigate();
+
   return (
     <button
       role="link"
-      className="flex w-full items-center justify-between rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent"
-      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-lg border p-5 text-left text-sm transition-all hover:bg-accent"
+      onClick={() =>
+        navigate(`/namespaces/${item.namespace}/segments/${item.key}`)
+      }
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -133,10 +125,14 @@ function EmptySegmentList({ path }: { path: string }) {
   );
 }
 
+type SegmentTableProps = {
+  environment: IEnvironment;
+  namespace: INamespace;
+};
+
 export default function SegmentTable(props: SegmentTableProps) {
   const { environment, namespace } = props;
 
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const path = `/namespaces/${namespace.key}/segments`;
@@ -191,8 +187,9 @@ export default function SegmentTable(props: SegmentTableProps) {
   }
 
   return (
-    <div className={cls(hasSegments ? 'w-full' : '')}>
-      <div className={cls('space-y-4')}>
+    <div className={'flex gap-6'}>
+      {/* Segment List */}
+      <div className={'w-full space-y-4'}>
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -222,8 +219,7 @@ export default function SegmentTable(props: SegmentTableProps) {
             return (
               <SegmentListItem
                 key={row.id}
-                item={item}
-                onClick={() => navigate(`${path}/${item.key}`)}
+                item={item as ISegment & { namespace: string }}
               />
             );
           })}
