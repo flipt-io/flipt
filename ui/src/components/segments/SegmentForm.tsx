@@ -57,7 +57,7 @@ function SegmentTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Choose Match Type</h2>
+        <h2 className="text-lg font-medium text-gray-900">Match Type</h2>
         <p className="mt-1 text-sm text-gray-500">
           Select how constraints should be evaluated for this segment
         </p>
@@ -183,26 +183,21 @@ export default function SegmentForm(props: SegmentFormProps) {
           formik.isValid &&
           !formik.isSubmitting &&
           (isNew
-            ? matchType !== SegmentMatchType.ALL &&
-              matchType !== SegmentMatchType.ANY
+            ? matchType === SegmentMatchType.ALL ||
+              matchType === SegmentMatchType.ANY
             : true)
         );
 
         const form = (
           <Form className="space-y-6 p-1 sm:overflow-hidden sm:rounded-md">
-            {isNew && (
-              <SegmentTypeSelector
-                selectedType={formik.values.matchType}
-                onTypeSelect={(type) => {
-                  formik.setFieldValue('matchType', type);
-                }}
-              />
-            )}
+            <SegmentTypeSelector
+              selectedType={formik.values.matchType}
+              onTypeSelect={(type) => {
+                formik.setFieldValue('matchType', type);
+              }}
+            />
 
-            {(isNew
-              ? matchType !== SegmentMatchType.ALL &&
-                matchType !== SegmentMatchType.ANY
-              : true) && (
+            {(!isNew || formik.values.matchType) && (
               <div className="grid grid-cols-3 gap-6">
                 <div className="col-span-2">
                   <label

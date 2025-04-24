@@ -80,7 +80,7 @@ function SegmentListItem({
           {item.key}
         </code>
         {item.description && (
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
             {item.description}
           </p>
         )}

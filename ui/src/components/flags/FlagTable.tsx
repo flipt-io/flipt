@@ -79,6 +79,11 @@ function FlagListItem({
           <code className="text-xs text-muted-foreground font-mono">
             {item.key}
           </code>
+          {item.description && (
+            <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
+              {item.description}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 pl-3">
           <FlagDetails item={item} />
