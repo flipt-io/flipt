@@ -91,18 +91,22 @@ function InnerLayout() {
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="flex min-h-screen flex-col bg-background md:pl-64">
-        <Header setSidebarOpen={setSidebarOpen} />
-        {!dismissedBanner && (
-          <div className="sticky top-0 mt-16">
-            <Banner
-              title="Like Flipt? Give us a star on GitHub!"
-              description="It really means a lot to us. Thank you!"
-              href="https://github.com/flipt-io/flipt"
-              icon={<StarIcon className="mx-2 inline h-3 w-3" />}
-            />
-          </div>
-        )}
-        <main className={`flex flex-1 ${!dismissedBanner ? 'pt-8' : 'pt-24'}`}>
+        <div className="sticky top-0 z-40">
+          <Header setSidebarOpen={setSidebarOpen} />
+          {!dismissedBanner && (
+            <div className="mt-16 z-10">
+              <Banner
+                title="Like Flipt? Give us a star on GitHub!"
+                description="It really means a lot to us. Thank you!"
+                href="https://github.com/flipt-io/flipt"
+                icon={<StarIcon className="mx-2 inline h-3 w-3" />}
+              />
+            </div>
+          )}
+        </div>
+        <main
+          className={`flex flex-1 relative ${!dismissedBanner ? 'pt-8' : 'pt-24'}`}
+        >
           <div className="mx-auto w-full lg:max-w-(--breakpoint-lg) xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) overflow-x-auto px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
