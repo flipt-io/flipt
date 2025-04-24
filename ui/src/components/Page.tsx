@@ -1,7 +1,8 @@
 import { cn } from '~/lib/utils';
 
-export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string;
+export interface PageHeaderProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: React.ReactNode;
 }
 
 const PageHeader = ({ title, children, className }: PageHeaderProps) => (

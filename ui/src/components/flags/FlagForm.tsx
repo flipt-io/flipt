@@ -85,12 +85,20 @@ const booleanFlagTabs = [
   { name: 'Analytics', id: 'analytics' }
 ];
 
-function FlagTypeSelector({ selectedType, onTypeSelect }: { selectedType: FlagType | null, onTypeSelect: (type: FlagType) => void }) {
+function FlagTypeSelector({
+  selectedType,
+  onTypeSelect
+}: {
+  selectedType: FlagType | null;
+  onTypeSelect: (type: FlagType) => void;
+}) {
   return (
-    <div className="space-y-6 rounded-lg bg-white p-6 shadow dark:bg-gray-100">
+    <div className="space-y-6">
       <div>
         <h2 className="text-lg font-medium text-gray-900">Choose Flag Type</h2>
-        <p className="mt-1 text-sm text-gray-500">Select the type of flag you want to create</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Select the type of flag you want to create
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {flagTypes.map((flagType) => (
@@ -98,9 +106,10 @@ function FlagTypeSelector({ selectedType, onTypeSelect }: { selectedType: FlagTy
             key={flagType.id}
             onClick={() => onTypeSelect(flagType.id)}
             className={cls(
-              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none',
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500',
               {
-                'border-violet-500 ring-2 ring-violet-500': selectedType === flagType.id,
+                'border-violet-500 ring ring-violet-500':
+                  selectedType === flagType.id,
                 'border-gray-300': selectedType !== flagType.id
               }
             )}
@@ -108,9 +117,13 @@ function FlagTypeSelector({ selectedType, onTypeSelect }: { selectedType: FlagTy
             <div className="flex flex-1">
               <div className="flex flex-col">
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-900">{flagType.name}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {flagType.name}
+                  </span>
                 </div>
-                <p className="mt-2 flex items-center text-sm text-gray-500">{flagType.description}</p>
+                <p className="mt-2 flex items-center text-sm text-gray-500">
+                  {flagType.description}
+                </p>
               </div>
             </div>
           </div>
@@ -261,19 +274,31 @@ export default function FlagForm(props: { flag?: IFlag }) {
             )}
 
             {(!isNew || formik.values.type) && (
-              <div className="space-y-6 rounded-lg bg-white p-6 shadow dark:bg-gray-100">
+              <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-6">
                   {formik.values.type === FlagType.VARIANT && (
                     <div className="col-span-3 md:col-span-2">
-                      <Toggle
-                        id="enabled"
-                        name="enabled"
-                        label="Enabled"
-                        checked={enabled}
-                        onChange={(e) => {
-                          formik.setFieldValue('enabled', e);
-                        }}
-                      />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label
+                            htmlFor="enabled"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Enabled
+                          </label>
+                          <p className="text-sm text-gray-500">
+                            Allows the flag to be evaluated
+                          </p>
+                        </div>
+                        <Toggle
+                          id="enabled"
+                          name="enabled"
+                          checked={enabled}
+                          onChange={(e) => {
+                            formik.setFieldValue('enabled', e);
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                   {formik.values.type === FlagType.BOOLEAN && (
@@ -319,7 +344,8 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         if (
                           isNew &&
                           (formik.values.key === '' ||
-                            formik.values.key === stringAsKey(formik.values.name))
+                            formik.values.key ===
+                              stringAsKey(formik.values.name))
                         ) {
                           formik.setFieldValue(
                             'key',
@@ -401,7 +427,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         Optional
                       </span>
                     </div>
-                    <Input className="mt-1" name="description" id="description" />
+                    <Input
+                      className="mt-1"
+                      name="description"
+                      id="description"
+                    />
                   </div>
                   <div className="col-span-3">
                     <div className="flex justify-between">
@@ -441,7 +471,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
 
             {/* Tabs Section */}
             {flag && (
-              <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-100">
+              <div>
                 <div className="flex flex-row">
                   <div className="border-b-2 border-gray-200">
                     <nav className="-mb-px flex space-x-8">
@@ -469,15 +499,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     </nav>
                   </div>
                 </div>
-                {selectedTab == 'variants' && (
-                  <Variants variants={variants!} />
-                )}
+                {selectedTab == 'variants' && <Variants variants={variants!} />}
                 {selectedTab == 'rollouts' && (
                   <Rollouts flag={flag} rollouts={rollouts!} />
                 )}
-                {selectedTab == 'rules' && (
-                  <Rules flag={flag} rules={rules!} />
-                )}
+                {selectedTab == 'rules' && <Rules flag={flag} rules={rules!} />}
                 {selectedTab == 'analytics' && <Analytics flag={flag} />}
               </div>
             )}

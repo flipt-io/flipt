@@ -1,7 +1,8 @@
 import { FilesIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import {
@@ -15,6 +16,7 @@ import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
+import { FlagTypeBadge } from '~/components/flags/FlagTypeBadge';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 
@@ -126,7 +128,14 @@ export default function Flag() {
       </Modal>
 
       {/* flag header / actions */}
-      <PageHeader title={flag.name}>
+      <PageHeader
+        title={
+          <div className="flex items-center">
+            {flag.name}
+            <FlagTypeBadge type={flag.type} className="ml-4" />
+          </div>
+        }
+      >
         <Dropdown
           label="Actions"
           actions={[
