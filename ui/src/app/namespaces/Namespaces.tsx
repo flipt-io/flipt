@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
-import { ButtonWithPlus } from '~/components/Button';
+import { Button, ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
@@ -126,15 +126,15 @@ export default function Namespaces() {
                 Namespaces allow you to group your flags, segments and rules
                 under a single name
               </p>
-              <button
+              <Button
+                variant="primary"
                 onClick={() => {
                   setEditingNamespace(null);
                   setShowNamespaceForm(true);
                 }}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
               >
-                Create Your First Namespace
-              </button>
+                Create Namespace
+              </Button>
             </Well>
           )}
         </div>

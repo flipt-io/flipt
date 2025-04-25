@@ -10,11 +10,12 @@ import {
 import { AsteriskIcon, SigmaIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
+import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
@@ -31,53 +32,63 @@ import {
 
 import { useError } from '~/data/hooks/error';
 
-function SegmentDetails({ item }: { item: ISegment }) {
-  return (
-    <div className="flex items-center gap-2 shrink-0">
-      <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
-        {item.matchType === SegmentMatchType.ALL ? (
-          <SigmaIcon className="h-3.5 w-3.5" />
-        ) : (
-          <AsteriskIcon className="h-3.5 w-3.5" />
-        )}
-        Match {segmentMatchTypeToLabel(item.matchType)}
-      </div>
-    </div>
-  );
-}
-
-function SegmentListItem({ item }: { item: ISegment & { namespace: string } }) {
+function SegmentListItem({ item, path }: { item: ISegment; path: string }) {
   const navigate = useNavigate();
 
   return (
     <button
       role="link"
       className="group w-full rounded-lg border text-left text-sm transition-all hover:bg-accent"
-      onClick={() =>
-        navigate(`/namespaces/${item.namespace}/segments/${item.key}`)
-      }
+      onClick={() => navigate(path)}
     >
       <div className="flex items-start gap-6 p-4">
         {/* Segment Info and Tags Column */}
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-base">{item.name}</span>
+            <span className="font-semibold">{item.name}</span>
             <span className="text-muted-foreground">&middot;</span>
             <code className="text-xs text-muted-foreground font-mono">
               {item.key}
             </code>
           </div>
           {item.description && (
-            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+            <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
               {item.description}
             </p>
           )}
         </div>
 
         {/* Status Column */}
-        <SegmentDetails item={item} />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
+            {item.matchType === SegmentMatchType.ALL ? (
+              <SigmaIcon className="h-3.5 w-3.5" />
+            ) : (
+              <AsteriskIcon className="h-3.5 w-3.5" />
+            )}
+            Match {segmentMatchTypeToLabel(item.matchType)}
+          </div>
+        </div>
       </div>
     </button>
+  );
+}
+
+function EmptySegmentList({ path }: { path: string }) {
+  const navigate = useNavigate();
+
+  return (
+    <Well>
+      <div className="flex flex-col items-center text-center p-4">
+        <SigmaIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+        <p className="text-sm text-muted-foreground mb-4">
+          Segments enable request targeting based on defined criteria.
+        </p>
+        <Button variant="primary" onClick={() => navigate(path)}>
+          Create Your First Segment
+        </Button>
+      </div>
+    </Well>
   );
 }
 
@@ -102,25 +113,6 @@ const columns = [
     cell: (info) => info.getValue()
   })
 ];
-
-function EmptySegmentList({ path }: { path: string }) {
-  return (
-    <Well>
-      <div className="flex flex-col items-center text-center p-4">
-        <SigmaIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-        <p className="text-sm text-muted-foreground mb-4">
-          Segments enable request targeting based on defined criteria.
-        </p>
-        <Link
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
-          to={`${path}/new`}
-        >
-          Create Your First Segment
-        </Link>
-      </div>
-    </Well>
-  );
-}
 
 type SegmentTableProps = {
   environment: IEnvironment;
@@ -196,7 +188,7 @@ export default function SegmentTable(props: SegmentTableProps) {
         </div>
 
         {table.getRowCount() === 0 && filter.length === 0 && (
-          <EmptySegmentList path={path} />
+          <EmptySegmentList path={`${path}/new`} />
         )}
         {table.getRowCount() === 0 && filter.length > 0 && (
           <Well>
@@ -215,7 +207,8 @@ export default function SegmentTable(props: SegmentTableProps) {
             return (
               <SegmentListItem
                 key={row.id}
-                item={item as ISegment & { namespace: string }}
+                item={item}
+                path={`${path}/${item.key}`}
               />
             );
           })}

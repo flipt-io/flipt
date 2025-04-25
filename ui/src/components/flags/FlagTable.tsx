@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 import {
   selectSorting,
@@ -24,6 +24,7 @@ import {
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
 
+import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
@@ -37,10 +38,9 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
 
-function VariantFlagToggle({ enabled }: { enabled: boolean }) {
+function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
-    <button
-      type="button"
+    <div
       className={cls(
         'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
         enabled
@@ -50,14 +50,13 @@ function VariantFlagToggle({ enabled }: { enabled: boolean }) {
     >
       <PowerIcon className="h-3.5 w-3.5" />
       {enabled ? 'Enabled' : 'Disabled'}
-    </button>
+    </div>
   );
 }
 
-function BooleanFlagToggle({ enabled }: { enabled: boolean }) {
+function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
   return (
-    <button
-      type="button"
+    <div
       className={cls(
         'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
         enabled
@@ -67,7 +66,7 @@ function BooleanFlagToggle({ enabled }: { enabled: boolean }) {
     >
       <CheckSquareIcon className="h-3.5 w-3.5" />
       Default {enabled ? 'True' : 'False'}
-    </button>
+    </div>
   );
 }
 
@@ -84,16 +83,14 @@ function CombinedFlagBadge({ item }: { item: IFlag }) {
   );
 }
 
-function FlagListItem({ item }: { item: IFlag & { namespace: string } }) {
+function FlagListItem({ item, path }: { item: IFlag; path: string }) {
   const navigate = useNavigate();
 
   return (
     <button
       role="link"
       className="group w-full rounded-lg border text-left text-sm transition-all hover:bg-accent"
-      onClick={() =>
-        navigate(`/namespaces/${item.namespace}/flags/${item.key}`)
-      }
+      onClick={() => navigate(path)}
     >
       <div className="flex items-start gap-6 p-4">
         {/* Flag Info and Tags Column */}
@@ -116,9 +113,9 @@ function FlagListItem({ item }: { item: IFlag & { namespace: string } }) {
         <div className="flex items-center gap-3 pl-6 shrink-0">
           <CombinedFlagBadge item={item} />
           {item.type === FlagType.VARIANT ? (
-            <VariantFlagToggle enabled={item.enabled} />
+            <VariantFlagBadge enabled={item.enabled} />
           ) : (
-            <BooleanFlagToggle enabled={item.enabled} />
+            <BooleanFlagBadge enabled={item.enabled} />
           )}
         </div>
       </div>
@@ -127,6 +124,8 @@ function FlagListItem({ item }: { item: IFlag & { namespace: string } }) {
 }
 
 function EmptyFlagList({ path }: { path: string }) {
+  const navigate = useNavigate();
+
   return (
     <Well>
       <div className="flex flex-col items-center text-center p-4">
@@ -135,12 +134,9 @@ function EmptyFlagList({ path }: { path: string }) {
           Flags enable you to control and roll out new functionality
           dynamically.
         </p>
-        <Link
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
-          to={`${path}/new`}
-        >
+        <Button variant="primary" onClick={() => navigate(path)}>
           Create Your First Flag
-        </Link>
+        </Button>
       </div>
     </Well>
   );
@@ -247,7 +243,7 @@ export default function FlagTable(props: FlagTableProps) {
         </div>
 
         {table.getRowCount() === 0 && filter.length === 0 && (
-          <EmptyFlagList path={path} />
+          <EmptyFlagList path={`${path}/new`} />
         )}
         {table.getRowCount() === 0 && filter.length > 0 && (
           <Well>
@@ -266,7 +262,8 @@ export default function FlagTable(props: FlagTableProps) {
             return (
               <FlagListItem
                 key={row.id}
-                item={item as IFlag & { namespace: string }}
+                item={item}
+                path={`${path}/${item.key}`}
               />
             );
           })}
