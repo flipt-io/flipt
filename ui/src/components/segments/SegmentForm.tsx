@@ -1,6 +1,4 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
-import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
@@ -23,12 +21,7 @@ import { ISegment, SegmentMatchType } from '~/types/Segment';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import {
-  cls,
-  copyTextToClipboard,
-  getRevision,
-  stringAsKey
-} from '~/utils/helpers';
+import { cls, getRevision, stringAsKey } from '~/utils/helpers';
 
 import { SegmentFormProvider } from './SegmentFormContext';
 
@@ -148,8 +141,6 @@ export default function SegmentForm(props: SegmentFormProps) {
     constraints: segment?.constraints || []
   };
 
-  const [keyCopied, setKeyCopied] = useState(false);
-
   return (
     <Formik
       enableReinitialize
@@ -225,64 +216,25 @@ export default function SegmentForm(props: SegmentFormProps) {
                     }}
                   />
                 </div>
-                <div className="col-span-2">
-                  <label
-                    htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Key
-                  </label>
-                  <div
-                    className={cls({
-                      'flex items-center justify-between': !isNew
-                    })}
-                  >
+                {isNew && (
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="key"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Key
+                    </label>
                     <Input
-                      className={cls('mt-1', { 'md:mr-2': !isNew })}
+                      className="mt-1"
                       name="key"
                       id="key"
-                      disabled={!isNew}
                       onChange={(e) => {
                         const formatted = stringAsKey(e.target.value);
                         formik.setFieldValue('key', formatted);
                       }}
                     />
-                    {!isNew && (
-                      <button
-                        aria-label="Copy to clipboard"
-                        title="Copy to Clipboard"
-                        className="hidden md:block"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          copyTextToClipboard(segment?.key || '');
-                          setKeyCopied(true);
-                          setTimeout(() => {
-                            setKeyCopied(false);
-                          }, 2000);
-                        }}
-                      >
-                        <CheckIcon
-                          className={cls(
-                            'absolute m-auto h-5 w-5 justify-center align-middle text-green-400 transition-opacity duration-300 ease-in-out',
-                            {
-                              'visible opacity-100': keyCopied,
-                              'invisible opacity-0': !keyCopied
-                            }
-                          )}
-                        />
-                        <ClipboardDocumentIcon
-                          className={cls(
-                            'm-auto h-5 w-5 justify-center align-middle text-gray-300 transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                            {
-                              'visible opacity-100': !keyCopied,
-                              'invisible opacity-0': keyCopied
-                            }
-                          )}
-                        />
-                      </button>
-                    )}
                   </div>
-                </div>
+                )}
                 <div className="col-span-3">
                   <div className="flex justify-between">
                     <label

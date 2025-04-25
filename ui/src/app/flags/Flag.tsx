@@ -1,4 +1,9 @@
-import { FilesIcon, Trash2Icon } from 'lucide-react';
+import {
+  FilesIcon,
+  ToggleLeftIcon,
+  Trash2Icon,
+  VariableIcon
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
@@ -13,12 +18,12 @@ import {
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
-import { FlagTypeBadge } from '~/components/flags/FlagTypeBadge';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
+
+import { FlagType, flagTypeToLabel } from '~/types/Flag';
 
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
@@ -132,7 +137,14 @@ export default function Flag() {
         title={
           <div className="flex items-center">
             {flag.name}
-            <FlagTypeBadge type={flag.type} className="ml-4" />
+            <div className="ml-4 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
+              {flag.type === FlagType.BOOLEAN ? (
+                <ToggleLeftIcon className="h-3.5 w-3.5" />
+              ) : (
+                <VariableIcon className="h-3.5 w-3.5" />
+              )}
+              {flagTypeToLabel(flag.type)}
+            </div>
           </div>
         }
       >
@@ -160,10 +172,14 @@ export default function Flag() {
       </PageHeader>
 
       {/* Info Section */}
-      <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#flags">
-          Learn more about flags
-        </MoreInfo>
+      <div className="mb-8">
+        {flag.key && (
+          <div className="my-2 inline-flex items-center rounded-md bg-secondary/30 px-3 py-1.5">
+            <code className="text-sm font-mono text-muted-foreground">
+              {flag.key}
+            </code>
+          </div>
+        )}
       </div>
 
       {/* Form Section - Full Width */}

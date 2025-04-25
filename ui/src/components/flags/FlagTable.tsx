@@ -7,7 +7,13 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { FlagIcon } from 'lucide-react';
+import {
+  CheckSquareIcon,
+  FlagIcon,
+  PowerIcon,
+  ToggleLeftIcon,
+  VariableIcon
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router';
@@ -18,7 +24,6 @@ import {
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
 
-import { Badge } from '~/components/Badge';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
@@ -30,22 +35,51 @@ import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
+import { cls } from '~/utils/helpers';
 
-import { FlagTypeBadge } from './FlagTypeBadge';
-
-function FlagDetails({ item }: { item: IFlag }) {
+function VariantFlagToggle({ enabled }: { enabled: boolean }) {
   return (
-    <div className="flex items-center gap-2">
-      <FlagTypeBadge type={item.type} />
-      {item.type === FlagType.BOOLEAN ? (
-        <Badge variant="secondary" state={item.enabled ? 'success' : 'error'}>
-          Default: {item.enabled ? 'True' : 'False'}
-        </Badge>
-      ) : (
-        <Badge variant="secondary" state={item.enabled ? 'none' : 'muted'}>
-          Status: {item.enabled ? 'Enabled' : 'Disabled'}
-        </Badge>
+    <button
+      type="button"
+      className={cls(
+        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+        enabled
+          ? 'bg-green-100/50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+          : 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
       )}
+    >
+      <PowerIcon className="h-3.5 w-3.5" />
+      {enabled ? 'Enabled' : 'Disabled'}
+    </button>
+  );
+}
+
+function BooleanFlagToggle({ enabled }: { enabled: boolean }) {
+  return (
+    <button
+      type="button"
+      className={cls(
+        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+        enabled
+          ? 'bg-green-100/50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+          : 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+      )}
+    >
+      <CheckSquareIcon className="h-3.5 w-3.5" />
+      Default {enabled ? 'True' : 'False'}
+    </button>
+  );
+}
+
+function CombinedFlagBadge({ item }: { item: IFlag }) {
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
+      {item.type === FlagType.BOOLEAN ? (
+        <ToggleLeftIcon className="h-3.5 w-3.5" />
+      ) : (
+        <VariableIcon className="h-3.5 w-3.5" />
+      )}
+      {flagTypeToLabel(item.type)}
     </div>
   );
 }
@@ -54,32 +88,41 @@ function FlagListItem({ item }: { item: IFlag & { namespace: string } }) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex gap-2">
-      <button
-        role="link"
-        className="flex w-full items-center justify-between rounded-lg border p-5 text-left text-sm transition-all hover:bg-accent"
-        onClick={() =>
-          navigate(`/namespaces/${item.namespace}/flags/${item.key}`)
-        }
-      >
-        <div className="min-w-0 flex-1">
+    <button
+      role="link"
+      className="group w-full rounded-lg border text-left text-sm transition-all hover:bg-accent"
+      onClick={() =>
+        navigate(`/namespaces/${item.namespace}/flags/${item.key}`)
+      }
+    >
+      <div className="flex items-start gap-6 p-4">
+        {/* Flag Info and Tags Column */}
+        <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate font-semibold">{item.name}</span>
+            <span className="font-semibold text-base">{item.name}</span>
+            <span className="text-muted-foreground">&middot;</span>
+            <code className="text-xs text-muted-foreground font-mono">
+              {item.key}
+            </code>
           </div>
-          <code className="text-xs text-muted-foreground font-mono">
-            {item.key}
-          </code>
           {item.description && (
-            <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
+            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
               {item.description}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2 pl-3">
-          <FlagDetails item={item} />
+
+        {/* Status Column - Contains both type badge and toggle */}
+        <div className="flex items-center gap-3 pl-6 shrink-0">
+          <CombinedFlagBadge item={item} />
+          {item.type === FlagType.VARIANT ? (
+            <VariantFlagToggle enabled={item.enabled} />
+          ) : (
+            <BooleanFlagToggle enabled={item.enabled} />
+          )}
         </div>
-      </button>
-    </div>
+      </div>
+    </button>
   );
 }
 
@@ -144,7 +187,7 @@ export default function FlagTable(props: FlagTableProps) {
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 20
+    pageSize: 25
   });
 
   const [filter, setFilter] = useState<string>('');
@@ -192,9 +235,8 @@ export default function FlagTable(props: FlagTableProps) {
   }
 
   return (
-    <div className={'flex gap-6'}>
-      {/* Flag List */}
-      <div className={'w-full space-y-4'}>
+    <div className="w-full">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">

@@ -15,7 +15,6 @@ import { Link, useNavigate } from 'react-router';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
-import { Badge } from '~/components/Badge';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
 import { TableSkeleton } from '~/components/TableSkeleton';
@@ -34,21 +33,15 @@ import { useError } from '~/data/hooks/error';
 
 function SegmentDetails({ item }: { item: ISegment }) {
   return (
-    <div className="flex items-center gap-2">
-      <Badge variant="outlinemuted" className="flex items-center gap-1">
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
         {item.matchType === SegmentMatchType.ALL ? (
-          <SigmaIcon className="h-4 w-4" />
+          <SigmaIcon className="h-3.5 w-3.5" />
         ) : (
-          <AsteriskIcon className="h-4 w-4" />
+          <AsteriskIcon className="h-3.5 w-3.5" />
         )}
-        Matches: {segmentMatchTypeToLabel(item.matchType)}
-      </Badge>
-      {item.constraints && item.constraints.length > 0 && (
-        <Badge variant="outlinemuted">
-          {item.constraints.length} constraint
-          {item.constraints.length !== 1 ? 's' : ''}
-        </Badge>
-      )}
+        Match {segmentMatchTypeToLabel(item.matchType)}
+      </div>
     </div>
   );
 }
@@ -59,25 +52,29 @@ function SegmentListItem({ item }: { item: ISegment & { namespace: string } }) {
   return (
     <button
       role="link"
-      className="flex w-full items-center justify-between rounded-lg border p-5 text-left text-sm transition-all hover:bg-accent"
+      className="group w-full rounded-lg border text-left text-sm transition-all hover:bg-accent"
       onClick={() =>
         navigate(`/namespaces/${item.namespace}/segments/${item.key}`)
       }
     >
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate font-semibold">{item.name}</span>
+      <div className="flex items-start gap-6 p-4">
+        {/* Segment Info and Tags Column */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-base">{item.name}</span>
+            <span className="text-muted-foreground">&middot;</span>
+            <code className="text-xs text-muted-foreground font-mono">
+              {item.key}
+            </code>
+          </div>
+          {item.description && (
+            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+              {item.description}
+            </p>
+          )}
         </div>
-        <code className="text-xs text-muted-foreground font-mono">
-          {item.key}
-        </code>
-        {item.description && (
-          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-            {item.description}
-          </p>
-        )}
-      </div>
-      <div className="flex items-center gap-2 pl-3">
+
+        {/* Status Column */}
         <SegmentDetails item={item} />
       </div>
     </button>
@@ -139,7 +136,7 @@ export default function SegmentTable(props: SegmentTableProps) {
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 20
+    pageSize: 25
   });
 
   const [filter, setFilter] = useState<string>('');
@@ -187,9 +184,8 @@ export default function SegmentTable(props: SegmentTableProps) {
   }
 
   return (
-    <div className={'flex gap-6'}>
-      {/* Segment List */}
-      <div className={'w-full space-y-4'}>
+    <div className="w-full">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-4">
