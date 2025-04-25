@@ -10,6 +10,7 @@ import {
   useCreateFlagMutation,
   useUpdateFlagMutation
 } from '~/app/flags/flagsApi';
+import Rollouts from '~/app/flags/rollouts/Rollouts';
 import Rules from '~/app/flags/rules/Rules';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
@@ -18,7 +19,6 @@ import Loading from '~/components/Loading';
 import { UnsavedChangesModalWrapper } from '~/components/UnsavedChangesModal';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
-import Rollouts from '~/components/rollouts/Rollouts';
 import Variants from '~/components/variants/Variants';
 
 import { IDistribution } from '~/types/Distribution';
