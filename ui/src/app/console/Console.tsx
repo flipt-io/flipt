@@ -17,8 +17,8 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 import { Button } from '~/components/Button';
 import Combobox from '~/components/Combobox';
 import Dropdown from '~/components/Dropdown';
-import EmptyState from '~/components/EmptyState';
 import { PageHeader } from '~/components/Page';
+import Well from '~/components/Well';
 import Input from '~/components/forms/Input';
 import { JsonEditor } from '~/components/json/JsonEditor';
 
@@ -362,7 +362,16 @@ export default function Console() {
               )}
               {!response && (
                 <div className="p-2 md:h-full">
-                  <EmptyState secondaryText="Enter a flag key, entity ID, and optional context to evaluate" />
+                  <Well>
+                    <CodeIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                      Ready to Evaluate
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Enter a flag key, entity ID, and optional context to
+                      evaluate
+                    </p>
+                  </Well>
                 </div>
               )}
             </div>
@@ -370,11 +379,23 @@ export default function Console() {
         )}
         {flags.length === 0 && (
           <div className="mt-12 w-full">
-            <EmptyState
-              text="Create Flag"
-              secondaryText="At least one flag must exist to use the console"
-              onClick={() => navigate(`/namespaces/${namespace.key}/flags/new`)}
-            />
+            <Well>
+              <CodeIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No Flags Available
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                At least one flag must exist to use the console
+              </p>
+              <button
+                onClick={() =>
+                  navigate(`/namespaces/${namespace.key}/flags/new`)
+                }
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
+              >
+                Create Your First Flag
+              </button>
+            </Well>
           </div>
         )}
       </div>

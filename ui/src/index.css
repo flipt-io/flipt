@@ -175,4 +175,21 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Default focus states for interactive elements - only shown during keyboard navigation */
+  :where(button, input, select, textarea, a, [role='button']):focus-visible {
+    @apply border-violet-400 ring-1 ring-violet-400 outline-none;
+  }
+
+  /* Remove default focus styles when using mouse */
+  :where(button, input, select, textarea, a, [role='button']):focus:not(
+      :focus-visible
+    ) {
+    @apply border-border ring-0 outline-none;
+  }
+
+  /* Default focus state for placeholder text */
+  :where(input, textarea):focus-visible::placeholder {
+    @apply text-gray-400;
+  }
 }

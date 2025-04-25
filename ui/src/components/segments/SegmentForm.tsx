@@ -1,6 +1,4 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
-import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
@@ -23,12 +21,7 @@ import { ISegment, SegmentMatchType } from '~/types/Segment';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import {
-  cls,
-  copyTextToClipboard,
-  getRevision,
-  stringAsKey
-} from '~/utils/helpers';
+import { cls, getRevision, stringAsKey } from '~/utils/helpers';
 
 import { SegmentFormProvider } from './SegmentFormContext';
 
@@ -36,18 +29,69 @@ const segmentMatchTypes = [
   {
     id: SegmentMatchType.ALL,
     name: 'All',
-    description: 'All constraints must match'
+    description:
+      'All constraints must match for the segment to be considered a match'
   },
   {
     id: SegmentMatchType.ANY,
     name: 'Any',
-    description: 'At least one constraints must match'
+    description:
+      'At least one constraint must match for the segment to be considered a match'
   }
 ];
 
+function SegmentTypeSelector({
+  selectedType,
+  onTypeSelect
+}: {
+  selectedType: SegmentMatchType | '';
+  onTypeSelect: (type: SegmentMatchType) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-medium text-gray-900">Match Type</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Select how constraints should be evaluated for this segment
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {segmentMatchTypes.map((matchType) => (
+          <div
+            key={matchType.id}
+            onClick={() => onTypeSelect(matchType.id)}
+            className={cls(
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500',
+              {
+                'border-violet-500 ring ring-violet-500':
+                  selectedType === matchType.id,
+                'border-gray-300': selectedType !== matchType.id
+              }
+            )}
+          >
+            <div className="flex flex-1">
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-900">
+                    {matchType.name}
+                  </span>
+                </div>
+                <p className="mt-2 flex items-center text-sm text-gray-500">
+                  {matchType.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const segmentValidationSchema = Yup.object({
   key: keyValidation,
-  name: requiredValidation
+  name: requiredValidation,
+  matchType: Yup.string().required('Please select a match type')
 });
 
 type SegmentFormProps = {
@@ -97,8 +141,6 @@ export default function SegmentForm(props: SegmentFormProps) {
     constraints: segment?.constraints || []
   };
 
-  const [keyCopied, setKeyCopied] = useState(false);
-
   return (
     <Formik
       enableReinitialize
@@ -126,16 +168,27 @@ export default function SegmentForm(props: SegmentFormProps) {
       validationSchema={segmentValidationSchema}
     >
       {(formik) => {
-        const { constraints } = formik.values;
+        const { constraints, matchType } = formik.values;
         const disableSave = !(
           formik.dirty &&
           formik.isValid &&
-          !formik.isSubmitting
+          !formik.isSubmitting &&
+          (isNew
+            ? matchType === SegmentMatchType.ALL ||
+              matchType === SegmentMatchType.ANY
+            : true)
         );
 
         const form = (
-          <Form className="px-1 sm:overflow-hidden sm:rounded-md">
-            <div className="space-y-6">
+          <Form className="space-y-6 p-1 sm:overflow-hidden sm:rounded-md">
+            <SegmentTypeSelector
+              selectedType={formik.values.matchType}
+              onTypeSelect={(type) => {
+                formik.setFieldValue('matchType', type);
+              }}
+            />
+
+            {(!isNew || formik.values.matchType) && (
               <div className="grid grid-cols-3 gap-6">
                 <div className="col-span-2">
                   <label
@@ -150,8 +203,6 @@ export default function SegmentForm(props: SegmentFormProps) {
                     id="name"
                     autoFocus={isNew}
                     onChange={(e) => {
-                      // check if the name and key are currently in sync
-                      // we do this so we don't override a custom key value
                       if (
                         isNew &&
                         (formik.values.key === '' ||
@@ -165,112 +216,25 @@ export default function SegmentForm(props: SegmentFormProps) {
                     }}
                   />
                 </div>
-                <div className="col-span-2">
-                  <label
-                    htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Key
-                  </label>
-                  <div
-                    className={cls({
-                      'flex items-center justify-between': !isNew
-                    })}
-                  >
+                {isNew && (
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="key"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Key
+                    </label>
                     <Input
-                      className={cls('mt-1', { 'md:mr-2': !isNew })}
+                      className="mt-1"
                       name="key"
                       id="key"
-                      disabled={!isNew}
                       onChange={(e) => {
                         const formatted = stringAsKey(e.target.value);
                         formik.setFieldValue('key', formatted);
                       }}
                     />
-                    {!isNew && (
-                      <button
-                        aria-label="Copy to clipboard"
-                        title="Copy to Clipboard"
-                        className="hidden md:block"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          copyTextToClipboard(segment?.key || '');
-                          setKeyCopied(true);
-                          setTimeout(() => {
-                            setKeyCopied(false);
-                          }, 2000);
-                        }}
-                      >
-                        <CheckIcon
-                          className={cls(
-                            'absolute m-auto h-5 w-5 justify-center align-middle text-green-400 transition-opacity duration-300 ease-in-out',
-                            {
-                              'visible opacity-100': keyCopied,
-                              'invisible opacity-0': !keyCopied
-                            }
-                          )}
-                        />
-                        <ClipboardDocumentIcon
-                          className={cls(
-                            'm-auto h-5 w-5 justify-center align-middle text-gray-300 transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                            {
-                              'visible opacity-100': !keyCopied,
-                              'invisible opacity-0': keyCopied
-                            }
-                          )}
-                        />
-                      </button>
-                    )}
                   </div>
-                </div>
-                <div className="col-span-3">
-                  <label
-                    htmlFor="matchType"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Match Type
-                  </label>
-                  <fieldset className="mt-2">
-                    <legend className="sr-only">Match Type</legend>
-                    <div className="space-y-5">
-                      {segmentMatchTypes.map((matchType) => (
-                        <div
-                          key={matchType.id}
-                          className="relative flex items-start"
-                        >
-                          <div className="flex h-5 items-center">
-                            <input
-                              id={matchType.id}
-                              aria-describedby={`${matchType.id}-description`}
-                              name="matchType"
-                              type="radio"
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                              onChange={() => {
-                                formik.setFieldValue('matchType', matchType.id);
-                              }}
-                              checked={matchType.id === formik.values.matchType}
-                              value={matchType.id}
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor={matchType.id}
-                              className="font-medium text-gray-700"
-                            >
-                              {matchType.name}
-                            </label>
-                            <p
-                              id={`${matchType.id}-description`}
-                              className="text-gray-500"
-                            >
-                              {matchType.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </fieldset>
-                </div>
+                )}
                 <div className="col-span-3">
                   <div className="flex justify-between">
                     <label
@@ -289,28 +253,37 @@ export default function SegmentForm(props: SegmentFormProps) {
                   <Input className="mt-1" name="description" id="description" />
                 </div>
               </div>
+            )}
 
-              {segment && (
-                <>
-                  <div className="mt-3 flex flex-row sm:mt-5">
-                    <Constraints constraints={constraints!} />
-                  </div>
-                </>
+            {segment && matchType && (
+              <>
+                <div className="mt-3 flex flex-row sm:mt-5">
+                  <Constraints constraints={constraints!} />
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end">
+              <Button type="button" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
+              {(!isNew || formik.values.matchType) && (
+                <div className="relative inline-block">
+                  <Button
+                    variant="primary"
+                    className="ml-3 min-w-[80px]"
+                    type="submit"
+                    disabled={disableSave}
+                  >
+                    {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
+                  </Button>
+                  {formik.dirty && formik.isValid && (
+                    <div className="absolute -right-1 -top-1 h-3 w-3">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75"></span>
+                    </div>
+                  )}
+                </div>
               )}
-
-              <div className="flex justify-end">
-                <Button type="button" onClick={() => navigate(-1)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  className="ml-3 min-w-[80px]"
-                  type="submit"
-                  disabled={disableSave}
-                >
-                  {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
-                </Button>
-              </div>
             </div>
           </Form>
         );

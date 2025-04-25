@@ -17,7 +17,6 @@ import {
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
-import MoreInfo from '~/components/MoreInfo';
 import { PageHeader } from '~/components/Page';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -127,7 +126,9 @@ export default function Segment() {
       </Modal>
 
       {/* segment header / actions */}
-      <PageHeader title={segment.name}>
+      <PageHeader
+        title={<div className="flex items-center">{segment.name}</div>}
+      >
         <Dropdown
           label="Actions"
           actions={[
@@ -151,11 +152,15 @@ export default function Segment() {
         />
       </PageHeader>
 
-      {/* Info Section */}
-      <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
-          Learn more about segments
-        </MoreInfo>
+      {/* Key Section */}
+      <div className="mb-8">
+        {segment.key && (
+          <div className="my-2 inline-flex items-center rounded-md bg-secondary/30 px-3 py-1.5">
+            <code className="text-sm font-mono text-muted-foreground">
+              {segment.key}
+            </code>
+          </div>
+        )}
       </div>
 
       {/* Form Section - Full Width */}

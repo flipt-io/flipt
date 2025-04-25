@@ -31,7 +31,7 @@ export default function Searchbox(props: SearchboxProps) {
 
   return (
     <div className={`${className} flex flex-1 items-center justify-start`}>
-      <div className="w-full max-w-60 lg:max-w-md">
+      <div className="w-full">
         <label htmlFor="search" className="sr-only">
           Search
         </label>
@@ -45,7 +45,7 @@ export default function Searchbox(props: SearchboxProps) {
           <input
             id="search"
             name="search"
-            className="block w-full rounded-md border border-gray-300 bg-background py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 shadow-xs focus:border-violet-400 focus:placeholder-gray-400 focus:outline-hidden focus:ring-1 focus:ring-violet-400 sm:text-sm"
+            className="block rounded-md border border-gray-300 bg-background py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 shadow-xs sm:text-sm"
             placeholder="Search"
             type="search"
             value={value}

@@ -27,26 +27,27 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const Comp = asChild ? Slot : 'button';
+    const baseStyles = cls(
+      'cursor-hand inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium',
+      className
+    );
+
+    const variantStyles = cls({
+      'border border-transparent bg-violet-600 text-white shadow-sm enabled:hover:bg-violet-500':
+        variant === 'primary',
+      'border border-violet-300 bg-background text-gray-500 shadow-xs enabled:hover:bg-gray-50':
+        variant === 'secondary',
+      'border-violet-300 text-violet-600 enabled:hover:bg-violet-100':
+        variant === 'soft',
+      'border-none bg-transparent px-2 py-0 text-sm font-medium text-gray-300 enabled:text-gray-500 enabled:hover:text-gray-600 disabled:cursor-not-allowed':
+        variant === 'link',
+      'bg-transparent text-gray-500 hover:bg-gray-50': variant === 'ghost'
+    });
+
     return (
       <Comp
         type={type}
-        className={cls(
-          'cursor-hand inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:outline-hidden focus:ring-1 focus:ring-offset-1',
-          className,
-          {
-            'cursor-not-allowed': props.disabled,
-            'border border-transparent bg-violet-400 text-background shadow-xs enabled:bg-violet-600 enabled:hover:bg-violet-500 enabled:focus:ring-violet-600':
-              variant === 'primary',
-            'border border-violet-300 bg-background text-gray-500 shadow-xs enabled:hover:bg-gray-50 enabled:focus:ring-gray-500':
-              variant === 'secondary',
-            'border-violet-300 text-violet-600 enabled:hover:bg-violet-100 enabled:focus:ring-violet-500':
-              variant === 'soft',
-            'enabled:cursor-hand enabled:cursor mb-1 inline-flex items-center justify-center border-0 px-0 py-0 text-sm font-medium text-gray-300 focus:outline-hidden focus:ring-0 enabled:text-gray-500 enabled:hover:text-gray-600 disabled:cursor-not-allowed':
-              variant === 'link',
-            'bg-transparent text-gray-500 hover:bg-gray-50 enabled:focus:ring-gray-500':
-              variant === 'ghost'
-          }
-        )}
+        className={cls(baseStyles, variantStyles)}
         ref={ref}
         {...props}
       >
@@ -65,7 +66,7 @@ export const ButtonWithPlus = (props: ButtonProps) => {
     <Button {...props}>
       <FontAwesomeIcon
         icon={faPlus}
-        className="-ml-1.5 mr-1.5 h-4 w-4 text-background"
+        className="-ml-1.5 mr-1.5 h-4 w-4 text-white"
         aria-hidden="true"
       />
       {props.children}

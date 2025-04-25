@@ -1,9 +1,10 @@
+import { SlidersHorizontalIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { ButtonWithPlus } from '~/components/Button';
-import EmptyState from '~/components/EmptyState';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
+import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import DeletePanel from '~/components/panels/DeletePanel';
 import VariantForm from '~/components/variants/VariantForm';
@@ -166,14 +167,22 @@ export default function Variants({ variants }: VariantsProps) {
               </tbody>
             </table>
           ) : (
-            <EmptyState
-              text="New Variant"
-              onClick={(e) => {
-                e.preventDefault();
-                setEditingVariant(null);
-                setShowVariantForm(true);
-              }}
-            />
+            <Well>
+              <SlidersHorizontalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+                No Variants Yet
+              </h3>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEditingVariant(null);
+                  setShowVariantForm(true);
+                }}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
+              >
+                Create Variant
+              </button>
+            </Well>
           )}
         </div>
       </div>

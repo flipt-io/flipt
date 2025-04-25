@@ -19,7 +19,7 @@ interface DataTablePaginationProps<TData> {
   table: Table<TData>;
 }
 
-const pageSizes = [20, 50, 100];
+const pageSizes = [25, 50, 100];
 
 export function DataTablePagination<TData>({
   table

@@ -1,4 +1,3 @@
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -28,16 +27,16 @@ import { FlagType, IFlag } from '~/types/Flag';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import {
-  cls,
-  copyTextToClipboard,
-  getRevision,
-  stringAsKey
-} from '~/utils/helpers';
+import { cls, getRevision, stringAsKey } from '~/utils/helpers';
 
 import { FlagFormProvider } from './FlagFormContext';
 import { MetadataForm } from './MetadataForm';
 import MetadataFormErrorBoundary from './MetadataFormErrorBoundary';
+
+// Form-specific interface that allows null type during initialization
+export interface IFlagFormValues extends Omit<IFlag, 'type'> {
+  type: FlagType | null;
+}
 
 const flagTypes = [
   {
@@ -55,6 +54,7 @@ const flagTypes = [
 ];
 
 const flagValidationSchema = Yup.object({
+  type: Yup.string().required('Please select a flag type'),
   key: keyValidation,
   name: requiredValidation,
   metadata: Yup.object()
@@ -78,6 +78,54 @@ const booleanFlagTabs = [
   { name: 'Rollouts', id: 'rollouts' },
   { name: 'Analytics', id: 'analytics' }
 ];
+
+function FlagTypeSelector({
+  selectedType,
+  onTypeSelect
+}: {
+  selectedType: FlagType | null;
+  onTypeSelect: (type: FlagType) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-medium text-gray-900">Choose Flag Type</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Select the type of flag you want to create
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {flagTypes.map((flagType) => (
+          <div
+            key={flagType.id}
+            onClick={() => onTypeSelect(flagType.id)}
+            className={cls(
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500',
+              {
+                'border-violet-500 ring ring-violet-500':
+                  selectedType === flagType.id,
+                'border-gray-300': selectedType !== flagType.id
+              }
+            )}
+          >
+            <div className="flex flex-1">
+              <div className="flex flex-col">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-900">
+                    {flagType.name}
+                  </span>
+                </div>
+                <p className="mt-2 flex items-center text-sm text-gray-500">
+                  {flagType.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function FlagForm(props: { flag?: IFlag }) {
   const { flag } = props;
@@ -124,11 +172,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
     }).unwrap();
   };
 
-  const initialValues: IFlag = {
+  const initialValues: IFlagFormValues = {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
-    type: flag?.type || FlagType.VARIANT,
+    type: flag ? flag.type : null,
     enabled: flag?.enabled || false,
     variants: flag?.variants || [],
     rules: flag?.rules || [],
@@ -137,7 +185,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
     metadata: flag?.metadata || {}
   };
 
-  const [keyCopied, setKeyCopied] = useState(false);
   const [hasMetadataErrors, setHasMetadataErrors] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(
@@ -148,11 +195,13 @@ export default function FlagForm(props: { flag?: IFlag }) {
     flag?.type === FlagType.VARIANT ? variantFlagTabs : booleanFlagTabs;
 
   return (
-    <Formik
+    <Formik<IFlagFormValues>
       enableReinitialize
       initialValues={initialValues}
       onSubmit={(values, { setSubmitting }) => {
-        handleSubmit(values)
+        // Assert type is not null since validation ensures this
+        const flagValues = values as IFlag;
+        handleSubmit(flagValues)
           .then(() => {
             clearError();
             setSuccess(
@@ -169,8 +218,14 @@ export default function FlagForm(props: { flag?: IFlag }) {
             setSubmitting(false);
           });
       }}
-      validate={(values: IFlag) => {
+      validate={(values: IFlagFormValues) => {
         let errors: any = {};
+
+        if (isNew && !values.type) {
+          errors.type = 'Please select a flag type';
+          return errors;
+        }
+
         values.rules?.forEach((rule, index) => {
           var ruleErrors: any = {};
           if (!validRollout(rule.distributions)) {
@@ -195,283 +250,225 @@ export default function FlagForm(props: { flag?: IFlag }) {
         const disableSave = !(
           formik.dirty &&
           formik.isValid &&
-          !formik.isSubmitting
+          !formik.isSubmitting &&
+          (isNew ? formik.values.type !== null : true)
         );
 
         const form = (
-          <Form className="p-2 sm:overflow-hidden sm:rounded-md">
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-6">
-                {formik.values.type === FlagType.VARIANT && (
-                  <div className="col-span-3 md:col-span-2">
-                    <Toggle
-                      id="enabled"
-                      name="enabled"
-                      label="Enabled"
-                      checked={enabled}
+          <Form className="space-y-6 p-1 sm:overflow-hidden sm:rounded-md">
+            {isNew && (
+              <FlagTypeSelector
+                selectedType={formik.values.type}
+                onTypeSelect={(type) => {
+                  formik.setFieldValue('type', type);
+                  formik.setFieldValue('enabled', false);
+                }}
+              />
+            )}
+
+            {(!isNew || formik.values.type) && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-6">
+                  {formik.values.type === FlagType.VARIANT && (
+                    <div className="col-span-3 md:col-span-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label
+                            htmlFor="enabled"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Enabled
+                          </label>
+                          <p className="text-sm text-gray-500">
+                            Allows the flag to be evaluated
+                          </p>
+                        </div>
+                        <Toggle
+                          id="enabled"
+                          name="enabled"
+                          checked={enabled}
+                          onChange={(e) => {
+                            formik.setFieldValue('enabled', e);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {formik.values.type === FlagType.BOOLEAN && (
+                    <div className="col-span-3 md:col-span-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label
+                            htmlFor="defaultValue"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Default Value
+                          </label>
+                          <p className="text-sm text-gray-500">
+                            The default value returned when no rollouts match
+                          </p>
+                        </div>
+                        <Toggle
+                          id="defaultValue"
+                          name="defaultValue"
+                          checked={enabled}
+                          onChange={(e) => {
+                            formik.setFieldValue('enabled', e);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Name
+                    </label>
+                    <Input
+                      className="mt-1"
+                      name="name"
+                      id="name"
+                      autoFocus={isNew}
                       onChange={(e) => {
-                        formik.setFieldValue('enabled', e);
+                        // check if the name and key are currently in sync
+                        // we do this so we don't override a custom key value
+                        if (
+                          isNew &&
+                          (formik.values.key === '' ||
+                            formik.values.key ===
+                              stringAsKey(formik.values.name))
+                        ) {
+                          formik.setFieldValue(
+                            'key',
+                            stringAsKey(e.target.value)
+                          );
+                        }
+                        formik.handleChange(e);
                       }}
                     />
                   </div>
-                )}
-                {formik.values.type === FlagType.BOOLEAN && (
-                  <div className="col-span-3 md:col-span-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label
-                          htmlFor="defaultValue"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Default Value
-                        </label>
-                        <p className="text-sm text-gray-500">
-                          The default value returned when no rollouts match
-                        </p>
-                      </div>
-                      <Toggle
-                        id="defaultValue"
-                        name="defaultValue"
-                        checked={enabled}
+                  {isNew && (
+                    <div className="col-span-2">
+                      <label
+                        htmlFor="key"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Key
+                      </label>
+                      <Input
+                        className="mt-1"
+                        name="key"
+                        id="key"
                         onChange={(e) => {
-                          formik.setFieldValue('enabled', e);
+                          const formatted = stringAsKey(e.target.value);
+                          formik.setFieldValue('key', formatted);
                         }}
                       />
                     </div>
-                  </div>
-                )}
-                <div className="col-span-2">
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name
-                  </label>
-                  <Input
-                    className="mt-1"
-                    name="name"
-                    id="name"
-                    autoFocus={isNew}
-                    onChange={(e) => {
-                      // check if the name and key are currently in sync
-                      // we do this so we don't override a custom key value
-                      if (
-                        isNew &&
-                        (formik.values.key === '' ||
-                          formik.values.key === stringAsKey(formik.values.name))
-                      ) {
-                        formik.setFieldValue(
-                          'key',
-                          stringAsKey(e.target.value)
-                        );
-                      }
-                      formik.handleChange(e);
-                    }}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label
-                    htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Key
-                  </label>
-                  <div
-                    className={cls({
-                      'flex items-center justify-between': !isNew
-                    })}
-                  >
-                    <Input
-                      className={cls('mt-1', { 'md:mr-2': !isNew })}
-                      name="key"
-                      id="key"
-                      disabled={!isNew}
-                      onChange={(e) => {
-                        const formatted = stringAsKey(e.target.value);
-                        formik.setFieldValue('key', formatted);
-                      }}
-                    />
-                    {!isNew && (
-                      <button
-                        aria-label="Copy to clipboard"
-                        title="Copy to Clipboard"
-                        className="hidden md:block"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          copyTextToClipboard(flag?.key || '');
-                          setKeyCopied(true);
-                          setTimeout(() => {
-                            setKeyCopied(false);
-                          }, 2000);
-                        }}
+                  )}
+                  <div className="col-span-3">
+                    <div className="flex justify-between">
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700"
                       >
-                        <CheckIcon
-                          className={cls(
-                            'invisible absolute m-auto h-5 w-5 justify-center align-middle text-green-400 opacity-0 transition-opacity duration-300 ease-in-out',
-                            {
-                              'visible opacity-100': keyCopied
-                            }
-                          )}
-                        />
-                        <ClipboardDocumentIcon
-                          className={cls(
-                            'visible m-auto h-5 w-5 justify-center align-middle text-gray-300 opacity-100 transition-opacity duration-300 ease-in-out hover:text-gray-400',
-                            {
-                              'invisible opacity-0': keyCopied
-                            }
-                          )}
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="col-span-3">
-                  <label
-                    htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Type
-                  </label>
-                  <fieldset className="mt-2">
-                    <legend className="sr-only">Type</legend>
-                    <div className="space-y-5">
-                      {flagTypes.map((flagType) => (
-                        <div
-                          key={flagType.id}
-                          className="relative flex items-start"
-                        >
-                          <div className="flex h-5 items-center">
-                            <input
-                              id={flagType.id}
-                              aria-describedby={`${flagType.id}-description`}
-                              name="type"
-                              type="radio"
-                              disabled={!isNew}
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                              onChange={() => {
-                                formik.setFieldValue('type', flagType.id);
-                                formik.setFieldValue('enabled', false);
-                              }}
-                              checked={flagType.id === formik.values.type}
-                              value={flagType.id}
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor={flagType.id}
-                              className="font-medium text-gray-700"
-                            >
-                              {flagType.name}
-                            </label>
-                            <p
-                              id={`${flagType.id}-description`}
-                              className="text-gray-500"
-                            >
-                              {flagType.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        Description
+                      </label>
+                      <span
+                        className="text-xs text-gray-500"
+                        id="description-optional"
+                      >
+                        Optional
+                      </span>
                     </div>
-                  </fieldset>
-                </div>
-                <div className="col-span-3">
-                  <div className="flex justify-between">
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Description
-                    </label>
-                    <span
-                      className="text-xs text-gray-500"
-                      id="description-optional"
-                    >
-                      Optional
-                    </span>
+                    <Input
+                      className="mt-1"
+                      name="description"
+                      id="description"
+                    />
                   </div>
-                  <Input className="mt-1" name="description" id="description" />
-                </div>
-                <div className="col-span-3">
-                  <div className="flex justify-between">
-                    <label
-                      htmlFor="metadata"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Metadata
-                    </label>
-                    <span
-                      className="text-xs text-gray-500"
-                      id="metadata-optional"
-                    >
-                      Optional
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <MetadataFormErrorBoundary
-                      metadata={formik.values.metadata}
-                      onChange={(metadata) =>
-                        formik.setFieldValue('metadata', metadata)
-                      }
-                    >
-                      <MetadataForm
+                  <div className="col-span-3">
+                    <div className="flex justify-between">
+                      <label
+                        htmlFor="metadata"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Metadata
+                      </label>
+                      <span
+                        className="text-xs text-gray-500"
+                        id="metadata-optional"
+                      >
+                        Optional
+                      </span>
+                    </div>
+                    <div className="mt-1">
+                      <MetadataFormErrorBoundary
                         metadata={formik.values.metadata}
                         onChange={(metadata) =>
                           formik.setFieldValue('metadata', metadata)
                         }
-                        onErrorChange={setHasMetadataErrors}
-                      />
-                    </MetadataFormErrorBoundary>
+                      >
+                        <MetadataForm
+                          metadata={formik.values.metadata}
+                          onChange={(metadata) =>
+                            formik.setFieldValue('metadata', metadata)
+                          }
+                          onErrorChange={setHasMetadataErrors}
+                        />
+                      </MetadataFormErrorBoundary>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Tabs Section */}
-              {flag && (
-                <>
-                  <div className="mt-3 flex flex-row sm:mt-5">
-                    <div className="border-b-2 border-gray-200">
-                      <nav className="-mb-px flex space-x-8">
-                        {tabs.map((tab) => (
-                          <div
-                            role="link"
-                            key={tab.name}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setSelectedTab(tab.id!);
-                            }}
-                            className={cls(
-                              'cursor-pointer whitespace-nowrap border-b-2 px-1 py-2 font-medium',
-                              {
-                                'border-violet-500 text-violet-600':
-                                  tab.id === selectedTab,
-                                'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
-                                  tab.id != selectedTab
-                              }
-                            )}
-                          >
-                            {tab.name}
-                          </div>
-                        ))}
-                      </nav>
-                    </div>
+            {/* Tabs Section */}
+            {flag && (
+              <div>
+                <div className="flex flex-row">
+                  <div className="border-b-2 border-gray-200">
+                    <nav className="-mb-px flex space-x-8">
+                      {tabs.map((tab) => (
+                        <div
+                          role="link"
+                          key={tab.name}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedTab(tab.id!);
+                          }}
+                          className={cls(
+                            'cursor-pointer whitespace-nowrap border-b-2 px-1 py-2 font-medium',
+                            {
+                              'border-violet-500 text-violet-600':
+                                tab.id === selectedTab,
+                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
+                                tab.id != selectedTab
+                            }
+                          )}
+                        >
+                          {tab.name}
+                        </div>
+                      ))}
+                    </nav>
                   </div>
-                  {selectedTab == 'variants' && (
-                    <Variants variants={variants!} />
-                  )}
-                  {selectedTab == 'rollouts' && (
-                    <Rollouts flag={flag} rollouts={rollouts!} />
-                  )}
-                  {selectedTab == 'rules' && (
-                    <Rules flag={flag} rules={rules!} />
-                  )}
-                  {selectedTab == 'analytics' && <Analytics flag={flag} />}
-                </>
-              )}
-              <div className="flex justify-end">
-                <Button type="button" onClick={() => navigate(-1)}>
-                  Cancel
-                </Button>
+                </div>
+                {selectedTab == 'variants' && <Variants variants={variants!} />}
+                {selectedTab == 'rollouts' && (
+                  <Rollouts flag={flag} rollouts={rollouts!} />
+                )}
+                {selectedTab == 'rules' && <Rules flag={flag} rules={rules!} />}
+                {selectedTab == 'analytics' && <Analytics flag={flag} />}
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button type="button" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
+              {(!isNew || formik.values.type) && (
                 <div className="relative inline-block">
                   <Button
                     variant="primary"
@@ -481,13 +478,13 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   >
                     {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}
                   </Button>
-                  {formik.dirty && (
+                  {formik.dirty && formik.isValid && (
                     <div className="absolute -right-1 -top-1 h-3 w-3">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75"></span>
                     </div>
                   )}
                 </div>
-              </div>
+              )}
             </div>
           </Form>
         );

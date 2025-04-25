@@ -61,9 +61,8 @@ export default function Combobox<T extends IFilterable>(
         >
           <div className="relative flex w-full flex-row">
             <C.Input
-              //id={id}
               className={cls(
-                'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-gray-900 shadow-xs focus:border-violet-500 focus:outline-hidden focus:ring-1 focus:ring-violet-500 sm:text-sm',
+                'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-gray-900 shadow-xs sm:text-sm',
                 inputClassName
               )}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +75,7 @@ export default function Combobox<T extends IFilterable>(
               autoComplete="off"
             />
             <C.Button
-              className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2 focus:outline-hidden"
+              className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2"
               id={`${id}-select-button`}
             >
               <ChevronUpDownIcon
@@ -87,7 +86,7 @@ export default function Combobox<T extends IFilterable>(
           </div>
           {open && (
             <C.Options
-              className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm"
+              className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 sm:text-sm"
               id={`${id}-select-options`}
               static={openOptions}
             >
