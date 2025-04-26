@@ -91,7 +91,7 @@ function InnerLayout() {
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="flex min-h-screen flex-col bg-background md:pl-64">
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-0 z-10">
           <Header setSidebarOpen={setSidebarOpen} />
           {!dismissedBanner && (
             <div className="mt-16 z-10">
