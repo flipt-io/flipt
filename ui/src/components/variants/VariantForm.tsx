@@ -33,7 +33,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
   const title = isNew ? 'New Variant' : 'Edit Variant';
   const submitPhrase = isNew ? 'Add' : 'Done';
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const { updateVariant, createVariant } = useContext(FlagFormContext);
 
@@ -60,7 +60,6 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
-            clearError();
             onSuccess();
           })
           .catch((err) => {

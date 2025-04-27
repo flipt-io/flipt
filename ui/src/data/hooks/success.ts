@@ -1,8 +1,12 @@
-import { useContext } from 'react';
+import { toast } from 'sonner';
 
-import { NotificationContext } from '~/components/NotificationProvider';
-
+const setSuccess = (msg: string) => {
+  toast.success(msg, {
+    style: {
+      background: 'var(--color-green-100)'
+    }
+  });
+};
 export const useSuccess = () => {
-  const { success, setSuccess, clearSuccess } = useContext(NotificationContext);
-  return { success, setSuccess, clearSuccess };
+  return { setSuccess };
 };

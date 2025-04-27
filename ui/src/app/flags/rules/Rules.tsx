@@ -39,8 +39,6 @@ import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
 
-import { useError } from '~/data/hooks/error';
-
 type RulesProps = {
   flag: IFlag;
   rules: IRule[];
@@ -130,8 +128,6 @@ export default function Rules({ flag, rules }: RulesProps) {
 
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
-
-  const { clearError } = useError();
 
   const ruleFormRef = useRef(null);
 
@@ -291,7 +287,7 @@ export default function Rules({ flag, rules }: RulesProps) {
                                 setDeletingRule(rule);
                                 setShowDeleteRuleModal(true);
                               }}
-                              onSuccess={clearError}
+                              onSuccess={() => {}}
                             />
                           ))}
                       </ul>

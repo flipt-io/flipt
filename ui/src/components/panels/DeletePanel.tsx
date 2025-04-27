@@ -11,11 +11,13 @@ type DeletePanelProps = {
   handleDelete: (...args: string[]) => Promise<any>;
   panelType: string;
   onSuccess?: () => void;
+  onError?: () => void;
 };
 
 export default function DeletePanel(props: DeletePanelProps) {
-  const { setOpen, panelType, panelMessage, onSuccess, handleDelete } = props;
-  const { setError, clearError } = useError();
+  const { setOpen, panelType, panelMessage, onSuccess, handleDelete, onError } =
+    props;
+  const { setError } = useError();
 
   const handleSubmit = () => {
     return handleDelete();
@@ -46,13 +48,15 @@ export default function DeletePanel(props: DeletePanelProps) {
           onClick={() => {
             handleSubmit()
               ?.then(() => {
-                clearError();
                 if (onSuccess) {
                   onSuccess();
                 }
               })
               .catch((err) => {
                 setError(err);
+                if (onError) {
+                  onError();
+                }
               })
               .finally(() => {
                 setOpen(false);

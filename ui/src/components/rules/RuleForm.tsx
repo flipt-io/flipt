@@ -99,7 +99,7 @@ interface Segment {
 export default function RuleForm(props: RuleFormProps) {
   const { setOpen, onSuccess, flag, rank, segments, createRule } = props;
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
@@ -178,7 +178,6 @@ export default function RuleForm(props: RuleFormProps) {
         handleSubmit(values)
           .then(() => {
             onSuccess();
-            clearError();
             setOpen(false);
           })
           .catch((err) => {

@@ -1,8 +1,18 @@
-import { useContext } from 'react';
+import { toast } from 'sonner';
 
-import { NotificationContext } from '~/components/NotificationProvider';
+import { getErrorMessage } from '~/utils/helpers';
+
+const setError = (msg: any) => {
+  if (msg == null) {
+    return;
+  }
+  toast.error(getErrorMessage(msg), {
+    style: {
+      background: 'var(--color-red-50)'
+    }
+  });
+};
 
 export const useError = () => {
-  const { error, setError, clearError } = useContext(NotificationContext);
-  return { error, setError, clearError };
+  return { setError };
 };

@@ -281,7 +281,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const submitPhrase = isNew ? 'Add' : 'Done';
   const title = isNew ? 'New Constraint' : 'Edit Constraint';
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const [hasValue, setHasValue] = useState(
     !NoValueOperators.includes(constraint?.operator || 'eq')
@@ -334,7 +334,6 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
-            clearError();
             onSuccess();
           })
           .catch((err) => {

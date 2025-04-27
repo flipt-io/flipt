@@ -69,7 +69,7 @@ export default function Console() {
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
 
@@ -86,8 +86,7 @@ export default function Console() {
       setError(error);
       return;
     }
-    clearError();
-  }, [clearError, error, setError]);
+  }, [error, setError]);
 
   const flags = useMemo(() => {
     const initialFlags = data?.flags || [];

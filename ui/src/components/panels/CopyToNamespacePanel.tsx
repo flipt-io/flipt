@@ -25,7 +25,7 @@ type CopyToNamespacePanelProps = {
 export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   const { setOpen, panelType, panelMessage, onSuccess, handleCopy } = props;
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -84,7 +84,6 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
           onClick={() => {
             handleSubmit()
               ?.then(() => {
-                clearError();
                 if (onSuccess) {
                   onSuccess();
                 }

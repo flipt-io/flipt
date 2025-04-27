@@ -41,7 +41,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const title = isNew ? 'New Namespace' : 'Edit Namespace';
   const submitPhrase = isNew ? 'Create' : 'Update';
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
   const { setSuccess } = useSuccess();
 
   const environment = useSelector(selectCurrentEnvironment);
@@ -76,7 +76,6 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
-            clearError();
             setSuccess(
               `Successfully ${submitPhrase.toLocaleLowerCase()}d namespace.`
             );

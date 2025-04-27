@@ -4,7 +4,7 @@ import {
   Trash2Icon,
   VariableIcon
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
@@ -40,8 +40,9 @@ export default function Flag() {
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
+  const skipRefetch = useRef<boolean>(false);
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
   const { setSuccess } = useSuccess();
 
   const navigate = useNavigate();
@@ -57,11 +58,14 @@ export default function Flag() {
     error,
     isLoading,
     isError
-  } = useGetFlagQuery({
-    environmentKey: environment.key,
-    namespaceKey: namespace.key,
-    flagKey: flagKey || ''
-  });
+  } = useGetFlagQuery(
+    {
+      environmentKey: environment.key,
+      namespaceKey: namespace.key,
+      flagKey: flagKey || ''
+    },
+    { skip: skipRefetch.current }
+  );
 
   const [deleteFlag] = useDeleteFlagMutation();
   const [copyFlag] = useCopyFlagMutation();
@@ -90,17 +94,21 @@ export default function Flag() {
           }
           panelType="Flag"
           setOpen={setShowDeleteFlagModal}
-          handleDelete={() =>
-            deleteFlag({
+          handleDelete={() => {
+            skipRefetch.current = true;
+            return deleteFlag({
               environmentKey: environment.key,
               namespaceKey: namespace.key,
               flagKey: flag.key,
               revision
-            }).unwrap()
-          }
+            }).unwrap();
+          }}
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
             setSuccess('Successfully deleted flag');
+          }}
+          onError={() => {
+            skipRefetch.current = false;
           }}
         />
       </Modal>
@@ -125,7 +133,6 @@ export default function Flag() {
             }).unwrap()
           }
           onSuccess={() => {
-            clearError();
             setShowCopyFlagModal(false);
             setSuccess('Successfully copied flag');
           }}

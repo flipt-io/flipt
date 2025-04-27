@@ -135,7 +135,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
 
   const navigate = useNavigate();
 
-  const { setError, clearError } = useError();
+  const { setError } = useError();
   const { setSuccess } = useSuccess();
 
   const environment = useSelector(selectCurrentEnvironment);
@@ -203,7 +203,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
         const flagValues = values as IFlag;
         handleSubmit(flagValues)
           .then(() => {
-            clearError();
             setSuccess(
               `Successfully ${submitPhrase.toLocaleLowerCase()}d flag`
             );

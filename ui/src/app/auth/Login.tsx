@@ -12,8 +12,7 @@ import { Navigate } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
 import Loading from '~/components/Loading';
-import { NotificationProvider } from '~/components/NotificationProvider';
-import ErrorNotification from '~/components/notifications/ErrorNotification';
+import { Toaster } from '~/components/sonner';
 
 import { IAuthMethod } from '~/types/Auth';
 
@@ -53,7 +52,7 @@ const knownProviders: Record<string, ILoginProvider> = {
 };
 
 function InnerLoginButtons() {
-  const { setError, clearError } = useError();
+  const { setError } = useError();
 
   const authorize = async (uri: string) => {
     const res = await fetch(uri, {
@@ -69,7 +68,6 @@ function InnerLoginButtons() {
       return;
     }
 
-    clearError();
     const body = await res.json();
     window.location.href = body.authorizeUrl;
   };
@@ -214,9 +212,9 @@ function InnerLogin() {
 
 export default function Login() {
   return (
-    <NotificationProvider>
+    <>
       <InnerLogin />
-      <ErrorNotification />
-    </NotificationProvider>
+      <Toaster />
+    </>
   );
 }

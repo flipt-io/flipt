@@ -105,7 +105,7 @@ export default function SegmentForm(props: SegmentFormProps) {
   const submitPhrase = isNew ? 'Create' : 'Update';
 
   const navigate = useNavigate();
-  const { setError, clearError } = useError();
+  const { setError } = useError();
   const { setSuccess } = useSuccess();
 
   const environment = useSelector(selectCurrentEnvironment);
@@ -148,7 +148,6 @@ export default function SegmentForm(props: SegmentFormProps) {
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
           .then(() => {
-            clearError();
             setSuccess(
               `Successfully ${submitPhrase.toLocaleLowerCase()}d segment`
             );

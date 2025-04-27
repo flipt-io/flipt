@@ -36,8 +36,6 @@ import SortableRollout from '~/components/rollouts/SortableRollout';
 import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 
-import { useError } from '~/data/hooks/error';
-
 type RolloutsProps = {
   flag: IFlag;
   rollouts: IRollout[];
@@ -54,8 +52,6 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
   const [showDeleteRolloutModal, setShowDeleteRolloutModal] =
     useState<boolean>(false);
   const [deletingRollout, setDeletingRollout] = useState<IRollout | null>(null);
-
-  const { clearError } = useError();
 
   const rolloutFormRef = useRef(null);
 
@@ -240,7 +236,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
                               setDeletingRollout(rollout);
                               setShowDeleteRolloutModal(true);
                             }}
-                            onSuccess={clearError}
+                            onSuccess={() => {}}
                           />
                         ))}
                     </ul>
