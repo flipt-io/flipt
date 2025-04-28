@@ -97,6 +97,7 @@ function FlagTypeSelector({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {flagTypes.map((flagType) => (
           <div
+            data-testid={flagType.id}
             key={flagType.id}
             onClick={() => onTypeSelect(flagType.id)}
             className={cls(
@@ -135,7 +136,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
 
   const navigate = useNavigate();
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const environment = useSelector(selectCurrentEnvironment);
@@ -203,6 +204,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
         const flagValues = values as IFlag;
         handleSubmit(flagValues)
           .then(() => {
+            clearError();
             setSuccess(
               `Successfully ${submitPhrase.toLocaleLowerCase()}d flag`
             );

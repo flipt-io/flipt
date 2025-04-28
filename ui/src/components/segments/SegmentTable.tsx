@@ -84,7 +84,11 @@ function EmptySegmentList({ path }: { path: string }) {
         <p className="text-sm text-muted-foreground mb-4">
           Segments enable request targeting based on defined criteria.
         </p>
-        <Button variant="primary" onClick={() => navigate(path)}>
+        <Button
+          variant="primary"
+          onClick={() => navigate(path)}
+          aria-label="New Segment"
+        >
           Create Your First Segment
         </Button>
       </div>

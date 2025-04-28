@@ -42,7 +42,7 @@ export default function Flag() {
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
   const skipRefetch = useRef<boolean>(false);
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const navigate = useNavigate();
@@ -133,6 +133,7 @@ export default function Flag() {
             }).unwrap()
           }
           onSuccess={() => {
+            clearError();
             setShowCopyFlagModal(false);
             setSuccess('Successfully copied flag');
           }}

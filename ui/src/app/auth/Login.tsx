@@ -52,7 +52,7 @@ const knownProviders: Record<string, ILoginProvider> = {
 };
 
 function InnerLoginButtons() {
-  const { setError } = useError();
+  const { setError, clearError } = useError();
 
   const authorize = async (uri: string) => {
     const res = await fetch(uri, {
@@ -67,7 +67,7 @@ function InnerLoginButtons() {
       setError('Unable to authenticate: ' + message);
       return;
     }
-
+    clearError();
     const body = await res.json();
     window.location.href = body.authorizeUrl;
   };

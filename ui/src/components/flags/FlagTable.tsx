@@ -89,6 +89,7 @@ function FlagListItem({ item, path }: { item: IFlag; path: string }) {
   return (
     <button
       role="link"
+      aria-label={item.key}
       className="group w-full rounded-lg border text-left text-sm transition-all hover:bg-accent"
       onClick={() => navigate(path)}
     >
@@ -134,7 +135,11 @@ function EmptyFlagList({ path }: { path: string }) {
           Flags enable you to control and roll out new functionality
           dynamically.
         </p>
-        <Button variant="primary" onClick={() => navigate(path)}>
+        <Button
+          aria-label="New Flag"
+          variant="primary"
+          onClick={() => navigate(path)}
+        >
           Create Your First Flag
         </Button>
       </div>

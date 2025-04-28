@@ -53,7 +53,7 @@ interface RolloutFormValues {
 export default function RolloutForm(props: RolloutFormProps) {
   const { setOpen, onSuccess, rank, segments, createRollout } = props;
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
 
   const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
 
@@ -122,6 +122,7 @@ export default function RolloutForm(props: RolloutFormProps) {
         handleSubmit(values)
           .then(() => {
             onSuccess();
+            clearError();
             setOpen(false);
           })
           .catch((err) => {

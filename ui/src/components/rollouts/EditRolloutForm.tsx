@@ -52,7 +52,7 @@ interface RolloutFormValues {
 export default function EditRolloutForm(props: EditRolloutFormProps) {
   const { setOpen, onSuccess, rollout, segments, updateRollout } = props;
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
 
   const segmentOperator =
     rollout.segment && rollout.segment.segmentOperator
@@ -150,6 +150,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
         handleSubmit(values)
           .then(() => {
             onSuccess();
+            clearError();
             setOpen(false);
           })
           .catch((err) => {

@@ -35,7 +35,7 @@ export default function Segment() {
     useState<boolean>(false);
   const skipRefetch = useRef<boolean>(false);
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const navigate = useNavigate();
@@ -128,6 +128,7 @@ export default function Segment() {
             }).unwrap()
           }
           onSuccess={() => {
+            clearError();
             setShowCopySegmentModal(false);
             setSuccess('Successfully copied segment');
           }}

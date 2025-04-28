@@ -1,18 +1,24 @@
+import { useRef } from 'react';
 import { toast } from 'sonner';
 
 import { getErrorMessage } from '~/utils/helpers';
 
-const setError = (msg: any) => {
-  if (msg == null) {
-    return;
-  }
-  toast.error(getErrorMessage(msg), {
-    style: {
-      background: 'var(--color-red-50)'
-    }
-  });
-};
-
 export const useError = () => {
-  return { setError };
+  const toastId = useRef(0);
+  const clearError = () => {
+    toast.dismiss(toastId.current);
+  };
+  const setError = (msg: any) => {
+    clearError();
+    if (msg == null) {
+      return;
+    }
+    toastId.current = toast.error(getErrorMessage(msg), {
+      style: {
+        background: 'var(--color-red-50)'
+      }
+    }) as number;
+  };
+
+  return { setError, clearError };
 };

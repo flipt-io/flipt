@@ -69,7 +69,7 @@ export default function Console() {
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
-  const { setError } = useError();
+  const { setError, clearError } = useError();
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
 
@@ -86,7 +86,8 @@ export default function Console() {
       setError(error);
       return;
     }
-  }, [error, setError]);
+    clearError();
+  }, [clearError, error, setError]);
 
   const flags = useMemo(() => {
     const initialFlags = data?.flags || [];
@@ -387,6 +388,7 @@ export default function Console() {
                 At least one flag must exist to use the console
               </p>
               <button
+                aria-label="New Flag"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/flags/new`)
                 }

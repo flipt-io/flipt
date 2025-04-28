@@ -98,9 +98,7 @@ test.describe('Segments', () => {
   });
 
   test('can delete segment', async ({ page }) => {
-    await page
-      .getByRole('link', { name: "Test Segment Test-Segment i'm" })
-      .click();
+    await page.getByRole('link', { name: 'test-segment' }).click();
     await page.getByRole('button', { name: 'Actions' }).click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();

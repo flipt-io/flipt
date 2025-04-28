@@ -173,6 +173,7 @@ export default function Variants({ variants }: VariantsProps) {
                 No Variants Yet
               </h3>
               <button
+                aria-label="New Variant"
                 onClick={(e) => {
                   e.preventDefault();
                   setEditingVariant(null);
