@@ -1,7 +1,7 @@
 import { IPageable } from './Pageable';
 import { IRollout } from './Rollout';
 import { IRule } from './Rule';
-import { IFilterable } from './Selectable';
+import { ISelectable } from './Selectable';
 import { IVariant } from './Variant';
 
 export enum FlagType {
@@ -45,4 +45,4 @@ export interface IFlagList extends IPageable {
   flags: IFlag[];
 }
 
-export type FilterableFlag = IFlag & IFilterable;
+export type FilterableFlag = IFlag & ISelectable;

@@ -15,7 +15,7 @@ import Listbox from '~/components/forms/Listbox';
 import { Graph } from '~/components/graphs';
 
 import { IFlag } from '~/types/Flag';
-import { IFilterable } from '~/types/Selectable';
+import { ISelectable } from '~/types/Selectable';
 
 type AnalyticsProps = {
   flag: IFlag;
@@ -25,38 +25,33 @@ interface IDuration {
   value: number;
 }
 
-type FilterableDurations = IDuration & IFilterable;
+type FilterableDurations = IDuration & ISelectable;
 
 const durations: FilterableDurations[] = [
   {
     value: 30,
     key: '30 minutes',
-    displayValue: '30 minutes',
-    filterValue: '30 minutes'
+    displayValue: '30 minutes'
   },
   {
     value: 60,
     key: '1 hour',
-    displayValue: '1 hour',
-    filterValue: '1 hour'
+    displayValue: '1 hour'
   },
   {
     value: 60 * 4,
     key: '4 hours',
-    displayValue: '4 hours',
-    filterValue: '4 hours'
+    displayValue: '4 hours'
   },
   {
     value: 60 * 12,
     key: '12 hours',
-    displayValue: '12 hours',
-    filterValue: '12 hours'
+    displayValue: '12 hours'
   },
   {
     value: 60 * 24,
     key: '1 day',
-    displayValue: '1 day',
-    filterValue: '1 day'
+    displayValue: '1 day'
   }
 ];
 

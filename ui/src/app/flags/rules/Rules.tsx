@@ -60,8 +60,7 @@ export function DefaultVariant(props: RulesProps) {
 
       return {
         ...variant,
-        displayValue: variant.name,
-        filterValue: variant.key
+        displayValue: variant.name || variant.key
       };
     });
 

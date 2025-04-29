@@ -62,8 +62,11 @@ test.describe('Rules', () => {
         .click();
       await page.getByRole('option', { name: 'Test Rule' }).click();
       await page.getByLabel('Single Variant').check();
-      await page.locator('#variant-select-button').click();
-      await page.getByLabel('New Rule').getByText('123').click();
+      await page
+        .getByRole('dialog', { name: 'New Rule' })
+        .getByTestId('variant-select-button')
+        .click();
+      await page.getByRole('option', { name: '123' }).click();
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
       await expect(page.getByText('Successfully updated flag')).toBeVisible();
@@ -107,8 +110,11 @@ test.describe('Rules', () => {
 
       // Complete the rule creation
       await page.getByLabel('Single Variant').check();
-      await page.locator('#variant-select-button').click();
-      await page.getByLabel('New Rule').getByText('456').click();
+      await page
+        .getByRole('dialog', { name: 'New Rule' })
+        .getByTestId('variant-select-button')
+        .click();
+      await page.getByRole('option', { name: '456' }).click();
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
       await expect(page.getByText('Successfully updated flag')).toBeVisible();
@@ -181,10 +187,10 @@ test.describe('Rules', () => {
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
-      page.getByTestId('rule-0').getByRole('button', { name: '1' })
+      page.getByTestId('rule-0').getByRole('button', { name: '1', exact: true })
     ).toBeVisible();
     await expect(
-      page.getByTestId('rule-1').getByRole('button', { name: '2' })
+      page.getByTestId('rule-1').getByRole('button', { name: '2', exact: true })
     ).toBeVisible();
   });
 
