@@ -39,7 +39,7 @@ import (
 var (
 	providedConfigFile string
 	forceMigrate       bool
-	version            = "dev"
+	v                  = "v2.0.0-alpha"
 	commit             string
 	date               string
 	goVersion          = runtime.Version()
@@ -101,7 +101,7 @@ func exec() error {
 			$ flipt config init
 			$ flipt --config /path/to/config.yml migrate
 		`),
-		Version: version,
+		Version: v,
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd: true,
 		},
@@ -114,7 +114,7 @@ func exec() error {
 	)
 
 	if err := t.Execute(buf, &bannerOpts{
-		Version:   version,
+		Version:   v,
 		Commit:    commit,
 		Date:      date,
 		GoVersion: goVersion,
@@ -271,7 +271,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
 	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
-		otelResource, err := otel.NewResource(ctx, version)
+		otelResource, err := otel.NewResource(ctx, v)
 		if err != nil {
 			return fmt.Errorf("creating otel resource: %w", err)
 		}
@@ -309,18 +309,18 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	if isConsole {
 		color.Cyan("%s\n", banner)
 	} else {
-		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+		logger.Info("flipt starting", zap.String("version", v), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
 	}
 
 	var (
-		isRelease   = release.Is(version)
+		isRelease   = release.Is(v)
 		releaseInfo release.Info
 	)
 
 	if cfg.Meta.CheckForUpdates && isRelease {
 		logger.Debug("checking for updates")
 
-		releaseInfo, err = release.Check(ctx, version)
+		releaseInfo, err = release.Check(ctx, v)
 		if err != nil {
 			logger.Warn("checking for updates", zap.Error(err))
 		}
@@ -368,7 +368,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	info := info.New(
-		info.WithBuild(commit, date, goVersion, version, isRelease),
+		info.WithBuild(commit, date, goVersion, v, isRelease),
 		info.WithLatestRelease(releaseInfo),
 		info.WithConfig(cfg),
 	)
