@@ -83,7 +83,7 @@ test.describe('Segments', () => {
     await page.getByRole('link', { name: 'Segments', exact: true }).click();
     await page
       .getByTestId('namespace-listbox')
-      .getByRole('button', { name: 'Default' })
+      .getByRole('combobox', { name: 'Default' })
       .click();
     await page.getByText('copy segment').click();
 
