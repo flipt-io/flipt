@@ -97,6 +97,7 @@ function FlagTypeSelector({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {flagTypes.map((flagType) => (
           <div
+            data-testid={flagType.id}
             key={flagType.id}
             onClick={() => onTypeSelect(flagType.id)}
             className={cls(

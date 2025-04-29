@@ -12,8 +12,7 @@ import { Navigate } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
 import Loading from '~/components/Loading';
-import { NotificationProvider } from '~/components/NotificationProvider';
-import ErrorNotification from '~/components/notifications/ErrorNotification';
+import { Toaster } from '~/components/sonner';
 
 import { IAuthMethod } from '~/types/Auth';
 
@@ -68,7 +67,6 @@ function InnerLoginButtons() {
       setError('Unable to authenticate: ' + message);
       return;
     }
-
     clearError();
     const body = await res.json();
     window.location.href = body.authorizeUrl;
@@ -214,9 +212,9 @@ function InnerLogin() {
 
 export default function Login() {
   return (
-    <NotificationProvider>
+    <>
       <InnerLogin />
-      <ErrorNotification />
-    </NotificationProvider>
+      <Toaster />
+    </>
   );
 }

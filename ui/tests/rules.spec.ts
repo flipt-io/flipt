@@ -9,6 +9,7 @@ test.describe('Rules', () => {
   test('can create rule', async ({ page }) => {
     await test.step('create flag', async () => {
       await page.getByRole('button', { name: 'New Flag' }).click();
+      await page.getByTestId('VARIANT_FLAG_TYPE').click();
       await page.getByLabel('Name').fill('Test Rule');
       await page.getByRole('switch', { name: 'Enabled' }).click();
       await page.getByRole('button', { name: 'Create' }).click();

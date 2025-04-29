@@ -388,6 +388,7 @@ export default function Console() {
                 At least one flag must exist to use the console
               </p>
               <button
+                aria-label="New Flag"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/flags/new`)
                 }

@@ -248,6 +248,7 @@ export default function Constraints({ constraints }: ConstraintsProps) {
               </h3>
               <Button
                 variant="primary"
+                aria-label="New Constraint"
                 onClick={(e) => {
                   e.preventDefault();
                   setEditingConstraint(null);

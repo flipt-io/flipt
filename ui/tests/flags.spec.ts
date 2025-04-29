@@ -8,6 +8,7 @@ test.describe('Flags', () => {
 
   test('can create flag', async ({ page }) => {
     await page.getByRole('button', { name: 'New Flag' }).click();
+    await page.getByTestId('VARIANT_FLAG_TYPE').click();
     await page.getByLabel('Name').fill('Test Flag');
     await page.getByLabel('Description').click();
     await page.getByRole('button', { name: 'Create' }).click();
@@ -132,6 +133,7 @@ test.describe('Flags', () => {
 
   test('can create flag with metadata', async ({ page }) => {
     await page.getByRole('button', { name: 'New Flag' }).click();
+    await page.getByTestId('BOOLEAN_FLAG_TYPE').click();
     await page.getByLabel('Name').fill('Metadata Flag');
     await page.getByRole('button', { name: 'Add Metadata' }).click();
     await page.getByTestId('metadata-key-0').fill('foo');
@@ -170,9 +172,7 @@ test.describe('Flags', () => {
   });
 
   test('can delete flag', async ({ page }) => {
-    await page
-      .getByRole('link', { name: 'Test Flag Test-Flag Test flag' })
-      .click();
+    await page.getByRole('link', { name: 'test-flag' }).click();
     await page.getByRole('button', { name: 'Actions' }).click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();

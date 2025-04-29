@@ -320,6 +320,7 @@ export default function Rules({ flag, rules }: RulesProps) {
               </h3>
               <Button
                 variant="primary"
+                aria-label="New Rule"
                 onClick={() => {
                   setShowRuleForm(true);
                 }}

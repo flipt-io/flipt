@@ -1,5 +1,5 @@
 import { FilesIcon, Trash2Icon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
 
@@ -33,6 +33,7 @@ export default function Segment() {
     useState<boolean>(false);
   const [showCopySegmentModal, setShowCopySegmentModal] =
     useState<boolean>(false);
+  const skipRefetch = useRef<boolean>(false);
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -50,11 +51,14 @@ export default function Segment() {
     error,
     isLoading,
     isError
-  } = useGetSegmentQuery({
-    environmentKey: environment.key,
-    namespaceKey: namespace.key,
-    segmentKey: segmentKey || ''
-  });
+  } = useGetSegmentQuery(
+    {
+      environmentKey: environment.key,
+      namespaceKey: namespace.key,
+      segmentKey: segmentKey || ''
+    },
+    { skip: skipRefetch.current }
+  );
 
   const [deleteSegment] = useDeleteSegmentMutation();
   const [copySegment] = useCopySegmentMutation();
@@ -83,17 +87,23 @@ export default function Segment() {
           }
           panelType="Segment"
           setOpen={setShowDeleteSegmentModal}
-          handleDelete={() =>
-            deleteSegment({
+          handleDelete={() => {
+            skipRefetch.current = true;
+            return deleteSegment({
               environmentKey: environment.key,
               namespaceKey: namespace.key,
               segmentKey: segment.key,
               revision
-            }).unwrap()
-          }
+            }).unwrap();
+          }}
           onSuccess={() => {
-            navigate(`/namespaces/${namespace.key}/segments`);
+            navigate(`/namespaces/${namespace.key}/segments`, {
+              replace: true
+            });
             setSuccess('Successfully deleted segment');
+          }}
+          onError={() => {
+            skipRefetch.current = false;
           }}
         />
       </Modal>

@@ -13,11 +13,9 @@ import Banner from '~/components/Banner';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import Loading from '~/components/Loading';
-import { NotificationProvider } from '~/components/NotificationProvider';
 import Sidebar from '~/components/Sidebar';
 import CommandDialog from '~/components/command/CommandDialog';
-import ErrorNotification from '~/components/notifications/ErrorNotification';
-import SuccessNotification from '~/components/notifications/SuccessNotification';
+import { Toaster } from '~/components/sonner';
 
 import { LoadingStatus } from '~/types/Meta';
 
@@ -120,10 +118,9 @@ function InnerLayout() {
 
 export default function Layout() {
   return (
-    <NotificationProvider>
+    <>
       <InnerLayout />
-      <ErrorNotification />
-      <SuccessNotification />
-    </NotificationProvider>
+      <Toaster />
+    </>
   );
 }

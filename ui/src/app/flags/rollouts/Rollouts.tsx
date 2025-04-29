@@ -265,6 +265,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
               </h3>
               <Button
                 variant="primary"
+                aria-label="New Rollout"
                 onClick={() => {
                   setEditingRollout(null);
                   setShowRolloutForm(true);

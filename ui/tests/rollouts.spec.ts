@@ -8,8 +8,10 @@ test.describe('Rollouts', () => {
 
   test('can create boolean flag', async ({ page }) => {
     await page.getByRole('button', { name: 'New Flag' }).click();
+    await page.getByTestId('BOOLEAN_FLAG_TYPE').click();
     await page.getByLabel('Name').fill('test-boolean');
-    await page.getByLabel('Boolean').check();
+    await page.getByLabel('Description').click();
+    // await page.getByLabel('Boolean').check();
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created flag')).toBeVisible();
   });
