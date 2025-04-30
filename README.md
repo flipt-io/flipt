@@ -50,7 +50,9 @@
 </div>
 
 <p align=center>
-    <img src="./.github/images/v2-banner.svg" alt="Flipt v2" width=600 />
+    <a href="https://github.com/orgs/flipt-io/discussions/4141">
+        <img src="./.github/images/v2-banner.svg" alt="Flipt v2" width=600 />
+    </a>
 </p>
 
 [Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
