@@ -49,6 +49,12 @@
     </h4>
 </div>
 
+<p align=center>
+    <a href="https://github.com/orgs/flipt-io/discussions/4141">
+        <img src="./.github/images/v2-banner.svg" alt="Flipt v2" width=600 />
+    </a>
+</p>
+
 [Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
@@ -64,7 +70,7 @@ With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-go
 </p>
 
 > [!NOTE]
-> We are actively working on a new version of Flipt that is Git-native with more features and less dependencies. Help us shape the future of Flipt by adding your thoughts to our [tracking issue](https://github.com/flipt-io/flipt/issues/3828).
+> We are actively working on a new version of Flipt that is Git-native with more features and less dependencies. Help us shape the future of Flipt by adding your thoughts to the [discussion](https://github.com/orgs/flipt-io/discussions/4141).
 
 ## Use cases
 

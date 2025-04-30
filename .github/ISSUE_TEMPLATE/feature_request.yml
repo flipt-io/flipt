@@ -17,6 +17,15 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: version
+    attributes:
+      label: Which major version?
+      description: Please select the major version of Flipt that you are experiencing the feature request with.
+      options:
+        - v1
+        - v2 (Alpha)
+
   - type: textarea
     id: ideal-solution
     attributes:
@@ -44,13 +53,4 @@ body:
 
         - OS
         - Config file used
-        - Database used (SQLite, MySQL, Postgres, etc.)
         - Screenshots
-        - Exported data from the database (see below)
-
-  - type: markdown
-    attributes:
-      value: |
-        **Attach an Export**
-
-        If your feature request could be best shown with a specific set of data, please export your data by running `flipt export > export.yml` and then attach the YAML file to this issue. ❤️
