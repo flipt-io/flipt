@@ -412,6 +412,11 @@ func (r *Repository) UpdateAndPush(
 
 	containers.ApplyAll(&options, opts...)
 
+	r.logger.Debug("starting update and push operation",
+		zap.String("branch", branch),
+		zap.Bool("initialCommit", options.initialCommit),
+		zap.Any("remoteConfig", r.remote))
+
 	r.mu.Lock()
 	defer func() {
 		r.mu.Unlock()
@@ -428,9 +433,16 @@ func (r *Repository) UpdateAndPush(
 		if err != nil {
 			return plumbing.ZeroHash, err
 		}
+
+		r.logger.Debug("resolved current head",
+			zap.String("branch", branch),
+			zap.Stringer("hash", hash))
 	}
 
 	if options.ifHeadMatches != nil && !options.ifHeadMatches.IsZero() && *options.ifHeadMatches != hash {
+		r.logger.Warn("head revision mismatch",
+			zap.Stringer("expected", *options.ifHeadMatches),
+			zap.Stringer("actual", hash))
 		return hash, errors.ErrConflictf("expected head revision %q has changed (now %q)", *options.ifHeadMatches, hash)
 	}
 
@@ -445,16 +457,28 @@ func (r *Repository) UpdateAndPush(
 		return hash, err
 	}
 
+	r.logger.Debug("creating commit", zap.String("message", msg))
 	commit, err = fs.commit(ctx, msg)
 	if err != nil {
 		return hash, err
 	}
 
+	r.logger.Debug("commit created successfully", zap.Stringer("hash", commit.Hash))
+
 	if r.remote != nil {
 		local := plumbing.NewBranchReferenceName(branch)
+		r.logger.Debug("setting local reference",
+			zap.Stringer("reference", local),
+			zap.Stringer("hash", commit.Hash))
+
 		if err := r.Storer.SetReference(plumbing.NewHashReference(local, commit.Hash)); err != nil {
 			return hash, err
 		}
+
+		r.logger.Debug("pushing to remote",
+			zap.String("remoteName", r.remote.Name),
+			zap.Strings("remoteURLs", r.remote.URLs),
+			zap.Stringer("refSpec", config.RefSpec(fmt.Sprintf("%[1]s:%[1]s", local))))
 
 		if err := r.PushContext(ctx, &git.PushOptions{
 			RemoteName:      r.remote.Name,
@@ -467,6 +491,8 @@ func (r *Repository) UpdateAndPush(
 		}); err != nil {
 			return hash, err
 		}
+	} else {
+		r.logger.Debug("skipping push - no remote configured")
 	}
 
 	remoteName := "origin"
@@ -479,9 +505,17 @@ func (r *Repository) UpdateAndPush(
 		plumbing.NewRemoteReferenceName(remoteName, branch),
 		commit.Hash)
 
+	r.logger.Debug("setting remote tracking reference",
+		zap.Stringer("reference", remoteRef.Name()),
+		zap.Stringer("hash", commit.Hash))
+
 	if err := r.Storer.SetReference(remoteRef); err != nil {
 		return hash, err
 	}
+
+	r.logger.Debug("update and push completed successfully",
+		zap.String("branch", branch),
+		zap.Stringer("hash", commit.Hash))
 
 	return commit.Hash, nil
 }
