@@ -1,6 +1,7 @@
 import { Field, FieldArray, useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 
+import { TextButton } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
 import { DistributionType } from '~/types/Distribution';
@@ -294,6 +295,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               )}
             </div>
           )}
+        </div>
+      </div>
+      <div className="shrink-0 py-1">
+        <div className="flex justify-end space-x-3">
+          <TextButton
+            disabled={formik.isSubmitting || !formik.dirty}
+            onClick={() => formik.resetForm()}
+          >
+            Reset
+          </TextButton>
         </div>
       </div>
     </div>
