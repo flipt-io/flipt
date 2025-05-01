@@ -115,7 +115,7 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page
       .getByTestId('namespace-listbox')
-      .getByRole('button', { name: 'Default' })
+      .getByRole('combobox', { name: 'Default' })
       .click();
     await page.getByText('copy flag').click();
 

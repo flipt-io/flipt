@@ -25,7 +25,7 @@ test.describe('Namespaces', () => {
     await page.getByRole('link', { name: 'logo' }).click();
     await page
       .getByTestId('namespace-listbox')
-      .getByRole('button', { name: 'Default' })
+      .getByRole('combobox', { name: 'Default' })
       .click();
     await page.getByText('staging').click();
     await expect(page.getByRole('heading', { name: 'Flags' })).toBeVisible();
@@ -52,7 +52,7 @@ test.describe('Namespaces', () => {
     await page.getByRole('link', { name: 'logo' }).click();
     await page
       .getByTestId('namespace-listbox')
-      .getByRole('button', { name: 'Default' })
+      .getByRole('combobox', { name: 'Default' })
       .click();
     await page.getByText('test', { exact: true }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
@@ -63,7 +63,7 @@ test.describe('Namespaces', () => {
     await page.getByRole('link', { name: 'Delete , test' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await expect(
-      page.getByTestId('namespace-listbox').getByRole('button', {
+      page.getByTestId('namespace-listbox').getByRole('combobox', {
         name: 'Default'
       })
     ).toBeVisible();

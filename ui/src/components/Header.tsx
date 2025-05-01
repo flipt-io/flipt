@@ -47,7 +47,7 @@ export default function Header(props: HeaderProps) {
               className="h-10 w-auto"
             />
           </Link>
-          <EnvironmentListbox className="w-48" />
+          <EnvironmentListbox className="w-36" />
         </div>
 
         <div className="flex items-center gap-2 pr-2">
