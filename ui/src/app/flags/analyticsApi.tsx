@@ -12,7 +12,13 @@ export const analyticsApi = createApi({
     // get evaluation count
     getFlagEvaluationCount: builder.query<
       IFlagEvaluationCount,
-      { environmentKey: string; namespaceKey: string; flagKey: string; from: string; to: string }
+      {
+        environmentKey: string;
+        namespaceKey: string;
+        flagKey: string;
+        from: string;
+        to: string;
+      }
     >({
       query: ({ environmentKey, namespaceKey, flagKey, from, to }) => ({
         url: `/analytics/environments/${environmentKey}/namespaces/${namespaceKey}/flags/${flagKey}`,

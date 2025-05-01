@@ -5,7 +5,13 @@ import {
   fetchBaseQuery
 } from '@reduxjs/toolkit/query/react';
 
-import { apiURL, checkResponse, defaultHeaders, internalURL, internalV2URL } from '~/data/api';
+import {
+  apiURL,
+  checkResponse,
+  defaultHeaders,
+  internalURL,
+  internalV2URL
+} from '~/data/api';
 
 type CustomFetchFn = (
   url: RequestInfo,

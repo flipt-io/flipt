@@ -4,8 +4,8 @@ import { addMinutes } from 'date-fns';
 import { LineChartIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
