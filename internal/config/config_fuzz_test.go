@@ -158,7 +158,7 @@ func FuzzBindEnvVars(f *testing.F) {
 		}
 
 		// Create a test struct dynamically
-		var testStruct map[string]interface{}
+		var testStruct map[string]any
 		err := json.Unmarshal([]byte(structJSON), &testStruct)
 		if err != nil {
 			return
@@ -211,7 +211,7 @@ func FuzzDecodeHooks(f *testing.F) {
 			}()
 
 			hook := mapstructure.StringToTimeDurationHookFunc()
-			hook.(func(reflect.Type, reflect.Type, interface{}) (interface{}, error))(
+			_, _ = hook.(func(reflect.Type, reflect.Type, any) (any, error))(
 				reflect.TypeOf(""),
 				reflect.TypeOf(time.Duration(0)),
 				input,
@@ -227,7 +227,7 @@ func FuzzDecodeHooks(f *testing.F) {
 			}()
 
 			hook := stringToSliceHookFunc()
-			hook.(func(reflect.Kind, reflect.Kind, interface{}) (interface{}, error))(
+			_, _ = hook.(func(reflect.Kind, reflect.Kind, any) (any, error))(
 				reflect.String,
 				reflect.Slice,
 				input,
@@ -243,7 +243,7 @@ func FuzzDecodeHooks(f *testing.F) {
 			}()
 
 			hook := stringToEnvsubstHookFunc()
-			hook.(func(reflect.Type, reflect.Type, interface{}) (interface{}, error))(
+			_, _ = hook.(func(reflect.Type, reflect.Type, any) (any, error))(
 				reflect.TypeOf(""),
 				reflect.TypeOf(""),
 				input,
