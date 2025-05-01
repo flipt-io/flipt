@@ -1,4 +1,0 @@
-storage:
-  type: object
-  object:
-    type: s3
