@@ -7,6 +7,8 @@
 package analytics
 
 import (
+	_ "github.com/google/gnostic/openapiv3"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -24,11 +26,11 @@ const (
 
 type GetFlagEvaluationsCountRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	NamespaceKey   string                 `protobuf:"bytes,1,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
-	FlagKey        string                 `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
-	From           string                 `protobuf:"bytes,3,opt,name=from,proto3" json:"from,omitempty"`
-	To             string                 `protobuf:"bytes,4,opt,name=to,proto3" json:"to,omitempty"`
-	EnvironmentKey string                 `protobuf:"bytes,5,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	NamespaceKey   string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	FlagKey        string                 `protobuf:"bytes,3,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
+	From           string                 `protobuf:"bytes,4,opt,name=from,proto3" json:"from,omitempty"`
+	To             string                 `protobuf:"bytes,5,opt,name=to,proto3" json:"to,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -63,6 +65,13 @@ func (*GetFlagEvaluationsCountRequest) Descriptor() ([]byte, []int) {
 	return file_analytics_analytics_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *GetFlagEvaluationsCountRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
 func (x *GetFlagEvaluationsCountRequest) GetNamespaceKey() string {
 	if x != nil {
 		return x.NamespaceKey
@@ -87,13 +96,6 @@ func (x *GetFlagEvaluationsCountRequest) GetFrom() string {
 func (x *GetFlagEvaluationsCountRequest) GetTo() string {
 	if x != nil {
 		return x.To
-	}
-	return ""
-}
-
-func (x *GetFlagEvaluationsCountRequest) GetEnvironmentKey() string {
-	if x != nil {
-		return x.EnvironmentKey
 	}
 	return ""
 }
@@ -154,20 +156,20 @@ var File_analytics_analytics_proto protoreflect.FileDescriptor
 
 const file_analytics_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x19analytics/analytics.proto\x12\x0fflipt.analytics\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
-	"\x1eGetFlagEvaluationsCountRequest\x12#\n" +
-	"\rnamespace_key\x18\x01 \x01(\tR\fnamespaceKey\x12\x19\n" +
-	"\bflag_key\x18\x02 \x01(\tR\aflagKey\x12\x12\n" +
-	"\x04from\x18\x03 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x04 \x01(\tR\x02to\x12'\n" +
-	"\x0fenvironment_key\x18\x05 \x01(\tR\x0eenvironmentKey\"Y\n" +
+	"\x19analytics/analytics.proto\x12\x0fflipt.analytics\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
+	"\x1eGetFlagEvaluationsCountRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x19\n" +
+	"\bflag_key\x18\x03 \x01(\tR\aflagKey\x12\x12\n" +
+	"\x04from\x18\x04 \x01(\tR\x04from\x12\x0e\n" +
+	"\x02to\x18\x05 \x01(\tR\x02to\"Y\n" +
 	"\x1fGetFlagEvaluationsCountResponse\x12\x1e\n" +
 	"\n" +
 	"timestamps\x18\x01 \x03(\tR\n" +
 	"timestamps\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\x02R\x06values2\xac\x01\n" +
-	"\x10AnalyticsService\x12~\n" +
-	"\x17GetFlagEvaluationsCount\x12/.flipt.analytics.GetFlagEvaluationsCountRequest\x1a0.flipt.analytics.GetFlagEvaluationsCountResponse\"\x00\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB'Z%go.flipt.io/flipt/rpc/flipt/analyticsb\x06proto3"
+	"\x06values\x18\x02 \x03(\x02R\x06values2\xb3\x02\n" +
+	"\x10AnalyticsService\x12\x84\x02\n" +
+	"\x17GetFlagEvaluationsCount\x12/.flipt.analytics.GetFlagEvaluationsCountRequest\x1a0.flipt.analytics.GetFlagEvaluationsCountResponse\"\x85\x01\xbaG\x19*\x17getFlagEvaluationsCount\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB'Z%go.flipt.io/flipt/rpc/flipt/analyticsb\x06proto3"
 
 var (
 	file_analytics_analytics_proto_rawDescOnce sync.Once

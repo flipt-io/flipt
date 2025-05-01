@@ -35,7 +35,7 @@ var (
 	_ = metadata.Join
 )
 
-var filter_AnalyticsService_GetFlagEvaluationsCount_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace_key": 0, "flag_key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+var filter_AnalyticsService_GetFlagEvaluationsCount_0 = &utilities.DoubleArray{Encoding: map[string]int{"environment_key": 0, "namespace_key": 1, "flag_key": 2}, Base: []int{1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 3, 4}}
 
 func request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Context, marshaler runtime.Marshaler, client AnalyticsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
@@ -44,7 +44,15 @@ func request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Context, mar
 		err      error
 	)
 	io.Copy(io.Discard, req.Body)
-	val, ok := pathParams["namespace_key"]
+	val, ok := pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["namespace_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
 	}
@@ -76,7 +84,15 @@ func local_request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Contex
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["namespace_key"]
+	val, ok := pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["namespace_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
 	}
@@ -114,7 +130,7 @@ func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -172,7 +188,7 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -189,7 +205,7 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 }
 
 var (
-	pattern_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"internal", "v1", "analytics", "namespaces", "namespace_key", "flags", "flag_key"}, ""))
+	pattern_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8}, []string{"internal", "v2", "analytics", "environments", "environment_key", "namespaces", "namespace_key", "flags", "flag_key"}, ""))
 )
 
 var (

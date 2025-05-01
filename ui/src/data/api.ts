@@ -10,6 +10,7 @@ export const apiURL = 'api/v2/environments';
 export const authURL = 'auth/v1';
 export const evaluateURL = 'evaluate/v1';
 export const internalURL = 'internal/v1';
+export const internalV2URL = 'internal/v2';
 export const metaURL = 'meta/info';
 
 export const sessionKey = 'session';

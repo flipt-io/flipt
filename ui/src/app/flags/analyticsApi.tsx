@@ -2,20 +2,20 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 
 import { IFlagEvaluationCount } from '~/types/Analytics';
 
-import { internalQuery } from '~/utils/redux-rtk';
+import { internalV2Query } from '~/utils/redux-rtk';
 
 export const analyticsApi = createApi({
   reducerPath: 'analytics',
-  baseQuery: internalQuery,
+  baseQuery: internalV2Query,
   tagTypes: ['Analytics'],
   endpoints: (builder) => ({
     // get evaluation count
     getFlagEvaluationCount: builder.query<
       IFlagEvaluationCount,
-      { namespaceKey: string; flagKey: string; from: string; to: string }
+      { environmentKey: string; namespaceKey: string; flagKey: string; from: string; to: string }
     >({
-      query: ({ namespaceKey, flagKey, from, to }) => ({
-        url: `/analytics/namespaces/${namespaceKey}/flags/${flagKey}`,
+      query: ({ environmentKey, namespaceKey, flagKey, from, to }) => ({
+        url: `/analytics/environments/${environmentKey}/namespaces/${namespaceKey}/flags/${flagKey}`,
         params: { from, to }
       })
     })
