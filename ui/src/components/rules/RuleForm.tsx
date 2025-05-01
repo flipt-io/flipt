@@ -1,7 +1,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
@@ -108,14 +108,14 @@ export default function RuleForm(props: RuleFormProps) {
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(null);
 
-  const [distributions, setDistributions] = useState(() => {
+  const [distributions, setDistributions] = useState<IDistribution[]>(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
 
     return (
       flag.variants?.map((variant, i) => ({
         variant: variant.key,
         rollout: percentages[i]
-      })) || null
+      })) || []
     );
   });
 
@@ -124,7 +124,7 @@ export default function RuleForm(props: RuleFormProps) {
   useEffect(() => {
     if (
       ruleType === DistributionType.Multi &&
-      distributions &&
+      distributions.length > 0 &&
       !validRollout(distributions)
     ) {
       setDistributionsValid(false);
@@ -139,7 +139,7 @@ export default function RuleForm(props: RuleFormProps) {
     }
 
     const dist = [];
-    if (ruleType === DistributionType.Multi && distributions) {
+    if (ruleType === DistributionType.Multi && distributions.length > 0) {
       dist.push(
         ...distributions.map((d) => {
           return {
@@ -154,8 +154,14 @@ export default function RuleForm(props: RuleFormProps) {
         rollout: 100
       });
     }
+
+    // Extract segment keys from the FilterableSegment objects
+    const segmentKeys = values.segments.map((s) =>
+      typeof s === 'string' ? s : s.key
+    );
+
     return createRule({
-      segments: values.segments.map((s) => s.key),
+      segments: segmentKeys,
       rank: rank,
       segmentOperator: values.operator,
       distributions: dist.map((d) => {
@@ -228,22 +234,37 @@ export default function RuleForm(props: RuleFormProps) {
                   <div className="sm:col-span-2">
                     <FieldArray
                       name="segments"
-                      render={(arrayHelpers) => (
-                        <SegmentsPicker
-                          segments={segments}
-                          segmentAdd={(segment: FilterableSegment) =>
-                            arrayHelpers.push(segment)
-                          }
-                          segmentRemove={(index: number) =>
-                            arrayHelpers.remove(index)
-                          }
-                          segmentReplace={(
-                            index: number,
-                            segment: FilterableSegment
-                          ) => arrayHelpers.replace(index, segment)}
-                          selectedSegments={formik.values.segments}
-                        />
-                      )}
+                      render={(arrayHelpers) => {
+                        // Add useCallback to the segment handlers to prevent unnecessary re-renders
+                        const handleSegmentAdd = (
+                          segment: FilterableSegment
+                        ) => {
+                          // Add the segment to the Formik state as a FilterableSegment
+                          // but Formik will extract the key for the final form submission
+                          arrayHelpers.push(segment);
+                        };
+
+                        const handleSegmentRemove = (index: number) => {
+                          arrayHelpers.remove(index);
+                        };
+
+                        const handleSegmentReplace = (
+                          index: number,
+                          segment: FilterableSegment
+                        ) => {
+                          arrayHelpers.replace(index, segment);
+                        };
+
+                        return (
+                          <SegmentsPicker
+                            segments={segments}
+                            segmentAdd={handleSegmentAdd}
+                            segmentRemove={handleSegmentRemove}
+                            segmentReplace={handleSegmentReplace}
+                            selectedSegments={formik.values.segments}
+                          />
+                        );
+                      }}
                     />
                   </div>
                   {formik.values.segments.length > 1 && (

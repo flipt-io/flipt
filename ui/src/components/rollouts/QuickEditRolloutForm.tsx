@@ -1,5 +1,5 @@
 import { FieldArray, useFormikContext } from 'formik';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
@@ -10,6 +10,8 @@ import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
 
+import { createSegmentHandlers } from '~/utils/formik-helpers';
+
 type QuickEditRolloutFormProps = {
   flag: IFlag;
   rollout: IRollout;
@@ -19,23 +21,31 @@ type QuickEditRolloutFormProps = {
 
 export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   const { rollout, segments } = props;
-  const rolloutSegmentKeys = rollout.segment?.segments || [];
+
+  // Use useMemo to ensure this is only calculated when dependencies change
+  const rolloutSegmentKeys = useMemo(
+    () => rollout.segment?.segments || [],
+    [rollout.segment?.segments]
+  );
 
   // Create refs for the input fields
   const percentageInputRef = useRef<HTMLInputElement>(null);
   const percentageRangeRef = useRef<HTMLInputElement>(null);
 
-  const rolloutSegments = rolloutSegmentKeys.map((s) => {
-    const segment = segments.find((seg) => seg.key === s);
-    if (!segment) {
-      throw new Error(`Segment ${s} not found in segments`);
-    }
-    return {
-      ...segment,
-      displayValue: segment.name,
-      filterValue: segment.key
-    };
-  });
+  // Convert segment keys to filterable segments with useMemo to optimize performance
+  const rolloutSegments = useMemo(() => {
+    return rolloutSegmentKeys.map((s) => {
+      const segment = segments.find((seg) => seg.key === s);
+      if (!segment) {
+        throw new Error(`Segment ${s} not found in segments`);
+      }
+      return {
+        ...segment,
+        displayValue: segment.name,
+        filterValue: segment.key
+      };
+    });
+  }, [rolloutSegmentKeys, segments]);
 
   const formik = useFormikContext<IFlag>();
   const fieldPrefix = `rollouts.[${rollout.rank}].`;
@@ -57,21 +67,44 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   }, [rollout]);
 
   // Manual controlled update function that only updates the form when the blur event happens
-  const handlePercentageChange = (value: string) => {
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-      // Only update Formik when we're sure we have a valid value
-      formik.setFieldValue(`${fieldPrefix}threshold.percentage`, numValue);
+  const handlePercentageChange = useCallback(
+    (value: string) => {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+        // Only update Formik when we're sure we have a valid value
+        formik.setFieldValue(`${fieldPrefix}threshold.percentage`, numValue);
 
-      // Keep both inputs in sync
-      if (percentageInputRef.current) {
-        percentageInputRef.current.value = String(numValue);
+        // Keep both inputs in sync
+        if (percentageInputRef.current) {
+          percentageInputRef.current.value = String(numValue);
+        }
+        if (percentageRangeRef.current) {
+          percentageRangeRef.current.value = String(numValue);
+        }
       }
-      if (percentageRangeRef.current) {
-        percentageRangeRef.current.value = String(numValue);
-      }
-    }
-  };
+    },
+    [formik, fieldPrefix]
+  );
+
+  // Use the shared segment handlers with rollout-specific update function
+  const { handleSegmentAdd, handleSegmentRemove, handleSegmentReplace } =
+    createSegmentHandlers<IRollout, IFlag>(
+      formik,
+      rollout,
+      'rollouts',
+      (original, segments) => ({
+        ...original,
+        segment: {
+          ...(original.segment || {}),
+          segments,
+          // Ensure value is always a boolean to satisfy the type system
+          value:
+            original.segment?.value !== undefined
+              ? original.segment.value
+              : false
+        }
+      })
+    );
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -163,19 +196,12 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 <div>
                   <FieldArray
                     name={fieldPrefix + 'segment.segments'}
-                    render={(arrayHelpers) => (
+                    render={() => (
                       <SegmentsPicker
                         segments={segments}
-                        segmentAdd={(segment: FilterableSegment) =>
-                          arrayHelpers.push(segment)
-                        }
-                        segmentRemove={(index: number) =>
-                          arrayHelpers.remove(index)
-                        }
-                        segmentReplace={(
-                          index: number,
-                          segment: FilterableSegment
-                        ) => arrayHelpers.replace(index, segment)}
+                        segmentAdd={handleSegmentAdd}
+                        segmentRemove={handleSegmentRemove}
+                        segmentReplace={handleSegmentReplace}
                         selectedSegments={rolloutSegments}
                       />
                     )}

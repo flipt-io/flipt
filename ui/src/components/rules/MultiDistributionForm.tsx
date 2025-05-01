@@ -1,8 +1,8 @@
 import { IDistribution } from '~/types/Distribution';
 
 type MultiDistributionFormInputProps = {
-  distributions?: IDistribution[] | null;
-  setDistributions: (distributions: IDistribution[] | null) => void;
+  distributions: IDistribution[];
+  setDistributions: (distributions: IDistribution[]) => void;
 };
 
 export default function MultiDistributionFormInputs(
@@ -22,7 +22,7 @@ export default function MultiDistributionFormInputs(
           </label>
         </div>
       </div>
-      {distributions?.map((dist: IDistribution, index: number) => (
+      {distributions.map((dist: IDistribution, index: number) => (
         <div
           className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
           key={dist.variant}
