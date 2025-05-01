@@ -7,7 +7,7 @@ import { DistributionType } from '~/types/Distribution';
 import { IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
-import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
+import { ISegment, segmentOperators } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 
 import { createSegmentHandlers } from '~/utils/formik-helpers';

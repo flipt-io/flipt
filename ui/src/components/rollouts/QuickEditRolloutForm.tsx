@@ -8,7 +8,7 @@ import Select from '~/components/forms/Select';
 
 import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
-import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
+import { ISegment, segmentOperators } from '~/types/Segment';
 
 import { createSegmentHandlers } from '~/utils/formik-helpers';
 
