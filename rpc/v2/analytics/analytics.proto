@@ -20,9 +20,33 @@ message GetFlagEvaluationsCountResponse {
   repeated float values = 2;
 }
 
+message GetBatchFlagEvaluationsCountRequest {
+  string environment_key = 1;
+  string namespace_key = 2;
+  repeated string flag_keys = 3;
+  string from = 4;
+  string to = 5;
+  int32 limit = 6;
+}
+
+message FlagEvaluationData {
+  repeated string timestamps = 1;
+  repeated float values = 2;
+}
+
+message GetBatchFlagEvaluationsCountResponse {
+  // Mapping from flag_key to evaluation data
+  map<string, FlagEvaluationData> flag_evaluations = 1;
+}
+
 service AnalyticsService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
   rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {
     option (google.api.http) = {get: "/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}"};
+  }
+
+  rpc GetBatchFlagEvaluationsCount(GetBatchFlagEvaluationsCountRequest) returns (GetBatchFlagEvaluationsCountResponse) {
+    option (google.api.http) = {post: "/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch", body: "*"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "getBatchFlagEvaluationsCount"};
   }
 }
