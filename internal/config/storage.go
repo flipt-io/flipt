@@ -105,16 +105,6 @@ func (c *StorageConfig) validate() error {
 		return errors.New("local path must be specified")
 	}
 
-	// Check for common misconfiguration where remote is placed under backend
-	v := viper.GetViper()
-	for storageName, storageConfig := range v.GetStringMap("storage") {
-		if backend, ok := storageConfig.(map[string]interface{})["backend"].(map[string]interface{}); ok {
-			if _, exists := backend["remote"]; exists {
-				return fmt.Errorf("storage %s: 'remote' should not be placed under 'backend' - move it to the storage level instead", storageName)
-			}
-		}
-	}
-
 	return nil
 }
 
