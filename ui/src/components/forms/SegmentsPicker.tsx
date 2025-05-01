@@ -37,19 +37,17 @@ export default function SegmentsPicker({
 
   // Update editing state when parent segments change
   useEffect(() => {
-    // Only update if the length has changed to avoid infinite loops
-    if (prevParentSegmentsLength.current !== parentSegments.length) {
-      setEditing(true);
+    // Set editing to true whenever segments change
+    setEditing(true);
 
-      // Update the set of selected segment keys
-      segmentsSet.current = new Set<string>(
-        parentSegments.map((s) => (typeof s === 'string' ? s : s.key))
-      );
+    // Update the set of selected segment keys
+    segmentsSet.current = new Set<string>(
+      parentSegments.map((s) => (typeof s === 'string' ? s : s.key))
+    );
 
-      // Update the previous length
-      prevParentSegmentsLength.current = parentSegments.length;
-    }
-  }, [parentSegments.length]); // Only depend on the length, not the whole array
+    // Update the previous length
+    prevParentSegmentsLength.current = parentSegments.length;
+  }, [parentSegments]); // Depend on the entire parentSegments array
 
   const handleSegmentRemove = (index: number) => {
     const filterableSegment = parentSegments[index];
