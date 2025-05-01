@@ -1,6 +1,6 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
-import { FieldArray, Form, Formik, FormikProps } from 'formik';
+import { FieldArray, Form, Formik } from 'formik';
 import { useCallback, useState } from 'react';
 
 import { Button } from '~/components/Button';
@@ -19,7 +19,6 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { createSegmentHandlers } from '~/utils/formik-helpers';
 
 const rolloutRuleTypes = [
   {
@@ -45,7 +44,7 @@ type RolloutFormProps = {
 interface RolloutFormValues {
   type: string;
   description?: string;
-  segments?: FilterableSegment[];
+  segments: FilterableSegment[];
   operator?: SegmentOperatorType;
   percentage?: number;
   value: string;
@@ -92,7 +91,7 @@ export default function RolloutForm(props: RolloutFormProps) {
   );
 
   return (
-    <Formik
+    <Formik<RolloutFormValues>
       enableReinitialize
       initialValues={{
         type: rolloutRuleType,
@@ -110,7 +109,8 @@ export default function RolloutForm(props: RolloutFormProps) {
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
-          if (values.percentage < 0 || values.percentage > 100) {
+          const percentage = values.percentage ?? 0;
+          if (percentage < 0 || percentage > 100) {
             return {
               percentage: true
             };
@@ -140,32 +140,11 @@ export default function RolloutForm(props: RolloutFormProps) {
           });
       }}
     >
-      {(formik: FormikProps<RolloutFormValues>) => {
+      {(formik) => {
         // Helper function to handle segments with proper object representations
         const updateSegmentsValue = (segments: FilterableSegment[]) => {
           formik.setFieldValue('segments', segments);
         };
-
-        // Create segment handlers using our shared utility
-        const mockRollout = {
-          rank,
-          segments: formik.values.segments?.map((s) => s.key) || []
-        };
-        const { handleSegmentAdd, handleSegmentRemove, handleSegmentReplace } =
-          createSegmentHandlers(
-            formik as any,
-            mockRollout,
-            'segments',
-            (_, segments) =>
-              segments.map((key) => {
-                const segment = segments.find((s) => s === key);
-                if (!segment) {
-                  const realSegment = segments.find((s) => s.key === key);
-                  return realSegment;
-                }
-                return segment;
-              })
-          );
 
         // Custom segment handlers that work with the FormValues type
         const addSegment = (segment: FilterableSegment) => {
