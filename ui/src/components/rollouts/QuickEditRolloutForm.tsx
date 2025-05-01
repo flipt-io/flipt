@@ -1,4 +1,5 @@
 import { FieldArray, useFormikContext } from 'formik';
+import { useEffect, useRef } from 'react';
 
 import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
@@ -18,8 +19,11 @@ type QuickEditRolloutFormProps = {
 
 export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   const { rollout, segments } = props;
-
   const rolloutSegmentKeys = rollout.segment?.segments || [];
+
+  // Create refs for the input fields
+  const percentageInputRef = useRef<HTMLInputElement>(null);
+  const percentageRangeRef = useRef<HTMLInputElement>(null);
 
   const rolloutSegments = rolloutSegmentKeys.map((s) => {
     const segment = segments.find((seg) => seg.key === s);
@@ -33,9 +37,41 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     };
   });
 
+  const formik = useFormikContext<IFlag>();
   const fieldPrefix = `rollouts.[${rollout.rank}].`;
 
-  const formik = useFormikContext<IFlag>();
+  // Initialize the input fields with the current percentage value
+  useEffect(() => {
+    if (rollout.type === RolloutType.THRESHOLD && rollout.threshold) {
+      if (percentageInputRef.current) {
+        percentageInputRef.current.value = String(
+          rollout.threshold.percentage || 50
+        );
+      }
+      if (percentageRangeRef.current) {
+        percentageRangeRef.current.value = String(
+          rollout.threshold.percentage || 50
+        );
+      }
+    }
+  }, [rollout]);
+
+  // Manual controlled update function that only updates the form when the blur event happens
+  const handlePercentageChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+      // Only update Formik when we're sure we have a valid value
+      formik.setFieldValue(`${fieldPrefix}threshold.percentage`, numValue);
+
+      // Keep both inputs in sync
+      if (percentageInputRef.current) {
+        percentageInputRef.current.value = String(numValue);
+      }
+      if (percentageRangeRef.current) {
+        percentageRangeRef.current.value = String(numValue);
+      }
+    }
+  };
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -44,28 +80,49 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           {rollout.type === RolloutType.THRESHOLD ? (
             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
               <label
-                htmlFor={fieldPrefix + 'threshold.percentage'}
+                htmlFor="threshold-percentage-range"
                 className="mb-2 block text-sm font-medium text-gray-900"
               >
                 Percentage
               </label>
               <Input
-                id={fieldPrefix + 'threshold.percentage'}
-                name={fieldPrefix + 'threshold.percentage'}
+                forwardRef={percentageRangeRef}
+                id="threshold-percentage-range"
+                name="threshold-percentage-range"
                 type="range"
+                min="0"
+                max="100"
                 className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-700 sm:block"
+                defaultValue={String(rollout.threshold?.percentage || 50)}
+                onChange={(e) => {
+                  // Update the number input when slider changes
+                  if (percentageInputRef.current) {
+                    percentageInputRef.current.value = e.target.value;
+                  }
+                }}
+                onMouseUp={(e) => handlePercentageChange(e.currentTarget.value)}
+                onKeyUp={(e) => handlePercentageChange(e.currentTarget.value)}
               />
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
                   %
                 </div>
                 <Input
+                  forwardRef={percentageInputRef}
                   type="number"
-                  id={fieldPrefix + 'threshold.percentage'}
-                  max={100}
-                  min={0}
-                  name={fieldPrefix + 'threshold.percentage'}
-                  className="text-center"
+                  id="threshold-percentage-input"
+                  name="threshold-percentage-input"
+                  min="0"
+                  max="100"
+                  className="text-center pl-7"
+                  defaultValue={String(rollout.threshold?.percentage || 50)}
+                  onChange={(e) => {
+                    // Update the range slider when number input changes
+                    if (percentageRangeRef.current) {
+                      percentageRangeRef.current.value = e.target.value;
+                    }
+                  }}
+                  onBlur={(e) => handlePercentageChange(e.target.value)}
                 />
               </div>
               <label
@@ -83,9 +140,10 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   { label: 'False', value: 'false' }
                 ]}
                 onChange={(e) => {
+                  e.preventDefault();
                   formik.setFieldValue(
                     `${fieldPrefix}threshold.value`,
-                    e.target.value == 'true'
+                    e.target.value === 'true'
                   );
                 }}
                 className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle"
@@ -133,7 +191,8 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                             name={fieldPrefix + 'segment.segmentOperator'}
                             type="radio"
                             className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                            onChange={() => {
+                            onChange={(e) => {
+                              e.preventDefault();
                               formik.setFieldValue(
                                 fieldPrefix + 'segment.segmentOperator',
                                 segmentOperator.id
@@ -176,9 +235,10 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   { label: 'False', value: 'false' }
                 ]}
                 onChange={(e) => {
+                  e.preventDefault();
                   formik.setFieldValue(
                     `${fieldPrefix}segment.value`,
-                    e.target.value == 'true'
+                    e.target.value === 'true'
                   );
                 }}
                 className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle"
