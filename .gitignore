@@ -60,3 +60,4 @@ build/mage_output_file.go
 !**/**/testdata/*.rego
 
 release-notes.md
+config/*.*.bk

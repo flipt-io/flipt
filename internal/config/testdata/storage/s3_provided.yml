@@ -1,6 +1,0 @@
-storage:
-  type: object
-  object:
-    type: s3
-    s3:
-      bucket: "testbucket"

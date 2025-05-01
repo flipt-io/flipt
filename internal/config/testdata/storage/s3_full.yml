@@ -1,9 +1,0 @@
-storage:
-  type: object
-  object:
-    type: s3
-    s3:
-      bucket: "testbucket"
-      prefix: "prefix"
-      region: "region"
-      poll_interval: "5m"
