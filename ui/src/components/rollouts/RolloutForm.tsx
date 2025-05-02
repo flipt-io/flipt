@@ -37,7 +37,6 @@ type RolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
   createRollout: (rollout: IRollout) => void;
-  rank: number;
   segments: ISegment[];
 };
 
@@ -51,7 +50,7 @@ interface RolloutFormValues {
 }
 
 export default function RolloutForm(props: RolloutFormProps) {
-  const { setOpen, onSuccess, rank, segments, createRollout } = props;
+  const { setOpen, onSuccess, segments, createRollout } = props;
 
   const { setError, clearError } = useError();
 
@@ -60,7 +59,6 @@ export default function RolloutForm(props: RolloutFormProps) {
   const handleSegmentSubmit = useCallback(
     (values: RolloutFormValues) => {
       createRollout({
-        rank,
         type: rolloutRuleType,
         description: values.description,
         segment: {
@@ -71,13 +69,12 @@ export default function RolloutForm(props: RolloutFormProps) {
       });
       return Promise.resolve();
     },
-    [createRollout, rank, rolloutRuleType]
+    [createRollout, rolloutRuleType]
   );
 
   const handleThresholdSubmit = useCallback(
     (values: RolloutFormValues) => {
       createRollout({
-        rank,
         type: rolloutRuleType,
         description: values.description,
         threshold: {
@@ -87,7 +84,7 @@ export default function RolloutForm(props: RolloutFormProps) {
       });
       return Promise.resolve();
     },
-    [createRollout, rank, rolloutRuleType]
+    [createRollout, rolloutRuleType]
   );
 
   return (

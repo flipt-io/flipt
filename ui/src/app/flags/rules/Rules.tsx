@@ -201,7 +201,7 @@ export default function Rules({ flag, rules }: RulesProps) {
               Are you sure you want to delete this rule at
               <span className="font-medium text-violet-500">
                 {' '}
-                position {deletingRule?.rank}
+                position {rules.findIndex((r) => r.id === deletingRule?.id) + 1}
               </span>
               ? This action cannot be undone.
             </>
@@ -226,7 +226,6 @@ export default function Rules({ flag, rules }: RulesProps) {
       >
         <RuleForm
           flag={flag}
-          rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
           createRule={createRule}
@@ -280,12 +279,13 @@ export default function Rules({ flag, rules }: RulesProps) {
                         className="flex-col space-y-6 p-2 md:flex"
                       >
                         {rules &&
-                          rules.map((rule) => (
+                          rules.map((rule, index) => (
                             <SortableRule
                               key={rule.id}
                               flag={flag}
                               rule={rule}
                               segments={segments}
+                              index={index}
                               onDelete={() => {
                                 setActiveRule(null);
                                 setDeletingRule(rule);
@@ -302,6 +302,7 @@ export default function Rules({ flag, rules }: RulesProps) {
                           flag={flag}
                           rule={activeRule}
                           segments={segments}
+                          index={rules.findIndex((r) => r.id === activeRule.id)}
                         />
                       ) : null}
                     </DragOverlay>

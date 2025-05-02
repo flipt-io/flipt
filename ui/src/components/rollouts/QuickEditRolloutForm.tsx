@@ -8,9 +8,7 @@ import Select from '~/components/forms/Select';
 
 import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
-import { ISegment, segmentOperators } from '~/types/Segment';
-
-import { createSegmentHandlers } from '~/utils/formik-helpers';
+import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
 
 type QuickEditRolloutFormProps = {
   flag: IFlag;
@@ -48,7 +46,21 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   }, [rolloutSegmentKeys, segments]);
 
   const formik = useFormikContext<IFlag>();
-  const fieldPrefix = `rollouts.[${rollout.rank}].`;
+
+  // Calculate the actual index in the rollouts array by finding this rollout's position
+  const rolloutIndex = useMemo(() => {
+    const rollouts = formik.values.rollouts || [];
+    // Try to find by ID first if available
+    if (rollout.id) {
+      const index = rollouts.findIndex((r) => r.id === rollout.id);
+      if (index !== -1) return index;
+    }
+    // Fallback to position in array
+    return rollouts.indexOf(rollout);
+  }, [formik.values.rollouts, rollout.id, rollout]);
+
+  // Use the calculated index for the field path
+  const fieldPrefix = `rollouts.[${rolloutIndex !== -1 ? rolloutIndex : 0}].`;
 
   // Initialize the input fields with the current percentage value
   useEffect(() => {
@@ -86,25 +98,80 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     [formik, fieldPrefix]
   );
 
-  // Use the shared segment handlers with rollout-specific update function
-  const { handleSegmentAdd, handleSegmentRemove, handleSegmentReplace } =
-    createSegmentHandlers<IRollout, IFlag>(
-      formik,
-      rollout,
-      'rollouts',
-      (original, segments) => ({
-        ...original,
-        segment: {
-          ...(original.segment || {}),
-          segments,
-          // Ensure value is always a boolean to satisfy the type system
-          value:
-            original.segment?.value !== undefined
-              ? original.segment.value
-              : false
+  // Custom segment management functions
+  const handleSegmentAdd = useCallback(
+    (segment: FilterableSegment) => {
+      // Double-check that we're working with the correct rollout in formik values
+      const rollouts = formik.values.rollouts || [];
+      if (rolloutIndex === -1 || rolloutIndex >= rollouts.length) {
+        return;
+      }
+
+      // Get current segments or initialize empty array
+      const currentSegments = [...(rollout.segment?.segments || [])];
+
+      // Add the new segment key if it doesn't already exist
+      if (!currentSegments.includes(segment.key)) {
+        currentSegments.push(segment.key);
+
+        // Update only the segments array within the existing rollout structure
+        formik.setFieldValue(`${fieldPrefix}segment.segments`, currentSegments);
+
+        // Ensure the segment object exists and has a value property
+        if (!rollout.segment) {
+          formik.setFieldValue(`${fieldPrefix}segment`, {
+            segments: currentSegments,
+            value: false
+          });
         }
-      })
-    );
+      }
+    },
+    [formik, fieldPrefix, rollout, rolloutIndex]
+  );
+
+  const handleSegmentRemove = useCallback(
+    (index: number) => {
+      // Double-check that we're working with the correct rollout in formik values
+      const rollouts = formik.values.rollouts || [];
+      if (rolloutIndex === -1 || rolloutIndex >= rollouts.length) {
+        return;
+      }
+
+      // Get current segments
+      const currentSegments = [...(rollout.segment?.segments || [])];
+
+      // Remove the segment at the specified index
+      if (index >= 0 && index < currentSegments.length) {
+        currentSegments.splice(index, 1);
+
+        // Update only the segments array
+        formik.setFieldValue(`${fieldPrefix}segment.segments`, currentSegments);
+      }
+    },
+    [formik, fieldPrefix, rollout, rolloutIndex]
+  );
+
+  const handleSegmentReplace = useCallback(
+    (index: number, segment: FilterableSegment) => {
+      // Double-check that we're working with the correct rollout in formik values
+      const rollouts = formik.values.rollouts || [];
+      if (rolloutIndex === -1 || rolloutIndex >= rollouts.length) {
+        return;
+      }
+
+      // Get current segments
+      const currentSegments = [...(rollout.segment?.segments || [])];
+
+      // Replace the segment at the specified index
+      if (index >= 0 && index < currentSegments.length) {
+        currentSegments[index] = segment.key;
+
+        // Update only the segments array
+        formik.setFieldValue(`${fieldPrefix}segment.segments`, currentSegments);
+      }
+    },
+    [formik, fieldPrefix, rollout, rolloutIndex]
+  );
 
   return (
     <div className="flex h-full w-full flex-col">
