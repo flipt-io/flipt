@@ -229,3 +229,198 @@ func TestGetFlagEvaluationsCount(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestGetBatchFlagEvaluationsCount(t *testing.T) {
+	ctx := context.Background()
+	from := time.Now().Add(-time.Hour).UTC()
+	to := time.Now().UTC()
+	mock := NewMockPrometheusClient(t)
+
+	logger := zaptest.NewLogger(t)
+	t.Run("success", func(t *testing.T) {
+		data := model.Matrix{
+			{
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.UnixMilli()), Value: 1},
+					{Timestamp: model.Time(to.UnixMilli()), Value: 2},
+				},
+			},
+		}
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="bar", flipt_flag=~"foo|bar"}[1m])) by (flipt_flag) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		results, err := client.GetBatchFlagEvaluationsCount(ctx, &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "bar",
+			FlagKeys:       []string{"foo", "bar"},
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, results)
+		assert.Len(t, results, 2)
+	})
+
+	t.Run("success with multiple series", func(t *testing.T) {
+		// Create a matrix with two series (for two different flags)
+		data := model.Matrix{
+			{
+				Metric: model.Metric{
+					"flipt_flag": "foo",
+				},
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.Add(1 * time.Minute).UnixMilli()), Value: 1},
+					{Timestamp: model.Time(from.Add(2 * time.Minute).UnixMilli()), Value: 2},
+				},
+			},
+			{
+				Metric: model.Metric{
+					"flipt_flag": "bar",
+				},
+				Values: []model.SamplePair{
+					{Timestamp: model.Time(from.Add(1 * time.Minute).UnixMilli()), Value: 3},
+					{Timestamp: model.Time(from.Add(2 * time.Minute).UnixMilli()), Value: 4},
+				},
+			},
+		}
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="multi", flipt_flag=~"foo|bar"}[1m])) by (flipt_flag) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(data, promapi.Warnings{"test Warnings"}, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		results, err := client.GetBatchFlagEvaluationsCount(ctx, &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "multi",
+			FlagKeys:       []string{"foo", "bar"},
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, results)
+		assert.Len(t, results, 2)
+
+		// Verify first flag results
+		fooData, ok := results["foo"]
+		assert.True(t, ok, "Data for 'foo' flag should exist")
+		assert.Len(t, fooData.Timestamps, 2)
+		assert.Len(t, fooData.Values, 2)
+		assert.Equal(t, []float32{1, 2}, fooData.Values)
+
+		// Verify second flag results
+		barData, ok := results["bar"]
+		assert.True(t, ok, "Data for 'bar' flag should exist")
+		assert.Len(t, barData.Timestamps, 2)
+		assert.Len(t, barData.Values, 2)
+		assert.Equal(t, []float32{3, 4}, barData.Values)
+	})
+
+	t.Run("no data type", func(t *testing.T) {
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="no-data", flipt_flag=~"foo|bar"}[1m])) by (flipt_flag) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(&model.Scalar{}, nil, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		_, err := client.GetBatchFlagEvaluationsCount(ctx, &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "no-data",
+			FlagKeys:       []string{"foo", "bar"},
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+
+		require.Error(t, err)
+	})
+
+	t.Run("wrong data type", func(t *testing.T) {
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="wrong-data", flipt_flag=~"foo|bar"}[1m])) by (flipt_flag) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(time.Minute),
+				Step:  time.Minute,
+			},
+		).Return(&model.Matrix{}, nil, nil)
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		_, err := client.GetBatchFlagEvaluationsCount(ctx, &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "wrong-data",
+			FlagKeys:       []string{"foo", "bar"},
+			From:           from,
+			To:             to,
+			StepMinutes:    1,
+		})
+
+		require.Error(t, err)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mock.EXPECT().QueryRange(
+			ctx,
+			`sum(increase(flipt_evaluations_requests_total{flipt_environment="default", flipt_namespace="error", flipt_flag=~"foo|bar"}[5m])) by (flipt_flag) or vector(0)`,
+			promapi.Range{
+				Start: from,
+				End:   to.Add(5 * time.Minute),
+				Step:  5 * time.Minute,
+			},
+		).Return(nil, nil, errors.New("failed to query"))
+
+		client := &client{
+			logger:     logger,
+			promClient: mock,
+		}
+
+		_, err := client.GetBatchFlagEvaluationsCount(ctx, &panalytics.BatchFlagEvaluationsCountRequest{
+			EnvironmentKey: "default",
+			NamespaceKey:   "error",
+			FlagKeys:       []string{"foo", "bar"},
+			From:           from,
+			To:             to,
+			StepMinutes:    5,
+		})
+
+		require.Error(t, err)
+	})
+}
