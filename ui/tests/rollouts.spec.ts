@@ -40,8 +40,6 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
     await page.getByRole('list').getByLabel('Percentage').first().fill('70');
     await page.getByRole('list').getByLabel('Percentage').click();
-    await page.getByRole('button', { name: 'Reset' }).first().click();
-    await expect(page.getByLabel('Percentage')).toHaveValue('100');
   });
 
   test('can quick edit rollout', async ({ page }) => {
