@@ -128,7 +128,8 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
               Are you sure you want to delete this rule at
               <span className="font-medium text-violet-500">
                 {' '}
-                position {deletingRollout?.rank}
+                position{' '}
+                {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
               </span>
               ? This action cannot be undone.
             </>
@@ -152,7 +153,6 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          rank={(rollouts?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRolloutForm}
           createRollout={createRollout}
@@ -225,12 +225,13 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
                   >
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
                       {rollouts &&
-                        rollouts.map((rollout) => (
+                        rollouts.map((rollout, index) => (
                           <SortableRollout
                             key={rollout.id}
                             flag={flag}
                             rollout={rollout}
                             segments={segments}
+                            index={index}
                             onEdit={() => {
                               setEditingRollout(rollout);
                               setShowEditRolloutForm(true);
@@ -251,6 +252,9 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
                         flag={flag}
                         rollout={activeRollout}
                         segments={segments}
+                        index={rollouts.findIndex(
+                          (r) => r.id === activeRollout.id
+                        )}
                       />
                     ) : null}
                   </DragOverlay>

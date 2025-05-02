@@ -31,7 +31,7 @@ export interface IRolloutRuleThreshold {
 export interface IRollout {
   id?: string;
   type: RolloutType;
-  rank: number;
+  rank?: number;
   description?: string;
   threshold?: IRolloutRuleThreshold;
   segment?: IRolloutRuleSegment;

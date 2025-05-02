@@ -202,6 +202,22 @@ export default function FlagForm(props: { flag?: IFlag }) {
       onSubmit={(values, { setSubmitting }) => {
         // Assert type is not null since validation ensures this
         const flagValues = values as IFlag;
+
+        // Assign ranks based on array indices before submission
+        if (flagValues.rules) {
+          flagValues.rules = flagValues.rules.map((rule, index) => ({
+            ...rule,
+            rank: index
+          }));
+        }
+
+        if (flagValues.rollouts) {
+          flagValues.rollouts = flagValues.rollouts.map((rollout, index) => ({
+            ...rollout,
+            rank: index
+          }));
+        }
+
         handleSubmit(flagValues)
           .then(() => {
             clearError();

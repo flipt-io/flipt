@@ -87,7 +87,6 @@ type RuleFormProps = {
   onSuccess: () => void;
   createRule: (rule: IRule) => void;
   flag: IFlag;
-  rank: number;
   segments: ISegment[];
 };
 
@@ -97,7 +96,7 @@ interface Segment {
 }
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, onSuccess, flag, rank, segments, createRule } = props;
+  const { setOpen, onSuccess, flag, segments, createRule } = props;
 
   const { setError, clearError } = useError();
 
@@ -162,7 +161,6 @@ export default function RuleForm(props: RuleFormProps) {
 
     return createRule({
       segments: segmentKeys,
-      rank: rank,
       segmentOperator: values.operator,
       distributions: dist.map((d) => {
         return {

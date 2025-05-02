@@ -18,6 +18,7 @@ type RuleProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  index?: number;
 };
 
 const Rule = forwardRef(
@@ -30,6 +31,7 @@ const Rule = forwardRef(
       onDelete,
       style,
       className,
+      index,
       ...rest
     }: RuleProps,
     ref: Ref<HTMLLIElement>
@@ -38,7 +40,7 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      data-testid={`rule-${rule.rank}`}
+      data-testid={`rule-${typeof index === 'number' ? index : 0}`}
       className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
     >
       <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
@@ -50,7 +52,7 @@ const Rule = forwardRef(
             )}
             {...rest}
           >
-            {rule.rank + 1}
+            {typeof index === 'number' ? index + 1 : 1}
           </span>
           <h3
             className={cls(

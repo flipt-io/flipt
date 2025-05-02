@@ -8,10 +8,9 @@ import { DistributionType } from '~/types/Distribution';
 import { IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
-import { ISegment, segmentOperators } from '~/types/Segment';
+import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 
-import { createSegmentHandlers } from '~/utils/formik-helpers';
 import { cls } from '~/utils/helpers';
 
 import { distTypes } from './RuleForm';
@@ -85,9 +84,22 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     });
   }, [ruleSegmentKeys, segments]);
 
-  const fieldPrefix = `rules.[${rule.rank}].`;
-
   const formik = useFormikContext<IFlag>();
+
+  // Calculate the actual index in the rules array by finding this rule's position
+  const ruleIndex = useMemo(() => {
+    const rules = formik.values.rules || [];
+    // Try to find by ID first if available
+    if (rule.id) {
+      const index = rules.findIndex((r) => r.id === rule.id);
+      if (index !== -1) return index;
+    }
+    // Fallback to position in array
+    return rules.indexOf(rule);
+  }, [formik.values.rules, rule.id, rule]);
+
+  // Use the calculated index for the field path
+  const fieldPrefix = `rules.[${ruleIndex !== -1 ? ruleIndex : 0}].`;
 
   // Initialize the rule with distributions if it doesn't have any
   const initializeDistributions = useCallback(() => {
@@ -96,18 +108,77 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     }
   }, [formik, fieldPrefix, rule.distributions]);
 
-  // Use the shared segment handlers with the rule-specific update function
-  const { handleSegmentAdd, handleSegmentRemove, handleSegmentReplace } =
-    createSegmentHandlers<IRule, IFlag>(
-      formik,
-      rule,
-      'rules',
-      (original, segments) => ({
-        ...original,
-        segments
-      }),
-      initializeDistributions
-    );
+  // Custom segment management functions
+  const handleSegmentAdd = useCallback(
+    (segment: FilterableSegment) => {
+      // Double-check that we're working with the correct rule in formik values
+      const rules = formik.values.rules || [];
+      if (ruleIndex === -1 || ruleIndex >= rules.length) {
+        return;
+      }
+
+      // Get current segments or initialize empty array
+      const currentSegments = [...(rule.segments || [])];
+
+      // Add the new segment key if it doesn't already exist
+      if (!currentSegments.includes(segment.key)) {
+        currentSegments.push(segment.key);
+
+        // Initialize distributions if needed
+        if (initializeDistributions) {
+          initializeDistributions();
+        }
+
+        // Update the form value for this specific rule's segments
+        formik.setFieldValue(`${fieldPrefix}segments`, currentSegments);
+      }
+    },
+    [formik, fieldPrefix, rule, initializeDistributions, ruleIndex]
+  );
+
+  const handleSegmentRemove = useCallback(
+    (index: number) => {
+      // Double-check that we're working with the correct rule in formik values
+      const rules = formik.values.rules || [];
+      if (ruleIndex === -1 || ruleIndex >= rules.length) {
+        return;
+      }
+
+      // Get current segments
+      const currentSegments = [...(rule.segments || [])];
+
+      // Remove the segment at the specified index
+      if (index >= 0 && index < currentSegments.length) {
+        currentSegments.splice(index, 1);
+
+        // Update only the segments array
+        formik.setFieldValue(`${fieldPrefix}segments`, currentSegments);
+      }
+    },
+    [formik, fieldPrefix, rule, ruleIndex]
+  );
+
+  const handleSegmentReplace = useCallback(
+    (index: number, segment: FilterableSegment) => {
+      // Double-check that we're working with the correct rule in formik values
+      const rules = formik.values.rules || [];
+      if (ruleIndex === -1 || ruleIndex >= rules.length) {
+        return;
+      }
+
+      // Get current segments
+      const currentSegments = [...(rule.segments || [])];
+
+      // Replace the segment at the specified index
+      if (index >= 0 && index < currentSegments.length) {
+        currentSegments[index] = segment.key;
+
+        // Update only the segments array
+        formik.setFieldValue(`${fieldPrefix}segments`, currentSegments);
+      }
+    },
+    [formik, fieldPrefix, rule, ruleIndex]
+  );
 
   return (
     <div className="flex h-full w-full flex-col">
