@@ -1,7 +1,7 @@
 import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { IFilterable } from '~/types/Selectable';
 
@@ -38,37 +38,58 @@ export default function Combobox<T extends IFilterable>(
   const [field] = useField(props);
   const [openOptions, setOpenOptions] = useState(false);
 
-  const filteredValues = values?.filter((v) =>
-    v.filterValue.toLowerCase().includes(query.toLowerCase())
+  const filteredValues = useMemo(() => {
+    return values?.filter((v) =>
+      v.filterValue.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [values, query]);
+
+  const handleChange = useCallback(
+    (v: T | null) => {
+      setSelected && setSelected(v);
+      // Handle both cases: when v is a full object or just a string key
+      const value = v ? (typeof v === 'string' ? v : v.key) : null;
+      field.onChange({ target: { value, id } });
+    },
+    [setSelected, field, id]
   );
+
+  const handleFocus = useCallback(() => {
+    setTimeout(() => setOpenOptions(true), 100);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setTimeout(() => setOpenOptions(false), 100);
+  }, []);
+
+  const handleQueryChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(e.target.value);
+    },
+    []
+  );
+
+  const displayValue = useCallback((v: T | null) => v?.displayValue || '', []);
 
   return (
     <C
       as="div"
       className={className}
       value={selected}
-      onChange={(v: T | null) => {
-        setSelected && setSelected(v);
-        field.onChange({ target: { value: v?.key, id } });
-      }}
+      onChange={handleChange}
       disabled={disabled}
       nullable
     >
       {({ open }) => (
-        <div
-          onFocus={() => setTimeout(() => setOpenOptions(true), 100)}
-          onBlur={() => setTimeout(() => setOpenOptions(false), 100)}
-        >
+        <div onFocus={handleFocus} onBlur={handleBlur}>
           <div className="relative flex w-full flex-row">
             <C.Input
               className={cls(
                 'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-gray-900 shadow-xs sm:text-sm',
                 inputClassName
               )}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setQuery(e.target.value);
-              }}
-              displayValue={(v: T) => v?.key}
+              onChange={handleQueryChange}
+              displayValue={displayValue}
               placeholder={placeholder}
               name={name}
               id={`${id}-select-input`}

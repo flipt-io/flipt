@@ -23,24 +23,45 @@ export default function SegmentsPicker({
   segmentReplace,
   segmentRemove
 }: SegmentPickerProps) {
+  // Track selected segment keys to avoid duplicates
   const segmentsSet = useRef<Set<string>>(
-    new Set<string>(parentSegments.map((s) => s.key))
+    new Set<string>(
+      parentSegments.map((s) => (typeof s === 'string' ? s : s.key))
+    )
   );
 
   const [editing, setEditing] = useState<boolean>(true);
 
+  // Store previous parent segments length to prevent unnecessary updates
+  const prevParentSegmentsLength = useRef(parentSegments.length);
+
+  // Update editing state when parent segments change
   useEffect(() => {
+    // Set editing to true whenever segments change
     setEditing(true);
-  }, [parentSegments]);
+
+    // Update the set of selected segment keys
+    segmentsSet.current = new Set<string>(
+      parentSegments.map((s) => (typeof s === 'string' ? s : s.key))
+    );
+
+    // Update the previous length
+    prevParentSegmentsLength.current = parentSegments.length;
+  }, [parentSegments]); // Depend on the entire parentSegments array
 
   const handleSegmentRemove = (index: number) => {
     const filterableSegment = parentSegments[index];
+    if (!filterableSegment) return;
 
     // Remove references to the segment that is being deleted.
-    segmentsSet.current!.delete(filterableSegment.key);
+    segmentsSet.current.delete(
+      typeof filterableSegment === 'string'
+        ? filterableSegment
+        : filterableSegment.key
+    );
     segmentRemove(index);
 
-    if (editing && parentSegments.length == 1) {
+    if (editing && parentSegments.length === 1) {
       setEditing(true);
     }
   };
@@ -54,12 +75,18 @@ export default function SegmentsPicker({
     }
 
     const selectedSegmentList = [...parentSegments];
-    const segmentSetCurrent = segmentsSet.current!;
+    const segmentSetCurrent = segmentsSet.current;
 
     if (index <= parentSegments.length - 1) {
       const previousSegment = selectedSegmentList[index];
-      if (segmentSetCurrent.has(previousSegment.key)) {
-        segmentSetCurrent.delete(previousSegment.key);
+      if (previousSegment) {
+        const prevKey =
+          typeof previousSegment === 'string'
+            ? previousSegment
+            : previousSegment.key;
+        if (segmentSetCurrent.has(prevKey)) {
+          segmentSetCurrent.delete(prevKey);
+        }
       }
 
       segmentSetCurrent.add(segment.key);
@@ -68,6 +95,17 @@ export default function SegmentsPicker({
       segmentSetCurrent.add(segment.key);
       segmentAdd(segment);
     }
+  };
+
+  // Create filtered segment options with proper display values
+  const getSegmentOptions = () => {
+    return segments
+      .filter((s) => !segmentsSet.current.has(s.key))
+      .map((s) => ({
+        ...s,
+        filterValue: truncateKey(s.key),
+        displayValue: s.name
+      }));
   };
 
   return (
@@ -79,13 +117,7 @@ export default function SegmentsPicker({
               id={`segmentKey-${index}`}
               name={`segmentKey-${index}`}
               placeholder="Select or search for a segment"
-              values={segments
-                .filter((s) => !segmentsSet.current!.has(s.key))
-                .map((s) => ({
-                  ...s,
-                  filterValue: truncateKey(s.key),
-                  displayValue: s.name
-                }))}
+              values={getSegmentOptions()}
               selected={selectedSegment}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
@@ -109,13 +141,7 @@ export default function SegmentsPicker({
               id={`segmentKey-${parentSegments.length}`}
               name={`segmentKey-${parentSegments.length}`}
               placeholder="Select or search for a segment"
-              values={segments
-                .filter((s) => !segmentsSet.current!.has(s.key))
-                .map((s) => ({
-                  ...s,
-                  filterValue: truncateKey(s.key),
-                  displayValue: s.name
-                }))}
+              values={getSegmentOptions()}
               selected={null}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(parentSegments.length, filterableSegment);

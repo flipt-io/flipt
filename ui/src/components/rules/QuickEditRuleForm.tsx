@@ -1,15 +1,17 @@
 import { Field, FieldArray, useFormikContext } from 'formik';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { TextButton } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
 import { DistributionType } from '~/types/Distribution';
 import { IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
-import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
+import { ISegment, segmentOperators } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 
+import { createSegmentHandlers } from '~/utils/formik-helpers';
 import { cls } from '~/utils/helpers';
 
 import { distTypes } from './RuleForm';
@@ -33,22 +35,29 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   const { flag, rule, segments } = props;
 
-  const ruleType =
-    rule.distributions.length === 0
+  // Ensure rule.distributions is always treated as an array
+  const distributions = useMemo(
+    () => rule.distributions || [],
+    [rule.distributions]
+  );
+
+  const ruleType = useMemo(() => {
+    return distributions.length === 0
       ? DistributionType.None
-      : rule.distributions.length === 1
+      : distributions.length === 1
         ? DistributionType.Single
         : DistributionType.Multi;
+  }, [distributions.length]);
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
       if (ruleType !== DistributionType.Single) return null;
 
-      if (rule.distributions.length !== 1) {
+      if (distributions.length !== 1) {
         return null;
       }
       let selected = flag.variants?.find(
-        (v) => v.key === rule.distributions[0].variant
+        (v) => v.key === distributions[0].variant
       );
       if (selected) {
         return {
@@ -60,23 +69,45 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
-  const ruleSegmentKeys = rule.segments || [];
+  const ruleSegmentKeys = useMemo(() => rule.segments || [], [rule.segments]);
 
-  const ruleSegments = ruleSegmentKeys.map((s) => {
-    const segment = segments.find((seg) => seg.key === s);
-    if (!segment) {
-      throw new Error(`Segment ${s} not found in segments`);
-    }
-    return {
-      ...segment,
-      displayValue: segment.name,
-      filterValue: segment.key
-    };
-  });
+  const ruleSegments = useMemo(() => {
+    return ruleSegmentKeys.map((s) => {
+      const segment = segments.find((seg) => seg.key === s);
+      if (!segment) {
+        throw new Error(`Segment ${s} not found in segments`);
+      }
+      return {
+        ...segment,
+        displayValue: segment.name,
+        filterValue: segment.key
+      };
+    });
+  }, [ruleSegmentKeys, segments]);
 
   const fieldPrefix = `rules.[${rule.rank}].`;
 
   const formik = useFormikContext<IFlag>();
+
+  // Initialize the rule with distributions if it doesn't have any
+  const initializeDistributions = useCallback(() => {
+    if (!rule.distributions) {
+      formik.setFieldValue(`${fieldPrefix}distributions`, []);
+    }
+  }, [formik, fieldPrefix, rule.distributions]);
+
+  // Use the shared segment handlers with the rule-specific update function
+  const { handleSegmentAdd, handleSegmentRemove, handleSegmentReplace } =
+    createSegmentHandlers<IRule, IFlag>(
+      formik,
+      rule,
+      'rules',
+      (original, segments) => ({
+        ...original,
+        segments
+      }),
+      initializeDistributions
+    );
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -95,19 +126,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               <div>
                 <FieldArray
                   name={fieldPrefix + 'segments'}
-                  render={(arrayHelpers) => (
+                  render={() => (
                     <SegmentsPicker
                       segments={segments}
-                      segmentAdd={(segment: FilterableSegment) =>
-                        arrayHelpers.push(segment)
-                      }
-                      segmentRemove={(index: number) =>
-                        arrayHelpers.remove(index)
-                      }
-                      segmentReplace={(
-                        index: number,
-                        segment: FilterableSegment
-                      ) => arrayHelpers.replace(index, segment)}
+                      segmentAdd={handleSegmentAdd}
+                      segmentRemove={handleSegmentRemove}
+                      segmentReplace={handleSegmentReplace}
                       selectedSegments={ruleSegments}
                     />
                   )}
@@ -222,9 +246,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 name="rollouts"
                 render={() => (
                   <>
-                    {rule.distributions &&
-                      rule.distributions.length > 0 &&
-                      rule.distributions?.map((dist, index) => (
+                    {distributions.length > 0 &&
+                      distributions.map((dist, index) => (
                         <div key={index}>
                           {dist && (
                             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1">
@@ -272,6 +295,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               )}
             </div>
           )}
+        </div>
+      </div>
+      <div className="shrink-0 py-1">
+        <div className="flex justify-end space-x-3">
+          <TextButton
+            disabled={formik.isSubmitting || !formik.dirty}
+            onClick={() => formik.resetForm()}
+          >
+            Reset
+          </TextButton>
         </div>
       </div>
     </div>
