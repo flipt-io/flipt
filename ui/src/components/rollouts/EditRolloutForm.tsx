@@ -18,7 +18,6 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-import { cls } from '~/utils/helpers';
 
 const rolloutRuleTypes = [
   {
@@ -203,24 +202,25 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                       {rolloutRuleTypes.map((rolloutRule) => (
                         <div
                           key={rolloutRule.id}
-                          className="relative flex items-start"
+                          className="relative flex items-center space-x-3 cursor-not-allowed"
                         >
-                          <div className="flex h-5 items-center">
+                          <div className="flex h-4 items-center">
                             <input
                               id={rolloutRule.id}
                               aria-describedby={`${rolloutRule.id}-description`}
                               name="type"
                               type="radio"
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-not-allowed"
                               disabled={true}
                               checked={rolloutRule.id === rollout.type}
                               value={rolloutRule.id}
+                              readOnly
                             />
                           </div>
-                          <div className="ml-3 text-sm">
+                          <div className="text-sm">
                             <label
                               htmlFor={rolloutRule.id}
-                              className="font-medium text-gray-700"
+                              className="font-medium text-gray-700 cursor-not-allowed"
                             >
                               {rolloutRule.name}
                             </label>
@@ -301,31 +301,33 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                     <div className="mt-6 flex space-x-8">
                       {formik.values.segments.length > 1 &&
                         segmentOperators.map((segmentOperator, index) => (
-                          <div className="flex space-x-2" key={index}>
-                            <div>
+                          <div
+                            className="flex items-center space-x-2 cursor-pointer"
+                            key={index}
+                            onClick={() => {
+                              formik.setFieldValue(
+                                'operator',
+                                segmentOperator.id
+                              );
+                            }}
+                          >
+                            <div className="flex items-center">
                               <input
                                 id={segmentOperator.id}
                                 name="operator"
                                 type="radio"
-                                className={cls(
-                                  'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400'
-                                )}
-                                onChange={() => {
-                                  formik.setFieldValue(
-                                    'operator',
-                                    segmentOperator.id
-                                  );
-                                }}
+                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
                                 checked={
                                   segmentOperator.id === formik.values.operator
                                 }
                                 value={segmentOperator.id}
+                                readOnly
                               />
                             </div>
-                            <div>
+                            <div className="flex items-center">
                               <label
                                 htmlFor={segmentOperator.id}
-                                className="block text-sm text-gray-700"
+                                className="block text-sm text-gray-700 cursor-pointer"
                               >
                                 {segmentOperator.name}{' '}
                                 <span className="font-light">
@@ -346,16 +348,18 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 >
                   Value
                 </label>
-                <Select
-                  id="value"
-                  name="value"
-                  value={formik.values.value}
-                  options={[
-                    { label: 'True', value: 'true' },
-                    { label: 'False', value: 'false' }
-                  ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle"
-                />
+                <div className="sm:col-span-2">
+                  <Select
+                    id="value"
+                    name="value"
+                    value={formik.values.value}
+                    options={[
+                      { label: 'True', value: 'true' },
+                      { label: 'False', value: 'false' }
+                    ]}
+                    className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle"
+                  />
+                </div>
               </div>
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>

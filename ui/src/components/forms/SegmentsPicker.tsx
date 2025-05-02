@@ -30,16 +30,15 @@ export default function SegmentsPicker({
     )
   );
 
-  const [editing, setEditing] = useState<boolean>(true);
+  // State to control whether to show the new segment selection field
+  const [showNewSegmentField, setShowNewSegmentField] =
+    useState<boolean>(false);
 
   // Store previous parent segments length to prevent unnecessary updates
   const prevParentSegmentsLength = useRef(parentSegments.length);
 
-  // Update editing state when parent segments change
+  // Update segment set when parent segments change
   useEffect(() => {
-    // Set editing to true whenever segments change
-    setEditing(true);
-
     // Update the set of selected segment keys
     segmentsSet.current = new Set<string>(
       parentSegments.map((s) => (typeof s === 'string' ? s : s.key))
@@ -60,10 +59,6 @@ export default function SegmentsPicker({
         : filterableSegment.key
     );
     segmentRemove(index);
-
-    if (editing && parentSegments.length === 1) {
-      setEditing(true);
-    }
   };
 
   const handleSegmentSelected = (
@@ -74,26 +69,44 @@ export default function SegmentsPicker({
       return;
     }
 
-    const selectedSegmentList = [...parentSegments];
+    // Get the current set of segment keys to prevent duplicates
     const segmentSetCurrent = segmentsSet.current;
 
-    if (index <= parentSegments.length - 1) {
-      const previousSegment = selectedSegmentList[index];
+    // Check if this segment is already selected
+    if (segmentSetCurrent.has(segment.key)) {
+      return;
+    }
+
+    if (index < parentSegments.length) {
+      // REPLACE: We're updating an existing segment
+      const previousSegment = parentSegments[index];
       if (previousSegment) {
         const prevKey =
           typeof previousSegment === 'string'
             ? previousSegment
             : previousSegment.key;
+
+        // Remove the old segment key from the set
         if (segmentSetCurrent.has(prevKey)) {
           segmentSetCurrent.delete(prevKey);
         }
       }
 
+      // Add the new segment key to the set
       segmentSetCurrent.add(segment.key);
+
+      // Update the segment at the specified index
       segmentReplace(index, segment);
     } else {
+      // ADD: We're adding a new segment
+      // Add the segment key to the set to prevent duplicates
       segmentSetCurrent.add(segment.key);
+
+      // Add the segment to the parent component's state
       segmentAdd(segment);
+
+      // Hide the new segment field after adding
+      setShowNewSegmentField(false);
     }
   };
 
@@ -124,18 +137,39 @@ export default function SegmentsPicker({
               }}
             />
           </div>
-          {editing && parentSegments.length - 1 === index ? (
-            <ButtonIcon icon={faPlus} onClick={() => setEditing(false)} />
-          ) : (
-            <ButtonIcon
-              icon={faMinus}
-              onClick={() => handleSegmentRemove(index)}
-            />
-          )}
+          <div className="flex space-x-1">
+            {parentSegments.length > 1 ? (
+              <ButtonIcon
+                icon={faMinus}
+                onClick={() => handleSegmentRemove(index)}
+              />
+            ) : (
+              // When there's only one segment and more available to add,
+              // show the plus button in place of the minus button
+              getSegmentOptions().length > 0 &&
+              !showNewSegmentField && (
+                <ButtonIcon
+                  icon={faPlus}
+                  onClick={() => setShowNewSegmentField(true)}
+                />
+              )
+            )}
+            {/* Only show plus button next to minus when there are multiple segments */}
+            {index === parentSegments.length - 1 &&
+              parentSegments.length > 1 &&
+              !showNewSegmentField &&
+              getSegmentOptions().length > 0 && (
+                <ButtonIcon
+                  icon={faPlus}
+                  onClick={() => setShowNewSegmentField(true)}
+                />
+              )}
+          </div>
         </div>
       ))}
-      {(!editing || parentSegments.length === 0) && (
-        <div className="w-full">
+
+      {showNewSegmentField && (
+        <div className="flex w-full space-x-1">
           <div className="w-5/6">
             <Combobox<FilterableSegment>
               id={`segmentKey-${parentSegments.length}`}
@@ -148,8 +182,26 @@ export default function SegmentsPicker({
               }}
             />
           </div>
+          <ButtonIcon
+            icon={faMinus}
+            onClick={() => setShowNewSegmentField(false)}
+          />
         </div>
       )}
+
+      {parentSegments.length === 0 &&
+        !showNewSegmentField &&
+        getSegmentOptions().length > 0 && (
+          <div className="flex w-full">
+            <div className="w-5/6"></div>
+            <div>
+              <ButtonIcon
+                icon={faPlus}
+                onClick={() => setShowNewSegmentField(true)}
+              />
+            </div>
+          </div>
+        )}
     </div>
   );
 }

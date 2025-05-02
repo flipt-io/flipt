@@ -1,7 +1,7 @@
 import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { IFilterable } from '~/types/Selectable';
 
@@ -38,29 +38,59 @@ export default function Combobox<T extends IFilterable>(
   const [field] = useField(props);
   const [openOptions, setOpenOptions] = useState(false);
 
+  // Reset query when selected value changes to prevent incorrect display
+  useEffect(() => {
+    if (selected) {
+      setQuery('');
+      setOpenOptions(false);
+    }
+  }, [selected]);
+
   const filteredValues = useMemo(() => {
-    return values?.filter((v) =>
-      v.filterValue.toLowerCase().includes(query.toLowerCase())
-    );
+    // If there's a query, filter the values
+    if (query.trim() !== '') {
+      return values?.filter((v) =>
+        v.filterValue.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    // Otherwise, return all values
+    return values;
   }, [values, query]);
 
   const handleChange = useCallback(
     (v: T | null) => {
+      // Close dropdown when a value is selected
+      setOpenOptions(false);
+
+      // Update parent component state
       setSelected && setSelected(v);
+
       // Handle both cases: when v is a full object or just a string key
       const value = v ? (typeof v === 'string' ? v : v.key) : null;
       field.onChange({ target: { value, id } });
+
+      // Reset the query when an item is selected
+      setQuery('');
     },
     [setSelected, field, id]
   );
 
   const handleFocus = useCallback(() => {
-    setTimeout(() => setOpenOptions(true), 100);
+    // Show options on focus
+    setOpenOptions(true);
   }, []);
 
   const handleBlur = useCallback(() => {
-    setTimeout(() => setOpenOptions(false), 100);
-  }, []);
+    // Use timeout to allow click events to complete before closing
+    setTimeout(() => {
+      setOpenOptions(false);
+      // Reset query on blur if we have a selected value
+      // This ensures the display shows the selected value again
+      if (selected) {
+        setQuery('');
+      }
+    }, 100);
+  }, [selected]);
 
   const handleQueryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +99,11 @@ export default function Combobox<T extends IFilterable>(
     []
   );
 
-  const displayValue = useCallback((v: T | null) => v?.displayValue || '', []);
+  // Enhanced displayValue function that falls back to filterValue and key
+  const displayValue = useCallback((v: T | null): string => {
+    if (!v) return '';
+    return v.displayValue || v.filterValue || v.key || '';
+  }, []);
 
   return (
     <div className="relative w-full">

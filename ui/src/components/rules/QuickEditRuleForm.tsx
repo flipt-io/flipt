@@ -1,7 +1,6 @@
 import { Field, FieldArray, useFormikContext } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { TextButton } from '~/components/Button';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
 import { DistributionType } from '~/types/Distribution';
@@ -33,6 +32,7 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   const { flag, rule, segments } = props;
+  const formik = useFormikContext<IFlag>();
 
   // Ensure rule.distributions is always treated as an array
   const distributions = useMemo(
@@ -48,25 +48,84 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         : DistributionType.Multi;
   }, [distributions.length]);
 
+  // Calculate the actual index in the rules array by finding this rule's position
+  const ruleIndex = useMemo(() => {
+    const rules = formik.values.rules || [];
+    // Try to find by ID first if available
+    if (rule.id) {
+      const index = rules.findIndex((r) => r.id === rule.id);
+      if (index !== -1) return index;
+    }
+    // Fallback to position in array
+    return rules.indexOf(rule);
+  }, [formik.values.rules, rule]);
+
+  // Use the calculated index for the field path
+  const fieldPrefix = `rules.[${ruleIndex !== -1 ? ruleIndex : 0}].`;
+
+  // Initialize selected variant based on current distribution
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
-      if (ruleType !== DistributionType.Single) return null;
-
-      if (distributions.length !== 1) {
+      if (ruleType !== DistributionType.Single || distributions.length !== 1) {
         return null;
       }
-      let selected = flag.variants?.find(
-        (v) => v.key === distributions[0].variant
-      );
-      if (selected) {
-        return {
-          ...selected,
-          displayValue: selected.name,
-          filterValue: selected.key
-        };
+
+      const variantKey = distributions[0].variant;
+      const variant = flag.variants?.find((v) => v.key === variantKey);
+
+      if (!variant) {
+        return null;
       }
-      return null;
+
+      return {
+        ...variant,
+        displayValue: variant.name,
+        filterValue: variant.key
+      };
     });
+
+  // Handle variant selection
+  const handleVariantChange = useCallback(
+    (variant: FilterableVariant | null) => {
+      // Update the local state
+      setSelectedVariant(variant);
+
+      // Update the formik state
+      if (variant) {
+        formik.setFieldValue(`${fieldPrefix}distributions`, [
+          {
+            variant: variant.key,
+            rollout: 100
+          }
+        ]);
+      } else {
+        // Clear distributions if no variant is selected
+        formik.setFieldValue(`${fieldPrefix}distributions`, []);
+      }
+    },
+    [formik, fieldPrefix]
+  );
+
+  // Keep selected variant in sync with distributions
+  useEffect(() => {
+    if (ruleType === DistributionType.Single && distributions.length === 1) {
+      const variantKey = distributions[0].variant;
+      // Only update if the selected variant doesn't match the current distribution
+      if (!selectedVariant || selectedVariant.key !== variantKey) {
+        const variant = flag.variants?.find((v) => v.key === variantKey);
+        if (variant) {
+          setSelectedVariant({
+            ...variant,
+            displayValue: variant.name,
+            filterValue: variant.key
+          });
+        }
+      }
+    } else if (selectedVariant && ruleType !== DistributionType.Single) {
+      // Clear selected variant if rule type is not single
+      setSelectedVariant(null);
+    }
+  }, [distributions, flag.variants, ruleType, selectedVariant]);
 
   const ruleSegmentKeys = useMemo(() => rule.segments || [], [rule.segments]);
 
@@ -83,23 +142,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       };
     });
   }, [ruleSegmentKeys, segments]);
-
-  const formik = useFormikContext<IFlag>();
-
-  // Calculate the actual index in the rules array by finding this rule's position
-  const ruleIndex = useMemo(() => {
-    const rules = formik.values.rules || [];
-    // Try to find by ID first if available
-    if (rule.id) {
-      const index = rules.findIndex((r) => r.id === rule.id);
-      if (index !== -1) return index;
-    }
-    // Fallback to position in array
-    return rules.indexOf(rule);
-  }, [formik.values.rules, rule.id, rule]);
-
-  // Use the calculated index for the field path
-  const fieldPrefix = `rules.[${ruleIndex !== -1 ? ruleIndex : 0}].`;
 
   // Initialize the rule with distributions if it doesn't have any
   const initializeDistributions = useCallback(() => {
@@ -217,29 +259,33 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 {ruleSegments &&
                   ruleSegments.length > 1 &&
                   segmentOperators.map((segmentOperator, index) => (
-                    <div className="flex space-x-2" key={index}>
+                    <div
+                      className="flex space-x-2 cursor-pointer"
+                      key={index}
+                      onClick={() => {
+                        formik.setFieldValue(
+                          `${fieldPrefix}segmentOperator`,
+                          segmentOperator.id
+                        );
+                      }}
+                    >
                       <div>
                         <input
                           id={segmentOperator.id}
                           name={fieldPrefix + 'segmentOperator'}
                           type="radio"
                           className={cls(
-                            'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400'
+                            'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer'
                           )}
-                          onChange={() => {
-                            formik.setFieldValue(
-                              fieldPrefix + 'segmentOperator',
-                              segmentOperator.id
-                            );
-                          }}
                           checked={segmentOperator.id === rule.segmentOperator}
                           value={segmentOperator.id}
+                          readOnly
                         />
                       </div>
                       <div>
                         <label
                           htmlFor={segmentOperator.id}
-                          className="block text-sm text-gray-700"
+                          className="block text-sm text-gray-700 cursor-pointer"
                         >
                           {segmentOperator.name}{' '}
                           <span className="font-light">
@@ -297,7 +343,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 id={fieldPrefix + 'distributions.[0].variant'}
                 variants={flag.variants}
                 selectedVariant={selectedVariant}
-                setSelectedVariant={setSelectedVariant}
+                setSelectedVariant={handleVariantChange}
               />
             )}
 
@@ -366,16 +412,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
               )}
             </div>
           )}
-        </div>
-      </div>
-      <div className="shrink-0 py-1">
-        <div className="flex justify-end space-x-3">
-          <TextButton
-            disabled={formik.isSubmitting || !formik.dirty}
-            onClick={() => formik.resetForm()}
-          >
-            Reset
-          </TextButton>
         </div>
       </div>
     </div>

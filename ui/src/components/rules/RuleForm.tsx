@@ -1,7 +1,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
@@ -118,7 +118,29 @@ export default function RuleForm(props: RuleFormProps) {
     );
   });
 
-  const initialSegmentKeys: FilterableSegment[] = [];
+  const handleVariantChange = useCallback(
+    (variant: FilterableVariant | null) => {
+      setSelectedVariant(variant);
+
+      if (variant && ruleType === DistributionType.Single) {
+        setDistributions([
+          {
+            variant: variant.key,
+            rollout: 100
+          }
+        ]);
+      } else if (!variant && ruleType === DistributionType.Single) {
+        setDistributions([]);
+      }
+    },
+    [ruleType]
+  );
+
+  useEffect(() => {
+    if (ruleType !== DistributionType.Single) {
+      setSelectedVariant(null);
+    }
+  }, [ruleType]);
 
   useEffect(() => {
     if (
@@ -131,6 +153,8 @@ export default function RuleForm(props: RuleFormProps) {
       setDistributionsValid(true);
     }
   }, [distributions, ruleType]);
+
+  const initialSegmentKeys: FilterableSegment[] = [];
 
   const handleSubmit = async (values: Segment) => {
     if (values.segments.length === 0) {
@@ -147,14 +171,13 @@ export default function RuleForm(props: RuleFormProps) {
           };
         })
       );
-    } else if (selectedVariant) {
+    } else if (ruleType === DistributionType.Single && selectedVariant) {
       dist.push({
         variant: selectedVariant.key,
         rollout: 100
       });
     }
 
-    // Extract segment keys from the FilterableSegment objects
     const segmentKeys = values.segments.map((s) =>
       typeof s === 'string' ? s : s.key
     );
@@ -233,12 +256,9 @@ export default function RuleForm(props: RuleFormProps) {
                     <FieldArray
                       name="segments"
                       render={(arrayHelpers) => {
-                        // Add useCallback to the segment handlers to prevent unnecessary re-renders
                         const handleSegmentAdd = (
                           segment: FilterableSegment
                         ) => {
-                          // Add the segment to the Formik state as a FilterableSegment
-                          // but Formik will extract the key for the final form submission
                           arrayHelpers.push(segment);
                         };
 
@@ -280,30 +300,34 @@ export default function RuleForm(props: RuleFormProps) {
                           <div className="w-48 space-y-4">
                             {formik.values.segments.length > 1 &&
                               segmentOperators.map((segmentOperator, index) => (
-                                <div className="flex space-x-4" key={index}>
+                                <div
+                                  className="flex space-x-4 cursor-pointer"
+                                  key={index}
+                                  onClick={() => {
+                                    formik.setFieldValue(
+                                      'operator',
+                                      segmentOperator.id
+                                    );
+                                  }}
+                                >
                                   <div>
                                     <input
                                       id={segmentOperator.id}
                                       name="operator"
                                       type="radio"
-                                      className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                      onChange={() => {
-                                        formik.setFieldValue(
-                                          'operator',
-                                          segmentOperator.id
-                                        );
-                                      }}
+                                      className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
                                       checked={
                                         segmentOperator.id ===
                                         formik.values.operator
                                       }
                                       value={segmentOperator.id}
+                                      readOnly
                                     />
                                   </div>
                                   <div className="mt-1">
                                     <label
                                       htmlFor={segmentOperator.id}
-                                      className="block text-sm text-gray-700"
+                                      className="block text-sm text-gray-700 cursor-pointer"
                                     >
                                       {segmentOperator.name}{' '}
                                       <span className="font-light">
@@ -335,7 +359,10 @@ export default function RuleForm(props: RuleFormProps) {
                         {distTypes.map((dist) => (
                           <div
                             key={dist.id}
-                            className="relative flex items-start"
+                            className="relative flex items-start cursor-pointer"
+                            onClick={() => {
+                              setRuleType(dist.id);
+                            }}
                           >
                             <div className="flex h-5 items-center">
                               <input
@@ -343,12 +370,10 @@ export default function RuleForm(props: RuleFormProps) {
                                 aria-describedby={`${dist.id}-description`}
                                 name="ruleType"
                                 type="radio"
-                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                onChange={() => {
-                                  setRuleType(dist.id);
-                                }}
+                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
                                 checked={dist.id === ruleType}
                                 value={dist.id}
+                                readOnly
                                 disabled={
                                   dist.id !== DistributionType.None &&
                                   (!flag.variants || flag.variants.length === 0)
@@ -358,7 +383,7 @@ export default function RuleForm(props: RuleFormProps) {
                             <div className="ml-3 text-sm">
                               <label
                                 htmlFor={dist.id}
-                                className="font-medium text-gray-700"
+                                className="font-medium text-gray-700 cursor-pointer"
                               >
                                 {dist.name}
                               </label>
@@ -381,7 +406,7 @@ export default function RuleForm(props: RuleFormProps) {
                     <SingleDistributionFormInput
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
-                      setSelectedVariant={setSelectedVariant}
+                      setSelectedVariant={handleVariantChange}
                     />
                   )}
                 {flag.variants &&

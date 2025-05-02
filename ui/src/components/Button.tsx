@@ -93,7 +93,6 @@ export const ButtonIcon = ({
       'hover:text-gray-400': disabled
     })}
     onClick={onClick}
-    title={disabled ? 'Not allowed in Read-Only mode' : undefined}
     disabled={disabled}
   >
     <FontAwesomeIcon icon={icon} className="h-4 w-4" aria-hidden="true" />

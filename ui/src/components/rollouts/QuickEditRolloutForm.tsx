@@ -1,7 +1,6 @@
 import { FieldArray, useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
@@ -57,7 +56,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     }
     // Fallback to position in array
     return rollouts.indexOf(rollout);
-  }, [formik.values.rollouts, rollout.id, rollout]);
+  }, [formik.values.rollouts, rollout]);
 
   // Use the calculated index for the field path
   const fieldPrefix = `rollouts.[${rolloutIndex !== -1 ? rolloutIndex : 0}].`;
@@ -277,31 +276,34 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 <div className="mt-6 flex space-x-8">
                   {rolloutSegments.length > 1 &&
                     segmentOperators.map((segmentOperator, index) => (
-                      <div className="flex space-x-2" key={index}>
-                        <div>
+                      <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        key={index}
+                        onClick={() => {
+                          formik.setFieldValue(
+                            `${fieldPrefix}segment.segmentOperator`,
+                            segmentOperator.id
+                          );
+                        }}
+                      >
+                        <div className="flex items-center">
                           <input
                             id={segmentOperator.id}
                             name={fieldPrefix + 'segment.segmentOperator'}
                             type="radio"
-                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                            onChange={(e) => {
-                              e.preventDefault();
-                              formik.setFieldValue(
-                                fieldPrefix + 'segment.segmentOperator',
-                                segmentOperator.id
-                              );
-                            }}
+                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
                             checked={
                               segmentOperator.id ===
                               rollout.segment?.segmentOperator
                             }
                             value={segmentOperator.id}
+                            readOnly
                           />
                         </div>
-                        <div>
+                        <div className="flex items-center">
                           <label
                             htmlFor={segmentOperator.id}
-                            className="block text-sm text-gray-700"
+                            className="block text-sm text-gray-700 cursor-pointer"
                           >
                             {segmentOperator.name}{' '}
                             <span className="font-light">
@@ -338,16 +340,6 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               />
             </div>
           )}
-        </div>
-      </div>
-      <div className="shrink-0 py-1">
-        <div className="flex justify-end space-x-3">
-          <TextButton
-            disabled={formik.isSubmitting || !formik.dirty}
-            onClick={() => formik.resetForm()}
-          >
-            Reset
-          </TextButton>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ import {
 import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
 import { SplitSquareVerticalIcon } from 'lucide-react';
-import { useContext, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
@@ -37,7 +37,7 @@ import SortableRule from '~/components/rules/SortableRule';
 
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
-import { FilterableVariant, toFilterableVariant } from '~/types/Variant';
+import { FilterableVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 
@@ -53,13 +53,26 @@ export function DefaultVariant(props: RulesProps) {
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
-      const variant = toFilterableVariant(
-        flag.variants?.find((variant) => {
-          return variant.key == flag.defaultVariant;
-        }) || null
-      );
-      return variant || null;
+      if (!flag.defaultVariant) return null;
+
+      const variant = flag.variants?.find((v) => v.key === flag.defaultVariant);
+      if (!variant) return null;
+
+      return {
+        ...variant,
+        displayValue: variant.name,
+        filterValue: variant.key
+      };
     });
+
+  const handleVariantChange = useCallback(
+    (variant: FilterableVariant | null) => {
+      setSelectedVariant(variant);
+
+      updateFlag({ defaultVariant: variant?.key || null });
+    },
+    [updateFlag]
+  );
 
   const handleRemove = async () => {
     updateFlag({ defaultVariant: null });
@@ -98,7 +111,7 @@ export function DefaultVariant(props: RulesProps) {
                       id="defaultVariant"
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
-                      setSelectedVariant={setSelectedVariant}
+                      setSelectedVariant={handleVariantChange}
                     />
                   )}
                 </div>
