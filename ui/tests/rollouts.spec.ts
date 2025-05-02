@@ -78,7 +78,9 @@ test.describe('Rollouts', () => {
 
       await page
         .getByLabel('New Rollout')
-        .locator('#segmentKey-0-select-button')
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .first()
         .click();
       await page.getByLabel('New Rollout').getByText('Test Rollout').click();
       await page
@@ -111,7 +113,9 @@ test.describe('Rollouts', () => {
       // Add first segment
       await page
         .getByLabel('New Rollout')
-        .locator('#segmentKey-0-select-button')
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .first()
         .click();
       await page.getByLabel('New Rollout').getByText('Test Rollout').click();
 
@@ -131,7 +135,9 @@ test.describe('Rollouts', () => {
       // Add second segment
       await page
         .getByLabel('New Rollout')
-        .locator('#segmentKey-1-select-button')
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .nth(1)
         .click();
       await page.getByLabel('New Rollout').getByText('Second Segment').click();
 
@@ -167,7 +173,7 @@ test.describe('Rollouts', () => {
       const isSegmentRollout =
         (await rollout.getByText('Segment Rollout').count()) > 0;
       if (isSegmentRollout) {
-        await rollout.getByTestId('rollout-menu-button').click();
+        await rollout.getByTestId('rollout-menu-button').first().click();
         await page.getByRole('menuitem', { name: 'Edit' }).click();
 
         // Test removing a segment if there are multiple
@@ -179,14 +185,15 @@ test.describe('Rollouts', () => {
         if (removeSegmentButton) {
           // Should have at least 2 segments to be able to remove one
           const segmentCount = await page
-            .locator('[id^="segmentKey-"]')
+            .getByTestId('segments')
+            .locator('[id$="-select-button"]')
             .count();
           if (segmentCount > 1) {
             await removeSegmentButton.click();
             // Verify segment was removed
-            await expect(page.locator('[id^="segmentKey-"]')).toHaveCount(
-              segmentCount - 1
-            );
+            await expect(
+              page.getByTestId('segments').locator('[id$="-select-button"]')
+            ).toHaveCount(segmentCount - 1);
           }
         }
 
@@ -201,11 +208,20 @@ test.describe('Rollouts', () => {
 
   test('can reorder rollouts', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
+
+    // Wait for rollouts to be visible before attempting drag
+    await page.getByTestId('rollout-0').waitFor();
+    await page.getByTestId('rollout-1').waitFor();
+
     await page
       .getByTestId('rollout-0')
       .getByRole('button', { name: 'Rollout' })
+      .first()
       .dragTo(
-        page.getByTestId('rollout-1').getByRole('button', { name: 'Rollout' })
+        page
+          .getByTestId('rollout-1')
+          .getByRole('button', { name: 'Rollout' })
+          .first()
       );
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
@@ -219,9 +235,14 @@ test.describe('Rollouts', () => {
 
   test('can delete rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
+
+    // Wait for rollout to be visible before attempting to click
+    await page.getByTestId('rollout-1').waitFor();
+
     await page
       .getByTestId('rollout-1')
       .getByTestId('rollout-menu-button')
+      .first()
       .click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
@@ -241,11 +262,14 @@ test.describe('Rollouts', () => {
       const isSegmentRollout =
         (await rollout.getByText('Segment Rollout').count()) > 0;
       if (isSegmentRollout) {
-        await rollout.getByTestId('rollout-menu-button').click();
+        await rollout.getByTestId('rollout-menu-button').first().click();
         await page.getByRole('menuitem', { name: 'Edit' }).click();
 
         // Count current segments
-        const segmentCount = await page.locator('[id^="segmentKey-"]').count();
+        const segmentCount = await page
+          .getByTestId('segments')
+          .locator('[id$="-select-button"]')
+          .count();
 
         // If there's only one segment, verify no minus button is visible
         if (segmentCount === 1) {

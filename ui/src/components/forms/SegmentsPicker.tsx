@@ -122,7 +122,7 @@ export default function SegmentsPicker({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid="segments">
       {parentSegments.map((selectedSegment, index) => (
         <div className="flex w-full space-x-1" key={index}>
           <div className="w-5/6">

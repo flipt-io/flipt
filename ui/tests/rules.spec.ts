@@ -42,7 +42,11 @@ test.describe('Rules', () => {
       await page.getByRole('link', { name: 'test-rule' }).click();
       await page.getByRole('link', { name: 'Rules' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
-      await page.locator('#segmentKey-0-select-button').click();
+      await page
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .first()
+        .click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
       await page.getByLabel('Multi-Variate').check();
       await page.getByRole('button', { name: 'Add' }).click();
@@ -53,8 +57,9 @@ test.describe('Rules', () => {
     await test.step('create single-variant rule', async () => {
       await page.getByRole('button', { name: 'New Rule' }).click();
       await page
-        .getByLabel('New Rule')
-        .locator('#segmentKey-0-select-button')
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .first()
         .click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
       await page.getByLabel('Single Variant').check();
@@ -83,7 +88,11 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'New Rule' }).click();
 
       // Add first segment
-      await page.locator('#segmentKey-0-select-button').click();
+      await page
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .first()
+        .click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
 
       // Click the + button to add another segment
@@ -100,7 +109,11 @@ test.describe('Rules', () => {
       await addSegmentButton.click();
 
       // Add second segment
-      await page.locator('#segmentKey-1-select-button').click();
+      await page
+        .getByTestId('segments')
+        .locator('[id$="-select-button"]')
+        .nth(1)
+        .click();
       await page
         .getByLabel('New Rule')
         .getByText('Second Rule Segment')
@@ -135,11 +148,18 @@ test.describe('Rules', () => {
     await page.getByRole('link', { name: 'Rules' }).click();
 
     // Find a rule to edit
-    await page.getByTestId('rule-0').getByTestId('rule-menu-button').click();
+    await page
+      .getByTestId('rule-0')
+      .getByTestId('rule-menu-button')
+      .first()
+      .click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
 
     // Test segment operations
-    const segmentCount = await page.locator('[id^="segmentKey-"]').count();
+    const segmentCount = await page
+      .getByTestId('segments')
+      .locator('[id$="-select-button"]')
+      .count();
 
     // If multiple segments, test removing one
     if (segmentCount > 1) {
@@ -152,9 +172,9 @@ test.describe('Rules', () => {
       if (removeSegmentButton) {
         await removeSegmentButton.click();
         // Verify segment was removed
-        await expect(page.locator('[id^="segmentKey-"]')).toHaveCount(
-          segmentCount - 1
-        );
+        await expect(
+          page.getByTestId('segments').locator('[id$="-select-button"]')
+        ).toHaveCount(segmentCount - 1);
       }
     } else {
       // Verify we can't remove the last segment (no minus button)
@@ -181,7 +201,11 @@ test.describe('Rules', () => {
 
     // Create a new rule for testing variant selection
     await page.getByRole('button', { name: 'New Rule' }).click();
-    await page.locator('#segmentKey-0-select-button').click();
+    await page
+      .getByTestId('segments')
+      .locator('[id$="-select-button"]')
+      .first()
+      .click();
     await page.getByLabel('New Rule').getByText('Test Rule').click();
 
     // Test single variant selection
@@ -216,21 +240,9 @@ test.describe('Rules', () => {
   test('can update multi-variate rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page
-      .locator(
-        'input[name="rules\\.\\[0\\]\\.distributions\\.\\[0\\]\\.rollout"]'
-      )
-      .click();
-    await page
-      .locator(
-        'input[name="rules\\.\\[0\\]\\.distributions\\.\\[0\\]\\.rollout"]'
-      )
-      .fill('40');
-    await page
-      .locator(
-        'input[name="rules\\.\\[0\\]\\.distributions\\.\\[1\\]\\.rollout"]'
-      )
-      .click();
+    await page.getByTestId('distribution-input').first().click();
+    await page.getByTestId('distribution-input').first().fill('40');
+    await page.getByTestId('distribution-input').nth(1).click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
@@ -238,17 +250,8 @@ test.describe('Rules', () => {
   test('can update single-variant rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page
-      .locator(
-        '[id="rules\\.\\[1\\]\\.distributions\\.\\[0\\]\\.variant-select-button"]'
-      )
-      .click();
-    await page
-      .locator('li')
-      .filter({ hasText: 'Single Variant' })
-      .locator('li')
-      .filter({ hasText: '456' })
-      .click();
+    await page.getByTestId('variant-select-button').first().click();
+    await page.locator('li').filter({ hasText: '456' }).first().click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
@@ -287,10 +290,18 @@ test.describe('Rules', () => {
   test('can reorder rules', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
+
+    // Wait for rules to be visible before attempting drag
+    await page.getByTestId('rule-0').waitFor();
+    await page.getByTestId('rule-1').waitFor();
+
     await page
       .getByTestId('rule-1')
       .getByRole('button', { name: 'Rule' })
-      .dragTo(page.getByTestId('rule-0').getByRole('button', { name: 'Rule' }));
+      .first()
+      .dragTo(
+        page.getByTestId('rule-0').getByRole('button', { name: 'Rule' }).first()
+      );
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
     await expect(
@@ -316,7 +327,15 @@ test.describe('Rules', () => {
   test('can delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('rule-1').getByTestId('rule-menu-button').click();
+
+    // Wait for rule to be visible before attempting to click
+    await page.getByTestId('rule-1').waitFor();
+
+    await page
+      .getByTestId('rule-1')
+      .getByTestId('rule-menu-button')
+      .first()
+      .click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Update' }).click();

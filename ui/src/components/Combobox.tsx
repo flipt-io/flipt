@@ -133,6 +133,7 @@ export default function Combobox<T extends IFilterable>(
               <C.Button
                 className="absolute -inset-y-0 right-0 items-center rounded-r-md px-2"
                 id={`${id}-select-button`}
+                data-testid={`${id}-select-button`}
               >
                 <ChevronUpDownIcon
                   className="h-5 w-5 text-gray-400"
