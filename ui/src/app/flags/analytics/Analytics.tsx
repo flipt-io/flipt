@@ -5,6 +5,7 @@ import { LineChartIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
@@ -67,6 +68,7 @@ export default function Analytics(props: AnalyticsProps) {
   );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
 
+  const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
   const info = useSelector(selectInfo);
@@ -77,6 +79,7 @@ export default function Analytics(props: AnalyticsProps) {
 
   const getFlagEvaluationCount = useGetFlagEvaluationCountQuery(
     {
+      environmentKey: environment.key,
       namespaceKey: namespace.key,
       flagKey: flag.key,
       from: addMinutes(

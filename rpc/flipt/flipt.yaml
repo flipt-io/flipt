@@ -32,9 +32,3 @@ http:
   # evaluation methods
   - selector: flipt.evaluation.DataService.EvaluationSnapshotNamespace
     get: /internal/v1/evaluation/snapshot/namespace/{key}
-
-  # analytics methods
-  #
-  # method: evaluation count
-  - selector: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount
-    get: /internal/v1/analytics/namespaces/{namespace_key}/flags/{flag_key}

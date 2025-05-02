@@ -24,6 +24,7 @@ export default defineConfig({
       '/auth/v1': fliptAddr,
       '/evaluate/v1': fliptAddr,
       '/internal/v1': fliptAddr,
+      '/internal/v2': fliptAddr,
       '/meta': fliptAddr,
       '/api/v2': fliptAddr
     },
