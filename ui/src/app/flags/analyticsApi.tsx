@@ -2,11 +2,11 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 
 import { IFlagEvaluationCount } from '~/types/Analytics';
 
-import { internalV2Query } from '~/utils/redux-rtk';
+import { internalQuery } from '~/utils/redux-rtk';
 
 export const analyticsApi = createApi({
   reducerPath: 'analytics',
-  baseQuery: internalV2Query,
+  baseQuery: internalQuery,
   tagTypes: ['Analytics'],
   endpoints: (builder) => ({
     // get evaluation count
