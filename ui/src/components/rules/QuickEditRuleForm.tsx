@@ -358,7 +358,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                   </>
                 )}
               />
-              {formik.errors.rules && formik.errors.rules[rule.rank] && (
+              {formik.errors.rules && formik.errors.rules[ruleIndex] && (
                 <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
                   Multi-variate rules must have distributions that add up to
                   100% or less.
