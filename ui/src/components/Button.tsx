@@ -8,7 +8,7 @@ import { cls } from '~/utils/helpers';
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost';
   className?: string;
   asChild?: boolean;
@@ -78,23 +78,14 @@ export const TextButton = (props: ButtonProps) => {
   return <Button {...props} variant="link" />;
 };
 
-export const ButtonIcon = ({
-  icon,
-  onClick,
-  disabled = false
-}: {
+export interface IconButtonProps extends ButtonProps {
   icon: IconProp;
-  onClick: () => void;
-  disabled?: boolean;
-}) => (
-  <button
-    type="button"
-    className={cls('p-1 text-gray-300 hover:text-gray-500', {
-      'hover:text-gray-400': disabled
-    })}
-    onClick={onClick}
-    disabled={disabled}
-  >
-    <FontAwesomeIcon icon={icon} className="h-4 w-4" aria-hidden="true" />
-  </button>
-);
+}
+
+export const IconButton = ({ icon, ...props }: IconButtonProps) => {
+  return (
+    <Button {...props} variant="ghost">
+      <FontAwesomeIcon icon={icon} className="h-4 w-4" aria-hidden="true" />
+    </Button>
+  );
+};

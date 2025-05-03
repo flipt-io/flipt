@@ -122,18 +122,10 @@ test.describe('Rollouts', () => {
         .click();
       await page.getByRole('option', { name: 'Test Rollout' }).click();
 
-      // Click the + button to add another segment
-      const plusButtons = await page.getByRole('button').all();
-      const addSegmentButton = plusButtons.find((button) =>
-        button.evaluate((node) => node.innerHTML.includes('fa-plus'))
-      );
-
-      // Make sure we found the + button before clicking it
-      if (!addSegmentButton) {
-        throw new Error('Could not find the + button to add another segment');
-      }
-
-      await addSegmentButton.click();
+      await page
+        .getByRole('dialog', { name: 'New Rollout' })
+        .getByTestId('add-segment-button-0')
+        .click();
 
       // Add second segment
       await page

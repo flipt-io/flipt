@@ -1,7 +1,7 @@
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useRef, useState } from 'react';
 
-import { ButtonIcon } from '~/components/Button';
+import { IconButton } from '~/components/Button';
 import Combobox from '~/components/Combobox';
 
 import { FilterableSegment, ISegment } from '~/types/Segment';
@@ -139,18 +139,20 @@ export default function SegmentsPicker({
           </div>
           <div className="flex space-x-1">
             {parentSegments.length > 1 ? (
-              <ButtonIcon
+              <IconButton
                 icon={faMinus}
                 onClick={() => handleSegmentRemove(index)}
+                data-testid={`remove-segment-button-${index}`}
               />
             ) : (
               // When there's only one segment and more available to add,
               // show the plus button in place of the minus button
               getSegmentOptions().length > 0 &&
               !showNewSegmentField && (
-                <ButtonIcon
+                <IconButton
                   icon={faPlus}
                   onClick={() => setShowNewSegmentField(true)}
+                  data-testid={`add-segment-button-${index}`}
                 />
               )
             )}
@@ -159,9 +161,10 @@ export default function SegmentsPicker({
               parentSegments.length > 1 &&
               !showNewSegmentField &&
               getSegmentOptions().length > 0 && (
-                <ButtonIcon
+                <IconButton
                   icon={faPlus}
                   onClick={() => setShowNewSegmentField(true)}
+                  data-testid={`add-segment-button-${index}`}
                 />
               )}
           </div>
@@ -182,9 +185,10 @@ export default function SegmentsPicker({
               }}
             />
           </div>
-          <ButtonIcon
+          <IconButton
             icon={faMinus}
             onClick={() => setShowNewSegmentField(false)}
+            data-testid={`remove-segment-button-${parentSegments.length}`}
           />
         </div>
       )}
