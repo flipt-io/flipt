@@ -190,14 +190,18 @@ export default function SegmentsPicker({
       )}
 
       {parentSegments.length === 0 &&
-        !showNewSegmentField &&
         getSegmentOptions().length > 0 && (
-          <div className="flex w-full">
-            <div className="w-5/6"></div>
-            <div>
-              <ButtonIcon
-                icon={faPlus}
-                onClick={() => setShowNewSegmentField(true)}
+          <div className="flex w-full space-x-1">
+            <div className="w-5/6">
+              <Combobox<FilterableSegment>
+                id="segmentKey-0"
+                name="segmentKey-0"
+                placeholder="Select or search for a segment"
+                values={getSegmentOptions()}
+                selected={null}
+                setSelected={(filterableSegment) => {
+                  handleSegmentSelected(0, filterableSegment);
+                }}
               />
             </div>
           </div>
