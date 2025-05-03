@@ -74,7 +74,10 @@ test.describe('Rollouts', () => {
       await page.getByRole('link', { name: 'Flags' }).click();
       await page.getByRole('link', { name: 'test-boolean' }).click();
       await page.getByRole('button', { name: 'New Rollout' }).click();
-      await page.getByLabel('New Rollout').getByText('Segment', { exact: true }).click();
+      await page
+        .getByLabel('New Rollout')
+        .getByText('Segment', { exact: true })
+        .click();
 
       await page
         .getByRole('dialog', { name: 'New Rollout' })
@@ -107,7 +110,10 @@ test.describe('Rollouts', () => {
       await page.getByRole('link', { name: 'Flags' }).click();
       await page.getByRole('link', { name: 'test-boolean' }).click();
       await page.getByRole('button', { name: 'New Rollout' }).click();
-      await page.getByLabel('New Rollout').getByLabel('Segment', { exact: true }).check();
+      await page
+        .getByLabel('New Rollout')
+        .getByLabel('Segment', { exact: true })
+        .check();
 
       // Add first segment
       await page
