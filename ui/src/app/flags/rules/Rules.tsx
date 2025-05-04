@@ -88,7 +88,7 @@ export function DefaultVariant(props: RulesProps) {
         <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
           <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
             <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-            <h3 className="text-sm font-normal leading-6 text-gray-700">
+            <h3 className="text-sm font-normal leading-6 text-gray-500 dark:text-gray-400">
               Default Rule
             </h3>
             <span className="hidden h-4 w-4 justify-end sm:flex" />
@@ -96,7 +96,7 @@ export function DefaultVariant(props: RulesProps) {
         </div>
 
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
-          <p className="text-center text-sm font-light text-gray-600">
+          <p className="text-center text-sm font-light text-gray-600 dark:text-gray-400">
             This is the default value that will be returned if no other rules
             match.
           </p>
@@ -212,7 +212,7 @@ export default function Rules({ flag, rules }: RulesProps) {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              <span className="font-medium text-violet-500 dark:text-violet-400">
                 {' '}
                 position {rules.findIndex((r) => r.id === deletingRule?.id) + 1}
               </span>
@@ -252,10 +252,10 @@ export default function Rules({ flag, rules }: RulesProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Rules are evaluated in order from top to bottom.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Rules can be rearranged by clicking on the header and dragging and
               dropping it into place.
             </p>
@@ -329,7 +329,7 @@ export default function Rules({ flag, rules }: RulesProps) {
           ) : (
             <Well>
               <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
                 No Rules Yet
               </h3>
               <Button

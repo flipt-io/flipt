@@ -1,7 +1,7 @@
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
-import { addMinutes, format, formatISO, parseISO } from 'date-fns';
+import { addMinutes, format, formatISO, parseISO, isValid } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -165,8 +165,13 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const [field] = useField({
     ...props,
     validate: (value: string) => {
-      const m = parseISO(value);
-      return m ? undefined : 'Value is not a valid datetime';
+      if (!value) return undefined; // Allow empty values initially
+      try {
+        const m = parseISO(value);
+        return isValid(m) ? undefined : 'Value is not a valid datetime';
+      } catch (err) {
+        return 'Value is not a valid datetime';
+      }
     }
   });
 
@@ -175,29 +180,43 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
 
   useEffect(() => {
     if (field.value) {
-      let m = parseISO(field.value);
-      if (timezone === Timezone.UTC) {
-        // if utc timezone, then convert to UTC
-        m = addMinutes(m, m.getTimezoneOffset());
+      try {
+        let m = parseISO(field.value);
+        if (isValid(m)) {
+          if (timezone === Timezone.UTC) {
+            // if utc timezone, then convert to UTC
+            m = addMinutes(m, m.getTimezoneOffset());
+          }
+          setFieldDate(format(m, 'yyyy-MM-dd'));
+          setFieldTime(format(m, 'HH:mm'));
+        }
+      } catch (err) {
+        // If parsing fails, leave fields empty
+        console.error('Failed to parse date:', err);
       }
-      setFieldDate(format(m, 'yyyy-MM-dd'));
-      setFieldTime(format(m, 'HH:mm'));
     }
   }, [field.value, timezone]);
 
   useEffect(() => {
     // if both date and time are set, then combine, parse, and set the value
     if (fieldDate && fieldDate.trim() !== '') {
-      let d = `${fieldDate}T00:00:00`;
-      if (fieldTime && fieldTime.trim() !== '') {
-        d = `${fieldDate}T${fieldTime}:00`;
+      try {
+        let d = `${fieldDate}T00:00:00`;
+        if (fieldTime && fieldTime.trim() !== '') {
+          d = `${fieldDate}T${fieldTime}:00`;
+        }
+        let m = parseISO(d);
+        
+        if (isValid(m)) {
+          if (timezone === Timezone.UTC) {
+            // if utc timezone, then convert to UTC
+            m = addMinutes(m, -m.getTimezoneOffset());
+          }
+          setFieldValue(field.name, formatISO(m));
+        }
+      } catch (err) {
+        console.error('Failed to format date:', err);
       }
-      let m = parseISO(d);
-      if (timezone === Timezone.UTC) {
-        // if utc timezone, then convert to UTC
-        m = addMinutes(m, -m.getTimezoneOffset());
-      }
-      setFieldValue(field.name, formatISO(m));
     }
   }, [timezone, field.name, fieldDate, fieldTime, setFieldValue]);
 

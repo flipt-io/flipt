@@ -126,7 +126,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              <span className="font-medium text-violet-500 dark:text-violet-400">
                 {' '}
                 position{' '}
                 {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
@@ -185,11 +185,11 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Return boolean values based on rules you define. Rules are
               evaluated in order from top to bottom.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Rules can be rearranged by clicking on the header and dragging and
               dropping it into place.
             </p>
@@ -264,7 +264,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
           ) : (
             <Well>
               <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
                 No Rollouts Yet
               </h3>
               <Button

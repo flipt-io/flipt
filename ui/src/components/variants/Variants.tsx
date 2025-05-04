@@ -1,4 +1,4 @@
-import { SlidersHorizontalIcon } from 'lucide-react';
+import { BracesIcon, BracketsIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { ButtonWithPlus } from '~/components/Button';
@@ -74,7 +74,7 @@ export default function Variants({ variants }: VariantsProps) {
       <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Return different values based on rules you define.
             </p>
           </div>
@@ -95,81 +95,26 @@ export default function Variants({ variants }: VariantsProps) {
         </div>
         <div className="mt-10">
           {variants && variants.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                  >
-                    Key
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
-                  >
-                    Description
-                  </th>
-                  <th scope="col" className="relative pb-3.5 pl-3 pr-4 sm:pr-6">
-                    <span className="sr-only">Edit</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {variants.map((variant) => (
-                  <tr key={variant.key}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
-                      {variant.key}
-                    </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                      {variant.name}
-                    </td>
-                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                      {variant.description}
-                    </td>
-                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                      <>
-                        <a
-                          href="#"
-                          className="pr-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setEditingVariant(variant);
-                            setShowVariantForm(true);
-                          }}
-                        >
-                          Edit
-                          <span className="sr-only">,{variant.key}</span>
-                        </a>
-                        <span aria-hidden="true"> | </span>
-                        <a
-                          href="#"
-                          className="pl-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDeletingVariant(variant);
-                            setShowDeleteVariantModal(true);
-                          }}
-                        >
-                          Delete
-                          <span className="sr-only">,{variant.key}</span>
-                        </a>
-                      </>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {variants.map((variant) => (
+                <VariantCard 
+                  key={variant.key}
+                  variant={variant}
+                  onEdit={() => {
+                    setEditingVariant(variant);
+                    setShowVariantForm(true);
+                  }}
+                  onDelete={() => {
+                    setDeletingVariant(variant);
+                    setShowDeleteVariantModal(true);
+                  }}
+                />
+              ))}
+            </div>
           ) : (
             <Well>
               <SlidersHorizontalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
                 No Variants Yet
               </h3>
               <button
@@ -188,5 +133,86 @@ export default function Variants({ variants }: VariantsProps) {
         </div>
       </div>
     </>
+  );
+}
+
+function VariantCard({ variant, onEdit, onDelete }: { 
+  variant: IVariant, 
+  onEdit: () => void, 
+  onDelete: () => void 
+}) {
+  // Check if variant has a non-empty attachment
+  const hasAttachment = variant.attachment && 
+    Object.keys(variant.attachment).length > 0;
+
+  return (
+    <div 
+      className="group rounded-lg border border-gray-200 dark:border-gray-800 text-left text-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-800 h-full flex flex-col cursor-pointer relative overflow-hidden shadow-sm hover:shadow"
+      onClick={(e) => {
+        e.preventDefault();
+        onEdit();
+      }}
+    >
+      <div className="flex flex-col p-4 h-full">
+        {/* Header with variant icon and delete button */}
+        <div className="flex items-center justify-between mb-5">
+          <span className="rounded-md p-1.5 flex items-center space-x-2 justify-center bg-violet-100 text-violet-900 dark:bg-violet-900 dark:text-violet-100" title="Variant">
+            <SlidersHorizontalIcon className="h-4 w-4" />
+            <span className="text-xs">Variant</span>
+          </span>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click from triggering
+                onDelete();
+              }}
+              className="p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+              aria-label="Delete variant"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="flex flex-col min-w-0 flex-1">
+          {/* Simple label-value pairs format */}
+          <div className="flex flex-col gap-4">
+            {/* Key row */}
+            <div className="flex items-baseline">
+              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase w-24">
+                KEY:
+              </span>
+              <div className="flex items-center">
+                <code className="text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono text-sm">
+                  {variant.key}
+                </code>
+              </div>
+            </div>
+            
+            {/* Name row (if present) */}
+            {variant.name && (
+              <div className="flex items-baseline">
+                <span className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase w-24">
+                  NAME:
+                </span>
+                <span className="text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+                  {variant.name}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Description (if present) */}
+          {variant.description && (
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                {variant.description}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
