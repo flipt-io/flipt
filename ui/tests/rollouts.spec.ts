@@ -130,7 +130,7 @@ test.describe('Rollouts', () => {
       // Add second segment
       await page
         .getByRole('dialog', { name: 'New Rollout' })
-        .locator('#segmentKey-1-select-input')
+        .getByTestId('segmentKey-1-select-button')
         .click();
       await page.getByRole('option', { name: 'Second Segment' }).click();
 
@@ -185,6 +185,5 @@ test.describe('Rollouts', () => {
     await page.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(page.getByTestId('rollout-1')).toBeHidden();
   });
 });

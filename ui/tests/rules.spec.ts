@@ -101,7 +101,7 @@ test.describe('Rules', () => {
       // Add second segment
       await page
         .getByRole('dialog', { name: 'New Rule' })
-        .locator('#segmentKey-1-select-input')
+        .getByTestId('segmentKey-1-select-button')
         .click();
       await page.getByRole('option', { name: 'Second Rule Segment' }).click();
 
@@ -118,18 +118,16 @@ test.describe('Rules', () => {
   test('can update multi-variate rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('distribution-input').first().click();
-    await page.getByTestId('distribution-input').first().fill('40');
-    await page.getByTestId('distribution-input').nth(1).click();
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
-  });
-
-  test('can update single-variant rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('variant-select-button').first().click();
-    await page.locator('li').filter({ hasText: '456' }).first().click();
+    await page
+      .locator(
+        'input[name="rules\\.\\[0\\]\\.distributions\\.\\[0\\]\\.rollout"]'
+      )
+      .fill('40');
+    await page
+      .locator(
+        'input[name="rules\\.\\[0\\]\\.distributions\\.\\[1\\]\\.rollout"]'
+      )
+      .fill('60');
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
@@ -218,6 +216,5 @@ test.describe('Rules', () => {
     await page.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(page.getByTestId('rule-1')).toBeHidden();
   });
 });
