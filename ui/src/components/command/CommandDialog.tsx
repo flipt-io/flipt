@@ -41,7 +41,7 @@ function CommandItem(props: CommandItemProps) {
     <Command.Item
       value={item.name + ' ' + item.keywords?.join(' ')}
       key={item.name}
-      className="flex cursor-pointer place-items-center px-4 py-2 data-selected:bg-violet-200 dark:data-selected:bg-gray-100"
+      className="flex cursor-pointer place-items-center px-4 py-2 data-selected:bg-violet-100 data-selected:text-violet-900 dark:data-selected:bg-violet-800 dark:data-selected:text-white"
       onSelect={() => {
         item.onSelected();
       }}
@@ -49,7 +49,7 @@ function CommandItem(props: CommandItemProps) {
       <div className="flex grow flex-col">
         <span className="font-semibold">{item.name}</span>
         {item.description && (
-          <span className="truncate text-xs text-gray-500">
+          <span className="truncate text-xs text-gray-500 dark:text-gray-400 dark:data-selected:text-gray-200">
             {item.description}
           </span>
         )}
@@ -149,10 +149,10 @@ export default function CommandMenu() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500/75 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <div className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]">
           <Dialog.Content
-            className="mx-auto max-w-xl transform rounded-xl bg-background p-2 shadow-2xl ring-1 ring-black ring-opacity-5 transition-all
+            className="mx-auto max-w-xl transform rounded-xl bg-background dark:bg-gray-800 p-2 shadow-2xl ring-1 ring-black ring-opacity-5 dark:ring-gray-700 transition-all
             data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
           >
@@ -162,7 +162,7 @@ export default function CommandMenu() {
             </Dialog.Description>
             <Command
               loop
-              className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground"
+              className="relative mx-auto flex max-w-2xl flex-col rounded-lg text-foreground dark:text-gray-100"
               onKeyDown={(e) => {
                 if ((e.key === 'Escape' || e.key === 'Backspace') && !search) {
                   e.preventDefault();
@@ -173,11 +173,11 @@ export default function CommandMenu() {
               <div className="flex items-center border-slate-500 text-lg font-medium">
                 <div className="relative w-full">
                   <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400 dark:text-gray-400"
                     aria-hidden="true"
                   />
                   <Command.Input
-                    className="h-12 w-full rounded-md border-0 bg-gray-100 px-4 py-2.5 pl-11 pr-4 text-gray-900 focus:ring-0 sm:text-sm"
+                    className="h-12 w-full rounded-md border-0 bg-gray-100 dark:bg-gray-700 px-4 py-2.5 pl-11 pr-4 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm"
                     value={search}
                     onValueChange={setSearch}
                   />
@@ -185,7 +185,7 @@ export default function CommandMenu() {
               </div>
 
               <Command.List className="flex max-h-96 flex-col overflow-y-auto py-2 text-sm">
-                <Command.Empty className="mt-4 px-4 text-sm text-gray-700">
+                <Command.Empty className="mt-4 px-4 text-sm text-gray-700 dark:text-gray-300">
                   No results found
                 </Command.Empty>
 
@@ -193,7 +193,7 @@ export default function CommandMenu() {
                   <>
                     <Command.Item
                       disabled={true}
-                      className="px-4 py-2.5 font-semibold text-gray-600"
+                      className="px-4 py-2.5 font-semibold text-gray-600 dark:text-gray-400"
                     >
                       Switch Environment
                     </Command.Item>
@@ -219,7 +219,7 @@ export default function CommandMenu() {
                   <>
                     <Command.Item
                       disabled={true}
-                      className="px-4 py-2.5 font-semibold text-gray-600"
+                      className="px-4 py-2.5 font-semibold text-gray-600 dark:text-gray-400"
                     >
                       Switch Namespace
                     </Command.Item>
@@ -251,7 +251,7 @@ export default function CommandMenu() {
                   <>
                     <Command.Item
                       disabled={true}
-                      className="px-4 py-2.5 font-semibold text-gray-600"
+                      className="px-4 py-2.5 font-semibold text-gray-600 dark:text-gray-400"
                     >
                       Change Theme
                     </Command.Item>
@@ -340,7 +340,7 @@ export default function CommandMenu() {
                       />
                     )}
 
-                    <Command.Separator className="my-2 border-t border-gray-200" />
+                    <Command.Separator className="my-2 border-t border-gray-200 dark:border-gray-700" />
                     {nonNamespacedRoutes.map((item) => (
                       <CommandItem
                         key={item.name}

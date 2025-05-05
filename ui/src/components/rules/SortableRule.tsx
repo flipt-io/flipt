@@ -45,7 +45,7 @@ export default function SortableRule(props: SortableRuleProps) {
       {...attributes}
       style={style}
       className={cls({
-        'border-violet-500': isDragging
+        'border-violet-500 dark:border-violet-400': isDragging
       })}
       flag={flag}
       rule={rule}

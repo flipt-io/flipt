@@ -1,7 +1,7 @@
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
-import { addMinutes, format, formatISO, parseISO } from 'date-fns';
+import { addMinutes, format, formatISO, isValid, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -120,7 +120,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
         >
           Value
         </label>
@@ -146,7 +146,7 @@ function ConstraintValueArrayInput(props: ConstraintArrayInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
         >
           Values
         </label>
@@ -165,8 +165,13 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const [field] = useField({
     ...props,
     validate: (value: string) => {
-      const m = parseISO(value);
-      return m ? undefined : 'Value is not a valid datetime';
+      if (!value) return undefined; // Allow empty values initially
+      try {
+        const m = parseISO(value);
+        return isValid(m) ? undefined : 'Value is not a valid datetime';
+      } catch (err) {
+        return 'Value is not a valid datetime';
+      }
     }
   });
 
@@ -175,29 +180,43 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
 
   useEffect(() => {
     if (field.value) {
-      let m = parseISO(field.value);
-      if (timezone === Timezone.UTC) {
-        // if utc timezone, then convert to UTC
-        m = addMinutes(m, m.getTimezoneOffset());
+      try {
+        let m = parseISO(field.value);
+        if (isValid(m)) {
+          if (timezone === Timezone.UTC) {
+            // if utc timezone, then convert to UTC
+            m = addMinutes(m, m.getTimezoneOffset());
+          }
+          setFieldDate(format(m, 'yyyy-MM-dd'));
+          setFieldTime(format(m, 'HH:mm'));
+        }
+      } catch (err) {
+        // If parsing fails, leave fields empty
+        console.error('Failed to parse date:', err);
       }
-      setFieldDate(format(m, 'yyyy-MM-dd'));
-      setFieldTime(format(m, 'HH:mm'));
     }
   }, [field.value, timezone]);
 
   useEffect(() => {
     // if both date and time are set, then combine, parse, and set the value
     if (fieldDate && fieldDate.trim() !== '') {
-      let d = `${fieldDate}T00:00:00`;
-      if (fieldTime && fieldTime.trim() !== '') {
-        d = `${fieldDate}T${fieldTime}:00`;
+      try {
+        let d = `${fieldDate}T00:00:00`;
+        if (fieldTime && fieldTime.trim() !== '') {
+          d = `${fieldDate}T${fieldTime}:00`;
+        }
+        let m = parseISO(d);
+
+        if (isValid(m)) {
+          if (timezone === Timezone.UTC) {
+            // if utc timezone, then convert to UTC
+            m = addMinutes(m, -m.getTimezoneOffset());
+          }
+          setFieldValue(field.name, formatISO(m));
+        }
+      } catch (err) {
+        console.error('Failed to format date:', err);
       }
-      let m = parseISO(d);
-      if (timezone === Timezone.UTC) {
-        // if utc timezone, then convert to UTC
-        m = addMinutes(m, -m.getTimezoneOffset());
-      }
-      setFieldValue(field.name, formatISO(m));
     }
   }, [timezone, field.name, fieldDate, fieldTime, setFieldValue]);
 
@@ -206,17 +225,20 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
         >
           Value
         </label>
-        <span className="text-xs text-gray-400" id="value-tz">
+        <span
+          className="text-xs text-gray-400 dark:text-gray-500"
+          id="value-tz"
+        >
           <Link
             to="/settings"
-            className="group inline-flex items-center text-gray-400 hover:text-gray-500"
+            className="group inline-flex items-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
           >
             <QuestionMarkCircleIcon
-              className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
+              className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400 dark:text-gray-600 dark:group-hover:text-gray-500"
               aria-hidden="true"
             />
             <span className="ml-1">
@@ -347,12 +369,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       validationSchema={validationSchema}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-background shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll bg-background dark:bg-gray-900 shadow-xl">
           <div className="flex-1">
-            <div className="bg-gray-50 px-4 py-6 sm:px-6">
+            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-lg font-medium text-gray-900">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {title}
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#constraints">
@@ -362,7 +384,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div className="flex h-7 items-center">
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                     onClick={() => {
                       setOpen(false);
                     }}
@@ -373,12 +395,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 </div>
               </div>
             </div>
-            <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0">
+            <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700 sm:py-0">
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label
                     htmlFor="type"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Type
                   </label>
@@ -422,7 +444,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     <div>
                       <label
                         htmlFor="property"
-                        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                        className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                       >
                         Property
                       </label>
@@ -437,7 +459,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="operator"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Operator
                   </label>
@@ -485,12 +507,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="description"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-xs text-gray-400"
+                    className="text-xs text-gray-400 dark:text-gray-500"
                     id="description-optional"
                   >
                     Optional
@@ -502,9 +524,10 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
+                variant="secondary"
                 onClick={() => {
                   setOpen(false);
                 }}

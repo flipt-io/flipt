@@ -7,7 +7,7 @@ export interface PageHeaderProps
 
 const PageHeader = ({ title, children, className }: PageHeaderProps) => (
   <div className={cn('flex items-center justify-between', className)}>
-    <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl sm:tracking-tight">
+    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl sm:tracking-tight">
       {title}
     </h1>
     {children}

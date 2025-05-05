@@ -143,6 +143,7 @@ export default function SegmentsPicker({
                 icon={faMinus}
                 onClick={() => handleSegmentRemove(index)}
                 data-testid={`remove-segment-button-${index}`}
+                className="dark:hover:text-violet-300"
               />
             ) : (
               // When there's only one segment and more available to add,
@@ -153,6 +154,7 @@ export default function SegmentsPicker({
                   icon={faPlus}
                   onClick={() => setShowNewSegmentField(true)}
                   data-testid={`add-segment-button-${index}`}
+                  className="dark:hover:text-violet-300"
                 />
               )
             )}
@@ -165,6 +167,7 @@ export default function SegmentsPicker({
                   icon={faPlus}
                   onClick={() => setShowNewSegmentField(true)}
                   data-testid={`add-segment-button-${index}`}
+                  className="dark:hover:text-violet-300"
                 />
               )}
           </div>
@@ -189,6 +192,7 @@ export default function SegmentsPicker({
             icon={faMinus}
             onClick={() => setShowNewSegmentField(false)}
             data-testid={`remove-segment-button-${parentSegments.length}`}
+            className="dark:hover:text-violet-300"
           />
         </div>
       )}

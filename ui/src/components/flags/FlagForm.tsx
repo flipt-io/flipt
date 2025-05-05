@@ -89,8 +89,10 @@ function FlagTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Choose Flag Type</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Choose Flag Type
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
           Select the type of flag you want to create
         </p>
       </div>
@@ -101,22 +103,23 @@ function FlagTypeSelector({
             key={flagType.id}
             onClick={() => onTypeSelect(flagType.id)}
             className={cls(
-              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500',
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500 dark:hover:border-violet-400',
               {
-                'border-violet-500 ring ring-violet-500':
+                'border-violet-500 ring ring-violet-500 dark:border-violet-400 dark:ring-violet-400':
                   selectedType === flagType.id,
-                'border-gray-300': selectedType !== flagType.id
+                'border-gray-300 dark:border-gray-600':
+                  selectedType !== flagType.id
               }
             )}
           >
             <div className="flex flex-1">
               <div className="flex flex-col">
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {flagType.name}
                   </span>
                 </div>
-                <p className="mt-2 flex items-center text-sm text-gray-500">
+                <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
                   {flagType.description}
                 </p>
               </div>
@@ -292,11 +295,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         <div>
                           <label
                             htmlFor="enabled"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                           >
                             Enabled
                           </label>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-300">
                             Allows the flag to be evaluated
                           </p>
                         </div>
@@ -317,11 +320,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         <div>
                           <label
                             htmlFor="defaultValue"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                           >
                             Default Value
                           </label>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-300">
                             The default value returned when no rollouts match
                           </p>
                         </div>
@@ -339,7 +342,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   <div className="col-span-2">
                     <label
                       htmlFor="name"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                     >
                       Name
                     </label>
@@ -370,7 +373,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     <div className="col-span-2">
                       <label
                         htmlFor="key"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                       >
                         Key
                       </label>
@@ -389,12 +392,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     <div className="flex justify-between">
                       <label
                         htmlFor="description"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                       >
                         Description
                       </label>
                       <span
-                        className="text-xs text-gray-500"
+                        className="text-xs text-gray-500 dark:text-gray-400"
                         id="description-optional"
                       >
                         Optional
@@ -410,12 +413,12 @@ export default function FlagForm(props: { flag?: IFlag }) {
                     <div className="flex justify-between">
                       <label
                         htmlFor="metadata"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                       >
                         Metadata
                       </label>
                       <span
-                        className="text-xs text-gray-500"
+                        className="text-xs text-gray-500 dark:text-gray-400"
                         id="metadata-optional"
                       >
                         Optional
@@ -446,7 +449,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
             {flag && (
               <div>
                 <div className="flex flex-row">
-                  <div className="border-b-2 border-gray-200">
+                  <div className="border-b-2 border-gray-200 dark:border-gray-700">
                     <nav className="-mb-px flex space-x-8">
                       {tabs.map((tab) => (
                         <div
@@ -459,9 +462,9 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           className={cls(
                             'cursor-pointer whitespace-nowrap border-b-2 px-1 py-2 font-medium',
                             {
-                              'border-violet-500 text-violet-600':
+                              'border-violet-500 text-violet-600 dark:text-violet-400':
                                 tab.id === selectedTab,
-                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700':
+                              'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-gray-200':
                                 tab.id != selectedTab
                             }
                           )}
@@ -497,7 +500,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   </Button>
                   {formik.dirty && formik.isValid && (
                     <div className="absolute -right-1 -top-1 h-3 w-3">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75"></span>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75 dark:bg-violet-700"></span>
                     </div>
                   )}
                 </div>

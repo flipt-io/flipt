@@ -46,7 +46,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
       {...attributes}
       style={style}
       className={cls({
-        'border-violet-500': isDragging
+        'border-violet-500 dark:border-violet-400': isDragging
       })}
       flag={flag}
       rollout={rollout}

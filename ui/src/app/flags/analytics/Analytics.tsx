@@ -113,7 +113,7 @@ export default function Analytics(props: AnalyticsProps) {
         <>
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                 Track and measure the impact in real-time.
               </p>
             </div>
@@ -128,12 +128,12 @@ export default function Analytics(props: AnalyticsProps) {
               />
               {pollingInterval !== 0 ? (
                 <PauseIcon
-                  className="h-5 w-5 text-gray-500"
+                  className="h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                   onClick={() => setPollingInterval(0)}
                 />
               ) : (
                 <PlayIcon
-                  className="h-5 w-5 text-gray-500"
+                  className="h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                   onClick={() => setPollingInterval(3000)}
                 />
               )}
@@ -150,14 +150,14 @@ export default function Analytics(props: AnalyticsProps) {
       ) : (
         <div className="mt-10">
           <Well>
-            <LineChartIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">
+            <LineChartIcon className="h-12 w-12 text-muted-foreground/30 dark:text-gray-400/60 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground dark:text-gray-200 mb-2">
               Analytics Disabled
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground dark:text-gray-300">
               See the configuration{' '}
               <a
-                className="text-violet-500 hover:text-violet-600 transition-colors"
+                className="text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 transition-colors"
                 href="https://www.flipt.io/docs/configuration/analytics"
               >
                 documentation

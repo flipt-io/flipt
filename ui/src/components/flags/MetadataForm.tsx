@@ -448,7 +448,7 @@ export function MetadataForm({
               />
               {keyError && (
                 <p
-                  className="mt-1 text-sm text-red-500"
+                  className="mt-1 text-sm text-red-500 dark:text-red-400"
                   id={`key-error-${index}`}
                 >
                   {keyError}
@@ -479,7 +479,7 @@ export function MetadataForm({
                 </Select>
                 {typeError && (
                   <p
-                    className="mt-1 text-sm text-red-500"
+                    className="mt-1 text-sm text-red-500 dark:text-red-400"
                     id={`type-error-${index}`}
                   >
                     {typeError}
@@ -497,7 +497,10 @@ export function MetadataForm({
               disabled={disabled}
               aria-label="Remove metadata entry"
             >
-              <TrashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              <TrashIcon
+                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         );
