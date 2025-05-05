@@ -56,12 +56,16 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 
 func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNamespaceSnapshotStreamRequest, serv evaluation.DataService_EvaluationSnapshotNamespaceStreamServer) error {
 	var (
-		ctx        = serv.Context()
-		env        = s.envs.GetFromContext(ctx)
-		hash       = sha1.New()
+		ctx  = serv.Context()
+		env  = s.envs.GetFromContext(ctx)
+		hash = sha1.New()
+		// lastDigest is the digest of the last snapshot we sent
+		// this includes all namespaces
 		lastDigest []byte
 	)
 
+	// start subscription with a channel with a buffer of one
+	// to allow the subscription to preload the last observed snapshot
 	ch := make(chan *evaluation.EvaluationNamespaceSnapshot, 1)
 	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
 	if err != nil {
@@ -69,6 +73,7 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNam
 		return err
 	}
 
+	// close removes the channel from the subscribers
 	defer closer.Close()
 
 	for {
@@ -78,6 +83,11 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNam
 		case snap, ok := <-ch:
 			if !ok {
 				return nil
+			}
+
+			if snap == nil {
+				s.logger.Debug("received nil snapshot, skipping")
+				continue
 			}
 
 			hash.Write([]byte(snap.Digest))
