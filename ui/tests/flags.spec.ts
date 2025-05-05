@@ -57,7 +57,7 @@ test.describe('Flags', () => {
     });
 
     await test.step('edit variant description', async () => {
-      await page.getByText('chrome').click();
+      await page.getByText('chrome', { exact: true }).click();
       await page
         .getByRole('dialog', { name: 'Edit Variant' })
         .locator('#description')
@@ -75,7 +75,7 @@ test.describe('Flags', () => {
     });
 
     await test.step('edit other variant description', async () => {
-      await page.getByText('firefox').click();
+      await page.getByText('firefox', { exact: true }).click();
       await page
         .getByRole('dialog', { name: 'Edit Variant' })
         .locator('#description')
@@ -123,8 +123,8 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'test-flag' }).click();
 
     // verify variants were copied
-    await expect(page.getByText('chrome')).toBeVisible();
-    await expect(page.getByText('firefox')).toBeVisible();
+    await expect(page.getByText('chrome', { exact: true })).toBeVisible();
+    await expect(page.getByText('firefox', { exact: true })).toBeVisible();
   });
 
   test('can create flag with metadata', async ({ page }) => {
