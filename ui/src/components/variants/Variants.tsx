@@ -29,71 +29,73 @@ function VariantCard({
     variant.attachment && Object.keys(variant.attachment).length > 0;
 
   return (
-    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
-      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
-        <div className="flex items-center space-x-2">
-          <span className="p-1.5 rounded-md bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-100">
-            <SlidersHorizontalIcon className="h-4 w-4" />
-          </span>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Variant
-          </h3>
+    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md group">
+      <div className="flex justify-between items-start p-2">
+        <span className="p-1.5 rounded-md bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-100">
+          <SlidersHorizontalIcon className="h-4 w-4" />
+        </span>
+
+        <div className="relative group/delete">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Delete variant"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+          <div className="absolute hidden group-hover/delete:block -bottom-1 right-0 transform translate-y-full bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+            Delete Variant
+          </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-        >
-          <XIcon className="h-4 w-4" />
-        </button>
       </div>
 
-      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-            Key
+      <div className="flex-1 p-4 pt-0" onClick={onEdit}>
+        <div className="grid grid-cols-[120px_1fr] gap-y-3 items-start">
+          <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+            KEY:
           </span>
-          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate block overflow-hidden">
             {variant.key}
           </code>
-        </div>
 
-        {variant.name && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-              Name
-            </span>
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-              {variant.name}
-            </span>
-          </div>
-        )}
+          {variant.name && (
+            <>
+              <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+                NAME:
+              </span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
+                {variant.name}
+              </span>
+            </>
+          )}
 
-        {hasAttachment && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-              Attachment
-            </span>
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-              <span className="text-gray-500 dark:text-gray-400 text-xs">
+          {hasAttachment && (
+            <>
+              <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+                ATTACHMENT:
+              </span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                 {Object.keys(variant.attachment || {}).length} fields
               </span>
-            </span>
-          </div>
-        )}
+            </>
+          )}
 
-        {variant.description && (
-          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
-              Description
-            </span>
-            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-              {variant.description}
-            </p>
-          </div>
-        )}
+          {variant.description && (
+            <>
+              <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+                DESCRIPTION:
+              </span>
+              <div className="text-sm text-gray-700 dark:text-gray-300 max-h-20 overflow-y-auto">
+                <p className="break-words">{variant.description}</p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -158,10 +160,14 @@ function VariantTable({
                     {variant.key}
                   </code>
                 </td>
-                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {variant.name || (
-                    <span className="text-gray-400 dark:text-gray-500">—</span>
-                  )}
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 max-w-[200px]">
+                  <div className="truncate">
+                    {variant.name || (
+                      <span className="text-gray-400 dark:text-gray-500">
+                        —
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm">
                   {hasAttachment ? (
@@ -172,7 +178,7 @@ function VariantTable({
                     <span className="text-gray-400 dark:text-gray-500">—</span>
                   )}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">
+                <td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-[300px]">
                   {variant.description ? (
                     <p className="line-clamp-1">{variant.description}</p>
                   ) : (
@@ -180,15 +186,22 @@ function VariantTable({
                   )}
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(variant);
-                    }}
-                    className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                  >
-                    <XIcon className="h-4 w-4" />
-                  </button>
+                  <div className="relative group/delete inline-block">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(variant);
+                      }}
+                      className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Delete variant"
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                    <div className="absolute hidden group-hover/delete:block -bottom-1 right-0 transform translate-y-full bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                      Delete Variant
+                    </div>
+                  </div>
                 </td>
               </tr>
             );
@@ -221,8 +234,8 @@ export default function Variants({ variants }: VariantsProps) {
   const useTableView = useMemo(() => {
     if (viewMode === ViewMode.TABLE) return true;
     if (viewMode === ViewMode.CARDS) return false;
-    // Default auto behavior - table for more than 6 items
-    return variants.length > 6;
+    // Default auto behavior - table for more than 4 items
+    return variants.length > 4;
   }, [variants.length, viewMode]);
 
   return (
@@ -307,7 +320,7 @@ export default function Variants({ variants }: VariantsProps) {
                 }}
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {variants.map((variant) => (
                   <VariantCard
                     key={variant.key}

@@ -1,6 +1,6 @@
 import { Formik } from 'formik';
 import { Clock, List, Moon, Sun } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Switch } from '~/components/Switch';
@@ -44,9 +44,17 @@ export default function Preferences() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_DELAY = 1000; // 1 second
 
+  // Track if this is the initial load
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Set initial load state to false after component mounts
+  useEffect(() => {
+    setIsInitialLoad(false);
+  }, []);
+
   // Show toast when preferences are saved, with debounce
   useEffect(() => {
-    if (lastSaved) {
+    if (lastSaved && !isInitialLoad) {
       // Clear any existing timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -61,6 +69,9 @@ export default function Preferences() {
         dispatch(resetLastSaved());
         debounceTimerRef.current = null;
       }, DEBOUNCE_DELAY);
+    } else if (lastSaved && isInitialLoad) {
+      // Just reset the lastSaved without showing notification on initial load
+      dispatch(resetLastSaved());
     }
 
     // Cleanup timer on unmount
@@ -69,7 +80,7 @@ export default function Preferences() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [lastSaved, dispatch, setNotification]);
+  }, [lastSaved, dispatch, setNotification, isInitialLoad]);
 
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>

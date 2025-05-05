@@ -56,14 +56,14 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
       // Attempt to format the date - if it fails, show a fallback
       const formattedDate = inTimezone(constraint.value);
       return (
-        <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-900 dark:text-white">
+        <span className="text-sm text-gray-900 dark:text-white">
           {formattedDate}
         </span>
       );
     } catch (err) {
       // Show the raw value with an error indication
       return (
-        <span className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded text-sm text-red-900 dark:text-red-100">
+        <span className="text-sm text-red-600 dark:text-red-400">
           {constraint.value || '(invalid date)'}
         </span>
       );
@@ -78,10 +78,10 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
     const boolValue = constraint.value?.toLowerCase() === 'true';
     return (
       <span
-        className={`px-2 py-1 rounded-md text-xs font-medium ${
+        className={`text-sm ${
           boolValue
-            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100'
-            : 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100'
+            ? 'text-emerald-600 dark:text-emerald-400'
+            : 'text-red-600 dark:text-red-400'
         }`}
       >
         {boolValue ? 'TRUE' : 'FALSE'}
@@ -90,7 +90,7 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
   }
 
   return (
-    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-900 dark:text-white break-words max-w-full">
+    <span className="text-sm text-gray-900 dark:text-white break-words max-w-full">
       {constraint.value}
     </span>
   );
@@ -140,67 +140,78 @@ function ConstraintCard({
   onDelete: () => void;
 }) {
   return (
-    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
-      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
-        <div className="flex items-center space-x-2">
-          <span className={`p-1.5 rounded-md ${getTypeColor(constraint.type)}`}>
-            {getTypeIcon(constraint.type)}
-          </span>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {constraintTypeToLabel(constraint.type)}
-          </h3>
+    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md group">
+      <div className="flex justify-between items-start p-2">
+        <span className={`p-1.5 rounded-md ${getTypeColor(constraint.type)}`}>
+          {getTypeIcon(constraint.type)}
+        </span>
+
+        <div className="relative group/delete">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Delete constraint"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+          <div className="absolute hidden group-hover/delete:block -bottom-1 right-0 transform translate-y-full bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+            Delete Constraint
+          </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-        >
-          <XIcon className="h-4 w-4" />
-        </button>
       </div>
 
-      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-            Property
+      <div className="flex-1 p-4 pt-0" onClick={onEdit}>
+        <div className="grid grid-cols-[120px_1fr] gap-y-3 items-start">
+          <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+            TYPE:
           </span>
-          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+          <span className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
+            {constraintTypeToLabel(constraint.type)}
+          </span>
+
+          <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+            PROPERTY:
+          </span>
+          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate block overflow-hidden">
             {constraint.property}
           </code>
-        </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-            Operator
+          <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+            OPERATOR:
           </span>
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+          <span className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
             {ConstraintOperators[constraint.operator] || constraint.operator}
           </span>
+
+          {!NoValueOperators.includes(constraint.operator) && (
+            <>
+              <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+                VALUE:
+              </span>
+              <div className="inline-block bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded max-w-full overflow-hidden">
+                <div className="truncate">
+                  <ConstraintValue constraint={constraint} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {constraint.description && (
+            <>
+              <span className="text-sm font-medium uppercase text-gray-500 dark:text-gray-400 pt-1">
+                DESCRIPTION:
+              </span>
+              <div className="text-sm text-gray-700 dark:text-gray-300 max-h-20 overflow-y-auto">
+                <p className="break-words">{constraint.description}</p>
+              </div>
+            </>
+          )}
         </div>
-
-        {!NoValueOperators.includes(constraint.operator) && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-              Value
-            </span>
-            <div className="flex">
-              <ConstraintValue constraint={constraint} />
-            </div>
-          </div>
-        )}
-
-        {constraint.description && (
-          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
-              Description
-            </span>
-            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-              {constraint.description}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -296,15 +307,22 @@ function ConstraintTable({
                 )}
               </td>
               <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(constraint, index);
-                  }}
-                  className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-                >
-                  <XIcon className="h-4 w-4" />
-                </button>
+                <div className="relative group/delete inline-block">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(constraint, index);
+                    }}
+                    className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Delete constraint"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
+                  <div className="absolute hidden group-hover/delete:block -bottom-1 right-0 transform translate-y-full bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    Delete Constraint
+                  </div>
+                </div>
               </td>
             </tr>
           ))}
@@ -340,8 +358,8 @@ export default function Constraints({ constraints }: ConstraintsProps) {
   const useTableView = useMemo(() => {
     if (viewMode === ViewMode.TABLE) return true;
     if (viewMode === ViewMode.CARDS) return false;
-    // Default auto behavior - table for more than 6 items
-    return constraints.length > 6;
+    // Default auto behavior - table for more than 4 items
+    return constraints.length > 4;
   }, [constraints.length, viewMode]);
 
   return (
@@ -438,7 +456,7 @@ export default function Constraints({ constraints }: ConstraintsProps) {
                 }}
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {constraints.map((constraint: IConstraint, index: number) => (
                   <ConstraintCard
                     key={index}
