@@ -26,24 +26,24 @@ export default function DeletePanel(props: DeletePanelProps) {
   return (
     <>
       <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
           <ExclamationTriangleIcon
-            className="h-6 w-6 text-red-600"
+            className="h-6 w-6 text-red-600 dark:text-red-300"
             aria-hidden="true"
           />
         </div>
         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900">
+          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
             Delete {panelType}
           </Dialog.Title>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">{panelMessage}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">{panelMessage}</p>
           </div>
         </div>
       </div>
       <div className="mt-5 flex flex-row-reverse space-x-2 space-x-reverse sm:mt-4">
         <Button
-          variant="primary"
+          variant="destructive"
           type="button"
           onClick={() => {
             handleSubmit()
@@ -66,7 +66,7 @@ export default function DeletePanel(props: DeletePanelProps) {
         >
           Delete
         </Button>
-        <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </>
   );

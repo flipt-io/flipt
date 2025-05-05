@@ -120,7 +120,7 @@ export default function Combobox<T extends IFilterable>(
             <div className="relative flex w-full flex-row">
               <C.Input
                 className={cls(
-                  'w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-3 pr-10 text-gray-900 shadow-xs sm:text-sm',
+                  'w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 shadow-xs sm:text-sm',
                   inputClassName
                 )}
                 onChange={handleQueryChange}
@@ -136,7 +136,7 @@ export default function Combobox<T extends IFilterable>(
                 data-testid={`${id}-select-button`}
               >
                 <ChevronUpDownIcon
-                  className="h-5 w-5 text-gray-400"
+                  className="h-5 w-5 text-gray-400 dark:text-gray-300"
                   aria-hidden="true"
                 />
               </C.Button>
@@ -144,7 +144,7 @@ export default function Combobox<T extends IFilterable>(
             {open && (
               <div className="relative">
                 <C.Options
-                  className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 sm:text-sm"
+                  className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 dark:ring-opacity-20 sm:text-sm"
                   id={`${id}-select-options`}
                   static={openOptions}
                 >
@@ -157,7 +157,7 @@ export default function Combobox<T extends IFilterable>(
                           cls(
                             'relative w-full cursor-default select-none py-2 pl-3 pr-9',
                             {
-                              'bg-violet-300': active
+                              'bg-violet-300 dark:bg-violet-600 text-gray-900 dark:text-white': active
                             }
                           )
                         }
@@ -168,7 +168,7 @@ export default function Combobox<T extends IFilterable>(
                               {v?.status && (
                                 <span
                                   className={cls(
-                                    'mr-3 inline-block h-2 w-2 shrink-0 rounded-full bg-gray-200',
+                                    'mr-3 inline-block h-2 w-2 shrink-0 rounded-full bg-gray-200 dark:bg-gray-600',
                                     { 'bg-green-400': v.status === 'active' },
                                     {
                                       'bg-green-600':
@@ -179,16 +179,16 @@ export default function Combobox<T extends IFilterable>(
                                 />
                               )}
                               <span
-                                className={cls('truncate text-gray-700', {
+                                className={cls('truncate text-gray-700 dark:text-gray-200', {
                                   'font-semibold': selected,
-                                  'text-gray-100': active
+                                  'text-gray-900 dark:text-white': active
                                 })}
                               >
                                 {v?.filterValue}
                               </span>
                               <span
-                                className={cls('ml-2 truncate text-gray-500', {
-                                  'text-gray-100': active
+                                className={cls('ml-2 truncate text-gray-500 dark:text-gray-400', {
+                                  'text-gray-900 dark:text-white': active
                                 })}
                               >
                                 {v?.displayValue}
@@ -197,7 +197,7 @@ export default function Combobox<T extends IFilterable>(
                             {selected && (
                               <span
                                 className={cls(
-                                  'absolute inset-y-0 right-0 flex items-center pr-4 text-violet-600',
+                                  'absolute inset-y-0 right-0 flex items-center pr-4 text-violet-600 dark:text-violet-400',
                                   { 'text-white': active }
                                 )}
                               >
@@ -212,7 +212,7 @@ export default function Combobox<T extends IFilterable>(
                       </C.Option>
                     ))}
                   {!filteredValues?.length && (
-                    <div className="w-full py-2 text-center text-gray-500">
+                    <div className="w-full py-2 text-center text-gray-500 dark:text-gray-400">
                       No results found
                     </div>
                   )}

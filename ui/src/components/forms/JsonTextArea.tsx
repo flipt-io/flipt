@@ -32,10 +32,10 @@ function JsonInput({
         value={inputValue}
         onChange={handleChange}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-violet-500 sm:text-sm',
+          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-500 focus:ring-violet-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-violet-500 dark:focus:ring-violet-500 sm:text-sm',
           className,
           {
-            'border-red-400': meta?.touched && meta?.error
+            'border-red-400 dark:border-red-500': meta?.touched && meta?.error
           }
         )}
         placeholder="Enter JSON"
@@ -43,7 +43,7 @@ function JsonInput({
         cols={50}
       />
       {meta?.touched && meta?.error ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">{meta.error}</div>
       ) : null}
     </div>
   );

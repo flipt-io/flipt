@@ -50,14 +50,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="body-font sticky top-[100vh] text-gray-700">
+    <footer className="body-font sticky top-[100vh] text-gray-700 dark:text-gray-300">
       <div className="mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
         <div className="container mx-auto flex flex-col items-center space-x-4 sm:flex-row">
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 sm:mt-0">
             <span className="hidden sm:inline">
               {ref() && (
                 <>
-                  <a href={refURL()} className="text-violet-500">
+                  <a href={refURL()} className="text-violet-500 dark:text-violet-400">
                     {ref()}
                   </a>
                   &nbsp;|&nbsp;
@@ -69,13 +69,13 @@ export default function Footer() {
               reserved.
             </span>
           </p>
-          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 sm:mt-0">
             <span className="hidden sm:inline">
               <a
                 target="_blank"
                 rel="noreferrer"
                 href="https://docs.flipt.io/changelog/overview"
-                className="text-violet-500"
+                className="text-violet-500 dark:text-violet-400"
               >
                 Changelog
               </a>
@@ -87,7 +87,7 @@ export default function Footer() {
             <a
               key={item.name}
               href={item.href}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-100"
             >
               <span className="sr-only">{item.name}</span>
               <FontAwesomeIcon

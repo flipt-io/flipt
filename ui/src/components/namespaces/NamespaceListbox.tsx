@@ -63,7 +63,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
       >
         <SelectTrigger
           className={cls(
-            'bg-gray-200 dark:bg-gray-100 border-0 focus:outline-none focus-visible:ring-0',
+            'bg-gray-200 dark:bg-gray-700 border-0 focus:outline-none focus-visible:ring-0',
             className
           )}
           aria-label={namespace.key}

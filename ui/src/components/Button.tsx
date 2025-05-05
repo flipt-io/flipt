@@ -35,13 +35,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variantStyles = cls({
       'border border-transparent bg-violet-600 text-white shadow-sm enabled:hover:bg-violet-500':
         variant === 'primary',
-      'border border-violet-300 bg-background text-gray-500 shadow-xs enabled:hover:bg-gray-50':
+      'border border-violet-300 dark:border-violet-700 bg-background text-gray-500 dark:text-gray-300 shadow-xs enabled:hover:bg-gray-50 dark:enabled:hover:bg-gray-800':
         variant === 'secondary',
-      'border-violet-300 text-violet-600 enabled:hover:bg-violet-100':
+      'border-violet-300 dark:border-violet-700 text-violet-600 dark:text-violet-400 enabled:hover:bg-violet-100 dark:enabled:hover:bg-violet-900/40':
         variant === 'soft',
-      'border-none bg-transparent px-2 py-0 text-sm font-medium text-gray-300 enabled:text-gray-500 enabled:hover:text-gray-600 disabled:cursor-not-allowed':
+      'border-none bg-transparent px-2 py-0 text-sm font-medium text-gray-300 enabled:text-gray-500 dark:enabled:text-gray-300 enabled:hover:text-gray-600 dark:enabled:hover:text-gray-100 disabled:cursor-not-allowed':
         variant === 'link',
-      'bg-transparent text-gray-500 hover:bg-gray-50': variant === 'ghost'
+      'bg-transparent text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800': variant === 'ghost'
     });
 
     return (

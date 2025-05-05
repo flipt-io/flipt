@@ -180,7 +180,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
               <label
                 htmlFor="threshold-percentage-range"
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Percentage
               </label>
@@ -191,7 +191,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 type="range"
                 min="0"
                 max="100"
-                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-700 sm:block"
+                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-600 sm:block"
                 defaultValue={String(rollout.threshold?.percentage || 50)}
                 onChange={(e) => {
                   // Update the number input when slider changes
@@ -203,7 +203,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 onKeyUp={(e) => handlePercentageChange(e.currentTarget.value)}
               />
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black dark:text-white">
                   %
                 </div>
                 <Input
@@ -226,7 +226,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'threshold.value'}
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Value
               </label>
@@ -253,7 +253,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               <div>
                 <label
                   htmlFor={fieldPrefix + 'segment.segments'}
-                  className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                  className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                 >
                   Segment
                 </label>
@@ -303,10 +303,10 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                         <div className="flex items-center">
                           <label
                             htmlFor={segmentOperator.id}
-                            className="block text-sm text-gray-700 cursor-pointer"
+                            className="block text-sm text-gray-700 dark:text-gray-200 cursor-pointer"
                           >
                             {segmentOperator.name}{' '}
-                            <span className="font-light">
+                            <span className="font-light dark:text-gray-300">
                               {segmentOperator.meta}
                             </span>
                           </label>
@@ -317,7 +317,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'segment.value'}
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Value
               </label>

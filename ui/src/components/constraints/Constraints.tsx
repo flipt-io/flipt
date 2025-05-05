@@ -54,14 +54,14 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
       // Attempt to format the date - if it fails, show a fallback
       const formattedDate = inTimezone(constraint.value);
       return (
-        <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-900 dark:text-white">
+        <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-900 dark:text-white">
           {formattedDate}
         </span>
       );
     } catch (err) {
       // Show the raw value with an error indication
       return (
-        <span className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded text-red-900 dark:text-red-100">
+        <span className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded text-sm text-red-900 dark:text-red-100">
           {constraint.value || "(invalid date)"}
         </span>
       );
@@ -86,7 +86,7 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
   }
 
   return (
-    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-900 dark:text-white break-words max-w-full">
+    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-900 dark:text-white break-words max-w-full">
       {constraint.value}
     </span>
   );
@@ -162,8 +162,8 @@ export default function Constraints({ constraints }: ConstraintsProps) {
       <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-          <h3 className="font-medium leading-6 text-gray-900 dark:text-white">Constraints</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">Constraints</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Determine if a request matches a segment.
             </p>
           </div>
@@ -210,7 +210,7 @@ export default function Constraints({ constraints }: ConstraintsProps) {
           ) : (
             <Well>
               <FilterIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground dark:text-gray-200 mb-4">
                 No Constraints Yet
               </h3>
               <Button
@@ -253,106 +253,81 @@ function ConstraintCard({ constraint, index, onEdit, onDelete }: {
       case ConstraintType.ENTITY_ID:
         return <IdCardIcon className="h-4 w-4" />;
       default:
-        return <BracketsIcon className="h-4 w-4" />;
+        return <FilterIcon className="h-4 w-4" />;
     }
   };
   
   const getTypeColor = (type: ConstraintType) => {
     switch(type) {
       case ConstraintType.STRING:
-        return 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
       case ConstraintType.NUMBER:
-        return 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
       case ConstraintType.BOOLEAN:
-        return 'bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
       case ConstraintType.DATETIME:
-        return 'bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
       case ConstraintType.ENTITY_ID:
-        return 'bg-pink-100 text-pink-900 dark:bg-pink-900 dark:text-pink-100';
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
       default:
-        return 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
   
-  const typeColor = getTypeColor(constraint.type);
-  const typeIcon = getTypeIcon(constraint.type);
-  const typeLabel = constraintTypeToLabel(constraint.type);
-  
   return (
-    <div 
-      className="group rounded-lg border border-gray-200 dark:border-gray-800 text-left text-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-800 h-full flex flex-col cursor-pointer relative overflow-hidden shadow-sm hover:shadow"
-      onClick={(e) => {
-        e.preventDefault();
-        onEdit();
-      }}
-    >
-      <div className="flex flex-col p-4 h-full">
-        {/* Header with type icon and delete button */}
-        <div className="flex items-center justify-between mb-5">
-          <span className={`rounded-md p-1.5 flex items-center space-x-2 justify-center ${typeColor}`} title={typeLabel}>
-            {typeIcon}
-            <span className="text-xs">{typeLabel}</span>
+    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center space-x-2">
+          <span className={`p-1.5 rounded-md ${getTypeColor(constraint.type)}`}>
+            {getTypeIcon(constraint.type)}
           </span>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent card click from triggering
-                onDelete();
-              }}
-              className="p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-              aria-label="Delete constraint"
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
-          </div>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {constraintTypeToLabel(constraint.type)}
+          </h3>
+        </div>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+      
+      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Property</span>
+          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {constraint.property}
+          </code>
         </div>
         
-        {/* Property with type indication */}
-        <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex flex-col gap-4">
-            {/* Property row */}
-            <div className="flex items-baseline">
-              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase w-24">
-                PROPERTY:
-              </span>
-              <code className="text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono text-sm">
-                {constraint.property}
-              </code>
-            </div>
-            
-            {/* Operator row */}
-            <div className="flex items-baseline">
-              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase w-24">
-                OPERATOR:
-              </span>
-              <span className="text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
-                {ConstraintOperators[constraint.operator]}
-              </span>
-            </div>
-            
-            {/* Only show value if the operator requires a value */}
-            {!NoValueOperators.includes(constraint.operator) && (
-              <div className="flex items-baseline">
-                <span className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase w-24">
-                  VALUE:
-                </span>
-                <div className="text-gray-900 dark:text-white">
-                  <ConstraintValue constraint={constraint} />
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Description (if present) */}
-          {constraint.description && (
-            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                {constraint.description}
-              </p>
-            </div>
-          )}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Operator</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {ConstraintOperators[constraint.operator] || constraint.operator}
+          </span>
         </div>
+        
+        {!NoValueOperators.includes(constraint.operator) && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Value</span>
+            <div className="flex">
+              <ConstraintValue constraint={constraint} />
+            </div>
+          </div>
+        )}
+        
+        {constraint.description && (
+          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">Description</span>
+            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+              {constraint.description}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

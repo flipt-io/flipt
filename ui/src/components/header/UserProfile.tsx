@@ -60,7 +60,7 @@ export default function UserProfile(props: UserProfileProps) {
           {!user.imgURL && (
             <UserCircleIcon
               aria-hidden="true"
-              className="invert dark:invert-0"
+              className="text-white dark:text-gray-200"
               style={{ width: '1.5rem', height: '1.5rem' }}
             />
           )}

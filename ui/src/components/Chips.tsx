@@ -16,7 +16,7 @@ export default function ChipList({
     <div className="flex flex-wrap gap-2">
       {visibleValues.map((value, i) => (
         <div
-          className="max-w-32 truncate rounded bg-gray-100 dark:bg-gray-800 px-2 py-1 text-gray-900 dark:text-white"
+          className="max-w-32 truncate rounded bg-gray-100 dark:bg-gray-700 px-2 py-1 text-gray-900 dark:text-gray-100"
           key={i}
         >
           {value}

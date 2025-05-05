@@ -38,16 +38,16 @@ function NavItem(props: NavItemProps) {
       aria-label={name}
       className={({ isActive }) =>
         cls('flex items-center rounded-md p-2 text-sm  text-white', {
-          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300':
+          'bg-gray-800 dark:bg-gray-700 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-700 md:dark:text-gray-100':
             isActive,
-          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700':
+          'hover:bg-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-100 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700 md:dark:hover:bg-gray-600 md:dark:hover:text-gray-100':
             !isActive
         })
       }
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500"
+        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500 md:dark:text-gray-300"
         aria-hidden="true"
       />
       {name}
@@ -117,7 +117,7 @@ export default function Nav(props: NavProps) {
       </div>
       <Separator
         decorative
-        className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-600"
+        className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-500"
       />
       <div className="flex grow flex-col space-y-1 px-2">
         {navigation.map((item) => (

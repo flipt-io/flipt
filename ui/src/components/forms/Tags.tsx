@@ -75,7 +75,7 @@ export default function Tags(props: TagsProps) {
             {tags.map((tag, i) => (
               <li
                 key={tag}
-                className="flex flex-row items-center justify-center rounded bg-gray-200 px-2 py-0.5 text-sm text-gray-900"
+                className="flex flex-row items-center justify-center rounded bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-sm text-gray-900 dark:text-gray-100"
               >
                 <span className="max-w-32 truncate" title={String(tag)}>
                   {tag}
@@ -96,9 +96,9 @@ export default function Tags(props: TagsProps) {
         <div className="relative flex w-full">
           <input
             className={cls(
-              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
+              'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs focus:border-violet-300 focus:ring-violet-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-violet-500 dark:focus:ring-violet-500 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-400 sm:text-sm',
               {
-                'border-red-400': hasError
+                'border-red-400 dark:border-red-500': hasError
               }
             )}
             type={type}
@@ -110,7 +110,7 @@ export default function Tags(props: TagsProps) {
             }}
           />
           <button
-            className="z-1 border-1 absolute! right-1 top-1 select-none rounded border border-violet-300 px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500"
+            className="z-1 border-1 absolute! right-1 top-1 select-none rounded border border-violet-300 dark:border-violet-500 px-4 py-1.5 text-center align-middle text-xs font-bold text-gray-500 dark:text-gray-300"
             type="button"
             onClick={addTag}
           >
@@ -119,7 +119,7 @@ export default function Tags(props: TagsProps) {
         </div>
       </div>
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">{meta.error}</div>
       ) : null}
     </>
   );

@@ -44,8 +44,8 @@ function VariantFlagBadge({ enabled }: { enabled: boolean }) {
       className={cls(
         'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
         enabled
-          ? 'bg-green-100/50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-          : 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+          ? 'bg-green-100/50 text-green-700 dark:bg-green-600/20 dark:text-green-300'
+          : 'bg-red-100/50 text-red-700 dark:bg-red-600/20 dark:text-red-300'
       )}
     >
       <PowerIcon className="h-3.5 w-3.5" />
@@ -60,8 +60,8 @@ function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
       className={cls(
         'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
         enabled
-          ? 'bg-green-100/50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-          : 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+          ? 'bg-green-100/50 text-green-700 dark:bg-green-600/20 dark:text-green-300'
+          : 'bg-red-100/50 text-red-700 dark:bg-red-600/20 dark:text-red-300'
       )}
     >
       <CheckSquareIcon className="h-3.5 w-3.5" />
