@@ -59,7 +59,7 @@
     "zod": "^3.24.3"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.26.0",
+    "@babel/preset-typescript": "^7.27.1",
     "@playwright/test": "^1.52.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.3",
