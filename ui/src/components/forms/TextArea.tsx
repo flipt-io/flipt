@@ -33,7 +33,9 @@ export default function TextArea(props: TextAreaProps) {
         {...field}
       />
       {meta.touched && meta.error ? (
-        <div className="mt-1 text-sm text-red-500 dark:text-red-400">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">
+          {meta.error}
+        </div>
       ) : null}
     </>
   );

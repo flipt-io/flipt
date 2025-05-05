@@ -119,7 +119,9 @@ export default function Tags(props: TagsProps) {
         </div>
       </div>
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="mt-1 text-sm text-red-500 dark:text-red-400">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">
+          {meta.error}
+        </div>
       ) : null}
     </>
   );

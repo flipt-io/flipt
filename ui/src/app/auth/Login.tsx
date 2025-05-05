@@ -126,7 +126,7 @@ function InnerLoginButtons() {
             <div key={provider.name}>
               <a
                 href="#"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 shadow-xs hover:text-violet-500 hover:shadow-violet-300"
+                className="inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-300 shadow-xs hover:text-violet-500 dark:hover:text-violet-400 hover:shadow-violet-300 dark:hover:shadow-violet-700/40 dark:bg-gray-800"
                 onClick={(e) => {
                   e.preventDefault();
                   authorize(provider.authorize_url);
@@ -135,7 +135,7 @@ function InnerLoginButtons() {
                 <span className="sr-only">Sign in with {provider.name}</span>
                 <FontAwesomeIcon
                   icon={provider.icon}
-                  className="text-gray h-5 w-5"
+                  className="text-gray h-5 w-5 dark:text-gray-300"
                   aria-hidden={true}
                 />
                 <span className="ml-2">With {provider.name}</span>
@@ -145,23 +145,23 @@ function InnerLoginButtons() {
         </div>
       )}
       {providers.length === 0 && (
-        <div className="bg-background shadow-sm sm:rounded-lg">
+        <div className="bg-background dark:bg-gray-800 shadow-sm sm:rounded-lg dark:border dark:border-gray-700">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-base font-semibold leading-6 text-gray-900">
+            <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">
               No Providers
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-300">
               <p>
                 Authentication is set to{' '}
-                <span className="font-medium">required</span>, however, there
-                are no login providers configured. Please see the documentation
-                for more information.
+                <span className="font-medium dark:text-gray-200">required</span>
+                , however, there are no login providers configured. Please see
+                the documentation for more information.
               </p>
             </div>
             <div className="mt-3 text-sm leading-6">
               <a
                 href="https://www.flipt.io/docs/configuration/authentication"
-                className="font-semibold text-violet-600 hover:text-violet-500"
+                className="font-semibold text-violet-600 hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
               >
                 Configuring Authentication
                 <span aria-hidden="true"> &rarr;</span>
@@ -183,7 +183,7 @@ function InnerLogin() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col justify-center sm:px-6 lg:px-8">
+      <div className="flex min-h-screen flex-col justify-center sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -194,12 +194,12 @@ function InnerLogin() {
                 height={512}
                 className="m-auto h-20 w-20"
               />
-              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                 Login to Flipt
               </h2>
             </div>
             <div className="mt-8 max-w-sm sm:mx-auto sm:w-full md:max-w-lg">
-              <div className="px-4 py-8 sm:px-10">
+              <div className="px-4 py-8 sm:px-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border dark:border-gray-700">
                 <InnerLoginButtons />
               </div>
             </div>

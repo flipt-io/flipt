@@ -28,7 +28,9 @@ export default function Toggle(props: ToggleProps) {
           </span>
         )}
         {description && (
-          <span className="text-sm text-gray-500 dark:text-gray-300">{description}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-300">
+            {description}
+          </span>
         )}
       </span>
       <Switch

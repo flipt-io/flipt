@@ -1,13 +1,13 @@
-import { 
-  BracesIcon, 
+import {
+  BracesIcon,
   BracketsIcon,
   CalendarIcon,
-  FilterIcon, 
-  HashIcon, 
+  FilterIcon,
+  HashIcon,
   IdCardIcon,
   Text,
   ToggleLeftIcon,
-  XIcon 
+  XIcon
 } from 'lucide-react';
 import { useContext, useMemo, useRef, useState } from 'react';
 
@@ -62,7 +62,7 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
       // Show the raw value with an error indication
       return (
         <span className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded text-sm text-red-900 dark:text-red-100">
-          {constraint.value || "(invalid date)"}
+          {constraint.value || '(invalid date)'}
         </span>
       );
     }
@@ -75,11 +75,13 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
   if (constraint.type === ConstraintType.BOOLEAN) {
     const boolValue = constraint.value?.toLowerCase() === 'true';
     return (
-      <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-        boolValue 
-          ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100' 
-          : 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100'
-      }`}>
+      <span
+        className={`px-2 py-1 rounded-md text-xs font-medium ${
+          boolValue
+            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100'
+            : 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100'
+        }`}
+      >
         {boolValue ? 'TRUE' : 'FALSE'}
       </span>
     );
@@ -162,7 +164,9 @@ export default function Constraints({ constraints }: ConstraintsProps) {
       <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-          <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">Constraints</h3>
+            <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">
+              Constraints
+            </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Determine if a request matches a segment.
             </p>
@@ -186,7 +190,7 @@ export default function Constraints({ constraints }: ConstraintsProps) {
           {constraints && constraints.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {constraints.map((constraint: IConstraint, index: number) => (
-                <ConstraintCard 
+                <ConstraintCard
                   key={index}
                   constraint={constraint}
                   index={index}
@@ -232,16 +236,21 @@ export default function Constraints({ constraints }: ConstraintsProps) {
   );
 }
 
-function ConstraintCard({ constraint, index, onEdit, onDelete }: { 
-  constraint: IConstraint, 
-  index: number,
-  onEdit: () => void, 
-  onDelete: () => void 
+function ConstraintCard({
+  constraint,
+  index,
+  onEdit,
+  onDelete
+}: {
+  constraint: IConstraint;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const isArrayValue = ['isoneof', 'isnotoneof'].includes(constraint.operator);
-  
+
   const getTypeIcon = (type: ConstraintType) => {
-    switch(type) {
+    switch (type) {
       case ConstraintType.STRING:
         return <Text className="h-4 w-4" />;
       case ConstraintType.NUMBER:
@@ -256,9 +265,9 @@ function ConstraintCard({ constraint, index, onEdit, onDelete }: {
         return <FilterIcon className="h-4 w-4" />;
     }
   };
-  
+
   const getTypeColor = (type: ConstraintType) => {
-    switch(type) {
+    switch (type) {
       case ConstraintType.STRING:
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
       case ConstraintType.NUMBER:
@@ -273,7 +282,7 @@ function ConstraintCard({ constraint, index, onEdit, onDelete }: {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
-  
+
   return (
     <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
@@ -295,34 +304,42 @@ function ConstraintCard({ constraint, index, onEdit, onDelete }: {
           <XIcon className="h-4 w-4" />
         </button>
       </div>
-      
+
       <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Property</span>
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Property
+          </span>
           <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
             {constraint.property}
           </code>
         </div>
-        
+
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Operator</span>
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Operator
+          </span>
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
             {ConstraintOperators[constraint.operator] || constraint.operator}
           </span>
         </div>
-        
+
         {!NoValueOperators.includes(constraint.operator) && (
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Value</span>
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Value
+            </span>
             <div className="flex">
               <ConstraintValue constraint={constraint} />
             </div>
           </div>
         )}
-        
+
         {constraint.description && (
           <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">Description</span>
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
+              Description
+            </span>
             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
               {constraint.description}
             </p>

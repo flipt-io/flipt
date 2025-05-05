@@ -89,7 +89,9 @@ function FlagTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Choose Flag Type</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Choose Flag Type
+        </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
           Select the type of flag you want to create
         </p>
@@ -105,7 +107,8 @@ function FlagTypeSelector({
               {
                 'border-violet-500 ring ring-violet-500 dark:border-violet-400 dark:ring-violet-400':
                   selectedType === flagType.id,
-                'border-gray-300 dark:border-gray-600': selectedType !== flagType.id
+                'border-gray-300 dark:border-gray-600':
+                  selectedType !== flagType.id
               }
             )}
           >

@@ -34,17 +34,19 @@ export default function Preferences() {
     <Formik initialValues={initialValues} onSubmit={() => {}}>
       <div className="my-10">
         <div className="space-y-1">
-          <h3 className="text-xl font-semibold text-gray-700">Preferences</h3>
-          <p className="mt-2 text-sm text-gray-500">
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+            Preferences
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Manage how information is displayed in the UI
           </p>
         </div>
         <div className="mt-6 max-w-4xl">
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
               <label
                 htmlFor="location"
-                className="text-sm font-bold text-gray-500"
+                className="text-sm font-bold text-gray-500 dark:text-gray-400"
               >
                 Theme
               </label>
@@ -65,14 +67,14 @@ export default function Preferences() {
             </div>
             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
               <span
-                className="text-sm font-bold text-gray-500"
+                className="text-sm font-bold text-gray-500 dark:text-gray-400"
                 id="label-switch-tmz"
               >
                 UTC Timezone
-                <p className="mt-2 text-xs font-normal">
+                <p className="mt-2 text-xs font-normal dark:text-gray-400">
                   Display dates and times in UTC timezone
                 </p>
-                <p className="mt-2 text-xs font-semibold">
+                <p className="mt-2 text-xs font-semibold dark:text-gray-300">
                   {inTimezone(new Date().toISOString())}
                 </p>
               </span>

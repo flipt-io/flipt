@@ -57,7 +57,10 @@ export default function Footer() {
             <span className="hidden sm:inline">
               {ref() && (
                 <>
-                  <a href={refURL()} className="text-violet-500 dark:text-violet-400">
+                  <a
+                    href={refURL()}
+                    className="text-violet-500 dark:text-violet-400"
+                  >
                     {ref()}
                   </a>
                   &nbsp;|&nbsp;

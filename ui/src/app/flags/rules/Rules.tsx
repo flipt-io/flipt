@@ -252,7 +252,7 @@ export default function Rules({ flag, rules }: RulesProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Rules are evaluated in order from top to bottom.
             </p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">

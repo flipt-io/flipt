@@ -17,12 +17,9 @@ export function UnsavedChangesModal(props: UnsavedChangesModalState) {
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
-        <Dialog.Overlay
-          className="fixed inset-0 bg-black/30"
-          aria-hidden="true"
-        />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Content className="mx-auto max-w-lg rounded-lg bg-background p-6 shadow-xl">
+        <Dialog.Overlay className="fixed inset-0 z-20 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+        <div className="fixed inset-0 z-20 flex items-center justify-center p-4">
+          <Dialog.Content className="mx-auto max-w-lg rounded-lg bg-background dark:bg-gray-800 p-6 shadow-xl dark:shadow-2xl border dark:border-gray-700 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95">
             <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Unsaved Changes
             </Dialog.Title>

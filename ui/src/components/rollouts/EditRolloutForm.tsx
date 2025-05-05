@@ -384,7 +384,9 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
           </div>
           <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
-              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 type="submit"

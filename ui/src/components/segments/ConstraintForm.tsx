@@ -1,7 +1,7 @@
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
-import { addMinutes, format, formatISO, parseISO, isValid } from 'date-fns';
+import { addMinutes, format, formatISO, isValid, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -206,7 +206,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           d = `${fieldDate}T${fieldTime}:00`;
         }
         let m = parseISO(d);
-        
+
         if (isValid(m)) {
           if (timezone === Timezone.UTC) {
             // if utc timezone, then convert to UTC
@@ -229,7 +229,10 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
         >
           Value
         </label>
-        <span className="text-xs text-gray-400 dark:text-gray-500" id="value-tz">
+        <span
+          className="text-xs text-gray-400 dark:text-gray-500"
+          id="value-tz"
+        >
           <Link
             to="/settings"
             className="group inline-flex items-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"

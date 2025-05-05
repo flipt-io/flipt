@@ -157,7 +157,8 @@ export default function Combobox<T extends IFilterable>(
                           cls(
                             'relative w-full cursor-default select-none py-2 pl-3 pr-9',
                             {
-                              'bg-violet-300 dark:bg-violet-600 text-gray-900 dark:text-white': active
+                              'bg-violet-300 dark:bg-violet-600 text-gray-900 dark:text-white':
+                                active
                             }
                           )
                         }
@@ -179,17 +180,23 @@ export default function Combobox<T extends IFilterable>(
                                 />
                               )}
                               <span
-                                className={cls('truncate text-gray-700 dark:text-gray-200', {
-                                  'font-semibold': selected,
-                                  'text-gray-900 dark:text-white': active
-                                })}
+                                className={cls(
+                                  'truncate text-gray-700 dark:text-gray-200',
+                                  {
+                                    'font-semibold': selected,
+                                    'text-gray-900 dark:text-white': active
+                                  }
+                                )}
                               >
                                 {v?.filterValue}
                               </span>
                               <span
-                                className={cls('ml-2 truncate text-gray-500 dark:text-gray-400', {
-                                  'text-gray-900 dark:text-white': active
-                                })}
+                                className={cls(
+                                  'ml-2 truncate text-gray-500 dark:text-gray-400',
+                                  {
+                                    'text-gray-900 dark:text-white': active
+                                  }
+                                )}
                               >
                                 {v?.displayValue}
                               </span>

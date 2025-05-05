@@ -497,7 +497,10 @@ export function MetadataForm({
               disabled={disabled}
               aria-label="Remove metadata entry"
             >
-              <TrashIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+              <TrashIcon
+                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         );

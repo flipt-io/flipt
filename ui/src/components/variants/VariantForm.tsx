@@ -124,7 +124,10 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   >
                     Name
                   </label>
-                  <span className="text-xs text-gray-400 dark:text-gray-500" id="name-optional">
+                  <span
+                    className="text-xs text-gray-400 dark:text-gray-500"
+                    id="name-optional"
+                  >
                     Optional
                   </span>
                 </div>
@@ -174,7 +177,9 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
           </div>
           <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
-              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 className="min-w-[80px]"

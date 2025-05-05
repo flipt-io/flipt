@@ -1,4 +1,9 @@
-import { BracesIcon, BracketsIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
+import {
+  BracesIcon,
+  BracketsIcon,
+  SlidersHorizontalIcon,
+  XIcon
+} from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
@@ -97,7 +102,7 @@ export default function Variants({ variants }: VariantsProps) {
           {variants && variants.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {variants.map((variant) => (
-                <VariantCard 
+                <VariantCard
                   key={variant.key}
                   variant={variant}
                   onEdit={() => {
@@ -136,14 +141,18 @@ export default function Variants({ variants }: VariantsProps) {
   );
 }
 
-function VariantCard({ variant, onEdit, onDelete }: { 
-  variant: IVariant, 
-  onEdit: () => void, 
-  onDelete: () => void 
+function VariantCard({
+  variant,
+  onEdit,
+  onDelete
+}: {
+  variant: IVariant;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   // Check if variant has a non-empty attachment
-  const hasAttachment = variant.attachment && 
-    Object.keys(variant.attachment).length > 0;
+  const hasAttachment =
+    variant.attachment && Object.keys(variant.attachment).length > 0;
 
   return (
     <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
@@ -166,27 +175,33 @@ function VariantCard({ variant, onEdit, onDelete }: {
           <XIcon className="h-4 w-4" />
         </button>
       </div>
-      
+
       <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Key</span>
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Key
+          </span>
           <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
             {variant.key}
           </code>
         </div>
-        
+
         {variant.name && (
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Name</span>
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Name
+            </span>
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
               {variant.name}
             </span>
           </div>
         )}
-        
+
         {hasAttachment && (
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Attachment</span>
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Attachment
+            </span>
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
               <span className="text-gray-500 dark:text-gray-400 text-xs">
                 {Object.keys(variant.attachment || {}).length} fields
@@ -194,10 +209,12 @@ function VariantCard({ variant, onEdit, onDelete }: {
             </span>
           </div>
         )}
-        
+
         {variant.description && (
           <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">Description</span>
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
+              Description
+            </span>
             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
               {variant.description}
             </p>

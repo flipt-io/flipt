@@ -50,7 +50,9 @@ function SegmentTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Match Type</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Match Type
+        </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
           Select how constraints should be evaluated for this segment
         </p>
@@ -65,7 +67,8 @@ function SegmentTypeSelector({
               {
                 'border-violet-500 ring ring-violet-500 dark:border-violet-400 dark:ring-violet-400':
                   selectedType === matchType.id,
-                'border-gray-300 dark:border-gray-600': selectedType !== matchType.id
+                'border-gray-300 dark:border-gray-600':
+                  selectedType !== matchType.id
               }
             )}
           >

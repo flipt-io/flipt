@@ -4,6 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '~/components/Button';
 
 import { useError } from '~/data/hooks/error';
+import { cls } from '~/utils/helpers';
 
 type DeletePanelProps = {
   panelMessage: string | React.ReactNode;
@@ -37,7 +38,9 @@ export default function DeletePanel(props: DeletePanelProps) {
             Delete {panelType}
           </Dialog.Title>
           <div className="mt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-300">{panelMessage}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">
+              {panelMessage}
+            </p>
           </div>
         </div>
       </div>
@@ -66,7 +69,9 @@ export default function DeletePanel(props: DeletePanelProps) {
         >
           Delete
         </Button>
-        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+        <Button variant="ghost" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
       </div>
     </>
   );

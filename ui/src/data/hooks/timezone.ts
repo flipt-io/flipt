@@ -13,15 +13,15 @@ export const useTimezone = () => {
     if (!v || typeof v !== 'string') {
       throw new Error('Invalid datetime value');
     }
-    
+
     try {
       const d = parseISO(v);
-      
+
       // Check if the parsed date is valid
       if (!isValid(d)) {
         throw new Error('Invalid datetime format');
       }
-      
+
       return timezone === Timezone.LOCAL
         ? format(d, 'yyyy-MM-dd HH:mm:ss')
         : format(addMinutes(d, d.getTimezoneOffset()), 'yyyy-MM-dd HH:mm:ss') +

@@ -88,8 +88,10 @@ export default function Flag() {
           panelMessage={
             <>
               Are you sure you want to delete the flag{' '}
-              <span className="font-medium text-violet-500">{flag.key}</span>?
-              This action cannot be undone.
+              <span className="font-medium text-violet-500 dark:text-violet-400">
+                {flag.key}
+              </span>
+              ? This action cannot be undone.
             </>
           }
           panelType="Flag"
@@ -119,8 +121,10 @@ export default function Flag() {
           panelMessage={
             <>
               Copy the flag{' '}
-              <span className="font-medium text-violet-500">{flag.key}</span> to
-              the namespace:
+              <span className="font-medium text-violet-500 dark:text-violet-400">
+                {flag.key}
+              </span>{' '}
+              to the namespace:
             </>
           }
           panelType="Flag"

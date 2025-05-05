@@ -9,7 +9,7 @@ import { cls } from '~/utils/helpers';
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost' | 'destructive';
   className?: string;
   asChild?: boolean;
 }
@@ -41,7 +41,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         variant === 'soft',
       'border-none bg-transparent px-2 py-0 text-sm font-medium text-gray-300 enabled:text-gray-500 dark:enabled:text-gray-300 enabled:hover:text-gray-600 dark:enabled:hover:text-gray-100 disabled:cursor-not-allowed':
         variant === 'link',
-      'bg-transparent text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800': variant === 'ghost'
+      'bg-transparent text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800':
+        variant === 'ghost',
+      'border border-transparent bg-red-600 text-white shadow-sm enabled:hover:bg-red-500':
+        variant === 'destructive'
     });
 
     return (

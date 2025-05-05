@@ -81,7 +81,9 @@ export default function Segment() {
           panelMessage={
             <>
               Are you sure you want to delete the segment{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">{segment.key}</span>
+              <span className="font-medium text-violet-500 dark:text-violet-400">
+                {segment.key}
+              </span>
               ? This action cannot be undone.
             </>
           }
@@ -114,7 +116,9 @@ export default function Segment() {
           panelMessage={
             <>
               Copy the segment{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">{segment.key}</span>{' '}
+              <span className="font-medium text-violet-500 dark:text-violet-400">
+                {segment.key}
+              </span>{' '}
               to the namespace:
             </>
           }

@@ -51,9 +51,9 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
   };
 
   return (
-    <div className="flex items-center gap-1" data-testid="namespace-listbox">
+    <div className="flex items-center gap-3" data-testid="namespace-listbox">
       <FolderOpenIcon
-        className="ml-2 h-6 w-6 shrink-0 text-white md:text-gray-500"
+        className="ml-2 h-6 w-6 shrink-0 text-white md:text-gray-500 md:dark:text-gray-300"
         aria-hidden="true"
       />
       <Select
@@ -63,7 +63,7 @@ export default function NamespaceListbox(props: NamespaceListboxProps) {
       >
         <SelectTrigger
           className={cls(
-            'bg-gray-200 dark:bg-gray-700 border-0 focus:outline-none focus-visible:ring-0',
+            'bg-gray-200 dark:bg-gray-700 border-0 focus:outline-none focus-visible:ring-0 hover:bg-gray-300 dark:hover:bg-gray-600',
             className
           )}
           aria-label={namespace.key}
