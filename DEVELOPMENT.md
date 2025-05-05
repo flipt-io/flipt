@@ -16,6 +16,7 @@ Before starting, make sure you have the following installed:
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
+- [Mockery](https://github.com/vektra/mockery) (optional, for generating mocks)
 
 ## Setup
 
@@ -65,7 +66,15 @@ Changing certain types of files such as the proto or ui files require re-buildin
 
 ### Updating .proto Files
 
-After changing any proto files, you'll need to run `mage proto`. This will regenerate the necessary files in the `rpc` directory.
+After changing any proto files, you'll need to run `mage go:proto`. This will regenerate the necessary files in the `rpc` directory.
+
+## Tests
+
+To run the tests, you can use the `mage go:test` command. This will run the unit tests.
+
+### Mocks
+
+We use [mockery](https://github.com/vektra/mockery) to generate mocks for the tests. To regenerate mocks, you can use the `mage go:mockery` command.
 
 ## UI
 

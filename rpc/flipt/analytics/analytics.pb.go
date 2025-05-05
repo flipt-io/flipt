@@ -152,6 +152,187 @@ func (x *GetFlagEvaluationsCountResponse) GetValues() []float32 {
 	return nil
 }
 
+type GetBatchFlagEvaluationsCountRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	NamespaceKey   string                 `protobuf:"bytes,2,opt,name=namespace_key,json=namespaceKey,proto3" json:"namespace_key,omitempty"`
+	FlagKeys       []string               `protobuf:"bytes,3,rep,name=flag_keys,json=flagKeys,proto3" json:"flag_keys,omitempty"`
+	From           string                 `protobuf:"bytes,4,opt,name=from,proto3" json:"from,omitempty"`
+	To             string                 `protobuf:"bytes,5,opt,name=to,proto3" json:"to,omitempty"`
+	Limit          int32                  `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) Reset() {
+	*x = GetBatchFlagEvaluationsCountRequest{}
+	mi := &file_analytics_analytics_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBatchFlagEvaluationsCountRequest) ProtoMessage() {}
+
+func (x *GetBatchFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_analytics_analytics_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBatchFlagEvaluationsCountRequest.ProtoReflect.Descriptor instead.
+func (*GetBatchFlagEvaluationsCountRequest) Descriptor() ([]byte, []int) {
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetNamespaceKey() string {
+	if x != nil {
+		return x.NamespaceKey
+	}
+	return ""
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetFlagKeys() []string {
+	if x != nil {
+		return x.FlagKeys
+	}
+	return nil
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+func (x *GetBatchFlagEvaluationsCountRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type FlagEvaluationData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timestamps    []string               `protobuf:"bytes,1,rep,name=timestamps,proto3" json:"timestamps,omitempty"`
+	Values        []float32              `protobuf:"fixed32,2,rep,packed,name=values,proto3" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FlagEvaluationData) Reset() {
+	*x = FlagEvaluationData{}
+	mi := &file_analytics_analytics_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FlagEvaluationData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FlagEvaluationData) ProtoMessage() {}
+
+func (x *FlagEvaluationData) ProtoReflect() protoreflect.Message {
+	mi := &file_analytics_analytics_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FlagEvaluationData.ProtoReflect.Descriptor instead.
+func (*FlagEvaluationData) Descriptor() ([]byte, []int) {
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *FlagEvaluationData) GetTimestamps() []string {
+	if x != nil {
+		return x.Timestamps
+	}
+	return nil
+}
+
+func (x *FlagEvaluationData) GetValues() []float32 {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type GetBatchFlagEvaluationsCountResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Mapping from flag_key to evaluation data
+	FlagEvaluations map[string]*FlagEvaluationData `protobuf:"bytes,1,rep,name=flag_evaluations,json=flagEvaluations,proto3" json:"flag_evaluations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetBatchFlagEvaluationsCountResponse) Reset() {
+	*x = GetBatchFlagEvaluationsCountResponse{}
+	mi := &file_analytics_analytics_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBatchFlagEvaluationsCountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBatchFlagEvaluationsCountResponse) ProtoMessage() {}
+
+func (x *GetBatchFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_analytics_analytics_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBatchFlagEvaluationsCountResponse.ProtoReflect.Descriptor instead.
+func (*GetBatchFlagEvaluationsCountResponse) Descriptor() ([]byte, []int) {
+	return file_analytics_analytics_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetBatchFlagEvaluationsCountResponse) GetFlagEvaluations() map[string]*FlagEvaluationData {
+	if x != nil {
+		return x.FlagEvaluations
+	}
+	return nil
+}
+
 var File_analytics_analytics_proto protoreflect.FileDescriptor
 
 const file_analytics_analytics_proto_rawDesc = "" +
@@ -167,9 +348,27 @@ const file_analytics_analytics_proto_rawDesc = "" +
 	"\n" +
 	"timestamps\x18\x01 \x03(\tR\n" +
 	"timestamps\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\x02R\x06values2\xb3\x02\n" +
+	"\x06values\x18\x02 \x03(\x02R\x06values\"\xca\x01\n" +
+	"#GetBatchFlagEvaluationsCountRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
+	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x1b\n" +
+	"\tflag_keys\x18\x03 \x03(\tR\bflagKeys\x12\x12\n" +
+	"\x04from\x18\x04 \x01(\tR\x04from\x12\x0e\n" +
+	"\x02to\x18\x05 \x01(\tR\x02to\x12\x14\n" +
+	"\x05limit\x18\x06 \x01(\x05R\x05limit\"L\n" +
+	"\x12FlagEvaluationData\x12\x1e\n" +
+	"\n" +
+	"timestamps\x18\x01 \x03(\tR\n" +
+	"timestamps\x12\x16\n" +
+	"\x06values\x18\x02 \x03(\x02R\x06values\"\x86\x02\n" +
+	"$GetBatchFlagEvaluationsCountResponse\x12u\n" +
+	"\x10flag_evaluations\x18\x01 \x03(\v2J.flipt.analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntryR\x0fflagEvaluations\x1ag\n" +
+	"\x14FlagEvaluationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x129\n" +
+	"\x05value\x18\x02 \x01(\v2#.flipt.analytics.FlagEvaluationDataR\x05value:\x028\x012\xc6\x04\n" +
 	"\x10AnalyticsService\x12\x84\x02\n" +
-	"\x17GetFlagEvaluationsCount\x12/.flipt.analytics.GetFlagEvaluationsCountRequest\x1a0.flipt.analytics.GetFlagEvaluationsCountResponse\"\x85\x01\xbaG\x19*\x17getFlagEvaluationsCount\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB'Z%go.flipt.io/flipt/rpc/flipt/analyticsb\x06proto3"
+	"\x17GetFlagEvaluationsCount\x12/.flipt.analytics.GetFlagEvaluationsCountRequest\x1a0.flipt.analytics.GetFlagEvaluationsCountResponse\"\x85\x01\xbaG\x19*\x17getFlagEvaluationsCount\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x12\x90\x02\n" +
+	"\x1cGetBatchFlagEvaluationsCount\x124.flipt.analytics.GetBatchFlagEvaluationsCountRequest\x1a5.flipt.analytics.GetBatchFlagEvaluationsCountResponse\"\x82\x01\xbaG\x1e*\x1cgetBatchFlagEvaluationsCount\x82\xd3\xe4\x93\x02[:\x01*\"V/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB'Z%go.flipt.io/flipt/rpc/flipt/analyticsb\x06proto3"
 
 var (
 	file_analytics_analytics_proto_rawDescOnce sync.Once
@@ -183,19 +382,27 @@ func file_analytics_analytics_proto_rawDescGZIP() []byte {
 	return file_analytics_analytics_proto_rawDescData
 }
 
-var file_analytics_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_analytics_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_analytics_analytics_proto_goTypes = []any{
-	(*GetFlagEvaluationsCountRequest)(nil),  // 0: flipt.analytics.GetFlagEvaluationsCountRequest
-	(*GetFlagEvaluationsCountResponse)(nil), // 1: flipt.analytics.GetFlagEvaluationsCountResponse
+	(*GetFlagEvaluationsCountRequest)(nil),       // 0: flipt.analytics.GetFlagEvaluationsCountRequest
+	(*GetFlagEvaluationsCountResponse)(nil),      // 1: flipt.analytics.GetFlagEvaluationsCountResponse
+	(*GetBatchFlagEvaluationsCountRequest)(nil),  // 2: flipt.analytics.GetBatchFlagEvaluationsCountRequest
+	(*FlagEvaluationData)(nil),                   // 3: flipt.analytics.FlagEvaluationData
+	(*GetBatchFlagEvaluationsCountResponse)(nil), // 4: flipt.analytics.GetBatchFlagEvaluationsCountResponse
+	nil, // 5: flipt.analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry
 }
 var file_analytics_analytics_proto_depIdxs = []int32{
-	0, // 0: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:input_type -> flipt.analytics.GetFlagEvaluationsCountRequest
-	1, // 1: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:output_type -> flipt.analytics.GetFlagEvaluationsCountResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5, // 0: flipt.analytics.GetBatchFlagEvaluationsCountResponse.flag_evaluations:type_name -> flipt.analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry
+	3, // 1: flipt.analytics.GetBatchFlagEvaluationsCountResponse.FlagEvaluationsEntry.value:type_name -> flipt.analytics.FlagEvaluationData
+	0, // 2: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:input_type -> flipt.analytics.GetFlagEvaluationsCountRequest
+	2, // 3: flipt.analytics.AnalyticsService.GetBatchFlagEvaluationsCount:input_type -> flipt.analytics.GetBatchFlagEvaluationsCountRequest
+	1, // 4: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:output_type -> flipt.analytics.GetFlagEvaluationsCountResponse
+	4, // 5: flipt.analytics.AnalyticsService.GetBatchFlagEvaluationsCount:output_type -> flipt.analytics.GetBatchFlagEvaluationsCountResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_analytics_analytics_proto_init() }
@@ -209,7 +416,7 @@ func file_analytics_analytics_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_analytics_proto_rawDesc), len(file_analytics_analytics_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

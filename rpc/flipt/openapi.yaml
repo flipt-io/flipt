@@ -262,6 +262,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VariantEvaluationResponse'
+    /internal/v2/analytics/environments/{environmentKey}/namespaces/{namespaceKey}/batch:
+        post:
+            tags:
+                - AnalyticsService
+            operationId: getBatchFlagEvaluationsCount
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: namespaceKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GetBatchFlagEvaluationsCountRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetBatchFlagEvaluationsCountResponse'
     /internal/v2/analytics/environments/{environmentKey}/namespaces/{namespaceKey}/flags/{flagKey}:
         get:
             tags:
@@ -584,6 +613,18 @@ components:
                     type: array
                     items:
                         type: string
+        FlagEvaluationData:
+            type: object
+            properties:
+                timestamps:
+                    type: array
+                    items:
+                        type: string
+                values:
+                    type: array
+                    items:
+                        type: number
+                        format: float
         FlagList:
             type: object
             properties:
@@ -596,6 +637,32 @@ components:
                 totalCount:
                     type: integer
                     format: int32
+        GetBatchFlagEvaluationsCountRequest:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                namespaceKey:
+                    type: string
+                flagKeys:
+                    type: array
+                    items:
+                        type: string
+                from:
+                    type: string
+                to:
+                    type: string
+                limit:
+                    type: integer
+                    format: int32
+        GetBatchFlagEvaluationsCountResponse:
+            type: object
+            properties:
+                flagEvaluations:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/FlagEvaluationData'
+                    description: Mapping from flag_key to evaluation data
         GetFlagEvaluationsCountResponse:
             type: object
             properties:
