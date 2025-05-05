@@ -1871,6 +1871,58 @@ func (x *EvaluationNamespaceSnapshotRequest) GetEnvironmentKey() string {
 	return ""
 }
 
+type EvaluationNamespaceSnapshotStreamRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	EnvironmentKey string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) Reset() {
+	*x = EvaluationNamespaceSnapshotStreamRequest{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationNamespaceSnapshotStreamRequest) ProtoMessage() {}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationNamespaceSnapshotStreamRequest.ProtoReflect.Descriptor instead.
+func (*EvaluationNamespaceSnapshotStreamRequest) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *EvaluationNamespaceSnapshotStreamRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
 type EvaluationSnapshot struct {
 	state         protoimpl.MessageState                  `protogen:"open.v1"`
 	Namespaces    map[string]*EvaluationNamespaceSnapshot `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -1880,7 +1932,7 @@ type EvaluationSnapshot struct {
 
 func (x *EvaluationSnapshot) Reset() {
 	*x = EvaluationSnapshot{}
-	mi := &file_evaluation_evaluation_proto_msgTypes[19]
+	mi := &file_evaluation_evaluation_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1892,7 +1944,7 @@ func (x *EvaluationSnapshot) String() string {
 func (*EvaluationSnapshot) ProtoMessage() {}
 
 func (x *EvaluationSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_evaluation_evaluation_proto_msgTypes[19]
+	mi := &file_evaluation_evaluation_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1905,7 +1957,7 @@ func (x *EvaluationSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationSnapshot.ProtoReflect.Descriptor instead.
 func (*EvaluationSnapshot) Descriptor() ([]byte, []int) {
-	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{19}
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *EvaluationSnapshot) GetNamespaces() map[string]*EvaluationNamespaceSnapshot {
@@ -2050,7 +2102,10 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\"EvaluationNamespaceSnapshotRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1c\n" +
 	"\treference\x18\x02 \x01(\tR\treference\x12'\n" +
-	"\x0fenvironment_key\x18\x03 \x01(\tR\x0eenvironmentKey\"\xd8\x01\n" +
+	"\x0fenvironment_key\x18\x03 \x01(\tR\x0eenvironmentKey\"e\n" +
+	"(EvaluationNamespaceSnapshotStreamRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
+	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"\xd8\x01\n" +
 	"\x12EvaluationSnapshot\x12T\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v24.flipt.evaluation.EvaluationSnapshot.NamespacesEntryR\n" +
@@ -2093,9 +2148,10 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\x11EvaluationService\x12\x90\x01\n" +
 	"\aBoolean\x12#.flipt.evaluation.EvaluationRequest\x1a+.flipt.evaluation.BooleanEvaluationResponse\"3\xbaG\x11*\x0fevaluateBoolean\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/evaluate/v1/boolean\x12\x90\x01\n" +
 	"\aVariant\x12#.flipt.evaluation.EvaluationRequest\x1a+.flipt.evaluation.VariantEvaluationResponse\"3\xbaG\x11*\x0fevaluateVariant\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/evaluate/v1/variant\x12\x8d\x01\n" +
-	"\x05Batch\x12(.flipt.evaluation.BatchEvaluationRequest\x1a).flipt.evaluation.BatchEvaluationResponse\"/\xbaG\x0f*\revaluateBatch\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/evaluate/v1/batch2\xac\x01\n" +
-	"\vDataService\x12\x82\x01\n" +
-	"\x1bEvaluationSnapshotNamespace\x124.flipt.evaluation.EvaluationNamespaceSnapshotRequest\x1a-.flipt.evaluation.EvaluationNamespaceSnapshot\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB(Z&go.flipt.io/flipt/rpc/flipt/evaluationb\x06proto3"
+	"\x05Batch\x12(.flipt.evaluation.BatchEvaluationRequest\x1a).flipt.evaluation.BatchEvaluationResponse\"/\xbaG\x0f*\revaluateBatch\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/evaluate/v1/batch2\xe1\x03\n" +
+	"\vDataService\x12\xdc\x01\n" +
+	"\x1bEvaluationSnapshotNamespace\x124.flipt.evaluation.EvaluationNamespaceSnapshotRequest\x1a-.flipt.evaluation.EvaluationNamespaceSnapshot\"X\xbaG\x1d*\x1bevaluationSnapshotNamespace\x82\xd3\xe4\x93\x022\x120/internal/v2/evaluation/snapshot/namespace/{key}\x12\xd8\x01\n" +
+	"!EvaluationSnapshotNamespaceStream\x12:.flipt.evaluation.EvaluationNamespaceSnapshotStreamRequest\x1a-.flipt.evaluation.EvaluationNamespaceSnapshot\"F\xbaG\x1a*\x18evaluationSnapshotStream\x82\xd3\xe4\x93\x02#\x12!/internal/v2/evaluation/snapshots0\x01\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB(Z&go.flipt.io/flipt/rpc/flipt/evaluationb\x06proto3"
 
 var (
 	file_evaluation_evaluation_proto_rawDescOnce sync.Once
@@ -2110,42 +2166,43 @@ func file_evaluation_evaluation_proto_rawDescGZIP() []byte {
 }
 
 var file_evaluation_evaluation_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_evaluation_evaluation_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_evaluation_evaluation_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_evaluation_evaluation_proto_goTypes = []any{
-	(EvaluationReason)(0),                      // 0: flipt.evaluation.EvaluationReason
-	(ErrorEvaluationReason)(0),                 // 1: flipt.evaluation.ErrorEvaluationReason
-	(EvaluationResponseType)(0),                // 2: flipt.evaluation.EvaluationResponseType
-	(EvaluationRolloutType)(0),                 // 3: flipt.evaluation.EvaluationRolloutType
-	(EvaluationSegmentOperator)(0),             // 4: flipt.evaluation.EvaluationSegmentOperator
-	(EvaluationSegmentMatchType)(0),            // 5: flipt.evaluation.EvaluationSegmentMatchType
-	(EvaluationFlagType)(0),                    // 6: flipt.evaluation.EvaluationFlagType
-	(EvaluationConstraintComparisonType)(0),    // 7: flipt.evaluation.EvaluationConstraintComparisonType
-	(*EvaluationRequest)(nil),                  // 8: flipt.evaluation.EvaluationRequest
-	(*BatchEvaluationRequest)(nil),             // 9: flipt.evaluation.BatchEvaluationRequest
-	(*BatchEvaluationResponse)(nil),            // 10: flipt.evaluation.BatchEvaluationResponse
-	(*EvaluationResponse)(nil),                 // 11: flipt.evaluation.EvaluationResponse
-	(*BooleanEvaluationResponse)(nil),          // 12: flipt.evaluation.BooleanEvaluationResponse
-	(*VariantEvaluationResponse)(nil),          // 13: flipt.evaluation.VariantEvaluationResponse
-	(*ErrorEvaluationResponse)(nil),            // 14: flipt.evaluation.ErrorEvaluationResponse
-	(*EvaluationDistribution)(nil),             // 15: flipt.evaluation.EvaluationDistribution
-	(*EvaluationRollout)(nil),                  // 16: flipt.evaluation.EvaluationRollout
-	(*EvaluationRolloutThreshold)(nil),         // 17: flipt.evaluation.EvaluationRolloutThreshold
-	(*EvaluationRolloutSegment)(nil),           // 18: flipt.evaluation.EvaluationRolloutSegment
-	(*EvaluationSegment)(nil),                  // 19: flipt.evaluation.EvaluationSegment
-	(*EvaluationVariant)(nil),                  // 20: flipt.evaluation.EvaluationVariant
-	(*EvaluationFlag)(nil),                     // 21: flipt.evaluation.EvaluationFlag
-	(*EvaluationConstraint)(nil),               // 22: flipt.evaluation.EvaluationConstraint
-	(*EvaluationRule)(nil),                     // 23: flipt.evaluation.EvaluationRule
-	(*EvaluationNamespace)(nil),                // 24: flipt.evaluation.EvaluationNamespace
-	(*EvaluationNamespaceSnapshot)(nil),        // 25: flipt.evaluation.EvaluationNamespaceSnapshot
-	(*EvaluationNamespaceSnapshotRequest)(nil), // 26: flipt.evaluation.EvaluationNamespaceSnapshotRequest
-	(*EvaluationSnapshot)(nil),                 // 27: flipt.evaluation.EvaluationSnapshot
-	nil,                                        // 28: flipt.evaluation.EvaluationRequest.ContextEntry
-	nil,                                        // 29: flipt.evaluation.EvaluationSnapshot.NamespacesEntry
-	(*timestamppb.Timestamp)(nil),              // 30: google.protobuf.Timestamp
+	(EvaluationReason)(0),                            // 0: flipt.evaluation.EvaluationReason
+	(ErrorEvaluationReason)(0),                       // 1: flipt.evaluation.ErrorEvaluationReason
+	(EvaluationResponseType)(0),                      // 2: flipt.evaluation.EvaluationResponseType
+	(EvaluationRolloutType)(0),                       // 3: flipt.evaluation.EvaluationRolloutType
+	(EvaluationSegmentOperator)(0),                   // 4: flipt.evaluation.EvaluationSegmentOperator
+	(EvaluationSegmentMatchType)(0),                  // 5: flipt.evaluation.EvaluationSegmentMatchType
+	(EvaluationFlagType)(0),                          // 6: flipt.evaluation.EvaluationFlagType
+	(EvaluationConstraintComparisonType)(0),          // 7: flipt.evaluation.EvaluationConstraintComparisonType
+	(*EvaluationRequest)(nil),                        // 8: flipt.evaluation.EvaluationRequest
+	(*BatchEvaluationRequest)(nil),                   // 9: flipt.evaluation.BatchEvaluationRequest
+	(*BatchEvaluationResponse)(nil),                  // 10: flipt.evaluation.BatchEvaluationResponse
+	(*EvaluationResponse)(nil),                       // 11: flipt.evaluation.EvaluationResponse
+	(*BooleanEvaluationResponse)(nil),                // 12: flipt.evaluation.BooleanEvaluationResponse
+	(*VariantEvaluationResponse)(nil),                // 13: flipt.evaluation.VariantEvaluationResponse
+	(*ErrorEvaluationResponse)(nil),                  // 14: flipt.evaluation.ErrorEvaluationResponse
+	(*EvaluationDistribution)(nil),                   // 15: flipt.evaluation.EvaluationDistribution
+	(*EvaluationRollout)(nil),                        // 16: flipt.evaluation.EvaluationRollout
+	(*EvaluationRolloutThreshold)(nil),               // 17: flipt.evaluation.EvaluationRolloutThreshold
+	(*EvaluationRolloutSegment)(nil),                 // 18: flipt.evaluation.EvaluationRolloutSegment
+	(*EvaluationSegment)(nil),                        // 19: flipt.evaluation.EvaluationSegment
+	(*EvaluationVariant)(nil),                        // 20: flipt.evaluation.EvaluationVariant
+	(*EvaluationFlag)(nil),                           // 21: flipt.evaluation.EvaluationFlag
+	(*EvaluationConstraint)(nil),                     // 22: flipt.evaluation.EvaluationConstraint
+	(*EvaluationRule)(nil),                           // 23: flipt.evaluation.EvaluationRule
+	(*EvaluationNamespace)(nil),                      // 24: flipt.evaluation.EvaluationNamespace
+	(*EvaluationNamespaceSnapshot)(nil),              // 25: flipt.evaluation.EvaluationNamespaceSnapshot
+	(*EvaluationNamespaceSnapshotRequest)(nil),       // 26: flipt.evaluation.EvaluationNamespaceSnapshotRequest
+	(*EvaluationNamespaceSnapshotStreamRequest)(nil), // 27: flipt.evaluation.EvaluationNamespaceSnapshotStreamRequest
+	(*EvaluationSnapshot)(nil),                       // 28: flipt.evaluation.EvaluationSnapshot
+	nil,                                              // 29: flipt.evaluation.EvaluationRequest.ContextEntry
+	nil,                                              // 30: flipt.evaluation.EvaluationSnapshot.NamespacesEntry
+	(*timestamppb.Timestamp)(nil),                    // 31: google.protobuf.Timestamp
 }
 var file_evaluation_evaluation_proto_depIdxs = []int32{
-	28, // 0: flipt.evaluation.EvaluationRequest.context:type_name -> flipt.evaluation.EvaluationRequest.ContextEntry
+	29, // 0: flipt.evaluation.EvaluationRequest.context:type_name -> flipt.evaluation.EvaluationRequest.ContextEntry
 	8,  // 1: flipt.evaluation.BatchEvaluationRequest.requests:type_name -> flipt.evaluation.EvaluationRequest
 	11, // 2: flipt.evaluation.BatchEvaluationResponse.responses:type_name -> flipt.evaluation.EvaluationResponse
 	2,  // 3: flipt.evaluation.EvaluationResponse.type:type_name -> flipt.evaluation.EvaluationResponseType
@@ -2153,9 +2210,9 @@ var file_evaluation_evaluation_proto_depIdxs = []int32{
 	13, // 5: flipt.evaluation.EvaluationResponse.variant_response:type_name -> flipt.evaluation.VariantEvaluationResponse
 	14, // 6: flipt.evaluation.EvaluationResponse.error_response:type_name -> flipt.evaluation.ErrorEvaluationResponse
 	0,  // 7: flipt.evaluation.BooleanEvaluationResponse.reason:type_name -> flipt.evaluation.EvaluationReason
-	30, // 8: flipt.evaluation.BooleanEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
+	31, // 8: flipt.evaluation.BooleanEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 9: flipt.evaluation.VariantEvaluationResponse.reason:type_name -> flipt.evaluation.EvaluationReason
-	30, // 10: flipt.evaluation.VariantEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
+	31, // 10: flipt.evaluation.VariantEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
 	1,  // 11: flipt.evaluation.ErrorEvaluationResponse.reason:type_name -> flipt.evaluation.ErrorEvaluationReason
 	3,  // 12: flipt.evaluation.EvaluationRollout.type:type_name -> flipt.evaluation.EvaluationRolloutType
 	18, // 13: flipt.evaluation.EvaluationRollout.segment:type_name -> flipt.evaluation.EvaluationRolloutSegment
@@ -2163,12 +2220,12 @@ var file_evaluation_evaluation_proto_depIdxs = []int32{
 	4,  // 15: flipt.evaluation.EvaluationRolloutSegment.segment_operator:type_name -> flipt.evaluation.EvaluationSegmentOperator
 	19, // 16: flipt.evaluation.EvaluationRolloutSegment.segments:type_name -> flipt.evaluation.EvaluationSegment
 	5,  // 17: flipt.evaluation.EvaluationSegment.match_type:type_name -> flipt.evaluation.EvaluationSegmentMatchType
-	30, // 18: flipt.evaluation.EvaluationSegment.created_at:type_name -> google.protobuf.Timestamp
-	30, // 19: flipt.evaluation.EvaluationSegment.updated_at:type_name -> google.protobuf.Timestamp
+	31, // 18: flipt.evaluation.EvaluationSegment.created_at:type_name -> google.protobuf.Timestamp
+	31, // 19: flipt.evaluation.EvaluationSegment.updated_at:type_name -> google.protobuf.Timestamp
 	22, // 20: flipt.evaluation.EvaluationSegment.constraints:type_name -> flipt.evaluation.EvaluationConstraint
 	6,  // 21: flipt.evaluation.EvaluationFlag.type:type_name -> flipt.evaluation.EvaluationFlagType
-	30, // 22: flipt.evaluation.EvaluationFlag.created_at:type_name -> google.protobuf.Timestamp
-	30, // 23: flipt.evaluation.EvaluationFlag.updated_at:type_name -> google.protobuf.Timestamp
+	31, // 22: flipt.evaluation.EvaluationFlag.created_at:type_name -> google.protobuf.Timestamp
+	31, // 23: flipt.evaluation.EvaluationFlag.updated_at:type_name -> google.protobuf.Timestamp
 	23, // 24: flipt.evaluation.EvaluationFlag.rules:type_name -> flipt.evaluation.EvaluationRule
 	16, // 25: flipt.evaluation.EvaluationFlag.rollouts:type_name -> flipt.evaluation.EvaluationRollout
 	20, // 26: flipt.evaluation.EvaluationFlag.default_variant:type_name -> flipt.evaluation.EvaluationVariant
@@ -2178,18 +2235,20 @@ var file_evaluation_evaluation_proto_depIdxs = []int32{
 	15, // 30: flipt.evaluation.EvaluationRule.distributions:type_name -> flipt.evaluation.EvaluationDistribution
 	24, // 31: flipt.evaluation.EvaluationNamespaceSnapshot.namespace:type_name -> flipt.evaluation.EvaluationNamespace
 	21, // 32: flipt.evaluation.EvaluationNamespaceSnapshot.flags:type_name -> flipt.evaluation.EvaluationFlag
-	29, // 33: flipt.evaluation.EvaluationSnapshot.namespaces:type_name -> flipt.evaluation.EvaluationSnapshot.NamespacesEntry
+	30, // 33: flipt.evaluation.EvaluationSnapshot.namespaces:type_name -> flipt.evaluation.EvaluationSnapshot.NamespacesEntry
 	25, // 34: flipt.evaluation.EvaluationSnapshot.NamespacesEntry.value:type_name -> flipt.evaluation.EvaluationNamespaceSnapshot
 	8,  // 35: flipt.evaluation.EvaluationService.Boolean:input_type -> flipt.evaluation.EvaluationRequest
 	8,  // 36: flipt.evaluation.EvaluationService.Variant:input_type -> flipt.evaluation.EvaluationRequest
 	9,  // 37: flipt.evaluation.EvaluationService.Batch:input_type -> flipt.evaluation.BatchEvaluationRequest
 	26, // 38: flipt.evaluation.DataService.EvaluationSnapshotNamespace:input_type -> flipt.evaluation.EvaluationNamespaceSnapshotRequest
-	12, // 39: flipt.evaluation.EvaluationService.Boolean:output_type -> flipt.evaluation.BooleanEvaluationResponse
-	13, // 40: flipt.evaluation.EvaluationService.Variant:output_type -> flipt.evaluation.VariantEvaluationResponse
-	10, // 41: flipt.evaluation.EvaluationService.Batch:output_type -> flipt.evaluation.BatchEvaluationResponse
-	25, // 42: flipt.evaluation.DataService.EvaluationSnapshotNamespace:output_type -> flipt.evaluation.EvaluationNamespaceSnapshot
-	39, // [39:43] is the sub-list for method output_type
-	35, // [35:39] is the sub-list for method input_type
+	27, // 39: flipt.evaluation.DataService.EvaluationSnapshotNamespaceStream:input_type -> flipt.evaluation.EvaluationNamespaceSnapshotStreamRequest
+	12, // 40: flipt.evaluation.EvaluationService.Boolean:output_type -> flipt.evaluation.BooleanEvaluationResponse
+	13, // 41: flipt.evaluation.EvaluationService.Variant:output_type -> flipt.evaluation.VariantEvaluationResponse
+	10, // 42: flipt.evaluation.EvaluationService.Batch:output_type -> flipt.evaluation.BatchEvaluationResponse
+	25, // 43: flipt.evaluation.DataService.EvaluationSnapshotNamespace:output_type -> flipt.evaluation.EvaluationNamespaceSnapshot
+	25, // 44: flipt.evaluation.DataService.EvaluationSnapshotNamespaceStream:output_type -> flipt.evaluation.EvaluationNamespaceSnapshot
+	40, // [40:45] is the sub-list for method output_type
+	35, // [35:40] is the sub-list for method input_type
 	35, // [35:35] is the sub-list for extension type_name
 	35, // [35:35] is the sub-list for extension extendee
 	0,  // [0:35] is the sub-list for field type_name
@@ -2216,7 +2275,7 @@ func file_evaluation_evaluation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_evaluation_evaluation_proto_rawDesc), len(file_evaluation_evaluation_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

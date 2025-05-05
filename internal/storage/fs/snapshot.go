@@ -699,6 +699,10 @@ func (s *Snapshot) EvaluationNamespaceSnapshot(_ context.Context, ns string) (*e
 	return snap, nil
 }
 
+func (s *Snapshot) EvaluationSnapshot(_ context.Context) (*evaluation.EvaluationSnapshot, error) {
+	return s.evalSnap, nil
+}
+
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
 	return find(func(t T) bool { return t.GetKey() == key }, ts...)
 }

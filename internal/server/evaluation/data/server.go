@@ -1,7 +1,9 @@
 package data
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha1"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
@@ -50,6 +52,48 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 	}
 
 	return snap, nil
+}
+
+func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNamespaceSnapshotStreamRequest, serv evaluation.DataService_EvaluationSnapshotNamespaceStreamServer) error {
+	var (
+		ctx        = serv.Context()
+		env        = s.envs.GetFromContext(ctx)
+		hash       = sha1.New()
+		lastDigest []byte
+	)
+
+	ch := make(chan *evaluation.EvaluationNamespaceSnapshot, 1)
+	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
+	if err != nil {
+		s.logger.Error("error subscribing to environment evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+		return err
+	}
+
+	defer closer.Close()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case snap, ok := <-ch:
+			if !ok {
+				return nil
+			}
+
+			hash.Write([]byte(snap.Digest))
+
+			// only send the snapshot if we have a new digest
+			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
+				if err := serv.Send(snap); err != nil {
+					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+					return err
+				}
+				lastDigest = digest
+			}
+
+			hash.Reset()
+		}
+	}
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {

@@ -230,6 +230,11 @@ message EvaluationNamespaceSnapshotRequest {
   string environment_key = 3;
 }
 
+message EvaluationNamespaceSnapshotStreamRequest {
+  string key = 1;
+  string environment_key = 2;
+}
+
 message EvaluationSnapshot {
   map<string, EvaluationNamespaceSnapshot> namespaces = 1;
 }
@@ -237,5 +242,14 @@ message EvaluationSnapshot {
 service DataService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
 
-  rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
+  rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot) {
+    option (google.api.http) = {
+      get: "/internal/v2/evaluation/snapshot/namespace/{key}"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluationSnapshotNamespace"};
+  }
+  rpc EvaluationSnapshotNamespaceStream(EvaluationNamespaceSnapshotStreamRequest) returns (stream EvaluationNamespaceSnapshot) {
+    option (google.api.http) = {get: "/internal/v2/evaluation/snapshots"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "evaluationSnapshotStream"};
+  }
 }
