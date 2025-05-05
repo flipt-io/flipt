@@ -4,7 +4,6 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '~/components/Button';
 
 import { useError } from '~/data/hooks/error';
-import { cls } from '~/utils/helpers';
 
 type DeletePanelProps = {
   panelMessage: string | React.ReactNode;

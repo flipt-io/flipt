@@ -1,6 +1,4 @@
 import {
-  BracesIcon,
-  BracketsIcon,
   CalendarIcon,
   FilterIcon,
   HashIcon,
@@ -91,6 +89,116 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
     <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-900 dark:text-white break-words max-w-full">
       {constraint.value}
     </span>
+  );
+}
+
+function ConstraintCard({
+  constraint,
+  onEdit,
+  onDelete
+}: {
+  constraint: IConstraint;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const getTypeIcon = (type: ConstraintType) => {
+    switch (type) {
+      case ConstraintType.STRING:
+        return <Text className="h-4 w-4" />;
+      case ConstraintType.NUMBER:
+        return <HashIcon className="h-4 w-4" />;
+      case ConstraintType.BOOLEAN:
+        return <ToggleLeftIcon className="h-4 w-4" />;
+      case ConstraintType.DATETIME:
+        return <CalendarIcon className="h-4 w-4" />;
+      case ConstraintType.ENTITY_ID:
+        return <IdCardIcon className="h-4 w-4" />;
+      default:
+        return <FilterIcon className="h-4 w-4" />;
+    }
+  };
+
+  const getTypeColor = (type: ConstraintType) => {
+    switch (type) {
+      case ConstraintType.STRING:
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
+      case ConstraintType.NUMBER:
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+      case ConstraintType.BOOLEAN:
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
+      case ConstraintType.DATETIME:
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
+      case ConstraintType.ENTITY_ID:
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+    }
+  };
+
+  return (
+    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center space-x-2">
+          <span className={`p-1.5 rounded-md ${getTypeColor(constraint.type)}`}>
+            {getTypeIcon(constraint.type)}
+          </span>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {constraintTypeToLabel(constraint.type)}
+          </h3>
+        </div>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Property
+          </span>
+          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {constraint.property}
+          </code>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Operator
+          </span>
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {ConstraintOperators[constraint.operator] || constraint.operator}
+          </span>
+        </div>
+
+        {!NoValueOperators.includes(constraint.operator) && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Value
+            </span>
+            <div className="flex">
+              <ConstraintValue constraint={constraint} />
+            </div>
+          </div>
+        )}
+
+        {constraint.description && (
+          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
+              Description
+            </span>
+            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+              {constraint.description}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -193,7 +301,6 @@ export default function Constraints({ constraints }: ConstraintsProps) {
                 <ConstraintCard
                   key={index}
                   constraint={constraint}
-                  index={index}
                   onEdit={() => {
                     setEditingConstraint({
                       ...constraint,
@@ -233,119 +340,5 @@ export default function Constraints({ constraints }: ConstraintsProps) {
         </div>
       </div>
     </>
-  );
-}
-
-function ConstraintCard({
-  constraint,
-  index,
-  onEdit,
-  onDelete
-}: {
-  constraint: IConstraint;
-  index: number;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const isArrayValue = ['isoneof', 'isnotoneof'].includes(constraint.operator);
-
-  const getTypeIcon = (type: ConstraintType) => {
-    switch (type) {
-      case ConstraintType.STRING:
-        return <Text className="h-4 w-4" />;
-      case ConstraintType.NUMBER:
-        return <HashIcon className="h-4 w-4" />;
-      case ConstraintType.BOOLEAN:
-        return <ToggleLeftIcon className="h-4 w-4" />;
-      case ConstraintType.DATETIME:
-        return <CalendarIcon className="h-4 w-4" />;
-      case ConstraintType.ENTITY_ID:
-        return <IdCardIcon className="h-4 w-4" />;
-      default:
-        return <FilterIcon className="h-4 w-4" />;
-    }
-  };
-
-  const getTypeColor = (type: ConstraintType) => {
-    switch (type) {
-      case ConstraintType.STRING:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case ConstraintType.NUMBER:
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case ConstraintType.BOOLEAN:
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
-      case ConstraintType.DATETIME:
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
-      case ConstraintType.ENTITY_ID:
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
-    }
-  };
-
-  return (
-    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
-      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
-        <div className="flex items-center space-x-2">
-          <span className={`p-1.5 rounded-md ${getTypeColor(constraint.type)}`}>
-            {getTypeIcon(constraint.type)}
-          </span>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {constraintTypeToLabel(constraint.type)}
-          </h3>
-        </div>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete();
-          }}
-          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-        >
-          <XIcon className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-            Property
-          </span>
-          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-            {constraint.property}
-          </code>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-            Operator
-          </span>
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-            {ConstraintOperators[constraint.operator] || constraint.operator}
-          </span>
-        </div>
-
-        {!NoValueOperators.includes(constraint.operator) && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-              Value
-            </span>
-            <div className="flex">
-              <ConstraintValue constraint={constraint} />
-            </div>
-          </div>
-        )}
-
-        {constraint.description && (
-          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
-              Description
-            </span>
-            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-              {constraint.description}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }

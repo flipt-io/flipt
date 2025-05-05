@@ -1,9 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import * as DialogRadix from '@radix-ui/react-dialog';
 import { Fragment } from 'react';
-
-import logoLight from '~/assets/logo-light.png';
 
 import Nav from './Nav';
 
