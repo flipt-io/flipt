@@ -71,7 +71,9 @@ test.describe('Flags', () => {
         .getByRole('button', { name: 'Done' })
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+      await expect(
+        page.getByText('Successfully updated flag').last()
+      ).toBeVisible();
     });
 
     await test.step('edit other variant description', async () => {
