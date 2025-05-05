@@ -73,12 +73,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
       validationSchema={validationSchema}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-background shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll bg-background dark:bg-gray-900 shadow-xl">
           <div className="flex-1">
-            <div className="bg-gray-50 px-4 py-6 sm:px-6">
+            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-lg font-medium text-gray-900">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {title}
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#variants">
@@ -88,7 +88,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                 <div className="flex h-7 items-center">
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                     onClick={() => setOpen(false)}
                   >
                     <span className="sr-only">Close panel</span>
@@ -97,12 +97,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                 </div>
               </div>
             </div>
-            <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0">
+            <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700 sm:py-0">
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label
                     htmlFor="key"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Key
                   </label>
@@ -120,11 +120,14 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Name
                   </label>
-                  <span className="text-xs text-gray-400" id="name-optional">
+                  <span
+                    className="text-xs text-gray-400 dark:text-gray-500"
+                    id="name-optional"
+                  >
                     Optional
                   </span>
                 </div>
@@ -136,12 +139,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="description"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-xs text-gray-400"
+                    className="text-xs text-gray-400 dark:text-gray-500"
                     id="description-optional"
                   >
                     Optional
@@ -155,12 +158,12 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="attachment"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                   >
                     Attachment
                   </label>
                   <span
-                    className="text-xs text-gray-400"
+                    className="text-xs text-gray-400 dark:text-gray-500"
                     id="attachment-optional"
                   >
                     Optional
@@ -172,9 +175,11 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
-              <Button onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 className="min-w-[80px]"

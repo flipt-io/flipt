@@ -7,7 +7,7 @@ export interface IRule {
   id?: string; // for dnd-drag-and-drop
   segments?: string[];
   segmentOperator?: SegmentOperatorType;
-  rank: number;
+  rank?: number;
   distributions: IDistribution[];
 }
 

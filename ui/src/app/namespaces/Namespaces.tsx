@@ -67,7 +67,7 @@ export default function Namespaces() {
           panelMessage={
             <>
               Are you sure you want to delete the namespace{' '}
-              <span className="font-medium text-violet-500">
+              <span className="font-medium text-violet-500 dark:text-violet-400">
                 {deletingNamespace?.key}
               </span>
               ? This action cannot be undone.
@@ -88,8 +88,10 @@ export default function Namespaces() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h3 className="text-xl font-semibold text-gray-700">Namespaces</h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+              Namespaces
+            </h3>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Namespaces allow you to group your flags, segments and rules under
               a single name
             </p>
@@ -119,10 +121,10 @@ export default function Namespaces() {
           ) : (
             <Well>
               <FolderIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+              <h3 className="text-lg font-medium text-muted-foreground dark:text-gray-200 mb-2">
                 No Namespaces Yet
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground dark:text-gray-400 mb-4">
                 Namespaces allow you to group your flags, segments and rules
                 under a single name
               </p>

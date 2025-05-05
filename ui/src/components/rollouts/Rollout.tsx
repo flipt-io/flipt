@@ -19,6 +19,7 @@ type RolloutProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  index?: number;
 };
 
 const Rollout = forwardRef(
@@ -32,6 +33,7 @@ const Rollout = forwardRef(
       onDelete,
       style,
       className,
+      index,
       ...rest
     }: RolloutProps,
     ref: Ref<HTMLLIElement>
@@ -40,23 +42,23 @@ const Rollout = forwardRef(
       key={rollout.id}
       ref={ref}
       style={style}
-      data-testid={`rollout-${rollout.rank}`}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      data-testid={`rollout-${typeof index === 'number' ? index : 0}`}
+      className={`${className} w-full items-center space-y-2 rounded-md border border-gray-200 dark:border-gray-700 bg-background dark:bg-gray-950 shadow-md shadow-violet-100 dark:shadow-violet-900/20 hover:shadow-violet-200 dark:hover:shadow-violet-800/30 sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
-      <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+      <div className="w-full rounded-t-lg border-b border-gray-200 dark:border-gray-700 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 hover:cursor-move hover:text-violet-300 sm:flex'
+              'hidden h-4 w-4 justify-start text-gray-400 dark:text-gray-400 hover:cursor-move hover:text-violet-300 dark:hover:text-violet-400 sm:flex'
             )}
             {...rest}
           >
-            {rollout.rank + 1}
+            {typeof index === 'number' ? index + 1 : 1}
           </span>
           <h3
             className={cls(
-              'text-sm font-normal leading-6 text-gray-700 hover:cursor-move'
+              'text-sm font-normal leading-6 text-gray-700 dark:text-gray-200 hover:cursor-move'
             )}
             {...rest}
           >
@@ -90,7 +92,7 @@ const Rollout = forwardRef(
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
           {rollout.description && (
             <div className="flex pb-4 pt-2">
-              <p className="text-sm font-light text-gray-600">
+              <p className="text-sm font-light text-gray-600 dark:text-gray-300">
                 {rollout.description}
               </p>
             </div>

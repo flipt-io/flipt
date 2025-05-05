@@ -125,10 +125,11 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
         <DeletePanel
           panelMessage={
             <>
-              Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              Are you sure you want to delete this rollout at
+              <span className="font-medium text-violet-500 dark:text-violet-400">
                 {' '}
-                position {deletingRollout?.rank}
+                position{' '}
+                {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
               </span>
               ? This action cannot be undone.
             </>
@@ -152,7 +153,6 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          rank={(rollouts?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRolloutForm}
           createRollout={createRollout}
@@ -185,11 +185,11 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
       <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Return boolean values based on rules you define. Rules are
               evaluated in order from top to bottom.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Rules can be rearranged by clicking on the header and dragging and
               dropping it into place.
             </p>
@@ -212,7 +212,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
         <div className="mt-10">
           {rollouts && rollouts.length > 0 ? (
             <div className="flex">
-              <div className="dark:pattern-bg-solidwhite pattern-boxes w-full border border-gray-200 p-4 pattern-bg-gray-solid50 pattern-gray-solid100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-gray-solid lg:p-6">
+              <div className="w-full border border-gray-200 dark:border-gray-800 p-4 dark:bg-gray-900/80 lg:p-6">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -225,12 +225,13 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
                   >
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
                       {rollouts &&
-                        rollouts.map((rollout) => (
+                        rollouts.map((rollout, index) => (
                           <SortableRollout
                             key={rollout.id}
                             flag={flag}
                             rollout={rollout}
                             segments={segments}
+                            index={index}
                             onEdit={() => {
                               setEditingRollout(rollout);
                               setShowEditRolloutForm(true);
@@ -251,6 +252,9 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
                         flag={flag}
                         rollout={activeRollout}
                         segments={segments}
+                        index={rollouts.findIndex(
+                          (r) => r.id === activeRollout.id
+                        )}
                       />
                     ) : null}
                   </DragOverlay>
@@ -260,7 +264,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
           ) : (
             <Well>
               <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
                 No Rollouts Yet
               </h3>
               <Button

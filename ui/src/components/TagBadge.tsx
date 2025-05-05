@@ -9,10 +9,12 @@ export function TagBadge({ tag }: { tag: Tag }) {
   const variants = {
     default: 'bg-secondary/50 text-secondary-foreground',
     outline: 'border border-border bg-transparent',
-    purple: 'bg-violet-500/10 text-violet-500 dark:bg-violet-500/20',
-    blue: 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/20',
-    green: 'bg-green-500/10 text-green-500 dark:bg-green-500/20',
-    pink: 'bg-pink-500/10 text-pink-500 dark:bg-pink-500/20'
+    purple:
+      'bg-violet-500/10 text-violet-500 dark:bg-violet-600/30 dark:text-violet-300',
+    blue: 'bg-blue-500/10 text-blue-500 dark:bg-blue-600/30 dark:text-blue-300',
+    green:
+      'bg-green-500/10 text-green-500 dark:bg-green-600/30 dark:text-green-300',
+    pink: 'bg-pink-500/10 text-pink-500 dark:bg-pink-600/30 dark:text-pink-300'
   };
 
   return (

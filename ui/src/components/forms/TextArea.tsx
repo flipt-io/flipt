@@ -22,10 +22,10 @@ export default function TextArea(props: TextAreaProps) {
         id={id}
         rows={rows}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs sm:text-sm',
+          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm',
           className,
           {
-            'border-red-400': hasError
+            'border-red-400 dark:border-red-500': hasError
           }
         )}
         placeholder={placeholder}
@@ -33,7 +33,9 @@ export default function TextArea(props: TextAreaProps) {
         {...field}
       />
       {meta.touched && meta.error ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">
+          {meta.error}
+        </div>
       ) : null}
     </>
   );

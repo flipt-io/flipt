@@ -31,10 +31,10 @@ export default function Input(props: InputProps) {
       <input
         ref={forwardRef}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm',
+          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-400 sm:text-sm',
           className,
           {
-            'border-red-400': hasError
+            'border-red-400 dark:border-red-500': hasError
           }
         )}
         id={id}
@@ -48,7 +48,9 @@ export default function Input(props: InputProps) {
         {...rest}
       />
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="mt-1 text-sm text-red-500 dark:text-red-400">
+          {meta.error}
+        </div>
       ) : null}
     </>
   );

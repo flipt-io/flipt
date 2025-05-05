@@ -12,12 +12,13 @@ type SortableRuleProps = {
   flag: IFlag;
   rule: IRule;
   segments: ISegment[];
+  index?: number;
   onSuccess: () => void;
   onDelete: () => void;
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { flag, rule, segments, onSuccess, onDelete } = props;
+  const { flag, rule, segments, index, onSuccess, onDelete } = props;
   const {
     isDragging,
     attributes,
@@ -44,11 +45,12 @@ export default function SortableRule(props: SortableRuleProps) {
       {...attributes}
       style={style}
       className={cls({
-        'border-violet-500': isDragging
+        'border-violet-500 dark:border-violet-400': isDragging
       })}
       flag={flag}
       rule={rule}
       segments={segments}
+      index={index}
       onSuccess={onSuccess}
       onDelete={onDelete}
     />

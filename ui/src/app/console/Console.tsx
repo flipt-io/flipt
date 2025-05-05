@@ -223,7 +223,7 @@ export default function Console() {
   return (
     <>
       <PageHeader title="Console" />
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
         See the results of your flag evaluations and debug any issues
       </p>
       <div className="flex flex-col md:flex-row">
@@ -244,9 +244,9 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="flagKey"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                           >
-                            Flag Key
+                            Flag
                           </label>
                           <Combobox<FilterableFlag>
                             id="flagKey"
@@ -261,7 +261,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="entityId"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                           >
                             Entity ID
                           </label>
@@ -281,14 +281,14 @@ export default function Console() {
                                 formik.setFieldValue('entityId', uuidv4());
                               }}
                             >
-                              <RefreshCwIcon className="h-4 w-4 text-gray-400" />
+                              <RefreshCwIcon className="h-4 w-4 text-gray-400 dark:text-gray-300" />
                             </Button>
                           </div>
                         </div>
                         <div className="col-span-3">
                           <label
                             htmlFor="context"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                           >
                             Request Context
                           </label>
@@ -341,7 +341,7 @@ export default function Console() {
             </div>
             <div className="mt-10 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
-                <pre className="bg-[#1a1b26] p-2 text-sm md:h-full">
+                <pre className="rounded-md bg-[#1a1b26] p-2 text-sm md:h-full">
                   {hasEvaluationError ? (
                     <p className="text-red-400">{response}</p>
                   ) : (

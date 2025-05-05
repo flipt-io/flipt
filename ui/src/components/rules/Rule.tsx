@@ -18,6 +18,7 @@ type RuleProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  index?: number;
 };
 
 const Rule = forwardRef(
@@ -30,6 +31,7 @@ const Rule = forwardRef(
       onDelete,
       style,
       className,
+      index,
       ...rest
     }: RuleProps,
     ref: Ref<HTMLLIElement>
@@ -38,23 +40,23 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      data-testid={`rule-${rule.rank}`}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-violet-300 bg-background shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
+      data-testid={`rule-${typeof index === 'number' ? index : 0}`}
+      className={`${className} w-full items-center space-y-2 rounded-md border border-gray-200 dark:border-gray-700 bg-background dark:bg-gray-950 shadow-md shadow-violet-100 dark:shadow-violet-900/20 hover:shadow-violet-200 dark:hover:shadow-violet-800/30 sm:flex sm:flex-col lg:px-4 lg:py-2`}
     >
-      <div className="w-full rounded-t-lg border-b border-gray-200 p-2">
+      <div className="w-full rounded-t-lg border-b border-gray-200 dark:border-gray-700 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rule.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 hover:cursor-move hover:text-violet-300 sm:flex'
+              'hidden h-4 w-4 justify-start text-gray-400 dark:text-gray-400 hover:cursor-move hover:text-violet-300 dark:hover:text-violet-400 sm:flex'
             )}
             {...rest}
           >
-            {rule.rank + 1}
+            {typeof index === 'number' ? index + 1 : 1}
           </span>
           <h3
             className={cls(
-              'text-sm font-normal leading-6 text-gray-700 hover:cursor-move'
+              'text-sm font-normal leading-6 text-gray-700 dark:text-gray-200 hover:cursor-move'
             )}
             {...rest}
           >

@@ -31,7 +31,7 @@ function NamespaceEditAction(props: NamespaceEditActionProps) {
   return (
     <a
       href="#"
-      className="text-violet-600 hover:text-violet-900"
+      className="text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300"
       onClick={(e) => {
         e.preventDefault();
         setEditingNamespace(cell.row.original);
@@ -54,7 +54,7 @@ function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
   return row.original.protected ? (
     <span
       title="Cannot deleting the default namespace"
-      className="text-gray-400 hover:cursor-not-allowed"
+      className="text-gray-400 dark:text-gray-500 hover:cursor-not-allowed"
     >
       Delete
       <span className="sr-only">, {row.original.name}</span>
@@ -62,7 +62,7 @@ function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
   ) : (
     <a
       href="#"
-      className="text-violet-600 hover:text-violet-900"
+      className="text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300"
       onClick={(e) => {
         e.preventDefault();
         setDeletingNamespace(row.original);
@@ -111,7 +111,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
       cell: (info) => info.getValue(),
       meta: {
         className:
-          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900'
+          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-gray-100'
       }
     }),
     columnHelper.accessor('name', {
@@ -128,14 +128,15 @@ export default function NamespaceTable(props: NamespaceTableProps) {
       },
       meta: {
         className:
-          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-500'
+          'truncate whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-500 dark:text-gray-400'
       }
     }),
     columnHelper.accessor('description', {
       header: 'Description',
       cell: (info) => info.getValue(),
       meta: {
-        className: 'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
+        className:
+          'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400'
       }
     }),
     columnHelper.display({
@@ -182,8 +183,8 @@ export default function NamespaceTable(props: NamespaceTableProps) {
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
           <div className="relative overflow-hidden md:rounded-md">
-            <table className="min-w-full table-fixed divide-y divide-gray-300">
-              <thead className="bg-gray-50">
+            <table className="min-w-full table-fixed divide-y divide-gray-300 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) =>
@@ -191,7 +192,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
                         >
                           <div
                             className="group inline-flex cursor-pointer"
@@ -203,7 +204,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                            <span className="ml-2 flex-none rounded text-gray-400 dark:text-gray-500 group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon
@@ -225,7 +226,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
                         >
                           {header.isPlaceholder
                             ? null
@@ -239,9 +240,12 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-background">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-background dark:bg-gray-950">
                 {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id}>
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}

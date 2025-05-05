@@ -24,7 +24,7 @@ export function constraintTypeToLabel(c: ConstraintType): string {
     case ConstraintType.BOOLEAN:
       return 'Boolean';
     case ConstraintType.DATETIME:
-      return 'DateTime';
+      return 'Date Time';
     case ConstraintType.ENTITY_ID:
       return 'Entity';
     default:

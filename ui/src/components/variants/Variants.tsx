@@ -1,7 +1,7 @@
-import { SlidersHorizontalIcon } from 'lucide-react';
+import { SlidersHorizontalIcon, XIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
-import { ButtonWithPlus } from '~/components/Button';
+import { Button, ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
@@ -10,6 +10,90 @@ import DeletePanel from '~/components/panels/DeletePanel';
 import VariantForm from '~/components/variants/VariantForm';
 
 import { IVariant } from '~/types/Variant';
+
+function VariantCard({
+  variant,
+  onEdit,
+  onDelete
+}: {
+  variant: IVariant;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  // Check if variant has a non-empty attachment
+  const hasAttachment =
+    variant.attachment && Object.keys(variant.attachment).length > 0;
+
+  return (
+    <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
+      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center space-x-2">
+          <span className="p-1.5 rounded-md bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-100">
+            <SlidersHorizontalIcon className="h-4 w-4" />
+          </span>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            Variant
+          </h3>
+        </div>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+        >
+          <XIcon className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 p-4 space-y-3" onClick={onEdit}>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+            Key
+          </span>
+          <code className="text-sm font-mono text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {variant.key}
+          </code>
+        </div>
+
+        {variant.name && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Name
+            </span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+              {variant.name}
+            </span>
+          </div>
+        )}
+
+        {hasAttachment && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+              Attachment
+            </span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+              <span className="text-gray-500 dark:text-gray-400 text-xs">
+                {Object.keys(variant.attachment || {}).length} fields
+              </span>
+            </span>
+          </div>
+        )}
+
+        {variant.description && (
+          <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400 block mb-1">
+              Description
+            </span>
+            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+              {variant.description}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 type VariantsProps = {
   variants: IVariant[];
@@ -50,7 +134,7 @@ export default function Variants({ variants }: VariantsProps) {
           panelMessage={
             <>
               Are you sure you want to delete the variant{' '}
-              <span className="font-medium text-violet-500">
+              <span className="font-medium text-violet-500 dark:text-violet-400">
                 {deletingVariant?.key}
               </span>
               ? This action cannot be undone.
@@ -74,7 +158,7 @@ export default function Variants({ variants }: VariantsProps) {
       <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               Return different values based on rules you define.
             </p>
           </div>
@@ -95,94 +179,39 @@ export default function Variants({ variants }: VariantsProps) {
         </div>
         <div className="mt-10">
           {variants && variants.length > 0 ? (
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                  >
-                    Key
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
-                  >
-                    Description
-                  </th>
-                  <th scope="col" className="relative pb-3.5 pl-3 pr-4 sm:pr-6">
-                    <span className="sr-only">Edit</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {variants.map((variant) => (
-                  <tr key={variant.key}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
-                      {variant.key}
-                    </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                      {variant.name}
-                    </td>
-                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                      {variant.description}
-                    </td>
-                    <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                      <>
-                        <a
-                          href="#"
-                          className="pr-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setEditingVariant(variant);
-                            setShowVariantForm(true);
-                          }}
-                        >
-                          Edit
-                          <span className="sr-only">,{variant.key}</span>
-                        </a>
-                        <span aria-hidden="true"> | </span>
-                        <a
-                          href="#"
-                          className="pl-2 text-violet-600 hover:text-violet-900"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDeletingVariant(variant);
-                            setShowDeleteVariantModal(true);
-                          }}
-                        >
-                          Delete
-                          <span className="sr-only">,{variant.key}</span>
-                        </a>
-                      </>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {variants.map((variant) => (
+                <VariantCard
+                  key={variant.key}
+                  variant={variant}
+                  onEdit={() => {
+                    setEditingVariant(variant);
+                    setShowVariantForm(true);
+                  }}
+                  onDelete={() => {
+                    setDeletingVariant(variant);
+                    setShowDeleteVariantModal(true);
+                  }}
+                />
+              ))}
+            </div>
           ) : (
             <Well>
               <SlidersHorizontalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
                 No Variants Yet
               </h3>
-              <button
+              <Button
+                variant="primary"
                 aria-label="New Variant"
                 onClick={(e) => {
                   e.preventDefault();
                   setEditingVariant(null);
                   setShowVariantForm(true);
                 }}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
               >
                 Create Variant
-              </button>
+              </Button>
             </Well>
           )}
         </div>

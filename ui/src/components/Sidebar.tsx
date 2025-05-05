@@ -6,7 +6,7 @@ import Nav from './Nav';
 
 type SidebarProps = {
   sidebarOpen: boolean;
-  setSidebarOpen: (sidebarOpen: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
 };
 
 export default function Sidebar(props: SidebarProps) {
@@ -14,6 +14,7 @@ export default function Sidebar(props: SidebarProps) {
 
   return (
     <>
+      {/* Mobile sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -29,7 +30,7 @@ export default function Sidebar(props: SidebarProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-300/75 " />
+            <div className="fixed inset-0 bg-gray-300/75 dark:bg-gray-900/80" />
           </Transition.Child>
 
           <div className="fixed inset-0 z-40 flex">
@@ -42,7 +43,7 @@ export default function Sidebar(props: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-black pb-4 pt-5">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-100 dark:bg-gray-900 pb-4 pt-5">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -86,8 +87,8 @@ export default function Sidebar(props: SidebarProps) {
         className="hidden md:fixed md:bottom-0 md:flex md:w-64 md:flex-col"
         style={{ top: '64px' }}
       >
-        <div className="flex min-h-0 flex-1 flex-col bg-gray-200 dark:bg-gray-100">
-          <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col bg-gray-100 dark:bg-gray-900">
+          <div className="flex flex-1 flex-col overflow-y-auto pt-1 border-r border-gray-200 dark:border-gray-700">
             <Nav className="py-4" />
           </div>
         </div>

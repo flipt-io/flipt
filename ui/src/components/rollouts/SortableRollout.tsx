@@ -12,13 +12,14 @@ type SortableRolloutProps = {
   flag: IFlag;
   rollout: IRollout;
   segments: ISegment[];
+  index?: number;
   onSuccess?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
 export default function SortableRollout(props: SortableRolloutProps) {
-  const { flag, rollout, segments, onSuccess, onEdit, onDelete } = props;
+  const { flag, rollout, segments, index, onSuccess, onEdit, onDelete } = props;
   const {
     isDragging,
     attributes,
@@ -45,11 +46,12 @@ export default function SortableRollout(props: SortableRolloutProps) {
       {...attributes}
       style={style}
       className={cls({
-        'border-violet-500': isDragging
+        'border-violet-500 dark:border-violet-400': isDragging
       })}
       flag={flag}
       rollout={rollout}
       segments={segments}
+      index={index}
       onSuccess={onSuccess}
       onEdit={onEdit}
       onDelete={onDelete}
