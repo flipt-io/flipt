@@ -37,17 +37,17 @@ function NavItem(props: NavItemProps) {
       to={to}
       aria-label={name}
       className={({ isActive }) =>
-        cls('flex items-center rounded-md p-2 text-sm  text-white', {
-          'bg-gray-800 dark:bg-gray-300 md:bg-gray-50 md:text-gray-700 md:dark:bg-gray-300':
+        cls('flex items-center rounded-md p-2 text-sm', {
+          'bg-gray-800 text-white dark:bg-gray-800 dark:text-white md:bg-gray-100 md:text-gray-900 md:dark:bg-gray-800 md:dark:text-white':
             isActive,
-          'hover:bg-gray-700 dark:hover:bg-gray-300 dark:hover:text-gray-900 md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-700':
+          'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:text-gray-600 md:hover:bg-gray-50 md:hover:text-gray-900 md:dark:text-gray-300 md:dark:hover:bg-gray-700 md:dark:hover:text-white':
             !isActive
         })
       }
       onClick={onClick}
     >
       <Icon
-        className="mr-3 h-6 w-6 shrink-0 text-white md:text-gray-500"
+        className="mr-3 h-6 w-6 shrink-0 text-gray-500 dark:text-white md:text-gray-500 md:dark:text-gray-200"
         aria-hidden="true"
       />
       {name}
@@ -109,15 +109,15 @@ export default function Nav(props: NavProps) {
 
   return (
     <nav
-      className={`${className} flex grow flex-col overflow-y-auto`}
+      className={`${className} flex grow flex-col overflow-y-auto bg-white dark:bg-gray-900`}
       aria-label="Sidebar"
     >
-      <div className="flex shrink-0 flex-col px-2">
+      <div className="flex shrink-0 flex-col px-2 py-2">
         <NamespaceListbox className="w-full" disabled={!namespaceNavEnabled} />
       </div>
       <Separator
         decorative
-        className="h-px m-2 bg-gray-400 opacity-40 dark:bg-gray-600"
+        className="h-px mx-2 my-3 bg-gray-300 opacity-40 dark:bg-gray-500"
       />
       <div className="flex grow flex-col space-y-1 px-2">
         {navigation.map((item) => (
@@ -144,11 +144,11 @@ export default function Nav(props: NavProps) {
             }}
           />
         ))}
-        <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-400">
+        <div className="flex space-x-1 px-3 pt-2 text-xs text-gray-500 dark:text-gray-300">
           <span className="shrink-0">Command Mode:</span>
           <div className="shrink-0">
-            <kbd className="text-gray-400">ctrl</kbd> +{' '}
-            <kbd className="text-gray-400">k</kbd>
+            <kbd className="text-gray-500 dark:text-gray-300">ctrl</kbd> +{' '}
+            <kbd className="text-gray-500 dark:text-gray-300">k</kbd>
           </div>
         </div>
       </div>

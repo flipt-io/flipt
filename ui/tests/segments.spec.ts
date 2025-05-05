@@ -42,7 +42,7 @@ test.describe('Segments', () => {
     });
 
     await test.step('edit constraint properties', async () => {
-      await page.getByRole('link', { name: 'Edit , foo' }).click();
+      await page.getByText('foo', { exact: true }).click();
       await page
         .getByRole('combobox', { name: 'Type' })
         .selectOption('STRING_COMPARISON_TYPE');
@@ -92,9 +92,7 @@ test.describe('Segments', () => {
     await expect(page.getByText('Test Segment')).toBeVisible();
 
     // verify constraints were copied
-    await expect(
-      page.getByRole('cell', { name: 'foo', exact: true })
-    ).toBeVisible();
+    await expect(page.getByText('foo', { exact: true })).toBeVisible();
   });
 
   test('can delete segment', async ({ page }) => {

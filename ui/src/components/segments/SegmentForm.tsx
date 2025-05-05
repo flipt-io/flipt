@@ -50,8 +50,10 @@ function SegmentTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Match Type</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Match Type
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
           Select how constraints should be evaluated for this segment
         </p>
       </div>
@@ -61,22 +63,23 @@ function SegmentTypeSelector({
             key={matchType.id}
             onClick={() => onTypeSelect(matchType.id)}
             className={cls(
-              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500',
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500 dark:hover:border-violet-400',
               {
-                'border-violet-500 ring ring-violet-500':
+                'border-violet-500 ring ring-violet-500 dark:border-violet-400 dark:ring-violet-400':
                   selectedType === matchType.id,
-                'border-gray-300': selectedType !== matchType.id
+                'border-gray-300 dark:border-gray-600':
+                  selectedType !== matchType.id
               }
             )}
           >
             <div className="flex flex-1">
               <div className="flex flex-col">
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {matchType.name}
                   </span>
                 </div>
-                <p className="mt-2 flex items-center text-sm text-gray-500">
+                <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
                   {matchType.description}
                 </p>
               </div>
@@ -193,7 +196,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                 <div className="col-span-2">
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                   >
                     Name
                   </label>
@@ -220,7 +223,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   <div className="col-span-2">
                     <label
                       htmlFor="key"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                     >
                       Key
                     </label>
@@ -239,12 +242,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                   <div className="flex justify-between">
                     <label
                       htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                     >
                       Description
                     </label>
                     <span
-                      className="text-xs text-gray-500"
+                      className="text-xs text-gray-500 dark:text-gray-400"
                       id="description-optional"
                     >
                       Optional
@@ -279,7 +282,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   </Button>
                   {formik.dirty && formik.isValid && (
                     <div className="absolute -right-1 -top-1 h-3 w-3">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75"></span>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-100 opacity-75 dark:bg-violet-700"></span>
                     </div>
                   )}
                 </div>

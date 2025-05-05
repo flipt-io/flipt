@@ -1,7 +1,6 @@
 import { FieldArray, useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { TextButton } from '~/components/Button';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
@@ -57,7 +56,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     }
     // Fallback to position in array
     return rollouts.indexOf(rollout);
-  }, [formik.values.rollouts, rollout.id, rollout]);
+  }, [formik.values.rollouts, rollout]);
 
   // Use the calculated index for the field path
   const fieldPrefix = `rollouts.[${rolloutIndex !== -1 ? rolloutIndex : 0}].`;
@@ -181,7 +180,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
               <label
                 htmlFor="threshold-percentage-range"
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Percentage
               </label>
@@ -192,7 +191,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 type="range"
                 min="0"
                 max="100"
-                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-700 sm:block"
+                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-600 sm:block"
                 defaultValue={String(rollout.threshold?.percentage || 50)}
                 onChange={(e) => {
                   // Update the number input when slider changes
@@ -204,7 +203,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 onKeyUp={(e) => handlePercentageChange(e.currentTarget.value)}
               />
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black dark:text-white">
                   %
                 </div>
                 <Input
@@ -227,7 +226,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'threshold.value'}
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Value
               </label>
@@ -254,7 +253,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               <div>
                 <label
                   htmlFor={fieldPrefix + 'segment.segments'}
-                  className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                  className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
                 >
                   Segment
                 </label>
@@ -277,34 +276,37 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 <div className="mt-6 flex space-x-8">
                   {rolloutSegments.length > 1 &&
                     segmentOperators.map((segmentOperator, index) => (
-                      <div className="flex space-x-2" key={index}>
-                        <div>
+                      <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        key={index}
+                        onClick={() => {
+                          formik.setFieldValue(
+                            `${fieldPrefix}segment.segmentOperator`,
+                            segmentOperator.id
+                          );
+                        }}
+                      >
+                        <div className="flex items-center">
                           <input
                             id={segmentOperator.id}
                             name={fieldPrefix + 'segment.segmentOperator'}
                             type="radio"
-                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                            onChange={(e) => {
-                              e.preventDefault();
-                              formik.setFieldValue(
-                                fieldPrefix + 'segment.segmentOperator',
-                                segmentOperator.id
-                              );
-                            }}
+                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
                             checked={
                               segmentOperator.id ===
                               rollout.segment?.segmentOperator
                             }
                             value={segmentOperator.id}
+                            readOnly
                           />
                         </div>
-                        <div>
+                        <div className="flex items-center">
                           <label
                             htmlFor={segmentOperator.id}
-                            className="block text-sm text-gray-700"
+                            className="block text-sm text-gray-700 dark:text-gray-200 cursor-pointer"
                           >
                             {segmentOperator.name}{' '}
-                            <span className="font-light">
+                            <span className="font-light dark:text-gray-300">
                               {segmentOperator.meta}
                             </span>
                           </label>
@@ -315,7 +317,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'segment.value'}
-                className="mb-2 block text-sm font-medium text-gray-900"
+                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
                 Value
               </label>
@@ -338,16 +340,6 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               />
             </div>
           )}
-        </div>
-      </div>
-      <div className="shrink-0 py-1">
-        <div className="flex justify-end space-x-3">
-          <TextButton
-            disabled={formik.isSubmitting || !formik.dirty}
-            onClick={() => formik.resetForm()}
-          >
-            Reset
-          </TextButton>
         </div>
       </div>
     </div>

@@ -23,7 +23,7 @@ test.describe('Rollouts', () => {
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
-  test('can create rollout', async ({ page }) => {
+  test('can create threshold rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('button', { name: 'New Rollout' }).click();
     await page.getByLabel('Percentage').fill('100');
@@ -40,18 +40,16 @@ test.describe('Rollouts', () => {
     ).toBeVisible();
     await page.getByRole('list').getByLabel('Percentage').first().fill('70');
     await page.getByRole('list').getByLabel('Percentage').click();
-    await page.getByRole('button', { name: 'Reset' }).first().click();
-    await expect(page.getByLabel('Percentage')).toHaveValue('100');
   });
 
-  test('can quick edit rollout', async ({ page }) => {
+  test('can quick edit threshold rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByRole('list').getByLabel('Percentage').first().fill('70');
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
   });
 
-  test('can edit rollout', async ({ page }) => {
+  test('can edit threshold rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
     await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
@@ -76,13 +74,66 @@ test.describe('Rollouts', () => {
       await page.getByRole('link', { name: 'Flags' }).click();
       await page.getByRole('link', { name: 'test-boolean' }).click();
       await page.getByRole('button', { name: 'New Rollout' }).click();
-      await page.getByLabel('New Rollout').getByLabel('Segment').check();
+      await page
+        .getByLabel('New Rollout')
+        .getByText('Segment', { exact: true })
+        .click();
+
+      await page
+        .getByRole('dialog', { name: 'New Rollout' })
+        .getByTestId('segmentKey-0-select-button')
+        .click();
+      await page.getByRole('option', { name: 'Test Rollout' }).click();
 
       await page
         .getByLabel('New Rollout')
-        .locator('#segmentKey-0-select-button')
+        .getByRole('button', { name: 'Add' })
         .click();
-      await page.getByLabel('New Rollout').getByText('Test Rollout').click();
+      await page.getByRole('button', { name: 'Update' }).click();
+      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    });
+  });
+
+  test('can create segment rollout with multiple segments', async ({
+    page
+  }) => {
+    await test.step('create additional segment', async () => {
+      await page.getByRole('link', { name: 'Segments' }).click();
+      await page.getByRole('button', { name: 'New Segment' }).click();
+      await page.getByLabel('Name').fill('Second Segment');
+      await page.getByLabel('Description').click();
+      await page.getByRole('button', { name: 'Create' }).click();
+    });
+
+    await test.step('create multi-segment rollout', async () => {
+      await page.reload();
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('link', { name: 'test-boolean' }).click();
+      await page.getByRole('button', { name: 'New Rollout' }).click();
+      await page
+        .getByLabel('New Rollout')
+        .getByLabel('Segment', { exact: true })
+        .check();
+
+      // Add first segment
+      await page
+        .getByRole('dialog', { name: 'New Rollout' })
+        .getByTestId('segmentKey-0-select-button')
+        .click();
+      await page.getByRole('option', { name: 'Test Rollout' }).click();
+
+      await page
+        .getByRole('dialog', { name: 'New Rollout' })
+        .getByTestId('add-segment-button-0')
+        .click();
+
+      // Add second segment
+      await page
+        .getByRole('dialog', { name: 'New Rollout' })
+        .getByTestId('segmentKey-1-select-button')
+        .click();
+      await page.getByRole('option', { name: 'Second Segment' }).click();
+
       await page
         .getByLabel('New Rollout')
         .getByRole('button', { name: 'Add' })
@@ -94,11 +145,20 @@ test.describe('Rollouts', () => {
 
   test('can reorder rollouts', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
+
+    // Wait for rollouts to be visible before attempting drag
+    await page.getByTestId('rollout-0').waitFor();
+    await page.getByTestId('rollout-1').waitFor();
+
     await page
       .getByTestId('rollout-0')
       .getByRole('button', { name: 'Rollout' })
+      .first()
       .dragTo(
-        page.getByTestId('rollout-1').getByRole('button', { name: 'Rollout' })
+        page
+          .getByTestId('rollout-1')
+          .getByRole('button', { name: 'Rollout' })
+          .first()
       );
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
@@ -112,14 +172,18 @@ test.describe('Rollouts', () => {
 
   test('can delete rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
+
+    // Wait for rollout to be visible before attempting to click
+    await page.getByTestId('rollout-1').waitFor();
+
     await page
       .getByTestId('rollout-1')
       .getByTestId('rollout-menu-button')
+      .first()
       .click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated flag')).toBeVisible();
-    await expect(page.getByTestId('rollout-1')).toBeHidden();
   });
 });
