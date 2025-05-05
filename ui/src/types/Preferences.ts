@@ -8,3 +8,9 @@ export enum Theme {
   DARK = 'dark',
   SYSTEM = 'system'
 }
+
+export enum ViewMode {
+  AUTO = 'auto',
+  CARDS = 'cards',
+  TABLE = 'table'
+}

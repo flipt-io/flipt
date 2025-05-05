@@ -8,6 +8,9 @@ import {
   XIcon
 } from 'lucide-react';
 import { useContext, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+
+import { selectViewMode } from '~/app/preferences/preferencesSlice';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Chips from '~/components/Chips';
@@ -25,6 +28,7 @@ import {
   NoValueOperators,
   constraintTypeToLabel
 } from '~/types/Constraint';
+import { ViewMode } from '~/types/Preferences';
 
 import { useTimezone } from '~/data/hooks/timezone';
 
@@ -92,6 +96,40 @@ function ConstraintValue({ constraint }: { constraint: IConstraint }) {
   );
 }
 
+function getTypeIcon(type: ConstraintType) {
+  switch (type) {
+    case ConstraintType.STRING:
+      return <Text className="h-4 w-4" />;
+    case ConstraintType.NUMBER:
+      return <HashIcon className="h-4 w-4" />;
+    case ConstraintType.BOOLEAN:
+      return <ToggleLeftIcon className="h-4 w-4" />;
+    case ConstraintType.DATETIME:
+      return <CalendarIcon className="h-4 w-4" />;
+    case ConstraintType.ENTITY_ID:
+      return <IdCardIcon className="h-4 w-4" />;
+    default:
+      return <FilterIcon className="h-4 w-4" />;
+  }
+}
+
+function getTypeColor(type: ConstraintType) {
+  switch (type) {
+    case ConstraintType.STRING:
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
+    case ConstraintType.NUMBER:
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+    case ConstraintType.BOOLEAN:
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
+    case ConstraintType.DATETIME:
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
+    case ConstraintType.ENTITY_ID:
+      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+  }
+}
+
 function ConstraintCard({
   constraint,
   onEdit,
@@ -101,40 +139,6 @@ function ConstraintCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const getTypeIcon = (type: ConstraintType) => {
-    switch (type) {
-      case ConstraintType.STRING:
-        return <Text className="h-4 w-4" />;
-      case ConstraintType.NUMBER:
-        return <HashIcon className="h-4 w-4" />;
-      case ConstraintType.BOOLEAN:
-        return <ToggleLeftIcon className="h-4 w-4" />;
-      case ConstraintType.DATETIME:
-        return <CalendarIcon className="h-4 w-4" />;
-      case ConstraintType.ENTITY_ID:
-        return <IdCardIcon className="h-4 w-4" />;
-      default:
-        return <FilterIcon className="h-4 w-4" />;
-    }
-  };
-
-  const getTypeColor = (type: ConstraintType) => {
-    switch (type) {
-      case ConstraintType.STRING:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case ConstraintType.NUMBER:
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case ConstraintType.BOOLEAN:
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
-      case ConstraintType.DATETIME:
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
-      case ConstraintType.ENTITY_ID:
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
-    }
-  };
-
   return (
     <div className="relative flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 overflow-hidden shadow-sm hover:shadow-md">
       <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-3">
@@ -202,6 +206,114 @@ function ConstraintCard({
   );
 }
 
+function ConstraintTable({
+  constraints,
+  onEdit,
+  onDelete
+}: {
+  constraints: IConstraint[];
+  onEdit: (constraint: IConstraint, index: number) => void;
+  onDelete: (constraint: IConstraint, index: number) => void;
+}) {
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Type
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Property
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Operator
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Value
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Description
+            </th>
+            <th scope="col" className="relative px-3 py-3">
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          {constraints.map((constraint, index) => (
+            <tr
+              key={index}
+              className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+              onClick={() => onEdit(constraint, index)}
+            >
+              <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex items-center">
+                  <span
+                    className={`p-1 rounded-md mr-2 ${getTypeColor(constraint.type)}`}
+                  >
+                    {getTypeIcon(constraint.type)}
+                  </span>
+                  {constraintTypeToLabel(constraint.type)}
+                </div>
+              </td>
+              <td className="px-3 py-4 whitespace-nowrap text-sm">
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  {constraint.property}
+                </code>
+              </td>
+              <td className="px-3 py-4 whitespace-nowrap text-sm">
+                {ConstraintOperators[constraint.operator] ||
+                  constraint.operator}
+              </td>
+              <td className="px-3 py-4 whitespace-nowrap text-sm">
+                {!NoValueOperators.includes(constraint.operator) ? (
+                  <ConstraintValue constraint={constraint} />
+                ) : (
+                  <span className="text-gray-400 dark:text-gray-500">—</span>
+                )}
+              </td>
+              <td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">
+                {constraint.description ? (
+                  <p className="line-clamp-1">{constraint.description}</p>
+                ) : (
+                  <span className="text-gray-400 dark:text-gray-500">—</span>
+                )}
+              </td>
+              <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(constraint, index);
+                  }}
+                  className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                >
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 type ConstraintsProps = {
   constraints: IConstraint[];
 };
@@ -220,6 +332,17 @@ export default function Constraints({ constraints }: ConstraintsProps) {
   const constraintFormRef = useRef(null);
 
   const { deleteConstraint } = useContext(SegmentFormContext);
+
+  // Get user's view mode preference
+  const viewMode = useSelector(selectViewMode);
+
+  // Determine if we should use table view based on preference or count
+  const useTableView = useMemo(() => {
+    if (viewMode === ViewMode.TABLE) return true;
+    if (viewMode === ViewMode.CARDS) return false;
+    // Default auto behavior - table for more than 6 items
+    return constraints.length > 6;
+  }, [constraints.length, viewMode]);
 
   return (
     <>
@@ -296,28 +419,48 @@ export default function Constraints({ constraints }: ConstraintsProps) {
         </div>
         <div className="mt-10">
           {constraints && constraints.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {constraints.map((constraint: IConstraint, index: number) => (
-                <ConstraintCard
-                  key={index}
-                  constraint={constraint}
-                  onEdit={() => {
-                    setEditingConstraint({
-                      ...constraint,
-                      index
-                    });
-                    setShowConstraintForm(true);
-                  }}
-                  onDelete={() => {
-                    setDeletingConstraint({
-                      ...constraint,
-                      index
-                    });
-                    setShowDeleteConstraintModal(true);
-                  }}
-                />
-              ))}
-            </div>
+            useTableView ? (
+              <ConstraintTable
+                constraints={constraints}
+                onEdit={(constraint, index) => {
+                  setEditingConstraint({
+                    ...constraint,
+                    index
+                  });
+                  setShowConstraintForm(true);
+                }}
+                onDelete={(constraint, index) => {
+                  setDeletingConstraint({
+                    ...constraint,
+                    index
+                  });
+                  setShowDeleteConstraintModal(true);
+                }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {constraints.map((constraint: IConstraint, index: number) => (
+                  <ConstraintCard
+                    key={index}
+                    constraint={constraint}
+                    onEdit={() => {
+                      setEditingConstraint({
+                        ...constraint,
+                        index
+                      });
+                      setShowConstraintForm(true);
+                    }}
+                    onDelete={() => {
+                      setDeletingConstraint({
+                        ...constraint,
+                        index
+                      });
+                      setShowDeleteConstraintModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            )
           ) : (
             <Well>
               <FilterIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />

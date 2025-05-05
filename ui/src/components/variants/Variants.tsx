@@ -1,5 +1,8 @@
 import { SlidersHorizontalIcon, XIcon } from 'lucide-react';
-import { useContext, useRef, useState } from 'react';
+import { useContext, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+
+import { selectViewMode } from '~/app/preferences/preferencesSlice';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Modal from '~/components/Modal';
@@ -9,6 +12,7 @@ import { FlagFormContext } from '~/components/flags/FlagFormContext';
 import DeletePanel from '~/components/panels/DeletePanel';
 import VariantForm from '~/components/variants/VariantForm';
 
+import { ViewMode } from '~/types/Preferences';
 import { IVariant } from '~/types/Variant';
 
 function VariantCard({
@@ -95,6 +99,106 @@ function VariantCard({
   );
 }
 
+function VariantTable({
+  variants,
+  onEdit,
+  onDelete
+}: {
+  variants: IVariant[];
+  onEdit: (variant: IVariant) => void;
+  onDelete: (variant: IVariant) => void;
+}) {
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Key
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Name
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Attachment
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Description
+            </th>
+            <th scope="col" className="relative px-3 py-3">
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          {variants.map((variant) => {
+            const hasAttachment =
+              variant.attachment && Object.keys(variant.attachment).length > 0;
+
+            return (
+              <tr
+                key={variant.key}
+                className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                onClick={() => onEdit(variant)}
+              >
+                <td className="px-3 py-4 whitespace-nowrap text-sm">
+                  <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                    {variant.key}
+                  </code>
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {variant.name || (
+                    <span className="text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm">
+                  {hasAttachment ? (
+                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-500 dark:text-gray-400 text-xs">
+                      {Object.keys(variant.attachment || {}).length} fields
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-700 dark:text-gray-300">
+                  {variant.description ? (
+                    <p className="line-clamp-1">{variant.description}</p>
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(variant);
+                    }}
+                    className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 type VariantsProps = {
   variants: IVariant[];
 };
@@ -109,6 +213,17 @@ export default function Variants({ variants }: VariantsProps) {
   const variantFormRef = useRef(null);
 
   const { deleteVariant } = useContext(FlagFormContext);
+
+  // Get user's view mode preference
+  const viewMode = useSelector(selectViewMode);
+
+  // Determine if we should use table view based on preference or count
+  const useTableView = useMemo(() => {
+    if (viewMode === ViewMode.TABLE) return true;
+    if (viewMode === ViewMode.CARDS) return false;
+    // Default auto behavior - table for more than 6 items
+    return variants.length > 6;
+  }, [variants.length, viewMode]);
 
   return (
     <>
@@ -179,22 +294,36 @@ export default function Variants({ variants }: VariantsProps) {
         </div>
         <div className="mt-10">
           {variants && variants.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {variants.map((variant) => (
-                <VariantCard
-                  key={variant.key}
-                  variant={variant}
-                  onEdit={() => {
-                    setEditingVariant(variant);
-                    setShowVariantForm(true);
-                  }}
-                  onDelete={() => {
-                    setDeletingVariant(variant);
-                    setShowDeleteVariantModal(true);
-                  }}
-                />
-              ))}
-            </div>
+            useTableView ? (
+              <VariantTable
+                variants={variants}
+                onEdit={(variant) => {
+                  setEditingVariant(variant);
+                  setShowVariantForm(true);
+                }}
+                onDelete={(variant) => {
+                  setDeletingVariant(variant);
+                  setShowDeleteVariantModal(true);
+                }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {variants.map((variant) => (
+                  <VariantCard
+                    key={variant.key}
+                    variant={variant}
+                    onEdit={() => {
+                      setEditingVariant(variant);
+                      setShowVariantForm(true);
+                    }}
+                    onDelete={() => {
+                      setDeletingVariant(variant);
+                      setShowDeleteVariantModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            )
           ) : (
             <Well>
               <SlidersHorizontalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />

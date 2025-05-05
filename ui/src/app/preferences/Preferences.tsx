@@ -1,94 +1,197 @@
 import { Formik } from 'formik';
-import { useMemo } from 'react';
+import { Clock, List, Moon, Sun } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Switch } from '~/components/Switch';
 import Select from '~/components/forms/Select';
 
-import { Theme, Timezone } from '~/types/Preferences';
+import { Theme, Timezone, ViewMode } from '~/types/Preferences';
 
+import { useNotification } from '~/data/hooks/notification';
 import { useTimezone } from '~/data/hooks/timezone';
 
 import {
+  resetLastSaved,
+  selectLastSaved,
   selectTheme,
   selectTimezone,
+  selectViewMode,
   themeChanged,
-  timezoneChanged
+  timezoneChanged,
+  viewModeChanged
 } from './preferencesSlice';
 
 export default function Preferences() {
   const timezone = useSelector(selectTimezone);
   const theme = useSelector(selectTheme);
+  const viewMode = useSelector(selectViewMode);
+  const lastSaved = useSelector(selectLastSaved);
 
   const dispatch = useDispatch();
+  const { setNotification } = useNotification();
 
   const initialValues = {
     timezone: timezone,
-    theme: theme
+    theme: theme,
+    viewMode: viewMode
   };
 
   const { inTimezone } = useTimezone();
   const isUTC = useMemo(() => timezone === Timezone.UTC, [timezone]);
 
+  // Debounce timer for notifications
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_DELAY = 1000; // 1 second
+
+  // Show toast when preferences are saved, with debounce
+  useEffect(() => {
+    if (lastSaved) {
+      // Clear any existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        setNotification('Preferences saved', {
+          description: 'Your preferences have been automatically saved.',
+          duration: 2000
+        });
+        dispatch(resetLastSaved());
+        debounceTimerRef.current = null;
+      }, DEBOUNCE_DELAY);
+    }
+
+    // Cleanup timer on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [lastSaved, dispatch, setNotification]);
+
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
-      <div className="my-10">
-        <div className="space-y-1">
-          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
-            Preferences
-          </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Manage how information is displayed in the UI
-          </p>
-        </div>
-        <div className="mt-6 max-w-4xl">
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
-              <label
-                htmlFor="location"
-                className="text-sm font-bold text-gray-500 dark:text-gray-400"
-              >
-                Theme
-              </label>
-              <span></span>
-              <Select
-                id="location"
-                name="location"
-                value={theme || Theme.SYSTEM}
-                options={[
-                  { value: Theme.LIGHT, label: 'Light' },
-                  { value: Theme.DARK, label: 'Dark' },
-                  { value: Theme.SYSTEM, label: 'System' }
-                ]}
-                onChange={(e) => {
-                  dispatch(themeChanged(e.target.value as Theme));
-                }}
-              />
+      <div className="my-6">
+        <div className="max-w-2xl">
+          {/* Appearance Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">
+              Appearance
+            </h3>
+
+            <div className="space-y-6">
+              {/* Theme Preference */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-3 sm:mb-0">
+                  <div className="flex items-center">
+                    {theme === Theme.DARK ? (
+                      <Moon className="h-5 w-5 text-violet-500 dark:text-violet-400 mr-2" />
+                    ) : (
+                      <Sun className="h-5 w-5 text-violet-500 dark:text-violet-400 mr-2" />
+                    )}
+                    <label
+                      htmlFor="theme"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Theme
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Choose your preferred theme for the application
+                  </p>
+                </div>
+                <Select
+                  id="theme"
+                  name="theme"
+                  value={theme || Theme.SYSTEM}
+                  options={[
+                    { value: Theme.LIGHT, label: 'Light' },
+                    { value: Theme.DARK, label: 'Dark' },
+                    { value: Theme.SYSTEM, label: 'System' }
+                  ]}
+                  onChange={(e) => {
+                    dispatch(themeChanged(e.target.value as Theme));
+                  }}
+                  className="w-full sm:w-48"
+                />
+              </div>
+
+              {/* View Mode Preference */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-3 sm:mb-0">
+                  <div className="flex items-center">
+                    <List className="h-5 w-5 text-violet-500 dark:text-violet-400 mr-2" />
+                    <label
+                      htmlFor="view-mode"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      View Mode
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Choose how items like constraints and variants are displayed
+                  </p>
+                </div>
+                <div className="w-full sm:w-48">
+                  <Select
+                    id="view-mode"
+                    name="view-mode"
+                    value={viewMode || ViewMode.AUTO}
+                    options={[
+                      { value: ViewMode.AUTO, label: 'Auto' },
+                      { value: ViewMode.CARDS, label: 'Cards' },
+                      { value: ViewMode.TABLE, label: 'Table' }
+                    ]}
+                    onChange={(e) => {
+                      dispatch(viewModeChanged(e.target.value as ViewMode));
+                    }}
+                    className="w-full"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {viewMode === ViewMode.AUTO &&
+                      'Uses cards for 6 or fewer items, table for more'}
+                    {viewMode === ViewMode.CARDS &&
+                      'Always displays items in card format'}
+                    {viewMode === ViewMode.TABLE &&
+                      'Always displays items in table format'}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:pt-5">
-              <span
-                className="text-sm font-bold text-gray-500 dark:text-gray-400"
-                id="label-switch-tmz"
-              >
-                UTC Timezone
-                <p className="mt-2 text-xs font-normal dark:text-gray-400">
+          </div>
+
+          {/* DateTime Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">
+              Date & Time
+            </h3>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-3 sm:mb-0">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-violet-500 dark:text-violet-400 mr-2" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    UTC Timezone
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Display dates and times in UTC timezone
                 </p>
-                <p className="mt-2 text-xs font-semibold dark:text-gray-300">
+                <p className="mt-2 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded inline-block">
                   {inTimezone(new Date().toISOString())}
                 </p>
-              </span>
-              <dd className="sm:col-span-2 sm:mt-0 sm:text-right">
-                <Switch
-                  checked={isUTC}
-                  aria-labelledby="label-switch-tmz"
-                  onCheckedChange={() => {
-                    dispatch(
-                      timezoneChanged(isUTC ? Timezone.LOCAL : Timezone.UTC)
-                    );
-                  }}
-                />
-              </dd>
+              </div>
+              <Switch
+                checked={isUTC}
+                aria-labelledby="label-switch-tmz"
+                onCheckedChange={() => {
+                  dispatch(
+                    timezoneChanged(isUTC ? Timezone.LOCAL : Timezone.UTC)
+                  );
+                }}
+              />
             </div>
           </div>
         </div>
