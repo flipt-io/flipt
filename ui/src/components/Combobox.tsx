@@ -166,19 +166,20 @@ export default function Combobox<T extends IFilterable>(
                         {({ active, selected }) => (
                           <>
                             <div className="flex items-center">
-                              {v?.status && (
-                                <span
-                                  className={cls(
-                                    'mr-3 inline-block h-2 w-2 shrink-0 rounded-full bg-gray-200 dark:bg-gray-600',
-                                    { 'bg-green-400': v.status === 'active' },
-                                    {
-                                      'bg-green-600':
-                                        v.status === 'active' && active
-                                    }
-                                  )}
-                                  aria-hidden="true"
-                                />
-                              )}
+                              {/* Add console.log to debug status */}
+                              <span
+                                className={cls(
+                                  'mr-3 inline-block h-2 w-2 shrink-0 rounded-full',
+                                  v.status === 'active'
+                                    ? 'bg-green-400'
+                                    : 'bg-gray-200 dark:bg-gray-600',
+                                  {
+                                    'bg-green-600':
+                                      v.status === 'active' && active
+                                  }
+                                )}
+                                aria-hidden="true"
+                              />
                               <span
                                 className={cls(
                                   'truncate text-gray-700 dark:text-gray-200',

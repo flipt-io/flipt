@@ -113,7 +113,7 @@ export default function Analytics(props: AnalyticsProps) {
         <>
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                 Track and measure the impact in real-time.
               </p>
             </div>
