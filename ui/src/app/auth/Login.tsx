@@ -12,7 +12,7 @@ import { Navigate } from 'react-router';
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
 import Loading from '~/components/Loading';
-import { Toaster } from '~/components/sonner';
+import { Toaster } from '~/components/Sonner';
 
 import { IAuthMethod } from '~/types/Auth';
 

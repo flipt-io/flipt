@@ -7,8 +7,10 @@ export const useSuccess = () => {
     toast.dismiss(toastId.current);
     toastId.current = toast.success(msg, {
       style: {
-        background: 'var(--color-green-100)',
-        color: 'var(--color-green-500)'
+        background: 'hsl(var(--success))',
+        color: 'hsl(var(--success-foreground))',
+        border: '1px solid hsl(var(--success-border))',
+        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
       }
     }) as number;
   };

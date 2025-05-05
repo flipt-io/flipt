@@ -14,8 +14,8 @@ import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import Loading from '~/components/Loading';
 import Sidebar from '~/components/Sidebar';
+import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
-import { Toaster } from '~/components/sonner';
 
 import { LoadingStatus } from '~/types/Meta';
 
