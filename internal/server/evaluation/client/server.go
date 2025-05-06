@@ -1,16 +1,16 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha1"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/evaluation/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 var _ client.EvaluationServiceServer = (*Server)(nil)
@@ -58,7 +58,55 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *client.Eval
 }
 
 func (s *Server) EvaluationSnapshotNamespaceStream(req *client.EvaluationNamespaceSnapshotStreamRequest, stream client.EvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method EvaluationSnapshotNamespaceStream not implemented")
+	var (
+		ctx  = stream.Context()
+		env  = s.envs.GetFromContext(ctx)
+		hash = sha1.New()
+		// lastDigest is the digest of the last snapshot we sent
+		// this includes all namespaces
+		lastDigest []byte
+	)
+
+	// start subscription with a channel with a buffer of one
+	// to allow the subscription to preload the last observed snapshot
+	ch := make(chan *client.EvaluationNamespaceSnapshot, 1)
+	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
+	if err != nil {
+		s.logger.Error("error subscribing to environment evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+		return err
+	}
+
+	// close removes the channel from the subscribers
+	defer closer.Close()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case snap, ok := <-ch:
+			if !ok {
+				return nil
+			}
+
+			if snap == nil {
+				s.logger.Debug("received nil snapshot, skipping")
+				continue
+			}
+
+			hash.Write([]byte(snap.Digest))
+
+			// only send the snapshot if we have a new digest
+			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
+				if err := stream.Send(snap); err != nil {
+					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+					return err
+				}
+				lastDigest = digest
+			}
+
+			hash.Reset()
+		}
+	}
 }
 
 func (s *Server) SkipsAuthorization(ctx context.Context) bool {
