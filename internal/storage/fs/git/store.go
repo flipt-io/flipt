@@ -306,9 +306,33 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 
 	var errs []error
 	for _, ref := range s.snaps.References() {
+		// Skip base reference - we should never remove it
+		if ref == s.baseRef {
+			hash, err := s.resolve(ref)
+			if err != nil {
+				errs = append(errs, err)
+				continue
+			}
+
+			if _, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot); err != nil {
+				errs = append(errs, err)
+			}
+			continue
+		}
+
+		// For non-base references, attempt to resolve and handle gracefully if they no longer exist
 		hash, err := s.resolve(ref)
 		if err != nil {
-			errs = append(errs, err)
+			// Log that we're skipping a reference that no longer exists instead of returning an error
+			s.logger.Warn("skipping reference that no longer exists",
+				zap.String("ref", ref),
+				zap.String("git_storage_type", s.storageType()),
+				zap.Error(err))
+
+			// Remove the reference from the cache if it no longer exists
+			if s.snaps.RemoveReference(ref) {
+				s.logger.Info("removed reference from cache", zap.String("ref", ref))
+			}
 			continue
 		}
 
@@ -389,4 +413,12 @@ func (s *SnapshotStore) buildSnapshot(ctx context.Context, hash plumbing.Hash) (
 	}
 
 	return storagefs.SnapshotFromFS(s.logger, gfs, storagefs.WithEtag(hash.String()))
+}
+
+// storageType returns a string indicating the type of storage being used
+func (s *SnapshotStore) storageType() string {
+	if s.path != "" {
+		return "filesystem"
+	}
+	return "memory"
 }

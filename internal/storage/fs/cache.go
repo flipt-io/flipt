@@ -169,6 +169,39 @@ func (c *SnapshotCache[K]) References() []string {
 	return append(maps.Keys(c.fixed), c.extra.Keys()...)
 }
 
+// RemoveReference removes a reference from the cache.
+// It will not remove references from the fixed set.
+// Returns true if the reference was found and removed, false otherwise.
+func (c *SnapshotCache[K]) RemoveReference(ref string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Don't remove fixed references
+	if _, ok := c.fixed[ref]; ok {
+		return false
+	}
+
+	// If the reference exists in the extra cache, get its key and remove it
+	k, ok := c.extra.Peek(ref)
+	if !ok {
+		return false
+	}
+
+	// Remove from extra cache
+	c.extra.Remove(ref)
+
+	// Check if any other reference points to this key
+	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
+		if key == k {
+			return true
+		}
+	}
+
+	// If no other reference points to this key, remove the snapshot
+	delete(c.store, k)
+	return true
+}
+
 // evict is used for garbage collection while evicting from the LRU
 // and when AddOrBuild leaves old revision keys dangling.
 // It checks to see if the target key for the evicted reference is
