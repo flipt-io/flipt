@@ -326,7 +326,6 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 			// Log that we're skipping a reference that no longer exists instead of returning an error
 			s.logger.Warn("skipping reference that no longer exists",
 				zap.String("ref", ref),
-				zap.String("git_storage_type", s.storageType()),
 				zap.Error(err))
 
 			// Remove the reference from the cache if it no longer exists
@@ -413,12 +412,4 @@ func (s *SnapshotStore) buildSnapshot(ctx context.Context, hash plumbing.Hash) (
 	}
 
 	return storagefs.SnapshotFromFS(s.logger, gfs, storagefs.WithEtag(hash.String()))
-}
-
-// storageType returns a string indicating the type of storage being used
-func (s *SnapshotStore) storageType() string {
-	if s.path != "" {
-		return "filesystem"
-	}
-	return "memory"
 }
