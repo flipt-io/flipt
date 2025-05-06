@@ -1,12 +1,12 @@
 import { Formik } from 'formik';
-import { Clock, List, Moon, Sun } from 'lucide-react';
+import { Clock, Moon, Sun } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Switch } from '~/components/Switch';
 import Select from '~/components/forms/Select';
 
-import { Theme, Timezone, ViewMode } from '~/types/Preferences';
+import { Theme, Timezone } from '~/types/Preferences';
 
 import { useNotification } from '~/data/hooks/notification';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -16,16 +16,13 @@ import {
   selectLastSaved,
   selectTheme,
   selectTimezone,
-  selectViewMode,
   themeChanged,
-  timezoneChanged,
-  viewModeChanged
+  timezoneChanged
 } from './preferencesSlice';
 
 export default function Preferences() {
   const timezone = useSelector(selectTimezone);
   const theme = useSelector(selectTheme);
-  const viewMode = useSelector(selectViewMode);
   const lastSaved = useSelector(selectLastSaved);
 
   const dispatch = useDispatch();
@@ -33,8 +30,7 @@ export default function Preferences() {
 
   const initialValues = {
     timezone: timezone,
-    theme: theme,
-    viewMode: viewMode
+    theme: theme
   };
 
   const { inTimezone } = useTimezone();
@@ -127,48 +123,6 @@ export default function Preferences() {
                   }}
                   className="w-full sm:w-48"
                 />
-              </div>
-
-              {/* View Mode Preference */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div className="mb-3 sm:mb-0">
-                  <div className="flex items-center">
-                    <List className="h-5 w-5 text-violet-500 dark:text-violet-400 mr-2" />
-                    <label
-                      htmlFor="view-mode"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      View Mode
-                    </label>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Choose how items like constraints and variants are displayed
-                  </p>
-                </div>
-                <div className="w-full sm:w-48">
-                  <Select
-                    id="view-mode"
-                    name="view-mode"
-                    value={viewMode || ViewMode.AUTO}
-                    options={[
-                      { value: ViewMode.AUTO, label: 'Auto' },
-                      { value: ViewMode.CARDS, label: 'Cards' },
-                      { value: ViewMode.TABLE, label: 'Table' }
-                    ]}
-                    onChange={(e) => {
-                      dispatch(viewModeChanged(e.target.value as ViewMode));
-                    }}
-                    className="w-full"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {viewMode === ViewMode.AUTO &&
-                      'Uses cards for 6 or fewer items, table for more'}
-                    {viewMode === ViewMode.CARDS &&
-                      'Always displays items in card format'}
-                    {viewMode === ViewMode.TABLE &&
-                      'Always displays items in table format'}
-                  </p>
-                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,3 @@
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import {
   CellContext,
   PaginationState,
@@ -12,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { XIcon } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon, PencilIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import Pagination from '~/components/Pagination';
@@ -20,61 +19,59 @@ import Searchbox from '~/components/Searchbox';
 
 import { INamespace } from '~/types/Namespace';
 
-type NamespaceEditActionProps = {
-  cell: CellContext<INamespace, string>;
-  setEditingNamespace: (token: INamespace) => void;
-  setShowEditNamespaceModal: (show: boolean) => void;
-};
-
-function NamespaceEditAction(props: NamespaceEditActionProps) {
-  const { cell, setEditingNamespace, setShowEditNamespaceModal } = props;
-
-  return (
-    <a
-      href="#"
-      className="text-violet-600 hover:text-violet-900 dark:text-violet-400 dark:hover:text-violet-300"
-      onClick={(e) => {
-        e.preventDefault();
-        setEditingNamespace(cell.row.original);
-        setShowEditNamespaceModal(true);
-      }}
-    >
-      {cell.getValue()}
-    </a>
-  );
-}
-
 type NamespaceDeleteActionProps = {
   row: Row<INamespace>;
-  setDeletingNamespace: (token: INamespace) => void;
+  setEditingNamespace: (namespace: INamespace) => void;
+  setShowEditNamespaceModal: (show: boolean) => void;
+  setDeletingNamespace: (namespace: INamespace) => void;
   setShowDeleteNamespaceModal: (show: boolean) => void;
 };
 
 function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
-  const { row, setDeletingNamespace, setShowDeleteNamespaceModal } = props;
-  return row.original.protected ? (
-    <div className="flex justify-end">
-      <span
-        title="Cannot delete the default namespace"
-        className="text-gray-400 dark:text-gray-500 hover:cursor-not-allowed"
-      >
-        <XIcon className="h-4 w-4" />
-        <span className="sr-only">Cannot delete, {row.original.name}</span>
-      </span>
-    </div>
-  ) : (
-    <div className="flex justify-end">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setDeletingNamespace(row.original);
-          setShowDeleteNamespaceModal(true);
-        }}
-        className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
-      >
-        <XIcon className="h-4 w-4" />
-        <span className="sr-only">Delete, {row.original.name}</span>
-      </button>
+  const {
+    row,
+    setEditingNamespace,
+    setShowEditNamespaceModal,
+    setDeletingNamespace,
+    setShowDeleteNamespaceModal
+  } = props;
+
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <div className="hidden group-hover/row:block">
+        <span
+          className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditingNamespace(row.original);
+            setShowEditNamespaceModal(true);
+          }}
+        >
+          <PencilIcon className="h-3.5 w-3.5" />
+          Edit
+        </span>
+      </div>
+      {row.original.protected ? (
+        <div className="relative group/delete inline-block">
+          <span className="text-gray-400 dark:text-gray-500 hover:cursor-not-allowed p-1 rounded-full">
+            <XIcon className="h-4 w-4" />
+          </span>
+        </div>
+      ) : (
+        <div className="relative group/delete inline-block">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeletingNamespace(row.original);
+              setShowDeleteNamespaceModal(true);
+            }}
+            className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label={`Delete namespace ${row.original.name}`}
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -124,16 +121,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     }),
     columnHelper.accessor('name', {
       header: 'Name',
-      cell: (info) => {
-        return (
-          <NamespaceEditAction
-            // eslint-disable-next-line react/prop-types
-            cell={info}
-            setEditingNamespace={setEditingNamespace}
-            setShowEditNamespaceModal={setShowEditNamespaceModal}
-          />
-        );
-      },
+      cell: (info) => info.getValue(),
       meta: {
         className:
           'whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-500 dark:text-gray-400'
@@ -142,20 +130,26 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     columnHelper.accessor('description', {
       header: 'Description',
       cell: (info) =>
-        info.getValue() || (
+        info.getValue() ? (
+          <div className="truncate max-w-full">{info.getValue()}</div>
+        ) : (
           <span className="text-gray-400 dark:text-gray-500">—</span>
         ),
       meta: {
-        className: 'px-3 py-4 text-sm text-gray-700 dark:text-gray-300'
+        className:
+          'px-3 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-[300px]'
       }
     }),
     columnHelper.display({
       id: 'actions',
+      header: '',
       cell: (props) => {
         return (
           <NamespaceDeleteAction
             // eslint-disable-next-line react/prop-types
             row={props.row}
+            setEditingNamespace={setEditingNamespace}
+            setShowEditNamespaceModal={setShowEditNamespaceModal}
             setDeletingNamespace={setDeletingNamespace}
             setShowDeleteNamespaceModal={setShowDeleteNamespaceModal}
           />
@@ -192,7 +186,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
       <div className="mt-4 overflow-x-auto">
         <div className="inline-block min-w-full py-2 align-middle">
           <div className="overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
@@ -214,20 +208,21 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                                   header.getContext()
                                 )}
                             <span className="ml-2 flex-none rounded text-gray-400 dark:text-gray-500 group-hover:visible group-focus:visible">
-                              {{
-                                asc: (
-                                  <ChevronUpIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                ),
-                                desc: (
-                                  <ChevronDownIcon
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                )
-                              }[header.column.getIsSorted() as string] ?? null}
+                              {header.column.getIsSorted() === 'asc' ? (
+                                <ArrowUpIcon
+                                  className="h-4 w-4 text-gray-500 dark:text-gray-400"
+                                  aria-hidden="true"
+                                />
+                              ) : header.column.getIsSorted() === 'desc' ? (
+                                <ArrowDownIcon
+                                  className="h-4 w-4 text-gray-500 dark:text-gray-400"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <div className="h-4 w-4 opacity-0 group-hover:opacity-40">
+                                  <ArrowUpIcon className="h-4 w-4" />
+                                </div>
+                              )}
                             </span>
                           </div>
                         </th>
@@ -253,10 +248,21 @@ export default function NamespaceTable(props: NamespaceTableProps) {
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer group/row relative focus-within:bg-gray-50 dark:focus-within:bg-gray-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-violet-500 dark:focus-within:ring-violet-400"
                     onClick={() => {
                       setEditingNamespace(row.original);
                       setShowEditNamespaceModal(true);
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Edit namespace ${row.original.name}`}
+                    aria-pressed="false"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setEditingNamespace(row.original);
+                        setShowEditNamespaceModal(true);
+                      }
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (

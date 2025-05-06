@@ -3,7 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 import { fetchInfoAsync } from '~/app/meta/metaSlice';
 
-import { Theme, Timezone, ViewMode } from '~/types/Preferences';
+import { Theme, Timezone } from '~/types/Preferences';
 
 import { RootState } from '~/store';
 
@@ -12,14 +12,12 @@ export const preferencesKey = 'preferences';
 interface PreferencesState {
   theme: Theme;
   timezone: Timezone;
-  viewMode: ViewMode;
   lastSaved: number | null;
 }
 
 const getInitialState = (): PreferencesState => {
   let theme = Theme.SYSTEM;
   let timezone = Timezone.LOCAL;
-  let viewMode = ViewMode.AUTO;
 
   try {
     const storedPreferences = localStorage.getItem(preferencesKey);
@@ -41,13 +39,6 @@ const getInitialState = (): PreferencesState => {
       ) {
         timezone = preferences.timezone;
       }
-
-      if (
-        preferences.viewMode &&
-        Object.values(ViewMode).includes(preferences.viewMode)
-      ) {
-        viewMode = preferences.viewMode;
-      }
     }
   } catch (e) {
     // localStorage is disabled or not available, ignore
@@ -56,7 +47,6 @@ const getInitialState = (): PreferencesState => {
   return {
     theme,
     timezone,
-    viewMode,
     lastSaved: null
   };
 };
@@ -70,8 +60,7 @@ const savePreferences = (state: PreferencesState) => {
       preferencesKey,
       JSON.stringify({
         theme: state.theme,
-        timezone: state.timezone,
-        viewMode: state.viewMode
+        timezone: state.timezone
       })
     );
     state.lastSaved = Date.now();
@@ -90,10 +79,6 @@ export const preferencesSlice = createSlice({
     },
     timezoneChanged(state, action: PayloadAction<Timezone>) {
       state.timezone = action.payload;
-      savePreferences(state);
-    },
-    viewModeChanged(state, action: PayloadAction<ViewMode>) {
-      state.viewMode = action.payload;
       savePreferences(state);
     },
     // Reset the lastSaved timestamp - used for debouncing notifications
@@ -117,30 +102,20 @@ export const preferencesSlice = createSlice({
         state.timezone = Timezone.LOCAL;
       }
 
-      if (!currentPreference.viewMode) {
-        state.viewMode = ViewMode.AUTO;
-      }
-
       // Save the updated state
       savePreferences(state);
     });
   }
 });
 
-export const {
-  themeChanged,
-  timezoneChanged,
-  viewModeChanged,
-  resetLastSaved
-} = preferencesSlice.actions;
+export const { themeChanged, timezoneChanged, resetLastSaved } =
+  preferencesSlice.actions;
 
 export const selectPreferences = (state: RootState) => state.preferences;
 
 export const selectTheme = (state: RootState) => state.preferences.theme;
 
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
-
-export const selectViewMode = (state: RootState) => state.preferences.viewMode;
 
 export const selectLastSaved = (state: RootState) =>
   state.preferences.lastSaved;
