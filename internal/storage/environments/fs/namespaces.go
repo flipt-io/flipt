@@ -133,14 +133,61 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 		return err
 	}
 
+	// If the file already exists, read it to preserve existing flags and data
+	var docs []*ext.Document
+	if err == nil {
+		fi, err := fs.OpenFile(path, os.O_RDONLY, 0644)
+		if err != nil {
+			return err
+		}
+
+		decoder := ext.EncodingYAML.NewDecoder(fi)
+		for {
+			doc := &ext.Document{}
+			if err = decoder.Decode(doc); err != nil {
+				if errors.Is(err, io.EOF) {
+					err = nil
+					break
+				}
+				fi.Close()
+				return err
+			}
+			docs = append(docs, doc)
+		}
+		fi.Close()
+	}
+
+	// Create output file
 	fi, err := fs.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
-
 	defer fi.Close()
 
-	return ext.EncodingYAML.NewEncoder(fi).Encode(NewDocumentForNS(extNamespaceFor(ns)))
+	// Write documents back with updated namespace info
+	encoder := ext.EncodingYAML.NewEncoder(fi)
+
+	// If we have existing documents, update the namespace in each one
+	if len(docs) > 0 {
+		for _, doc := range docs {
+			// Update namespace info if it matches the key
+			if doc.Namespace.GetKey() == ns.Key {
+				doc.Namespace = extNamespaceFor(ns)
+			}
+
+			if err := encoder.Encode(doc); err != nil {
+				return err
+			}
+		}
+	} else {
+		// No existing documents, create a new one
+		doc := NewDocumentForNS(extNamespaceFor(ns))
+		if err := encoder.Encode(doc); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *NamespaceStorage) DeleteNamespace(ctx context.Context, fs Filesystem, key string) error {
