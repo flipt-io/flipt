@@ -37,7 +37,7 @@ test.describe('Namespaces', () => {
     await expect(
       page.getByRole('heading', { name: 'Namespaces' })
     ).toBeVisible();
-    await page.getByRole('link', { name: 'staging', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit namespace staging' }).click();
     await page.getByLabel('Name', { exact: true }).fill('test');
     await page.getByLabel('Description').fill('Test Namespace');
     await page.getByRole('button', { name: 'Update' }).click();
@@ -60,7 +60,7 @@ test.describe('Namespaces', () => {
     await expect(
       page.getByRole('heading', { name: 'Namespaces' })
     ).toBeVisible();
-    await page.getByRole('link', { name: 'Delete , test' }).click();
+    await page.getByRole('button', { name: 'Delete namespace test' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await expect(
       page.getByTestId('namespace-listbox').getByRole('combobox', {
@@ -75,8 +75,8 @@ test.describe('Namespaces', () => {
     await expect(
       page.getByRole('heading', { name: 'Namespaces' })
     ).toBeVisible();
-    await page.getByText('Delete, default').click();
-    // assert that the default namespace is still there even after clicking 'delete'
-    await page.getByRole('cell', { name: 'default' }).first().click();
+    await expect(
+      page.getByRole('button', { name: 'Delete namespace default' })
+    ).not.toBeVisible();
   });
 });

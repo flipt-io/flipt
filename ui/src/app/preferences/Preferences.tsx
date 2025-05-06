@@ -118,6 +118,7 @@ export default function Preferences() {
                     { value: Theme.DARK, label: 'Dark' },
                     { value: Theme.SYSTEM, label: 'System' }
                   ]}
+                  data-testid="select-theme"
                   onChange={(e) => {
                     dispatch(themeChanged(e.target.value as Theme));
                   }}
@@ -151,6 +152,7 @@ export default function Preferences() {
               <Switch
                 checked={isUTC}
                 aria-labelledby="label-switch-tmz"
+                data-testid="switch-timezone"
                 onCheckedChange={() => {
                   dispatch(
                     timezoneChanged(isUTC ? Timezone.LOCAL : Timezone.UTC)
