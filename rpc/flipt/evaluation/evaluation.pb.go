@@ -171,6 +171,147 @@ func (EvaluationResponseType) EnumDescriptor() ([]byte, []int) {
 	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{2}
 }
 
+type EvaluationRolloutType int32
+
+const (
+	EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE   EvaluationRolloutType = 0
+	EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE   EvaluationRolloutType = 1
+	EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE EvaluationRolloutType = 2
+)
+
+// Enum value maps for EvaluationRolloutType.
+var (
+	EvaluationRolloutType_name = map[int32]string{
+		0: "UNKNOWN_ROLLOUT_TYPE",
+		1: "SEGMENT_ROLLOUT_TYPE",
+		2: "THRESHOLD_ROLLOUT_TYPE",
+	}
+	EvaluationRolloutType_value = map[string]int32{
+		"UNKNOWN_ROLLOUT_TYPE":   0,
+		"SEGMENT_ROLLOUT_TYPE":   1,
+		"THRESHOLD_ROLLOUT_TYPE": 2,
+	}
+)
+
+func (x EvaluationRolloutType) Enum() *EvaluationRolloutType {
+	p := new(EvaluationRolloutType)
+	*p = x
+	return p
+}
+
+func (x EvaluationRolloutType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EvaluationRolloutType) Descriptor() protoreflect.EnumDescriptor {
+	return file_evaluation_evaluation_proto_enumTypes[3].Descriptor()
+}
+
+func (EvaluationRolloutType) Type() protoreflect.EnumType {
+	return &file_evaluation_evaluation_proto_enumTypes[3]
+}
+
+func (x EvaluationRolloutType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EvaluationRolloutType.Descriptor instead.
+func (EvaluationRolloutType) EnumDescriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{3}
+}
+
+type EvaluationSegmentOperator int32
+
+const (
+	EvaluationSegmentOperator_OR_SEGMENT_OPERATOR  EvaluationSegmentOperator = 0
+	EvaluationSegmentOperator_AND_SEGMENT_OPERATOR EvaluationSegmentOperator = 1
+)
+
+// Enum value maps for EvaluationSegmentOperator.
+var (
+	EvaluationSegmentOperator_name = map[int32]string{
+		0: "OR_SEGMENT_OPERATOR",
+		1: "AND_SEGMENT_OPERATOR",
+	}
+	EvaluationSegmentOperator_value = map[string]int32{
+		"OR_SEGMENT_OPERATOR":  0,
+		"AND_SEGMENT_OPERATOR": 1,
+	}
+)
+
+func (x EvaluationSegmentOperator) Enum() *EvaluationSegmentOperator {
+	p := new(EvaluationSegmentOperator)
+	*p = x
+	return p
+}
+
+func (x EvaluationSegmentOperator) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EvaluationSegmentOperator) Descriptor() protoreflect.EnumDescriptor {
+	return file_evaluation_evaluation_proto_enumTypes[4].Descriptor()
+}
+
+func (EvaluationSegmentOperator) Type() protoreflect.EnumType {
+	return &file_evaluation_evaluation_proto_enumTypes[4]
+}
+
+func (x EvaluationSegmentOperator) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EvaluationSegmentOperator.Descriptor instead.
+func (EvaluationSegmentOperator) EnumDescriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{4}
+}
+
+type EvaluationSegmentMatchType int32
+
+const (
+	EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE EvaluationSegmentMatchType = 0
+	EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE EvaluationSegmentMatchType = 1
+)
+
+// Enum value maps for EvaluationSegmentMatchType.
+var (
+	EvaluationSegmentMatchType_name = map[int32]string{
+		0: "ALL_SEGMENT_MATCH_TYPE",
+		1: "ANY_SEGMENT_MATCH_TYPE",
+	}
+	EvaluationSegmentMatchType_value = map[string]int32{
+		"ALL_SEGMENT_MATCH_TYPE": 0,
+		"ANY_SEGMENT_MATCH_TYPE": 1,
+	}
+)
+
+func (x EvaluationSegmentMatchType) Enum() *EvaluationSegmentMatchType {
+	p := new(EvaluationSegmentMatchType)
+	*p = x
+	return p
+}
+
+func (x EvaluationSegmentMatchType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EvaluationSegmentMatchType) Descriptor() protoreflect.EnumDescriptor {
+	return file_evaluation_evaluation_proto_enumTypes[5].Descriptor()
+}
+
+func (EvaluationSegmentMatchType) Type() protoreflect.EnumType {
+	return &file_evaluation_evaluation_proto_enumTypes[5]
+}
+
+func (x EvaluationSegmentMatchType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EvaluationSegmentMatchType.Descriptor instead.
+func (EvaluationSegmentMatchType) EnumDescriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{5}
+}
+
 type EvaluationFlagType int32
 
 const (
@@ -201,11 +342,11 @@ func (x EvaluationFlagType) String() string {
 }
 
 func (EvaluationFlagType) Descriptor() protoreflect.EnumDescriptor {
-	return file_evaluation_evaluation_proto_enumTypes[3].Descriptor()
+	return file_evaluation_evaluation_proto_enumTypes[6].Descriptor()
 }
 
 func (EvaluationFlagType) Type() protoreflect.EnumType {
-	return &file_evaluation_evaluation_proto_enumTypes[3]
+	return &file_evaluation_evaluation_proto_enumTypes[6]
 }
 
 func (x EvaluationFlagType) Number() protoreflect.EnumNumber {
@@ -214,7 +355,65 @@ func (x EvaluationFlagType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvaluationFlagType.Descriptor instead.
 func (EvaluationFlagType) EnumDescriptor() ([]byte, []int) {
-	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{3}
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{6}
+}
+
+type EvaluationConstraintComparisonType int32
+
+const (
+	EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE   EvaluationConstraintComparisonType = 0
+	EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE    EvaluationConstraintComparisonType = 1
+	EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE    EvaluationConstraintComparisonType = 2
+	EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE   EvaluationConstraintComparisonType = 3
+	EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE  EvaluationConstraintComparisonType = 4
+	EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE EvaluationConstraintComparisonType = 5
+)
+
+// Enum value maps for EvaluationConstraintComparisonType.
+var (
+	EvaluationConstraintComparisonType_name = map[int32]string{
+		0: "UNKNOWN_CONSTRAINT_COMPARISON_TYPE",
+		1: "STRING_CONSTRAINT_COMPARISON_TYPE",
+		2: "NUMBER_CONSTRAINT_COMPARISON_TYPE",
+		3: "BOOLEAN_CONSTRAINT_COMPARISON_TYPE",
+		4: "DATETIME_CONSTRAINT_COMPARISON_TYPE",
+		5: "ENTITY_ID_CONSTRAINT_COMPARISON_TYPE",
+	}
+	EvaluationConstraintComparisonType_value = map[string]int32{
+		"UNKNOWN_CONSTRAINT_COMPARISON_TYPE":   0,
+		"STRING_CONSTRAINT_COMPARISON_TYPE":    1,
+		"NUMBER_CONSTRAINT_COMPARISON_TYPE":    2,
+		"BOOLEAN_CONSTRAINT_COMPARISON_TYPE":   3,
+		"DATETIME_CONSTRAINT_COMPARISON_TYPE":  4,
+		"ENTITY_ID_CONSTRAINT_COMPARISON_TYPE": 5,
+	}
+)
+
+func (x EvaluationConstraintComparisonType) Enum() *EvaluationConstraintComparisonType {
+	p := new(EvaluationConstraintComparisonType)
+	*p = x
+	return p
+}
+
+func (x EvaluationConstraintComparisonType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EvaluationConstraintComparisonType) Descriptor() protoreflect.EnumDescriptor {
+	return file_evaluation_evaluation_proto_enumTypes[7].Descriptor()
+}
+
+func (EvaluationConstraintComparisonType) Type() protoreflect.EnumType {
+	return &file_evaluation_evaluation_proto_enumTypes[7]
+}
+
+func (x EvaluationConstraintComparisonType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EvaluationConstraintComparisonType.Descriptor instead.
+func (EvaluationConstraintComparisonType) EnumDescriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{7}
 }
 
 type EvaluationRequest struct {
@@ -787,6 +986,726 @@ func (x *ErrorEvaluationResponse) GetReason() ErrorEvaluationReason {
 	return ErrorEvaluationReason_UNKNOWN_ERROR_EVALUATION_REASON
 }
 
+type EvaluationDistribution struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+	Id     string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RuleId string `protobuf:"bytes,2,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+	VariantId         string  `protobuf:"bytes,3,opt,name=variant_id,json=variantId,proto3" json:"variant_id,omitempty"`
+	VariantKey        string  `protobuf:"bytes,4,opt,name=variant_key,json=variantKey,proto3" json:"variant_key,omitempty"`
+	VariantAttachment string  `protobuf:"bytes,5,opt,name=variant_attachment,json=variantAttachment,proto3" json:"variant_attachment,omitempty"`
+	Rollout           float32 `protobuf:"fixed32,6,opt,name=rollout,proto3" json:"rollout,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *EvaluationDistribution) Reset() {
+	*x = EvaluationDistribution{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationDistribution) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationDistribution) ProtoMessage() {}
+
+func (x *EvaluationDistribution) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationDistribution.ProtoReflect.Descriptor instead.
+func (*EvaluationDistribution) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{7}
+}
+
+// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+func (x *EvaluationDistribution) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EvaluationDistribution) GetRuleId() string {
+	if x != nil {
+		return x.RuleId
+	}
+	return ""
+}
+
+// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+func (x *EvaluationDistribution) GetVariantId() string {
+	if x != nil {
+		return x.VariantId
+	}
+	return ""
+}
+
+func (x *EvaluationDistribution) GetVariantKey() string {
+	if x != nil {
+		return x.VariantKey
+	}
+	return ""
+}
+
+func (x *EvaluationDistribution) GetVariantAttachment() string {
+	if x != nil {
+		return x.VariantAttachment
+	}
+	return ""
+}
+
+func (x *EvaluationDistribution) GetRollout() float32 {
+	if x != nil {
+		return x.Rollout
+	}
+	return 0
+}
+
+type EvaluationRollout struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Type  EvaluationRolloutType  `protobuf:"varint,1,opt,name=type,proto3,enum=flipt.evaluation.EvaluationRolloutType" json:"type,omitempty"`
+	Rank  int32                  `protobuf:"varint,2,opt,name=rank,proto3" json:"rank,omitempty"`
+	// Types that are valid to be assigned to Rule:
+	//
+	//	*EvaluationRollout_Segment
+	//	*EvaluationRollout_Threshold
+	Rule          isEvaluationRollout_Rule `protobuf_oneof:"rule"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvaluationRollout) Reset() {
+	*x = EvaluationRollout{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationRollout) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationRollout) ProtoMessage() {}
+
+func (x *EvaluationRollout) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationRollout.ProtoReflect.Descriptor instead.
+func (*EvaluationRollout) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *EvaluationRollout) GetType() EvaluationRolloutType {
+	if x != nil {
+		return x.Type
+	}
+	return EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
+}
+
+func (x *EvaluationRollout) GetRank() int32 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *EvaluationRollout) GetRule() isEvaluationRollout_Rule {
+	if x != nil {
+		return x.Rule
+	}
+	return nil
+}
+
+func (x *EvaluationRollout) GetSegment() *EvaluationRolloutSegment {
+	if x != nil {
+		if x, ok := x.Rule.(*EvaluationRollout_Segment); ok {
+			return x.Segment
+		}
+	}
+	return nil
+}
+
+func (x *EvaluationRollout) GetThreshold() *EvaluationRolloutThreshold {
+	if x != nil {
+		if x, ok := x.Rule.(*EvaluationRollout_Threshold); ok {
+			return x.Threshold
+		}
+	}
+	return nil
+}
+
+type isEvaluationRollout_Rule interface {
+	isEvaluationRollout_Rule()
+}
+
+type EvaluationRollout_Segment struct {
+	Segment *EvaluationRolloutSegment `protobuf:"bytes,3,opt,name=segment,proto3,oneof"`
+}
+
+type EvaluationRollout_Threshold struct {
+	Threshold *EvaluationRolloutThreshold `protobuf:"bytes,4,opt,name=threshold,proto3,oneof"`
+}
+
+func (*EvaluationRollout_Segment) isEvaluationRollout_Rule() {}
+
+func (*EvaluationRollout_Threshold) isEvaluationRollout_Rule() {}
+
+type EvaluationRolloutThreshold struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Percentage    float32                `protobuf:"fixed32,1,opt,name=percentage,proto3" json:"percentage,omitempty"`
+	Value         bool                   `protobuf:"varint,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvaluationRolloutThreshold) Reset() {
+	*x = EvaluationRolloutThreshold{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationRolloutThreshold) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationRolloutThreshold) ProtoMessage() {}
+
+func (x *EvaluationRolloutThreshold) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationRolloutThreshold.ProtoReflect.Descriptor instead.
+func (*EvaluationRolloutThreshold) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *EvaluationRolloutThreshold) GetPercentage() float32 {
+	if x != nil {
+		return x.Percentage
+	}
+	return 0
+}
+
+func (x *EvaluationRolloutThreshold) GetValue() bool {
+	if x != nil {
+		return x.Value
+	}
+	return false
+}
+
+type EvaluationRolloutSegment struct {
+	state           protoimpl.MessageState    `protogen:"open.v1"`
+	Value           bool                      `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	SegmentOperator EvaluationSegmentOperator `protobuf:"varint,2,opt,name=segment_operator,json=segmentOperator,proto3,enum=flipt.evaluation.EvaluationSegmentOperator" json:"segment_operator,omitempty"`
+	Segments        []*EvaluationSegment      `protobuf:"bytes,3,rep,name=segments,proto3" json:"segments,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *EvaluationRolloutSegment) Reset() {
+	*x = EvaluationRolloutSegment{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationRolloutSegment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationRolloutSegment) ProtoMessage() {}
+
+func (x *EvaluationRolloutSegment) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationRolloutSegment.ProtoReflect.Descriptor instead.
+func (*EvaluationRolloutSegment) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *EvaluationRolloutSegment) GetValue() bool {
+	if x != nil {
+		return x.Value
+	}
+	return false
+}
+
+func (x *EvaluationRolloutSegment) GetSegmentOperator() EvaluationSegmentOperator {
+	if x != nil {
+		return x.SegmentOperator
+	}
+	return EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+}
+
+func (x *EvaluationRolloutSegment) GetSegments() []*EvaluationSegment {
+	if x != nil {
+		return x.Segments
+	}
+	return nil
+}
+
+type EvaluationSegment struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Key           string                     `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Name          string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                     `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	MatchType     EvaluationSegmentMatchType `protobuf:"varint,4,opt,name=match_type,json=matchType,proto3,enum=flipt.evaluation.EvaluationSegmentMatchType" json:"match_type,omitempty"`
+	CreatedAt     *timestamppb.Timestamp     `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp     `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Constraints   []*EvaluationConstraint    `protobuf:"bytes,7,rep,name=constraints,proto3" json:"constraints,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvaluationSegment) Reset() {
+	*x = EvaluationSegment{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationSegment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationSegment) ProtoMessage() {}
+
+func (x *EvaluationSegment) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationSegment.ProtoReflect.Descriptor instead.
+func (*EvaluationSegment) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *EvaluationSegment) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *EvaluationSegment) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *EvaluationSegment) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *EvaluationSegment) GetMatchType() EvaluationSegmentMatchType {
+	if x != nil {
+		return x.MatchType
+	}
+	return EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE
+}
+
+func (x *EvaluationSegment) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *EvaluationSegment) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *EvaluationSegment) GetConstraints() []*EvaluationConstraint {
+	if x != nil {
+		return x.Constraints
+	}
+	return nil
+}
+
+type EvaluationVariant struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Attachment    string                 `protobuf:"bytes,3,opt,name=attachment,proto3" json:"attachment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvaluationVariant) Reset() {
+	*x = EvaluationVariant{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationVariant) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationVariant) ProtoMessage() {}
+
+func (x *EvaluationVariant) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationVariant.ProtoReflect.Descriptor instead.
+func (*EvaluationVariant) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *EvaluationVariant) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EvaluationVariant) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *EvaluationVariant) GetAttachment() string {
+	if x != nil {
+		return x.Attachment
+	}
+	return ""
+}
+
+type EvaluationFlag struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Key            string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Enabled        bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Type           EvaluationFlagType     `protobuf:"varint,5,opt,name=type,proto3,enum=flipt.evaluation.EvaluationFlagType" json:"type,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Rules          []*EvaluationRule      `protobuf:"bytes,8,rep,name=rules,proto3" json:"rules,omitempty"`
+	Rollouts       []*EvaluationRollout   `protobuf:"bytes,9,rep,name=rollouts,proto3" json:"rollouts,omitempty"`
+	DefaultVariant *EvaluationVariant     `protobuf:"bytes,10,opt,name=default_variant,json=defaultVariant,proto3,oneof" json:"default_variant,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *EvaluationFlag) Reset() {
+	*x = EvaluationFlag{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationFlag) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationFlag) ProtoMessage() {}
+
+func (x *EvaluationFlag) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationFlag.ProtoReflect.Descriptor instead.
+func (*EvaluationFlag) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *EvaluationFlag) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *EvaluationFlag) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *EvaluationFlag) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *EvaluationFlag) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *EvaluationFlag) GetType() EvaluationFlagType {
+	if x != nil {
+		return x.Type
+	}
+	return EvaluationFlagType_VARIANT_FLAG_TYPE
+}
+
+func (x *EvaluationFlag) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *EvaluationFlag) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *EvaluationFlag) GetRules() []*EvaluationRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+func (x *EvaluationFlag) GetRollouts() []*EvaluationRollout {
+	if x != nil {
+		return x.Rollouts
+	}
+	return nil
+}
+
+func (x *EvaluationFlag) GetDefaultVariant() *EvaluationVariant {
+	if x != nil {
+		return x.DefaultVariant
+	}
+	return nil
+}
+
+type EvaluationConstraint struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+	Id            string                             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type          EvaluationConstraintComparisonType `protobuf:"varint,2,opt,name=type,proto3,enum=flipt.evaluation.EvaluationConstraintComparisonType" json:"type,omitempty"`
+	Property      string                             `protobuf:"bytes,3,opt,name=property,proto3" json:"property,omitempty"`
+	Operator      string                             `protobuf:"bytes,4,opt,name=operator,proto3" json:"operator,omitempty"`
+	Value         string                             `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EvaluationConstraint) Reset() {
+	*x = EvaluationConstraint{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationConstraint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationConstraint) ProtoMessage() {}
+
+func (x *EvaluationConstraint) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationConstraint.ProtoReflect.Descriptor instead.
+func (*EvaluationConstraint) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{14}
+}
+
+// Deprecated: Marked as deprecated in evaluation/evaluation.proto.
+func (x *EvaluationConstraint) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EvaluationConstraint) GetType() EvaluationConstraintComparisonType {
+	if x != nil {
+		return x.Type
+	}
+	return EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+}
+
+func (x *EvaluationConstraint) GetProperty() string {
+	if x != nil {
+		return x.Property
+	}
+	return ""
+}
+
+func (x *EvaluationConstraint) GetOperator() string {
+	if x != nil {
+		return x.Operator
+	}
+	return ""
+}
+
+func (x *EvaluationConstraint) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type EvaluationRule struct {
+	state           protoimpl.MessageState    `protogen:"open.v1"`
+	Id              string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Segments        []*EvaluationSegment      `protobuf:"bytes,2,rep,name=segments,proto3" json:"segments,omitempty"`
+	Rank            int32                     `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
+	SegmentOperator EvaluationSegmentOperator `protobuf:"varint,4,opt,name=segment_operator,json=segmentOperator,proto3,enum=flipt.evaluation.EvaluationSegmentOperator" json:"segment_operator,omitempty"`
+	Distributions   []*EvaluationDistribution `protobuf:"bytes,5,rep,name=distributions,proto3" json:"distributions,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *EvaluationRule) Reset() {
+	*x = EvaluationRule{}
+	mi := &file_evaluation_evaluation_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EvaluationRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationRule) ProtoMessage() {}
+
+func (x *EvaluationRule) ProtoReflect() protoreflect.Message {
+	mi := &file_evaluation_evaluation_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationRule.ProtoReflect.Descriptor instead.
+func (*EvaluationRule) Descriptor() ([]byte, []int) {
+	return file_evaluation_evaluation_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *EvaluationRule) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EvaluationRule) GetSegments() []*EvaluationSegment {
+	if x != nil {
+		return x.Segments
+	}
+	return nil
+}
+
+func (x *EvaluationRule) GetRank() int32 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *EvaluationRule) GetSegmentOperator() EvaluationSegmentOperator {
+	if x != nil {
+		return x.SegmentOperator
+	}
+	return EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+}
+
+func (x *EvaluationRule) GetDistributions() []*EvaluationDistribution {
+	if x != nil {
+		return x.Distributions
+	}
+	return nil
+}
+
 var File_evaluation_evaluation_proto protoreflect.FileDescriptor
 
 const file_evaluation_evaluation_proto_rawDesc = "" +
@@ -844,7 +1763,75 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\x17ErrorEvaluationResponse\x12\x19\n" +
 	"\bflag_key\x18\x01 \x01(\tR\aflagKey\x12#\n" +
 	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12?\n" +
-	"\x06reason\x18\x03 \x01(\x0e2'.flipt.evaluation.ErrorEvaluationReasonR\x06reason*\x92\x01\n" +
+	"\x06reason\x18\x03 \x01(\x0e2'.flipt.evaluation.ErrorEvaluationReasonR\x06reason\"\xd2\x01\n" +
+	"\x16EvaluationDistribution\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\tB\x02\x18\x01R\x02id\x12\x17\n" +
+	"\arule_id\x18\x02 \x01(\tR\x06ruleId\x12!\n" +
+	"\n" +
+	"variant_id\x18\x03 \x01(\tB\x02\x18\x01R\tvariantId\x12\x1f\n" +
+	"\vvariant_key\x18\x04 \x01(\tR\n" +
+	"variantKey\x12-\n" +
+	"\x12variant_attachment\x18\x05 \x01(\tR\x11variantAttachment\x12\x18\n" +
+	"\arollout\x18\x06 \x01(\x02R\arollout\"\x82\x02\n" +
+	"\x11EvaluationRollout\x12;\n" +
+	"\x04type\x18\x01 \x01(\x0e2'.flipt.evaluation.EvaluationRolloutTypeR\x04type\x12\x12\n" +
+	"\x04rank\x18\x02 \x01(\x05R\x04rank\x12F\n" +
+	"\asegment\x18\x03 \x01(\v2*.flipt.evaluation.EvaluationRolloutSegmentH\x00R\asegment\x12L\n" +
+	"\tthreshold\x18\x04 \x01(\v2,.flipt.evaluation.EvaluationRolloutThresholdH\x00R\tthresholdB\x06\n" +
+	"\x04rule\"R\n" +
+	"\x1aEvaluationRolloutThreshold\x12\x1e\n" +
+	"\n" +
+	"percentage\x18\x01 \x01(\x02R\n" +
+	"percentage\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value\"\xc9\x01\n" +
+	"\x18EvaluationRolloutSegment\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\bR\x05value\x12V\n" +
+	"\x10segment_operator\x18\x02 \x01(\x0e2+.flipt.evaluation.EvaluationSegmentOperatorR\x0fsegmentOperator\x12?\n" +
+	"\bsegments\x18\x03 \x03(\v2#.flipt.evaluation.EvaluationSegmentR\bsegments\"\xe8\x02\n" +
+	"\x11EvaluationSegment\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12K\n" +
+	"\n" +
+	"match_type\x18\x04 \x01(\x0e2,.flipt.evaluation.EvaluationSegmentMatchTypeR\tmatchType\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12H\n" +
+	"\vconstraints\x18\a \x03(\v2&.flipt.evaluation.EvaluationConstraintR\vconstraints\"U\n" +
+	"\x11EvaluationVariant\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x1e\n" +
+	"\n" +
+	"attachment\x18\x03 \x01(\tR\n" +
+	"attachment\"\x82\x04\n" +
+	"\x0eEvaluationFlag\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\x128\n" +
+	"\x04type\x18\x05 \x01(\x0e2$.flipt.evaluation.EvaluationFlagTypeR\x04type\x129\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
+	"\x05rules\x18\b \x03(\v2 .flipt.evaluation.EvaluationRuleR\x05rules\x12?\n" +
+	"\brollouts\x18\t \x03(\v2#.flipt.evaluation.EvaluationRolloutR\brollouts\x12Q\n" +
+	"\x0fdefault_variant\x18\n" +
+	" \x01(\v2#.flipt.evaluation.EvaluationVariantH\x00R\x0edefaultVariant\x88\x01\x01B\x12\n" +
+	"\x10_default_variant\"\xc2\x01\n" +
+	"\x14EvaluationConstraint\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\tB\x02\x18\x01R\x02id\x12H\n" +
+	"\x04type\x18\x02 \x01(\x0e24.flipt.evaluation.EvaluationConstraintComparisonTypeR\x04type\x12\x1a\n" +
+	"\bproperty\x18\x03 \x01(\tR\bproperty\x12\x1a\n" +
+	"\boperator\x18\x04 \x01(\tR\boperator\x12\x14\n" +
+	"\x05value\x18\x05 \x01(\tR\x05value\"\x9d\x02\n" +
+	"\x0eEvaluationRule\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12?\n" +
+	"\bsegments\x18\x02 \x03(\v2#.flipt.evaluation.EvaluationSegmentR\bsegments\x12\x12\n" +
+	"\x04rank\x18\x03 \x01(\x05R\x04rank\x12V\n" +
+	"\x10segment_operator\x18\x04 \x01(\x0e2+.flipt.evaluation.EvaluationSegmentOperatorR\x0fsegmentOperator\x12N\n" +
+	"\rdistributions\x18\x05 \x03(\v2(.flipt.evaluation.EvaluationDistributionR\rdistributions*\x92\x01\n" +
 	"\x10EvaluationReason\x12\x1d\n" +
 	"\x19UNKNOWN_EVALUATION_REASON\x10\x00\x12#\n" +
 	"\x1fFLAG_DISABLED_EVALUATION_REASON\x10\x01\x12\x1b\n" +
@@ -856,10 +1843,27 @@ const file_evaluation_evaluation_proto_rawDesc = "" +
 	"\x16EvaluationResponseType\x12$\n" +
 	" VARIANT_EVALUATION_RESPONSE_TYPE\x10\x00\x12$\n" +
 	" BOOLEAN_EVALUATION_RESPONSE_TYPE\x10\x01\x12\"\n" +
-	"\x1eERROR_EVALUATION_RESPONSE_TYPE\x10\x02*B\n" +
+	"\x1eERROR_EVALUATION_RESPONSE_TYPE\x10\x02*g\n" +
+	"\x15EvaluationRolloutType\x12\x18\n" +
+	"\x14UNKNOWN_ROLLOUT_TYPE\x10\x00\x12\x18\n" +
+	"\x14SEGMENT_ROLLOUT_TYPE\x10\x01\x12\x1a\n" +
+	"\x16THRESHOLD_ROLLOUT_TYPE\x10\x02*N\n" +
+	"\x19EvaluationSegmentOperator\x12\x17\n" +
+	"\x13OR_SEGMENT_OPERATOR\x10\x00\x12\x18\n" +
+	"\x14AND_SEGMENT_OPERATOR\x10\x01*T\n" +
+	"\x1aEvaluationSegmentMatchType\x12\x1a\n" +
+	"\x16ALL_SEGMENT_MATCH_TYPE\x10\x00\x12\x1a\n" +
+	"\x16ANY_SEGMENT_MATCH_TYPE\x10\x01*B\n" +
 	"\x12EvaluationFlagType\x12\x15\n" +
 	"\x11VARIANT_FLAG_TYPE\x10\x00\x12\x15\n" +
-	"\x11BOOLEAN_FLAG_TYPE\x10\x012\xc9\x03\n" +
+	"\x11BOOLEAN_FLAG_TYPE\x10\x01*\x95\x02\n" +
+	"\"EvaluationConstraintComparisonType\x12&\n" +
+	"\"UNKNOWN_CONSTRAINT_COMPARISON_TYPE\x10\x00\x12%\n" +
+	"!STRING_CONSTRAINT_COMPARISON_TYPE\x10\x01\x12%\n" +
+	"!NUMBER_CONSTRAINT_COMPARISON_TYPE\x10\x02\x12&\n" +
+	"\"BOOLEAN_CONSTRAINT_COMPARISON_TYPE\x10\x03\x12'\n" +
+	"#DATETIME_CONSTRAINT_COMPARISON_TYPE\x10\x04\x12(\n" +
+	"$ENTITY_ID_CONSTRAINT_COMPARISON_TYPE\x10\x052\xc9\x03\n" +
 	"\x11EvaluationService\x12\x90\x01\n" +
 	"\aBoolean\x12#.flipt.evaluation.EvaluationRequest\x1a+.flipt.evaluation.BooleanEvaluationResponse\"3\xbaG\x11*\x0fevaluateBoolean\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/evaluate/v1/boolean\x12\x90\x01\n" +
 	"\aVariant\x12#.flipt.evaluation.EvaluationRequest\x1a+.flipt.evaluation.VariantEvaluationResponse\"3\xbaG\x11*\x0fevaluateVariant\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/evaluate/v1/variant\x12\x8d\x01\n" +
@@ -877,47 +1881,79 @@ func file_evaluation_evaluation_proto_rawDescGZIP() []byte {
 	return file_evaluation_evaluation_proto_rawDescData
 }
 
-var file_evaluation_evaluation_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_evaluation_evaluation_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_evaluation_evaluation_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_evaluation_evaluation_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_evaluation_evaluation_proto_goTypes = []any{
-	(EvaluationReason)(0),             // 0: flipt.evaluation.EvaluationReason
-	(ErrorEvaluationReason)(0),        // 1: flipt.evaluation.ErrorEvaluationReason
-	(EvaluationResponseType)(0),       // 2: flipt.evaluation.EvaluationResponseType
-	(EvaluationFlagType)(0),           // 3: flipt.evaluation.EvaluationFlagType
-	(*EvaluationRequest)(nil),         // 4: flipt.evaluation.EvaluationRequest
-	(*BatchEvaluationRequest)(nil),    // 5: flipt.evaluation.BatchEvaluationRequest
-	(*BatchEvaluationResponse)(nil),   // 6: flipt.evaluation.BatchEvaluationResponse
-	(*EvaluationResponse)(nil),        // 7: flipt.evaluation.EvaluationResponse
-	(*BooleanEvaluationResponse)(nil), // 8: flipt.evaluation.BooleanEvaluationResponse
-	(*VariantEvaluationResponse)(nil), // 9: flipt.evaluation.VariantEvaluationResponse
-	(*ErrorEvaluationResponse)(nil),   // 10: flipt.evaluation.ErrorEvaluationResponse
-	nil,                               // 11: flipt.evaluation.EvaluationRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil),     // 12: google.protobuf.Timestamp
+	(EvaluationReason)(0),                   // 0: flipt.evaluation.EvaluationReason
+	(ErrorEvaluationReason)(0),              // 1: flipt.evaluation.ErrorEvaluationReason
+	(EvaluationResponseType)(0),             // 2: flipt.evaluation.EvaluationResponseType
+	(EvaluationRolloutType)(0),              // 3: flipt.evaluation.EvaluationRolloutType
+	(EvaluationSegmentOperator)(0),          // 4: flipt.evaluation.EvaluationSegmentOperator
+	(EvaluationSegmentMatchType)(0),         // 5: flipt.evaluation.EvaluationSegmentMatchType
+	(EvaluationFlagType)(0),                 // 6: flipt.evaluation.EvaluationFlagType
+	(EvaluationConstraintComparisonType)(0), // 7: flipt.evaluation.EvaluationConstraintComparisonType
+	(*EvaluationRequest)(nil),               // 8: flipt.evaluation.EvaluationRequest
+	(*BatchEvaluationRequest)(nil),          // 9: flipt.evaluation.BatchEvaluationRequest
+	(*BatchEvaluationResponse)(nil),         // 10: flipt.evaluation.BatchEvaluationResponse
+	(*EvaluationResponse)(nil),              // 11: flipt.evaluation.EvaluationResponse
+	(*BooleanEvaluationResponse)(nil),       // 12: flipt.evaluation.BooleanEvaluationResponse
+	(*VariantEvaluationResponse)(nil),       // 13: flipt.evaluation.VariantEvaluationResponse
+	(*ErrorEvaluationResponse)(nil),         // 14: flipt.evaluation.ErrorEvaluationResponse
+	(*EvaluationDistribution)(nil),          // 15: flipt.evaluation.EvaluationDistribution
+	(*EvaluationRollout)(nil),               // 16: flipt.evaluation.EvaluationRollout
+	(*EvaluationRolloutThreshold)(nil),      // 17: flipt.evaluation.EvaluationRolloutThreshold
+	(*EvaluationRolloutSegment)(nil),        // 18: flipt.evaluation.EvaluationRolloutSegment
+	(*EvaluationSegment)(nil),               // 19: flipt.evaluation.EvaluationSegment
+	(*EvaluationVariant)(nil),               // 20: flipt.evaluation.EvaluationVariant
+	(*EvaluationFlag)(nil),                  // 21: flipt.evaluation.EvaluationFlag
+	(*EvaluationConstraint)(nil),            // 22: flipt.evaluation.EvaluationConstraint
+	(*EvaluationRule)(nil),                  // 23: flipt.evaluation.EvaluationRule
+	nil,                                     // 24: flipt.evaluation.EvaluationRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil),           // 25: google.protobuf.Timestamp
 }
 var file_evaluation_evaluation_proto_depIdxs = []int32{
-	11, // 0: flipt.evaluation.EvaluationRequest.context:type_name -> flipt.evaluation.EvaluationRequest.ContextEntry
-	4,  // 1: flipt.evaluation.BatchEvaluationRequest.requests:type_name -> flipt.evaluation.EvaluationRequest
-	7,  // 2: flipt.evaluation.BatchEvaluationResponse.responses:type_name -> flipt.evaluation.EvaluationResponse
+	24, // 0: flipt.evaluation.EvaluationRequest.context:type_name -> flipt.evaluation.EvaluationRequest.ContextEntry
+	8,  // 1: flipt.evaluation.BatchEvaluationRequest.requests:type_name -> flipt.evaluation.EvaluationRequest
+	11, // 2: flipt.evaluation.BatchEvaluationResponse.responses:type_name -> flipt.evaluation.EvaluationResponse
 	2,  // 3: flipt.evaluation.EvaluationResponse.type:type_name -> flipt.evaluation.EvaluationResponseType
-	8,  // 4: flipt.evaluation.EvaluationResponse.boolean_response:type_name -> flipt.evaluation.BooleanEvaluationResponse
-	9,  // 5: flipt.evaluation.EvaluationResponse.variant_response:type_name -> flipt.evaluation.VariantEvaluationResponse
-	10, // 6: flipt.evaluation.EvaluationResponse.error_response:type_name -> flipt.evaluation.ErrorEvaluationResponse
+	12, // 4: flipt.evaluation.EvaluationResponse.boolean_response:type_name -> flipt.evaluation.BooleanEvaluationResponse
+	13, // 5: flipt.evaluation.EvaluationResponse.variant_response:type_name -> flipt.evaluation.VariantEvaluationResponse
+	14, // 6: flipt.evaluation.EvaluationResponse.error_response:type_name -> flipt.evaluation.ErrorEvaluationResponse
 	0,  // 7: flipt.evaluation.BooleanEvaluationResponse.reason:type_name -> flipt.evaluation.EvaluationReason
-	12, // 8: flipt.evaluation.BooleanEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
+	25, // 8: flipt.evaluation.BooleanEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 9: flipt.evaluation.VariantEvaluationResponse.reason:type_name -> flipt.evaluation.EvaluationReason
-	12, // 10: flipt.evaluation.VariantEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
+	25, // 10: flipt.evaluation.VariantEvaluationResponse.timestamp:type_name -> google.protobuf.Timestamp
 	1,  // 11: flipt.evaluation.ErrorEvaluationResponse.reason:type_name -> flipt.evaluation.ErrorEvaluationReason
-	4,  // 12: flipt.evaluation.EvaluationService.Boolean:input_type -> flipt.evaluation.EvaluationRequest
-	4,  // 13: flipt.evaluation.EvaluationService.Variant:input_type -> flipt.evaluation.EvaluationRequest
-	5,  // 14: flipt.evaluation.EvaluationService.Batch:input_type -> flipt.evaluation.BatchEvaluationRequest
-	8,  // 15: flipt.evaluation.EvaluationService.Boolean:output_type -> flipt.evaluation.BooleanEvaluationResponse
-	9,  // 16: flipt.evaluation.EvaluationService.Variant:output_type -> flipt.evaluation.VariantEvaluationResponse
-	6,  // 17: flipt.evaluation.EvaluationService.Batch:output_type -> flipt.evaluation.BatchEvaluationResponse
-	15, // [15:18] is the sub-list for method output_type
-	12, // [12:15] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	3,  // 12: flipt.evaluation.EvaluationRollout.type:type_name -> flipt.evaluation.EvaluationRolloutType
+	18, // 13: flipt.evaluation.EvaluationRollout.segment:type_name -> flipt.evaluation.EvaluationRolloutSegment
+	17, // 14: flipt.evaluation.EvaluationRollout.threshold:type_name -> flipt.evaluation.EvaluationRolloutThreshold
+	4,  // 15: flipt.evaluation.EvaluationRolloutSegment.segment_operator:type_name -> flipt.evaluation.EvaluationSegmentOperator
+	19, // 16: flipt.evaluation.EvaluationRolloutSegment.segments:type_name -> flipt.evaluation.EvaluationSegment
+	5,  // 17: flipt.evaluation.EvaluationSegment.match_type:type_name -> flipt.evaluation.EvaluationSegmentMatchType
+	25, // 18: flipt.evaluation.EvaluationSegment.created_at:type_name -> google.protobuf.Timestamp
+	25, // 19: flipt.evaluation.EvaluationSegment.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 20: flipt.evaluation.EvaluationSegment.constraints:type_name -> flipt.evaluation.EvaluationConstraint
+	6,  // 21: flipt.evaluation.EvaluationFlag.type:type_name -> flipt.evaluation.EvaluationFlagType
+	25, // 22: flipt.evaluation.EvaluationFlag.created_at:type_name -> google.protobuf.Timestamp
+	25, // 23: flipt.evaluation.EvaluationFlag.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 24: flipt.evaluation.EvaluationFlag.rules:type_name -> flipt.evaluation.EvaluationRule
+	16, // 25: flipt.evaluation.EvaluationFlag.rollouts:type_name -> flipt.evaluation.EvaluationRollout
+	20, // 26: flipt.evaluation.EvaluationFlag.default_variant:type_name -> flipt.evaluation.EvaluationVariant
+	7,  // 27: flipt.evaluation.EvaluationConstraint.type:type_name -> flipt.evaluation.EvaluationConstraintComparisonType
+	19, // 28: flipt.evaluation.EvaluationRule.segments:type_name -> flipt.evaluation.EvaluationSegment
+	4,  // 29: flipt.evaluation.EvaluationRule.segment_operator:type_name -> flipt.evaluation.EvaluationSegmentOperator
+	15, // 30: flipt.evaluation.EvaluationRule.distributions:type_name -> flipt.evaluation.EvaluationDistribution
+	8,  // 31: flipt.evaluation.EvaluationService.Boolean:input_type -> flipt.evaluation.EvaluationRequest
+	8,  // 32: flipt.evaluation.EvaluationService.Variant:input_type -> flipt.evaluation.EvaluationRequest
+	9,  // 33: flipt.evaluation.EvaluationService.Batch:input_type -> flipt.evaluation.BatchEvaluationRequest
+	12, // 34: flipt.evaluation.EvaluationService.Boolean:output_type -> flipt.evaluation.BooleanEvaluationResponse
+	13, // 35: flipt.evaluation.EvaluationService.Variant:output_type -> flipt.evaluation.VariantEvaluationResponse
+	10, // 36: flipt.evaluation.EvaluationService.Batch:output_type -> flipt.evaluation.BatchEvaluationResponse
+	34, // [34:37] is the sub-list for method output_type
+	31, // [31:34] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_evaluation_evaluation_proto_init() }
@@ -930,13 +1966,18 @@ func file_evaluation_evaluation_proto_init() {
 		(*EvaluationResponse_VariantResponse)(nil),
 		(*EvaluationResponse_ErrorResponse)(nil),
 	}
+	file_evaluation_evaluation_proto_msgTypes[8].OneofWrappers = []any{
+		(*EvaluationRollout_Segment)(nil),
+		(*EvaluationRollout_Threshold)(nil),
+	}
+	file_evaluation_evaluation_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_evaluation_evaluation_proto_rawDesc), len(file_evaluation_evaluation_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   8,
+			NumEnums:      8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
