@@ -1,5 +1,4 @@
 import {
-  CellContext,
   PaginationState,
   Row,
   SortingState,

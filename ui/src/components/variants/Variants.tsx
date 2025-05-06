@@ -1,4 +1,4 @@
-import { PencilIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
+import { SlidersHorizontalIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { Button, ButtonWithPlus } from '~/components/Button';

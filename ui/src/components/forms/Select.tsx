@@ -1,5 +1,5 @@
 import { useField } from 'formik';
-import React, { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef } from 'react';
 
 import { cls } from '~/utils/helpers';
 
