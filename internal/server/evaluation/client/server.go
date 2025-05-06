@@ -3,6 +3,8 @@ package client
 import (
 	"bytes"
 	"context"
+
+	//nolint:gosec
 	"crypto/sha1"
 
 	"go.flipt.io/flipt/errors"

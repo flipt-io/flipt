@@ -137,8 +137,6 @@ message EvaluationSnapshot {
 }
 
 service EvaluationService {
-  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
-
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot) {
     option (google.api.http) = {
       get: "/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"
