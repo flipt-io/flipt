@@ -36,7 +36,7 @@ func TestSnapshot(t *testing.T) {
 func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace string) {
 	t.Logf("Get snapshot for namespace.")
 
-	resp, err := client.Get(fmt.Sprintf("%s/client/v1/environments/default/namespaces/%s/snapshot", url, namespace))
+	resp, err := client.Get(fmt.Sprintf("%s/client/v2/environments/default/namespaces/%s/snapshot", url, namespace))
 
 	require.NoError(t, err)
 	require.NotNil(t, resp)
@@ -55,7 +55,7 @@ func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace 
 
 	t.Logf("Get snapshot for namespace with etag/if-none-match.")
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/client/v1/environments/default/namespaces/%s/snapshot", url, namespace), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/client/v2/environments/default/namespaces/%s/snapshot", url, namespace), nil)
 	req.Header.Set("If-None-Match", etag)
 	require.NoError(t, err)
 
