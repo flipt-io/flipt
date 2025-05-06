@@ -6,6 +6,7 @@ package environments
 
 import (
 	"context"
+	"io"
 
 	mock "github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/internal/storage"
@@ -249,6 +250,64 @@ func (_c *MockEnvironment_EvaluationNamespaceSnapshot_Call) Return(evaluationNam
 }
 
 func (_c *MockEnvironment_EvaluationNamespaceSnapshot_Call) RunAndReturn(run func(context1 context.Context, s string) (*evaluation.EvaluationNamespaceSnapshot, error)) *MockEnvironment_EvaluationNamespaceSnapshot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EvaluationNamespaceSnapshotSubscribe provides a mock function for the type MockEnvironment
+func (_mock *MockEnvironment) EvaluationNamespaceSnapshotSubscribe(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+	ret := _mock.Called(context1, s, evaluationNamespaceSnapshotCh)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluationNamespaceSnapshotSubscribe")
+	}
+
+	var r0 io.Closer
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)); ok {
+		return returnFunc(context1, s, evaluationNamespaceSnapshotCh)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) io.Closer); ok {
+		r0 = returnFunc(context1, s, evaluationNamespaceSnapshotCh)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(io.Closer)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) error); ok {
+		r1 = returnFunc(context1, s, evaluationNamespaceSnapshotCh)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EvaluationNamespaceSnapshotSubscribe'
+type MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call struct {
+	*mock.Call
+}
+
+// EvaluationNamespaceSnapshotSubscribe is a helper method to define mock.On call
+//   - context1
+//   - s
+//   - evaluationNamespaceSnapshotCh
+func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 interface{}, s interface{}, evaluationNamespaceSnapshotCh interface{}) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+	return &MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call{Call: _e.mock.On("EvaluationNamespaceSnapshotSubscribe", context1, s, evaluationNamespaceSnapshotCh)}
+}
+
+func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Run(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(chan<- *evaluation.EvaluationNamespaceSnapshot))
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Return(closer io.Closer, err error) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+	_c.Call.Return(closer, err)
+	return _c
+}
+
+func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) RunAndReturn(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	_c.Call.Return(run)
 	return _c
 }
