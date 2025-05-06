@@ -7,30 +7,14 @@ test.beforeEach(async ({ page }) => {
 
 test('can change timezone preferences', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
-  await page.getByRole('link', { name: 'General' }).click();
-  await page.getByRole('heading', { name: 'Preferences' }).click();
-  await page
-    .getByRole('switch', {
-      name: 'UTC Timezone Display dates and times in UTC timezone'
-    })
-    .click();
+  await page.getByRole('link', { name: 'Preferences' }).click();
+  await page.getByTestId('switch-timezone').click();
+  await expect(page.getByText('Preferences saved')).toBeVisible();
 });
 
 test('can change theme preferences', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
-  await page.getByRole('link', { name: 'General' }).click();
-  await page.getByRole('heading', { name: 'Preferences' }).click();
-  await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark');
-  await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue(
-    'dark'
-  );
-  await page.getByRole('combobox', { name: 'Theme' }).selectOption('system');
-  await page.getByRole('combobox', { name: 'Theme' }).selectOption('light');
-  await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue(
-    'light'
-  );
-  await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark');
-  await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue(
-    'dark'
-  );
+  await page.getByRole('link', { name: 'Preferences' }).click();
+  await page.getByTestId('select-theme').selectOption('Dark');
+  await expect(page.getByText('Preferences saved')).toBeVisible();
 });

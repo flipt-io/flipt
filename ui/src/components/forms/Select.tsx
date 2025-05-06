@@ -1,16 +1,17 @@
 import { useField } from 'formik';
+import { ComponentPropsWithoutRef } from 'react';
 
 import { cls } from '~/utils/helpers';
 
-type SelectProps = {
-  id: string;
-  name: string;
-  options?: { value: string; label: string }[];
-  children?: React.ReactNode;
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+type SelectProps = Omit<ComponentPropsWithoutRef<'select'>, 'className'> & {
+  options?: SelectOption[];
   className?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  disabled?: boolean;
+  name: string; // Keep name required for Formik
 };
 
 export default function Select(props: SelectProps) {
@@ -22,7 +23,8 @@ export default function Select(props: SelectProps) {
     className,
     value,
     onChange,
-    disabled = false
+    disabled = false,
+    ...restProps
   } = props;
 
   const [field] = useField({
@@ -33,6 +35,7 @@ export default function Select(props: SelectProps) {
   return (
     <select
       {...field}
+      {...restProps}
       id={id}
       name={name}
       className={cls(

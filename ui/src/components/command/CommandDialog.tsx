@@ -81,10 +81,10 @@ const namespacedRoutes = [
 
 const nonNamespacedRoutes = [
   {
-    name: 'Settings: General',
-    description: 'General settings',
+    name: 'Settings: Preferences',
+    description: 'Change your preferences',
     route: '/settings',
-    keywords: ['settings', 'general']
+    keywords: ['settings', 'preferences']
   },
   {
     name: 'Settings: Namespaces',
