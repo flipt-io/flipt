@@ -173,7 +173,7 @@ func NewGRPCServer(
 
 	// base inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),
@@ -208,9 +208,6 @@ func NewGRPCServer(
 	}
 
 	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore)
-	if err != nil {
-		return nil, fmt.Errorf("building client evaluation server: %w", err)
-	}
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.

@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"context"
 
-	//nolint:gosec
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/environments"
