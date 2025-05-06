@@ -7,9 +7,7 @@
 package analytics
 
 import (
-	_ "github.com/google/gnostic/openapiv3"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
-	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -156,7 +154,7 @@ var File_analytics_proto protoreflect.FileDescriptor
 
 const file_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x0fanalytics.proto\x12\tanalytics\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
+	"\x0fanalytics.proto\x12\tanalytics\x1a\x1cgoogle/api/annotations.proto\"\xad\x01\n" +
 	"\x1eGetFlagEvaluationsCountRequest\x12'\n" +
 	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
 	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x19\n" +

@@ -59,8 +59,9 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *client.Eval
 
 func (s *Server) EvaluationSnapshotNamespaceStream(req *client.EvaluationNamespaceSnapshotStreamRequest, stream client.EvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
 	var (
-		ctx  = stream.Context()
-		env  = s.envs.GetFromContext(ctx)
+		ctx = stream.Context()
+		env = s.envs.GetFromContext(ctx)
+		//nolint:gosec // this is a hash for a stream
 		hash = sha1.New()
 		// lastDigest is the digest of the last snapshot we sent
 		// this includes all namespaces

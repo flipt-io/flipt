@@ -4,7 +4,6 @@ package evaluation;
 
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
-import "google/api/visibility.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/evaluation/client";
