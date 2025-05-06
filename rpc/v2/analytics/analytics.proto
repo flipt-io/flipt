@@ -3,6 +3,7 @@ syntax = "proto3";
 package analytics;
 
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/analytics";
 
@@ -20,6 +21,7 @@ message GetFlagEvaluationsCountResponse {
 }
 
 service AnalyticsService {
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
   rpc GetFlagEvaluationsCount(GetFlagEvaluationsCountRequest) returns (GetFlagEvaluationsCountResponse) {
     option (google.api.http) = {get: "/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}"};
   }

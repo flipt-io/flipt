@@ -39,7 +39,7 @@ import (
 	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
 	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
-	rpcclientevaluation "go.flipt.io/flipt/rpc/v2/evaluation/client"
+	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
@@ -270,7 +270,7 @@ func NewGRPCServer(
 	rpcenv.RegisterEnvironmentsServiceServer(handlers, envsrv)
 	rpcmeta.RegisterMetadataServiceServer(handlers, metasrv)
 	rpcevaluation.RegisterEvaluationServiceServer(handlers, evalsrv)
-	rpcclientevaluation.RegisterEvaluationServiceServer(handlers, clientevalsrv)
+	rpcevaluationv2.RegisterClientEvaluationServiceServer(handlers, clientevalsrv)
 	rpcoffrep.RegisterOFREPServiceServer(handlers, ofrepsrv)
 
 	// forward internal gRPC logging to zap

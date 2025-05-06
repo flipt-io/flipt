@@ -18,7 +18,7 @@ import (
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
-	rpcclientevaluation "go.flipt.io/flipt/rpc/v2/evaluation/client"
+	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 )
 
@@ -320,14 +320,14 @@ func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
 	return e.snap, nil
 }
 
-func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*rpcclientevaluation.EvaluationNamespaceSnapshot, error) {
+func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
 	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
 }
 
-func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcclientevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
 	return e.publisher.Subscribe(ctx, ns, ch)
 }
 

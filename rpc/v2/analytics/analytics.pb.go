@@ -8,6 +8,7 @@ package analytics
 
 import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -154,7 +155,7 @@ var File_analytics_proto protoreflect.FileDescriptor
 
 const file_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x0fanalytics.proto\x12\tanalytics\x1a\x1cgoogle/api/annotations.proto\"\xad\x01\n" +
+	"\x0fanalytics.proto\x12\tanalytics\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
 	"\x1eGetFlagEvaluationsCountRequest\x12'\n" +
 	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
 	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x19\n" +
@@ -165,9 +166,9 @@ const file_analytics_proto_rawDesc = "" +
 	"\n" +
 	"timestamps\x18\x01 \x03(\tR\n" +
 	"timestamps\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\x02R\x06values2\xf0\x01\n" +
+	"\x06values\x18\x02 \x03(\x02R\x06values2\x8a\x02\n" +
 	"\x10AnalyticsService\x12\xdb\x01\n" +
-	"\x17GetFlagEvaluationsCount\x12).analytics.GetFlagEvaluationsCountRequest\x1a*.analytics.GetFlagEvaluationsCountResponse\"i\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}B$Z\"go.flipt.io/flipt/rpc/v2/analyticsb\x06proto3"
+	"\x17GetFlagEvaluationsCount\x12).analytics.GetFlagEvaluationsCountRequest\x1a*.analytics.GetFlagEvaluationsCountResponse\"i\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB$Z\"go.flipt.io/flipt/rpc/v2/analyticsb\x06proto3"
 
 var (
 	file_analytics_proto_rawDescOnce sync.Once

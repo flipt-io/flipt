@@ -10,18 +10,18 @@ import (
 
 	"github.com/google/uuid"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
-	rpcclientevaluation "go.flipt.io/flipt/rpc/v2/evaluation/client"
+	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 )
 
 type subscription struct {
 	mu     sync.Mutex
 	finish func()
-	ch     chan<- *rpcclientevaluation.EvaluationNamespaceSnapshot
+	ch     chan<- *rpcevaluation.EvaluationNamespaceSnapshot
 	id     string
 }
 
-func (s *subscription) send(ctx context.Context, snap *rpcclientevaluation.EvaluationNamespaceSnapshot) error {
+func (s *subscription) send(ctx context.Context, snap *rpcevaluation.EvaluationNamespaceSnapshot) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -66,7 +66,7 @@ type SnapshotPublisher struct {
 	logger *zap.Logger
 
 	mu   sync.Mutex
-	last *rpcclientevaluation.EvaluationSnapshot
+	last *rpcevaluation.EvaluationSnapshot
 	subs map[string][]*subscription
 
 	options publishOptions
@@ -166,7 +166,7 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 	return nil
 }
 
-func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcclientevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
 	id := uuid.New().String()
 	sub := &subscription{id: id, finish: func() {
 		p.mu.Lock()

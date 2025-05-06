@@ -9,7 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/v2/evaluation/client"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 )
 
 // NewMockReadOnlyStore creates a new instance of MockReadOnlyStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -95,23 +95,23 @@ func (_c *MockReadOnlyStore_CountFlags_Call) RunAndReturn(run func(ctx context.C
 }
 
 // EvaluationNamespaceSnapshot provides a mock function for the type MockReadOnlyStore
-func (_mock *MockReadOnlyStore) EvaluationNamespaceSnapshot(context1 context.Context, ns string) (*client.EvaluationNamespaceSnapshot, error) {
+func (_mock *MockReadOnlyStore) EvaluationNamespaceSnapshot(context1 context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	ret := _mock.Called(context1, ns)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EvaluationNamespaceSnapshot")
 	}
 
-	var r0 *client.EvaluationNamespaceSnapshot
+	var r0 *evaluation.EvaluationNamespaceSnapshot
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*client.EvaluationNamespaceSnapshot, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*evaluation.EvaluationNamespaceSnapshot, error)); ok {
 		return returnFunc(context1, ns)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *client.EvaluationNamespaceSnapshot); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *evaluation.EvaluationNamespaceSnapshot); ok {
 		r0 = returnFunc(context1, ns)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*client.EvaluationNamespaceSnapshot)
+			r0 = ret.Get(0).(*evaluation.EvaluationNamespaceSnapshot)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -141,12 +141,12 @@ func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) Run(run func(conte
 	return _c
 }
 
-func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) Return(evaluationNamespaceSnapshot *client.EvaluationNamespaceSnapshot, err error) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
+func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) Return(evaluationNamespaceSnapshot *evaluation.EvaluationNamespaceSnapshot, err error) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
 	_c.Call.Return(evaluationNamespaceSnapshot, err)
 	return _c
 }
 
-func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) RunAndReturn(run func(context1 context.Context, ns string) (*client.EvaluationNamespaceSnapshot, error)) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
+func (_c *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call) RunAndReturn(run func(context1 context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error)) *MockReadOnlyStore_EvaluationNamespaceSnapshot_Call {
 	_c.Call.Return(run)
 	return _c
 }

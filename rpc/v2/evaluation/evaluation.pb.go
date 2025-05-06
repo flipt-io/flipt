@@ -4,11 +4,12 @@
 // 	protoc        (unknown)
 // source: evaluation.proto
 
-package client
+package evaluation
 
 import (
 	_ "github.com/google/gnostic/openapiv3"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -1224,7 +1225,7 @@ var File_evaluation_proto protoreflect.FileDescriptor
 const file_evaluation_proto_rawDesc = "" +
 	"\n" +
 	"\x10evaluation.proto\x12\n" +
-	"evaluation\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa7\x01\n" +
+	"evaluation\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa7\x01\n" +
 	"\x16EvaluationDistribution\x12\x17\n" +
 	"\arule_id\x18\x02 \x01(\tR\x06ruleId\x12\x1f\n" +
 	"\vvariant_key\x18\x04 \x01(\tR\n" +
@@ -1328,10 +1329,10 @@ const file_evaluation_proto_rawDesc = "" +
 	"!NUMBER_CONSTRAINT_COMPARISON_TYPE\x10\x02\x12&\n" +
 	"\"BOOLEAN_CONSTRAINT_COMPARISON_TYPE\x10\x03\x12'\n" +
 	"#DATETIME_CONSTRAINT_COMPARISON_TYPE\x10\x04\x12(\n" +
-	"$ENTITY_ID_CONSTRAINT_COMPARISON_TYPE\x10\x052\xe8\x03\n" +
-	"\x11EvaluationService\x12\xe3\x01\n" +
+	"$ENTITY_ID_CONSTRAINT_COMPARISON_TYPE\x10\x052\x88\x04\n" +
+	"\x17ClientEvaluationService\x12\xe3\x01\n" +
 	"\x1bEvaluationSnapshotNamespace\x12..evaluation.EvaluationNamespaceSnapshotRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"k\xbaG\x1d*\x1bevaluationSnapshotNamespace\x82\xd3\xe4\x93\x02E\x12C/client/v2/environments/{environment_key}/namespaces/{key}/snapshot\x12\xec\x01\n" +
-	"!EvaluationSnapshotNamespaceStream\x124.evaluation.EvaluationNamespaceSnapshotStreamRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"f\xbaG\x1a*\x18evaluationSnapshotStream\x82\xd3\xe4\x93\x02C\x12A/client/v2/environments/{environment_key}/namespaces/{key}/stream0\x01B,Z*go.flipt.io/flipt/rpc/v2/evaluation/clientb\x06proto3"
+	"!EvaluationSnapshotNamespaceStream\x124.evaluation.EvaluationNamespaceSnapshotStreamRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"f\xbaG\x1a*\x18evaluationSnapshotStream\x82\xd3\xe4\x93\x02C\x12A/client/v2/environments/{environment_key}/namespaces/{key}/stream0\x01\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB%Z#go.flipt.io/flipt/rpc/v2/evaluationb\x06proto3"
 
 var (
 	file_evaluation_proto_rawDescOnce sync.Once
@@ -1394,10 +1395,10 @@ var file_evaluation_proto_depIdxs = []int32{
 	11, // 20: evaluation.EvaluationNamespaceSnapshot.flags:type_name -> evaluation.EvaluationFlag
 	19, // 21: evaluation.EvaluationSnapshot.namespaces:type_name -> evaluation.EvaluationSnapshot.NamespacesEntry
 	15, // 22: evaluation.EvaluationSnapshot.NamespacesEntry.value:type_name -> evaluation.EvaluationNamespaceSnapshot
-	16, // 23: evaluation.EvaluationService.EvaluationSnapshotNamespace:input_type -> evaluation.EvaluationNamespaceSnapshotRequest
-	17, // 24: evaluation.EvaluationService.EvaluationSnapshotNamespaceStream:input_type -> evaluation.EvaluationNamespaceSnapshotStreamRequest
-	15, // 25: evaluation.EvaluationService.EvaluationSnapshotNamespace:output_type -> evaluation.EvaluationNamespaceSnapshot
-	15, // 26: evaluation.EvaluationService.EvaluationSnapshotNamespaceStream:output_type -> evaluation.EvaluationNamespaceSnapshot
+	16, // 23: evaluation.ClientEvaluationService.EvaluationSnapshotNamespace:input_type -> evaluation.EvaluationNamespaceSnapshotRequest
+	17, // 24: evaluation.ClientEvaluationService.EvaluationSnapshotNamespaceStream:input_type -> evaluation.EvaluationNamespaceSnapshotStreamRequest
+	15, // 25: evaluation.ClientEvaluationService.EvaluationSnapshotNamespace:output_type -> evaluation.EvaluationNamespaceSnapshot
+	15, // 26: evaluation.ClientEvaluationService.EvaluationSnapshotNamespaceStream:output_type -> evaluation.EvaluationNamespaceSnapshot
 	25, // [25:27] is the sub-list for method output_type
 	23, // [23:25] is the sub-list for method input_type
 	23, // [23:23] is the sub-list for extension type_name

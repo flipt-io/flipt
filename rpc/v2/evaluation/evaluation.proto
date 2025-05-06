@@ -4,9 +4,10 @@ package evaluation;
 
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "go.flipt.io/flipt/rpc/v2/evaluation/client";
+option go_package = "go.flipt.io/flipt/rpc/v2/evaluation";
 
 message EvaluationDistribution {
   reserved 1, 3;
@@ -136,7 +137,8 @@ message EvaluationSnapshot {
   map<string, EvaluationNamespaceSnapshot> namespaces = 1;
 }
 
-service EvaluationService {
+service ClientEvaluationService {
+  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot) {
     option (google.api.http) = {
       get: "/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"

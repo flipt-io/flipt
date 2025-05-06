@@ -12,7 +12,7 @@ import (
 
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/environments"
-	"go.flipt.io/flipt/rpc/v2/evaluation/client"
+	evaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -116,7 +116,7 @@ func NewHTTPServer(
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := client.RegisterEvaluationServiceHandlerClient(ctx, clientEvaluationAPI, client.NewEvaluationServiceClient(conn)); err != nil {
+	if err := evaluationv2.RegisterClientEvaluationServiceHandlerClient(ctx, clientEvaluationAPI, evaluationv2.NewClientEvaluationServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 

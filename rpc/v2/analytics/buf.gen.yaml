@@ -12,4 +12,3 @@ plugins:
     out: .
     opt:
       - paths=source_relative
-    strategy: all

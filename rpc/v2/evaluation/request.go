@@ -1,4 +1,4 @@
-package client
+package evaluation
 
 import "go.flipt.io/flipt/rpc/flipt"
 
