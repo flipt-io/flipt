@@ -140,21 +140,19 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 		if err != nil {
 			return err
 		}
+		defer fi.Close()
 
 		decoder := ext.EncodingYAML.NewDecoder(fi)
 		for {
 			doc := &ext.Document{}
-			if err = decoder.Decode(doc); err != nil {
+			if err := decoder.Decode(doc); err != nil {
 				if errors.Is(err, io.EOF) {
-					err = nil
 					break
 				}
-				fi.Close()
 				return err
 			}
 			docs = append(docs, doc)
 		}
-		fi.Close()
 	}
 
 	// Create output file
