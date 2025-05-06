@@ -12,6 +12,7 @@ import (
 
 	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.flipt.io/flipt/rpc/v2/evaluation/client"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,9 +28,9 @@ import (
 	grpc_middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	http_middleware "go.flipt.io/flipt/internal/server/middleware/http"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/analytics"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/meta"
+	"go.flipt.io/flipt/rpc/v2/analytics"
 	"go.flipt.io/flipt/ui"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -71,11 +72,12 @@ func NewHTTPServer(
 		evaluateAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
 
-		evaluateDataAPI = gateway.NewGatewayServeMux(logger,
+		clientEvaluationAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
 			runtime.WithForwardResponseOption(http_middleware.HttpResponseModifier),
 		)
-		analyticsAPI = gateway.NewGatewayServeMux(logger)
+
+		analyticsAPI = gateway.NewGatewayServeMux(logger, runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
 
 		ofrepAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment),
@@ -83,7 +85,7 @@ func NewHTTPServer(
 			runtime.WithErrorHandler(ofrep_middleware.ErrorHandler(logger)),
 		)
 
-		v2Environments = gateway.NewGatewayServeMux(logger)
+		environmentsAPI = gateway.NewGatewayServeMux(logger)
 
 		httpPort = cfg.Server.HTTPPort
 	)
@@ -93,7 +95,6 @@ func NewHTTPServer(
 	}
 
 	// v1
-
 	if err := flipt.RegisterFliptHandlerClient(ctx, api, flipt.NewFliptClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
@@ -102,21 +103,20 @@ func NewHTTPServer(
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
-	if err := evaluation.RegisterDataServiceHandlerClient(ctx, evaluateDataAPI, evaluation.NewDataServiceClient(conn)); err != nil {
-		return nil, fmt.Errorf("registering grpc gateway: %w", err)
-	}
-
-	if err := analytics.RegisterAnalyticsServiceHandlerClient(ctx, analyticsAPI, analytics.NewAnalyticsServiceClient(conn)); err != nil {
-		return nil, fmt.Errorf("registering grpc gateway: %w", err)
-	}
-
 	if err := ofrep.RegisterOFREPServiceHandlerClient(ctx, ofrepAPI, ofrep.NewOFREPServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
 	// v2
+	if err := analytics.RegisterAnalyticsServiceHandlerClient(ctx, analyticsAPI, analytics.NewAnalyticsServiceClient(conn)); err != nil {
+		return nil, fmt.Errorf("registering grpc gateway: %w", err)
+	}
 
-	if err := environments.RegisterEnvironmentsServiceHandlerClient(ctx, v2Environments, environments.NewEnvironmentsServiceClient(conn)); err != nil {
+	if err := environments.RegisterEnvironmentsServiceHandlerClient(ctx, environmentsAPI, environments.NewEnvironmentsServiceClient(conn)); err != nil {
+		return nil, fmt.Errorf("registering grpc gateway: %w", err)
+	}
+
+	if err := client.RegisterEvaluationServiceHandlerClient(ctx, clientEvaluationAPI, client.NewEvaluationServiceClient(conn)); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -202,11 +202,11 @@ func NewHTTPServer(
 
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
-		r.Mount("/internal/v2", evaluateDataAPI)
 		r.Mount("/ofrep", ofrepAPI)
 
 		r.Mount("/internal/v2/analytics", analyticsAPI)
-		r.Mount("/api/v2/environments", v2Environments)
+		r.Mount("/api/v2/environments", environmentsAPI)
+		r.Mount("/client/v2", clientEvaluationAPI)
 
 		// mount all authentication related HTTP components
 		// to the chi router.

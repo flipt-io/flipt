@@ -8,7 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/v2/evaluation/client"
 )
 
 const (
@@ -190,7 +190,7 @@ type EvaluationStore interface {
 // EvaluationSnapshotStore is a store from which entire namespace snapshots can be retrieved.
 // These snapshots are intended to be sent to client-side evaluators.
 type EvaluationSnapshotStore interface {
-	EvaluationNamespaceSnapshot(_ context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error)
+	EvaluationNamespaceSnapshot(_ context.Context, ns string) (*client.EvaluationNamespaceSnapshot, error)
 }
 
 // ReadOnlyFlagStore supports retrieval of flags

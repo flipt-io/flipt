@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: analytics/analytics.proto
+// source: analytics.proto
 
 package analytics
 
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AnalyticsService_GetFlagEvaluationsCount_FullMethodName = "/flipt.analytics.AnalyticsService/GetFlagEvaluationsCount"
+	AnalyticsService_GetFlagEvaluationsCount_FullMethodName = "/analytics.AnalyticsService/GetFlagEvaluationsCount"
 )
 
 // AnalyticsServiceClient is the client API for AnalyticsService service.
@@ -108,7 +108,7 @@ func _AnalyticsService_GetFlagEvaluationsCount_Handler(srv interface{}, ctx cont
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "flipt.analytics.AnalyticsService",
+	ServiceName: "analytics.AnalyticsService",
 	HandlerType: (*AnalyticsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,5 +117,5 @@ var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "analytics/analytics.proto",
+	Metadata: "analytics.proto",
 }

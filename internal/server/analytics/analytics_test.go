@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.flipt.io/flipt/rpc/v2/analytics"
 	"go.uber.org/zap/zaptest"
 )
 

@@ -22,7 +22,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/v2/evaluation/client"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -36,7 +36,7 @@ var _ storage.ReadOnlyStore = (*Snapshot)(nil)
 type Snapshot struct {
 	ns        map[string]*namespace
 	evalDists map[string][]*storage.EvaluationDistribution
-	evalSnap  *evaluation.EvaluationSnapshot
+	evalSnap  *client.EvaluationSnapshot
 	now       *timestamppb.Timestamp
 }
 
@@ -168,8 +168,8 @@ func EmptySnapshot() *Snapshot {
 			flipt.DefaultNamespace: newNamespace(),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
-		evalSnap: &evaluation.EvaluationSnapshot{
-			Namespaces: map[string]*evaluation.EvaluationNamespaceSnapshot{},
+		evalSnap: &client.EvaluationSnapshot{
+			Namespaces: map[string]*client.EvaluationNamespaceSnapshot{},
 		},
 		now: flipt.Now(),
 	}
@@ -261,11 +261,11 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 	}
 
 	if snap == nil {
-		snap = &evaluation.EvaluationNamespaceSnapshot{
-			Namespace: &evaluation.EvaluationNamespace{
+		snap = &client.EvaluationNamespaceSnapshot{
+			Namespace: &client.EvaluationNamespace{
 				Key: namespaceKey,
 			},
-			Flags: make([]*evaluation.EvaluationFlag, 0, len(doc.Flags)),
+			Flags: make([]*client.EvaluationFlag, 0, len(doc.Flags)),
 		}
 		s.evalSnap.Namespaces[namespaceKey] = snap
 	}
@@ -275,7 +275,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 		evalDists = s.evalDists
 	}
 
-	evalSnapSegments := map[string]*evaluation.EvaluationSegment{}
+	evalSnapSegments := map[string]*client.EvaluationSegment{}
 	for _, s := range doc.Segments {
 		var (
 			matchType = core.MatchType_value[s.MatchType]
@@ -285,7 +285,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				Description: s.Description,
 				MatchType:   core.MatchType(matchType),
 			}
-			evalSnapSegment = &evaluation.EvaluationSegment{
+			evalSnapSegment = &client.EvaluationSegment{
 				Key:         s.Key,
 				Name:        s.Name,
 				Description: s.Description,
@@ -303,7 +303,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				Description: constraint.Description,
 			})
 
-			evalSnapSegment.Constraints = append(evalSnapSegment.Constraints, &evaluation.EvaluationConstraint{
+			evalSnapSegment.Constraints = append(evalSnapSegment.Constraints, &client.EvaluationConstraint{
 				Type:     toEvaluationConstraintComparisonType(constraintType),
 				Operator: constraint.Operator,
 				Property: constraint.Property,
@@ -328,7 +328,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 			// evaluation snapshot
 
-			evalSnapFlag = &evaluation.EvaluationFlag{
+			evalSnapFlag = &client.EvaluationFlag{
 				Key:         f.Key,
 				Name:        f.Name,
 				Description: f.Description,
@@ -364,7 +364,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 				// evaluation
 
-				evalSnapFlag.DefaultVariant = &evaluation.EvaluationVariant{
+				evalSnapFlag.DefaultVariant = &client.EvaluationVariant{
 					Id:         path.Join(flag.Key, variant.Key),
 					Key:        v.Key,
 					Attachment: string(attachment),
@@ -389,7 +389,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					Rank:         rank,
 				}
 
-				evalSnapRule = &evaluation.EvaluationRule{
+				evalSnapRule = &client.EvaluationRule{
 					Id:   evalRule.ID,
 					Rank: evalRule.Rank,
 				}
@@ -407,7 +407,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 			if count := len(rule.Segments); count > 0 {
 				segmentKeys = append(segmentKeys, rule.Segments...)
-				evalSnapRule.Segments = make([]*evaluation.EvaluationSegment, 0, count)
+				evalSnapRule.Segments = make([]*client.EvaluationSegment, 0, count)
 			}
 
 			for _, segmentKey := range segmentKeys {
@@ -464,7 +464,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					VariantAttachment: string(attachment),
 				})
 
-				evalSnapRule.Distributions = append(evalSnapRule.Distributions, &evaluation.EvaluationDistribution{
+				evalSnapRule.Distributions = append(evalSnapRule.Distributions, &client.EvaluationDistribution{
 					RuleId:            evalRule.ID,
 					Rollout:           d.Rollout,
 					VariantKey:        variant.Key,
@@ -491,7 +491,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					Rank:         rank,
 				}
 
-				evalSnapRollout = &evaluation.EvaluationRollout{
+				evalSnapRollout = &client.EvaluationRollout{
 					Rank: rank,
 				}
 			)
@@ -511,13 +511,13 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					},
 				}
 
-				evalSnapRollout.Rule = &evaluation.EvaluationRollout_Threshold{
-					Threshold: &evaluation.EvaluationRolloutThreshold{
+				evalSnapRollout.Rule = &client.EvaluationRollout_Threshold{
+					Threshold: &client.EvaluationRolloutThreshold{
 						Percentage: rollout.Threshold.Percentage,
 						Value:      rollout.Threshold.Value,
 					},
 				}
-				evalSnapRollout.Type = evaluation.EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE
+				evalSnapRollout.Type = client.EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE
 			} else if rollout.Segment != nil {
 				var (
 					segmentKeys = []string{}
@@ -528,8 +528,8 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 					segmentKeys = append(segmentKeys, rollout.Segment.Keys...)
 				}
 
-				evalSnapRolloutSegment := &evaluation.EvaluationRollout_Segment{
-					Segment: &evaluation.EvaluationRolloutSegment{
+				evalSnapRolloutSegment := &client.EvaluationRollout_Segment{
+					Segment: &client.EvaluationRolloutSegment{
 						Value: rollout.Segment.Value,
 					},
 				}
@@ -573,7 +573,7 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				evalRollout.RolloutType = core.RolloutType_SEGMENT_ROLLOUT_TYPE
 
 				evalSnapRolloutSegment.Segment.SegmentOperator = toEvaluationSegmentOperator(segmentOperator)
-				evalSnapRollout.Type = evaluation.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE
+				evalSnapRollout.Type = client.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE
 
 				frs := &core.RolloutSegment{
 					Value:           rollout.Segment.Value,
@@ -690,7 +690,7 @@ func (s *Snapshot) GetEvaluationRollouts(ctx context.Context, flag storage.Resou
 	return rollouts, nil
 }
 
-func (s *Snapshot) EvaluationNamespaceSnapshot(_ context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+func (s *Snapshot) EvaluationNamespaceSnapshot(_ context.Context, ns string) (*client.EvaluationNamespaceSnapshot, error) {
 	snap, ok := s.evalSnap.Namespaces[ns]
 	if !ok {
 		return nil, errs.ErrNotFoundf("evaluation snapshot for namespace %q", ns)
@@ -699,7 +699,7 @@ func (s *Snapshot) EvaluationNamespaceSnapshot(_ context.Context, ns string) (*e
 	return snap, nil
 }
 
-func (s *Snapshot) EvaluationSnapshot(_ context.Context) (*evaluation.EvaluationSnapshot, error) {
+func (s *Snapshot) EvaluationSnapshot(_ context.Context) (*client.EvaluationSnapshot, error) {
 	return s.evalSnap, nil
 }
 
@@ -778,48 +778,48 @@ func (s *Snapshot) getNamespace(key string) (namespace, error) {
 	return *ns, nil
 }
 
-func toEvaluationFlagType(typ string) evaluation.EvaluationFlagType {
+func toEvaluationFlagType(typ string) client.EvaluationFlagType {
 	switch core.FlagType(core.FlagType_value[typ]) {
 	case core.FlagType_BOOLEAN_FLAG_TYPE:
-		return evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE
+		return client.EvaluationFlagType_BOOLEAN_FLAG_TYPE
 	case core.FlagType_VARIANT_FLAG_TYPE:
-		return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+		return client.EvaluationFlagType_VARIANT_FLAG_TYPE
 	}
-	return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+	return client.EvaluationFlagType_VARIANT_FLAG_TYPE
 }
 
-func toEvaluationSegmentMatchType(s core.MatchType) evaluation.EvaluationSegmentMatchType {
+func toEvaluationSegmentMatchType(s core.MatchType) client.EvaluationSegmentMatchType {
 	switch s {
 	case core.MatchType_ANY_MATCH_TYPE:
-		return evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
+		return client.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
 	case core.MatchType_ALL_MATCH_TYPE:
-		return evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE
+		return client.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE
 	}
-	return evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
+	return client.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
 }
 
-func toEvaluationSegmentOperator(s core.SegmentOperator) evaluation.EvaluationSegmentOperator {
+func toEvaluationSegmentOperator(s core.SegmentOperator) client.EvaluationSegmentOperator {
 	switch s {
 	case core.SegmentOperator_OR_SEGMENT_OPERATOR:
-		return evaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+		return client.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
 	case core.SegmentOperator_AND_SEGMENT_OPERATOR:
-		return evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR
+		return client.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR
 	}
-	return evaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+	return client.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
 }
 
-func toEvaluationConstraintComparisonType(c core.ComparisonType) evaluation.EvaluationConstraintComparisonType {
+func toEvaluationConstraintComparisonType(c core.ComparisonType) client.EvaluationConstraintComparisonType {
 	switch c {
 	case core.ComparisonType_STRING_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE
+		return client.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE
 	case core.ComparisonType_NUMBER_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE
+		return client.EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE
 	case core.ComparisonType_DATETIME_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE
+		return client.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE
 	case core.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE
+		return client.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE
 	case core.ComparisonType_ENTITY_ID_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
+		return client.EvaluationConstraintComparisonType_ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
 	}
-	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+	return client.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 }

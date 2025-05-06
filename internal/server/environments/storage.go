@@ -11,8 +11,8 @@ import (
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	rpcclientevaluation "go.flipt.io/flipt/rpc/v2/evaluation/client"
 	"go.uber.org/zap"
 )
 
@@ -60,8 +60,8 @@ type Environment interface {
 	// Evaluation
 
 	EvaluationStore() (storage.ReadOnlyStore, error)
-	EvaluationNamespaceSnapshot(context.Context, string) (*evaluation.EvaluationNamespaceSnapshot, error)
-	EvaluationNamespaceSnapshotSubscribe(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)
+	EvaluationNamespaceSnapshot(context.Context, string) (*rpcclientevaluation.EvaluationNamespaceSnapshot, error)
+	EvaluationNamespaceSnapshotSubscribe(context.Context, string, chan<- *rpcclientevaluation.EvaluationNamespaceSnapshot) (io.Closer, error)
 }
 
 type ViewFunc func(context.Context, ResourceStoreView) error
