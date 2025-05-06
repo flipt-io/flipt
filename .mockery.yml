@@ -1,0 +1,18 @@
+dir: '{{.InterfaceDir}}'
+structname: Mock{{.InterfaceName}}
+pkgname: '{{.SrcPackageName}}'
+filename: '{{.SrcPackageName}}_mock.go'
+template: testify
+packages:
+  go.flipt.io/flipt/internal/server/environments:
+    interfaces:
+      Environment: {}
+  go.flipt.io/flipt/internal/server/evaluation:
+    interfaces:
+      EnvironmentStore: {}
+  go.flipt.io/flipt/internal/storage:
+    interfaces:
+      ReadOnlyStore: {}
+  go.flipt.io/flipt/internal/server/analytics:
+    interfaces:
+      Client: {}
