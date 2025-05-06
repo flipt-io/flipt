@@ -6,7 +6,7 @@ info:
     title: EvaluationService API
     version: 0.0.1
 paths:
-    /client/v1/environments/{environmentKey}/namespaces/{key}/snapshot:
+    /client/v2/environments/{environmentKey}/namespaces/{key}/snapshot:
         get:
             tags:
                 - EvaluationService
@@ -33,7 +33,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/EvaluationNamespaceSnapshot'
-    /client/v1/environments/{environmentKey}/namespaces/{key}/stream:
+    /client/v2/environments/{environmentKey}/namespaces/{key}/stream:
         get:
             tags:
                 - EvaluationService

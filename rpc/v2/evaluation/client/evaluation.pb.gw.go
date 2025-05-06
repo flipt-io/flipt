@@ -149,7 +149,7 @@ func RegisterEvaluationServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/client/v1/environments/{environment_key}/namespaces/{key}/snapshot"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -214,7 +214,7 @@ func RegisterEvaluationServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/client/v1/environments/{environment_key}/namespaces/{key}/snapshot"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -231,7 +231,7 @@ func RegisterEvaluationServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespaceStream", runtime.WithHTTPPathPattern("/client/v1/environments/{environment_key}/namespaces/{key}/stream"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/evaluation.EvaluationService/EvaluationSnapshotNamespaceStream", runtime.WithHTTPPathPattern("/client/v2/environments/{environment_key}/namespaces/{key}/stream"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -248,8 +248,8 @@ func RegisterEvaluationServiceHandlerClient(ctx context.Context, mux *runtime.Se
 }
 
 var (
-	pattern_EvaluationService_EvaluationSnapshotNamespace_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"client", "v1", "environments", "environment_key", "namespaces", "key", "snapshot"}, ""))
-	pattern_EvaluationService_EvaluationSnapshotNamespaceStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"client", "v1", "environments", "environment_key", "namespaces", "key", "stream"}, ""))
+	pattern_EvaluationService_EvaluationSnapshotNamespace_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"client", "v2", "environments", "environment_key", "namespaces", "key", "snapshot"}, ""))
+	pattern_EvaluationService_EvaluationSnapshotNamespaceStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"client", "v2", "environments", "environment_key", "namespaces", "key", "stream"}, ""))
 )
 
 var (

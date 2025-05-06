@@ -142,12 +142,12 @@ service EvaluationService {
 
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot) {
     option (google.api.http) = {
-      get: "/client/v1/environments/{environment_key}/namespaces/{key}/snapshot"
+      get: "/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluationSnapshotNamespace"};
   }
   rpc EvaluationSnapshotNamespaceStream(EvaluationNamespaceSnapshotStreamRequest) returns (stream EvaluationNamespaceSnapshot) {
-    option (google.api.http) = {get: "/client/v1/environments/{environment_key}/namespaces/{key}/stream"};
+    option (google.api.http) = {get: "/client/v2/environments/{environment_key}/namespaces/{key}/stream"};
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluationSnapshotStream"};
   }
 }
