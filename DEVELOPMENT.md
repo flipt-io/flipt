@@ -16,7 +16,8 @@ Before starting, make sure you have the following installed:
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
-- [Mockery](https://github.com/vektra/mockery) (optional, for generating mocks)
+- [Mockery v3](https://github.com/vektra/mockery) (optional, for generating mocks)
+- [Playwright](https://playwright.dev/docs/intro) (optional, for running UI tests)
 
 ## Setup
 
