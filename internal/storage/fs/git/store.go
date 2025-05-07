@@ -337,9 +337,13 @@ func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	updated, fetchErr := s.fetch(ctx, s.snaps.References())
 
+	if !updated && fetchErr == nil {
+		return false, nil
+	}
+
 	// If we can't fetch, we need to check if the remote refs have changed
 	// and remove any references that are no longer present
-	if !(updated && fetchErr == nil) {
+	if fetchErr != nil {
 		remoteRefs, listErr := s.listRemoteRefs(ctx)
 		if listErr != nil {
 			// If we can't list remote refs, log and continue (don't remove anything)
@@ -351,7 +355,9 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 				}
 				if _, ok := remoteRefs[ref]; !ok {
 					s.logger.Info("removing missing git ref from cache", zap.String("ref", ref))
-					s.snaps.Delete(ref)
+					if err := s.snaps.Delete(ref); err != nil {
+						s.logger.Error("failed to delete missing git ref from cache", zap.String("ref", ref), zap.Error(err))
+					}
 				}
 			}
 		}

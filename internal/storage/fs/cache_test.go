@@ -235,7 +235,7 @@ func Test_SnapshotCache_Delete(t *testing.T) {
 
 	t.Run("cannot delete fixed reference", func(t *testing.T) {
 		err := cache.Delete(referenceFixed)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "cannot be deleted")
 		// Should still be present
 		_, ok := cache.Get(referenceFixed)
@@ -244,7 +244,7 @@ func Test_SnapshotCache_Delete(t *testing.T) {
 
 	t.Run("can delete non-fixed reference", func(t *testing.T) {
 		err := cache.Delete(referenceA)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		// Should no longer be present
 		_, ok := cache.Get(referenceA)
 		assert.False(t, ok)
