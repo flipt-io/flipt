@@ -171,6 +171,21 @@ func (c *SnapshotCache[K]) References() []string {
 	return append(maps.Keys(c.fixed), c.extra.Keys()...)
 }
 
+// Delete removes a reference from the snapshot cache.
+func (c *SnapshotCache[K]) Delete(ref string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.fixed[ref]; ok {
+		return fmt.Errorf("reference %s is a fixed entry and cannot be deleted", ref)
+	}
+	if k, ok := c.extra.Get(ref); ok {
+		c.extra.Remove(ref)
+		c.evict(ref, k)
+	}
+	return nil
+}
+
 // evict is used for garbage collection while evicting from the LRU
 // and when AddOrBuild leaves old revision keys dangling.
 // It checks to see if the target key for the evicted reference is
@@ -191,20 +206,4 @@ func (c *SnapshotCache[K]) evict(ref string, k K) {
 	delete(c.store, k)
 
 	logger.Debug("snapshot evicted", zap.String("key", fmt.Sprintf("%v", k)))
-}
-
-// Delete removes a reference from the snapshot cache.
-func (c *SnapshotCache[K]) Delete(ref string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if _, ok := c.fixed[ref]; ok {
-		delete(c.fixed, ref)
-		// No need to evict here, as fixed entries are not in LRU
-		return
-	}
-	if k, ok := c.extra.Get(ref); ok {
-		c.extra.Remove(ref)
-		c.evict(ref, k)
-	}
 }
