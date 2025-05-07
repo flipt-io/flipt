@@ -1329,9 +1329,9 @@ const file_evaluation_proto_rawDesc = "" +
 	"!NUMBER_CONSTRAINT_COMPARISON_TYPE\x10\x02\x12&\n" +
 	"\"BOOLEAN_CONSTRAINT_COMPARISON_TYPE\x10\x03\x12'\n" +
 	"#DATETIME_CONSTRAINT_COMPARISON_TYPE\x10\x04\x12(\n" +
-	"$ENTITY_ID_CONSTRAINT_COMPARISON_TYPE\x10\x052\x88\x04\n" +
-	"\x17ClientEvaluationService\x12\xe3\x01\n" +
-	"\x1bEvaluationSnapshotNamespace\x12..evaluation.EvaluationNamespaceSnapshotRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"k\xbaG\x1d*\x1bevaluationSnapshotNamespace\x82\xd3\xe4\x93\x02E\x12C/client/v2/environments/{environment_key}/namespaces/{key}/snapshot\x12\xec\x01\n" +
+	"$ENTITY_ID_CONSTRAINT_COMPARISON_TYPE\x10\x052\xbd\x04\n" +
+	"\x17ClientEvaluationService\x12\x98\x02\n" +
+	"\x1bEvaluationSnapshotNamespace\x12..evaluation.EvaluationNamespaceSnapshotRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"\x9f\x01\xbaG\x1d*\x1bevaluationSnapshotNamespace\x82\xd3\xe4\x93\x02yZ2\x120/internal/v1/evaluation/snapshot/namespace/{key}\x12C/client/v2/environments/{environment_key}/namespaces/{key}/snapshot\x12\xec\x01\n" +
 	"!EvaluationSnapshotNamespaceStream\x124.evaluation.EvaluationNamespaceSnapshotStreamRequest\x1a'.evaluation.EvaluationNamespaceSnapshot\"f\xbaG\x1a*\x18evaluationSnapshotStream\x82\xd3\xe4\x93\x02C\x12A/client/v2/environments/{environment_key}/namespaces/{key}/stream0\x01\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB%Z#go.flipt.io/flipt/rpc/v2/evaluationb\x06proto3"
 
 var (

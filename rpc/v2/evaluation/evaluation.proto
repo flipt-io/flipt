@@ -140,7 +140,12 @@ message EvaluationSnapshot {
 service ClientEvaluationService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot) {
-    option (google.api.http) = {get: "/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"};
+    option (google.api.http) = {
+      get: "/client/v2/environments/{environment_key}/namespaces/{key}/snapshot"
+      additional_bindings {
+        get: "/internal/v1/evaluation/snapshot/namespace/{key}"
+      }
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluationSnapshotNamespace"};
   }
   rpc EvaluationSnapshotNamespaceStream(EvaluationNamespaceSnapshotStreamRequest) returns (stream EvaluationNamespaceSnapshot) {
