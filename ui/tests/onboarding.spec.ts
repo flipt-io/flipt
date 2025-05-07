@@ -40,16 +40,14 @@ test.describe('Onboarding', () => {
     });
   });
 
-  test.describe('user navigates to the onboarding page', () => {
+  test.describe('user navigates to the Support page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
       await page.getByRole('link', { name: 'Support', exact: true }).click();
-      await page.getByRole('heading', { name: 'Onboarding' }).click();
-      await page.getByRole('link', { name: "Let's Go" }).click();
     });
 
     test('has expected content', async ({ page }) => {
-      await expect(page.locator('h1')).toContainText('Onboarding');
+      await expect(page.locator('h1')).toContainText('Support');
       await expect(
         page.getByText('Get Started', { exact: true })
       ).toBeVisible();
