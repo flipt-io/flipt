@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"slices"
+
 	lru "github.com/hashicorp/golang-lru/v2"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -45,7 +47,7 @@ func NewSnapshotCache[K comparable](logger *zap.Logger, extra int) (_ *SnapshotC
 		store:  map[K]*Snapshot{},
 	}
 
-	c.extra, err = lru.NewWithEvict[string, K](extra, c.evict)
+	c.extra, err = lru.NewWithEvict(extra, c.evict)
 	if err != nil {
 		return nil, err
 	}
@@ -182,13 +184,27 @@ func (c *SnapshotCache[K]) References() []string {
 func (c *SnapshotCache[K]) evict(ref string, k K) {
 	logger := c.logger.With(zap.String("reference", ref))
 	logger.Debug("reference evicted")
-	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
-		if key == k {
-			return
-		}
+	if slices.Contains(append(maps.Values(c.fixed), c.extra.Values()...), k) {
+		return
 	}
 
 	delete(c.store, k)
 
 	logger.Debug("snapshot evicted", zap.String("key", fmt.Sprintf("%v", k)))
+}
+
+// Delete removes a reference from the snapshot cache.
+func (c *SnapshotCache[K]) Delete(ref string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.fixed[ref]; ok {
+		delete(c.fixed, ref)
+		// No need to evict here, as fixed entries are not in LRU
+		return
+	}
+	if k, ok := c.extra.Get(ref); ok {
+		c.extra.Remove(ref)
+		c.evict(ref, k)
+	}
 }
