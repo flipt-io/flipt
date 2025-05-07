@@ -38,7 +38,7 @@ func TestSnapshot(t *testing.T) {
 }
 
 func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace string) {
-	t.Logf("Get snapshot for namespace %q.", namespace)
+	t.Logf("Get snapshot %q.", url)
 
 	resp, err := client.Get(url)
 
@@ -57,7 +57,7 @@ func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace 
 
 	assert.NotEmpty(t, body)
 
-	t.Logf("Get snapshot for namespace %q with etag/if-none-match.", namespace)
+	t.Logf("Get snapshot %q with etag/if-none-match.", url)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	req.Header.Set("If-None-Match", etag)
