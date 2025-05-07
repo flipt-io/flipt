@@ -146,6 +146,57 @@ namespace:
 
 		assert.Equal(t, "team_b", ns.Key)
 	})
+
+	t.Run("updating namespace preserves flags and data", func(t *testing.T) {
+		// Create a test filesystem with namespace and flags
+		testFs := fstesting.NewFilesystem(
+			t,
+			fstesting.WithDirectory(
+				"test_ns",
+				fstesting.WithFile("features.yaml", `version: "1.5"
+namespace:
+  key: test_ns
+  name: Test Namespace
+  description: Original description
+flags:
+  - key: flag1
+    name: Flag 1
+    type: BOOLEAN
+    description: A test flag
+    enabled: true
+`),
+			),
+		)
+
+		// First verify the namespace exists with the flag
+		ns, err := storage.GetNamespace(ctx, testFs, "test_ns")
+		require.NoError(t, err)
+		assert.Equal(t, "Test Namespace", ns.Name)
+		assert.Equal(t, "Original description", *ns.Description)
+
+		// Now update the namespace metadata
+		require.NoError(t, storage.PutNamespace(ctx, testFs, &rpcenvironments.Namespace{
+			Key:         "test_ns",
+			Name:        "Updated Name",
+			Description: ptr("Updated description"),
+		}))
+
+		// Read the file content to make sure flags are preserved
+		fi, err := testFs.OpenFile("test_ns/features.yaml", os.O_RDONLY, 0644)
+		require.NoError(t, err)
+		defer fi.Close()
+
+		data, err := io.ReadAll(fi)
+		require.NoError(t, err)
+
+		// Verify the content has both the updated namespace metadata and the original flag
+		assert.Contains(t, string(data), "key: test_ns")
+		assert.Contains(t, string(data), "name: Updated Name")
+		assert.Contains(t, string(data), "description: Updated description")
+		assert.Contains(t, string(data), "key: flag1")
+		assert.Contains(t, string(data), "name: Flag 1")
+		assert.Contains(t, string(data), "type: BOOLEAN")
+	})
 }
 
 func Test_NamespaceStorage_DeleteNamespace(t *testing.T) {
