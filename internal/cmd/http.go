@@ -203,6 +203,7 @@ func NewHTTPServer(
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
 		r.Mount("/ofrep", ofrepAPI)
+		r.Mount("/internal/v1", clientEvaluationAPI) // for backwards compatibility
 
 		r.Mount("/internal/v2/analytics", analyticsAPI)
 		r.Mount("/api/v2/environments", environmentsAPI)

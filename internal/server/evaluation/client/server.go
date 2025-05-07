@@ -33,7 +33,12 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
-	env := s.envs.GetFromContext(ctx)
+	env, err := s.envs.Get(ctx, r.EnvironmentKey)
+	if err != nil {
+		// try to get the environment from the context
+		// this is for backwards compatibility with v1
+		env = s.envs.GetFromContext(ctx)
+	}
 
 	snap, err := env.EvaluationNamespaceSnapshot(ctx, r.Key)
 	if err != nil {

@@ -24,19 +24,23 @@ func TestSnapshot(t *testing.T) {
 
 		t.Run("Evaluation Data", func(t *testing.T) {
 			httpClient := opts.HTTPClient(t)
-			for _, namespace := range integration.Namespaces {
-				t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
-					testSnapshotForNamespace(t, httpClient, opts.URL.String(), namespace.Expected)
-				})
+			// for testing backwards compatibility with v1
+			for _, path := range []string{"/client/v2/environments/default/namespaces/%s/snapshot", "/internal/v1/evaluation/snapshot/namespace/%s"} {
+				for _, namespace := range integration.Namespaces {
+					url := opts.URL.String() + fmt.Sprintf(path, namespace.Expected)
+					t.Run(fmt.Sprintf("namespace %q", namespace.Expected), func(t *testing.T) {
+						testSnapshotForNamespace(t, httpClient, url, namespace.Expected)
+					})
+				}
 			}
 		})
 	})
 }
 
 func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace string) {
-	t.Logf("Get snapshot for namespace.")
+	t.Logf("Get snapshot for namespace %q.", namespace)
 
-	resp, err := client.Get(fmt.Sprintf("%s/client/v2/environments/default/namespaces/%s/snapshot", url, namespace))
+	resp, err := client.Get(url)
 
 	require.NoError(t, err)
 	require.NotNil(t, resp)
@@ -53,9 +57,9 @@ func testSnapshotForNamespace(t *testing.T, client *http.Client, url, namespace 
 
 	assert.NotEmpty(t, body)
 
-	t.Logf("Get snapshot for namespace with etag/if-none-match.")
+	t.Logf("Get snapshot for namespace %q with etag/if-none-match.", namespace)
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/client/v2/environments/default/namespaces/%s/snapshot", url, namespace), nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	req.Header.Set("If-None-Match", etag)
 	require.NoError(t, err)
 
