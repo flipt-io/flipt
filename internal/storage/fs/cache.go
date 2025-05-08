@@ -179,9 +179,8 @@ func (c *SnapshotCache[K]) Delete(ref string) error {
 	if _, ok := c.fixed[ref]; ok {
 		return fmt.Errorf("reference %s is a fixed entry and cannot be deleted", ref)
 	}
-	if k, ok := c.extra.Get(ref); ok {
+	if _, ok := c.extra.Get(ref); ok {
 		c.extra.Remove(ref)
-		c.evict(ref, k)
 	}
 	return nil
 }

@@ -72,7 +72,7 @@ func (p *Poller) Poll() {
 		case <-ticker.C:
 			modified, err := p.update(p.ctx)
 			if err != nil {
-				p.logger.Error("error getting file system from directory", zap.Error(err))
+				p.logger.Warn("getting file system from directory", zap.Error(err))
 				continue
 			}
 
