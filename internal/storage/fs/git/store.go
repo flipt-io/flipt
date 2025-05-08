@@ -294,29 +294,89 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 	return fn(snap)
 }
 
+// listRemoteRefs returns a set of branch and tag names present on the remote.
+func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}, error) {
+	remotes, err := s.repo.Remotes()
+	if err != nil {
+		return nil, err
+	}
+	var origin *git.Remote
+	for _, r := range remotes {
+		if r.Config().Name == "origin" {
+			origin = r
+			break
+		}
+	}
+	if origin == nil {
+		return nil, fmt.Errorf("origin remote not found")
+	}
+	refs, err := origin.ListContext(ctx, &git.ListOptions{
+		Auth:            s.auth,
+		InsecureSkipTLS: s.insecureSkipTLS,
+		CABundle:        s.caBundle,
+		Timeout:         10, // in seconds
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string]struct{})
+	for _, ref := range refs {
+		name := ref.Name()
+		if name.IsBranch() {
+			result[name.Short()] = struct{}{}
+		} else if name.IsTag() {
+			result[name.Short()] = struct{}{}
+		}
+	}
+	return result, nil
+}
+
 // update fetches from the remote and given that a the target reference
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
-	// nolint:staticcheck
-	if updated, err := s.fetch(ctx, s.snaps.References()); !(err == nil && updated) { // TODO: double check this
-		// either nothing updated or err != nil
-		return updated, err
+	updated, fetchErr := s.fetch(ctx, s.snaps.References())
+
+	if !updated && fetchErr == nil {
+		return false, nil
+	}
+
+	// If we can't fetch, we need to check if the remote refs have changed
+	// and remove any references that are no longer present
+	if fetchErr != nil {
+		remoteRefs, listErr := s.listRemoteRefs(ctx)
+		if listErr != nil {
+			// If we can't list remote refs, log and continue (don't remove anything)
+			s.logger.Warn("could not list remote refs", zap.Error(listErr))
+		} else {
+			for _, ref := range s.snaps.References() {
+				if ref == s.baseRef {
+					continue // never remove the base ref
+				}
+				if _, ok := remoteRefs[ref]; !ok {
+					s.logger.Info("removing missing git ref from cache", zap.String("ref", ref))
+					if err := s.snaps.Delete(ref); err != nil {
+						s.logger.Error("failed to delete missing git ref from cache", zap.String("ref", ref), zap.Error(err))
+					}
+				}
+			}
+		}
 	}
 
 	var errs []error
+	if fetchErr != nil {
+		errs = append(errs, fetchErr)
+	}
 	for _, ref := range s.snaps.References() {
 		hash, err := s.resolve(ref)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-
 		if _, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot); err != nil {
 			errs = append(errs, err)
 		}
 	}
-
 	return true, errors.Join(errs...)
 }
 
@@ -341,6 +401,7 @@ func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error)
 		RefSpecs:        refSpecs,
 		InsecureSkipTLS: s.insecureSkipTLS,
 		CABundle:        s.caBundle,
+		Prune:           true,
 	}); err != nil {
 		if !errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return false, err

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"slices"
+
 	lru "github.com/hashicorp/golang-lru/v2"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -45,7 +47,7 @@ func NewSnapshotCache[K comparable](logger *zap.Logger, extra int) (_ *SnapshotC
 		store:  map[K]*Snapshot{},
 	}
 
-	c.extra, err = lru.NewWithEvict[string, K](extra, c.evict)
+	c.extra, err = lru.NewWithEvict(extra, c.evict)
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +171,20 @@ func (c *SnapshotCache[K]) References() []string {
 	return append(maps.Keys(c.fixed), c.extra.Keys()...)
 }
 
+// Delete removes a reference from the snapshot cache.
+func (c *SnapshotCache[K]) Delete(ref string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if _, ok := c.fixed[ref]; ok {
+		return fmt.Errorf("reference %s is a fixed entry and cannot be deleted", ref)
+	}
+	if _, ok := c.extra.Get(ref); ok {
+		c.extra.Remove(ref)
+	}
+	return nil
+}
+
 // evict is used for garbage collection while evicting from the LRU
 // and when AddOrBuild leaves old revision keys dangling.
 // It checks to see if the target key for the evicted reference is
@@ -182,10 +198,8 @@ func (c *SnapshotCache[K]) References() []string {
 func (c *SnapshotCache[K]) evict(ref string, k K) {
 	logger := c.logger.With(zap.String("reference", ref))
 	logger.Debug("reference evicted")
-	for _, key := range append(maps.Values(c.fixed), c.extra.Values()...) {
-		if key == k {
-			return
-		}
+	if slices.Contains(append(maps.Values(c.fixed), c.extra.Values()...), k) {
+		return
 	}
 
 	delete(c.store, k)
