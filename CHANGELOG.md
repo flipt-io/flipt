@@ -5,6 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [v1.58.1](https://github.com/flipt-io/flipt/releases/tag/v1.58.1) - 2025-05-08
+
+### Changed
+
+- update Contributing section in README to link DEVELOPMENT.md  Removed broken [Architecture](ARCHITECTURE.md) link, updated to [Development](DEVELOPMENT.md) for redirection, and restructured section with subsections (What To Work On, Issues, Code) to align with CONTRIBUTING.md.  Signed-off-by: Suhas A <suhasamaresh@gmail.com> (#4151)
+
+### Fixed
+
+- prune remotes from cache that no longer exist (#4184)
+
 ## [v1.58.0](https://github.com/flipt-io/flipt/releases/tag/v1.58.0) - 2025-04-10
 
 ### Added
