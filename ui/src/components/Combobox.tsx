@@ -1,6 +1,6 @@
 import { useField } from 'formik';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Button } from '~/components/Button';
 import {
@@ -42,12 +42,14 @@ export default function Combobox<T extends ISelectable>(
     disabled
   } = props;
 
+  const ref = useRef(null);
   const [field] = useField(props);
   const [openOptions, setOpenOptions] = useState(false);
   return (
     <Popover open={openOptions} onOpenChange={setOpenOptions}>
       <PopoverTrigger asChild disabled={disabled}>
         <Button
+          ref={ref}
           name={name + '-select-button'}
           id={id + '-select-button'}
           data-testid={name + '-select-button'}
@@ -67,6 +69,7 @@ export default function Combobox<T extends ISelectable>(
         aria-labelledby={name + '-select-button'}
         className="p-0"
         style={{ width: 'var(--radix-popover-trigger-width)' }}
+        ref={ref}
       >
         <Command>
           <CommandInput
