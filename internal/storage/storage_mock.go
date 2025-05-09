@@ -9,7 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 )
 
 // NewMockReadOnlyStore creates a new instance of MockReadOnlyStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

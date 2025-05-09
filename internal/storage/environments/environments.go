@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/credentials"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
+	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	configcoreflipt "go.flipt.io/flipt/internal/storage/environments/fs/flipt"
 	environmentsgit "go.flipt.io/flipt/internal/storage/environments/git"
@@ -102,6 +103,7 @@ func (s *sourceBuilder) forEnvironment(
 		envConf,
 		repo,
 		fileStorage,
+		evaluation.NewSnapshotPublisher(logger),
 	)
 	if err != nil {
 		return nil, err

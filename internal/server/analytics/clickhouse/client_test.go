@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	panalytics "go.flipt.io/flipt/internal/server/analytics"
 	analyticstesting "go.flipt.io/flipt/internal/server/analytics/testing"
-	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.flipt.io/flipt/rpc/v2/analytics"
 	"go.uber.org/zap"
 )
 

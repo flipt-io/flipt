@@ -262,42 +262,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VariantEvaluationResponse'
-    /internal/v2/analytics/environments/{environmentKey}/namespaces/{namespaceKey}/flags/{flagKey}:
-        get:
-            tags:
-                - AnalyticsService
-            operationId: getFlagEvaluationsCount
-            parameters:
-                - name: environmentKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: namespaceKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: flagKey
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: from
-                  in: query
-                  schema:
-                    type: string
-                - name: to
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetFlagEvaluationsCountResponse'
     /ofrep/v1/configuration:
         get:
             tags:
@@ -596,18 +560,6 @@ components:
                 totalCount:
                     type: integer
                     format: int32
-        GetFlagEvaluationsCountResponse:
-            type: object
-            properties:
-                timestamps:
-                    type: array
-                    items:
-                        type: string
-                values:
-                    type: array
-                    items:
-                        type: number
-                        format: float
         GetProviderConfigurationResponse:
             type: object
             properties:
@@ -754,7 +706,6 @@ components:
 security:
     - bearerAuth: []
 tags:
-    - name: AnalyticsService
     - name: AuthenticationMethodKubernetesService
     - name: AuthenticationMethodOIDCService
     - name: AuthenticationService

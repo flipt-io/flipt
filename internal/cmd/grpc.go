@@ -28,17 +28,18 @@ import (
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
-	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
+	serverclientevaluation "go.flipt.io/flipt/internal/server/evaluation/client"
 	"go.flipt.io/flipt/internal/server/evaluation/ofrep"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/environments"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
-	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcmeta "go.flipt.io/flipt/rpc/flipt/meta"
 	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
+	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
+	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
@@ -172,7 +173,7 @@ func NewGRPCServer(
 
 	// base inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),
@@ -192,11 +193,10 @@ func NewGRPCServer(
 
 	var (
 		// legacy services
-		metasrv     = metadata.New(cfg, info)
-		evalsrv     = evaluation.New(logger, environmentStore)
-		evaldatasrv = evaluationdata.New(logger, environmentStore)
-		fliptv1srv  = serverfliptv1.New(logger, environmentStore)
-		ofrepsrv    = ofrep.New(logger, evalsrv, environmentStore)
+		metasrv    = metadata.New(cfg, info)
+		evalsrv    = evaluation.New(logger, environmentStore)
+		fliptv1srv = serverfliptv1.New(logger, environmentStore)
+		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
 
 		// health service
 		healthsrv = health.NewServer()
@@ -204,8 +204,10 @@ func NewGRPCServer(
 
 	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
 	if err != nil {
-		return nil, fmt.Errorf("building configuration server: %w", err)
+		return nil, fmt.Errorf("building environments server: %w", err)
 	}
+
+	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore)
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.
@@ -221,7 +223,7 @@ func NewGRPCServer(
 	)
 
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
-	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(clientevalsrv, cfg.Authentication.Exclude.Evaluation)
 
 	authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
@@ -268,7 +270,7 @@ func NewGRPCServer(
 	rpcenv.RegisterEnvironmentsServiceServer(handlers, envsrv)
 	rpcmeta.RegisterMetadataServiceServer(handlers, metasrv)
 	rpcevaluation.RegisterEvaluationServiceServer(handlers, evalsrv)
-	rpcevaluation.RegisterDataServiceServer(handlers, evaldatasrv)
+	rpcevaluationv2.RegisterClientEvaluationServiceServer(handlers, clientevalsrv)
 	rpcoffrep.RegisterOFREPServiceServer(handlers, ofrepsrv)
 
 	// forward internal gRPC logging to zap

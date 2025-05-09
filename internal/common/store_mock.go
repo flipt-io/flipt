@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 )
 
 var _ storage.Store = &StoreMock{}

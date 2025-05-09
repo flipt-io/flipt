@@ -4,6 +4,10 @@ modules:
     name: buf.build/flipt-io/flipt
   - path: rpc/v2/environments
     name: buf.build/flipt-io/environments
+  - path: rpc/v2/analytics
+    name: buf.build/flipt-io/analytics
+  - path: rpc/v2/evaluation
+    name: buf.build/flipt-io/evaluation
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway

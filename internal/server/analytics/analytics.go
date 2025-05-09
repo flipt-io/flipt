@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
-	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.flipt.io/flipt/rpc/v2/analytics"
 )
+
+var _ analytics.AnalyticsServiceServer = (*Server)(nil)
 
 // GetFlagEvaluationsCount is the implemented RPC method that will return aggregated flag evaluation counts.
 func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) (*analytics.GetFlagEvaluationsCountResponse, error) {

@@ -5,7 +5,6 @@ package flipt.evaluation;
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/api/visibility.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
@@ -86,6 +85,11 @@ message ErrorEvaluationResponse {
   ErrorEvaluationReason reason = 3;
 }
 
+enum EvaluationFlagType {
+  VARIANT_FLAG_TYPE = 0;
+  BOOLEAN_FLAG_TYPE = 1;
+}
+
 service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {
     option (google.api.http) = {
@@ -108,134 +112,4 @@ service EvaluationService {
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "evaluateBatch"};
   }
-}
-
-message EvaluationDistribution {
-  string id = 1 [deprecated = true];
-  string rule_id = 2;
-  string variant_id = 3 [deprecated = true];
-  string variant_key = 4;
-  string variant_attachment = 5;
-  float rollout = 6;
-}
-
-enum EvaluationRolloutType {
-  UNKNOWN_ROLLOUT_TYPE = 0;
-  SEGMENT_ROLLOUT_TYPE = 1;
-  THRESHOLD_ROLLOUT_TYPE = 2;
-}
-
-message EvaluationRollout {
-  EvaluationRolloutType type = 1;
-  int32 rank = 2;
-  oneof rule {
-    EvaluationRolloutSegment segment = 3;
-    EvaluationRolloutThreshold threshold = 4;
-  }
-}
-
-message EvaluationRolloutThreshold {
-  float percentage = 1;
-  bool value = 2;
-}
-
-enum EvaluationSegmentOperator {
-  OR_SEGMENT_OPERATOR = 0;
-  AND_SEGMENT_OPERATOR = 1;
-}
-
-message EvaluationRolloutSegment {
-  bool value = 1;
-  EvaluationSegmentOperator segment_operator = 2;
-  repeated EvaluationSegment segments = 3;
-}
-
-enum EvaluationSegmentMatchType {
-  ALL_SEGMENT_MATCH_TYPE = 0;
-  ANY_SEGMENT_MATCH_TYPE = 1;
-}
-
-message EvaluationSegment {
-  string key = 1;
-  string name = 2;
-  string description = 3;
-  EvaluationSegmentMatchType match_type = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
-  repeated EvaluationConstraint constraints = 7;
-}
-
-message EvaluationVariant {
-  string id = 1;
-  string key = 2;
-  string attachment = 3;
-}
-
-enum EvaluationFlagType {
-  VARIANT_FLAG_TYPE = 0;
-  BOOLEAN_FLAG_TYPE = 1;
-}
-
-message EvaluationFlag {
-  string key = 1;
-  string name = 2;
-  string description = 3;
-  bool enabled = 4;
-  EvaluationFlagType type = 5;
-  google.protobuf.Timestamp created_at = 6;
-  google.protobuf.Timestamp updated_at = 7;
-  repeated EvaluationRule rules = 8;
-  repeated EvaluationRollout rollouts = 9;
-  optional EvaluationVariant default_variant = 10;
-}
-
-enum EvaluationConstraintComparisonType {
-  UNKNOWN_CONSTRAINT_COMPARISON_TYPE = 0;
-  STRING_CONSTRAINT_COMPARISON_TYPE = 1;
-  NUMBER_CONSTRAINT_COMPARISON_TYPE = 2;
-  BOOLEAN_CONSTRAINT_COMPARISON_TYPE = 3;
-  DATETIME_CONSTRAINT_COMPARISON_TYPE = 4;
-  ENTITY_ID_CONSTRAINT_COMPARISON_TYPE = 5;
-}
-
-message EvaluationConstraint {
-  string id = 1 [deprecated = true];
-  EvaluationConstraintComparisonType type = 2;
-  string property = 3;
-  string operator = 4;
-  string value = 5;
-}
-
-message EvaluationRule {
-  string id = 1;
-  repeated EvaluationSegment segments = 2;
-  int32 rank = 3;
-  EvaluationSegmentOperator segment_operator = 4;
-  repeated EvaluationDistribution distributions = 5;
-}
-
-message EvaluationNamespace {
-  string key = 1;
-}
-
-message EvaluationNamespaceSnapshot {
-  EvaluationNamespace namespace = 1;
-  repeated EvaluationFlag flags = 2;
-  string digest = 3;
-}
-
-message EvaluationNamespaceSnapshotRequest {
-  string key = 1;
-  string reference = 2;
-  string environment_key = 3;
-}
-
-message EvaluationSnapshot {
-  map<string, EvaluationNamespaceSnapshot> namespaces = 1;
-}
-
-service DataService {
-  option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
-
-  rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
 }

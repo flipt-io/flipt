@@ -2,12 +2,11 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: analytics/analytics.proto
+// source: analytics.proto
 
 package analytics
 
 import (
-	_ "github.com/google/gnostic/openapiv3"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/genproto/googleapis/api/visibility"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -37,7 +36,7 @@ type GetFlagEvaluationsCountRequest struct {
 
 func (x *GetFlagEvaluationsCountRequest) Reset() {
 	*x = GetFlagEvaluationsCountRequest{}
-	mi := &file_analytics_analytics_proto_msgTypes[0]
+	mi := &file_analytics_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +48,7 @@ func (x *GetFlagEvaluationsCountRequest) String() string {
 func (*GetFlagEvaluationsCountRequest) ProtoMessage() {}
 
 func (x *GetFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_analytics_proto_msgTypes[0]
+	mi := &file_analytics_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +61,7 @@ func (x *GetFlagEvaluationsCountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlagEvaluationsCountRequest.ProtoReflect.Descriptor instead.
 func (*GetFlagEvaluationsCountRequest) Descriptor() ([]byte, []int) {
-	return file_analytics_analytics_proto_rawDescGZIP(), []int{0}
+	return file_analytics_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetFlagEvaluationsCountRequest) GetEnvironmentKey() string {
@@ -110,7 +109,7 @@ type GetFlagEvaluationsCountResponse struct {
 
 func (x *GetFlagEvaluationsCountResponse) Reset() {
 	*x = GetFlagEvaluationsCountResponse{}
-	mi := &file_analytics_analytics_proto_msgTypes[1]
+	mi := &file_analytics_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -122,7 +121,7 @@ func (x *GetFlagEvaluationsCountResponse) String() string {
 func (*GetFlagEvaluationsCountResponse) ProtoMessage() {}
 
 func (x *GetFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_analytics_analytics_proto_msgTypes[1]
+	mi := &file_analytics_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -135,7 +134,7 @@ func (x *GetFlagEvaluationsCountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlagEvaluationsCountResponse.ProtoReflect.Descriptor instead.
 func (*GetFlagEvaluationsCountResponse) Descriptor() ([]byte, []int) {
-	return file_analytics_analytics_proto_rawDescGZIP(), []int{1}
+	return file_analytics_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetFlagEvaluationsCountResponse) GetTimestamps() []string {
@@ -152,11 +151,11 @@ func (x *GetFlagEvaluationsCountResponse) GetValues() []float32 {
 	return nil
 }
 
-var File_analytics_analytics_proto protoreflect.FileDescriptor
+var File_analytics_proto protoreflect.FileDescriptor
 
-const file_analytics_analytics_proto_rawDesc = "" +
+const file_analytics_proto_rawDesc = "" +
 	"\n" +
-	"\x19analytics/analytics.proto\x12\x0fflipt.analytics\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
+	"\x0fanalytics.proto\x12\tanalytics\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\"\xad\x01\n" +
 	"\x1eGetFlagEvaluationsCountRequest\x12'\n" +
 	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12#\n" +
 	"\rnamespace_key\x18\x02 \x01(\tR\fnamespaceKey\x12\x19\n" +
@@ -167,30 +166,30 @@ const file_analytics_analytics_proto_rawDesc = "" +
 	"\n" +
 	"timestamps\x18\x01 \x03(\tR\n" +
 	"timestamps\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\x02R\x06values2\xb3\x02\n" +
-	"\x10AnalyticsService\x12\x84\x02\n" +
-	"\x17GetFlagEvaluationsCount\x12/.flipt.analytics.GetFlagEvaluationsCountRequest\x1a0.flipt.analytics.GetFlagEvaluationsCountResponse\"\x85\x01\xbaG\x19*\x17getFlagEvaluationsCount\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB'Z%go.flipt.io/flipt/rpc/flipt/analyticsb\x06proto3"
+	"\x06values\x18\x02 \x03(\x02R\x06values2\x8a\x02\n" +
+	"\x10AnalyticsService\x12\xdb\x01\n" +
+	"\x17GetFlagEvaluationsCount\x12).analytics.GetFlagEvaluationsCountRequest\x1a*.analytics.GetFlagEvaluationsCountResponse\"i\x82\xd3\xe4\x93\x02c\x12a/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/flags/{flag_key}\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB$Z\"go.flipt.io/flipt/rpc/v2/analyticsb\x06proto3"
 
 var (
-	file_analytics_analytics_proto_rawDescOnce sync.Once
-	file_analytics_analytics_proto_rawDescData []byte
+	file_analytics_proto_rawDescOnce sync.Once
+	file_analytics_proto_rawDescData []byte
 )
 
-func file_analytics_analytics_proto_rawDescGZIP() []byte {
-	file_analytics_analytics_proto_rawDescOnce.Do(func() {
-		file_analytics_analytics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_analytics_analytics_proto_rawDesc), len(file_analytics_analytics_proto_rawDesc)))
+func file_analytics_proto_rawDescGZIP() []byte {
+	file_analytics_proto_rawDescOnce.Do(func() {
+		file_analytics_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_analytics_proto_rawDesc), len(file_analytics_proto_rawDesc)))
 	})
-	return file_analytics_analytics_proto_rawDescData
+	return file_analytics_proto_rawDescData
 }
 
-var file_analytics_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_analytics_analytics_proto_goTypes = []any{
-	(*GetFlagEvaluationsCountRequest)(nil),  // 0: flipt.analytics.GetFlagEvaluationsCountRequest
-	(*GetFlagEvaluationsCountResponse)(nil), // 1: flipt.analytics.GetFlagEvaluationsCountResponse
+var file_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_analytics_proto_goTypes = []any{
+	(*GetFlagEvaluationsCountRequest)(nil),  // 0: analytics.GetFlagEvaluationsCountRequest
+	(*GetFlagEvaluationsCountResponse)(nil), // 1: analytics.GetFlagEvaluationsCountResponse
 }
-var file_analytics_analytics_proto_depIdxs = []int32{
-	0, // 0: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:input_type -> flipt.analytics.GetFlagEvaluationsCountRequest
-	1, // 1: flipt.analytics.AnalyticsService.GetFlagEvaluationsCount:output_type -> flipt.analytics.GetFlagEvaluationsCountResponse
+var file_analytics_proto_depIdxs = []int32{
+	0, // 0: analytics.AnalyticsService.GetFlagEvaluationsCount:input_type -> analytics.GetFlagEvaluationsCountRequest
+	1, // 1: analytics.AnalyticsService.GetFlagEvaluationsCount:output_type -> analytics.GetFlagEvaluationsCountResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -198,26 +197,26 @@ var file_analytics_analytics_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_analytics_analytics_proto_init() }
-func file_analytics_analytics_proto_init() {
-	if File_analytics_analytics_proto != nil {
+func init() { file_analytics_proto_init() }
+func file_analytics_proto_init() {
+	if File_analytics_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_analytics_proto_rawDesc), len(file_analytics_analytics_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_analytics_proto_rawDesc), len(file_analytics_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_analytics_analytics_proto_goTypes,
-		DependencyIndexes: file_analytics_analytics_proto_depIdxs,
-		MessageInfos:      file_analytics_analytics_proto_msgTypes,
+		GoTypes:           file_analytics_proto_goTypes,
+		DependencyIndexes: file_analytics_proto_depIdxs,
+		MessageInfos:      file_analytics_proto_msgTypes,
 	}.Build()
-	File_analytics_analytics_proto = out.File
-	file_analytics_analytics_proto_goTypes = nil
-	file_analytics_analytics_proto_depIdxs = nil
+	File_analytics_proto = out.File
+	file_analytics_proto_goTypes = nil
+	file_analytics_proto_depIdxs = nil
 }
