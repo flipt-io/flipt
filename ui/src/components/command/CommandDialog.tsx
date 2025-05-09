@@ -72,10 +72,10 @@ const namespacedRoutes = [
     keywords: ['segments']
   },
   {
-    name: 'Console',
+    name: 'Playground',
     description: 'Debug and test flags and segments',
-    route: '/console',
-    keywords: ['console', 'debug', 'test']
+    route: '/playground',
+    keywords: ['console', 'debug', 'test', 'Playground']
   }
 ];
 

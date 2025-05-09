@@ -25,8 +25,9 @@ const PopoverContent = React.forwardRef(
     }: React.ComponentProps<typeof PopoverPrimitive.Content>,
     ref: any
   ) => {
+    const container = ref?.current || undefined;
     return (
-      <PopoverPrimitive.Portal container={ref.current ?? undefined}>
+      <PopoverPrimitive.Portal container={container}>
         <PopoverPrimitive.Content
           data-slot="popover-content"
           align={align}
