@@ -1,6 +1,6 @@
 import { IConstraint } from './Constraint';
 import { IPageable } from './Pageable';
-import { IFilterable } from './Selectable';
+import { ISelectable } from './Selectable';
 
 export interface ISegment {
   key: string;
@@ -48,4 +48,4 @@ export interface ISegmentList extends IPageable {
   segments: ISegment[];
 }
 
-export type FilterableSegment = ISegment & IFilterable;
+export type FilterableSegment = ISegment & ISelectable;

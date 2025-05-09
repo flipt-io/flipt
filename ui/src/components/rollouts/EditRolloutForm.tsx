@@ -110,8 +110,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
           rollout.segment?.segments?.includes(s.key)
             ? {
                 ...s,
-                displayValue: s.name,
-                filterValue: s.key
+                displayValue: s.name
               }
             : []
         ),
@@ -252,7 +251,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                     className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-600"
                   />
                   <div className="relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black dark:text-white">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foreground">
                       %
                     </div>
                     <Input

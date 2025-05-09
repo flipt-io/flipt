@@ -36,7 +36,7 @@ export default function MultiDistributionFormInputs(
             </label>
           </div>
           <div className="relative sm:col-span-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foreground">
               %
             </div>
             <input

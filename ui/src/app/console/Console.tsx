@@ -98,7 +98,6 @@ export default function Console() {
       return {
         ...flag,
         status: status as 'active' | 'inactive',
-        filterValue: flag.key,
         displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
       };
     });

@@ -6,8 +6,6 @@ import Combobox from '~/components/Combobox';
 
 import { FilterableSegment, ISegment } from '~/types/Segment';
 
-import { truncateKey } from '~/utils/helpers';
-
 type SegmentPickerProps = {
   segments: ISegment[];
   selectedSegments: FilterableSegment[];
@@ -116,7 +114,6 @@ export default function SegmentsPicker({
       .filter((s) => !segmentsSet.current.has(s.key))
       .map((s) => ({
         ...s,
-        filterValue: truncateKey(s.key),
         displayValue: s.name
       }));
   };

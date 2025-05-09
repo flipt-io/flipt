@@ -38,8 +38,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       }
       return {
         ...segment,
-        displayValue: segment.name,
-        filterValue: segment.key
+        displayValue: segment.name
       };
     });
   }, [rolloutSegmentKeys, segments]);
@@ -203,7 +202,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 onKeyUp={(e) => handlePercentageChange(e.currentTarget.value)}
               />
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-black dark:text-white">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foreground">
                   %
                 </div>
                 <Input

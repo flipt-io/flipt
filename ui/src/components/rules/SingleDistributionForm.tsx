@@ -8,20 +8,18 @@ type SingleDistributionFormInputProps = {
   variants: IVariant[];
   selectedVariant: FilterableVariant | null;
   setSelectedVariant: (variant: FilterableVariant | null) => void;
-  id?: string;
+  id: string;
 };
 
 export default function SingleDistributionFormInput(
   props: SingleDistributionFormInputProps
 ) {
-  const { variants, selectedVariant, setSelectedVariant } = props;
-  const id = props.id || 'variant';
+  const { variants, selectedVariant, setSelectedVariant, id } = props;
 
   // Create a formatted variants array for the Combobox
   const formattedVariants = variants.map((v) => ({
     ...v,
-    filterValue: v.key,
-    displayValue: v.name
+    displayValue: v.name || v.key
   }));
 
   // Synchronize with parent's selected variant when it changes externally

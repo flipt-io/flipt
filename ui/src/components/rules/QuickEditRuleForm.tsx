@@ -79,8 +79,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
       return {
         ...variant,
-        displayValue: variant.name,
-        filterValue: variant.key
+        displayValue: variant.name || variant.key
       };
     });
 
@@ -116,8 +115,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         if (variant) {
           setSelectedVariant({
             ...variant,
-            displayValue: variant.name,
-            filterValue: variant.key
+            displayValue: variant.name || variant.key
           });
         }
       }
@@ -137,8 +135,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       }
       return {
         ...segment,
-        displayValue: segment.name,
-        filterValue: segment.key
+        displayValue: segment.name
       };
     });
   }, [ruleSegmentKeys, segments]);

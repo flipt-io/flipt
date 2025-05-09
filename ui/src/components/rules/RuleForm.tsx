@@ -24,7 +24,6 @@ import { FilterableVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 import { keyValidation } from '~/data/validations';
-import { truncateKey } from '~/utils/helpers';
 
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
@@ -407,6 +406,7 @@ export default function RuleForm(props: RuleFormProps) {
                       variants={flag.variants}
                       selectedVariant={selectedVariant}
                       setSelectedVariant={handleVariantChange}
+                      id="variant"
                     />
                   )}
                 {flag.variants &&
@@ -430,7 +430,7 @@ export default function RuleForm(props: RuleFormProps) {
                       to=".."
                       className="text-violet-500 dark:text-violet-400"
                     >
-                      {truncateKey(flag.key)}
+                      {flag.key}
                     </Link>{' '}
                     has no variants. You can add variants in the details
                     section.
