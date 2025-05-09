@@ -129,10 +129,17 @@ func (o TestOpts) NoAuthClient(t *testing.T) sdk.SDK {
 }
 
 type ClientOpts struct {
-	Role string
+	Role      string
+	Transport http.RoundTripper
 }
 
 type ClientOpt func(*ClientOpts)
+
+func WithTransport(transport http.RoundTripper) ClientOpt {
+	return func(co *ClientOpts) {
+		co.Transport = transport
+	}
+}
 
 func WithRole(role string) ClientOpt {
 	return func(co *ClientOpts) {
@@ -172,10 +179,15 @@ func (o TestOpts) HTTPClient(t *testing.T, opts ...ClientOpt) *http.Client {
 		}
 	}
 
+	baseTransport := options.Transport
+	if baseTransport == nil {
+		baseTransport = http.DefaultTransport
+	}
+
 	transport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		r.Header.Set("X-Forwarded-Host", o.URL.Host)
-		return http.DefaultTransport.RoundTrip(r)
+		return baseTransport.RoundTrip(r)
 	})
 
 	return &http.Client{Transport: transport}

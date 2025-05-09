@@ -1,0 +1,264 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ClientEvaluationService API
+    version: 0.0.1
+paths:
+    /client/v2/environments/{environmentKey}/namespaces/{key}/snapshot:
+        get:
+            tags:
+                - ClientEvaluationService
+            operationId: evaluationSnapshotNamespace
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EvaluationNamespaceSnapshot'
+    /client/v2/environments/{environmentKey}/namespaces/{key}/stream:
+        get:
+            tags:
+                - ClientEvaluationService
+            operationId: evaluationSnapshotStream
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EvaluationNamespaceSnapshot'
+    /internal/v1/evaluation/snapshot/namespace/{key}:
+        get:
+            tags:
+                - ClientEvaluationService
+            operationId: evaluationSnapshotNamespace
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: reference
+                  in: query
+                  schema:
+                    type: string
+                - name: environmentKey
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EvaluationNamespaceSnapshot'
+components:
+    schemas:
+        EvaluationConstraint:
+            type: object
+            properties:
+                type:
+                    enum:
+                        - UNKNOWN_CONSTRAINT_COMPARISON_TYPE
+                        - STRING_CONSTRAINT_COMPARISON_TYPE
+                        - NUMBER_CONSTRAINT_COMPARISON_TYPE
+                        - BOOLEAN_CONSTRAINT_COMPARISON_TYPE
+                        - DATETIME_CONSTRAINT_COMPARISON_TYPE
+                        - ENTITY_ID_CONSTRAINT_COMPARISON_TYPE
+                    type: string
+                    format: enum
+                property:
+                    type: string
+                operator:
+                    type: string
+                value:
+                    type: string
+        EvaluationDistribution:
+            type: object
+            properties:
+                ruleId:
+                    type: string
+                variantKey:
+                    type: string
+                variantAttachment:
+                    type: string
+                rollout:
+                    type: number
+                    format: float
+        EvaluationFlag:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                type:
+                    enum:
+                        - VARIANT_FLAG_TYPE
+                        - BOOLEAN_FLAG_TYPE
+                    type: string
+                    format: enum
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationRule'
+                rollouts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationRollout'
+                defaultVariant:
+                    $ref: '#/components/schemas/EvaluationVariant'
+        EvaluationNamespace:
+            type: object
+            properties:
+                key:
+                    type: string
+        EvaluationNamespaceSnapshot:
+            type: object
+            properties:
+                namespace:
+                    $ref: '#/components/schemas/EvaluationNamespace'
+                flags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationFlag'
+                digest:
+                    type: string
+        EvaluationRollout:
+            type: object
+            properties:
+                type:
+                    enum:
+                        - UNKNOWN_ROLLOUT_TYPE
+                        - SEGMENT_ROLLOUT_TYPE
+                        - THRESHOLD_ROLLOUT_TYPE
+                    type: string
+                    format: enum
+                rank:
+                    type: integer
+                    format: int32
+                segment:
+                    $ref: '#/components/schemas/EvaluationRolloutSegment'
+                threshold:
+                    $ref: '#/components/schemas/EvaluationRolloutThreshold'
+        EvaluationRolloutSegment:
+            type: object
+            properties:
+                value:
+                    type: boolean
+                segmentOperator:
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
+                    format: enum
+                segments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationSegment'
+        EvaluationRolloutThreshold:
+            type: object
+            properties:
+                percentage:
+                    type: number
+                    format: float
+                value:
+                    type: boolean
+        EvaluationRule:
+            type: object
+            properties:
+                id:
+                    type: string
+                segments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationSegment'
+                rank:
+                    type: integer
+                    format: int32
+                segmentOperator:
+                    enum:
+                        - OR_SEGMENT_OPERATOR
+                        - AND_SEGMENT_OPERATOR
+                    type: string
+                    format: enum
+                distributions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationDistribution'
+        EvaluationSegment:
+            type: object
+            properties:
+                key:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                matchType:
+                    enum:
+                        - ALL_SEGMENT_MATCH_TYPE
+                        - ANY_SEGMENT_MATCH_TYPE
+                    type: string
+                    format: enum
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                constraints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EvaluationConstraint'
+        EvaluationVariant:
+            type: object
+            properties:
+                id:
+                    type: string
+                key:
+                    type: string
+                attachment:
+                    type: string
+tags:
+    - name: ClientEvaluationService
