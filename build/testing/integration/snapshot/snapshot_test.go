@@ -161,7 +161,6 @@ func TestEvaluationSnapshotNamespaceStream(t *testing.T) {
 						errs <- err
 						return
 					}
-					t.Logf("Received line: %s", string(line))
 					var wrapper wrappedSnapshot
 					if err := json.Unmarshal(line, &wrapper); err != nil {
 						errs <- err
@@ -201,15 +200,12 @@ func TestEvaluationSnapshotNamespaceStream(t *testing.T) {
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			resp.Body.Close()
 
-			count := 0
 			// Wait for a snapshot or error
 			select {
 			case snap, ok := <-snapshots:
 				if !ok {
 					t.Fatal("Channel closed")
 				}
-				count++
-				t.Logf("Received snapshot (%d): %+v", count, snap)
 				require.NotNil(t, snap)
 
 				assert.Equal(t, newNamespaceKey, snap.Namespace.Key)
