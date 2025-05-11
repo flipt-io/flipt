@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"io"
-	"maps"
 	"sync"
 	"time"
+
+	"slices"
 
 	"github.com/google/uuid"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -104,8 +105,6 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 
 	p.mu.Lock()
 	p.last = last
-	// TODO: this is a shallow copy, unsure if we should deep copy
-	subscriptions := maps.Clone(p.subs)
 	timeout := p.options.timeout
 	p.mu.Unlock()
 
@@ -115,7 +114,7 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 		errMu       sync.Mutex
 	)
 
-	for ns, subs := range subscriptions {
+	for ns, subs := range p.subs {
 		ns := ns
 		subs := subs
 		for _, sub := range subs {
@@ -168,14 +167,22 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 
 func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
 	id := uuid.New().String()
-	sub := &subscription{id: id, finish: func() {
+	sub := &subscription{id: id, ch: ch}
+	sub.finish = func() {
 		p.mu.Lock()
 		defer p.mu.Unlock()
 
-		delete(p.subs, ns)
-
-		p.logger.Debug("Subscription canceled", zap.String("subscription", id))
-	}, ch: ch}
+		for i, s := range p.subs[ns] {
+			if s.id == sub.id {
+				p.subs[ns] = slices.Delete(p.subs[ns], i, i+1)
+				break
+			}
+		}
+		if len(p.subs[ns]) == 0 {
+			delete(p.subs, ns)
+		}
+		p.logger.Debug("subscription canceled", zap.String("subscription", id))
+	}
 
 	p.mu.Lock()
 	// send initial snapshot if one has already been observed
@@ -187,6 +194,6 @@ func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- 
 	p.subs[ns] = append(p.subs[ns], sub)
 	p.mu.Unlock()
 
-	p.logger.Debug("Subscription created", zap.String("subscription", id))
+	p.logger.Debug("subscription created", zap.String("subscription", id))
 	return sub, nil
 }
