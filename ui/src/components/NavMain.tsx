@@ -12,26 +12,26 @@ import {
   SidebarMenuItem
 } from '~/components/ui/sidebar';
 
-export function NavMain() {
+export function NavMain({ ns }: { ns: string }) {
   const items = [
     {
       title: 'Flags',
-      url: '#/namespaces/default/flags',
+      url: `#/namespaces/${ns}/flags`,
       icon: FlagIcon
     },
     {
       title: 'Segments',
-      url: '#/namespaces/default/segments',
+      url: `#/namespaces/${ns}/segments`,
       icon: UsersIcon
     },
     {
       title: 'Playground',
-      url: '#/namespaces/default/playground',
+      url: `#/namespaces/${ns}/playground`,
       icon: BugPlayIcon
     },
     {
       title: 'Analytics',
-      url: '#',
+      url: `#/namespaces/${ns}/playground`,
       icon: ChartNoAxesCombinedIcon
     }
   ];

@@ -24,7 +24,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = (
     setValue,
     disabled = false,
     strict = true,
-    height = '50vh',
+    height = '40vh',
     'data-testid': dataTestId
   } = props;
   const onChange = React.useCallback(

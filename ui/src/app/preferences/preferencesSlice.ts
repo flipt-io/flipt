@@ -13,11 +13,13 @@ interface PreferencesState {
   theme: Theme;
   timezone: Timezone;
   lastSaved: number | null;
+  sidebar: boolean;
 }
 
 const getInitialState = (): PreferencesState => {
   let theme = Theme.SYSTEM;
   let timezone = Timezone.LOCAL;
+  let sidebar = true;
 
   try {
     const storedPreferences = localStorage.getItem(preferencesKey);
@@ -39,6 +41,10 @@ const getInitialState = (): PreferencesState => {
       ) {
         timezone = preferences.timezone;
       }
+
+      if (preferences.sidebar === undefined) {
+        sidebar = true;
+      }
     }
   } catch (e) {
     // localStorage is disabled or not available, ignore
@@ -47,6 +53,7 @@ const getInitialState = (): PreferencesState => {
   return {
     theme,
     timezone,
+    sidebar,
     lastSaved: null
   };
 };
@@ -60,7 +67,8 @@ const savePreferences = (state: PreferencesState) => {
       preferencesKey,
       JSON.stringify({
         theme: state.theme,
-        timezone: state.timezone
+        timezone: state.timezone,
+        sidebar: state.sidebar
       })
     );
     state.lastSaved = Date.now();
@@ -84,6 +92,10 @@ export const preferencesSlice = createSlice({
     // Reset the lastSaved timestamp - used for debouncing notifications
     resetLastSaved(state) {
       state.lastSaved = null;
+    },
+    sidebarChanged(state, action: PayloadAction<boolean>) {
+      state.sidebar = action.payload;
+      savePreferences(state);
     }
   },
   extraReducers(builder) {
@@ -102,13 +114,17 @@ export const preferencesSlice = createSlice({
         state.timezone = Timezone.LOCAL;
       }
 
+      if (currentPreference.sidebar === undefined) {
+        currentPreference.sidebar = true;
+      }
+
       // Save the updated state
       savePreferences(state);
     });
   }
 });
 
-export const { themeChanged, timezoneChanged, resetLastSaved } =
+export const { themeChanged, timezoneChanged, resetLastSaved, sidebarChanged } =
   preferencesSlice.actions;
 
 export const selectPreferences = (state: RootState) => state.preferences;
@@ -116,6 +132,12 @@ export const selectPreferences = (state: RootState) => state.preferences;
 export const selectTheme = (state: RootState) => state.preferences.theme;
 
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
+export const selectSidebar = (state: RootState) => {
+  if (state.preferences.sidebar === undefined) {
+    return true;
+  }
+  return state.preferences.sidebar;
+};
 
 export const selectLastSaved = (state: RootState) =>
   state.preferences.lastSaved;

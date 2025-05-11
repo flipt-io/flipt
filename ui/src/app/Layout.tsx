@@ -34,6 +34,7 @@ import {
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesApi';
+import { selectSidebar, sidebarChanged } from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -54,6 +55,11 @@ function InnerLayout() {
   const namespaces = useListNamespacesQuery({
     environmentKey: currentEnvironment.key
   });
+
+  const sidebarOpen = useSelector(selectSidebar);
+  const setSidebarOpen = () => {
+    dispatch(sidebarChanged(!sidebarOpen));
+  };
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -86,10 +92,10 @@ function InnerLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar variant="inset" />
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <AppSidebar variant="inset" ns={currentNamespace.key} />
       <SidebarInset>
-        <Header ns={currentEnvironment.key + '/' + currentNamespace.name} />
+        <Header ns={currentNamespace.name} env={currentEnvironment.key} />
         <div className="min-h-[100vh] flex-1 md:min-h-min">
           <div className="sticky top-0 z-10">
             {!dismissedBanner && (

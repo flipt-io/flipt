@@ -1,12 +1,24 @@
 import { ChevronsUpDown } from 'lucide-react';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  currentNamespaceChanged,
+  selectCurrentNamespace,
+  selectNamespaces
+} from '~/app/namespaces/namespacesApi';
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuShortcut,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu';
 import {
@@ -16,17 +28,94 @@ import {
   useSidebar
 } from '~/components/ui/sidebar';
 
+import { INamespace } from '~/types/Namespace';
+
 import logoFlag from '~/assets/logo-flag.png';
+import { useAppDispatch } from '~/data/hooks/store';
+
+export interface IEnv {
+  key: string;
+  namespaces: INamespace[];
+}
+const emptyNamespaces: INamespace[] = [];
+
+function Environments({
+  items,
+  onSelect
+}: {
+  items: IEnv[];
+  onSelect: (env: string, ns: string) => void;
+}) {
+  if (items.length == 1) {
+    const environment = items[0];
+    return environment.namespaces.map((ns) => (
+      <DropdownMenuItem
+        key={ns.name}
+        onClick={() => onSelect(environment.key, ns.key)}
+        className="gap-2 p-2"
+      >
+        <span className="truncate">{ns.name}</span>
+      </DropdownMenuItem>
+    ));
+  }
+  return items.map((environment) => {
+    return (
+      <DropdownMenuSub key={environment.key}>
+        <DropdownMenuSubTrigger>{environment.key}</DropdownMenuSubTrigger>
+        <DropdownMenuPortal>
+          <DropdownMenuSubContent>
+            {environment.namespaces.map((ns) => (
+              <DropdownMenuItem
+                key={environment.key + ns.key}
+                onClick={() => onSelect(environment.key, ns.key)}
+                className="gap-2 p-2"
+              >
+                <span className="truncate">{ns.name}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuPortal>
+      </DropdownMenuSub>
+    );
+  });
+}
 
 export function NamespaceSwitcher() {
   const { isMobile } = useSidebar();
-  const items = [
-    {
-      name: 'Default',
-      environment: 'default'
-    }
-  ];
-  const [activeNamespace, setActiveNamespace] = React.useState(items[0]);
+
+  const environment = useSelector(selectCurrentEnvironment);
+  const namespaces = useSelector(selectNamespaces);
+  const items = React.useMemo(() => {
+    // FIXME: use real environments with their namespace
+    return [
+      {
+        key: environment.key,
+        namespaces: namespaces || emptyNamespaces
+      }
+    ];
+  }, [environment, namespaces]);
+
+  const namespace = useSelector(selectCurrentNamespace);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const setCurrentNamespace = (namespace: INamespace) => {
+    dispatch(currentNamespaceChanged(namespace));
+    navigate(`/namespaces/${namespace.key}`);
+  };
+
+  const changeNamespace = (_env: string, ns: string) => {
+    const value = namespaces?.find((el) => el.key == ns) as INamespace;
+    value && setCurrentNamespace(value);
+  };
+
+  const activeNamespace = React.useMemo(() => {
+    return {
+      key: namespace.key,
+      name: namespace.name,
+      environment: environment.key
+    };
+  }, [namespace, environment]);
 
   if (!activeNamespace) {
     return null;
@@ -70,19 +159,7 @@ export function NamespaceSwitcher() {
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Namespaces
             </DropdownMenuLabel>
-            {items.map((ns, index) => (
-              <DropdownMenuItem
-                key={ns.name}
-                onClick={() => setActiveNamespace(ns)}
-                className="gap-2 p-2"
-              >
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{ns.name}</span>
-                  <span className="truncate text-xs">{ns.environment}</span>
-                </div>
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            ))}
+            <Environments items={items} onSelect={changeNamespace} />
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

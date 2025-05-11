@@ -16,7 +16,10 @@ import { getUser } from '~/data/user';
 import { NamespaceSwitcher } from './NamespaceSwitcher';
 import { NavSecondary } from './NavSecondary';
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  ns,
+  ...props
+}: { ns: string } & React.ComponentProps<typeof Sidebar>) {
   const { session } = useSession();
   const user = getUser(session);
   return (
@@ -25,7 +28,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NamespaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain />
+        <NavMain ns={ns} />
         <NavSecondary className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>

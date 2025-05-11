@@ -15,9 +15,9 @@ export const useError = () => {
     }
     toastId.current = toast.error(getErrorMessage(msg), {
       style: {
-        background: 'hsl(var(--destructive))',
-        color: 'hsl(var(--destructive-foreground))',
-        border: '1px solid hsl(var(--destructive-border))',
+        background: 'var(--destructive)',
+        color: 'var(--destructive-foreground)',
+        border: '1px solid var(--destructive-border)',
         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
       }
     }) as number;

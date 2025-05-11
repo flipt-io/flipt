@@ -118,6 +118,14 @@ export default function SegmentsPicker({
       }));
   };
 
+  if (segments.length == 0) {
+    return (
+      <div className="space-y-2 text-muted-foreground text-sm mt-1">
+        No segments found
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2" data-testid="segments">
       {parentSegments.map((selectedSegment, index) => (

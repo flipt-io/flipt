@@ -4,8 +4,15 @@ import { selectInfo } from '~/app/meta/metaSlice';
 
 import { Separator } from '~/components/ui/separator';
 import { SidebarTrigger } from '~/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '~/components/ui/tooltip';
 
-export function Header({ ns }: { ns: string }) {
+import { Badge } from './Badge';
+
+export function Header({ ns, env }: { ns: string; env: string }) {
   const info = useSelector(selectInfo);
   const topbarStyle = {
     backgroundColor: info?.ui?.topbarColor,
@@ -23,6 +30,16 @@ export function Header({ ns }: { ns: string }) {
           className="mr-2 data-[orientation=vertical]:h-6 items-center"
         />
         <h1 className="text-base font-medium">{ns}</h1>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary" className="ml-auto">
+              {env}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end">
+            Current Environment
+          </TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );
