@@ -27,6 +27,7 @@ const Settings = lazy(() => import('./app/Settings'));
 const Support = lazy(() => import('./app/Support'));
 const Preferences = lazy(() => import('./app/preferences/Preferences'));
 const Namespaces = lazy(() => import('./app/namespaces/Namespaces'));
+const Analytics = lazy(() => import('./app/analytics/Analytics'));
 
 if (typeof window !== 'undefined') {
   formbricks.init({
@@ -80,6 +81,13 @@ const namespacedRoutes = [
   {
     path: 'playground',
     element: <Console />,
+    handle: {
+      namespaced: true
+    }
+  },
+  {
+    path: 'analytics',
+    element: <Analytics />,
     handle: {
       namespaced: true
     }

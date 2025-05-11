@@ -77,6 +77,12 @@ const namespacedRoutes = [
     description: 'Debug and test flags and segments',
     route: '/playground',
     keywords: ['console', 'debug', 'test', 'Playground']
+  },
+  {
+    name: 'Analytics',
+    description: 'Track and measure the impact in real-time',
+    route: '/analytics',
+    keywords: ['analytics']
   }
 ];
 

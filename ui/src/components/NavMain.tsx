@@ -31,7 +31,7 @@ export function NavMain({ ns }: { ns: string }) {
     },
     {
       title: 'Analytics',
-      url: `#/namespaces/${ns}/playground`,
+      url: `#/namespaces/${ns}/analytics`,
       icon: ChartNoAxesCombinedIcon
     }
   ];
