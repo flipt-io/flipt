@@ -27,7 +27,7 @@ require (
 	github.com/go-git/go-git/v5 v5.16.0
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/go-redis/cache/v9 v9.0.0
-	github.com/go-sql-driver/mysql v1.9.1
+	github.com/go-sql-driver/mysql v1.9.2
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/golang/protobuf v1.5.4
