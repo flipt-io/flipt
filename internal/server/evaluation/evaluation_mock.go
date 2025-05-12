@@ -38,6 +38,63 @@ func (_m *MockEnvironmentStore) EXPECT() *MockEnvironmentStore_Expecter {
 	return &MockEnvironmentStore_Expecter{mock: &_m.Mock}
 }
 
+// Get provides a mock function for the type MockEnvironmentStore
+func (_mock *MockEnvironmentStore) Get(context1 context.Context, s string) (environments.Environment, error) {
+	ret := _mock.Called(context1, s)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 environments.Environment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (environments.Environment, error)); ok {
+		return returnFunc(context1, s)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) environments.Environment); ok {
+		r0 = returnFunc(context1, s)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(environments.Environment)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(context1, s)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockEnvironmentStore_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type MockEnvironmentStore_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - context1
+//   - s
+func (_e *MockEnvironmentStore_Expecter) Get(context1 interface{}, s interface{}) *MockEnvironmentStore_Get_Call {
+	return &MockEnvironmentStore_Get_Call{Call: _e.mock.On("Get", context1, s)}
+}
+
+func (_c *MockEnvironmentStore_Get_Call) Run(run func(context1 context.Context, s string)) *MockEnvironmentStore_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockEnvironmentStore_Get_Call) Return(environment environments.Environment, err error) *MockEnvironmentStore_Get_Call {
+	_c.Call.Return(environment, err)
+	return _c
+}
+
+func (_c *MockEnvironmentStore_Get_Call) RunAndReturn(run func(context1 context.Context, s string) (environments.Environment, error)) *MockEnvironmentStore_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetFromContext provides a mock function for the type MockEnvironmentStore
 func (_mock *MockEnvironmentStore) GetFromContext(context1 context.Context) environments.Environment {
 	ret := _mock.Called(context1)

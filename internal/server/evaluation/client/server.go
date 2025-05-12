@@ -7,32 +7,32 @@ import (
 	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
-	"go.flipt.io/flipt/internal/server/environments"
-	"go.flipt.io/flipt/rpc/v2/evaluation"
+	"go.flipt.io/flipt/internal/server/evaluation"
+	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-var _ evaluation.ClientEvaluationServiceServer = (*Server)(nil)
+var _ rpcevaluation.ClientEvaluationServiceServer = (*Server)(nil)
 
 type Server struct {
 	logger *zap.Logger
-	envs   *environments.EnvironmentStore
+	envs   evaluation.EnvironmentStore
 
-	evaluation.UnimplementedClientEvaluationServiceServer
+	rpcevaluation.UnimplementedClientEvaluationServiceServer
 }
 
-func NewServer(logger *zap.Logger, envs *environments.EnvironmentStore) *Server {
+func NewServer(logger *zap.Logger, envs evaluation.EnvironmentStore) *Server {
 	return &Server{logger: logger, envs: envs}
 }
 
 // RegisterGRPC registers the *Server onto the provided grpc Server.
 func (s *Server) RegisterGRPC(server *grpc.Server) {
-	evaluation.RegisterClientEvaluationServiceServer(server, s)
+	rpcevaluation.RegisterClientEvaluationServiceServer(server, s)
 }
 
-func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
+func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluation.EvaluationNamespaceSnapshotRequest) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
 	env, err := s.envs.Get(ctx, r.EnvironmentKey)
 	if err != nil {
 		// try to get the environment from the context
@@ -52,18 +52,18 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.
 		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
 		// get If-None-Match header from request
 		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && etag == vals[0] {
-			return &evaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", r.Key)
+			return &rpcevaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", r.Key)
 		}
 	}
 
-	return &evaluation.EvaluationNamespaceSnapshot{
+	return &rpcevaluation.EvaluationNamespaceSnapshot{
 		Digest:    snap.Digest,
 		Namespace: snap.Namespace,
 		Flags:     snap.Flags,
 	}, nil
 }
 
-func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNamespaceSnapshotStreamRequest, stream evaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
+func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.EvaluationNamespaceSnapshotStreamRequest, stream rpcevaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
 	var (
 		ctx = stream.Context()
 		env = s.envs.GetFromContext(ctx)
@@ -76,7 +76,7 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNam
 
 	// start subscription with a channel with a buffer of one
 	// to allow the subscription to preload the last observed snapshot
-	ch := make(chan *evaluation.EvaluationNamespaceSnapshot, 1)
+	ch := make(chan *rpcevaluation.EvaluationNamespaceSnapshot, 1)
 	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
 	if err != nil {
 		s.logger.Error("error subscribing to environment evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))

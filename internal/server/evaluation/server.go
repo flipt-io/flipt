@@ -12,6 +12,7 @@ import (
 // EnvironmentStore is the minimal abstraction for interacting with the storage layer for evaluation.
 type EnvironmentStore interface {
 	GetFromContext(context.Context) environments.Environment
+	Get(context.Context, string) (environments.Environment, error)
 }
 
 // Server serves the Flipt evaluate v2 gRPC Server.
