@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 
@@ -323,12 +322,8 @@ func NewGRPCServer(
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
 			MaxConnectionAge:      cfg.Server.GRPCConnectionMaxAge,
 			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
-			Time:                  5 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-			Timeout:               1 * time.Second, // Wait 1 second for the ping ack before assuming the connection is dead
 		}),
 	}
-
-	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 
 	if cfg.Server.Protocol == config.HTTPS {
 		creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)

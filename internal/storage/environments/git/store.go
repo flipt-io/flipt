@@ -347,7 +347,7 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 		return err
 	}
 
-	if err := e.publisher.Publish(ctx, snap); err != nil {
+	if err := e.publisher.Publish(snap); err != nil {
 		e.logger.Error("publishing snapshot",
 			zap.Error(err),
 			zap.String("environment", e.cfg.Name))

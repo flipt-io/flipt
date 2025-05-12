@@ -16,6 +16,7 @@ import (
 )
 
 type subscription struct {
+	logger *zap.Logger
 	mu     sync.Mutex
 	finish func()
 	ch     chan<- *rpcevaluation.EvaluationNamespaceSnapshot
@@ -75,9 +76,15 @@ type SnapshotPublisher struct {
 
 type OptionsFunc func(options *publishOptions)
 
+func WithTimeout(timeout time.Duration) OptionsFunc {
+	return func(options *publishOptions) {
+		options.timeout = timeout
+	}
+}
+
 func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *SnapshotPublisher {
 	options := publishOptions{
-		timeout: 5 * time.Second,
+		timeout: 15 * time.Second,
 	}
 
 	for _, opt := range opts {
@@ -91,13 +98,8 @@ func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *SnapshotPubl
 	}
 }
 
-func WithTimeout(timeout time.Duration) OptionsFunc {
-	return func(options *publishOptions) {
-		options.timeout = timeout
-	}
-}
-
-func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapshot) error {
+func (p *SnapshotPublisher) Publish(snap *storagefs.Snapshot) error {
+	ctx := context.Background()
 	last, err := snap.EvaluationSnapshot(ctx)
 	if err != nil {
 		return err
@@ -105,7 +107,6 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 
 	p.mu.Lock()
 	p.last = last
-	timeout := p.options.timeout
 	p.mu.Unlock()
 
 	var (
@@ -123,19 +124,21 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 				continue
 			}
 
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			snapshot := last.Namespaces[ns]
 
-				// Create a timeout context for just this subscriber
-				subCtx, cancel := context.WithTimeout(ctx, timeout)
-				defer cancel()
+			wg.Add(1)
+			go func(snapshot *rpcevaluation.EvaluationNamespaceSnapshot) {
+				defer wg.Done()
 
 				p.logger.Debug("sending update",
 					zap.String("subscription", sub.id),
 					zap.String("namespace", ns))
 
-				if err := sub.send(subCtx, last.Namespaces[ns]); err != nil {
+				// Create a timeout context for just this subscriber
+				subCtx, cancel := context.WithTimeout(ctx, p.options.timeout)
+				defer cancel()
+
+				if err := sub.send(subCtx, snapshot); err != nil {
 					p.logger.Error("error sending update",
 						zap.String("subscription", sub.id),
 						zap.String("namespace", ns),
@@ -146,7 +149,7 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 					publishErrs = append(publishErrs, err)
 					errMu.Unlock()
 				}
-			}()
+			}(snapshot)
 		}
 	}
 
@@ -166,8 +169,11 @@ func (p *SnapshotPublisher) Publish(ctx context.Context, snap *storagefs.Snapsho
 }
 
 func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
-	id := uuid.New().String()
-	sub := &subscription{id: id, ch: ch}
+	var (
+		id  = uuid.New().String()
+		sub = &subscription{id: id, ch: ch, logger: p.logger.With(zap.String("subscription", id))}
+	)
+
 	sub.finish = func() {
 		p.mu.Lock()
 		defer p.mu.Unlock()
@@ -181,19 +187,20 @@ func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- 
 		if len(p.subs[ns]) == 0 {
 			delete(p.subs, ns)
 		}
-		p.logger.Debug("subscription canceled", zap.String("subscription", id))
+
+		sub.logger.Debug("subscription canceled")
 	}
 
 	p.mu.Lock()
 	// send initial snapshot if one has already been observed
 	if p.last != nil {
 		if err := sub.send(ctx, p.last.Namespaces[ns]); err != nil {
-			p.logger.Debug("error sending to subscriber", zap.Error(err))
+			sub.logger.Error("error sending to subscriber", zap.Error(err))
 		}
 	}
 	p.subs[ns] = append(p.subs[ns], sub)
 	p.mu.Unlock()
 
-	p.logger.Debug("subscription created", zap.String("subscription", id))
+	sub.logger.Debug("subscription created")
 	return sub, nil
 }

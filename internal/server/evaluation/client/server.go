@@ -104,14 +104,11 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *evaluation.EvaluationNam
 
 			// only send the snapshot if we have a new digest
 			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
-				s.logger.Debug("sending evaluation namespace snapshot", zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
 				if err := stream.Send(snap); err != nil {
 					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
 					return err
 				}
 				lastDigest = digest
-			} else {
-				s.logger.Debug("skipping evaluation namespace snapshot", zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
 			}
 
 			hash.Reset()
