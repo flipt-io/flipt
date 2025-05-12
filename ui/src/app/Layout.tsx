@@ -95,7 +95,11 @@ function InnerLayout() {
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <AppSidebar variant="inset" ns={currentNamespace.key} />
       <SidebarInset>
-        <Header ns={currentNamespace.name} env={currentEnvironment.key} />
+        <Header
+          ns={currentNamespace.key}
+          env={currentEnvironment.key}
+          sidebarOpen={sidebarOpen}
+        />
         <div className="min-h-[100vh] flex-1 md:min-h-min">
           <div className="sticky top-0 z-10">
             {!dismissedBanner && (

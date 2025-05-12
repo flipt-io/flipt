@@ -43,7 +43,7 @@ test.describe('Onboarding', () => {
   test.describe('user navigates to the Support page', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
-      await page.getByRole('link', { name: 'Support', exact: true }).click();
+      await page.getByRole('link', { name: 'Get Help', exact: true }).click();
     });
 
     test('has expected content', async ({ page }) => {

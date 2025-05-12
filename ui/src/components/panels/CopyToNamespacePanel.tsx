@@ -54,7 +54,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
           />
         </div>
         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900">
+          <Dialog.Title className="text-lg font-medium leading-6 text-muted-foreground">
             Copy {panelType}
           </Dialog.Title>
           <div className="mt-2">

@@ -38,7 +38,9 @@ test.describe('Flags', () => {
         .fill('chrome');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+      expect(
+        await page.getByText('Successfully updated flag').count()
+      ).toBeGreaterThanOrEqual(1);
     });
 
     await test.step('add another variant', async () => {
@@ -53,7 +55,9 @@ test.describe('Flags', () => {
         .fill('firefox');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+      expect(
+        await page.getByText('Successfully updated flag').count()
+      ).toBeGreaterThanOrEqual(1);
     });
 
     await test.step('edit variant description', async () => {
@@ -115,11 +119,11 @@ test.describe('Flags', () => {
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Flags', exact: true }).click();
+    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox')
-      .getByRole('combobox', { name: 'Default' })
+      .getByTestId('namespace-listbox-options')
+      .getByRole('menuitem', { name: 'copy flag' })
       .click();
-    await page.getByText('copy flag').click();
 
     // verify flag was copied
     await page.getByRole('link', { name: 'test-flag' }).click();

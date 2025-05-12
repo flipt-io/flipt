@@ -3,7 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 import { fetchInfoAsync } from '~/app/meta/metaSlice';
 
-import { Theme, Timezone } from '~/types/Preferences';
+import { Sidebar, Theme, Timezone } from '~/types/Preferences';
 
 import { RootState } from '~/store';
 
@@ -13,13 +13,13 @@ interface PreferencesState {
   theme: Theme;
   timezone: Timezone;
   lastSaved: number | null;
-  sidebar: boolean;
+  sidebar: Sidebar;
 }
 
 const getInitialState = (): PreferencesState => {
   let theme = Theme.SYSTEM;
   let timezone = Timezone.LOCAL;
-  let sidebar = true;
+  let sidebar = Sidebar.OPEN;
 
   try {
     const storedPreferences = localStorage.getItem(preferencesKey);
@@ -42,8 +42,11 @@ const getInitialState = (): PreferencesState => {
         timezone = preferences.timezone;
       }
 
-      if (preferences.sidebar === undefined) {
-        sidebar = true;
+      if (
+        preferences.sidebar &&
+        Object.values(Sidebar).includes(preferences.sidebar)
+      ) {
+        sidebar = preferences.sidebar;
       }
     }
   } catch (e) {
@@ -94,7 +97,7 @@ export const preferencesSlice = createSlice({
       state.lastSaved = null;
     },
     sidebarChanged(state, action: PayloadAction<boolean>) {
-      state.sidebar = action.payload;
+      state.sidebar = action.payload ? Sidebar.OPEN : Sidebar.CLOSE;
       savePreferences(state);
     }
   },
@@ -115,7 +118,7 @@ export const preferencesSlice = createSlice({
       }
 
       if (currentPreference.sidebar === undefined) {
-        currentPreference.sidebar = true;
+        currentPreference.sidebar = Sidebar.OPEN;
       }
 
       // Save the updated state
@@ -133,10 +136,7 @@ export const selectTheme = (state: RootState) => state.preferences.theme;
 
 export const selectTimezone = (state: RootState) => state.preferences.timezone;
 export const selectSidebar = (state: RootState) => {
-  if (state.preferences.sidebar === undefined) {
-    return true;
-  }
-  return state.preferences.sidebar;
+  return state.preferences.sidebar == Sidebar.OPEN;
 };
 
 export const selectLastSaved = (state: RootState) =>

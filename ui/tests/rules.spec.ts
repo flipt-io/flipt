@@ -69,7 +69,9 @@ test.describe('Rules', () => {
       await page.getByRole('option', { name: '123' }).click();
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+      expect(
+        await page.getByText('Successfully updated flag').count()
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 
