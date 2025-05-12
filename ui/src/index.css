@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@import '~/assets/colors/light' layer(base);
-@import '~/assets/colors/dark' layer(base);
 @plugin '@tailwindcss/forms';
 @plugin 'tailwindcss-bg-patterns';
 @plugin 'tailwindcss-animate';
@@ -11,85 +9,6 @@
 
 @theme {
   --animate-ping: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-
-  --color-gray-50: rgb(var(--gray-50));
-  --color-gray-100: rgb(var(--gray-100));
-  --color-gray-200: rgb(var(--gray-200));
-  --color-gray-300: rgb(var(--gray-300));
-  --color-gray-400: rgb(var(--gray-400));
-  --color-gray-500: rgb(var(--gray-500));
-  --color-gray-600: rgb(var(--gray-600));
-  --color-gray-700: rgb(var(--gray-700));
-  --color-gray-800: rgb(var(--gray-800));
-  --color-gray-900: rgb(var(--gray-900));
-  --color-gray-950: rgb(var(--gray-950));
-  --color-gray-solid: rgb(var(--white));
-  --color-gray-solid50: rgb(var(--gray-50));
-  --color-gray-solid100: rgb(var(--gray-100));
-
-  --color-violet-200: rgb(var(--violet-200));
-  --color-violet-300: rgb(var(--violet-300));
-  --color-violet-400: rgb(var(--violet-400));
-  --color-violet-600: rgb(var(--violet-600));
-
-  --color-green-50: rgb(var(--green-50));
-  --color-green-100: rgb(var(--green-100));
-  --color-green-400: rgb(var(--green-400));
-  --color-green-500: rgb(var(--green-500));
-  --color-green-600: rgb(var(--green-600));
-  --color-green-800: rgb(var(--green-800));
-
-  --color-red-50: rgb(var(--red-50));
-  --color-red-100: rgb(var(--red-100));
-  --color-red-400: rgb(var(--red-400));
-  --color-red-500: rgb(var(--red-500));
-  --color-red-600: rgb(var(--red-600));
-  --color-red-700: rgb(var(--red-700));
-  --color-red-800: rgb(var(--red-800));
-
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-
-  --color-destructive-border: hsl(var(--destructive-border));
-  --color-success: hsl(var(--success));
-  --color-success-foreground: hsl(var(--success-foreground));
-  --color-success-border: hsl(var(--success-border));
-
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-
-  --color-chart-1: hsl(var(--chart-1));
-  --color-chart-2: hsl(var(--chart-2));
-  --color-chart-3: hsl(var(--chart-3));
-  --color-chart-4: hsl(var(--chart-4));
-  --color-chart-5: hsl(var(--chart-5));
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-
   @keyframes ping {
     75%,
     100% {
@@ -117,96 +36,6 @@
   }
 }
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --destructive-border: 0 84.2% 50.2%;
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 210 20% 98%;
-    --success-border: 142.1 76.2% 30.3%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    color-scheme: light;
-  }
-  .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 255 92% 76;
-    --primary-foreground: 224 71% 4;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 90.8% 70.6%;
-    --destructive-foreground: 210 20% 98%;
-    --destructive-border: 0 90.8% 45.6%;
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 210 20% 98%;
-    --success-border: 142.1 70.6% 35.3%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 216 12.2% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    color-scheme: dark;
-  }
-}
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-
-  /* Default focus states for interactive elements - only shown during keyboard navigation */
-  :where(button, input, select, textarea, a, [role='button']):focus-visible {
-    @apply border-violet-400 ring-1 ring-violet-400 outline-none;
-  }
-
-  /* Remove default focus styles when using mouse */
-  :where(button, input, select, textarea, a, [role='button']):focus:not(
-      :focus-visible
-    ) {
-    @apply border-border ring-0 outline-none;
-  }
-
-  /* Default focus state for placeholder text */
-  :where(input, textarea):focus-visible::placeholder {
-    @apply text-gray-400;
-  }
-}
 /*
   ---break---
 */
@@ -246,6 +75,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-border: var(--destructive-border);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-border: var(--success-border);
 }
 /*
   ---break---
@@ -283,6 +118,13 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+
+  color-scheme: light;
+  --destructive-foreground: oklch(0.9857 0.005 263.3);
+  --destructive-border: oklch(0.6463 0.2632 29.07);
+  --success: oklch(0.6407 0.2347 142.13);
+  --success-foreground: oklch(0.9857 0.005 263.3);
+  --success-border: oklch(0.5692 0.1922 142.13);
 }
 /*
   ---break---
@@ -319,6 +161,13 @@
   --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  color-scheme: dark;
+  --destructive-foreground: oklch(0.9857 0.005 263.3);
+  --destructive-border: oklch(0.6279 0.2524 29.23);
+  --success: oklch(62.7% 0.194 149.214);
+  --success-foreground: oklch(0.9857 0.005 263.3);
+  --success-border: oklch(0.6371 0.2152 142.13);
 }
 /*
   ---break---
@@ -327,7 +176,31 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply bg-background h-full w-auto;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground h-full antialiased;
+  }
+
+  noscript {
+    @apply flex h-full items-center justify-center;
+  }
+
+  /* Default focus states for interactive elements - only shown during keyboard navigation */
+  :where(button, input, select, textarea, a, [role='button']):focus-visible {
+    @apply border-violet-400 ring-1 ring-violet-400 outline-none;
+  }
+
+  /* Remove default focus styles when using mouse */
+  :where(button, input, select, textarea, a, [role='button']):focus:not(
+      :focus-visible
+    ) {
+    @apply border-border ring-0 outline-none;
+  }
+
+  /* Default focus state for placeholder text */
+  :where(input, textarea):focus-visible::placeholder {
+    @apply text-gray-400;
   }
 }
