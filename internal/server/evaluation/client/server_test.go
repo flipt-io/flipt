@@ -27,6 +27,7 @@ type mockStream struct {
 func (m *mockStream) Context() context.Context {
 	return m.ctx
 }
+
 func (m *mockStream) Send(snap *rpcevaluation.EvaluationNamespaceSnapshot) error {
 	m.sent = append(m.sent, snap)
 	return m.Called(snap).Error(0)
@@ -144,7 +145,7 @@ func TestServer_EvaluationSnapshotNamespace_EtagMatch(t *testing.T) {
 	)
 
 	resp, err := s.EvaluationSnapshotNamespace(ctx, req)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not modified")
 	assert.Empty(t, resp.Digest)
 }
@@ -181,7 +182,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{Key: "ns-key"}
 
 	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, stream.sent, 2)
 	assert.Equal(t, "d1", stream.sent[0].Digest)
 	assert.Equal(t, "d2", stream.sent[1].Digest)
@@ -241,7 +242,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 	}()
 
 	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(stream.sent), 1)
 	assert.Equal(t, "d1", stream.sent[0].Digest)
 }
