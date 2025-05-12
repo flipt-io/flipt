@@ -50,7 +50,12 @@ func ErrorUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo
 
 // ErrorStreamInterceptor intercepts known errors and returns the appropriate GRPC status code
 func ErrorStreamInterceptor(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	return handler(srv, stream)
+	err := handler(srv, stream)
+	if err != nil {
+		return handleError(stream.Context(), err)
+	}
+
+	return nil
 }
 
 func handleError(ctx context.Context, err error) error {

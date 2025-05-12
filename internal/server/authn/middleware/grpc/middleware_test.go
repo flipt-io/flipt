@@ -34,6 +34,13 @@ func (s *mockServer) SkipsAuthentication(ctx context.Context) bool {
 	return s.skipsAuthn
 }
 
+type mockStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (m *mockStream) Context() context.Context { return m.ctx }
+
 var priv *rsa.PrivateKey
 
 func init() {
@@ -46,7 +53,101 @@ func init() {
 	}
 }
 
-func TestJWTAuthenticationInterceptor(t *testing.T) {
+func TestAuthenticationRequiredUnaryInterceptor(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	for _, tt := range []struct {
+		name         string
+		ctx          context.Context
+		server       any
+		expectErr    error
+		expectCalled bool
+	}{
+		{
+			name:         "authenticated context",
+			ctx:          ContextWithAuthentication(context.Background(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
+			expectErr:    nil,
+			expectCalled: true,
+		},
+		{
+			name:         "unauthenticated context",
+			ctx:          context.Background(),
+			expectErr:    errUnauthenticated,
+			expectCalled: false,
+		},
+		{
+			name:         "skipped server",
+			ctx:          context.Background(),
+			server:       &mockServer{skipsAuthn: true},
+			expectErr:    nil,
+			expectCalled: true,
+		},
+	} {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+				called = true
+				return "ok", nil
+			}
+			info := &grpc.UnaryServerInfo{Server: tt.server}
+			resp, err := AuthenticationRequiredUnaryInterceptor(logger)(tt.ctx, nil, info, handler)
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectCalled, called)
+			if tt.expectCalled {
+				assert.Equal(t, "ok", resp)
+			}
+		})
+	}
+}
+
+func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
+	for _, tt := range []struct {
+		name         string
+		ctx          context.Context
+		server       any
+		expectErr    error
+		expectCalled bool
+	}{
+		{
+			name:         "authenticated context",
+			ctx:          ContextWithAuthentication(context.Background(), &authrpc.Authentication{Method: authrpc.Method_METHOD_TOKEN}),
+			expectErr:    nil,
+			expectCalled: true,
+		},
+		{
+			name:         "unauthenticated context",
+			ctx:          context.Background(),
+			expectErr:    errUnauthenticated,
+			expectCalled: false,
+		},
+		{
+			name:         "skipped server",
+			ctx:          context.Background(),
+			server:       &mockServer{skipsAuthn: true},
+			expectErr:    nil,
+			expectCalled: true,
+		},
+	} {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			called := false
+			handler := func(srv interface{}, stream grpc.ServerStream) error {
+				called = true
+				return nil
+			}
+			info := &grpc.StreamServerInfo{}
+			stream := &mockStream{ctx: tt.ctx}
+			err := AuthenticationRequiredStreamInterceptor(logger)(tt.server, stream, info, handler)
+			assert.Equal(t, tt.expectErr, err)
+			assert.Equal(t, tt.expectCalled, called)
+		})
+	}
+}
+
+func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 	var (
 		now        = time.Now()
 		nowUnix    = float64(now.Unix())
@@ -333,7 +434,126 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 	}
 }
 
-func TestClientTokenAuthenticationInterceptor(t *testing.T) {
+func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
+	var (
+		now        = time.Now()
+		nowUnix    = float64(now.Unix())
+		futureUnix = float64(now.Add(2 * jjwt.DefaultLeeway).Unix())
+		pub        = []crypto.PublicKey{priv.Public()}
+	)
+
+	for _, tt := range []struct {
+		name             string
+		metadataFunc     func() metadata.MD
+		server           any
+		expectedJWT      jwt.Expected
+		expectedErr      error
+		expectedMetadata map[string]string
+	}{
+		{
+			name: "successful authentication",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "flipt.io",
+					"aud": "flipt",
+					"sub": "sunglasses",
+					"iat": nowUnix,
+					"exp": futureUnix,
+				}
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer:    "flipt.io",
+				Audiences: []string{"flipt"},
+				Subject:   "sunglasses",
+			},
+		},
+		{
+			name: "invalid issuer",
+			metadataFunc: func() metadata.MD {
+				claims := map[string]interface{}{
+					"iss": "foo.com",
+					"iat": nowUnix,
+					"exp": futureUnix,
+				}
+				token := oidc.TestSignJWT(t, priv, string(jwt.RS256), claims, []byte("test-key"))
+				return metadata.MD{
+					"Authorization": []string{"JWT " + token},
+				}
+			},
+			expectedJWT: jwt.Expected{
+				Issuer: "flipt.io",
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "authorization header not set",
+			metadataFunc: func() metadata.MD {
+				return metadata.MD{}
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name:        "no metadata on context",
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name:   "skipped server",
+			server: &mockServer{skipsAuthn: true},
+		},
+	} {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			ks, err := jwt.NewStaticKeySet(pub)
+			require.NoError(t, err)
+
+			validator, err := jwt.NewValidator(ks)
+			require.NoError(t, err)
+
+			jwtValidator := authjwt.NewValidator(validator, tt.expectedJWT)
+
+			logger := zaptest.NewLogger(t)
+
+			ctx := context.Background()
+			if tt.metadataFunc != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadataFunc())
+			}
+
+			stream := &mockStream{ctx: ctx}
+			called := false
+			handler := func(srv interface{}, stream grpc.ServerStream) error {
+				called = true
+				if tt.expectedMetadata != nil {
+					authentication := GetAuthenticationFrom(stream.Context())
+					for k, v := range tt.expectedMetadata {
+						assert.Equal(t, v, authentication.Metadata[k])
+					}
+				}
+				return nil
+			}
+			info := &grpc.StreamServerInfo{}
+
+			var server any = &mockServer{}
+			if tt.server != nil {
+				server = tt.server
+			}
+
+			err = JWTAuthenticationStreamInterceptor(logger, jwtValidator)(server, stream, info, handler)
+			assert.Equal(t, tt.expectedErr, err)
+			if tt.expectedErr == nil || tt.server != nil {
+				assert.True(t, called)
+			} else {
+				assert.False(t, called)
+			}
+		})
+	}
+}
+
+func TestClientTokenAuthenticationUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore(zaptest.NewLogger(t))
 
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
@@ -463,7 +683,134 @@ func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 	}
 }
 
-func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
+func TestClientTokenAuthenticationStreamInterceptor(t *testing.T) {
+	authenticator := memory.NewStore(zaptest.NewLogger(t))
+
+	clientToken, storedAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&authn.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
+	)
+	require.NoError(t, err)
+
+	// expired auth
+	expiredToken, _, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&authn.CreateAuthenticationRequest{
+			Method:    authrpc.Method_METHOD_TOKEN,
+			ExpiresAt: timestamppb.New(time.Now().UTC().Add(-time.Hour)),
+		},
+	)
+	require.NoError(t, err)
+
+	for _, tt := range []struct {
+		name         string
+		metadata     metadata.MD
+		server       any
+		expectedErr  error
+		expectedAuth *authrpc.Authentication
+	}{
+		{
+			name: "successful authentication (authorization header)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			expectedAuth: storedAuth,
+		},
+		{
+			name: "successful authentication (cookie header)",
+			metadata: metadata.MD{
+				"grpcgateway-cookie": []string{"flipt_client_token=" + clientToken},
+			},
+			expectedAuth: storedAuth,
+		},
+		{
+			name:     "successful authentication (skipped)",
+			metadata: metadata.MD{},
+			server:   &mockServer{skipsAuthn: true},
+		},
+		{
+			name: "token has expired",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + expiredToken},
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "client token not found in store",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer unknowntoken"},
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "client token missing Bearer prefix",
+			metadata: metadata.MD{
+				"Authorization": []string{clientToken},
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "authorization header empty",
+			metadata: metadata.MD{
+				"Authorization": []string{},
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "cookie header with no flipt_client_token",
+			metadata: metadata.MD{
+				"grpcgateway-cookie": []string{"blah"},
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name:        "authorization header not set",
+			metadata:    metadata.MD{},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name:        "no metadata on context",
+			metadata:    nil,
+			expectedErr: errUnauthenticated,
+		},
+	} {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			logger := zaptest.NewLogger(t)
+
+			ctx := context.Background()
+			if tt.metadata != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.metadata)
+			}
+
+			stream := &mockStream{ctx: ctx}
+			var retrievedAuth *authrpc.Authentication
+			called := false
+			handler := func(srv interface{}, stream grpc.ServerStream) error {
+				called = true
+				retrievedAuth = GetAuthenticationFrom(stream.Context())
+				return nil
+			}
+			info := &grpc.StreamServerInfo{}
+
+			var server any = &mockServer{}
+			if tt.server != nil {
+				server = tt.server
+			}
+
+			err := ClientTokenStreamInterceptor(logger, authenticator)(server, stream, info, handler)
+			assert.Equal(t, tt.expectedErr, err)
+			if tt.expectedErr == nil || tt.server != nil {
+				assert.True(t, called)
+			} else {
+				assert.False(t, called)
+			}
+			assert.Equal(t, tt.expectedAuth, retrievedAuth)
+		})
+	}
+}
+
+func TestEmailMatchingUnaryInterceptorWithNoAuth(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
 
@@ -483,7 +830,7 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 	})
 }
 
-func TestEmailMatchingInterceptor(t *testing.T) {
+func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 	var (
 		logger = zaptest.NewLogger(t)
 

@@ -116,7 +116,7 @@ func AuthenticationRequiredUnaryInterceptor(logger *zap.Logger, o ...containers.
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipped(ctx, info, opts) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -177,7 +177,7 @@ func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTV
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipped(ctx, info, opts) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -314,7 +314,7 @@ func ClientTokenAuthenticationUnaryInterceptor(logger *zap.Logger, authenticator
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipped(ctx, info, opts) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
