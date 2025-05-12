@@ -155,7 +155,7 @@ func AuthenticationRequiredStreamInterceptor(logger *zap.Logger, o ...containers
 	}
 }
 
-// JWTInterceptorSelector is a grpc.UnaryServerInterceptor which selects requests
+// JWTInterceptorSelector is a selector.Matcher which selects requests
 // which contain a JWT in the authorization header.
 func JWTInterceptorSelector() selector.Matcher {
 	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
@@ -218,6 +218,7 @@ func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWT
 	}
 }
 
+// authenticateJWT authenticates a JWT found in the incoming request metadata and returns a new context with the authenticated authentication instance.
 func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.JWTValidator) (context.Context, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
@@ -290,6 +291,8 @@ func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.J
 	}), nil
 }
 
+// ClientTokenInterceptorSelector is a selector.Matcher which selects requests
+// which contain a client token in the authorization field on the incoming requests metadata.
 func ClientTokenInterceptorSelector() selector.Matcher {
 	return selector.MatchFunc(func(ctx context.Context, _ interceptors.CallMeta) bool {
 		md, ok := metadata.FromIncomingContext(ctx)
@@ -316,50 +319,88 @@ func ClientTokenAuthenticationUnaryInterceptor(logger *zap.Logger, authenticator
 			return handler(ctx, req)
 		}
 
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, errUnauthenticated
-		}
-
-		clientToken, err := clientTokenFromMetadata(md)
+		ctx, err := authenticateClientToken(ctx, logger, authenticator)
 		if err != nil {
-			logger.Error("unauthenticated",
-				zap.String("reason", "no authorization provided"),
-				zap.Error(err))
-
-			return ctx, errUnauthenticated
+			return nil, err
 		}
 
-		auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
-		if err != nil {
-			logger.Error("unauthenticated",
-				zap.String("reason", "error retrieving authentication for client token"),
-				zap.Error(err))
-
-			if errs.Is(err, context.Canceled) {
-				err = status.Error(codes.Canceled, err.Error())
-				return ctx, err
-			}
-
-			if errs.Is(err, context.DeadlineExceeded) {
-				err = status.Error(codes.DeadlineExceeded, err.Error())
-				return ctx, err
-			}
-
-			return ctx, errUnauthenticated
-		}
-
-		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
-			logger.Error("unauthenticated",
-				zap.String("reason", "authorization expired"),
-				zap.String("authentication_id", auth.Id),
-			)
-			return ctx, errUnauthenticated
-		}
-
-		return handler(ContextWithAuthentication(ctx, auth), req)
+		return handler(ctx, req)
 	}
+}
+
+// ClientTokenStreamInterceptor is a grpc.StreamServerInterceptor which extracts a clientToken found
+// within the authorization field on the incoming requests metadata.
+// The fields value is expected to be in the form "Bearer <clientToken>".
+func ClientTokenStreamInterceptor(logger *zap.Logger, authenticator ClientTokenAuthenticator, o ...containers.Option[InterceptorOptions]) grpc.StreamServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := stream.Context()
+		// skip auth for any preconfigured servers
+		if skipped(ctx, srv, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(srv, stream)
+		}
+
+		ctx, err := authenticateClientToken(ctx, logger, authenticator)
+		if err != nil {
+			return err
+		}
+
+		// wrappedServerStream is a helper that allows modifying the context of the server stream
+		return handler(srv, &grpcmiddleware.WrappedServerStream{
+			ServerStream:   stream,
+			WrappedContext: ctx,
+		})
+	}
+}
+
+// authenticateClientToken authenticates a client token found in the incoming request metadata and returns a new context with the authenticated authentication instance.
+func authenticateClientToken(ctx context.Context, logger *zap.Logger, authenticator ClientTokenAuthenticator) (context.Context, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
+		return ctx, errUnauthenticated
+	}
+
+	clientToken, err := clientTokenFromMetadata(md)
+	if err != nil {
+		logger.Error("unauthenticated",
+			zap.String("reason", "no authorization provided"),
+			zap.Error(err))
+
+		return ctx, errUnauthenticated
+	}
+
+	auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
+	if err != nil {
+		logger.Error("unauthenticated",
+			zap.String("reason", "error retrieving authentication for client token"),
+			zap.Error(err))
+
+		if errs.Is(err, context.Canceled) {
+			err = status.Error(codes.Canceled, err.Error())
+			return ctx, err
+		}
+
+		if errs.Is(err, context.DeadlineExceeded) {
+			err = status.Error(codes.DeadlineExceeded, err.Error())
+			return ctx, err
+		}
+
+		return ctx, errUnauthenticated
+	}
+
+	if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
+		logger.Error("unauthenticated",
+			zap.String("reason", "authorization expired"),
+			zap.String("authentication_id", auth.Id),
+		)
+		return ctx, errUnauthenticated
+	}
+
+	return ContextWithAuthentication(ctx, auth), nil
 }
 
 // EmailMatchingUnaryInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
@@ -408,6 +449,8 @@ func EmailMatchingUnaryInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o 
 	}
 }
 
+// clientTokenFromMetadata extracts a client token found in the incoming request metadata
+// and returns the client token.
 func clientTokenFromMetadata(md metadata.MD) (string, error) {
 	if authenticationHeader := md.Get(authenticationHeaderKey); len(authenticationHeader) > 0 {
 		return fromAuthorization(authenticationHeader[0], authenticationSchemeBearer)
@@ -421,6 +464,8 @@ func clientTokenFromMetadata(md metadata.MD) (string, error) {
 	return cookie.Value, nil
 }
 
+// cookieFromMetadata extracts a cookie found in the incoming request metadata
+// and returns the cookie.
 func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
 	// sadly net/http does not expose cookie parsing
 	// outside of http.Request.
@@ -431,6 +476,8 @@ func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
 	}).Cookie(key)
 }
 
+// jwtFromMetadata extracts a JWT found in the incoming request metadata
+// and returns the JWT.
 func jwtFromMetadata(md metadata.MD) (string, error) {
 	if authenticationHeader := md.Get(authenticationHeaderKey); len(authenticationHeader) > 0 {
 		return fromAuthorization(authenticationHeader[0], authenticationSchemeJWT)
@@ -439,6 +486,8 @@ func jwtFromMetadata(md metadata.MD) (string, error) {
 	return "", errUnauthenticated
 }
 
+// fromAuthorization extracts a token from an authorization header
+// and returns the token.
 func fromAuthorization(auth string, scheme authenticationScheme) (string, error) {
 	// Ensure auth is prefixed with the scheme
 	if a := strings.TrimPrefix(auth, scheme.String()+" "); auth != a {

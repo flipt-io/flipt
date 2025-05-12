@@ -204,6 +204,12 @@ func authenticationGRPC(
 			authOpts...,
 		), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 
+		streamInterceptors = append(streamInterceptors, selector.StreamServerInterceptor(authmiddlewaregrpc.ClientTokenStreamInterceptor(
+			logger,
+			store,
+			authOpts...,
+		), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
+
 		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
 			rgxs := make([]*regexp.Regexp, 0, len(authCfg.Methods.OIDC.Method.EmailMatches))
 
@@ -217,13 +223,13 @@ func authenticationGRPC(
 			}
 
 			unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingUnaryInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
-			// TODO: add ClientTokenStreamInterceptor
 		}
 
 		// at this point, we have already registered all authentication methods that are enabled
 		// so atleast one authentication method should pass if authentication is required
 		unaryInterceptors = append(unaryInterceptors, authmiddlewaregrpc.AuthenticationRequiredUnaryInterceptor(logger, authOpts...))
 		streamInterceptors = append(streamInterceptors, authmiddlewaregrpc.AuthenticationRequiredStreamInterceptor(logger, authOpts...))
+
 		logger.Info("authentication middleware enabled")
 	}
 
