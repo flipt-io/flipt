@@ -219,7 +219,7 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 				return nil, nil
 			})
 
-			_, err := FliptHeadersInterceptor(zap.NewNop())(ctx, nil, nil, spyHandler)
+			_, err := FliptHeadersUnaryInterceptor(zap.NewNop())(ctx, nil, nil, spyHandler)
 			require.NoError(t, err)
 		})
 	}

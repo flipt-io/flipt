@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	errs "go.flipt.io/flipt/errors"
 	cctx "go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/server/analytics"
@@ -40,25 +41,36 @@ func ValidationUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServe
 // ErrorUnaryInterceptor intercepts known errors and returns the appropriate GRPC status code
 func ErrorUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	resp, err = handler(ctx, req)
+	if err != nil {
+		return resp, handleError(ctx, err)
+	}
+
+	return resp, nil
+}
+
+// ErrorStreamInterceptor intercepts known errors and returns the appropriate GRPC status code
+func ErrorStreamInterceptor(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return handler(srv, stream)
+}
+
+func handleError(ctx context.Context, err error) error {
 	if err == nil {
-		return resp, nil
+		return nil
 	}
 
 	metrics.ErrorsTotal.Add(ctx, 1)
 
 	// given already a *status.Error then forward unchanged
 	if _, ok := status.FromError(err); ok {
-		return
+		return err
 	}
 
 	if errors.Is(err, context.Canceled) {
-		err = status.Error(codes.Canceled, err.Error())
-		return
+		return status.Error(codes.Canceled, err.Error())
 	}
 
 	if errors.Is(err, context.DeadlineExceeded) {
-		err = status.Error(codes.DeadlineExceeded, err.Error())
-		return
+		return status.Error(codes.DeadlineExceeded, err.Error())
 	}
 
 	code := codes.Internal
@@ -85,8 +97,7 @@ func ErrorUnaryInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo
 		_ = grpc.SetHeader(ctx, metadata.Pairs("x-http-code", "304"))
 	}
 
-	err = status.Error(code, err.Error())
-	return
+	return status.Error(code, err.Error())
 }
 
 type RequestIdentifiable interface {
@@ -101,8 +112,8 @@ type ResponseDurationRecordable interface {
 	SetTimestamps(start, end time.Time)
 }
 
-// FliptHeadersInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
-func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+// FliptHeadersUnaryInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
+func FliptHeadersUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -110,24 +121,47 @@ func FliptHeadersInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		if fliptEnvironment := md.Get(common.HeaderFliptEnvironment); len(fliptEnvironment) > 0 {
-			environment := fliptEnvironment[0]
-			if environment != "" {
-				logger.Debug("setting flipt environment in request context", zap.String("environment", environment))
-				ctx = cctx.WithFliptEnvironment(ctx, environment)
-			}
-		}
-
-		if fliptNamespace := md.Get(common.HeaderFliptNamespace); len(fliptNamespace) > 0 {
-			namespace := fliptNamespace[0]
-			if namespace != "" {
-				logger.Debug("setting flipt namespace in request context", zap.String("namespace", namespace))
-				ctx = cctx.WithFliptNamespace(ctx, namespace)
-			}
-		}
-
+		ctx = contextWithMetadata(ctx, md, logger)
 		return handler(ctx, req)
 	}
+}
+
+// FliptHeadersStreamInterceptor intercepts incoming requests and adds the flipt environment and namespace to the context.
+func FliptHeadersStreamInterceptor(logger *zap.Logger) grpc.StreamServerInterceptor {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		md, ok := metadata.FromIncomingContext(stream.Context())
+		if !ok {
+			logger.Debug("no metadata found in context")
+			return handler(srv, stream)
+		}
+
+		ctx := contextWithMetadata(stream.Context(), md, logger)
+		return handler(srv, &grpcmiddleware.WrappedServerStream{
+			ServerStream:   stream,
+			WrappedContext: ctx,
+		})
+	}
+}
+
+// contextWithMetadata adds the flipt environment and namespace to the context if they are present in the metadata.
+func contextWithMetadata(ctx context.Context, md metadata.MD, logger *zap.Logger) context.Context {
+	if fliptEnvironment := md.Get(common.HeaderFliptEnvironment); len(fliptEnvironment) > 0 {
+		environment := fliptEnvironment[0]
+		if environment != "" {
+			logger.Debug("setting flipt environment in request context", zap.String("environment", environment))
+			ctx = cctx.WithFliptEnvironment(ctx, environment)
+		}
+	}
+
+	if fliptNamespace := md.Get(common.HeaderFliptNamespace); len(fliptNamespace) > 0 {
+		namespace := fliptNamespace[0]
+		if namespace != "" {
+			logger.Debug("setting flipt namespace in request context", zap.String("namespace", namespace))
+			ctx = cctx.WithFliptNamespace(ctx, namespace)
+		}
+	}
+
+	return ctx
 }
 
 // EvaluationUnaryInterceptor sets required request/response fields.

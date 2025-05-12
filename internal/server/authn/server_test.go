@@ -47,7 +47,7 @@ func TestServer(t *testing.T) {
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(
-				authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(logger, store),
+				authmiddlewaregrpc.ClientTokenAuthenticationUnaryInterceptor(logger, store),
 				middlewaregrpc.ErrorUnaryInterceptor,
 			),
 		)

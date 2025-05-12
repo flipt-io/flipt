@@ -276,7 +276,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationInterceptor(logger, jwtValidator)(
+			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator)(
 				ctx,
 				nil,
 				srv,
@@ -322,7 +322,7 @@ func TestJWTAuthenticationInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationInterceptor(logger, jwtValidator)(
+			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator)(
 				ctx,
 				nil,
 				srv,
@@ -451,7 +451,7 @@ func TestClientTokenAuthenticationInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err := ClientTokenAuthenticationInterceptor(logger, authenticator)(
+			_, err := ClientTokenAuthenticationUnaryInterceptor(logger, authenticator)(
 				ctx,
 				nil,
 				srv,
@@ -474,7 +474,7 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 	)
 
 	require.Panics(t, func() {
-		_, _ = EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
+		_, _ = EmailMatchingUnaryInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
 			ctx,
 			nil,
 			&grpc.UnaryServerInfo{Server: &mockServer{}},
@@ -613,7 +613,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				rgxs = append(rgxs, rgx)
 			}
 
-			_, err := EmailMatchingInterceptor(logger, rgxs)(
+			_, err := EmailMatchingUnaryInterceptor(logger, rgxs)(
 				ctx,
 				nil,
 				srv,

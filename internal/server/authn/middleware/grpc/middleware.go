@@ -12,6 +12,9 @@ import (
 
 	errs "errors"
 
+	"slices"
+
+	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"go.flipt.io/flipt/internal/containers"
@@ -81,19 +84,13 @@ type InterceptorOptions struct {
 	skippedServers []any
 }
 
-func skipped(ctx context.Context, info *grpc.UnaryServerInfo, o InterceptorOptions) bool {
-	if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+func skipped(ctx context.Context, server any, o InterceptorOptions) bool {
+	if skipSrv, ok := server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
 		return true
 	}
 
 	// TODO: refactor to remove this check
-	for _, s := range o.skippedServers {
-		if s == info.Server {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.skippedServers, server)
 }
 
 // WithServerSkipsAuthentication can be used to configure an auth unary interceptor
@@ -111,9 +108,9 @@ type SkipsAuthenticationServer interface {
 	SkipsAuthentication(ctx context.Context) bool
 }
 
-// AuthenticationRequiredInterceptor is a grpc.UnaryServerInterceptor which requires that
+// AuthenticationRequiredUnaryInterceptor is a grpc.UnaryServerInterceptor which requires that
 // all requests contain an Authentication instance on the context.
-func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func AuthenticationRequiredUnaryInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -134,6 +131,30 @@ func AuthenticationRequiredInterceptor(logger *zap.Logger, o ...containers.Optio
 	}
 }
 
+// AuthenticationRequiredStreamInterceptor is a grpc.StreamServerInterceptor which requires that
+// all requests contain an Authentication instance on the context.
+func AuthenticationRequiredStreamInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.StreamServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := stream.Context()
+		// skip auth for any preconfigured servers
+		if skipped(ctx, srv, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(srv, stream)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
+		if auth == nil {
+			logger.Error("unauthenticated", zap.String("reason", "authentication required"))
+			return errUnauthenticated
+		}
+
+		return handler(srv, stream)
+	}
+}
+
 // JWTInterceptorSelector is a grpc.UnaryServerInterceptor which selects requests
 // which contain a JWT in the authorization header.
 func JWTInterceptorSelector() selector.Matcher {
@@ -148,7 +169,9 @@ func JWTInterceptorSelector() selector.Matcher {
 	})
 }
 
-func JWTAuthenticationInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+// JWTAuthenticationUnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a JWT found
+// within the authorization field on the incoming requests metadata.
+func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -159,78 +182,112 @@ func JWTAuthenticationInterceptor(logger *zap.Logger, validator method.JWTValida
 			return handler(ctx, req)
 		}
 
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, errUnauthenticated
-		}
-
-		token, err := jwtFromMetadata(md)
+		ctx, err := authenticateJWT(ctx, logger, validator)
 		if err != nil {
-			logger.Error("unauthenticated",
-				zap.String("reason", "no authorization provided"),
-				zap.Error(err))
-
-			return ctx, errUnauthenticated
+			return nil, err
 		}
 
-		jwtClaims, err := validator.Validate(ctx, token)
+		return handler(ctx, req)
+	}
+}
+
+// JWTAuthenticationStreamInterceptor is a grpc.StreamServerInterceptor which extracts a JWT found
+// within the authorization field on the incoming requests metadata.
+func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.StreamServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := stream.Context()
+		// skip auth for any preconfigured servers
+		if skipped(ctx, srv, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(srv, stream)
+		}
+
+		ctx, err := authenticateJWT(ctx, logger, validator)
 		if err != nil {
-			logger.Error("unauthenticated",
-				zap.String("reason", "error validating jwt"),
-				zap.Error(err))
-
-			if errs.Is(err, context.Canceled) {
-				err = status.Error(codes.Canceled, err.Error())
-				return ctx, err
-			}
-
-			if errs.Is(err, context.DeadlineExceeded) {
-				err = status.Error(codes.DeadlineExceeded, err.Error())
-				return ctx, err
-			}
-
-			return ctx, errUnauthenticated
+			return err
 		}
 
-		metadata := map[string]string{}
+		// wrappedServerStream is a helper that allows modifying the context of the server stream
+		return handler(srv, &grpcmiddleware.WrappedServerStream{
+			ServerStream:   stream,
+			WrappedContext: ctx,
+		})
+	}
+}
 
-		for k, v := range jwtClaims {
-			if strings.HasPrefix(k, "io.flipt.auth") {
-				metadata[k] = fmt.Sprintf("%v", v)
-				continue
-			}
+func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.JWTValidator) (context.Context, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
+		return ctx, errUnauthenticated
+	}
 
-			if v, ok := v.(string); ok && k == "iss" {
-				metadata["io.flipt.auth.jwt.issuer"] = v
-				continue
-			}
+	token, err := jwtFromMetadata(md)
+	if err != nil {
+		logger.Error("unauthenticated",
+			zap.String("reason", "no authorization provided"),
+			zap.Error(err))
 
-			if k == "user" {
-				userClaims, ok := v.(map[string]interface{})
-				if ok {
-					for _, fields := range [][2]string{
-						{"email", "email"},
-						{"sub", "sub"},
-						{"image", "picture"},
-						{"name", "name"},
-						{"role", "role"},
-					} {
-						if v, ok := userClaims[fields[0]]; ok {
-							metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
-						}
+		return ctx, errUnauthenticated
+	}
+
+	jwtClaims, err := validator.Validate(ctx, token)
+	if err != nil {
+		logger.Error("unauthenticated",
+			zap.String("reason", "error validating jwt"),
+			zap.Error(err))
+
+		if errs.Is(err, context.Canceled) {
+			err = status.Error(codes.Canceled, err.Error())
+			return ctx, err
+		}
+
+		if errs.Is(err, context.DeadlineExceeded) {
+			err = status.Error(codes.DeadlineExceeded, err.Error())
+			return ctx, err
+		}
+
+		return ctx, errUnauthenticated
+	}
+
+	metadata := map[string]string{}
+
+	for k, v := range jwtClaims {
+		if strings.HasPrefix(k, "io.flipt.auth") {
+			metadata[k] = fmt.Sprintf("%v", v)
+			continue
+		}
+
+		if v, ok := v.(string); ok && k == "iss" {
+			metadata["io.flipt.auth.jwt.issuer"] = v
+			continue
+		}
+
+		if k == "user" {
+			userClaims, ok := v.(map[string]interface{})
+			if ok {
+				for _, fields := range [][2]string{
+					{"email", "email"},
+					{"sub", "sub"},
+					{"image", "picture"},
+					{"name", "name"},
+					{"role", "role"},
+				} {
+					if v, ok := userClaims[fields[0]]; ok {
+						metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
 					}
 				}
 			}
 		}
-
-		auth := &authrpc.Authentication{
-			Method:   authrpc.Method_METHOD_JWT,
-			Metadata: metadata,
-		}
-
-		return handler(ContextWithAuthentication(ctx, auth), req)
 	}
+
+	return ContextWithAuthentication(ctx, &authrpc.Authentication{
+		Method:   authrpc.Method_METHOD_JWT,
+		Metadata: metadata,
+	}), nil
 }
 
 func ClientTokenInterceptorSelector() selector.Matcher {
@@ -245,10 +302,10 @@ func ClientTokenInterceptorSelector() selector.Matcher {
 	})
 }
 
-// ClientTokenAuthenticationInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
+// ClientTokenAuthenticationUnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
 // within the authorization field on the incoming requests metadata.
 // The fields value is expected to be in the form "Bearer <clientToken>".
-func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator ClientTokenAuthenticator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func ClientTokenAuthenticationUnaryInterceptor(logger *zap.Logger, authenticator ClientTokenAuthenticator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -305,9 +362,9 @@ func ClientTokenAuthenticationInterceptor(logger *zap.Logger, authenticator Clie
 	}
 }
 
-// EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
+// EmailMatchingUnaryInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
 // and wants to whitelist a group of users issuing operations against the Flipt server.
-func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func EmailMatchingUnaryInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 

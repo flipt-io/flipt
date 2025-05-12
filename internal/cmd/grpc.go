@@ -172,7 +172,7 @@ func NewGRPCServer(
 	opentelemetry.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	// base inteceptors
-	interceptors := []grpc.UnaryServerInterceptor{
+	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
 			return status.Errorf(codes.Internal, "%v", p)
@@ -186,9 +186,28 @@ func NewGRPCServer(
 			return true
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
-		middlewaregrpc.ErrorUnaryInterceptor,
 		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
 		otelgrpc.UnaryServerInterceptor(),
+		middlewaregrpc.ErrorUnaryInterceptor,
+	}
+
+	streamInterceptors := []grpc.StreamServerInterceptor{
+		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+			logger.Error("panic recovered", zap.Any("panic", p))
+			return status.Errorf(codes.Internal, "%v", p)
+		})),
+		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_zap.StreamServerInterceptor(logger, grpc_zap.WithDecider(func(methodFullName string, err error) bool {
+			// will not log gRPC calls if it was a call to healthcheck and no error was raised
+			if err == nil && methodFullName == "/grpc.health.v1.Health/Check" {
+				return false
+			}
+			return true
+		})),
+		grpc_prometheus.StreamServerInterceptor,
+		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
+		otelgrpc.StreamServerInterceptor(),
+		middlewaregrpc.ErrorStreamInterceptor,
 	}
 
 	var (
@@ -225,7 +244,7 @@ func NewGRPCServer(
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(clientevalsrv, cfg.Authentication.Exclude.Evaluation)
 
-	authInterceptors, authShutdown, err := authenticationGRPC(
+	authUnaryInterceptors, authStreamInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
@@ -282,10 +301,16 @@ func NewGRPCServer(
 	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 
 	// add auth interceptors to the server
-	interceptors = append(interceptors,
-		append(authInterceptors,
-			middlewaregrpc.FliptHeadersInterceptor(logger),
+	unaryInterceptors = append(unaryInterceptors,
+		append(authUnaryInterceptors,
+			middlewaregrpc.FliptHeadersUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
+		)...,
+	)
+
+	streamInterceptors = append(streamInterceptors,
+		append(authStreamInterceptors,
+			middlewaregrpc.FliptHeadersStreamInterceptor(logger),
 		)...,
 	)
 
@@ -307,16 +332,18 @@ func NewGRPCServer(
 
 		server.onShutdown(authzShutdown)
 
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
+		// authz only applies to the unary interceptors for now
+		unaryInterceptors = append(unaryInterceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}
 
 	// we validate requests after authn and authz
-	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
+	unaryInterceptors = append(unaryInterceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	grpcOpts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(interceptors...),
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
@@ -334,7 +361,9 @@ func NewGRPCServer(
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
 
-	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
+	ipch = ipch.
+		WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptors...)).
+		WithServerStreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptors...))
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)
