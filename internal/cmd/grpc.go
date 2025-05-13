@@ -28,17 +28,18 @@ import (
 	authzmiddlewaregrpc "go.flipt.io/flipt/internal/server/authz/middleware/grpc"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
-	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
+	serverclientevaluation "go.flipt.io/flipt/internal/server/evaluation/client"
 	"go.flipt.io/flipt/internal/server/evaluation/ofrep"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/environments"
 	rpcflipt "go.flipt.io/flipt/rpc/flipt"
-	rpcanalytics "go.flipt.io/flipt/rpc/flipt/analytics"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcmeta "go.flipt.io/flipt/rpc/flipt/meta"
 	rpcoffrep "go.flipt.io/flipt/rpc/flipt/ofrep"
+	rpcanalytics "go.flipt.io/flipt/rpc/v2/analytics"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
+	rpcevaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	opentelemetry "go.opentelemetry.io/otel"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
@@ -171,8 +172,8 @@ func NewGRPCServer(
 	opentelemetry.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	// base inteceptors
-	interceptors := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+	unaryInterceptors := []grpc.UnaryServerInterceptor{
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),
@@ -185,18 +186,36 @@ func NewGRPCServer(
 			return true
 		})),
 		grpc_prometheus.UnaryServerInterceptor,
-		middlewaregrpc.ErrorUnaryInterceptor,
 		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
 		otelgrpc.UnaryServerInterceptor(),
+		middlewaregrpc.ErrorUnaryInterceptor,
+	}
+
+	streamInterceptors := []grpc.StreamServerInterceptor{
+		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+			logger.Error("panic recovered", zap.Any("panic", p))
+			return status.Errorf(codes.Internal, "%v", p)
+		})),
+		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_zap.StreamServerInterceptor(logger, grpc_zap.WithDecider(func(methodFullName string, err error) bool {
+			// will not log gRPC calls if it was a call to healthcheck and no error was raised
+			if err == nil && methodFullName == "/grpc.health.v1.Health/Check" {
+				return false
+			}
+			return true
+		})),
+		grpc_prometheus.StreamServerInterceptor,
+		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
+		otelgrpc.StreamServerInterceptor(),
+		middlewaregrpc.ErrorStreamInterceptor,
 	}
 
 	var (
 		// legacy services
-		metasrv     = metadata.New(cfg, info)
-		evalsrv     = evaluation.New(logger, environmentStore)
-		evaldatasrv = evaluationdata.New(logger, environmentStore)
-		fliptv1srv  = serverfliptv1.New(logger, environmentStore)
-		ofrepsrv    = ofrep.New(logger, evalsrv, environmentStore)
+		metasrv    = metadata.New(cfg, info)
+		evalsrv    = evaluation.New(logger, environmentStore)
+		fliptv1srv = serverfliptv1.New(logger, environmentStore)
+		ofrepsrv   = ofrep.New(logger, evalsrv, environmentStore)
 
 		// health service
 		healthsrv = health.NewServer()
@@ -204,8 +223,10 @@ func NewGRPCServer(
 
 	envsrv, err := serverenvironments.NewServer(logger, environmentStore)
 	if err != nil {
-		return nil, fmt.Errorf("building configuration server: %w", err)
+		return nil, fmt.Errorf("building environments server: %w", err)
 	}
+
+	clientevalsrv := serverclientevaluation.NewServer(logger, environmentStore)
 
 	var (
 		// authnOpts is a slice of options that will be passed to the authentication service.
@@ -221,9 +242,9 @@ func NewGRPCServer(
 	)
 
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
-	skipAuthnIfExcluded(evaldatasrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(clientevalsrv, cfg.Authentication.Exclude.Evaluation)
 
-	authInterceptors, authShutdown, err := authenticationGRPC(
+	authUnaryInterceptors, authStreamInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
@@ -268,7 +289,7 @@ func NewGRPCServer(
 	rpcenv.RegisterEnvironmentsServiceServer(handlers, envsrv)
 	rpcmeta.RegisterMetadataServiceServer(handlers, metasrv)
 	rpcevaluation.RegisterEvaluationServiceServer(handlers, evalsrv)
-	rpcevaluation.RegisterDataServiceServer(handlers, evaldatasrv)
+	rpcevaluationv2.RegisterClientEvaluationServiceServer(handlers, clientevalsrv)
 	rpcoffrep.RegisterOFREPServiceServer(handlers, ofrepsrv)
 
 	// forward internal gRPC logging to zap
@@ -280,10 +301,16 @@ func NewGRPCServer(
 	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 
 	// add auth interceptors to the server
-	interceptors = append(interceptors,
-		append(authInterceptors,
-			middlewaregrpc.FliptHeadersInterceptor(logger),
+	unaryInterceptors = append(unaryInterceptors,
+		append(authUnaryInterceptors,
+			middlewaregrpc.FliptHeadersUnaryInterceptor(logger),
 			middlewaregrpc.EvaluationUnaryInterceptor(cfg.Analytics.Enabled()),
+		)...,
+	)
+
+	streamInterceptors = append(streamInterceptors,
+		append(authStreamInterceptors,
+			middlewaregrpc.FliptHeadersStreamInterceptor(logger),
 		)...,
 	)
 
@@ -305,16 +332,18 @@ func NewGRPCServer(
 
 		server.onShutdown(authzShutdown)
 
-		interceptors = append(interceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
+		// authz only applies to the unary interceptors for now
+		unaryInterceptors = append(unaryInterceptors, authzmiddlewaregrpc.AuthorizationRequiredInterceptor(logger, authzEngine, authzOpts...))
 
 		logger.Info("authorization middleware enabled")
 	}
 
 	// we validate requests after authn and authz
-	interceptors = append(interceptors, middlewaregrpc.ValidationUnaryInterceptor)
+	unaryInterceptors = append(unaryInterceptors, middlewaregrpc.ValidationUnaryInterceptor)
 
 	grpcOpts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(interceptors...),
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle:     cfg.Server.GRPCConnectionMaxIdleTime,
@@ -322,8 +351,6 @@ func NewGRPCServer(
 			MaxConnectionAgeGrace: cfg.Server.GRPCConnectionMaxAgeGrace,
 		}),
 	}
-
-	ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
 
 	if cfg.Server.Protocol == config.HTTPS {
 		creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
@@ -334,7 +361,9 @@ func NewGRPCServer(
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
 
-	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(interceptors...))
+	ipch = ipch.
+		WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptors...)).
+		WithServerStreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptors...))
 
 	// initialize grpc server
 	grpcServer := grpc.NewServer(grpcOpts...)

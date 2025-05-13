@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"sync"
 	"text/template"
 
@@ -12,11 +13,12 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
+	evaluation "go.flipt.io/flipt/internal/storage/environments/evaluation"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
+	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 )
 
@@ -36,8 +38,9 @@ type Environment struct {
 	mu   sync.RWMutex
 	refs map[string]string
 
-	head plumbing.Hash
-	snap *storagefs.Snapshot
+	head      plumbing.Hash
+	snap      *storagefs.Snapshot
+	publisher *evaluation.SnapshotPublisher
 }
 
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
@@ -49,14 +52,16 @@ func NewEnvironmentFromRepo(
 	cfg *config.EnvironmentConfig,
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
+	publisher *evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
 	return &Environment{
-		logger:  logger,
-		cfg:     cfg,
-		repo:    repo,
-		storage: storage,
-		refs:    map[string]string{},
-		snap:    storagefs.EmptySnapshot(),
+		logger:    logger,
+		cfg:       cfg,
+		repo:      repo,
+		storage:   storage,
+		refs:      map[string]string{},
+		snap:      storagefs.EmptySnapshot(),
+		publisher: publisher,
 	}, nil
 }
 
@@ -315,11 +320,15 @@ func (e *Environment) EvaluationStore() (storage.ReadOnlyStore, error) {
 	return e.snap, nil
 }
 
-func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*evaluation.EvaluationNamespaceSnapshot, error) {
+func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
 	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
+}
+
+func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+	return e.publisher.Subscribe(ctx, ns, ch)
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
@@ -333,6 +342,13 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 	snap, err := e.buildSnapshot(ctx, head)
 	if err != nil {
 		e.logger.Error("updating snapshot",
+			zap.Error(err),
+			zap.String("environment", e.cfg.Name))
+		return err
+	}
+
+	if err := e.publisher.Publish(snap); err != nil {
+		e.logger.Error("publishing snapshot",
 			zap.Error(err),
 			zap.String("environment", e.cfg.Name))
 		return err

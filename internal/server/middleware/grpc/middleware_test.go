@@ -30,6 +30,13 @@ func (v *validatable) Validate() error {
 	return v.err
 }
 
+type mockStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (m *mockStream) Context() context.Context { return m.ctx }
+
 func TestValidationUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -60,12 +67,12 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
+			handler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				called++
 				return nil, nil
 			})
 
-			_, _ = ValidationUnaryInterceptor(context.Background(), req, nil, spyHandler)
+			_, _ = ValidationUnaryInterceptor(context.Background(), req, nil, handler)
 			assert.Equal(t, wantCalled, called)
 		})
 	}
@@ -118,6 +125,25 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 			wantCode: codes.PermissionDenied,
 		},
 		{
+			name:     "already exists error",
+			wantErr:  errors.ErrAlreadyExists("foo"),
+			wantCode: codes.AlreadyExists,
+		},
+		{
+			name:     "conflict error",
+			wantErr:  errors.ErrConflict("foo"),
+			wantCode: codes.Aborted,
+		},
+		{
+			name:     "not implemented error",
+			wantErr:  errors.ErrNotImplemented("foo"),
+			wantCode: codes.Unimplemented,
+		},
+		{
+			name:     "not modified error",
+			wantCode: codes.OK,
+		},
+		{
 			name:     "other error",
 			wantErr:  errors.New("foo"),
 			wantCode: codes.Internal,
@@ -134,11 +160,11 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
+			handler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				return nil, wantErr
 			})
 
-			_, err := ErrorUnaryInterceptor(context.Background(), nil, nil, spyHandler)
+			_, err := ErrorUnaryInterceptor(context.Background(), nil, nil, handler)
 			if wantErr != nil {
 				require.Error(t, err)
 				status := status.Convert(err)
@@ -151,7 +177,117 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 	}
 }
 
-func TestFliptHeadersInterceptor(t *testing.T) {
+func TestErrorStreamInterceptor(t *testing.T) {
+	tests := []struct {
+		name     string
+		wantErr  error
+		wantCode codes.Code
+	}{
+		{
+			name:     "not found error",
+			wantErr:  errors.ErrNotFound("foo"),
+			wantCode: codes.NotFound,
+		},
+		{
+			name:     "deadline exceeded error",
+			wantErr:  fmt.Errorf("foo: %w", context.DeadlineExceeded),
+			wantCode: codes.DeadlineExceeded,
+		},
+		{
+			name:     "context cancelled error",
+			wantErr:  fmt.Errorf("foo: %w", context.Canceled),
+			wantCode: codes.Canceled,
+		},
+		{
+			name:     "invalid error",
+			wantErr:  errors.ErrInvalid("foo"),
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "invalid field",
+			wantErr:  errors.InvalidFieldError("bar", "is wrong"),
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "empty field",
+			wantErr:  errors.EmptyFieldError("bar"),
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "unauthenticated error",
+			wantErr:  errors.ErrUnauthenticatedf("user %q not found", "foo"),
+			wantCode: codes.Unauthenticated,
+		},
+		{
+			name:     "unauthorized error",
+			wantErr:  errors.ErrUnauthorizedf("user %q not authorized, missing role", "foo"),
+			wantCode: codes.PermissionDenied,
+		},
+		{
+			name:     "unauthorized error",
+			wantErr:  errors.ErrUnauthorizedf("user %q not authorized, missing role", "foo"),
+			wantCode: codes.PermissionDenied,
+		},
+		{
+			name:     "already exists error",
+			wantErr:  errors.ErrAlreadyExists("foo"),
+			wantCode: codes.AlreadyExists,
+		},
+		{
+			name:     "conflict error",
+			wantErr:  errors.ErrConflict("foo"),
+			wantCode: codes.Aborted,
+		},
+		{
+			name:     "not implemented error",
+			wantErr:  errors.ErrNotImplemented("foo"),
+			wantCode: codes.Unimplemented,
+		},
+		{
+			name:     "not modified error",
+			wantCode: codes.OK,
+		},
+		{
+			name:     "other error",
+			wantErr:  errors.New("foo"),
+			wantCode: codes.Internal,
+		},
+		{
+			name: "no error",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			wantErr  = tt.wantErr
+			wantCode = tt.wantCode
+		)
+
+		called := false
+		t.Run(tt.name, func(t *testing.T) {
+			handler := grpc.StreamHandler(func(srv interface{}, stream grpc.ServerStream) error {
+				called = true
+				return wantErr
+			})
+
+			stream := &mockStream{ctx: context.Background()}
+			info := &grpc.StreamServerInfo{}
+
+			err := ErrorStreamInterceptor(nil, stream, info, handler)
+			if wantErr != nil {
+				require.Error(t, err)
+				status := status.Convert(err)
+				assert.Equal(t, wantCode, status.Code())
+				return
+			}
+
+			require.NoError(t, err)
+			assert.True(t, called)
+		})
+	}
+}
+
+func TestFliptHeadersUnaryInterceptor(t *testing.T) {
 	type want struct {
 		environment string
 		namespace   string
@@ -210,7 +346,7 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 			}
 
 			//nolint:all
-			spyHandler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
+			handler := grpc.UnaryHandler(func(ctx context.Context, req any) (any, error) {
 				environment, _ := cctx.FliptEnvironmentFromContext(ctx)
 				assert.Equal(t, tt.want.environment, environment)
 
@@ -219,8 +355,88 @@ func TestFliptHeadersInterceptor(t *testing.T) {
 				return nil, nil
 			})
 
-			_, err := FliptHeadersInterceptor(zap.NewNop())(ctx, nil, nil, spyHandler)
+			_, err := FliptHeadersUnaryInterceptor(zap.NewNop())(ctx, nil, nil, handler)
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestFliptHeadersStreamInterceptor(t *testing.T) {
+	type want struct {
+		environment string
+		namespace   string
+	}
+
+	tests := []struct {
+		name string
+		md   metadata.MD
+		want want
+	}{
+		{
+			name: "no flipt environment",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt environment",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo"}),
+			want: want{
+				environment: "foo",
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "no flipt namespace",
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   flipt.DefaultNamespace,
+			},
+		},
+		{
+			name: "flipt namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: flipt.DefaultEnvironment,
+				namespace:   "bar",
+			},
+		},
+		{
+			name: "flipt environment and namespace",
+			md:   metadata.New(map[string]string{common.HeaderFliptEnvironment: "foo", common.HeaderFliptNamespace: "bar"}),
+			want: want{
+				environment: "foo",
+				namespace:   "bar",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			if tt.md != nil {
+				ctx = metadata.NewIncomingContext(ctx, tt.md)
+			}
+
+			called := false
+			handler := func(srv interface{}, stream grpc.ServerStream) error {
+				called = true
+				environment, _ := cctx.FliptEnvironmentFromContext(stream.Context())
+				assert.Equal(t, tt.want.environment, environment)
+
+				namespace, _ := cctx.FliptNamespaceFromContext(stream.Context())
+				assert.Equal(t, tt.want.namespace, namespace)
+				return nil
+			}
+
+			stream := &mockStream{ctx: ctx}
+			info := &grpc.StreamServerInfo{}
+			logger := zap.NewNop()
+
+			err := FliptHeadersStreamInterceptor(logger)(nil, stream, info, handler)
+			require.NoError(t, err)
+			assert.True(t, called)
 		})
 	}
 }

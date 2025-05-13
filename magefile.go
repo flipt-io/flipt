@@ -219,6 +219,8 @@ func (g Go) Proto() error {
 	for _, module := range []string{
 		"rpc/flipt",
 		"rpc/v2/environments",
+		"rpc/v2/analytics",
+		"rpc/v2/evaluation",
 	} {
 		cmd := exec.Command("buf", "generate")
 		cmd.Dir = module

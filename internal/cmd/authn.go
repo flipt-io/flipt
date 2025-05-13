@@ -72,7 +72,7 @@ func authenticationGRPC(
 	cfg *config.Config,
 	handlers *grpchan.HandlerMap,
 	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
-) ([]grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+) ([]grpc.UnaryServerInterceptor, []grpc.StreamServerInterceptor, func(context.Context) error, error) {
 
 	var (
 		shutdown = func(ctx context.Context) error {
@@ -84,12 +84,12 @@ func authenticationGRPC(
 	if !authCfg.Enabled() {
 		rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
 		rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, storageauthmemory.NewStore(logger)))
-		return nil, shutdown, nil
+		return nil, nil, shutdown, nil
 	}
 
 	store, err := getAuthStore(logger, cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
@@ -97,7 +97,10 @@ func authenticationGRPC(
 
 	shutdown = store.Shutdown
 
-	var interceptors []grpc.UnaryServerInterceptor
+	var (
+		unaryInterceptors  []grpc.UnaryServerInterceptor
+		streamInterceptors []grpc.StreamServerInterceptor
+	)
 
 	// register auth method oidc service
 	if authCfg.Methods.OIDC.Enabled {
@@ -117,12 +120,12 @@ func authenticationGRPC(
 	if authCfg.Methods.Kubernetes.Enabled {
 		jwtValidator, err = authkubernetes.NewValidator(logger, authCfg.Methods.Kubernetes.Method)
 		if err != nil {
-			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
 
 		kubernetesServer, err := authkubernetes.NewServer(logger, authCfg, jwtValidator)
 		if err != nil {
-			return nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
 		rpcauth.RegisterAuthenticationMethodKubernetesServiceServer(handlers, kubernetesServer)
 
@@ -139,28 +142,28 @@ func authenticationGRPC(
 		if authJWT.Method.JWKSURL != "" {
 			ks, err = jwt.NewJSONWebKeySet(ctx, authJWT.Method.JWKSURL, "")
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
+				return nil, nil, nil, fmt.Errorf("failed to create JSON web key set: %w", err)
 			}
 		} else if authJWT.Method.PublicKeyFile != "" {
 			keyPEMBlock, err := os.ReadFile(authJWT.Method.PublicKeyFile)
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to read key file: %w", err)
+				return nil, nil, nil, fmt.Errorf("failed to read key file: %w", err)
 			}
 
 			publicKey, err := jwt.ParsePublicKeyPEM(keyPEMBlock)
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
+				return nil, nil, nil, fmt.Errorf("failed to parse public key PEM block: %w", err)
 			}
 
 			ks, err = jwt.NewStaticKeySet([]crypto.PublicKey{publicKey})
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to create static key set: %w", err)
+				return nil, nil, nil, fmt.Errorf("failed to create static key set: %w", err)
 			}
 		}
 
 		validator, err := jwt.NewValidator(ks)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to create JWT validator: %w", err)
 		}
 
 		// intentionally restricted to a set of common asymmetric algorithms
@@ -190,10 +193,18 @@ func authenticationGRPC(
 	if authCfg.Required {
 		// Register JWT validation middleware if either JWT or Kubernetes auth is enabled
 		if authCfg.Methods.JWT.Enabled || authCfg.Methods.Kubernetes.Enabled {
-			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+			unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationUnaryInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+
+			streamInterceptors = append(streamInterceptors, selector.StreamServerInterceptor(authmiddlewaregrpc.JWTAuthenticationStreamInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 		}
 
-		interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationInterceptor(
+		unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationUnaryInterceptor(
+			logger,
+			store,
+			authOpts...,
+		), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
+
+		streamInterceptors = append(streamInterceptors, selector.StreamServerInterceptor(authmiddlewaregrpc.ClientTokenStreamInterceptor(
 			logger,
 			store,
 			authOpts...,
@@ -205,23 +216,24 @@ func authenticationGRPC(
 			for _, em := range authCfg.Methods.OIDC.Method.EmailMatches {
 				rgx, err := regexp.Compile(em)
 				if err != nil {
-					return nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
+					return nil, nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
 				}
 
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
+			unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.EmailMatchingUnaryInterceptor(logger, rgxs, authOpts...), authmiddlewaregrpc.ClientTokenInterceptorSelector()))
 		}
 
 		// at this point, we have already registered all authentication methods that are enabled
 		// so atleast one authentication method should pass if authentication is required
-		interceptors = append(interceptors, authmiddlewaregrpc.AuthenticationRequiredInterceptor(logger, authOpts...))
+		unaryInterceptors = append(unaryInterceptors, authmiddlewaregrpc.AuthenticationRequiredUnaryInterceptor(logger, authOpts...))
+		streamInterceptors = append(streamInterceptors, authmiddlewaregrpc.AuthenticationRequiredStreamInterceptor(logger, authOpts...))
 
 		logger.Info("authentication middleware enabled")
 	}
 
-	return interceptors, shutdown, nil
+	return unaryInterceptors, streamInterceptors, shutdown, nil
 }
 
 // register creates a ServeMuxOption that registers a gRPC service handler

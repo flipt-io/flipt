@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go.flipt.io/flipt/rpc/flipt/analytics"
+	"go.flipt.io/flipt/rpc/v2/analytics"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

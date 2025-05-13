@@ -22,7 +22,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
-	"go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,7 +32,7 @@ import (
 var _ storage.ReadOnlyStore = (*Snapshot)(nil)
 
 // Snapshot contains the structures necessary for serving
-// flag state to a client.
+// flag state to a evaluation.
 type Snapshot struct {
 	ns        map[string]*namespace
 	evalDists map[string][]*storage.EvaluationDistribution
@@ -697,6 +697,10 @@ func (s *Snapshot) EvaluationNamespaceSnapshot(_ context.Context, ns string) (*e
 	}
 
 	return snap, nil
+}
+
+func (s *Snapshot) EvaluationSnapshot(_ context.Context) (*evaluation.EvaluationSnapshot, error) {
+	return s.evalSnap, nil
 }
 
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
