@@ -145,20 +145,22 @@ export default function Analytics(props: AnalyticsProps) {
       ) : (
         <div className="mt-10">
           <Well>
-            <LineChartIcon className="h-12 w-12 text-muted-foreground/30 dark:text-gray-400/60 mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground dark:text-gray-200 mb-2">
-              Analytics Disabled
-            </h3>
-            <p className="text-sm text-muted-foreground dark:text-gray-300">
-              See the configuration{' '}
-              <a
-                className="text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 transition-colors"
-                href="https://www.flipt.io/docs/configuration/analytics"
-              >
-                documentation
-              </a>{' '}
-              for more information.
-            </p>
+            <div className="flex flex-col items-center text-center p-4">
+              <LineChartIcon className="h-12 w-12 text-muted-foreground/30 dark:text-gray-400/60 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground dark:text-gray-200 mb-2">
+                Analytics Disabled
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                See the configuration{' '}
+                <a
+                  className="text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 transition-colors"
+                  href="https://www.flipt.io/docs/configuration/analytics"
+                >
+                  documentation
+                </a>{' '}
+                for more information.
+              </p>
+            </div>
           </Well>
         </div>
       )}

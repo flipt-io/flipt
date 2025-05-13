@@ -254,7 +254,10 @@ export default function Console() {
                             placeholder="Select or search for a flag"
                             values={flags}
                             selected={selectedFlag}
-                            setSelected={setSelectedFlag}
+                            setSelected={(flag) => {
+                              setSelectedFlag(flag);
+                              formik.setFieldValue('flagKey', flag?.key || '');
+                            }}
                           />
                         </div>
                         <div className="col-span-3">
