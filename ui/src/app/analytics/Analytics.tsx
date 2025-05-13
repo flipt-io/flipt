@@ -55,6 +55,9 @@ const durations: FilterableDurations[] = [
   }
 ];
 
+// Helper for RTK skip
+const skipToken = undefined as any;
+
 export default function Analytics() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
@@ -96,7 +99,7 @@ export default function Analytics() {
         setSelectedFlag(found);
       }
     }
-  }, [searchParams, flagOptions]);
+  }, [searchParams, flagOptions, selectedFlag]);
 
   // Keep selectedFlag in sync with flagOptions
   useEffect(() => {
@@ -109,7 +112,7 @@ export default function Analytics() {
     if (flagOptions.length === 0) {
       setSelectedFlag(null);
     }
-  }, [flagsData]);
+  }, [flagsData, flagOptions, selectedFlag]);
 
   // Analytics query
   const d = new Date();
@@ -267,6 +270,3 @@ export default function Analytics() {
     </>
   );
 }
-
-// Helper for RTK skip
-const skipToken = undefined as any;
