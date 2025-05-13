@@ -1,9 +1,9 @@
 import {
   FilesIcon,
+  LineChartIcon,
   ToggleLeftIcon,
   Trash2Icon,
-  VariableIcon,
-  LineChartIcon
+  VariableIcon
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -11,11 +11,11 @@ import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
-import { selectInfo } from '~/app/meta/metaSlice';
 
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
@@ -165,7 +165,11 @@ export default function Flag() {
               <button
                 className="ml-2 p-1 rounded hover:bg-accent"
                 title="View Analytics"
-                onClick={() => navigate(`/namespaces/${namespace.key}/analytics?flag=${flag.key}`)}
+                onClick={() =>
+                  navigate(
+                    `/namespaces/${namespace.key}/analytics?flag=${flag.key}`
+                  )
+                }
               >
                 <LineChartIcon className="h-5 w-5 text-muted-foreground" />
               </button>
