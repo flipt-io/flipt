@@ -61,7 +61,7 @@ type Environment interface {
 
 	EvaluationStore() (storage.ReadOnlyStore, error)
 	EvaluationNamespaceSnapshot(context.Context, string) (*evaluation.EvaluationNamespaceSnapshot, error)
-	EvaluationNamespaceSnapshotSubscribe(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot, func()) (io.Closer, error)
+	EvaluationNamespaceSnapshotSubscribe(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)
 }
 
 type ViewFunc func(context.Context, ResourceStoreView) error

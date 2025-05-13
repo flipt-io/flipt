@@ -255,8 +255,8 @@ func (_c *MockEnvironment_EvaluationNamespaceSnapshot_Call) RunAndReturn(run fun
 }
 
 // EvaluationNamespaceSnapshotSubscribe provides a mock function for the type MockEnvironment
-func (_mock *MockEnvironment) EvaluationNamespaceSnapshotSubscribe(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot, fn func()) (io.Closer, error) {
-	ret := _mock.Called(context1, s, evaluationNamespaceSnapshotCh, fn)
+func (_mock *MockEnvironment) EvaluationNamespaceSnapshotSubscribe(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+	ret := _mock.Called(context1, s, evaluationNamespaceSnapshotCh)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EvaluationNamespaceSnapshotSubscribe")
@@ -264,18 +264,18 @@ func (_mock *MockEnvironment) EvaluationNamespaceSnapshotSubscribe(context1 cont
 
 	var r0 io.Closer
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot, func()) (io.Closer, error)); ok {
-		return returnFunc(context1, s, evaluationNamespaceSnapshotCh, fn)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)); ok {
+		return returnFunc(context1, s, evaluationNamespaceSnapshotCh)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot, func()) io.Closer); ok {
-		r0 = returnFunc(context1, s, evaluationNamespaceSnapshotCh, fn)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) io.Closer); ok {
+		r0 = returnFunc(context1, s, evaluationNamespaceSnapshotCh)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.Closer)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot, func()) error); ok {
-		r1 = returnFunc(context1, s, evaluationNamespaceSnapshotCh, fn)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, chan<- *evaluation.EvaluationNamespaceSnapshot) error); ok {
+		r1 = returnFunc(context1, s, evaluationNamespaceSnapshotCh)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -291,14 +291,13 @@ type MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call struct {
 //   - context1
 //   - s
 //   - evaluationNamespaceSnapshotCh
-//   - fn
-func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 interface{}, s interface{}, evaluationNamespaceSnapshotCh interface{}, fn interface{}) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
-	return &MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call{Call: _e.mock.On("EvaluationNamespaceSnapshotSubscribe", context1, s, evaluationNamespaceSnapshotCh, fn)}
+func (_e *MockEnvironment_Expecter) EvaluationNamespaceSnapshotSubscribe(context1 interface{}, s interface{}, evaluationNamespaceSnapshotCh interface{}) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+	return &MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call{Call: _e.mock.On("EvaluationNamespaceSnapshotSubscribe", context1, s, evaluationNamespaceSnapshotCh)}
 }
 
-func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Run(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot, fn func())) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Run(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(chan<- *evaluation.EvaluationNamespaceSnapshot), args[3].(func()))
+		run(args[0].(context.Context), args[1].(string), args[2].(chan<- *evaluation.EvaluationNamespaceSnapshot))
 	})
 	return _c
 }
@@ -308,7 +307,7 @@ func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) Return(clos
 	return _c
 }
 
-func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) RunAndReturn(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot, fn func()) (io.Closer, error)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
+func (_c *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call) RunAndReturn(run func(context1 context.Context, s string, evaluationNamespaceSnapshotCh chan<- *evaluation.EvaluationNamespaceSnapshot) (io.Closer, error)) *MockEnvironment_EvaluationNamespaceSnapshotSubscribe_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -168,7 +168,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
 	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything, mock.Anything).Return(
+	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
 		&fakeCloser{}, nil,
 	).Run(func(args mock.Arguments) {
 		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
@@ -201,7 +201,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_SubscribeError(t *testing.T) {
 	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything, mock.Anything).Return(nil, errors.New("subscribe error"))
+	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("subscribe error"))
 
 	stream := &mockStream{ctx: context.Background()}
 	stream.On("Send", mock.Anything).Return(nil)
@@ -223,7 +223,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
-	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything, mock.Anything).Return(
+	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
 		&fakeCloser{}, nil,
 	).Run(func(args mock.Arguments) {
 		ch := args.Get(2).(chan<- *rpcevaluation.EvaluationNamespaceSnapshot)
