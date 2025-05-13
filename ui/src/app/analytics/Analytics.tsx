@@ -1,9 +1,10 @@
 import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
+import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
 import { ChartNoAxesCombinedIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
@@ -59,6 +60,7 @@ export default function Analytics() {
   const namespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: flagsData, isLoading: flagsLoading } = useListFlagsQuery({
     environmentKey: environment.key,
@@ -84,6 +86,17 @@ export default function Analytics() {
     durations[0]
   );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
+
+  // Select flag from query param if present
+  useEffect(() => {
+    const flagKey = searchParams.get('flag');
+    if (flagKey && flagOptions.length > 0) {
+      const found = flagOptions.find((f) => f.key === flagKey);
+      if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
+        setSelectedFlag(found);
+      }
+    }
+  }, [searchParams, flagOptions]);
 
   // Keep selectedFlag in sync with flagOptions
   useEffect(() => {
@@ -182,7 +195,12 @@ export default function Analytics() {
                 placeholder="Select or search for a flag"
                 values={flagOptions}
                 selected={selectedFlag}
-                setSelected={setSelectedFlag}
+                setSelected={(flag) => {
+                  setSelectedFlag(flag);
+                  if (flag) {
+                    setSearchParams({ flag: flag.key }, { replace: true });
+                  }
+                }}
                 disabled={flagsLoading}
               />
             )}
