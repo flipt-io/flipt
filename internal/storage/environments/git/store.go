@@ -327,8 +327,8 @@ func (e *Environment) EvaluationNamespaceSnapshot(ctx context.Context, ns string
 	return e.snap.EvaluationNamespaceSnapshot(ctx, ns)
 }
 
-func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
-	return e.publisher.Subscribe(ctx, ns, ch)
+func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot, onClose func()) (io.Closer, error) {
+	return e.publisher.Subscribe(ctx, ns, ch, onClose)
 }
 
 // Notify is called whenever the tracked branch is fetched and advances

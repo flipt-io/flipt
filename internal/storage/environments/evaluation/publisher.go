@@ -168,7 +168,7 @@ func (p *SnapshotPublisher) Publish(snap *storagefs.Snapshot) error {
 	return nil
 }
 
-func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot, onClose func()) (io.Closer, error) {
 	var (
 		id  = uuid.New().String()
 		sub = &subscription{id: id, ch: ch, logger: p.logger.With(zap.String("subscription", id))}
@@ -186,6 +186,10 @@ func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- 
 		}
 		if len(p.subs[ns]) == 0 {
 			delete(p.subs, ns)
+		}
+
+		if onClose != nil {
+			onClose()
 		}
 
 		sub.logger.Debug("subscription canceled")

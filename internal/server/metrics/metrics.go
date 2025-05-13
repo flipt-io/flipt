@@ -101,4 +101,8 @@ var (
 		metric.WithDescription("Latency of stream (subscribe) evaluation setup in milliseconds"),
 		metric.WithUnit("ms"),
 	)
+	EvaluationsStreamsInProgress = metrics.MustInt64().UpDownCounter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "streams_in_progress"),
+		metric.WithDescription("Current number of active evaluation streams"),
+	)
 )

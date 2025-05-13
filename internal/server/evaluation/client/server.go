@@ -108,11 +108,15 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.Evaluation
 	)
 
 	metrics.EvaluationsStreamRequestsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+	metrics.EvaluationsStreamsInProgress.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 
 	// start subscription with a channel with a buffer of one
 	// to allow the subscription to preload the last observed snapshot
 	ch := make(chan *rpcevaluation.EvaluationNamespaceSnapshot, 1)
-	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
+	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, namespaceKey, ch, func() {
+		metrics.EvaluationsStreamsInProgress.Add(ctx, -1, metric.WithAttributeSet(attrSet))
+	})
+
 	if err != nil {
 		metrics.EvaluationsStreamErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 		metrics.EvaluationsStreamLatency.Record(ctx, float64(time.Since(setupStart).Milliseconds()), metric.WithAttributeSet(attrSet))
