@@ -1,4 +1,9 @@
-import { addNamespaceToPath, titleCase, upperFirst } from './helpers';
+import {
+  addNamespaceToPath,
+  stringAsKey,
+  titleCase,
+  upperFirst
+} from './helpers';
 
 describe('addNamespaceToPath', () => {
   it('should return a path with the namespace key', () => {
@@ -41,5 +46,17 @@ describe('titleCase', () => {
   it('should convert first char to upper case for each word', () => {
     const result = titleCase('test is done');
     expect(result).toEqual('Test Is Done');
+  });
+});
+
+describe('stringAsKey', () => {
+  it('should convert a string to a key with spaces and lowercase', () => {
+    const result = stringAsKey('test is done');
+    expect(result).toEqual('test-is-done');
+  });
+
+  it('should convert a string to a key with spaces and uppercase', () => {
+    const result = stringAsKey('Test Is Done');
+    expect(result).toEqual('test-is-done');
   });
 });
