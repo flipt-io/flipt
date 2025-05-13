@@ -154,8 +154,6 @@ type fakeCloser struct{}
 
 func (f *fakeCloser) Close() error { return nil }
 
-// Streaming tests
-
 func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
 	var (
 		logger   = zaptest.NewLogger(t)
@@ -205,7 +203,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_SubscribeError(t *testing.T) {
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{Key: "ns-key"}
 
 	err := s.EvaluationSnapshotNamespaceStream(req, stream)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "subscribe error")
 }
 
