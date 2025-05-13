@@ -3,12 +3,16 @@ package client
 import (
 	"bytes"
 	"context"
+	"time"
 
 	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/evaluation"
+	"go.flipt.io/flipt/internal/server/metrics"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -33,6 +37,8 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 }
 
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluation.EvaluationNamespaceSnapshotRequest) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
+	start := time.Now()
+
 	env, err := s.envs.Get(ctx, r.EnvironmentKey)
 	if err != nil {
 		// try to get the environment from the context
@@ -40,8 +46,25 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 		env = s.envs.GetFromContext(ctx)
 	}
 
-	snap, err := env.EvaluationNamespaceSnapshot(ctx, r.Key)
+	var (
+		environmentKey = env.Key()
+		namespaceKey   = r.Key
+
+		environmentAttr = metrics.AttributeEnvironment.String(environmentKey)
+		namespaceAttr   = metrics.AttributeNamespace.String(namespaceKey)
+
+		attrSet = attribute.NewSet(environmentAttr, namespaceAttr)
+	)
+
+	defer func() {
+		metrics.EvaluationsSnapshotLatency.Record(ctx, float64(time.Since(start).Milliseconds()), metric.WithAttributeSet(attrSet))
+	}()
+
+	metrics.EvaluationsSnapshotRequestsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+
+	snap, err := env.EvaluationNamespaceSnapshot(ctx, namespaceKey)
 	if err != nil {
+		metrics.EvaluationsSnapshotErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 		return nil, err
 	}
 
@@ -52,7 +75,7 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 		_ = grpc.SetHeader(ctx, metadata.Pairs("x-etag", etag))
 		// get If-None-Match header from request
 		if vals := md.Get("GrpcGateway-If-None-Match"); len(vals) > 0 && etag == vals[0] {
-			return &rpcevaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", r.Key)
+			return &rpcevaluation.EvaluationNamespaceSnapshot{}, errors.ErrNotModifiedf("namespace %q", namespaceKey)
 		}
 	}
 
@@ -64,6 +87,8 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 }
 
 func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.EvaluationNamespaceSnapshotStreamRequest, stream rpcevaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
+	setupStart := time.Now()
+
 	var (
 		ctx = stream.Context()
 		env = s.envs.GetFromContext(ctx)
@@ -72,19 +97,40 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.Evaluation
 		// lastDigest is the digest of the last snapshot we sent
 		// this includes all namespaces
 		lastDigest []byte
+
+		environmentKey = env.Key()
+		namespaceKey   = req.Key
+
+		environmentAttr = metrics.AttributeEnvironment.String(environmentKey)
+		namespaceAttr   = metrics.AttributeNamespace.String(namespaceKey)
+
+		attrSet = attribute.NewSet(environmentAttr, namespaceAttr)
 	)
+
+	metrics.EvaluationsStreamRequestsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+	metrics.EvaluationsStreamsInProgress.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 
 	// start subscription with a channel with a buffer of one
 	// to allow the subscription to preload the last observed snapshot
 	ch := make(chan *rpcevaluation.EvaluationNamespaceSnapshot, 1)
-	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, req.Key, ch)
+	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, namespaceKey, ch)
+
+	defer func() {
+		if closer != nil {
+			closer.Close()
+		}
+
+		metrics.EvaluationsStreamsInProgress.Add(ctx, -1, metric.WithAttributeSet(attrSet))
+	}()
+
 	if err != nil {
-		s.logger.Error("error subscribing to environment evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+		metrics.EvaluationsStreamErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+		metrics.EvaluationsStreamLatency.Record(ctx, float64(time.Since(setupStart).Milliseconds()), metric.WithAttributeSet(attrSet))
+		s.logger.Error("error subscribing to environment evaluation namespace snapshot", zap.Error(err), zap.String("namespace", namespaceKey), zap.String("environment", environmentKey))
 		return err
 	}
 
-	// close removes the channel from the subscribers
-	defer closer.Close()
+	metrics.EvaluationsStreamLatency.Record(ctx, float64(time.Since(setupStart).Milliseconds()), metric.WithAttributeSet(attrSet))
 
 	for {
 		select {
@@ -105,9 +151,11 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.Evaluation
 			// only send the snapshot if we have a new digest
 			if digest := hash.Sum(nil); !bytes.Equal(lastDigest, digest) {
 				if err := stream.Send(snap); err != nil {
-					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", req.Key), zap.String("environment", req.EnvironmentKey))
+					metrics.EvaluationsStreamErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+					s.logger.Error("error sending evaluation namespace snapshot", zap.Error(err), zap.String("namespace", namespaceKey), zap.String("environment", environmentKey))
 					return err
 				}
+				metrics.EvaluationsStreamMessagesTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 				lastDigest = digest
 			}
 

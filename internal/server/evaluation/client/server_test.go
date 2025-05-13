@@ -51,6 +51,7 @@ func TestServer_EvaluationSnapshotNamespace_Success(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
 
 	expectedSnap := &rpcevaluation.EvaluationNamespaceSnapshot{
@@ -58,7 +59,7 @@ func TestServer_EvaluationSnapshotNamespace_Success(t *testing.T) {
 		Namespace: &rpcevaluation.EvaluationNamespace{Key: "ns"},
 		Flags:     []*rpcevaluation.EvaluationFlag{},
 	}
-	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key").Return(expectedSnap, nil)
+	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key", mock.Anything).Return(expectedSnap, nil)
 
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotRequest{
@@ -77,6 +78,7 @@ func TestServer_EvaluationSnapshotNamespace_EnvNotFound(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("Get", mock.Anything, "env-key").Return(nil, errors.New("not found"))
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
@@ -85,7 +87,7 @@ func TestServer_EvaluationSnapshotNamespace_EnvNotFound(t *testing.T) {
 		Namespace: &rpcevaluation.EvaluationNamespace{Key: "ns"},
 		Flags:     []*rpcevaluation.EvaluationFlag{},
 	}
-	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key").Return(expectedSnap, nil)
+	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key", mock.Anything).Return(expectedSnap, nil)
 
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotRequest{
@@ -104,9 +106,10 @@ func TestServer_EvaluationSnapshotNamespace_SnapshotError(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
 
-	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key").Return(nil, errors.New("snap error"))
+	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("snap error"))
 
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotRequest{
@@ -125,6 +128,7 @@ func TestServer_EvaluationSnapshotNamespace_EtagMatch(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("Get", mock.Anything, "env-key").Return(mockEnv, nil)
 
 	digest := "digest"
@@ -133,7 +137,7 @@ func TestServer_EvaluationSnapshotNamespace_EtagMatch(t *testing.T) {
 		Namespace: &rpcevaluation.EvaluationNamespace{Key: "ns"},
 		Flags:     []*rpcevaluation.EvaluationFlag{},
 	}
-	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key").Return(expectedSnap, nil)
+	mockEnv.On("EvaluationNamespaceSnapshot", mock.Anything, "ns-key", mock.Anything).Return(expectedSnap, nil)
 
 	var (
 		s   = NewServer(logger, envStore)
@@ -161,6 +165,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_Success(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
 	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
@@ -193,6 +198,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_SubscribeError(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
 	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(nil, errors.New("subscribe error"))
@@ -214,6 +220,7 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 		envStore = evaluation.NewMockEnvironmentStore(t)
 	)
 
+	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
 
 	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
