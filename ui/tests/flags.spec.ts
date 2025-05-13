@@ -38,9 +38,9 @@ test.describe('Flags', () => {
         .fill('chrome');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      expect(
-        await page.getByText('Successfully updated flag').count()
-      ).toBeGreaterThanOrEqual(1);
+      await expect(
+        page.getByText('Successfully updated flag').last()
+      ).toBeVisible();
     });
 
     await test.step('add another variant', async () => {
@@ -55,9 +55,9 @@ test.describe('Flags', () => {
         .fill('firefox');
       await page.getByRole('button', { name: 'Add' }).click();
       await page.getByRole('button', { name: 'Update' }).click();
-      expect(
-        await page.getByText('Successfully updated flag').count()
-      ).toBeGreaterThanOrEqual(1);
+      await expect(
+        page.getByText('Successfully updated flag').last()
+      ).toBeVisible();
     });
 
     await test.step('edit variant description', async () => {
@@ -95,7 +95,9 @@ test.describe('Flags', () => {
         .getByRole('button', { name: 'Done' })
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
-      await expect(page.getByText('Successfully updated flag')).toBeVisible();
+      await expect(
+        page.getByText('Successfully updated flag').last()
+      ).toBeVisible();
     });
   });
 
@@ -160,7 +162,9 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'metadata-flag' }).click();
     await page.getByLabel('Remove metadata entry').first().click();
     await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Successfully updated flag')).toBeVisible();
+    await expect(
+      page.getByText('Successfully updated flag').last()
+    ).toBeVisible();
     await expect(page.getByTestId('metadata-value-0')).toBeDisabled();
   });
 
