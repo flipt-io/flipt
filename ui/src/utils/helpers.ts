@@ -35,7 +35,7 @@ export function titleCase(str: string) {
 }
 
 export function stringAsKey(str: string) {
-  return str.split(/\s+/).join('-');
+  return str.toLowerCase().split(/\s+/).join('-');
 }
 
 const namespaces = '/namespaces/';
