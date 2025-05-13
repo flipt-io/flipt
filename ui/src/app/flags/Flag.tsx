@@ -2,7 +2,8 @@ import {
   FilesIcon,
   ToggleLeftIcon,
   Trash2Icon,
-  VariableIcon
+  VariableIcon,
+  LineChartIcon
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -14,6 +15,7 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
+import { selectInfo } from '~/app/meta/metaSlice';
 
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
@@ -52,6 +54,8 @@ export default function Flag() {
   const namespace = useSelector(selectCurrentNamespace);
 
   const revision = getRevision();
+
+  const info = useSelector(selectInfo);
 
   const {
     data: flag,
@@ -157,12 +161,34 @@ export default function Flag() {
               )}
               {flagTypeToLabel(flag.type)}
             </div>
+            {info.analytics?.enabled && (
+              <button
+                className="ml-2 p-1 rounded hover:bg-accent"
+                title="View Analytics"
+                onClick={() => navigate(`/namespaces/${namespace.key}/analytics?flag=${flag.key}`)}
+              >
+                <LineChartIcon className="h-5 w-5 text-muted-foreground" />
+              </button>
+            )}
           </div>
         }
       >
         <Dropdown
           label="Actions"
           actions={[
+            ...(info.analytics?.enabled
+              ? [
+                  {
+                    id: 'flag-analytics',
+                    label: 'View Analytics',
+                    onClick: () =>
+                      navigate(
+                        `/namespaces/${namespace.key}/analytics?flag=${flag.key}`
+                      ),
+                    icon: LineChartIcon
+                  }
+                ]
+              : []),
             {
               id: 'flag-copy',
               label: 'Copy to Namespace',
