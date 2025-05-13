@@ -64,3 +64,41 @@ var (
 	AttributeNamespace   = attribute.Key("flipt_namespace")
 	AttributeEnvironment = attribute.Key("flipt_environment")
 )
+
+// Snapshot (Unary) metrics
+var (
+	EvaluationsSnapshotRequestsTotal = metrics.MustInt64().Counter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "snapshot_requests"),
+		metric.WithDescription("Total number of snapshot (unary) evaluation requests"),
+	)
+	EvaluationsSnapshotErrorsTotal = metrics.MustInt64().Counter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "snapshot_errors"),
+		metric.WithDescription("Total number of errors in snapshot (unary) evaluation requests"),
+	)
+	EvaluationsSnapshotLatency = metrics.MustFloat64().Histogram(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "snapshot_latency"),
+		metric.WithDescription("Latency of snapshot (unary) evaluation requests in milliseconds"),
+		metric.WithUnit("ms"),
+	)
+)
+
+// Stream metrics
+var (
+	EvaluationsStreamRequestsTotal = metrics.MustInt64().Counter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "stream_requests"),
+		metric.WithDescription("Total number of stream (subscribe) evaluation requests"),
+	)
+	EvaluationsStreamErrorsTotal = metrics.MustInt64().Counter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "stream_errors"),
+		metric.WithDescription("Total number of errors in stream (subscribe) evaluation requests"),
+	)
+	EvaluationsStreamMessagesTotal = metrics.MustInt64().Counter(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "stream_messages"),
+		metric.WithDescription("Total number of messages sent over evaluation streams"),
+	)
+	EvaluationsStreamLatency = metrics.MustFloat64().Histogram(
+		prometheus.BuildFQName(namespace, evaluationsSubsystem, "stream_latency"),
+		metric.WithDescription("Latency of stream (subscribe) evaluation setup in milliseconds"),
+		metric.WithUnit("ms"),
+	)
+)
