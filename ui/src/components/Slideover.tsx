@@ -13,7 +13,7 @@ const SlideOver = forwardRef((props: SlideOverProps, ref: any) => {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-20" />
+        <Dialog.Overlay className="fixed inset-0 z-20 dark:bg-background/50 " />
         <Dialog.Content
           ref={ref}
           className="fixed inset-y-0 right-0 z-20 flex max-w-full pl-10 sm:pl-16"

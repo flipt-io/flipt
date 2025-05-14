@@ -1,5 +1,6 @@
 import {
   FilesIcon,
+  LineChartIcon,
   ToggleLeftIcon,
   Trash2Icon,
   VariableIcon
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router';
 import { useParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import { selectInfo } from '~/app/meta/metaSlice';
 import {
   selectCurrentNamespace,
   selectNamespaces
@@ -52,6 +54,8 @@ export default function Flag() {
   const namespace = useSelector(selectCurrentNamespace);
 
   const revision = getRevision();
+
+  const info = useSelector(selectInfo);
 
   const {
     data: flag,
@@ -157,12 +161,36 @@ export default function Flag() {
               )}
               {flagTypeToLabel(flag.type)}
             </div>
+            {info.analytics?.enabled && (
+              <button
+                className="ml-2 p-1 rounded hover:bg-accent"
+                title="View Analytics"
+                onClick={() =>
+                  navigate(`/namespaces/${namespace.key}/analytics/${flag.key}`)
+                }
+              >
+                <LineChartIcon className="h-5 w-5 text-muted-foreground" />
+              </button>
+            )}
           </div>
         }
       >
         <Dropdown
           label="Actions"
           actions={[
+            ...(info.analytics?.enabled
+              ? [
+                  {
+                    id: 'flag-analytics',
+                    label: 'View Analytics',
+                    onClick: () =>
+                      navigate(
+                        `/namespaces/${namespace.key}/analytics/${flag.key}`
+                      ),
+                    icon: LineChartIcon
+                  }
+                ]
+              : []),
             {
               id: 'flag-copy',
               label: 'Copy to Namespace',

@@ -1,63 +1,50 @@
-import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router';
 
 import { selectInfo } from '~/app/meta/metaSlice';
 
-import logoLight from '~/assets/logo-light.png';
-import { useSession } from '~/data/hooks/session';
-import { getUser } from '~/data/user';
+import { SidebarTrigger } from '~/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '~/components/ui/tooltip';
 
-import EnvironmentListbox from './environments/EnvironmentListbox';
-import Notifications from './header/Notifications';
-import UserProfile from './header/UserProfile';
+import { Badge } from './Badge';
 
-type HeaderProps = {
-  setSidebarOpen: (sidebarOpen: boolean) => void;
-};
-
-export default function Header(props: HeaderProps) {
-  const { setSidebarOpen } = props;
+export function Header({
+  ns,
+  env,
+  sidebarOpen
+}: {
+  ns: string;
+  env: string;
+  sidebarOpen: boolean;
+}) {
   const info = useSelector(selectInfo);
-  const topbarStyle = { backgroundColor: info?.ui?.topbarColor };
-
-  const { session } = useSession();
-  const user = getUser(session);
-
+  const topbarStyle = {
+    backgroundColor: info?.ui?.topbarColor,
+    borderRadius: '1rem 1rem 0 0'
+  };
   return (
-    <div className="fixed left-0 right-0 top-0 flex h-16 shrink-0 bg-black dark:border-b dark:border-b-gray-800">
-      <button
-        type="button"
-        className="without-ring px-4 text-white md:hidden"
-        style={topbarStyle}
-        onClick={() => setSidebarOpen(true)}
-      >
-        <span className="sr-only">Open sidebar</span>
-        <Bars3BottomLeftIcon className="h-6 w-6" aria-hidden="true" />
-      </button>
-
-      <div className="flex flex-1 items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <Link to="/">
-            <img
-              src={logoLight}
-              alt="logo"
-              width={549}
-              height={191}
-              className="h-10 w-auto"
-            />
-          </Link>
-          <EnvironmentListbox className="w-36" />
-        </div>
-
-        <div className="flex items-center gap-2 pr-2">
-          {/* notifications */}
-          {info && info.build.updateAvailable && <Notifications info={info} />}
-
-          {/* user profile */}
-          {user && <UserProfile user={user} />}
-        </div>
+    <header
+      className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear"
+      style={topbarStyle}
+    >
+      <div className="flex w-full px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        {!sidebarOpen && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outlinemuted" className="ml-auto">
+                {ns}@{env}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="end">
+              Current namespace and environment
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
-    </div>
+    </header>
   );
 }

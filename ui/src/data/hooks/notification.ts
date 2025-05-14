@@ -19,9 +19,9 @@ export const useNotification = () => {
       description: options?.description,
       duration: options?.duration || 3000,
       style: {
-        background: 'hsl(var(--card))',
-        color: 'hsl(var(--card-foreground))',
-        border: '1px solid hsl(var(--border))',
+        background: 'var(--card)',
+        color: 'var(--card-foreground)',
+        border: '1px solid var(--border)',
         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
       }
     }) as number;

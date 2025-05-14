@@ -221,7 +221,7 @@ export default function Console() {
 
   return (
     <>
-      <PageHeader title="Console" />
+      <PageHeader title="Playground" />
       <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
         See the results of your flag evaluations and debug any issues
       </p>
@@ -254,7 +254,10 @@ export default function Console() {
                             placeholder="Select or search for a flag"
                             values={flags}
                             selected={selectedFlag}
-                            setSelected={setSelectedFlag}
+                            setSelected={(flag) => {
+                              setSelectedFlag(flag);
+                              formik.setFieldValue('flagKey', flag?.key || '');
+                            }}
                           />
                         </div>
                         <div className="col-span-3">

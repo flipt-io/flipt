@@ -22,12 +22,11 @@ test.describe('Namespaces', () => {
   });
 
   test('can switch to newly created namespace', async ({ page }) => {
-    await page.getByRole('link', { name: 'logo' }).click();
+    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox')
-      .getByRole('combobox', { name: 'Default' })
+      .getByTestId('namespace-listbox-options')
+      .getByRole('menuitem', { name: 'staging' })
       .click();
-    await page.getByText('staging').click();
     await expect(page.getByRole('heading', { name: 'Flags' })).toBeVisible();
   });
 
@@ -49,12 +48,11 @@ test.describe('Namespaces', () => {
   test('deleting current namespace switches to default namespace', async ({
     page
   }) => {
-    await page.getByRole('link', { name: 'logo' }).click();
+    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox')
-      .getByRole('combobox', { name: 'Default' })
+      .getByTestId('namespace-listbox-options')
+      .getByRole('menuitem', { name: 'test' })
       .click();
-    await page.getByText('test', { exact: true }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();
     await expect(
@@ -63,7 +61,7 @@ test.describe('Namespaces', () => {
     await page.getByRole('button', { name: 'Delete namespace test' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await expect(
-      page.getByTestId('namespace-listbox').getByRole('combobox', {
+      page.getByTestId('namespace-listbox').getByRole('button', {
         name: 'Default'
       })
     ).toBeVisible();

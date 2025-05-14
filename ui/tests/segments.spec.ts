@@ -53,8 +53,9 @@ test.describe('Segments', () => {
         .getByRole('button', { name: 'Done' })
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
+
       await expect(
-        page.getByText('Successfully updated segment')
+        page.getByText('Successfully updated segment').last()
       ).toBeVisible();
     });
   });
@@ -81,13 +82,14 @@ test.describe('Segments', () => {
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Segments', exact: true }).click();
+    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox')
-      .getByRole('combobox', { name: 'Default' })
+      .getByTestId('namespace-listbox-options')
+      .getByRole('menuitem', { name: 'copy segment' })
       .click();
-    await page.getByText('copy segment').click();
 
     // verify segment was copied
+    await page.getByRole('link', { name: 'Segments' }).click();
     await page.getByRole('link', { name: 'test-segment' }).click();
     await expect(page.getByText('Test Segment')).toBeVisible();
 

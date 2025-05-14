@@ -41,7 +41,8 @@ function CommandItem(props: CommandItemProps) {
     <Command.Item
       value={item.name + ' ' + item.keywords?.join(' ')}
       key={item.name}
-      className="flex cursor-pointer place-items-center px-4 py-2 data-selected:bg-violet-100 data-selected:text-violet-900 dark:data-selected:bg-violet-800 dark:data-selected:text-white"
+      className="flex cursor-pointer place-items-center px-4 py-2
+      data-[selected=true]:bg-violet-100 data-[selected=true]:text-violet-900 dark:data-[selected=true]:bg-violet-800 dark:data-[selected=true]:text-white"
       onSelect={() => {
         item.onSelected();
       }}
@@ -49,7 +50,7 @@ function CommandItem(props: CommandItemProps) {
       <div className="flex grow flex-col">
         <span className="font-semibold">{item.name}</span>
         {item.description && (
-          <span className="truncate text-xs text-gray-500 dark:text-gray-400 dark:data-selected:text-gray-200">
+          <span className="truncate text-xs text-gray-500 dark:text-gray-400 dark:data-[selected=true]:text-gray-200">
             {item.description}
           </span>
         )}
@@ -72,10 +73,16 @@ const namespacedRoutes = [
     keywords: ['segments']
   },
   {
-    name: 'Console',
+    name: 'Playground',
     description: 'Debug and test flags and segments',
-    route: '/console',
-    keywords: ['console', 'debug', 'test']
+    route: '/playground',
+    keywords: ['console', 'debug', 'test', 'Playground']
+  },
+  {
+    name: 'Analytics',
+    description: 'Track and measure the impact in real-time',
+    route: '/analytics',
+    keywords: ['analytics']
   }
 ];
 

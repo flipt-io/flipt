@@ -1,5 +1,5 @@
-import { StarIcon } from '@heroicons/react/20/solid';
-import { useEffect, useState } from 'react';
+import { StarIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Navigate,
@@ -9,13 +9,14 @@ import {
   useParams
 } from 'react-router';
 
+import { AppSidebar } from '~/components/AppSidebar';
 import Banner from '~/components/Banner';
 import Footer from '~/components/Footer';
-import Header from '~/components/Header';
+import { Header } from '~/components/Header';
 import Loading from '~/components/Loading';
-import Sidebar from '~/components/Sidebar';
 import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
+import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar';
 
 import { LoadingStatus } from '~/types/Meta';
 
@@ -33,10 +34,10 @@ import {
   selectCurrentNamespace,
   useListNamespacesQuery
 } from './namespaces/namespacesApi';
+import { selectSidebar, sidebarChanged } from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dismissedBanner = useSelector(selectDismissedBanner);
   const dispatch = useAppDispatch();
@@ -54,6 +55,11 @@ function InnerLayout() {
   const namespaces = useListNamespacesQuery({
     environmentKey: currentEnvironment.key
   });
+
+  const sidebarOpen = useSelector(selectSidebar);
+  const setSidebarOpen = () => {
+    dispatch(sidebarChanged(!sidebarOpen));
+  };
 
   useEffect(() => {
     if (!namespaceKey) {
@@ -86,33 +92,37 @@ function InnerLayout() {
   }
 
   return (
-    <>
-      <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-background md:pl-64">
-        <div className="sticky top-0 z-10">
-          <Header setSidebarOpen={setSidebarOpen} />
-          {!dismissedBanner && (
-            <div className="mt-16 z-10">
-              <Banner
-                title="Like Flipt? Give us a star on GitHub!"
-                description="It really means a lot to us. Thank you!"
-                href="https://github.com/flipt-io/flipt"
-                icon={<StarIcon className="mx-2 inline h-3 w-3" />}
-              />
-            </div>
-          )}
-        </div>
-        <main
-          className={`flex flex-1 relative ${!dismissedBanner ? 'pt-8' : 'pt-24'}`}
-        >
-          <div className="mx-auto w-full lg:max-w-(--breakpoint-lg) xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) overflow-x-auto px-4 sm:px-6 lg:px-8">
-            <Outlet />
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <AppSidebar variant="inset" ns={currentNamespace.key} />
+      <SidebarInset>
+        <Header
+          ns={currentNamespace.key}
+          env={currentEnvironment.key}
+          sidebarOpen={sidebarOpen}
+        />
+        <div className="min-h-[100vh] flex-1 md:min-h-min">
+          <div className="sticky top-0 z-10">
+            {!dismissedBanner && (
+              <div className="z-10">
+                <Banner
+                  title="Like Flipt? Give us a star on GitHub!"
+                  description="It really means a lot to us. Thank you!"
+                  href="https://github.com/flipt-io/flipt"
+                  icon={<StarIcon className="mx-2 mb-1 inline h-4 w-4" />}
+                />
+              </div>
+            )}
           </div>
-        </main>
-        <Footer />
-        <CommandDialog />
-      </div>
-    </>
+          <main className="flex flex-1 relative pt-8">
+            <div className="mx-auto w-full lg:max-w-(--breakpoint-lg) xl:max-w-(--breakpoint-xl) 2xl:max-w-(--breakpoint-2xl) overflow-x-auto px-4 sm:px-6 lg:px-8">
+              <Outlet />
+            </div>
+          </main>
+          <Footer />
+          <CommandDialog />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 

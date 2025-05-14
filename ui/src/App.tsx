@@ -1,6 +1,5 @@
 import formbricks from '@formbricks/js/website';
-import loadable from '@loadable/component';
-import { useEffect, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { RouterProvider, createHashRouter, redirect } from 'react-router';
@@ -20,14 +19,15 @@ import SessionProvider from './components/SessionProvider';
 import { store } from './store';
 import { Theme } from './types/Preferences';
 
-const Flags = loadable(() => import('./app/flags/Flags'));
-const Segments = loadable(() => import('./app/segments/Segments'));
-const Console = loadable(() => import('./app/console/Console'));
-const Login = loadable(() => import('./app/auth/Login'));
-const Settings = loadable(() => import('./app/Settings'));
-const Support = loadable(() => import('./app/Support'));
-const Preferences = loadable(() => import('./app/preferences/Preferences'));
-const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
+const Flags = lazy(() => import('./app/flags/Flags'));
+const Segments = lazy(() => import('./app/segments/Segments'));
+const Console = lazy(() => import('./app/console/Console'));
+const Login = lazy(() => import('./app/auth/Login'));
+const Settings = lazy(() => import('./app/Settings'));
+const Support = lazy(() => import('./app/Support'));
+const Preferences = lazy(() => import('./app/preferences/Preferences'));
+const Namespaces = lazy(() => import('./app/namespaces/Namespaces'));
+const Analytics = lazy(() => import('./app/analytics/Analytics'));
 
 if (typeof window !== 'undefined') {
   formbricks.init({
@@ -79,8 +79,22 @@ const namespacedRoutes = [
     element: <Segment />
   },
   {
-    path: 'console',
+    path: 'playground',
     element: <Console />,
+    handle: {
+      namespaced: true
+    }
+  },
+  {
+    path: 'analytics',
+    element: <Analytics />,
+    handle: {
+      namespaced: true
+    }
+  },
+  {
+    path: 'analytics/:flagKey',
+    element: <Analytics />,
     handle: {
       namespaced: true
     }
