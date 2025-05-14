@@ -12,6 +12,7 @@ import { useListFlagsQuery } from '~/app/flags/flagsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesApi';
 
+import { Button } from '~/components/Button';
 import Combobox from '~/components/Combobox';
 import { PageHeader } from '~/components/Page';
 import Well from '~/components/Well';
@@ -20,6 +21,8 @@ import { Graph } from '~/components/graphs';
 
 import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { ISelectable } from '~/types/Selectable';
+
+import { useError } from '~/data/hooks/error';
 
 interface IDuration {
   value: number;
@@ -62,13 +65,27 @@ export default function Analytics() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
+
+  const { setError, clearError } = useError();
   const navigate = useNavigate();
   const { flagKey } = useParams();
 
-  const { data: flagsData, isLoading: flagsLoading } = useListFlagsQuery({
+  const {
+    data: flagsData,
+    error,
+    isLoading: flagsLoading
+  } = useListFlagsQuery({
     environmentKey: environment.key,
     namespaceKey: namespace.key
   });
+
+  useEffect(() => {
+    if (error) {
+      setError(error);
+      return;
+    }
+    clearError();
+  }, [clearError, error, setError]);
 
   // Map flags to ISelectable for Combobox, including status and type label
   const flagOptions = (flagsData?.flags || []).map((flag: IFlag) => {
@@ -194,8 +211,8 @@ export default function Analytics() {
           <div className="flex items-center gap-2">
             {flagOptions.length > 0 && (
               <Combobox
-                id="flagValue"
-                name="flagValue"
+                id="flagKey"
+                name="flagKey"
                 className="w-lg"
                 placeholder="Select or search for a flag"
                 values={flagOptions}
@@ -237,11 +254,7 @@ export default function Analytics() {
             )}
           </div>
         </div>
-        {flagsLoading ? (
-          <div className="mt-10 text-center text-muted-foreground">
-            Loading flags…
-          </div>
-        ) : flagOptions.length === 0 ? (
+        {flagOptions.length === 0 ? (
           <div className="mt-12 w-full">
             <Well>
               <ChartNoAxesCombinedIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
@@ -251,20 +264,28 @@ export default function Analytics() {
               <p className="text-sm text-muted-foreground mb-4">
                 At least one flag must exist to view analytics
               </p>
-              <button
+              <Button
                 aria-label="New Flag"
+                variant="primary"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/flags/new`)
                 }
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
               >
                 Create Your First Flag
-              </button>
+              </Button>
             </Well>
           </div>
         ) : !selectedFlag ? (
-          <div className="mt-10 text-center text-muted-foreground">
-            Select a flag to view analytics.
+          <div className="mt-12 w-full">
+            <Well>
+              <ChartNoAxesCombinedIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No Flag Selected
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select a flag to view analytics.
+              </p>
+            </Well>
           </div>
         ) : (
           <div className="mt-10">

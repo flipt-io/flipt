@@ -66,7 +66,11 @@ export default function Console() {
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  const { data, error } = useListFlagsQuery({
+  const {
+    data: flagsData,
+    error,
+    isLoading: flagsLoading
+  } = useListFlagsQuery({
     environmentKey: environment.key,
     namespaceKey: namespace.key
   });
@@ -80,7 +84,7 @@ export default function Console() {
   }, [clearError, error, setError]);
 
   const flags = useMemo(() => {
-    const initialFlags = data?.flags || [];
+    const initialFlags = flagsData?.flags || [];
     return initialFlags.map((flag) => {
       const status =
         flag.enabled || flag.type === FlagType.BOOLEAN ? 'active' : 'inactive';
@@ -91,7 +95,7 @@ export default function Console() {
         displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
       };
     });
-  }, [data]);
+  }, [flagsData]);
 
   useEffect(() => {
     if (flagKey && flags.length > 0) {
@@ -270,6 +274,7 @@ export default function Console() {
                                 );
                               }
                             }}
+                            disabled={flagsLoading}
                           />
                         </div>
                         <div className="col-span-3">
@@ -400,15 +405,15 @@ export default function Console() {
               <p className="text-sm text-muted-foreground mb-4">
                 At least one flag must exist to use the console
               </p>
-              <button
+              <Button
                 aria-label="New Flag"
+                variant="primary"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/flags/new`)
                 }
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
               >
                 Create Your First Flag
-              </button>
+              </Button>
             </Well>
           </div>
         )}
