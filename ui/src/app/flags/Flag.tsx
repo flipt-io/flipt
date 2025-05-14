@@ -1,6 +1,7 @@
 import {
   FilesIcon,
   LineChartIcon,
+  SquareTerminalIcon,
   ToggleLeftIcon,
   Trash2Icon,
   VariableIcon
@@ -172,6 +173,15 @@ export default function Flag() {
                 <LineChartIcon className="h-5 w-5 text-muted-foreground" />
               </button>
             )}
+            <button
+              className="ml-2 p-1 rounded hover:bg-accent"
+              title="View in Playground"
+              onClick={() =>
+                navigate(`/namespaces/${namespace.key}/playground/${flag.key}`)
+              }
+            >
+              <SquareTerminalIcon className="h-5 w-5 text-muted-foreground" />
+            </button>
           </div>
         }
       >
@@ -188,6 +198,15 @@ export default function Flag() {
                         `/namespaces/${namespace.key}/analytics/${flag.key}`
                       ),
                     icon: LineChartIcon
+                  },
+                  {
+                    id: 'flag-playground',
+                    label: 'View in Playground',
+                    onClick: () =>
+                      navigate(
+                        `/namespaces/${namespace.key}/playground/${flag.key}`
+                      ),
+                    icon: SquareTerminalIcon
                   }
                 ]
               : []),

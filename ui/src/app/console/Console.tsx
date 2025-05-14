@@ -1,11 +1,11 @@
 import { json } from '@codemirror/lang-json';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
-import { Form, Formik, useFormikContext } from 'formik';
+import { Form, Formik } from 'formik';
 import { CodeIcon, RefreshCwIcon, SquareTerminalIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 
@@ -25,7 +25,6 @@ import { JsonEditor } from '~/components/json/JsonEditor';
 import { IAuthMethod } from '~/types/Auth';
 import { Command } from '~/types/Cli';
 import { FilterableFlag, FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 
 import { evaluate, evaluateURL } from '~/data/api';
 import { useError } from '~/data/hooks/error';
@@ -41,16 +40,6 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-
-function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
-  const { resetForm } = useFormikContext();
-
-  useEffect(() => {
-    resetForm();
-  }, [namespace, resetForm]);
-
-  return null;
-}
 
 const consoleValidationSchema = Yup.object({
   flagKey: keyValidation,
@@ -72,6 +61,7 @@ export default function Console() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
+  const { flagKey } = useParams();
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
@@ -102,6 +92,17 @@ export default function Console() {
       };
     });
   }, [data]);
+
+  useEffect(() => {
+    if (flagKey && flags.length > 0) {
+      const found = flags.find((f) => f.key === flagKey);
+      if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
+        setSelectedFlag(found);
+      }
+    } else if (!flagKey) {
+      setSelectedFlag(null);
+    }
+  }, [flagKey, flags, selectedFlag]);
 
   const { data: listAuthProviders } = useListAuthProvidersQuery();
 
@@ -257,6 +258,17 @@ export default function Console() {
                             setSelected={(flag) => {
                               setSelectedFlag(flag);
                               formik.setFieldValue('flagKey', flag?.key || '');
+                              if (flag) {
+                                navigate(
+                                  `/namespaces/${namespace.key}/playground/${flag.key}`,
+                                  { replace: true }
+                                );
+                              } else {
+                                navigate(
+                                  `/namespaces/${namespace.key}/playground`,
+                                  { replace: true }
+                                );
+                              }
                             }}
                           />
                         </div>
@@ -336,7 +348,6 @@ export default function Console() {
                         </Button>
                       </div>
                     </div>
-                    <ResetOnNamespaceChange namespace={namespace} />
                   </Form>
                 )}
               </Formik>
