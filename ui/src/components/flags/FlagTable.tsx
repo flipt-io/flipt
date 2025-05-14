@@ -244,15 +244,7 @@ export default function FlagTable(props: FlagTableProps) {
   });
 
   const flags = useMemo(() => data?.flags || [], [data]);
-  const flagKeys = useMemo(() => flags.map((f) => f.key), [flags]);
-
   const hasFlags = flags.length > 0;
-
-  const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery({
-    environmentKey: environment.key,
-    namespaceKey: namespace.key,
-    flagKeys
-  });
 
   const { setError } = useError();
   useEffect(() => {
@@ -281,6 +273,16 @@ export default function FlagTable(props: FlagTableProps) {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel()
+  });
+
+  const visibleFlagKeys = table
+    .getRowModel()
+    .rows.map((row) => row.original.key);
+
+  const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery({
+    environmentKey: environment.key,
+    namespaceKey: namespace.key,
+    flagKeys: visibleFlagKeys // only fetch the flags that are currently visible, this is because we still do pagination client side
   });
 
   if (isLoading) {
