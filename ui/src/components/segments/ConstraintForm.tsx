@@ -1,8 +1,7 @@
-import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { addMinutes, format, formatISO, isValid, parseISO } from 'date-fns';
 import { Form, Formik, useField, useFormikContext } from 'formik';
+import { CircleHelpIcon, XIcon } from 'lucide-react';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
@@ -237,7 +236,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
             to="/settings"
             className="group inline-flex items-center text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
           >
-            <QuestionMarkCircleIcon
+            <CircleHelpIcon
               className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400 dark:text-gray-600 dark:group-hover:text-gray-500"
               aria-hidden="true"
             />
@@ -390,7 +389,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     }}
                   >
                     <span className="sr-only">Close panel</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    <XIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
               </div>

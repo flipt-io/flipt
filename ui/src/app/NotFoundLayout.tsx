@@ -1,10 +1,10 @@
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import {
-  Bars4Icon,
   BookOpenIcon,
+  ChevronRightIcon,
+  MenuIcon,
   RssIcon,
-  UserGroupIcon
-} from '@heroicons/react/24/outline';
+  UsersIcon
+} from 'lucide-react';
 import { Link } from 'react-router';
 
 import logoFlag from '~/assets/logo-flag.png';
@@ -20,14 +20,14 @@ const links = [
     title: 'API Reference',
     description: 'A complete API reference for our REST API',
     href: 'https://www.flipt.io/docs/reference/overview',
-    icon: Bars4Icon
+    icon: MenuIcon
   },
   {
     title: 'Community',
     description:
       'Join our Discord community to chat with other users and contributors',
     href: 'https://www.flipt.io/discord',
-    icon: UserGroupIcon
+    icon: UsersIcon
   },
   {
     title: 'Blog',
@@ -39,7 +39,7 @@ const links = [
 
 export default function NotFoundLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-sidebar">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="shrink-0 pt-16">
           <Link to="/">
@@ -54,37 +54,33 @@ export default function NotFoundLayout() {
         </div>
         <div className="mx-auto max-w-xl py-16 sm:py-24">
           <div className="text-center">
-            <p className="text-base font-semibold text-violet-600">404</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-secondary-foreground sm:text-5xl">
               Not Found
             </h1>
-            <p className="mt-2 text-lg text-gray-500">
+            <p className="mt-2 text-lg text-muted-foreground">
               The page you are looking for could not be found.
             </p>
           </div>
           <div className="mt-12">
-            <h2 className="text-base font-semibold text-gray-500">
+            <h2 className="text-base font-semibold text-muted-foreground">
               Popular pages
             </h2>
-            <ul
-              role="list"
-              className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200"
-            >
+            <ul role="list" className="mt-4 divide-y border-b border-t">
               {links.map((link, linkIdx) => (
                 <li
                   key={linkIdx}
                   className="relative flex items-start space-x-4 py-6"
                 >
                   <div className="shrink-0">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-100">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-lg">
                       <link.icon
-                        className="h-6 w-6 text-violet-600"
+                        className="h-6 w-6 text-brand"
                         aria-hidden="true"
                       />
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-medium text-gray-900 hover:text-violet-500">
+                    <h3 className="text-base font-medium text-secondary-foreground hover:text-brand">
                       <span className="rounded-sm focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2">
                         <a
                           href={link.href}

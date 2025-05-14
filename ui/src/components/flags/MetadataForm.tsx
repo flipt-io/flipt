@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
@@ -497,8 +497,8 @@ export function MetadataForm({
               disabled={disabled}
               aria-label="Remove metadata entry"
             >
-              <TrashIcon
-                className="h-5 w-5 text-gray-500 dark:text-gray-400"
+              <Trash2Icon
+                className="h-5 w-5 text-muted-foreground"
                 aria-hidden="true"
               />
             </Button>

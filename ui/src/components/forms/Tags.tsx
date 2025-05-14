@@ -1,5 +1,5 @@
-import { TrashIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
+import { Trash2Icon } from 'lucide-react';
 import React, { KeyboardEvent, useState } from 'react';
 
 import { cls } from '~/utils/helpers';
@@ -87,7 +87,7 @@ export default function Tags(props: TagsProps) {
                     removeTag(i);
                   }}
                 >
-                  <TrashIcon className="h-3 w-3" aria-hidden="true" />
+                  <Trash2Icon className="h-3 w-3" aria-hidden="true" />
                 </button>
               </li>
             ))}
