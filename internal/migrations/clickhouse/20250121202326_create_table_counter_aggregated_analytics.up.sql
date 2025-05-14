@@ -11,11 +11,11 @@ CREATE TABLE flipt_counter_aggregated_analytics_v2
 )
 ENGINE = SummingMergeTree
 ORDER BY (
-    timestamp,
-    analytic_name,
     environment_key,
     namespace_key,
     flag_key,
+    timestamp,
+    analytic_name,
     reason,
     evaluation_value
 )

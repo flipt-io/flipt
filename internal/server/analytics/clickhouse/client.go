@@ -289,10 +289,7 @@ func downsampleData(timestamps []string, values []float32, limit int) ([]string,
 		return timestamps, values, nil
 	}
 
-	step := len(timestamps) / limit
-	if step < 1 {
-		step = 1
-	}
+	step := max(len(timestamps) / limit, 1)
 
 	newTimestamps := make([]string, 0, limit)
 	newValues := make([]float32, 0, limit)
