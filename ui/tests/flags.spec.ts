@@ -101,6 +101,29 @@ test.describe('Flags', () => {
     });
   });
 
+  test('can view flag in playground from header', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('button', { name: 'View in Playground' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Playground' })
+    ).toBeVisible();
+    await expect(page.getByTestId('flagKey-select-button')).toHaveText(
+      'Test Flag | Variant'
+    );
+  });
+
+  test('can view flag in playground from Actions menu', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'View in Playground' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Playground' })
+    ).toBeVisible();
+    await expect(page.getByTestId('flagKey-select-button')).toHaveText(
+      'Test Flag | Variant'
+    );
+  });
+
   test('can copy flag to new namespace', async ({ page }) => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();

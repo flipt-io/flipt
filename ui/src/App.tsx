@@ -86,6 +86,13 @@ const namespacedRoutes = [
     }
   },
   {
+    path: 'playground/:flagKey',
+    element: <Console />,
+    handle: {
+      namespaced: true
+    }
+  },
+  {
     path: 'analytics',
     element: <Analytics />,
     handle: {

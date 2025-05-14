@@ -1,11 +1,11 @@
 import { json } from '@codemirror/lang-json';
 import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
-import { Form, Formik, useFormikContext } from 'formik';
+import { Form, Formik } from 'formik';
 import { CodeIcon, RefreshCwIcon, SquareTerminalIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 
@@ -25,7 +25,6 @@ import { JsonEditor } from '~/components/json/JsonEditor';
 import { IAuthMethod } from '~/types/Auth';
 import { Command } from '~/types/Cli';
 import { FilterableFlag, FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 
 import { evaluate, evaluateURL } from '~/data/api';
 import { useError } from '~/data/hooks/error';
@@ -41,16 +40,6 @@ import {
   generateCurlCommand,
   getErrorMessage
 } from '~/utils/helpers';
-
-function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
-  const { resetForm } = useFormikContext();
-
-  useEffect(() => {
-    resetForm();
-  }, [namespace, resetForm]);
-
-  return null;
-}
 
 const consoleValidationSchema = Yup.object({
   flagKey: keyValidation,
@@ -72,11 +61,16 @@ export default function Console() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
   const { setSuccess } = useSuccess();
+  const { flagKey } = useParams();
 
   const environment = useSelector(selectCurrentEnvironment);
   const namespace = useSelector(selectCurrentNamespace);
 
-  const { data, error } = useListFlagsQuery({
+  const {
+    data: flagsData,
+    error,
+    isLoading: flagsLoading
+  } = useListFlagsQuery({
     environmentKey: environment.key,
     namespaceKey: namespace.key
   });
@@ -90,7 +84,7 @@ export default function Console() {
   }, [clearError, error, setError]);
 
   const flags = useMemo(() => {
-    const initialFlags = data?.flags || [];
+    const initialFlags = flagsData?.flags || [];
     return initialFlags.map((flag) => {
       const status =
         flag.enabled || flag.type === FlagType.BOOLEAN ? 'active' : 'inactive';
@@ -101,7 +95,18 @@ export default function Console() {
         displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
       };
     });
-  }, [data]);
+  }, [flagsData]);
+
+  useEffect(() => {
+    if (flagKey && flags.length > 0) {
+      const found = flags.find((f) => f.key === flagKey);
+      if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
+        setSelectedFlag(found);
+      }
+    } else if (!flagKey) {
+      setSelectedFlag(null);
+    }
+  }, [flagKey, flags, selectedFlag]);
 
   const { data: listAuthProviders } = useListAuthProvidersQuery();
 
@@ -257,7 +262,19 @@ export default function Console() {
                             setSelected={(flag) => {
                               setSelectedFlag(flag);
                               formik.setFieldValue('flagKey', flag?.key || '');
+                              if (flag) {
+                                navigate(
+                                  `/namespaces/${namespace.key}/playground/${flag.key}`,
+                                  { replace: true }
+                                );
+                              } else {
+                                navigate(
+                                  `/namespaces/${namespace.key}/playground`,
+                                  { replace: true }
+                                );
+                              }
                             }}
+                            disabled={flagsLoading}
                           />
                         </div>
                         <div className="col-span-3">
@@ -336,7 +353,6 @@ export default function Console() {
                         </Button>
                       </div>
                     </div>
-                    <ResetOnNamespaceChange namespace={namespace} />
                   </Form>
                 )}
               </Formik>
@@ -389,15 +405,15 @@ export default function Console() {
               <p className="text-sm text-muted-foreground mb-4">
                 At least one flag must exist to use the console
               </p>
-              <button
+              <Button
                 aria-label="New Flag"
+                variant="primary"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/flags/new`)
                 }
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 h-9 px-4 py-2"
               >
                 Create Your First Flag
-              </button>
+              </Button>
             </Well>
           </div>
         )}
