@@ -13,9 +13,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { StarIcon } from '@heroicons/react/24/outline';
 import { useFormikContext } from 'formik';
-import { SplitSquareVerticalIcon } from 'lucide-react';
+import { SplitSquareVerticalIcon, StarIcon } from 'lucide-react';
 import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 

@@ -1,16 +1,16 @@
 import {
-  AcademicCapIcon,
-  ArrowUpRightIcon,
   BookOpenIcon,
-  ChatBubbleLeftIcon,
-  CodeBracketIcon,
-  CommandLineIcon,
-  EnvelopeIcon,
-  ExclamationCircleIcon,
-  PuzzlePieceIcon,
+  CircleAlertIcon,
+  CodeXmlIcon,
+  ExternalLinkIcon,
+  GraduationCapIcon,
+  MailIcon,
+  MessageCircle,
+  PuzzleIcon,
+  SquareTerminalIcon,
   StarIcon,
   UsersIcon
-} from '@heroicons/react/24/outline';
+} from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -24,13 +24,13 @@ import { onboardingCompleted } from './events/eventSlice';
 
 const gettingStartedTiles = [
   {
-    icon: AcademicCapIcon,
+    icon: GraduationCapIcon,
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
     href: 'https://docs.flipt.io/introduction'
   },
   {
-    icon: CommandLineIcon,
+    icon: SquareTerminalIcon,
     name: 'Try the CLI',
     description: 'Use the Flipt CLI to manage your feature flags and more',
     href: 'https://docs.flipt.io/cli/overview'
@@ -43,7 +43,7 @@ const gettingStartedTiles = [
     href: 'https://docs.flipt.io/guides'
   },
   {
-    icon: PuzzlePieceIcon,
+    icon: PuzzleIcon,
     name: 'Integrate Your Application',
     description: 'Use our SDKs to integrate your applications in your language',
     href: 'https://docs.flipt.io/integration/overview'
@@ -52,7 +52,7 @@ const gettingStartedTiles = [
 
 const moreTiles = [
   {
-    icon: ChatBubbleLeftIcon,
+    icon: MessageCircle,
     name: 'Chat With Us',
     description:
       'Join our Discord community to engage with the team and other Flipt users',
@@ -60,7 +60,7 @@ const moreTiles = [
     href: 'https://flipt.io/discord'
   },
   {
-    icon: CodeBracketIcon,
+    icon: CodeXmlIcon,
     name: 'View API Reference',
     description: 'Learn how to use the Flipt REST API',
     href: 'https://www.flipt.io/docs/reference/overview'
@@ -81,14 +81,14 @@ const moreTiles = [
     href: 'https://community.flipt.io'
   },
   {
-    icon: EnvelopeIcon,
+    icon: MailIcon,
     name: 'Email',
     description: 'Send an email to our shared inbox',
     cta: 'Send Email',
     href: 'mailto:dev@flipt.io?subject=Support Inquiry'
   },
   {
-    icon: ExclamationCircleIcon,
+    icon: CircleAlertIcon,
     name: 'Report an issue',
     description: 'Spotted something? Want something? Let us know!',
     cta: 'Create GitHub Issue',
@@ -110,7 +110,7 @@ function SupportTile(props: SupportTileProps) {
   const {
     className,
     icon: Icon,
-    ctaIcon: CTAIcon = ArrowUpRightIcon,
+    ctaIcon: CTAIcon = ExternalLinkIcon,
     name,
     description,
     cta,

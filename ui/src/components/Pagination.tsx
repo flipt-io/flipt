@@ -1,7 +1,4 @@
-import {
-  ArrowLongLeftIcon,
-  ArrowLongRightIcon
-} from '@heroicons/react/20/solid';
+import { MoveLeftIcon, MoveRightIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { usePagination } from '~/data/hooks/pagination';
@@ -106,8 +103,8 @@ export default function Pagination(props: PaginationProps) {
               onPreviousPage();
             }}
           >
-            <ArrowLongLeftIcon
-              className="mr-3 h-5 w-5 text-gray-400 dark:text-gray-500"
+            <MoveLeftIcon
+              className="mr-3 h-5 w-5 text-muted-foreground"
               aria-hidden="true"
             />
             Previous
@@ -156,8 +153,8 @@ export default function Pagination(props: PaginationProps) {
             }}
           >
             Next
-            <ArrowLongRightIcon
-              className="ml-3 h-5 w-5 text-gray-400 dark:text-gray-500"
+            <MoveRightIcon
+              className="ml-3 h-5 w-5 text-muted-foreground"
               aria-hidden="true"
             />
           </a>

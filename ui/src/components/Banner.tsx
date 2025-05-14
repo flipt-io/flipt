@@ -1,4 +1,4 @@
-import { XMarkIcon } from '@heroicons/react/20/solid';
+import { XIcon } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 
 import { bannerDismissed } from '~/app/events/eventSlice';
@@ -42,7 +42,7 @@ export default function Banner(props: BannerProps) {
           onClick={() => dispatch(bannerDismissed())}
         >
           <span className="sr-only">Dismiss</span>
-          <XMarkIcon className="h-5 w-5 text-white" aria-hidden="true" />
+          <XIcon className="h-5 w-5 text-white" aria-hidden="true" />
         </button>
       </div>
     </div>

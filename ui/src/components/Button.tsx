@@ -1,7 +1,5 @@
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Slot } from '@radix-ui/react-slot';
+import { LucideIcon, PlusIcon } from 'lucide-react';
 import React from 'react';
 
 import { cls } from '~/utils/helpers';
@@ -75,8 +73,7 @@ export { Button };
 export const ButtonWithPlus = (props: ButtonProps) => {
   return (
     <Button {...props}>
-      <FontAwesomeIcon
-        icon={faPlus}
+      <PlusIcon
         className="-ml-1.5 mr-1.5 h-4 w-4 text-white"
         aria-hidden="true"
       />
@@ -90,13 +87,14 @@ export const TextButton = (props: ButtonProps) => {
 };
 
 export interface IconButtonProps extends ButtonProps {
-  icon: IconProp;
+  icon: LucideIcon;
 }
 
 export const IconButton = ({ icon, ...props }: IconButtonProps) => {
+  const Icon = icon;
   return (
     <Button {...props} variant="ghost">
-      <FontAwesomeIcon icon={icon} className="h-4 w-4" aria-hidden="true" />
+      <Icon className="h-4 w-4" aria-hidden="true" />
     </Button>
   );
 };
