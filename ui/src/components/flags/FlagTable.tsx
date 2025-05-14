@@ -123,7 +123,7 @@ function FlagListItem({
 
           {/* Sparkline */}
           <div className="mt-2 flex items-center min-h-[24px] w-full">
-            {evaluationValues.length > 0 ? (
+            {evaluationValues.length > 0 && (
               <div className="w-full md:w-lg">
                 <Box sx={{ flexGrow: 1 }}>
                   <SparkLineChart
@@ -134,8 +134,6 @@ function FlagListItem({
                   />
                 </Box>
               </div>
-            ) : (
-              <span className="text-muted-foreground text-xs">No data</span>
             )}
           </div>
         </div>
