@@ -50,10 +50,10 @@ function SegmentTypeSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-medium text-secondary-foreground">
           Match Type
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Select how constraints should be evaluated for this segment
         </p>
       </div>
@@ -79,7 +79,7 @@ function SegmentTypeSelector({
                     {matchType.name}
                   </span>
                 </div>
-                <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
+                <p className="mt-2 flex items-center text-sm text-muted-foreground">
                   {matchType.description}
                 </p>
               </div>

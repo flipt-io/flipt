@@ -23,7 +23,7 @@ export function UnsavedChangesModal(props: UnsavedChangesModalState) {
             <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Unsaved Changes
             </Dialog.Title>
-            <Dialog.Description className="mt-2 text-sm text-gray-500 dark:text-gray-300">
+            <Dialog.Description className="mt-2 text-sm text-muted-foreground">
               You have unsaved changes. Would you like to save them before
               leaving?
             </Dialog.Description>
