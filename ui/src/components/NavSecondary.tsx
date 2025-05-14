@@ -53,13 +53,7 @@ export function NavSecondary({
       <SidebarGroupContent>
         <SidebarMenu>
           {updateAvailable && (
-            <SidebarMenuItem
-              key="update-available"
-              onClick={(e) => {
-                e.preventDefault();
-                emitCtrlK();
-              }}
-            >
+            <SidebarMenuItem key="update-available">
               <SidebarMenuButton
                 asChild
                 tooltip="A new version of Flipt is available!"

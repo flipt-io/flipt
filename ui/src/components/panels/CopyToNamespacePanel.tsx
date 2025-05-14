@@ -1,5 +1,5 @@
-import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
+import { FilesIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -47,18 +47,17 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   return (
     <>
       <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-violet-100 sm:mx-0 sm:h-10 sm:w-10">
-          <DocumentDuplicateIcon
-            className="h-6 w-6 text-violet-500"
-            aria-hidden="true"
-          />
+        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+          <FilesIcon className="h-8 w-8 text-brand" aria-hidden="true" />
         </div>
         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title className="text-lg font-medium leading-6 text-muted-foreground">
+          <Dialog.Title className="text-lg font-medium leading-6 text-secondary-foreground">
             Copy {panelType}
           </Dialog.Title>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">{panelMessage}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">
+              {panelMessage}
+            </p>
           </div>
           <div className="mt-4">
             <Listbox<SelectableNamespace>
@@ -77,6 +76,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
           </div>
         </div>
       </div>
+
       <div className="mt-5 flex flex-row-reverse space-x-2 space-x-reverse sm:mt-4">
         <Button
           variant="primary"
@@ -97,7 +97,9 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
         >
           Copy
         </Button>
-        <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <Button variant="link" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
       </div>
     </>
   );

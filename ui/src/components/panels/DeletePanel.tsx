@@ -1,5 +1,5 @@
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
+import { FileWarningIcon } from 'lucide-react';
 
 import { Button } from '~/components/Button';
 
@@ -26,14 +26,14 @@ export default function DeletePanel(props: DeletePanelProps) {
   return (
     <>
       <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-          <ExclamationTriangleIcon
-            className="h-6 w-6 text-red-600 dark:text-red-300"
+        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+          <FileWarningIcon
+            className="h-8 w-8 text-destructive .dark:text-destructive/60"
             aria-hidden="true"
           />
         </div>
         <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+          <Dialog.Title className="text-lg font-medium leading-6 text-secondary-foreground">
             Delete {panelType}
           </Dialog.Title>
           <div className="mt-2">
@@ -68,7 +68,7 @@ export default function DeletePanel(props: DeletePanelProps) {
         >
           Delete
         </Button>
-        <Button variant="ghost" onClick={() => setOpen(false)}>
+        <Button variant="link" onClick={() => setOpen(false)}>
           Cancel
         </Button>
       </div>

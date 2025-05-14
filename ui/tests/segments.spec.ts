@@ -54,9 +54,9 @@ test.describe('Segments', () => {
         .click();
       await page.getByRole('button', { name: 'Update' }).click();
 
-      expect(
-        await page.getByText('Successfully updated segment').count()
-      ).toBeGreaterThanOrEqual(1);
+      await expect(
+        page.getByText('Successfully updated segment').last()
+      ).toBeVisible();
     });
   });
 
