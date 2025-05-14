@@ -198,18 +198,16 @@ export default function Flag() {
                         `/namespaces/${namespace.key}/analytics/${flag.key}`
                       ),
                     icon: LineChartIcon
-                  },
-                  {
-                    id: 'flag-playground',
-                    label: 'View in Playground',
-                    onClick: () =>
-                      navigate(
-                        `/namespaces/${namespace.key}/playground/${flag.key}`
-                      ),
-                    icon: SquareTerminalIcon
                   }
                 ]
               : []),
+            {
+              id: 'flag-playground',
+              label: 'View in Playground',
+              onClick: () =>
+                navigate(`/namespaces/${namespace.key}/playground/${flag.key}`),
+              icon: SquareTerminalIcon
+            },
             {
               id: 'flag-copy',
               label: 'Copy to Namespace',
