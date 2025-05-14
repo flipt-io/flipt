@@ -225,6 +225,24 @@ func (r *Repository) startPolling(ctx context.Context) {
 	}()
 }
 
+func (r *Repository) GetRemote() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if r.remote == nil {
+		return ""
+	}
+
+	return r.remote.URLs[0]
+}
+
+func (r *Repository) GetDefaultBranch() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.defaultBranch
+}
+
 func (r *Repository) Close() error {
 	r.cancel()
 

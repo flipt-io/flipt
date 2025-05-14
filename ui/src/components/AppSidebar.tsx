@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { useSelector } from 'react-redux';
+
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 import { NavMain } from '~/components/NavMain';
 import { NavUser } from '~/components/NavUser';
@@ -13,8 +16,9 @@ import {
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';
 
-import { NamespaceSwitcher } from './NamespaceSwitcher';
+import { EnvironmentNamespaceSwitcher } from './EnvironmentNamespaceSwitcher';
 import { NavSecondary } from './NavSecondary';
+import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
 export function AppSidebar({
   ns,
@@ -22,14 +26,16 @@ export function AppSidebar({
 }: { ns: string } & React.ComponentProps<typeof Sidebar>) {
   const { session } = useSession();
   const user = getUser(session);
+  const currentEnvironment = useSelector(selectCurrentEnvironment);
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <NamespaceSwitcher />
+        <EnvironmentNamespaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />
         <NavSecondary className="mt-auto" />
+        <EnvironmentRemoteInfo environment={currentEnvironment} />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />

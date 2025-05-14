@@ -119,7 +119,7 @@ function Environments({
   );
 }
 
-export function NamespaceSwitcher() {
+export function EnvironmentNamespaceSwitcher() {
   const { isMobile } = useSidebar();
 
   const environment = useSelector(selectCurrentEnvironment);

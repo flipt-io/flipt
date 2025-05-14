@@ -316,6 +316,17 @@ components:
                     type: string
                 default:
                     type: boolean
+                configuration:
+                    $ref: '#/components/schemas/EnvironmentConfiguration'
+        EnvironmentConfiguration:
+            type: object
+            properties:
+                remote:
+                    type: string
+                branch:
+                    type: string
+                directory:
+                    type: string
         GoogleProtobufAny:
             type: object
             properties:
