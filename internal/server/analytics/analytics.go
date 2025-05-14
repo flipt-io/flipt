@@ -45,6 +45,15 @@ type Client interface {
 
 // GetFlagEvaluationsCount is the implemented RPC method that will return aggregated flag evaluation counts.
 func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.GetFlagEvaluationsCountRequest) (*analytics.GetFlagEvaluationsCountResponse, error) {
+	// if the from and to are not set, set them to the default values of 1 day ago and now
+	if req.From == "" {
+		req.From = time.Now().Add(-1 * time.Hour * 24).Format(time.RFC3339)
+	}
+
+	if req.To == "" {
+		req.To = time.Now().Format(time.RFC3339)
+	}
+
 	fromTime, err := time.Parse(time.RFC3339, req.From)
 	if err != nil {
 		var innerErr error
@@ -85,6 +94,15 @@ func (s *Server) GetFlagEvaluationsCount(ctx context.Context, req *analytics.Get
 
 // GetBatchFlagEvaluationsCount handles requests for evaluation counts of multiple flags in a single request.
 func (s *Server) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytics.GetBatchFlagEvaluationsCountRequest) (*analytics.GetBatchFlagEvaluationsCountResponse, error) {
+	// if the from and to are not set, set them to the default values of 1 day ago and now
+	if req.From == "" {
+		req.From = time.Now().Add(-1 * time.Hour * 24).Format(time.RFC3339)
+	}
+
+	if req.To == "" {
+		req.To = time.Now().Format(time.RFC3339)
+	}
+
 	fromTime, err := time.Parse(time.RFC3339, req.From)
 	if err != nil {
 		var innerErr error
@@ -103,7 +121,7 @@ func (s *Server) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 		}
 	}
 
-	const stepMinutes = 15 // hardcoded to 15 minutes for now
+	const stepMinutes = 30 // hardcoded to 30 minutes for now
 
 	r := &BatchFlagEvaluationsCountRequest{
 		EnvironmentKey: req.EnvironmentKey,

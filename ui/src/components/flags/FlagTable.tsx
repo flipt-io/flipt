@@ -1,3 +1,5 @@
+import Box from '@mui/material/Box';
+import { SparkLineChart } from '@mui/x-charts';
 import {
   PaginationState,
   createColumnHelper,
@@ -18,6 +20,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
+import { useGetBatchFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
 import {
   selectSorting,
   setSorting,
@@ -31,6 +34,7 @@ import { TableSkeleton } from '~/components/TableSkeleton';
 import { DataTableViewOptions } from '~/components/TableViewOptions';
 import Well from '~/components/Well';
 
+import { IBatchFlagEvaluationCount } from '~/types/Analytics';
 import { IEnvironment } from '~/types/Environment';
 import { FlagType, IFlag, flagTypeToLabel } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
@@ -83,7 +87,15 @@ function CombinedFlagBadge({ item }: { item: IFlag }) {
   );
 }
 
-function FlagListItem({ item, path }: { item: IFlag; path: string }) {
+function FlagListItem({
+  item,
+  path,
+  evaluationValues = []
+}: {
+  item: IFlag;
+  path: string;
+  evaluationValues?: number[];
+}) {
   const navigate = useNavigate();
 
   return (
@@ -108,6 +120,24 @@ function FlagListItem({ item, path }: { item: IFlag; path: string }) {
               {item.description}
             </p>
           )}
+
+          {/* Sparkline */}
+          <div className="mt-2 flex items-center min-h-[24px] w-full">
+            {evaluationValues.length > 0 ? (
+              <div className="w-full md:w-lg">
+                <Box sx={{ flexGrow: 1 }}>
+                  <SparkLineChart
+                    data={evaluationValues}
+                    color="var(--foreground)"
+                    slotProps={{ line: { strokeWidth: 1 } }}
+                    height={24}
+                  />
+                </Box>
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-xs">No data</span>
+            )}
+          </div>
         </div>
 
         {/* Status Column - Contains both type badge and toggle */}
@@ -147,7 +177,9 @@ function EmptyFlagList({ path }: { path: string }) {
   );
 }
 
-const columnHelper = createColumnHelper<IFlag>();
+const columnHelper = createColumnHelper<
+  IFlag & Partial<IBatchFlagEvaluationCount>
+>();
 
 const columns = [
   columnHelper.accessor('key', {
@@ -171,6 +203,19 @@ const columns = [
   columnHelper.accessor('type', {
     header: 'Type',
     cell: (info) => flagTypeToLabel(info.getValue())
+  }),
+  columnHelper.accessor('key', {
+    id: 'sparkline',
+    header: 'Evaluations',
+    enableSorting: false,
+    cell: (info) => {
+      const flagKey = info.getValue();
+      const values = info.row.original.flagEvaluations?.[flagKey]?.values ?? [];
+      if (!values.length) {
+        return <span className="text-muted-foreground">No data</span>;
+      }
+      return <span></span>;
+    }
   })
 ];
 
@@ -199,8 +244,17 @@ export default function FlagTable(props: FlagTableProps) {
     environmentKey: environment.key,
     namespaceKey: namespace.key
   });
+
   const flags = useMemo(() => data?.flags || [], [data]);
+  const flagKeys = useMemo(() => flags.map((f) => f.key), [flags]);
+
   const hasFlags = flags.length > 0;
+
+  const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery({
+    environmentKey: environment.key,
+    namespaceKey: namespace.key,
+    flagKeys
+  });
 
   const { setError } = useError();
   useEffect(() => {
@@ -264,11 +318,14 @@ export default function FlagTable(props: FlagTableProps) {
         <div className="space-y-2">
           {table.getRowModel().rows.map((row) => {
             const item = row.original;
+            const values =
+              evaluationCount?.flagEvaluations?.[item.key]?.values ?? [];
             return (
               <FlagListItem
                 key={row.id}
                 item={item}
                 path={`${path}/${item.key}`}
+                evaluationValues={values}
               />
             );
           })}
