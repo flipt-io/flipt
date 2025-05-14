@@ -1,6 +1,6 @@
-import { PauseIcon, PlayIcon } from '@heroicons/react/24/outline';
 import 'chartjs-adapter-date-fns';
 import { addMinutes } from 'date-fns';
+import { PauseIcon, PlayIcon } from 'lucide-react';
 import { ChartNoAxesCombinedIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';

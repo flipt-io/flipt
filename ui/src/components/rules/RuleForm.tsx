@@ -1,6 +1,6 @@
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
+import { XIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { v4 as uuid } from 'uuid';
@@ -236,7 +236,7 @@ export default function RuleForm(props: RuleFormProps) {
                       onClick={() => setOpen(false)}
                     >
                       <span className="sr-only">Close panel</span>
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      <XIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </div>
                 </div>

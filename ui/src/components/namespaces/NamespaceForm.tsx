@@ -1,6 +1,6 @@
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Form, Formik } from 'formik';
+import { XIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
@@ -111,7 +111,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                     onClick={() => setOpen(false)}
                   >
                     <span className="sr-only">Close panel</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    <XIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
               </div>

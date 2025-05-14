@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type SearchboxProps = {
@@ -37,7 +37,7 @@ export default function Searchbox(props: SearchboxProps) {
         </label>
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <MagnifyingGlassIcon
+            <SearchIcon
               className="h-5 w-5 text-gray-400 dark:text-gray-500"
               aria-hidden="true"
             />

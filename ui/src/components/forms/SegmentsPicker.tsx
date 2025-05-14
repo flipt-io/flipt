@@ -1,4 +1,4 @@
-import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { MinusIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { IconButton } from '~/components/Button';
@@ -145,7 +145,7 @@ export default function SegmentsPicker({
           <div className="flex space-x-1">
             {parentSegments.length > 1 ? (
               <IconButton
-                icon={faMinus}
+                icon={MinusIcon}
                 onClick={() => handleSegmentRemove(index)}
                 data-testid={`remove-segment-button-${index}`}
                 className="dark:hover:text-violet-300"
@@ -156,7 +156,7 @@ export default function SegmentsPicker({
               getSegmentOptions().length > 0 &&
               !showNewSegmentField && (
                 <IconButton
-                  icon={faPlus}
+                  icon={PlusIcon}
                   onClick={() => setShowNewSegmentField(true)}
                   data-testid={`add-segment-button-${index}`}
                   className="dark:hover:text-violet-300"
@@ -169,7 +169,7 @@ export default function SegmentsPicker({
               !showNewSegmentField &&
               getSegmentOptions().length > 0 && (
                 <IconButton
-                  icon={faPlus}
+                  icon={PlusIcon}
                   onClick={() => setShowNewSegmentField(true)}
                   data-testid={`add-segment-button-${index}`}
                   className="dark:hover:text-violet-300"
@@ -194,7 +194,7 @@ export default function SegmentsPicker({
             />
           </div>
           <IconButton
-            icon={faMinus}
+            icon={MinusIcon}
             onClick={() => setShowNewSegmentField(false)}
             data-testid={`remove-segment-button-${parentSegments.length}`}
             className="dark:hover:text-violet-300"

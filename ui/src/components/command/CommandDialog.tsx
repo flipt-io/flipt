@@ -1,6 +1,6 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Command } from 'cmdk';
+import { SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useMatches, useNavigate } from 'react-router';
@@ -179,7 +179,7 @@ export default function CommandMenu() {
             >
               <div className="flex items-center border-slate-500 text-lg font-medium">
                 <div className="relative w-full">
-                  <MagnifyingGlassIcon
+                  <SearchIcon
                     className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400 dark:text-gray-400"
                     aria-hidden="true"
                   />
