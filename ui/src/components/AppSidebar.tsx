@@ -28,20 +28,20 @@ export function AppSidebar({
   const { session } = useSession();
   const user = getUser(session);
 
-  const { isMobile, state } = useSidebar();
+  const { state } = useSidebar();
   const currentEnvironment = useSelector(selectCurrentEnvironment);
 
   return (
-    <Sidebar collapsible="icon" {...props} isMobile={isMobile}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <EnvironmentNamespaceSwitcher isMobile={isMobile} />
+        <EnvironmentNamespaceSwitcher />
         {state === 'expanded' && (
           <EnvironmentRemoteInfo environment={currentEnvironment} />
         )}
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />
-        <NavSecondary isMobile={isMobile} className="mt-auto" />
+        <NavSecondary className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />

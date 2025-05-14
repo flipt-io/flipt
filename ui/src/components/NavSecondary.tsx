@@ -42,9 +42,9 @@ function emitCtrlK() {
 }
 
 export function NavSecondary({
-  isMobile,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SidebarGroup> & { isMobile: boolean }) {
+}: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const { isMobile } = useSidebar();
   const info = useSelector(selectInfo);
   const updateAvailable = info && info.build.updateAvailable;
 
@@ -74,11 +74,7 @@ export function NavSecondary({
                 emitCtrlK();
               }}
             >
-              <SidebarMenuButton
-                asChild
-                tooltip="Run (ctrl + k)"
-                className="hover:cursor-pointer"
-              >
+              <SidebarMenuButton asChild tooltip="Run (ctrl + k)">
                 <a>
                   <TerminalIcon />
                   <span>Run (ctrl + k)</span>

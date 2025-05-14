@@ -21,6 +21,7 @@ import {
   TooltipTrigger
 } from '~/components/ui/tooltip';
 
+import { useIsMobile } from '~/hooks/use-mobile';
 import { cn } from '~/lib/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -55,7 +56,6 @@ function SidebarProvider({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
-  isMobile,
   className,
   style,
   children,
@@ -64,8 +64,8 @@ function SidebarProvider({
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  isMobile?: boolean;
 }) {
+  const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
   // This is the internal state of the sidebar.
@@ -117,7 +117,7 @@ function SidebarProvider({
       state,
       open,
       setOpen,
-      isMobile: isMobile ?? false,
+      isMobile,
       openMobile,
       setOpenMobile,
       toggleSidebar
@@ -156,15 +156,13 @@ function Sidebar({
   collapsible = 'offcanvas',
   className,
   children,
-  isMobile,
   ...props
 }: React.ComponentProps<'div'> & {
   side?: 'left' | 'right';
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
-  isMobile?: boolean;
 }) {
-  const { state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   if (collapsible === 'none') {
     return (
