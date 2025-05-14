@@ -1,4 +1,3 @@
-import { useField } from 'formik';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRef, useState } from 'react';
 
@@ -43,7 +42,6 @@ export default function Combobox<T extends ISelectable>(
   } = props;
 
   const ref = useRef(null);
-  const [field] = useField(props);
   const [openOptions, setOpenOptions] = useState(false);
   return (
     <Popover open={openOptions} onOpenChange={setOpenOptions}>
@@ -92,7 +90,6 @@ export default function Combobox<T extends ISelectable>(
                     const v = values?.find((i) => i.key == key) || item;
                     if (v) {
                       setSelected && setSelected(v);
-                      field.onChange({ target: { value: v?.key, id } });
                       setOpenOptions(false);
                     }
                   }}

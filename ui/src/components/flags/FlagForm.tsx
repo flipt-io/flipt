@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router';
 import * as Yup from 'yup';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
-import Analytics from '~/app/flags/analytics/Analytics';
 import {
   useCreateFlagMutation,
   useUpdateFlagMutation
@@ -70,14 +69,10 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 
 const variantFlagTabs = [
   { name: 'Variants', id: 'variants' },
-  { name: 'Rules', id: 'rules' },
-  { name: 'Analytics', id: 'analytics' }
+  { name: 'Rules', id: 'rules' }
 ];
 
-const booleanFlagTabs = [
-  { name: 'Rollouts', id: 'rollouts' },
-  { name: 'Analytics', id: 'analytics' }
-];
+const booleanFlagTabs = [{ name: 'Rollouts', id: 'rollouts' }];
 
 function FlagTypeSelector({
   selectedType,
@@ -480,7 +475,6 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   <Rollouts flag={flag} rollouts={rollouts!} />
                 )}
                 {selectedTab == 'rules' && <Rules flag={flag} rules={rules!} />}
-                {selectedTab == 'analytics' && <Analytics flag={flag} />}
               </div>
             )}
 

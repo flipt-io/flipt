@@ -91,6 +91,13 @@ const namespacedRoutes = [
     handle: {
       namespaced: true
     }
+  },
+  {
+    path: 'analytics/:flagKey',
+    element: <Analytics />,
+    handle: {
+      namespaced: true
+    }
   }
 ];
 
