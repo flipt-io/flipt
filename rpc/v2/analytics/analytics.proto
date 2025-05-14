@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package analytics;
 
+import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
 
@@ -46,7 +47,10 @@ service AnalyticsService {
   }
 
   rpc GetBatchFlagEvaluationsCount(GetBatchFlagEvaluationsCountRequest) returns (GetBatchFlagEvaluationsCountResponse) {
-    option (google.api.http) = {post: "/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch", body: "*"};
+    option (google.api.http) = {
+      post: "/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "getBatchFlagEvaluationsCount"};
   }
 }

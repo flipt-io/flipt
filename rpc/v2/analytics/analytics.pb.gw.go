@@ -208,7 +208,7 @@ func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -283,7 +283,7 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
