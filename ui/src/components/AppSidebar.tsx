@@ -10,7 +10,8 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail
+  SidebarRail,
+  useSidebar
 } from '~/components/ui/sidebar';
 
 import { useSession } from '~/data/hooks/session';
@@ -26,16 +27,21 @@ export function AppSidebar({
 }: { ns: string } & React.ComponentProps<typeof Sidebar>) {
   const { session } = useSession();
   const user = getUser(session);
+
+  const { isMobile, state } = useSidebar();
   const currentEnvironment = useSelector(selectCurrentEnvironment);
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} isMobile={isMobile}>
       <SidebarHeader>
-        <EnvironmentNamespaceSwitcher />
+        <EnvironmentNamespaceSwitcher isMobile={isMobile} />
+        {state === 'expanded' && (
+          <EnvironmentRemoteInfo environment={currentEnvironment} />
+        )}
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />
-        <NavSecondary className="mt-auto" />
-        <EnvironmentRemoteInfo environment={currentEnvironment} />
+        <NavSecondary isMobile={isMobile} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />

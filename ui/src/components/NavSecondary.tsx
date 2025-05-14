@@ -42,9 +42,9 @@ function emitCtrlK() {
 }
 
 export function NavSecondary({
+  isMobile,
   ...props
-}: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { isMobile } = useSidebar();
+}: React.ComponentPropsWithoutRef<typeof SidebarGroup> & { isMobile: boolean }) {
   const info = useSelector(selectInfo);
   const updateAvailable = info && info.build.updateAvailable;
 

@@ -47,7 +47,7 @@ export function EnvironmentRemoteInfo({
   const repoName = extractRepoName(configuration.remote);
 
   return (
-    <div className="mx-2 my-3 rounded-lg bg-white/80 dark:bg-muted/60 shadow-sm border border-muted flex flex-col gap-1 p-3">
+    <div className="mt-2 rounded-lg bg-white/80 dark:bg-muted/60 shadow-xs border border-muted flex flex-col gap-1 p-3">
       <div className="flex items-center gap-2 mb-1">
         <ProviderIcon className="w-4 h-4 text-muted-foreground" />
         <a

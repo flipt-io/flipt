@@ -119,9 +119,13 @@ function Environments({
   );
 }
 
-export function EnvironmentNamespaceSwitcher() {
-  const { isMobile } = useSidebar();
+type EnvironmentNamespaceSwitcherProps = {
+  isMobile: boolean;
+};
 
+export function EnvironmentNamespaceSwitcher({
+  isMobile
+}: EnvironmentNamespaceSwitcherProps) {
   const environment = useSelector(selectCurrentEnvironment);
   const environments = useSelector(selectEnvironments);
   const namespaces = useSelector(selectNamespaces);
