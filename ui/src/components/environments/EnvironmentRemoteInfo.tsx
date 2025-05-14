@@ -27,10 +27,11 @@ export function EnvironmentRemoteInfo({
 }: {
   environment: IEnvironment;
 }) {
-  const { configuration, key } = environment || {};
+  const { configuration } = environment || {};
   if (!configuration?.remote) return null;
 
   // Determine provider icon
+  // TODO: support other providers and self-hosted / enterprise git providers
   let ProviderIcon = FolderGit;
   if (configuration.remote.includes('github.com')) ProviderIcon = Github;
   if (configuration.remote.includes('gitlab.com')) ProviderIcon = Gitlab;
@@ -43,7 +44,6 @@ export function EnvironmentRemoteInfo({
     repoUrl += `/tree/${configuration.branch}`;
   }
 
-  // Use improved extraction for repo name
   const repoName = extractRepoName(configuration.remote);
 
   return (
@@ -71,7 +71,7 @@ export function EnvironmentRemoteInfo({
         )}
         {configuration.directory && (
           <span
-            className="font-mono text-xs text-muted-foreground truncate max-w-[60px]"
+            className="font-mono text-xs py-0.5 text-muted-foreground truncate max-w-[60px]"
             title={configuration.directory}
           >
             {configuration.directory}

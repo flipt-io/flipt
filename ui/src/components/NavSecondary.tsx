@@ -74,7 +74,11 @@ export function NavSecondary({
                 emitCtrlK();
               }}
             >
-              <SidebarMenuButton asChild tooltip="Run (ctrl + k)">
+              <SidebarMenuButton
+                asChild
+                tooltip="Run (ctrl + k)"
+                className="hover:cursor-pointer"
+              >
                 <a>
                   <TerminalIcon />
                   <span>Run (ctrl + k)</span>
