@@ -276,6 +276,8 @@ export default function FlagTable(props: FlagTableProps) {
     getFilteredRowModel: getFilteredRowModel()
   });
 
+  // TODO: this gets all the flag evaluations for all flags, we should only fetch the ones that are currently visible
+  // we'll likely need to switch to a server side pagination model to get this to perform well
   const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery({
     environmentKey: environment.key,
     namespaceKey: namespace.key,
