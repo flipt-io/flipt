@@ -4,7 +4,7 @@ import { addMinutes } from 'date-fns';
 import { ChartNoAxesCombinedIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { useGetFlagEvaluationCountQuery } from '~/app/flags/analyticsApi';
@@ -63,7 +63,7 @@ export default function Analytics() {
   const namespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { flagKey } = useParams();
 
   const { data: flagsData, isLoading: flagsLoading } = useListFlagsQuery({
     environmentKey: environment.key,
@@ -84,30 +84,32 @@ export default function Analytics() {
   // Use null instead of undefined for selectedFlag
   const [selectedFlag, setSelectedFlag] = useState<
     (IFlag & ISelectable) | null
-  >(flagOptions[0] || null);
+  >(null);
   const [selectedDuration, setSelectedDuration] = useState<FilterableDurations>(
     durations[0]
   );
   const [pollingInterval, setPollingInterval] = useState<number>(0);
 
-  // Select flag from query param if present
+  // Select flag from path param if present
   useEffect(() => {
-    const flagKey = searchParams.get('flag');
     if (flagKey && flagOptions.length > 0) {
       const found = flagOptions.find((f) => f.key === flagKey);
       if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
         setSelectedFlag(found);
       }
+    } else if (!flagKey) {
+      setSelectedFlag(null);
     }
-  }, [searchParams, flagOptions, selectedFlag]);
+  }, [flagKey, flagOptions, selectedFlag]);
 
   // Keep selectedFlag in sync with flagOptions
   useEffect(() => {
     if (
       flagOptions.length > 0 &&
-      (!selectedFlag || !flagOptions.find((f) => f.key === selectedFlag.key))
+      selectedFlag &&
+      !flagOptions.find((f) => f.key === selectedFlag.key)
     ) {
-      setSelectedFlag(flagOptions[0]);
+      setSelectedFlag(null);
     }
     if (flagOptions.length === 0) {
       setSelectedFlag(null);
@@ -190,7 +192,7 @@ export default function Analytics() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {flagOptions.length > 0 && selectedFlag && (
+            {flagOptions.length > 0 && (
               <Combobox
                 id="flagValue"
                 name="flagValue"
@@ -201,7 +203,14 @@ export default function Analytics() {
                 setSelected={(flag) => {
                   setSelectedFlag(flag);
                   if (flag) {
-                    setSearchParams({ flag: flag.key }, { replace: true });
+                    navigate(
+                      `/namespaces/${namespace.key}/analytics/${flag.key}`,
+                      { replace: true }
+                    );
+                  } else {
+                    navigate(`/namespaces/${namespace.key}/analytics`, {
+                      replace: true
+                    });
                   }
                 }}
                 disabled={flagsLoading}

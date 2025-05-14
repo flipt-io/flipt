@@ -166,9 +166,7 @@ export default function Flag() {
                 className="ml-2 p-1 rounded hover:bg-accent"
                 title="View Analytics"
                 onClick={() =>
-                  navigate(
-                    `/namespaces/${namespace.key}/analytics?flag=${flag.key}`
-                  )
+                  navigate(`/namespaces/${namespace.key}/analytics/${flag.key}`)
                 }
               >
                 <LineChartIcon className="h-5 w-5 text-muted-foreground" />
@@ -187,7 +185,7 @@ export default function Flag() {
                     label: 'View Analytics',
                     onClick: () =>
                       navigate(
-                        `/namespaces/${namespace.key}/analytics?flag=${flag.key}`
+                        `/namespaces/${namespace.key}/analytics/${flag.key}`
                       ),
                     icon: LineChartIcon
                   }
