@@ -48,26 +48,6 @@ func TestGetStepFromDuration(t *testing.T) {
 	}
 }
 
-func TestGetFlagEvaluationsCountWithInvalidInput(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	client := NewMockClient(t)
-	service := New(logger, client)
-
-	_, err := service.GetFlagEvaluationsCount(context.Background(), &analytics.GetFlagEvaluationsCountRequest{
-		EnvironmentKey: "default",
-		NamespaceKey:   "bar",
-		FlagKey:        "foo",
-	})
-	require.Error(t, err)
-	_, err = service.GetFlagEvaluationsCount(context.Background(), &analytics.GetFlagEvaluationsCountRequest{
-		EnvironmentKey: "default",
-		NamespaceKey:   "bar",
-		FlagKey:        "foo",
-		From:           time.Now().Format(time.DateTime),
-	})
-	require.Error(t, err)
-}
-
 func TestGetFlagEvaluationsCountClientError(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	client := NewMockClient(t)

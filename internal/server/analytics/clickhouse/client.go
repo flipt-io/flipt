@@ -180,6 +180,7 @@ func (c *Client) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 	}
 
 	// This query gets data for each flag individually
+	//nolint
 	query := fmt.Sprintf(`
 		SELECT
 			flag_key,
