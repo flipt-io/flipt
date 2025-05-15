@@ -26,7 +26,6 @@ import (
 var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
 
 // FlagStorage implements the configuration storage ResourceTypeStorage
-// FlagStorage implements the configuration storage ResourceTypeStorage
 // and handles retrieving and storing Flag types from Flipt features.yaml
 // declarative format through an opinionated convention for flag state layout
 type FlagStorage struct {

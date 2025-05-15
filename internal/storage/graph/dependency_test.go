@@ -24,19 +24,9 @@ func TestDependencyGraph_SetAndGetDependents(t *testing.T) {
 	rule2 := makeID("Rule", "ns1", "rule2")
 
 	// Set rule1 depends on segA
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule1,
-			Dependents: []ResourceID{segA},
-		},
-	})
+	g.SetDependencies(rule1, []ResourceID{segA})
 	// Set rule2 depends on segA and segB
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule2,
-			Dependents: []ResourceID{segA, segB},
-		},
-	})
+	g.SetDependencies(rule2, []ResourceID{segA, segB})
 
 	// segA should have rule1 and rule2 as dependents
 	depsA := g.GetDependents(segA)
@@ -54,12 +44,7 @@ func TestDependencyGraph_RemoveResource(t *testing.T) {
 	g := NewDependencyGraph()
 	segA := makeID("Segment", "ns1", "A")
 	rule1 := makeID("Rule", "ns1", "rule1")
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule1,
-			Dependents: []ResourceID{segA},
-		},
-	})
+	g.SetDependencies(rule1, []ResourceID{segA})
 
 	// Remove rule1, segA should have no dependents
 	g.RemoveResource(rule1)
@@ -78,18 +63,9 @@ func TestDependencyGraph_SetDependencies_Overwrite(t *testing.T) {
 	segB := makeID("Segment", "ns1", "B")
 	rule1 := makeID("Rule", "ns1", "rule1")
 
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule1,
-			Dependents: []ResourceID{segA},
-		},
-	})
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule1,
-			Dependents: []ResourceID{segB},
-		},
-	}) // should remove segA dependency
+	g.SetDependencies(rule1, []ResourceID{segA})
+	g.SetDependencies(rule1, []ResourceID{segB})
+	// should remove segA dependency
 
 	depsA := g.GetDependents(segA)
 	if len(depsA) != 0 {
@@ -105,12 +81,7 @@ func TestDependencyGraph_AddDependency(t *testing.T) {
 	g := NewDependencyGraph()
 	segA := makeID("Segment", "ns1", "A")
 	rule1 := makeID("Rule", "ns1", "rule1")
-	g.SetDependencies([]Dependency{
-		{
-			Resource:   rule1,
-			Dependents: []ResourceID{segA},
-		},
-	})
+	g.AddDependency(rule1, segA)
 	depsA := g.GetDependents(segA)
 	if len(depsA) != 1 || depsA[0] != rule1 {
 		t.Errorf("expected rule1 as dependent for segA after AddDependency")
@@ -126,12 +97,7 @@ func TestDependencyGraph_ThreadSafety(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			g.SetDependencies([]Dependency{
-				{
-					Resource:   rule1,
-					Dependents: []ResourceID{segA},
-				},
-			})
+			g.SetDependencies(rule1, []ResourceID{segA})
 			_ = g.GetDependents(segA)
 			g.RemoveResource(rule1)
 		}(i)

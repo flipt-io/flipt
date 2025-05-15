@@ -269,7 +269,6 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 		namespaceKey = doc.Namespace.GetKey()
 		ns           = s.ns[namespaceKey]
 		snap         = s.evalSnap.Namespaces[namespaceKey]
-		dependencies = []graph.Dependency{}
 	)
 
 	if ns == nil {
@@ -334,6 +333,8 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 
 	for _, f := range doc.Flags {
 		var (
+			dependencies = []graph.ResourceID{}
+
 			flagType = core.FlagType_value[f.Type]
 			flag     = &core.Flag{
 				Key:         f.Key,
@@ -434,19 +435,10 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 				}
 
 				// track dependency between flag and segment
-				dependencies = append(dependencies, graph.Dependency{
-					Resource: graph.ResourceID{
-						Namespace: doc.Namespace.GetKey(),
-						Key:       flag.Key,
-						Type:      environments.FlagResourceType,
-					},
-					Dependents: []graph.ResourceID{
-						{
-							Namespace: doc.Namespace.GetKey(),
-							Key:       segmentKey,
-							Type:      environments.SegmentResourceType,
-						},
-					},
+				dependencies = append(dependencies, graph.ResourceID{
+					Namespace: doc.Namespace.GetKey(),
+					Key:       segmentKey,
+					Type:      environments.SegmentResourceType,
 				})
 
 				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -575,19 +567,10 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 					}
 
 					// track dependency between flag and segment
-					dependencies = append(dependencies, graph.Dependency{
-						Resource: graph.ResourceID{
-							Namespace: doc.Namespace.GetKey(),
-							Key:       flag.Key,
-							Type:      environments.FlagResourceType,
-						},
-						Dependents: []graph.ResourceID{
-							{
-								Namespace: doc.Namespace.GetKey(),
-								Key:       segmentKey,
-								Type:      environments.SegmentResourceType,
-							},
-						},
+					dependencies = append(dependencies, graph.ResourceID{
+						Namespace: doc.Namespace.GetKey(),
+						Key:       segmentKey,
+						Type:      environments.SegmentResourceType,
 					})
 
 					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -643,6 +626,11 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 		}
 
 		ns.evalRollouts[f.Key] = evalRollouts
+		dependencyGraph.SetDependencies(graph.ResourceID{
+			Namespace: doc.Namespace.GetKey(),
+			Key:       f.Key,
+			Type:      environments.FlagResourceType,
+		}, dependencies)
 	}
 
 	ns.etag = doc.Etag
@@ -650,8 +638,6 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGr
 	snap.Digest = doc.Etag
 	s.evalSnap.Namespaces[namespaceKey] = snap
 	s.evalDists = evalDists
-
-	dependencyGraph.SetDependencies(dependencies)
 
 	return nil
 }

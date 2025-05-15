@@ -382,19 +382,14 @@ func TestSegmentStorage_DeleteResource_Dependent(t *testing.T) {
 	)
 
 	// manually add a dependency between a flag and a segment for the test
-	dependencyGraph.AddDependency(graph.Dependency{
-		Resource: graph.ResourceID{
-			Namespace: "default",
-			Key:       "flag1",
-			Type:      serverenvironments.FlagResourceType,
-		},
-		Dependents: []graph.ResourceID{
-			{
-				Namespace: "default",
-				Key:       "segment1",
-				Type:      serverenvironments.SegmentResourceType,
-			},
-		},
+	dependencyGraph.AddDependency(graph.ResourceID{
+		Namespace: "default",
+		Key:       "flag1",
+		Type:      serverenvironments.FlagResourceType,
+	}, graph.ResourceID{
+		Namespace: "default",
+		Key:       "segment1",
+		Type:      serverenvironments.SegmentResourceType,
 	})
 
 	fs := fstesting.NewFilesystem(

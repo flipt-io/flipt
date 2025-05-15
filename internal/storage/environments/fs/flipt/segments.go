@@ -19,9 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-var (
-	_ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
-)
+var _ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
 
 // SegmentStorage implements the configuration storage ResourceTypeStorage
 // and handles retrieving and storing Segment types from Flipt features.yaml
