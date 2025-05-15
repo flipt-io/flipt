@@ -34,6 +34,8 @@ export function EnvironmentRemoteInfo({
 }: {
   environment: IEnvironment;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   const { configuration } = environment || {};
   if (!configuration?.remote) return null;
 
@@ -52,8 +54,6 @@ export function EnvironmentRemoteInfo({
   }
 
   const repoName = extractRepoName(configuration.remote);
-
-  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="mt-2 rounded-lg bg-white/80 dark:bg-muted/60 shadow-xs border border-muted flex flex-col gap-1 p-2">
