@@ -171,9 +171,12 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		}
 	}()
 
-	flag := &rpcenvironments.Resource{
-		NamespaceKey: namespace,
-		Key:          key,
+	flag := serverenvironments.TypedResource{
+		ResourceType: serverenvironments.FlagResourceType,
+		Resource: &rpcenvironments.Resource{
+			NamespaceKey: namespace,
+			Key:          key,
+		},
 	}
 
 	// check for any dependents of the flag

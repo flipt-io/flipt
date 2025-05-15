@@ -21,6 +21,11 @@ var (
 	SegmentResourceType = NewResourceType("flipt.core", "Segment")
 )
 
+type TypedResource struct {
+	ResourceType ResourceType
+	*environments.Resource
+}
+
 type ResourceType struct {
 	Package string
 	Name    string

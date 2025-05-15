@@ -4,7 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.flipt.io/flipt/internal/server/environments"
+	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 )
 
 type resource struct {
@@ -20,49 +21,52 @@ func (r resource) GetKey() string {
 	return r.Key
 }
 
-func makeResource(ns, key string) *environments.Resource {
-	return &environments.Resource{
-		NamespaceKey: ns,
-		Key:          key,
+func makeResource(typ environments.ResourceType, ns, key string) environments.TypedResource {
+	return environments.TypedResource{
+		ResourceType: typ,
+		Resource: &rpcenvironments.Resource{
+			NamespaceKey: ns,
+			Key:          key,
+		},
 	}
 }
 
 func TestDependencyGraph_SetAndGetDependents(t *testing.T) {
 	g := NewResourceGraph()
 
-	segA := makeResource("ns1", "A")
-	segB := makeResource("ns1", "B")
-	rule1 := makeResource("ns1", "rule1")
-	rule2 := makeResource("ns1", "rule2")
+	segA := makeResource(environments.SegmentResourceType, "ns1", "A")
+	segB := makeResource(environments.SegmentResourceType, "ns1", "B")
+	flag1 := makeResource(environments.FlagResourceType, "ns1", "flag1")
+	flag2 := makeResource(environments.FlagResourceType, "ns1", "flag2")
 
-	// Set rule1 depends on segA
-	g.SetDependencies(rule1, []*environments.Resource{segA})
-	// Set rule2 depends on segA and segB
-	g.SetDependencies(rule2, []*environments.Resource{segA, segB})
+	// Set flag1 depends on segA
+	g.SetDependencies(flag1, []environments.TypedResource{segA})
+	// Set flag2 depends on segA and segB
+	g.SetDependencies(flag2, []environments.TypedResource{segA, segB})
 
-	// segA should have rule1 and rule2 as dependents
+	// segA should have flag1 and flag2 as dependents
 	depsA := g.GetDependents(segA)
 	if len(depsA) != 2 {
 		t.Errorf("expected 2 dependents for segA, got %d", len(depsA))
 	}
-	// segB should have only rule2 as dependent
+	// segB should have only flag2 as dependent
 	depsB := g.GetDependents(segB)
-	if len(depsB) != 1 || depsB[0] != "/ns1/rule2" {
-		t.Errorf("expected rule2 as only dependent for segB")
+	if len(depsB) != 1 || depsB[0] != "flipt.core.Flag/ns1/flag2" {
+		t.Errorf("expected flag2 as only dependent for segB")
 	}
 }
 
 func TestDependencyGraph_RemoveResource(t *testing.T) {
 	g := NewResourceGraph()
-	segA := makeResource("ns1", "A")
-	rule1 := makeResource("ns1", "rule1")
-	g.SetDependencies(rule1, []*environments.Resource{segA})
+	segA := makeResource(environments.SegmentResourceType, "ns1", "A")
+	flag1 := makeResource(environments.FlagResourceType, "ns1", "flag1")
+	g.SetDependencies(flag1, []environments.TypedResource{segA})
 
-	// Remove rule1, segA should have no dependents
-	g.RemoveResource(rule1)
+	// Remove flag1, segA should have no dependents
+	g.RemoveResource(flag1)
 	depsA := g.GetDependents(segA)
 	if len(depsA) != 0 {
-		t.Errorf("expected 0 dependents for segA after rule1 removed, got %d", len(depsA))
+		t.Errorf("expected 0 dependents for segA after flag1 removed, got %d", len(depsA))
 	}
 
 	// Remove segA, should not panic
@@ -71,12 +75,12 @@ func TestDependencyGraph_RemoveResource(t *testing.T) {
 
 func TestDependencyGraph_SetDependencies_Overwrite(t *testing.T) {
 	g := NewResourceGraph()
-	segA := makeResource("ns1", "A")
-	segB := makeResource("ns1", "B")
-	rule1 := makeResource("ns1", "rule1")
+	segA := makeResource(environments.SegmentResourceType, "ns1", "A")
+	segB := makeResource(environments.SegmentResourceType, "ns1", "B")
+	flag1 := makeResource(environments.FlagResourceType, "ns1", "flag1")
 
-	g.SetDependencies(rule1, []*environments.Resource{segA})
-	g.SetDependencies(rule1, []*environments.Resource{segB})
+	g.SetDependencies(flag1, []environments.TypedResource{segA})
+	g.SetDependencies(flag1, []environments.TypedResource{segB})
 	// should remove segA dependency
 
 	depsA := g.GetDependents(segA)
@@ -84,34 +88,34 @@ func TestDependencyGraph_SetDependencies_Overwrite(t *testing.T) {
 		t.Errorf("expected 0 dependents for segA after overwrite, got %d", len(depsA))
 	}
 	depsB := g.GetDependents(segB)
-	if len(depsB) != 1 || depsB[0] != "/ns1/rule1" {
-		t.Errorf("expected rule1 as only dependent for segB after overwrite")
+	if len(depsB) != 1 || depsB[0] != "flipt.core.Flag/ns1/flag1" {
+		t.Errorf("expected flag1 as only dependent for segB after overwrite")
 	}
 }
 
 func TestDependencyGraph_AddDependency(t *testing.T) {
 	g := NewResourceGraph()
-	segA := makeResource("ns1", "A")
-	rule1 := makeResource("ns1", "rule1")
-	g.AddDependency(rule1, segA)
+	segA := makeResource(environments.SegmentResourceType, "ns1", "A")
+	flag1 := makeResource(environments.FlagResourceType, "ns1", "flag1")
+	g.AddDependency(flag1, segA)
 	depsA := g.GetDependents(segA)
-	if len(depsA) != 1 || depsA[0] != "/ns1/rule1" {
-		t.Errorf("expected rule1 as dependent for segA after AddDependency")
+	if len(depsA) != 1 || depsA[0] != "flipt.core.Flag/ns1/flag1" {
+		t.Errorf("expected flag1 as dependent for segA after AddDependency")
 	}
 }
 
 func TestDependencyGraph_ThreadSafety(t *testing.T) {
 	g := NewResourceGraph()
-	segA := makeResource("ns1", "A")
-	rule1 := makeResource("ns1", "rule1")
+	segA := makeResource(environments.SegmentResourceType, "ns1", "A")
+	flag1 := makeResource(environments.FlagResourceType, "ns1", "flag1")
 	wg := sync.WaitGroup{}
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			g.SetDependencies(rule1, []*environments.Resource{segA})
+			g.SetDependencies(flag1, []environments.TypedResource{segA})
 			_ = g.GetDependents(segA)
-			g.RemoveResource(rule1)
+			g.RemoveResource(flag1)
 		}(i)
 	}
 	wg.Wait()

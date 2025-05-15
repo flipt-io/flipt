@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/environments"
 	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
 	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
@@ -381,12 +382,18 @@ func TestSegmentStorage_DeleteResource_Dependent(t *testing.T) {
 	)
 
 	// manually add a dependency between a flag and a segment for the test
-	dependencyGraph.AddDependency(&rpcenvironments.Resource{
-		NamespaceKey: "default",
-		Key:          "flag1",
-	}, &rpcenvironments.Resource{
-		NamespaceKey: "default",
-		Key:          "segment1",
+	dependencyGraph.AddDependency(environments.TypedResource{
+		ResourceType: environments.FlagResourceType,
+		Resource: &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          "flag1",
+		},
+	}, environments.TypedResource{
+		ResourceType: environments.SegmentResourceType,
+		Resource: &rpcenvironments.Resource{
+			NamespaceKey: "default",
+			Key:          "segment1",
+		},
 	})
 
 	fs := fstesting.NewFilesystem(

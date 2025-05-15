@@ -19,6 +19,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -338,7 +339,7 @@ func (s *Snapshot) addDoc(doc *ext.Document, opts SnapshotBuilderOption) error {
 
 	for _, f := range doc.Flags {
 		var (
-			dependencies = []*rpcenvironments.Resource{}
+			dependencies = []environments.TypedResource{}
 
 			flagType = core.FlagType_value[f.Type]
 			flag     = &core.Flag{
@@ -440,9 +441,12 @@ func (s *Snapshot) addDoc(doc *ext.Document, opts SnapshotBuilderOption) error {
 				}
 
 				// track dependency between flag and segment
-				dependencies = append(dependencies, &rpcenvironments.Resource{
-					NamespaceKey: doc.Namespace.GetKey(),
-					Key:          segmentKey,
+				dependencies = append(dependencies, environments.TypedResource{
+					ResourceType: environments.SegmentResourceType,
+					Resource: &rpcenvironments.Resource{
+						NamespaceKey: doc.Namespace.GetKey(),
+						Key:          segmentKey,
+					},
 				})
 
 				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -571,9 +575,12 @@ func (s *Snapshot) addDoc(doc *ext.Document, opts SnapshotBuilderOption) error {
 					}
 
 					// track dependency between flag and segment
-					dependencies = append(dependencies, &rpcenvironments.Resource{
-						NamespaceKey: doc.Namespace.GetKey(),
-						Key:          segmentKey,
+					dependencies = append(dependencies, environments.TypedResource{
+						ResourceType: environments.SegmentResourceType,
+						Resource: &rpcenvironments.Resource{
+							NamespaceKey: doc.Namespace.GetKey(),
+							Key:          segmentKey,
+						},
 					})
 
 					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -630,9 +637,12 @@ func (s *Snapshot) addDoc(doc *ext.Document, opts SnapshotBuilderOption) error {
 
 		ns.evalRollouts[f.Key] = evalRollouts
 		if opts.dependencyGraph != nil {
-			opts.dependencyGraph.SetDependencies(&rpcenvironments.Resource{
-				NamespaceKey: doc.Namespace.GetKey(),
-				Key:          f.Key,
+			opts.dependencyGraph.SetDependencies(environments.TypedResource{
+				ResourceType: environments.FlagResourceType,
+				Resource: &rpcenvironments.Resource{
+					NamespaceKey: doc.Namespace.GetKey(),
+					Key:          f.Key,
+				},
 			}, dependencies)
 		}
 	}

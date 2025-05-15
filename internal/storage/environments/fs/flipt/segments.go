@@ -165,9 +165,12 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		}
 	}()
 
-	segment := &rpcenvironments.Resource{
-		NamespaceKey: namespace,
-		Key:          key,
+	segment := serverenvironments.TypedResource{
+		ResourceType: serverenvironments.SegmentResourceType,
+		Resource: &rpcenvironments.Resource{
+			NamespaceKey: namespace,
+			Key:          key,
+		},
 	}
 
 	// check for any dependents of the segment
