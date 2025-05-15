@@ -171,13 +171,15 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		}
 	}()
 
-	// check for any dependents of the flag
-	// this should not be possible yet as flags are not a dependency of anything but we'll add this for completeness
-	dependents := f.dependencyGraph.GetDependents(graph.ResourceID{
+	flag := graph.ResourceID{
 		Type:      serverenvironments.FlagResourceType,
 		Namespace: namespace,
 		Key:       key,
-	})
+	}
+
+	// check for any dependents of the flag
+	// this should not be possible yet as flags are not a dependency of anything but we'll add this for completeness
+	dependents := f.dependencyGraph.GetDependents(flag)
 
 	if len(dependents) > 0 {
 		// just get the first one for now
@@ -227,6 +229,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		}
 	}
 
+	f.dependencyGraph.RemoveResource(flag)
 	return enc.Close()
 }
 

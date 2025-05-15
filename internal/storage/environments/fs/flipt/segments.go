@@ -165,12 +165,14 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		}
 	}()
 
-	// check for any dependents of the segment
-	dependents := f.dependencyGraph.GetDependents(graph.ResourceID{
+	segment := graph.ResourceID{
 		Type:      serverenvironments.SegmentResourceType,
 		Namespace: namespace,
 		Key:       key,
-	})
+	}
+
+	// check for any dependents of the segment
+	dependents := f.dependencyGraph.GetDependents(segment)
 
 	if len(dependents) > 0 {
 		// just get the first one for now
@@ -220,6 +222,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		}
 	}
 
+	f.dependencyGraph.RemoveResource(segment)
 	return enc.Close()
 }
 
