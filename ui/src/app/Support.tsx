@@ -135,9 +135,7 @@ function SupportTile(props: SupportTileProps) {
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
           {name}
         </h3>
-        <p className="max-w-lg text-gray-500 dark:text-gray-300">
-          {description}
-        </p>
+        <p className="max-w-lg text-muted-foreground">{description}</p>
       </div>
       <div
         className={cls(

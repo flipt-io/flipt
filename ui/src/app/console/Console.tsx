@@ -235,7 +235,7 @@ export default function Console() {
   return (
     <>
       <PageHeader title="Playground" />
-      <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
+      <p className="mt-2 text-sm text-muted-foreground">
         See the results of your flag evaluations and debug any issues
       </p>
       <div className="flex flex-col md:flex-row">

@@ -6,8 +6,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarRail
+  SidebarHeader
 } from '~/components/ui/sidebar';
 
 import { useSession } from '~/data/hooks/session';
@@ -32,7 +31,6 @@ export function AppSidebar({
         <NavSecondary className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

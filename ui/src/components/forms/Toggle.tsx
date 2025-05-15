@@ -28,9 +28,7 @@ export default function Toggle(props: ToggleProps) {
           </span>
         )}
         {description && (
-          <span className="text-sm text-gray-500 dark:text-gray-300">
-            {description}
-          </span>
+          <span className="text-sm text-muted-foreground">{description}</span>
         )}
       </span>
       <Switch
@@ -42,7 +40,7 @@ export default function Toggle(props: ToggleProps) {
         onCheckedChange={(e: boolean) => {
           onChange && onChange(e);
         }}
-        className="data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-violet-200 dark:data-[state=checked]:bg-green-600 dark:data-[state=unchecked]:bg-violet-700"
+        className="data-[state=checked]:bg-success data-[state=unchecked]:bg-brand"
       />
     </div>
   );

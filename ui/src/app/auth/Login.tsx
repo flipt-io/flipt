@@ -126,7 +126,7 @@ function InnerLoginButtons() {
             <div key={provider.name}>
               <a
                 href="#"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-300 shadow-xs hover:text-violet-500 dark:hover:text-violet-400 hover:shadow-violet-300 dark:hover:shadow-violet-700/40 dark:bg-gray-800"
+                className="inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-muted-foreground shadow-xs hover:text-violet-500 dark:hover:text-violet-400 hover:shadow-violet-300 dark:hover:shadow-violet-700/40 dark:bg-gray-800"
                 onClick={(e) => {
                   e.preventDefault();
                   authorize(provider.authorize_url);
@@ -150,7 +150,7 @@ function InnerLoginButtons() {
             <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">
               No Providers
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-300">
+            <div className="mt-2 max-w-xl text-sm text-muted-foreground">
               <p>
                 Authentication is set to{' '}
                 <span className="font-medium dark:text-gray-200">required</span>
