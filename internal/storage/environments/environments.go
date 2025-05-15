@@ -17,9 +17,9 @@ import (
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	configcoreflipt "go.flipt.io/flipt/internal/storage/environments/fs/flipt"
 	environmentsgit "go.flipt.io/flipt/internal/storage/environments/git"
+	"go.flipt.io/flipt/internal/storage/environments/graph"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
-	"go.flipt.io/flipt/internal/storage/graph"
 	"go.uber.org/zap"
 )
 
@@ -87,7 +87,7 @@ func (s *sourceBuilder) forEnvironment(
 		return nil, fmt.Errorf("missing storage for name %q", envConf.Storage)
 	}
 
-	dependencyGraph := graph.NewDependencyGraph()
+	dependencyGraph := graph.NewResourceGraph()
 	fileStorage := fs.NewStorage(
 		logger,
 		configcoreflipt.NewFlagStorage(logger, dependencyGraph),
@@ -106,7 +106,7 @@ func (s *sourceBuilder) forEnvironment(
 		envConf,
 		repo,
 		fileStorage,
-		storagefs.NewSnapshotBuilder(logger, dependencyGraph),
+		storagefs.NewSnapshotBuilder(logger, storagefs.WithDependencyGraph(dependencyGraph)),
 		evaluation.NewSnapshotPublisher(logger),
 	)
 	if err != nil {

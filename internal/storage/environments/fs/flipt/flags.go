@@ -14,7 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
-	"go.flipt.io/flipt/internal/storage/graph"
+	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -30,11 +30,11 @@ var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
 // declarative format through an opinionated convention for flag state layout
 type FlagStorage struct {
 	logger          *zap.Logger
-	dependencyGraph *graph.DependencyGraph
+	dependencyGraph *graph.ResourceGraph
 }
 
 // NewFlagStorage constructs and configures a new flag storage implementation
-func NewFlagStorage(logger *zap.Logger, dependencyGraph *graph.DependencyGraph) *FlagStorage {
+func NewFlagStorage(logger *zap.Logger, dependencyGraph *graph.ResourceGraph) *FlagStorage {
 	return &FlagStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
@@ -171,10 +171,9 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		}
 	}()
 
-	flag := graph.ResourceID{
-		Type:      serverenvironments.FlagResourceType,
-		Namespace: namespace,
-		Key:       key,
+	flag := &rpcenvironments.Resource{
+		NamespaceKey: namespace,
+		Key:          key,
 	}
 
 	// check for any dependents of the flag
@@ -184,7 +183,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 	if len(dependents) > 0 {
 		// just get the first one for now
 		dependent := dependents[0]
-		return errors.ErrConflictf("flag cannot be deleted as it is a dependency of %s/%s/%s", dependent.Namespace, dependent.Type, dependent.Key)
+		return errors.ErrConflictf("flag cannot be deleted as it is a dependency of %s", dependent)
 	}
 
 	docs, err := parseNamespace(ctx, fs, namespace)

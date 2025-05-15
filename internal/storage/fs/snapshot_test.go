@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap/zaptest"
@@ -28,7 +27,7 @@ func ptr[P any](p P) *P {
 
 func TestSnapshot_GetFlag(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -161,7 +160,7 @@ func TestSnapshot_GetFlag(t *testing.T) {
 
 func TestSnapshot_ListFlags(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -294,7 +293,7 @@ func TestSnapshot_ListFlags(t *testing.T) {
 
 func TestSnapshot_CountFlags(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -338,7 +337,7 @@ func TestSnapshot_CountFlags(t *testing.T) {
 
 func TestSnapshot_GetEvaluationRules(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -467,7 +466,7 @@ func storageEvaluationDistTransformer() cmp.Option {
 
 func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -562,7 +561,7 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 
 func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
@@ -665,7 +664,7 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 	conf := DefaultFliptConfig()
-	builder := NewSnapshotBuilder(zaptest.NewLogger(t), graph.NewDependencyGraph())
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
 	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 

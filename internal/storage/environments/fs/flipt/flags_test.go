@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
-	"go.flipt.io/flipt/internal/storage/graph"
+	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap/zaptest"
@@ -86,7 +86,7 @@ func TestFlagStorage_GetResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = graph.NewDependencyGraph()
+		dependencyGraph = graph.NewResourceGraph()
 		storage         = NewFlagStorage(logger, dependencyGraph)
 	)
 
@@ -156,7 +156,7 @@ func TestFlagStorage_ListResources(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = graph.NewDependencyGraph()
+		dependencyGraph = graph.NewResourceGraph()
 		storage         = NewFlagStorage(logger, dependencyGraph)
 	)
 
@@ -220,7 +220,7 @@ func TestFlagStorage_PutResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = graph.NewDependencyGraph()
+		dependencyGraph = graph.NewResourceGraph()
 		storage         = NewFlagStorage(logger, dependencyGraph)
 	)
 
@@ -317,7 +317,7 @@ func TestFlagStorage_DeleteResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = graph.NewDependencyGraph()
+		dependencyGraph = graph.NewResourceGraph()
 		storage         = NewFlagStorage(logger, dependencyGraph)
 	)
 

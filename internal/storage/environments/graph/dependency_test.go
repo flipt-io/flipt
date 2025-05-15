@@ -4,29 +4,41 @@ import (
 	"sync"
 	"testing"
 
-	"go.flipt.io/flipt/internal/server/environments"
+	"go.flipt.io/flipt/rpc/v2/environments"
 )
 
-func makeID(typ, ns, key string) ResourceID {
-	return ResourceID{
-		Type:      environments.NewResourceType("flipt.core", typ),
-		Namespace: ns,
-		Key:       key,
+type resource struct {
+	NamespaceKey string
+	Key          string
+}
+
+func (r resource) GetNamespaceKey() string {
+	return r.NamespaceKey
+}
+
+func (r resource) GetKey() string {
+	return r.Key
+}
+
+func makeResource(ns, key string) *environments.Resource {
+	return &environments.Resource{
+		NamespaceKey: ns,
+		Key:          key,
 	}
 }
 
 func TestDependencyGraph_SetAndGetDependents(t *testing.T) {
-	g := NewDependencyGraph()
+	g := NewResourceGraph()
 
-	segA := makeID("Segment", "ns1", "A")
-	segB := makeID("Segment", "ns1", "B")
-	rule1 := makeID("Rule", "ns1", "rule1")
-	rule2 := makeID("Rule", "ns1", "rule2")
+	segA := makeResource("ns1", "A")
+	segB := makeResource("ns1", "B")
+	rule1 := makeResource("ns1", "rule1")
+	rule2 := makeResource("ns1", "rule2")
 
 	// Set rule1 depends on segA
-	g.SetDependencies(rule1, []ResourceID{segA})
+	g.SetDependencies(rule1, []*environments.Resource{segA})
 	// Set rule2 depends on segA and segB
-	g.SetDependencies(rule2, []ResourceID{segA, segB})
+	g.SetDependencies(rule2, []*environments.Resource{segA, segB})
 
 	// segA should have rule1 and rule2 as dependents
 	depsA := g.GetDependents(segA)
@@ -35,16 +47,16 @@ func TestDependencyGraph_SetAndGetDependents(t *testing.T) {
 	}
 	// segB should have only rule2 as dependent
 	depsB := g.GetDependents(segB)
-	if len(depsB) != 1 || depsB[0] != rule2 {
+	if len(depsB) != 1 || depsB[0] != "/ns1/rule2" {
 		t.Errorf("expected rule2 as only dependent for segB")
 	}
 }
 
 func TestDependencyGraph_RemoveResource(t *testing.T) {
-	g := NewDependencyGraph()
-	segA := makeID("Segment", "ns1", "A")
-	rule1 := makeID("Rule", "ns1", "rule1")
-	g.SetDependencies(rule1, []ResourceID{segA})
+	g := NewResourceGraph()
+	segA := makeResource("ns1", "A")
+	rule1 := makeResource("ns1", "rule1")
+	g.SetDependencies(rule1, []*environments.Resource{segA})
 
 	// Remove rule1, segA should have no dependents
 	g.RemoveResource(rule1)
@@ -58,13 +70,13 @@ func TestDependencyGraph_RemoveResource(t *testing.T) {
 }
 
 func TestDependencyGraph_SetDependencies_Overwrite(t *testing.T) {
-	g := NewDependencyGraph()
-	segA := makeID("Segment", "ns1", "A")
-	segB := makeID("Segment", "ns1", "B")
-	rule1 := makeID("Rule", "ns1", "rule1")
+	g := NewResourceGraph()
+	segA := makeResource("ns1", "A")
+	segB := makeResource("ns1", "B")
+	rule1 := makeResource("ns1", "rule1")
 
-	g.SetDependencies(rule1, []ResourceID{segA})
-	g.SetDependencies(rule1, []ResourceID{segB})
+	g.SetDependencies(rule1, []*environments.Resource{segA})
+	g.SetDependencies(rule1, []*environments.Resource{segB})
 	// should remove segA dependency
 
 	depsA := g.GetDependents(segA)
@@ -72,32 +84,32 @@ func TestDependencyGraph_SetDependencies_Overwrite(t *testing.T) {
 		t.Errorf("expected 0 dependents for segA after overwrite, got %d", len(depsA))
 	}
 	depsB := g.GetDependents(segB)
-	if len(depsB) != 1 || depsB[0] != rule1 {
+	if len(depsB) != 1 || depsB[0] != "/ns1/rule1" {
 		t.Errorf("expected rule1 as only dependent for segB after overwrite")
 	}
 }
 
 func TestDependencyGraph_AddDependency(t *testing.T) {
-	g := NewDependencyGraph()
-	segA := makeID("Segment", "ns1", "A")
-	rule1 := makeID("Rule", "ns1", "rule1")
+	g := NewResourceGraph()
+	segA := makeResource("ns1", "A")
+	rule1 := makeResource("ns1", "rule1")
 	g.AddDependency(rule1, segA)
 	depsA := g.GetDependents(segA)
-	if len(depsA) != 1 || depsA[0] != rule1 {
+	if len(depsA) != 1 || depsA[0] != "/ns1/rule1" {
 		t.Errorf("expected rule1 as dependent for segA after AddDependency")
 	}
 }
 
 func TestDependencyGraph_ThreadSafety(t *testing.T) {
-	g := NewDependencyGraph()
-	segA := makeID("Segment", "ns1", "A")
-	rule1 := makeID("Rule", "ns1", "rule1")
+	g := NewResourceGraph()
+	segA := makeResource("ns1", "A")
+	rule1 := makeResource("ns1", "rule1")
 	wg := sync.WaitGroup{}
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			g.SetDependencies(rule1, []ResourceID{segA})
+			g.SetDependencies(rule1, []*environments.Resource{segA})
 			_ = g.GetDependents(segA)
 			g.RemoveResource(rule1)
 		}(i)

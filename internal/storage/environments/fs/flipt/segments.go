@@ -12,7 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
-	"go.flipt.io/flipt/internal/storage/graph"
+	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -26,11 +26,11 @@ var _ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
 // declarative format through an opinionated convention for flag state layout
 type SegmentStorage struct {
 	logger          *zap.Logger
-	dependencyGraph *graph.DependencyGraph
+	dependencyGraph *graph.ResourceGraph
 }
 
 // NewSegmentStorage constructs and configures a new segment storage implementation
-func NewSegmentStorage(logger *zap.Logger, dependencyGraph *graph.DependencyGraph) *SegmentStorage {
+func NewSegmentStorage(logger *zap.Logger, dependencyGraph *graph.ResourceGraph) *SegmentStorage {
 	return &SegmentStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
@@ -165,10 +165,9 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		}
 	}()
 
-	segment := graph.ResourceID{
-		Type:      serverenvironments.SegmentResourceType,
-		Namespace: namespace,
-		Key:       key,
+	segment := &rpcenvironments.Resource{
+		NamespaceKey: namespace,
+		Key:          key,
 	}
 
 	// check for any dependents of the segment
@@ -177,7 +176,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 	if len(dependents) > 0 {
 		// just get the first one for now
 		dependent := dependents[0]
-		return errors.ErrConflictf("segment cannot be deleted as it is a dependency of %s/%s/%s", dependent.Namespace, dependent.Type, dependent.Key)
+		return errors.ErrConflictf("segment cannot be deleted as it is a dependency of %s", dependent)
 	}
 
 	docs, err := parseNamespace(ctx, fs, namespace)

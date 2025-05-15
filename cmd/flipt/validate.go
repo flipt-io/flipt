@@ -10,7 +10,6 @@ import (
 	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage/fs"
-	"go.flipt.io/flipt/internal/storage/graph"
 )
 
 type validateCommand struct {
@@ -67,7 +66,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var opts []containers.Option[fs.SnapshotOption]
+	var opts []containers.Option[fs.SnapshotBuilderOption]
 	if v.extraPath != "" {
 		schema, err := os.ReadFile(v.extraPath)
 		if err != nil {
@@ -83,7 +82,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return errors.New("non-empty working directory expected")
 	}
 
-	builder := fs.NewSnapshotBuilder(logger, graph.NewDependencyGraph())
+	builder := fs.NewSnapshotBuilder(logger)
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
 		var config *fs.Config
