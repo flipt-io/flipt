@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"slices"
 
 	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/errors"
@@ -24,20 +25,22 @@ import (
 var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
 
 // FlagStorage implements the configuration storage ResourceTypeStorage
+// FlagStorage implements the configuration storage ResourceTypeStorage
 // and handles retrieving and storing Flag types from Flipt features.yaml
 // declarative format through an opinionated convention for flag state layout
 type FlagStorage struct {
-	logger *zap.Logger
+	logger          *zap.Logger
+	dependencyGraph *DependencyGraph
 }
 
 // NewFlagStorage constructs and configures a new flag storage implementation
-func NewFlagStorage(logger *zap.Logger) *FlagStorage {
-	return &FlagStorage{logger: logger}
+func NewFlagStorage(logger *zap.Logger, dependencyGraph *DependencyGraph) *FlagStorage {
+	return &FlagStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
 // ResourceType returns the Flag specific resource type
 func (FlagStorage) ResourceType() serverenvironments.ResourceType {
-	return serverenvironments.NewResourceType("flipt.core", "Flag")
+	return serverenvironments.FlagResourceType
 }
 
 // GetResource fetches the requested flag from the namespaces features.yaml file
@@ -168,6 +171,20 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		}
 	}()
 
+	// check for any dependents of the flag
+	// this should not be possible yet as flags are not a dependency of anything but we'll add this for completeness
+	dependents := f.dependencyGraph.GetDependents(ResourceID{
+		Type:      serverenvironments.FlagResourceType,
+		Namespace: namespace,
+		Key:       key,
+	})
+
+	if len(dependents) > 0 {
+		// just get the first one for now
+		dependent := dependents[0]
+		return errors.ErrConflictf("flag cannot be deleted as it is a dependency of %s/%s/%s", dependent.Namespace, dependent.Type, dependent.Key)
+	}
+
 	docs, err := parseNamespace(ctx, fs, namespace)
 	if err != nil {
 		return err
@@ -187,7 +204,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 			if f.Key == key {
 				found = true
 				// remove entry from list
-				doc.Flags = append(doc.Flags[:i], doc.Flags[i+1:]...)
+				doc.Flags = slices.Delete(doc.Flags, i, i+1)
 			}
 		}
 	}
@@ -332,6 +349,7 @@ func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
 
 func resourceToFlag(r *rpcenvironments.Resource) (*ext.Flag, error) {
 	var f core.Flag
+
 	if err := r.Payload.UnmarshalTo(&f); err != nil {
 		return nil, err
 	}
@@ -390,6 +408,7 @@ func resourceToFlag(r *rpcenvironments.Resource) (*ext.Flag, error) {
 				Operator: rollout.GetSegment().SegmentOperator.String(),
 				Value:    rollout.GetSegment().Value,
 			}
+
 		case core.RolloutType_THRESHOLD_ROLLOUT_TYPE:
 			r.Threshold = &ext.ThresholdRule{
 				Percentage: rollout.GetThreshold().Percentage,

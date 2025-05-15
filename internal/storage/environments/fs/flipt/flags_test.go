@@ -82,9 +82,12 @@ flags:
 )
 
 func TestFlagStorage_GetResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewFlagStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewFlagStorage(logger, dependencyGraph)
+	)
 
 	fs := fstesting.NewFilesystem(
 		t,
@@ -149,9 +152,12 @@ func TestFlagStorage_GetResource(t *testing.T) {
 }
 
 func TestFlagStorage_ListResources(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewFlagStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewFlagStorage(logger, dependencyGraph)
+	)
 
 	fs := fstesting.NewFilesystem(
 		t,
@@ -210,9 +216,12 @@ func TestFlagStorage_ListResources(t *testing.T) {
 }
 
 func TestFlagStorage_PutResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewFlagStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewFlagStorage(logger, dependencyGraph)
+	)
 
 	t.Run("create new flag", func(t *testing.T) {
 		fs := fstesting.NewFilesystem(
@@ -304,9 +313,12 @@ func TestFlagStorage_PutResource(t *testing.T) {
 }
 
 func TestFlagStorage_DeleteResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewFlagStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewFlagStorage(logger, dependencyGraph)
+	)
 
 	tests := []struct {
 		name      string

@@ -40,6 +40,7 @@ type Environment struct {
 
 	head      plumbing.Hash
 	snap      *storagefs.Snapshot
+	builder   *storagefs.SnapshotBuilder
 	publisher *evaluation.SnapshotPublisher
 }
 
@@ -52,6 +53,7 @@ func NewEnvironmentFromRepo(
 	cfg *config.EnvironmentConfig,
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
+	builder *storagefs.SnapshotBuilder,
 	publisher *evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
 	return &Environment{
@@ -61,6 +63,7 @@ func NewEnvironmentFromRepo(
 		storage:   storage,
 		refs:      map[string]string{},
 		snap:      storagefs.EmptySnapshot(),
+		builder:   builder,
 		publisher: publisher,
 	}, nil
 }
@@ -376,7 +379,7 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 			return err
 		}
 
-		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
+		snap, err = e.builder.SnapshotFromFS(conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
 }

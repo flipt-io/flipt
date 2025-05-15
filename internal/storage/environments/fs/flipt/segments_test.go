@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
@@ -51,12 +52,54 @@ segments:
     name: Segment 2
     match_type: ANY
 `
+
+	dependentSegmentContents = `version: "1.5"
+namespace:
+	key: default
+	name: Default
+	description: The default namespace
+flags:
+	- key: flag1
+	name: Flag 1
+	type: BOOLEAN
+	description: A test flag
+	enabled: true
+	metadata:
+		team: backend
+	variants:
+		- key: variant1
+		name: Variant 1
+		description: A test variant
+		default: true
+		attachment:
+			color: blue
+	rules:
+		- segment:
+			keys: [segment1]
+			operator: AND
+		distributions:
+			- rollout: 100
+			variant_key: variant1
+	rollouts:
+		- description: A test rollout
+		segment:
+			keys: [segment1]
+			operator: AND
+			value: true
+segments:
+	- key: segment1
+	name: Segment 1
+	match_type: ALL
+`
 )
 
 func TestSegmentStorage_GetResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewSegmentStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewSegmentStorage(logger, dependencyGraph)
+	)
 
 	fs := fstesting.NewFilesystem(
 		t,
@@ -121,9 +164,12 @@ func TestSegmentStorage_GetResource(t *testing.T) {
 }
 
 func TestSegmentStorage_ListResources(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewSegmentStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewSegmentStorage(logger, dependencyGraph)
+	)
 
 	fs := fstesting.NewFilesystem(
 		t,
@@ -182,9 +228,12 @@ func TestSegmentStorage_ListResources(t *testing.T) {
 }
 
 func TestSegmentStorage_PutResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewSegmentStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewSegmentStorage(logger, dependencyGraph)
+	)
 
 	t.Run("create new segment", func(t *testing.T) {
 		fs := fstesting.NewFilesystem(
@@ -267,9 +316,12 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 }
 
 func TestSegmentStorage_DeleteResource(t *testing.T) {
-	ctx := context.TODO()
-	logger := zaptest.NewLogger(t)
-	storage := NewSegmentStorage(logger)
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+		storage         = NewSegmentStorage(logger, dependencyGraph)
+	)
 
 	tests := []struct {
 		name      string
@@ -317,4 +369,37 @@ func TestSegmentStorage_DeleteResource(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+}
+
+func TestSegmentStorage_DeleteResource_Dependent(t *testing.T) {
+	var (
+		ctx             = context.TODO()
+		logger          = zaptest.NewLogger(t)
+		dependencyGraph = NewDependencyGraph()
+
+		storage = NewSegmentStorage(logger, dependencyGraph)
+	)
+
+	// manually add a dependency between a flag and a segment for the test
+	dependencyGraph.AddDependency(ResourceID{
+		Namespace: "default",
+		Key:       "flag1",
+		Type:      serverenvironments.FlagResourceType,
+	}, ResourceID{
+		Namespace: "default",
+		Key:       "segment1",
+		Type:      serverenvironments.SegmentResourceType,
+	})
+
+	fs := fstesting.NewFilesystem(
+		t,
+		fstesting.WithDirectory(
+			"default",
+			fstesting.WithFile("features.yaml", dependentSegmentContents),
+		),
+	)
+
+	err := storage.DeleteResource(ctx, fs, "default", "segment1")
+	require.Error(t, err)
+	assert.EqualError(t, err, "deleting segment default/segment1: segment cannot be deleted as it is a dependency of default/flipt.core.Flag/flag1")
 }

@@ -16,6 +16,11 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	FlagResourceType    = NewResourceType("flipt.core", "Flag")
+	SegmentResourceType = NewResourceType("flipt.core", "Segment")
+)
+
 type ResourceType struct {
 	Package string
 	Name    string

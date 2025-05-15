@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 
+	"slices"
+
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
@@ -16,23 +18,26 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-var _ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
+var (
+	_ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
+)
 
 // SegmentStorage implements the configuration storage ResourceTypeStorage
 // and handles retrieving and storing Segment types from Flipt features.yaml
 // declarative format through an opinionated convention for flag state layout
 type SegmentStorage struct {
-	logger *zap.Logger
+	logger          *zap.Logger
+	dependencyGraph *DependencyGraph
 }
 
 // NewSegmentStorage constructs and configures a new segment storage implementation
-func NewSegmentStorage(logger *zap.Logger) *SegmentStorage {
-	return &SegmentStorage{logger: logger}
+func NewSegmentStorage(logger *zap.Logger, dependencyGraph *DependencyGraph) *SegmentStorage {
+	return &SegmentStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
 // ResourceType returns the Flag specific resource type
 func (SegmentStorage) ResourceType() serverenvironments.ResourceType {
-	return serverenvironments.NewResourceType("flipt.core", "Segment")
+	return serverenvironments.SegmentResourceType
 }
 
 // GetResource fetches the requested segment from the namespaces features.yaml file
@@ -161,6 +166,19 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		}
 	}()
 
+	// check for any dependents of the segment
+	dependents := f.dependencyGraph.GetDependents(ResourceID{
+		Type:      serverenvironments.SegmentResourceType,
+		Namespace: namespace,
+		Key:       key,
+	})
+
+	if len(dependents) > 0 {
+		// just get the first one for now
+		dependent := dependents[0]
+		return errors.ErrConflictf("segment cannot be deleted as it is a dependency of %s/%s/%s", dependent.Namespace, dependent.Type, dependent.Key)
+	}
+
 	docs, err := parseNamespace(ctx, fs, namespace)
 	if err != nil {
 		return err
@@ -180,7 +198,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 			if s.Key == key {
 				found = true
 				// remove entry from list
-				doc.Segments = append(doc.Segments[:i], doc.Segments[i+1:]...)
+				doc.Segments = slices.Delete(doc.Segments, i, i+1)
 			}
 		}
 	}
