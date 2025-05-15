@@ -3,7 +3,7 @@ import { tokyoNight } from '@uiw/codemirror-theme-tokyo-night';
 import CodeMirror from '@uiw/react-codemirror';
 import { Form, Formik } from 'formik';
 import { CodeIcon, RefreshCwIcon, SquareTerminalIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
@@ -96,17 +96,6 @@ export default function Console() {
       };
     });
   }, [flagsData]);
-
-  useEffect(() => {
-    if (flagKey && flags.length > 0) {
-      const found = flags.find((f) => f.key === flagKey);
-      if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
-        setSelectedFlag(found);
-      }
-    } else if (!flagKey) {
-      setSelectedFlag(null);
-    }
-  }, [flagKey, flags, selectedFlag]);
 
   const { data: listAuthProviders } = useListAuthProvidersQuery();
 
@@ -224,6 +213,25 @@ export default function Console() {
     context: '{}'
   };
 
+  // Add a ref to hold Formik helpers
+  const formikHelpersRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!formikHelpersRef.current) return;
+    const formik = formikHelpersRef.current;
+
+    if (flagKey && flags.length > 0) {
+      const found = flags.find((f) => f.key === flagKey);
+      if (found && (!selectedFlag || selectedFlag.key !== found.key)) {
+        setSelectedFlag(found);
+        formik.setFieldValue('flagKey', found.key);
+      }
+    } else if (!flagKey) {
+      setSelectedFlag(null);
+      formik.setFieldValue('flagKey', '');
+    }
+  }, [flagKey, flags, selectedFlag]);
+
   return (
     <>
       <PageHeader title="Playground" />
@@ -241,120 +249,127 @@ export default function Console() {
                   handleSubmit(selectedFlag, values);
                 }}
               >
-                {(formik) => (
-                  <Form className="px-1 sm:overflow-hidden sm:rounded-md">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-3 gap-6">
-                        <div className="col-span-3">
-                          <label
-                            htmlFor="flagKey"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-                          >
-                            Flag
-                          </label>
-                          <Combobox<FilterableFlag>
-                            id="flagKey"
-                            name="flagKey"
-                            className="mt-1"
-                            placeholder="Select or search for a flag"
-                            values={flags}
-                            selected={selectedFlag}
-                            setSelected={(flag) => {
-                              setSelectedFlag(flag);
-                              formik.setFieldValue('flagKey', flag?.key || '');
-                              if (flag) {
-                                navigate(
-                                  `/namespaces/${namespace.key}/playground/${flag.key}`,
-                                  { replace: true }
-                                );
-                              } else {
-                                navigate(
-                                  `/namespaces/${namespace.key}/playground`,
-                                  { replace: true }
-                                );
-                              }
-                            }}
-                            disabled={flagsLoading}
-                          />
-                        </div>
-                        <div className="col-span-3">
-                          <label
-                            htmlFor="entityId"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-                          >
-                            Entity ID
-                          </label>
-                          <div className="flex items-center justify-between">
-                            <Input
-                              className="mt-1 md:mr-2"
-                              name="entityId"
-                              id="entityId"
-                              type="text"
-                            />
-                            <Button
-                              aria-label="New Entity ID"
-                              title="New Entity ID"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                formik.setFieldValue('entityId', uuidv4());
-                              }}
+                {(formik) => {
+                  formikHelpersRef.current = formik;
+
+                  return (
+                    <Form className="px-1 sm:overflow-hidden sm:rounded-md">
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-3 gap-6">
+                          <div className="col-span-3">
+                            <label
+                              htmlFor="flagKey"
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                             >
-                              <RefreshCwIcon className="h-4 w-4 text-gray-400 dark:text-gray-300" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="col-span-3">
-                          <label
-                            htmlFor="context"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-                          >
-                            Request Context
-                          </label>
-                          <div className="mt-1 text-sm">
-                            <JsonEditor
-                              id="context"
-                              value={formik.values.context}
-                              setValue={(v) => {
-                                formik.setFieldValue('context', v);
+                              Flag
+                            </label>
+                            <Combobox<FilterableFlag>
+                              id="flagKey"
+                              name="flagKey"
+                              className="mt-1"
+                              placeholder="Select or search for a flag"
+                              values={flags}
+                              selected={selectedFlag}
+                              setSelected={(flag) => {
+                                setSelectedFlag(flag);
+                                formik.setFieldValue(
+                                  'flagKey',
+                                  flag?.key || ''
+                                );
+                                if (flag) {
+                                  navigate(
+                                    `/namespaces/${namespace.key}/playground/${flag.key}`,
+                                    { replace: true }
+                                  );
+                                } else {
+                                  navigate(
+                                    `/namespaces/${namespace.key}/playground`,
+                                    { replace: true }
+                                  );
+                                }
                               }}
+                              disabled={flagsLoading}
                             />
                           </div>
+                          <div className="col-span-3">
+                            <label
+                              htmlFor="entityId"
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                            >
+                              Entity ID
+                            </label>
+                            <div className="flex items-center justify-between">
+                              <Input
+                                className="mt-1 md:mr-2"
+                                name="entityId"
+                                id="entityId"
+                                type="text"
+                              />
+                              <Button
+                                aria-label="New Entity ID"
+                                title="New Entity ID"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  formik.setFieldValue('entityId', uuidv4());
+                                }}
+                              >
+                                <RefreshCwIcon className="h-4 w-4 text-gray-400 dark:text-gray-300" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="col-span-3">
+                            <label
+                              htmlFor="context"
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                            >
+                              Request Context
+                            </label>
+                            <div className="mt-1 text-sm">
+                              <JsonEditor
+                                id="context"
+                                value={formik.values.context}
+                                setValue={(v) => {
+                                  formik.setFieldValue('context', v);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Dropdown
+                            disabled={!(formik.dirty && formik.isValid)}
+                            label="Copy"
+                            side="top"
+                            actions={[
+                              {
+                                id: 'curl',
+                                disabled: !(formik.dirty && formik.isValid),
+                                label: 'Curl Request',
+                                onClick: () => handleCopyAsCurl(formik.values),
+                                icon: CodeIcon
+                              },
+                              {
+                                id: 'cli',
+                                disabled: !(formik.dirty && formik.isValid),
+                                label: 'Flipt CLI',
+                                onClick: () => handleCopyAsCli(formik.values),
+                                icon: SquareTerminalIcon
+                              }
+                            ]}
+                          />
+                          <Button
+                            variant="primary"
+                            type="submit"
+                            disabled={!(formik.dirty && formik.isValid)}
+                          >
+                            Evaluate
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex justify-end gap-2">
-                        <Dropdown
-                          disabled={!(formik.dirty && formik.isValid)}
-                          label="Copy"
-                          side="top"
-                          actions={[
-                            {
-                              id: 'curl',
-                              disabled: !(formik.dirty && formik.isValid),
-                              label: 'Curl Request',
-                              onClick: () => handleCopyAsCurl(formik.values),
-                              icon: CodeIcon
-                            },
-                            {
-                              id: 'cli',
-                              disabled: !(formik.dirty && formik.isValid),
-                              label: 'Flipt CLI',
-                              onClick: () => handleCopyAsCli(formik.values),
-                              icon: SquareTerminalIcon
-                            }
-                          ]}
-                        />
-                        <Button
-                          variant="primary"
-                          type="submit"
-                          disabled={!(formik.dirty && formik.isValid)}
-                        >
-                          Evaluate
-                        </Button>
-                      </div>
-                    </div>
-                  </Form>
-                )}
+                    </Form>
+                  );
+                }}
               </Formik>
             </div>
             <div className="mt-10 w-full overflow-hidden md:w-1/2 md:pl-4">

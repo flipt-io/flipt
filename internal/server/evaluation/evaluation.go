@@ -28,7 +28,12 @@ import (
 
 // Variant evaluates a request for a multi-variate flag and entity.
 func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.Get(ctx, r.EnvironmentKey)
+	if err != nil {
+		// try to get the environment from the context
+		// this is for backwards compatibility with v1
+		env = s.store.GetFromContext(ctx)
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {
@@ -263,7 +268,12 @@ func (s *Server) variant(ctx context.Context, store storage.ReadOnlyStore, env e
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.Get(ctx, r.EnvironmentKey)
+	if err != nil {
+		// try to get the environment from the context
+		// this is for backwards compatibility with v1
+		env = s.store.GetFromContext(ctx)
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {
