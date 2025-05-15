@@ -21,7 +21,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
-	configcoreflipt "go.flipt.io/flipt/internal/storage/environments/fs/flipt"
+	"go.flipt.io/flipt/internal/storage/graph"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
@@ -77,11 +77,11 @@ func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.
 
 type SnapshotBuilder struct {
 	logger          *zap.Logger
-	dependencyGraph *configcoreflipt.DependencyGraph
+	dependencyGraph *graph.DependencyGraph
 	opts            []containers.Option[SnapshotOption]
 }
 
-func NewSnapshotBuilder(logger *zap.Logger, dependencyGraph *configcoreflipt.DependencyGraph, opts ...containers.Option[SnapshotOption]) *SnapshotBuilder {
+func NewSnapshotBuilder(logger *zap.Logger, dependencyGraph *graph.DependencyGraph, opts ...containers.Option[SnapshotOption]) *SnapshotBuilder {
 	return &SnapshotBuilder{
 		logger:          logger,
 		dependencyGraph: dependencyGraph,
@@ -264,11 +264,12 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 // codepaths (v1 types / eval).
 // The snapshot generated contains all the necessary state to serve server-side
 // evaluation as well as returning entire snapshot state for client-side evaluation.
-func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *configcoreflipt.DependencyGraph) error {
+func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *graph.DependencyGraph) error {
 	var (
 		namespaceKey = doc.Namespace.GetKey()
 		ns           = s.ns[namespaceKey]
 		snap         = s.evalSnap.Namespaces[namespaceKey]
+		dependencies = []graph.Dependency{}
 	)
 
 	if ns == nil {
@@ -433,14 +434,19 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *configcoreflipt.De
 				}
 
 				// track dependency between flag and segment
-				dependencyGraph.AddDependency(configcoreflipt.ResourceID{
-					Namespace: doc.Namespace.GetKey(),
-					Key:       flag.Key,
-					Type:      environments.FlagResourceType,
-				}, configcoreflipt.ResourceID{
-					Namespace: doc.Namespace.GetKey(),
-					Key:       segmentKey,
-					Type:      environments.SegmentResourceType,
+				dependencies = append(dependencies, graph.Dependency{
+					Resource: graph.ResourceID{
+						Namespace: doc.Namespace.GetKey(),
+						Key:       flag.Key,
+						Type:      environments.FlagResourceType,
+					},
+					Dependents: []graph.ResourceID{
+						{
+							Namespace: doc.Namespace.GetKey(),
+							Key:       segmentKey,
+							Type:      environments.SegmentResourceType,
+						},
+					},
 				})
 
 				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -569,14 +575,19 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *configcoreflipt.De
 					}
 
 					// track dependency between flag and segment
-					dependencyGraph.AddDependency(configcoreflipt.ResourceID{
-						Namespace: doc.Namespace.GetKey(),
-						Key:       flag.Key,
-						Type:      environments.FlagResourceType,
-					}, configcoreflipt.ResourceID{
-						Namespace: doc.Namespace.GetKey(),
-						Key:       segmentKey,
-						Type:      environments.SegmentResourceType,
+					dependencies = append(dependencies, graph.Dependency{
+						Resource: graph.ResourceID{
+							Namespace: doc.Namespace.GetKey(),
+							Key:       flag.Key,
+							Type:      environments.FlagResourceType,
+						},
+						Dependents: []graph.ResourceID{
+							{
+								Namespace: doc.Namespace.GetKey(),
+								Key:       segmentKey,
+								Type:      environments.SegmentResourceType,
+							},
+						},
 					})
 
 					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -639,6 +650,8 @@ func (s *Snapshot) addDoc(doc *ext.Document, dependencyGraph *configcoreflipt.De
 	snap.Digest = doc.Etag
 	s.evalSnap.Namespaces[namespaceKey] = snap
 	s.evalDists = evalDists
+
+	dependencyGraph.SetDependencies(dependencies)
 
 	return nil
 }

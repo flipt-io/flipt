@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/internal/containers"
-	configcoreflipt "go.flipt.io/flipt/internal/storage/environments/fs/flipt"
 	"go.flipt.io/flipt/internal/storage/fs"
+	"go.flipt.io/flipt/internal/storage/graph"
 )
 
 type validateCommand struct {
@@ -83,7 +83,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return errors.New("non-empty working directory expected")
 	}
 
-	builder := fs.NewSnapshotBuilder(logger, configcoreflipt.NewDependencyGraph())
+	builder := fs.NewSnapshotBuilder(logger, graph.NewDependencyGraph())
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
 		var config *fs.Config

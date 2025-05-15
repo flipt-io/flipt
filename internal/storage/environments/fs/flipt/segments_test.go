@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	fstesting "go.flipt.io/flipt/internal/storage/environments/fs/testing"
+	"go.flipt.io/flipt/internal/storage/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap/zaptest"
@@ -97,7 +98,7 @@ func TestSegmentStorage_GetResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = NewDependencyGraph()
+		dependencyGraph = graph.NewDependencyGraph()
 		storage         = NewSegmentStorage(logger, dependencyGraph)
 	)
 
@@ -167,7 +168,7 @@ func TestSegmentStorage_ListResources(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = NewDependencyGraph()
+		dependencyGraph = graph.NewDependencyGraph()
 		storage         = NewSegmentStorage(logger, dependencyGraph)
 	)
 
@@ -231,7 +232,7 @@ func TestSegmentStorage_PutResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = NewDependencyGraph()
+		dependencyGraph = graph.NewDependencyGraph()
 		storage         = NewSegmentStorage(logger, dependencyGraph)
 	)
 
@@ -319,7 +320,7 @@ func TestSegmentStorage_DeleteResource(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = NewDependencyGraph()
+		dependencyGraph = graph.NewDependencyGraph()
 		storage         = NewSegmentStorage(logger, dependencyGraph)
 	)
 
@@ -375,20 +376,25 @@ func TestSegmentStorage_DeleteResource_Dependent(t *testing.T) {
 	var (
 		ctx             = context.TODO()
 		logger          = zaptest.NewLogger(t)
-		dependencyGraph = NewDependencyGraph()
+		dependencyGraph = graph.NewDependencyGraph()
 
 		storage = NewSegmentStorage(logger, dependencyGraph)
 	)
 
 	// manually add a dependency between a flag and a segment for the test
-	dependencyGraph.AddDependency(ResourceID{
-		Namespace: "default",
-		Key:       "flag1",
-		Type:      serverenvironments.FlagResourceType,
-	}, ResourceID{
-		Namespace: "default",
-		Key:       "segment1",
-		Type:      serverenvironments.SegmentResourceType,
+	dependencyGraph.AddDependency(graph.Dependency{
+		Resource: graph.ResourceID{
+			Namespace: "default",
+			Key:       "flag1",
+			Type:      serverenvironments.FlagResourceType,
+		},
+		Dependents: []graph.ResourceID{
+			{
+				Namespace: "default",
+				Key:       "segment1",
+				Type:      serverenvironments.SegmentResourceType,
+			},
+		},
 	})
 
 	fs := fstesting.NewFilesystem(

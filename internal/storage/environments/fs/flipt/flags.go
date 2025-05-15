@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	"go.flipt.io/flipt/internal/storage/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -30,11 +31,11 @@ var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
 // declarative format through an opinionated convention for flag state layout
 type FlagStorage struct {
 	logger          *zap.Logger
-	dependencyGraph *DependencyGraph
+	dependencyGraph *graph.DependencyGraph
 }
 
 // NewFlagStorage constructs and configures a new flag storage implementation
-func NewFlagStorage(logger *zap.Logger, dependencyGraph *DependencyGraph) *FlagStorage {
+func NewFlagStorage(logger *zap.Logger, dependencyGraph *graph.DependencyGraph) *FlagStorage {
 	return &FlagStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
@@ -173,7 +174,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 
 	// check for any dependents of the flag
 	// this should not be possible yet as flags are not a dependency of anything but we'll add this for completeness
-	dependents := f.dependencyGraph.GetDependents(ResourceID{
+	dependents := f.dependencyGraph.GetDependents(graph.ResourceID{
 		Type:      serverenvironments.FlagResourceType,
 		Namespace: namespace,
 		Key:       key,

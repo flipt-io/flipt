@@ -1,4 +1,4 @@
-package flipt
+package graph
 
 import (
 	"fmt"
@@ -6,6 +6,11 @@ import (
 
 	"go.flipt.io/flipt/internal/server/environments"
 )
+
+type Dependency struct {
+	Resource   ResourceID
+	Dependents []ResourceID
+}
 
 // ResourceID uniquely identifies a resource in the system.
 type ResourceID struct {
@@ -36,40 +41,48 @@ func NewDependencyGraph() *DependencyGraph {
 }
 
 // SetDependencies sets the dependencies for a resource, updating the graph accordingly.
-func (g *DependencyGraph) SetDependencies(res ResourceID, deps []ResourceID) {
+func (g *DependencyGraph) SetDependencies(deps []Dependency) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	// Remove old dependencies
-	for dep := range g.dependencies[res] {
-		delete(g.dependents[dep], res)
-		if len(g.dependents[dep]) == 0 {
-			delete(g.dependents, dep)
+	for _, dep := range deps {
+		// Remove old dependencies
+		for d := range g.dependencies[dep.Resource] {
+			delete(g.dependents[d], dep.Resource)
+			if len(g.dependents[d]) == 0 {
+				delete(g.dependents, d)
+			}
 		}
 	}
 	// Set new dependencies
-	g.dependencies[res] = make(map[ResourceID]struct{})
 	for _, dep := range deps {
-		g.dependencies[res][dep] = struct{}{}
-		if g.dependents[dep] == nil {
-			g.dependents[dep] = make(map[ResourceID]struct{})
+		g.dependencies[dep.Resource] = make(map[ResourceID]struct{})
+		for _, d := range dep.Dependents {
+			g.dependencies[dep.Resource][d] = struct{}{}
+			if g.dependents[d] == nil {
+				g.dependents[d] = make(map[ResourceID]struct{})
+			}
+			g.dependents[d][dep.Resource] = struct{}{}
 		}
-		g.dependents[dep][res] = struct{}{}
 	}
 }
 
 // AddDependency adds a dependency between two resources.
-func (g *DependencyGraph) AddDependency(res ResourceID, dep ResourceID) {
+func (g *DependencyGraph) AddDependency(dep Dependency) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	if g.dependencies[res] == nil {
-		g.dependencies[res] = make(map[ResourceID]struct{})
+
+	if g.dependencies[dep.Resource] == nil {
+		g.dependencies[dep.Resource] = make(map[ResourceID]struct{})
 	}
-	if g.dependents[dep] == nil {
-		g.dependents[dep] = make(map[ResourceID]struct{})
+
+	for _, d := range dep.Dependents {
+		if g.dependents[d] == nil {
+			g.dependents[d] = make(map[ResourceID]struct{})
+		}
+		g.dependencies[dep.Resource][d] = struct{}{}
+		g.dependents[d][dep.Resource] = struct{}{}
 	}
-	g.dependencies[res][dep] = struct{}{}
-	g.dependents[dep][res] = struct{}{}
 }
 
 // RemoveResource removes a resource and all its dependency links from the graph.

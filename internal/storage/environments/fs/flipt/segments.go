@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	"go.flipt.io/flipt/internal/storage/graph"
 	"go.flipt.io/flipt/rpc/flipt/core"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -27,11 +28,11 @@ var (
 // declarative format through an opinionated convention for flag state layout
 type SegmentStorage struct {
 	logger          *zap.Logger
-	dependencyGraph *DependencyGraph
+	dependencyGraph *graph.DependencyGraph
 }
 
 // NewSegmentStorage constructs and configures a new segment storage implementation
-func NewSegmentStorage(logger *zap.Logger, dependencyGraph *DependencyGraph) *SegmentStorage {
+func NewSegmentStorage(logger *zap.Logger, dependencyGraph *graph.DependencyGraph) *SegmentStorage {
 	return &SegmentStorage{logger: logger, dependencyGraph: dependencyGraph}
 }
 
@@ -167,7 +168,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 	}()
 
 	// check for any dependents of the segment
-	dependents := f.dependencyGraph.GetDependents(ResourceID{
+	dependents := f.dependencyGraph.GetDependents(graph.ResourceID{
 		Type:      serverenvironments.SegmentResourceType,
 		Namespace: namespace,
 		Key:       key,
