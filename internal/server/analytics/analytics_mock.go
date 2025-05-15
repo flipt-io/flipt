@@ -37,6 +37,63 @@ func (_m *MockClient) EXPECT() *MockClient_Expecter {
 	return &MockClient_Expecter{mock: &_m.Mock}
 }
 
+// GetBatchFlagEvaluationsCount provides a mock function for the type MockClient
+func (_mock *MockClient) GetBatchFlagEvaluationsCount(ctx context.Context, req *BatchFlagEvaluationsCountRequest) (map[string]FlagEvaluationData, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBatchFlagEvaluationsCount")
+	}
+
+	var r0 map[string]FlagEvaluationData
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *BatchFlagEvaluationsCountRequest) (map[string]FlagEvaluationData, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *BatchFlagEvaluationsCountRequest) map[string]FlagEvaluationData); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]FlagEvaluationData)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *BatchFlagEvaluationsCountRequest) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_GetBatchFlagEvaluationsCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBatchFlagEvaluationsCount'
+type MockClient_GetBatchFlagEvaluationsCount_Call struct {
+	*mock.Call
+}
+
+// GetBatchFlagEvaluationsCount is a helper method to define mock.On call
+//   - ctx
+//   - req
+func (_e *MockClient_Expecter) GetBatchFlagEvaluationsCount(ctx interface{}, req interface{}) *MockClient_GetBatchFlagEvaluationsCount_Call {
+	return &MockClient_GetBatchFlagEvaluationsCount_Call{Call: _e.mock.On("GetBatchFlagEvaluationsCount", ctx, req)}
+}
+
+func (_c *MockClient_GetBatchFlagEvaluationsCount_Call) Run(run func(ctx context.Context, req *BatchFlagEvaluationsCountRequest)) *MockClient_GetBatchFlagEvaluationsCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*BatchFlagEvaluationsCountRequest))
+	})
+	return _c
+}
+
+func (_c *MockClient_GetBatchFlagEvaluationsCount_Call) Return(stringToFlagEvaluationData map[string]FlagEvaluationData, err error) *MockClient_GetBatchFlagEvaluationsCount_Call {
+	_c.Call.Return(stringToFlagEvaluationData, err)
+	return _c
+}
+
+func (_c *MockClient_GetBatchFlagEvaluationsCount_Call) RunAndReturn(run func(ctx context.Context, req *BatchFlagEvaluationsCountRequest) (map[string]FlagEvaluationData, error)) *MockClient_GetBatchFlagEvaluationsCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetFlagEvaluationsCount provides a mock function for the type MockClient
 func (_mock *MockClient) GetFlagEvaluationsCount(ctx context.Context, req *FlagEvaluationsCountRequest) ([]string, []float32, error) {
 	ret := _mock.Called(ctx, req)

@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AnalyticsService_GetFlagEvaluationsCount_FullMethodName = "/analytics.AnalyticsService/GetFlagEvaluationsCount"
+	AnalyticsService_GetFlagEvaluationsCount_FullMethodName      = "/analytics.AnalyticsService/GetFlagEvaluationsCount"
+	AnalyticsService_GetBatchFlagEvaluationsCount_FullMethodName = "/analytics.AnalyticsService/GetBatchFlagEvaluationsCount"
 )
 
 // AnalyticsServiceClient is the client API for AnalyticsService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyticsServiceClient interface {
 	GetFlagEvaluationsCount(ctx context.Context, in *GetFlagEvaluationsCountRequest, opts ...grpc.CallOption) (*GetFlagEvaluationsCountResponse, error)
+	GetBatchFlagEvaluationsCount(ctx context.Context, in *GetBatchFlagEvaluationsCountRequest, opts ...grpc.CallOption) (*GetBatchFlagEvaluationsCountResponse, error)
 }
 
 type analyticsServiceClient struct {
@@ -47,11 +49,22 @@ func (c *analyticsServiceClient) GetFlagEvaluationsCount(ctx context.Context, in
 	return out, nil
 }
 
+func (c *analyticsServiceClient) GetBatchFlagEvaluationsCount(ctx context.Context, in *GetBatchFlagEvaluationsCountRequest, opts ...grpc.CallOption) (*GetBatchFlagEvaluationsCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBatchFlagEvaluationsCountResponse)
+	err := c.cc.Invoke(ctx, AnalyticsService_GetBatchFlagEvaluationsCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyticsServiceServer is the server API for AnalyticsService service.
 // All implementations must embed UnimplementedAnalyticsServiceServer
 // for forward compatibility.
 type AnalyticsServiceServer interface {
 	GetFlagEvaluationsCount(context.Context, *GetFlagEvaluationsCountRequest) (*GetFlagEvaluationsCountResponse, error)
+	GetBatchFlagEvaluationsCount(context.Context, *GetBatchFlagEvaluationsCountRequest) (*GetBatchFlagEvaluationsCountResponse, error)
 	mustEmbedUnimplementedAnalyticsServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedAnalyticsServiceServer struct{}
 
 func (UnimplementedAnalyticsServiceServer) GetFlagEvaluationsCount(context.Context, *GetFlagEvaluationsCountRequest) (*GetFlagEvaluationsCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFlagEvaluationsCount not implemented")
+}
+func (UnimplementedAnalyticsServiceServer) GetBatchFlagEvaluationsCount(context.Context, *GetBatchFlagEvaluationsCountRequest) (*GetBatchFlagEvaluationsCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBatchFlagEvaluationsCount not implemented")
 }
 func (UnimplementedAnalyticsServiceServer) mustEmbedUnimplementedAnalyticsServiceServer() {}
 func (UnimplementedAnalyticsServiceServer) testEmbeddedByValue()                          {}
@@ -104,6 +120,24 @@ func _AnalyticsService_GetFlagEvaluationsCount_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnalyticsService_GetBatchFlagEvaluationsCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBatchFlagEvaluationsCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsServiceServer).GetBatchFlagEvaluationsCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AnalyticsService_GetBatchFlagEvaluationsCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsServiceServer).GetBatchFlagEvaluationsCount(ctx, req.(*GetBatchFlagEvaluationsCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AnalyticsService_ServiceDesc is the grpc.ServiceDesc for AnalyticsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFlagEvaluationsCount",
 			Handler:    _AnalyticsService_GetFlagEvaluationsCount_Handler,
+		},
+		{
+			MethodName: "GetBatchFlagEvaluationsCount",
+			Handler:    _AnalyticsService_GetBatchFlagEvaluationsCount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

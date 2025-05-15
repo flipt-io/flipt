@@ -12,10 +12,10 @@ SELECT
     sum(`value`) AS `value`
 FROM flipt_counter_analytics_v2
 GROUP BY
-    timestamp,
-    analytic_name,
     environment_key,
     namespace_key,
     flag_key,
+    timestamp,
+    analytic_name,
     reason,
     evaluation_value;

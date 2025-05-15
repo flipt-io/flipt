@@ -118,6 +118,64 @@ func local_request_AnalyticsService_GetFlagEvaluationsCount_0(ctx context.Contex
 	return msg, metadata, err
 }
 
+func request_AnalyticsService_GetBatchFlagEvaluationsCount_0(ctx context.Context, marshaler runtime.Marshaler, client AnalyticsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetBatchFlagEvaluationsCountRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["namespace_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
+	}
+	protoReq.NamespaceKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace_key", err)
+	}
+	msg, err := client.GetBatchFlagEvaluationsCount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AnalyticsService_GetBatchFlagEvaluationsCount_0(ctx context.Context, marshaler runtime.Marshaler, server AnalyticsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetBatchFlagEvaluationsCountRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["namespace_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace_key")
+	}
+	protoReq.NamespaceKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace_key", err)
+	}
+	msg, err := server.GetBatchFlagEvaluationsCount(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterAnalyticsServiceHandlerServer registers the http handlers for service AnalyticsService to "mux".
 // UnaryRPC     :call AnalyticsServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -143,6 +201,26 @@ func RegisterAnalyticsServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 			return
 		}
 		forward_AnalyticsService_GetFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_AnalyticsService_GetBatchFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AnalyticsService_GetBatchFlagEvaluationsCount_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AnalyticsService_GetBatchFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -201,13 +279,32 @@ func RegisterAnalyticsServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		}
 		forward_AnalyticsService_GetFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_AnalyticsService_GetBatchFlagEvaluationsCount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/analytics.AnalyticsService/GetBatchFlagEvaluationsCount", runtime.WithHTTPPathPattern("/internal/v2/analytics/environments/{environment_key}/namespaces/{namespace_key}/batch"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AnalyticsService_GetBatchFlagEvaluationsCount_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AnalyticsService_GetBatchFlagEvaluationsCount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
 var (
-	pattern_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8}, []string{"internal", "v2", "analytics", "environments", "environment_key", "namespaces", "namespace_key", "flags", "flag_key"}, ""))
+	pattern_AnalyticsService_GetFlagEvaluationsCount_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 8}, []string{"internal", "v2", "analytics", "environments", "environment_key", "namespaces", "namespace_key", "flags", "flag_key"}, ""))
+	pattern_AnalyticsService_GetBatchFlagEvaluationsCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"internal", "v2", "analytics", "environments", "environment_key", "namespaces", "namespace_key", "batch"}, ""))
 )
 
 var (
-	forward_AnalyticsService_GetFlagEvaluationsCount_0 = runtime.ForwardResponseMessage
+	forward_AnalyticsService_GetFlagEvaluationsCount_0      = runtime.ForwardResponseMessage
+	forward_AnalyticsService_GetBatchFlagEvaluationsCount_0 = runtime.ForwardResponseMessage
 )
