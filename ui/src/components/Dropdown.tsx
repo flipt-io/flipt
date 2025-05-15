@@ -84,7 +84,9 @@ export default function Dropdown(props: DropdownProps) {
               disabled={action.disabled}
               className={cls(dropdownVariants({ variant: action.variant }))}
             >
-              {action.icon && <action.icon aria-hidden="true" />}
+              {action.icon && (
+                <action.icon aria-hidden="true" className="text-inherit" />
+              )}
               {action.label}
             </DropdownMenuItem>
           </Fragment>

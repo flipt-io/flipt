@@ -75,7 +75,7 @@ export default function Variants({ variants }: VariantsProps) {
       <div className="mt-2 min-w-full">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            <p className="mt-1 text-sm text-muted-foreground">
               Return different values based on rules you define.
             </p>
           </div>

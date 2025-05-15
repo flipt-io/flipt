@@ -204,7 +204,7 @@ export default function Analytics() {
       <div className="mt-2">
         <div className="sm:flex sm:items-center mb-6">
           <div className="sm:flex-auto">
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            <p className="mt-1 text-sm text-muted-foreground">
               Track and measure the impact of your flags in real-time.
             </p>
           </div>

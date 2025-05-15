@@ -85,7 +85,7 @@ export default function Constraints({ constraints }: ConstraintsProps) {
             <h3 className="font-medium leading-6 text-gray-900 dark:text-gray-100">
               Constraints
             </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            <p className="mt-1 text-sm text-muted-foreground">
               Determine if a request matches a segment.
             </p>
           </div>
