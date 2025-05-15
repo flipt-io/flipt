@@ -442,18 +442,26 @@ func (s *Server) boolean(ctx context.Context, store storage.ReadOnlyStore, env e
 
 // Batch takes in a list of *evaluation.EvaluationRequest and returns their respective responses.
 func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
-
-	store, err := env.EvaluationStore()
-	if err != nil {
-		return nil, err
-	}
-
 	resp := &rpcevaluation.BatchEvaluationResponse{
 		Responses: make([]*rpcevaluation.EvaluationResponse, 0, len(b.Requests)),
 	}
 
 	for _, req := range b.GetRequests() {
+		// this is not ideal as it could lead to a lot of swapping the environment store if requests are coming in for different environments
+		// we will need to document that while you CAN use different environments in the same request, it is not recommended and could have a performance impact
+		// but since we are using an in-memory map it's probably not that bad
+		env, err := s.store.Get(ctx, req.EnvironmentKey)
+		if err != nil {
+			// try to get the environment from the context
+			// this is for backwards compatibility with v1
+			env = s.store.GetFromContext(ctx)
+		}
+
+		store, err := env.EvaluationStore()
+		if err != nil {
+			return nil, err
+		}
+
 		f, err := store.GetFlag(ctx, storage.NewResource(req.NamespaceKey, req.FlagKey, storage.WithReference(b.Reference)))
 		if err != nil {
 			var errnf errs.ErrNotFound
