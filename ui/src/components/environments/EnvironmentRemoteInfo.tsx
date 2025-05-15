@@ -1,4 +1,11 @@
-import { FolderGit, Github, Gitlab } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  FolderGit,
+  Github,
+  Gitlab
+} from 'lucide-react';
+import { useState } from 'react';
 
 import { IEnvironment } from '~/types/Environment';
 
@@ -46,9 +53,22 @@ export function EnvironmentRemoteInfo({
 
   const repoName = extractRepoName(configuration.remote);
 
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="mt-2 rounded-lg bg-white/80 dark:bg-muted/60 shadow-xs border border-muted flex flex-col gap-1 p-3">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="mt-2 rounded-lg bg-white/80 dark:bg-muted/60 shadow-xs border border-muted flex flex-col gap-1 p-2">
+      <div
+        className="flex items-center gap-2 mb-1 cursor-pointer select-none"
+        onClick={() => setExpanded((prev) => !prev)}
+        title={expanded ? 'Collapse' : 'Expand'}
+      >
+        <span>
+          {expanded ? (
+            <ChevronDown className="w-4 h-4 text-muted-foreground/80" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-muted-foreground/80" />
+          )}
+        </span>
         <ProviderIcon className="w-4 h-4 text-muted-foreground" />
         <a
           href={repoUrl}
@@ -56,28 +76,31 @@ export function EnvironmentRemoteInfo({
           rel="noopener noreferrer"
           className="font-medium text-sm text-foreground hover:underline break-all truncate max-w-[140px]"
           title={repoName}
+          onClick={(e) => e.stopPropagation()} // Prevent toggle when clicking link
         >
           {repoName}
         </a>
       </div>
-      <div className="flex gap-2 mt-1">
-        {configuration.branch && (
-          <span
-            className="font-mono text-xs bg-muted rounded px-1 py-0.5 truncate max-w-[60px]"
-            title={configuration.branch}
-          >
-            {configuration.branch}
-          </span>
-        )}
-        {configuration.directory && (
-          <span
-            className="font-mono text-xs py-0.5 text-muted-foreground truncate max-w-[60px]"
-            title={configuration.directory}
-          >
-            {configuration.directory}
-          </span>
-        )}
-      </div>
+      {expanded && (
+        <div className="flex gap-2 mt-1">
+          {configuration.branch && (
+            <span
+              className="font-mono text-xs bg-muted rounded px-1 py-0.5 truncate max-w-[60px]"
+              title={configuration.branch}
+            >
+              {configuration.branch}
+            </span>
+          )}
+          {configuration.directory && (
+            <span
+              className="font-mono text-xs py-0.5 text-muted-foreground truncate max-w-[60px]"
+              title={configuration.directory}
+            >
+              {configuration.directory}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

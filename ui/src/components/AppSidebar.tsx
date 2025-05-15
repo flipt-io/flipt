@@ -35,13 +35,13 @@ export function AppSidebar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <EnvironmentNamespaceSwitcher />
-        {state === 'expanded' && (
-          <EnvironmentRemoteInfo environment={currentEnvironment} />
-        )}
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />
         <NavSecondary className="mt-auto" />
+        {state === 'expanded' && (
+          <EnvironmentRemoteInfo environment={currentEnvironment} />
+        )}
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />
