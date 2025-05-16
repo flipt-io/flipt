@@ -255,6 +255,19 @@
                     "insecure_skip_tls": {
                       "type": "boolean",
                       "default": false
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "single",
+                        "cluster",
+                        ""
+                      ],
+                      "default": ""
+                    },
+                    "prefix": {
+                      "type": "string",
+                      "default": "flipt"
                     }
                   }
                 }
