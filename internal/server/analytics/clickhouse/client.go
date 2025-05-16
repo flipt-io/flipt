@@ -266,10 +266,7 @@ func (c *Client) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 
 		// If limit is specified and we have more data points than the limit, downsample
 		if req.Limit > 0 && len(ts) > req.Limit {
-			downTs, downValues, err := downsampleData(ts, values, req.Limit)
-			if err != nil {
-				return nil, err
-			}
+			downTs, downValues := downsampleData(ts, values, req.Limit)
 			ts = downTs
 			values = downValues
 		}
@@ -284,15 +281,16 @@ func (c *Client) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 }
 
 // downsampleData reduces the number of data points to match the requested limit
-func downsampleData(timestamps []string, values []float32, limit int) ([]string, []float32, error) {
+func downsampleData(timestamps []string, values []float32, limit int) ([]string, []float32) {
 	if len(timestamps) <= limit {
-		return timestamps, values, nil
+		return timestamps, values
 	}
 
-	step := max(len(timestamps) / limit, 1)
-
-	newTimestamps := make([]string, 0, limit)
-	newValues := make([]float32, 0, limit)
+	var (
+		step          = max(len(timestamps)/limit, 1)
+		newTimestamps = make([]string, 0, limit)
+		newValues     = make([]float32, 0, limit)
+	)
 
 	for i := 0; i < len(timestamps); i += step {
 		newTimestamps = append(newTimestamps, timestamps[i])
@@ -303,7 +301,7 @@ func downsampleData(timestamps []string, values []float32, limit int) ([]string,
 		}
 	}
 
-	return newTimestamps, newValues, nil
+	return newTimestamps, newValues
 }
 
 // Close will close the DB connection.
