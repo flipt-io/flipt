@@ -13,7 +13,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/cap/jwt"
-	"github.com/redis/go-redis/extra/redisotel/v9"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
@@ -47,19 +46,9 @@ func getAuthStore(
 	)
 
 	if cfg.Authentication.Session.Storage.Type == config.AuthenticationSessionStorageTypeRedis {
-		rdb, err := storageauthredis.NewClient(cfg.Authentication.Session.Storage.Redis)
+		rdb, err := storageauthredis.NewClient(*cfg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create redis client: %w", err)
-		}
-
-		if err := redisotel.InstrumentMetrics(rdb); err != nil {
-			return nil, fmt.Errorf("instrumenting redis: %w", err)
-		}
-
-		if cfg.Tracing.Enabled {
-			if err := redisotel.InstrumentTracing(rdb); err != nil {
-				return nil, fmt.Errorf("instrumenting redis: %w", err)
-			}
 		}
 
 		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod), storageauthredis.WithPrefix(prefix))

@@ -30,12 +30,12 @@ func TestTLSInsecure(t *testing.T) {
 		{"cluster: insecure enabled", true, true, config.RedisCacheModeCluster},
 	}
 	for _, tt := range tests {
-		client, err := NewClient(config.AuthenticationSessionStorageRedisConfig{
-			RequireTLS:      true,
-			InsecureSkipTLS: tt.input,
-			Mode:            tt.mode,
-		})
+		cfg := config.Default()
+		cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+		cfg.Authentication.Session.Storage.Redis.InsecureSkipTLS = tt.input
+		cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
 
+		client, err := NewClient(*cfg)
 		require.NoError(t, err)
 
 		switch c := client.(type) {
@@ -62,12 +62,12 @@ func TestTLSCABundle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client, err := NewClient(config.AuthenticationSessionStorageRedisConfig{
-				RequireTLS:  true,
-				CaCertBytes: ca,
-				Mode:        tt.mode,
-			})
+			cfg := config.Default()
+			cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+			cfg.Authentication.Session.Storage.Redis.CaCertBytes = ca
+			cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
 
+			client, err := NewClient(*cfg)
 			require.NoError(t, err)
 
 			switch c := client.(type) {
@@ -80,12 +80,12 @@ func TestTLSCABundle(t *testing.T) {
 			}
 		})
 
-		t.Run("load CA provided", func(t *testing.T) {
-			client, err := NewClient(config.AuthenticationSessionStorageRedisConfig{
-				RequireTLS:  true,
-				CaCertBytes: "",
-				Mode:        tt.mode,
-			})
+		t.Run("load CA not provided", func(t *testing.T) {
+			cfg := config.Default()
+			cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+			cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
+
+			client, err := NewClient(*cfg)
 
 			require.NoError(t, err)
 
@@ -96,6 +96,24 @@ func TestTLSCABundle(t *testing.T) {
 				require.Nil(t, c.Options().TLSConfig.RootCAs)
 			default:
 				t.Fatalf("unexpected client type: %T", client)
+			}
+		})
+
+		t.Run("load CABytes successful", func(t *testing.T) {
+			cfg := config.Default()
+			cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+			cfg.Authentication.Session.Storage.Redis.CaCertBytes = ca
+			cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
+
+			client, err := NewClient(*cfg)
+
+			require.NoError(t, err)
+
+			switch c := client.(type) {
+			case *goredis.Client:
+				require.NotNil(t, c.Options().TLSConfig.RootCAs)
+			case *goredis.ClusterClient:
+				require.NotNil(t, c.Options().TLSConfig.RootCAs)
 			}
 		})
 
@@ -108,11 +126,12 @@ func TestTLSCABundle(t *testing.T) {
 
 			require.NoError(t, err)
 
-			client, err := NewClient(config.AuthenticationSessionStorageRedisConfig{
-				RequireTLS: true,
-				CaCertPath: cafile,
-				Mode:       tt.mode,
-			})
+			cfg := config.Default()
+			cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+			cfg.Authentication.Session.Storage.Redis.CaCertPath = cafile
+			cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
+
+			client, err := NewClient(*cfg)
 
 			require.NoError(t, err)
 
@@ -130,11 +149,12 @@ func TestTLSCABundle(t *testing.T) {
 				cafile = filepath.Join(dir, "cafile.pem")
 			)
 
-			_, err := NewClient(config.AuthenticationSessionStorageRedisConfig{
-				RequireTLS: true,
-				CaCertPath: cafile,
-				Mode:       tt.mode,
-			})
+			cfg := config.Default()
+			cfg.Authentication.Session.Storage.Redis.RequireTLS = true
+			cfg.Authentication.Session.Storage.Redis.CaCertPath = cafile
+			cfg.Authentication.Session.Storage.Redis.Mode = tt.mode
+
+			_, err := NewClient(*cfg)
 
 			require.Error(t, err)
 		})
