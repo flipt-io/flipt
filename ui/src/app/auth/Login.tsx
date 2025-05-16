@@ -20,6 +20,7 @@ import logoFlag from '~/assets/logo-flag.png';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { upperFirst } from '~/utils/helpers';
+import { Button } from '~/components/ui/button';
 
 interface ILoginProvider {
   displayName: string;
@@ -46,7 +47,7 @@ const knownProviders: Record<string, ILoginProvider> = {
     icon: faOpenid
   },
   github: {
-    displayName: 'Github',
+    displayName: 'GitHub',
     icon: faGithub
   }
 };
@@ -93,7 +94,7 @@ function InnerLoginButtons() {
       .flatMap<any, IAuthDisplay>((m: IAuthMethod) => {
         if (m.method === 'METHOD_GITHUB') {
           return {
-            name: 'Github',
+            name: 'GitHub',
             authorize_url: m.metadata.authorize_url,
             icon: faGithub
           };
@@ -105,9 +106,9 @@ function InnerLoginButtons() {
               authorize_url: string;
             };
             return {
-              name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
+              name: knownProviders[k]?.displayName || upperFirst(k),
               authorize_url: v.authorize_url,
-              icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
+              icon: knownProviders[k]?.icon || faOpenid
             };
           });
         }
@@ -121,39 +122,37 @@ function InnerLoginButtons() {
   return (
     <>
       {providers.length > 0 && (
-        <div className="mt-6 flex flex-col space-y-5">
+        <div className="mt-6 flex flex-col space-y-3">
           {providers.map((provider) => (
-            <div key={provider.name}>
-              <a
-                href="#"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-muted-foreground shadow-xs hover:text-violet-500 dark:hover:text-violet-400 hover:shadow-violet-300 dark:hover:shadow-violet-700/40 dark:bg-gray-800"
-                onClick={(e) => {
-                  e.preventDefault();
-                  authorize(provider.authorize_url);
-                }}
-              >
-                <span className="sr-only">Sign in with {provider.name}</span>
-                <FontAwesomeIcon
-                  icon={provider.icon}
-                  className="text-gray h-5 w-5 dark:text-gray-300"
-                  aria-hidden={true}
-                />
-                <span className="ml-2">With {provider.name}</span>
-              </a>
-            </div>
+            <Button
+              key={provider.name}
+              variant="outline"
+              className="flex items-center gap-2 w-full justify-center"
+              onClick={(e) => {
+                e.preventDefault();
+                authorize(provider.authorize_url);
+              }}
+            >
+              <FontAwesomeIcon
+                icon={provider.icon}
+                className="h-5 w-5 text-muted-foreground"
+                aria-hidden={true}
+              />
+              <span className="font-medium">With {provider.name}</span>
+            </Button>
           ))}
         </div>
       )}
       {providers.length === 0 && (
-        <div className="bg-background dark:bg-gray-800 shadow-sm sm:rounded-lg dark:border dark:border-gray-700">
+        <div className="bg-background border border-muted shadow-sm rounded-lg mt-6">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">
+            <h3 className="text-base font-semibold leading-6 text-foreground">
               No Providers
             </h3>
             <div className="mt-2 max-w-xl text-sm text-muted-foreground">
               <p>
                 Authentication is set to{' '}
-                <span className="font-medium dark:text-gray-200">required</span>
+                <span className="font-medium">required</span>
                 , however, there are no login providers configured. Please see
                 the documentation for more information.
               </p>
@@ -182,31 +181,17 @@ function InnerLogin() {
   }
 
   return (
-    <>
-      <div className="flex min-h-screen flex-col justify-center sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
-        <main className="flex px-6 py-10">
-          <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-              <img
-                src={logoFlag}
-                alt="logo"
-                width={512}
-                height={512}
-                className="m-auto h-20 w-20"
-              />
-              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                Login to Flipt
-              </h2>
-            </div>
-            <div className="mt-8 max-w-sm sm:mx-auto sm:w-full md:max-w-lg">
-              <div className="px-4 py-8 sm:px-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:border dark:border-gray-700">
-                <InnerLoginButtons />
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    </>
+    <div className="flex min-h-screen flex-col justify-center items-center bg-background">
+      <img
+        src={logoFlag}
+        alt="logo"
+        width={64}
+        height={64}
+        className="h-16 w-16 mb-4 rounded-lg"
+      />
+      <h2 className="text-2xl font-bold text-foreground mb-2">Login to Flipt</h2>
+      <InnerLoginButtons />
+    </div>
   );
 }
 
