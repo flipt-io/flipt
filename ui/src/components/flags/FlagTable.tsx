@@ -28,6 +28,7 @@ import {
 } from '~/app/flags/flagsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
+import { Badge } from '~/components/Badge';
 import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
@@ -43,14 +44,12 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
 
-import { Badge } from '../Badge';
-
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
     <div
       className={cls(
         'inline-flex items-center gap-1.5 py-1.5 text-xs font-medium transition-colors',
-        enabled ? 'text-success' : 'text-destructive'
+        enabled ? 'text-chart-2' : 'text-chart-3'
       )}
     >
       <PowerIcon className="h-3.5 w-3.5" />
@@ -64,7 +63,7 @@ function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
     <div
       className={cls(
         'inline-flex items-center gap-1.5  py-1.5 text-xs font-medium transition-colors',
-        enabled ? 'text-success' : 'text-destructive'
+        enabled ? 'text-chart-2' : 'text-chart-3'
       )}
     >
       <CheckSquareIcon className="h-3.5 w-3.5" />
@@ -75,7 +74,7 @@ function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
 
 function CombinedFlagBadge({ item }: { item: IFlag }) {
   return (
-    <div className="inline-flex items-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground">
+    <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-muted-foreground">
       {item.type === FlagType.BOOLEAN ? (
         <ToggleLeftIcon className="h-3.5 w-3.5" />
       ) : (
@@ -135,7 +134,7 @@ function FlagListItem({
                 <Box sx={{ flexGrow: 1 }}>
                   <SparkLineChart
                     data={evaluationValues}
-                    color="var(--chart-2)"
+                    color="var(--brand)"
                     curve="natural"
                     height={24}
                     yAxis={{
