@@ -26,6 +26,7 @@ import {
   setSorting,
   useListFlagsQuery
 } from '~/app/flags/flagsApi';
+import { selectInfo } from '~/app/meta/metaSlice';
 
 import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
@@ -42,14 +43,14 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
 
+import { Badge } from '../Badge';
+
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
     <div
       className={cls(
-        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-        enabled
-          ? 'bg-green-100/50 text-green-700 dark:bg-green-600/20 dark:text-green-300'
-          : 'bg-red-100/50 text-red-700 dark:bg-red-600/20 dark:text-red-300'
+        'inline-flex items-center gap-1.5 py-1.5 text-xs font-medium transition-colors',
+        enabled ? 'text-success' : 'text-destructive'
       )}
     >
       <PowerIcon className="h-3.5 w-3.5" />
@@ -62,10 +63,8 @@ function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
   return (
     <div
       className={cls(
-        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-        enabled
-          ? 'bg-green-100/50 text-green-700 dark:bg-green-600/20 dark:text-green-300'
-          : 'bg-red-100/50 text-red-700 dark:bg-red-600/20 dark:text-red-300'
+        'inline-flex items-center gap-1.5  py-1.5 text-xs font-medium transition-colors',
+        enabled ? 'text-success' : 'text-destructive'
       )}
     >
       <CheckSquareIcon className="h-3.5 w-3.5" />
@@ -76,7 +75,7 @@ function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
 
 function CombinedFlagBadge({ item }: { item: IFlag }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
+    <div className="inline-flex items-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground">
       {item.type === FlagType.BOOLEAN ? (
         <ToggleLeftIcon className="h-3.5 w-3.5" />
       ) : (
@@ -108,44 +107,46 @@ function FlagListItem({
       <div className="flex items-start gap-6 p-4">
         {/* Flag Info and Tags Column */}
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="font-semibold text-base">{item.name}</span>
-            <span className="text-muted-foreground">&middot;</span>
-            <code className="text-xs text-muted-foreground font-mono">
-              {item.key}
-            </code>
+            <Badge variant="outlinemuted">{item.key}</Badge>
           </div>
           {item.description && (
             <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
               {item.description}
             </p>
           )}
+          <div className="flex gap-3 mt-2">
+            <CombinedFlagBadge item={item} />
+            {/* Status Column - Contains both type badge and toggle */}
+            {item.type === FlagType.VARIANT ? (
+              <VariantFlagBadge enabled={item.enabled} />
+            ) : (
+              <BooleanFlagBadge enabled={item.enabled} />
+            )}
+          </div>
+        </div>
 
+        <div className="pl-6 shrink-0 hidden sm:block">
           {/* Sparkline */}
-          <div className="mt-2 flex items-center min-h-[24px] w-full">
+          <div className="mt-2 flex items-center min-h-[24px]">
             {evaluationValues.length > 0 && (
-              <div className="w-full md:w-lg">
+              <div className="w-[128px]" title="Evaluation requests over time">
                 <Box sx={{ flexGrow: 1 }}>
                   <SparkLineChart
                     data={evaluationValues}
-                    color="var(--foreground)"
-                    slotProps={{ line: { strokeWidth: 1 } }}
+                    color="var(--chart-2)"
+                    curve="natural"
                     height={24}
+                    yAxis={{
+                      min: 0,
+                      max: Math.max(...evaluationValues) + 1
+                    }}
                   />
                 </Box>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Status Column - Contains both type badge and toggle */}
-        <div className="flex items-center gap-3 pl-6 shrink-0">
-          <CombinedFlagBadge item={item} />
-          {item.type === FlagType.VARIANT ? (
-            <VariantFlagBadge enabled={item.enabled} />
-          ) : (
-            <BooleanFlagBadge enabled={item.enabled} />
-          )}
         </div>
       </div>
     </button>
@@ -243,6 +244,7 @@ export default function FlagTable(props: FlagTableProps) {
     namespaceKey: namespace.key
   });
 
+  const info = useSelector(selectInfo);
   const flags = useMemo(() => data?.flags || [], [data]);
   const flagKeys = useMemo(() => flags.map((f) => f.key), [flags]);
   const hasFlags = flags.length > 0;
@@ -278,11 +280,16 @@ export default function FlagTable(props: FlagTableProps) {
 
   // TODO: this gets all the flag evaluations for all flags, we should only fetch the ones that are currently visible
   // we'll likely need to switch to a server side pagination model to get this to perform well
-  const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery({
-    environmentKey: environment.key,
-    namespaceKey: namespace.key,
-    flagKeys
-  });
+  const { data: evaluationCount } = useGetBatchFlagEvaluationCountQuery(
+    {
+      environmentKey: environment.key,
+      namespaceKey: namespace.key,
+      flagKeys
+    },
+    {
+      skip: !info.analytics?.enabled || isLoading
+    }
+  );
 
   if (isLoading) {
     return <TableSkeleton />;
