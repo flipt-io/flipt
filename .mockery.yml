@@ -13,6 +13,9 @@ packages:
   go.flipt.io/flipt/internal/storage:
     interfaces:
       ReadOnlyStore: {}
+  go.flipt.io/flipt/internal/server/analytics/prometheus:
+    interfaces:
+      PrometheusClient: {}
   go.flipt.io/flipt/internal/server/analytics:
     interfaces:
       Client: {}

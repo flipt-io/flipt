@@ -87,7 +87,7 @@ function FlagTypeSelector({
         <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
           Choose Flag Type
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Select the type of flag you want to create
         </p>
       </div>
@@ -114,7 +114,7 @@ function FlagTypeSelector({
                     {flagType.name}
                   </span>
                 </div>
-                <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
+                <p className="mt-2 flex items-center text-sm text-muted-foreground">
                   {flagType.description}
                 </p>
               </div>
@@ -290,11 +290,11 @@ export default function FlagForm(props: { flag?: IFlag }) {
                         <div>
                           <label
                             htmlFor="enabled"
-                            className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                            className="block text-sm font-medium"
                           >
                             Enabled
                           </label>
-                          <p className="text-sm text-gray-500 dark:text-gray-300">
+                          <p className="text-sm text-muted-foreground">
                             Allows the flag to be evaluated
                           </p>
                         </div>
@@ -319,7 +319,7 @@ export default function FlagForm(props: { flag?: IFlag }) {
                           >
                             Default Value
                           </label>
-                          <p className="text-sm text-gray-500 dark:text-gray-300">
+                          <p className="text-sm text-muted-foreground">
                             The default value returned when no rollouts match
                           </p>
                         </div>

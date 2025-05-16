@@ -55,9 +55,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
             Copy {panelType}
           </Dialog.Title>
           <div className="mt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-300">
-              {panelMessage}
-            </p>
+            <p className="text-sm text-muted-foreground">{panelMessage}</p>
           </div>
           <div className="mt-4">
             <Listbox<SelectableNamespace>

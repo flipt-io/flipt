@@ -10,7 +10,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   useSidebar
 } from '~/components/ui/sidebar';
 
@@ -44,7 +43,6 @@ export function AppSidebar({
         )}
       </SidebarContent>
       <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

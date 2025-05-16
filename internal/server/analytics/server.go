@@ -2,29 +2,11 @@ package analytics
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"go.flipt.io/flipt/rpc/v2/analytics"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
-
-type FlagEvaluationsCountRequest struct {
-	EnvironmentKey string
-	NamespaceKey   string
-	FlagKey        string
-	From           time.Time
-	To             time.Time
-	StepMinutes    int
-}
-
-// Client is a contract that each analytics store needs to conform to for
-// getting analytics from the implemented store.
-type Client interface {
-	GetFlagEvaluationsCount(ctx context.Context, req *FlagEvaluationsCountRequest) ([]string, []float32, error)
-	fmt.Stringer
-}
 
 // Server is a grpc server for Flipt analytics.
 type Server struct {

@@ -28,7 +28,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
@@ -58,7 +58,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -93,7 +93,7 @@ func TestVariant_FlagDisabled(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -134,7 +134,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
@@ -171,7 +171,7 @@ func TestVariant_Success(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
@@ -233,7 +233,7 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errs.ErrNotFound("test-flag"))
@@ -262,7 +262,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -297,7 +297,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -336,7 +336,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -385,7 +385,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -434,7 +434,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -520,7 +520,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -589,7 +589,7 @@ func TestBoolean_SegmentMatch_Constraint_EntityId(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -650,7 +650,7 @@ func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -726,7 +726,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -794,7 +794,7 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
@@ -832,7 +832,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 		s            = New(logger, envStore)
 	)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{}, errors.New("internal error"))
@@ -869,7 +869,7 @@ func TestBatch_Success(t *testing.T) {
 	)
 
 	environment.On("Key").Return(environmentKey)
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("Get", mock.Anything, mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(&core.Flag{
