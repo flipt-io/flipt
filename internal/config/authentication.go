@@ -217,7 +217,7 @@ func (c *AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("type", AuthenticationSessionStorageTypeMemory)
 
 	if c.Type == AuthenticationSessionStorageTypeRedis {
-		c.Redis.setDefaults(v)
+		return c.Redis.setDefaults(v)
 	}
 
 	return nil
