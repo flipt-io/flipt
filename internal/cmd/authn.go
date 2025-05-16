@@ -52,11 +52,12 @@ func getAuthStore(
 			return nil, fmt.Errorf("failed to create redis client: %w", err)
 		}
 
+		if err := redisotel.InstrumentMetrics(rdb); err != nil {
+			return nil, fmt.Errorf("instrumenting redis: %w", err)
+		}
+
 		if cfg.Tracing.Enabled {
 			if err := redisotel.InstrumentTracing(rdb); err != nil {
-				return nil, fmt.Errorf("instrumenting redis: %w", err)
-			}
-			if err := redisotel.InstrumentMetrics(rdb); err != nil {
 				return nil, fmt.Errorf("instrumenting redis: %w", err)
 			}
 		}

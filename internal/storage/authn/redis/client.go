@@ -30,6 +30,7 @@ func NewClient(cfg config.AuthenticationSessionStorageRedisConfig) (goredis.Univ
 			tlsConfig.RootCAs = rootCAs
 		}
 	}
+
 	rwPoolTimeout := cfg.NetTimeout * 2
 
 	switch cfg.Mode {
@@ -50,7 +51,7 @@ func NewClient(cfg config.AuthenticationSessionStorageRedisConfig) (goredis.Univ
 		}), nil
 	case config.RedisCacheModeCluster:
 		return goredis.NewClusterClient(&goredis.ClusterOptions{
-			Addrs:           []string{fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)},
+			Addrs:           []string{fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)}, // TODO: maybe support multiple addresses in the future
 			TLSConfig:       tlsConfig,
 			Username:        cfg.Username,
 			Password:        cfg.Password,
