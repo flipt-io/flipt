@@ -19,6 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
+	"slices"
 )
 
 var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
@@ -187,7 +188,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 			if f.Key == key {
 				found = true
 				// remove entry from list
-				doc.Flags = append(doc.Flags[:i], doc.Flags[i+1:]...)
+				doc.Flags = slices.Delete(doc.Flags, i, i+1)
 			}
 		}
 	}

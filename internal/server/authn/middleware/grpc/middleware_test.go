@@ -86,7 +86,7 @@ func TestAuthenticationRequiredUnaryInterceptor(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			called := false
-			handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+			handler := func(ctx context.Context, req any) (any, error) {
 				called = true
 				return "ok", nil
 			}
@@ -134,7 +134,7 @@ func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			called := false
-			handler := func(srv interface{}, stream grpc.ServerStream) error {
+			handler := func(srv any, stream grpc.ServerStream) error {
 				called = true
 				return nil
 			}
@@ -166,7 +166,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "successful authentication",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"sub": "sunglasses",
@@ -188,7 +188,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (with custom user claims)",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"iat": nowUnix,
@@ -221,7 +221,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (with custom user claims and arbitrary role)",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"iat": nowUnix,
@@ -256,7 +256,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "invalid issuer",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "foo.com",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -275,7 +275,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "invalid subject",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -296,7 +296,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 		{
 			name: "invalid audience",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -356,7 +356,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				logger = zaptest.NewLogger(t)
 
 				ctx     = context.Background()
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
@@ -402,7 +402,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				logger = zaptest.NewLogger(t)
 
 				ctx     = context.Background()
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					if tt.expectedMetadata != nil {
 						authentication := GetAuthenticationFrom(ctx)
 
@@ -453,7 +453,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 		{
 			name: "successful authentication",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "flipt.io",
 					"aud": "flipt",
 					"sub": "sunglasses",
@@ -474,7 +474,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 		{
 			name: "invalid issuer",
 			metadataFunc: func() metadata.MD {
-				claims := map[string]interface{}{
+				claims := map[string]any{
 					"iss": "foo.com",
 					"iat": nowUnix,
 					"exp": futureUnix,
@@ -525,7 +525,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 
 			stream := &mockStream{ctx: ctx}
 			called := false
-			handler := func(srv interface{}, stream grpc.ServerStream) error {
+			handler := func(srv any, stream grpc.ServerStream) error {
 				called = true
 				if tt.expectedMetadata != nil {
 					authentication := GetAuthenticationFrom(stream.Context())
@@ -655,7 +655,7 @@ func TestClientTokenAuthenticationUnaryInterceptor(t *testing.T) {
 
 				ctx          = context.Background()
 				retrievedCtx = ctx
-				handler      = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler      = func(ctx context.Context, req any) (any, error) {
 					// update retrievedCtx to the one delegated to the handler
 					retrievedCtx = ctx
 					return nil, nil
@@ -786,7 +786,7 @@ func TestClientTokenAuthenticationStreamInterceptor(t *testing.T) {
 			stream := &mockStream{ctx: ctx}
 			var retrievedAuth *authrpc.Authentication
 			called := false
-			handler := func(srv interface{}, stream grpc.ServerStream) error {
+			handler := func(srv any, stream grpc.ServerStream) error {
 				called = true
 				retrievedAuth = GetAuthenticationFrom(stream.Context())
 				return nil
@@ -815,7 +815,7 @@ func TestEmailMatchingUnaryInterceptorWithNoAuth(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 
 		ctx     = context.Background()
-		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+		handler = func(ctx context.Context, req any) (any, error) {
 			return nil, nil
 		}
 	)
@@ -941,7 +941,7 @@ func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				ctx     = ContextWithAuthentication(context.Background(), tt.auth)
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					return nil, nil
 				}
 				srv = &grpc.UnaryServerInfo{Server: &mockServer{}}

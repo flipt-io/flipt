@@ -290,10 +290,7 @@ func (s *Store) filterExpiredIDs(ctx context.Context, ids []string, expiredBefor
 
 func (s *Store) deleteAuthenticationBatches(ctx context.Context, allIDs []string, method *auth.Method) error {
 	for i := 0; i < len(allIDs); i += batchSize {
-		end := i + batchSize
-		if end > len(allIDs) {
-			end = len(allIDs)
-		}
+		end := min(i+batchSize, len(allIDs))
 
 		if err := s.deleteAuthenticationBatch(ctx, allIDs[i:end], method); err != nil {
 			return err

@@ -559,7 +559,7 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 
 		if target.Mode.IsFile() {
 			// adding a blob
-			node.Entries = append(node.Entries[:i], node.Entries[i+1:]...)
+			node.Entries = slices.Delete(node.Entries, i, i+1)
 		} else {
 			// adding a tree
 			tree, err := object.GetTree(storage, node.Entries[i].Hash)
