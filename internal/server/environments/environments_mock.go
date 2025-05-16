@@ -41,6 +41,52 @@ func (_m *MockEnvironment) EXPECT() *MockEnvironment_Expecter {
 	return &MockEnvironment_Expecter{mock: &_m.Mock}
 }
 
+// Configuration provides a mock function for the type MockEnvironment
+func (_mock *MockEnvironment) Configuration() *environments.EnvironmentConfiguration {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Configuration")
+	}
+
+	var r0 *environments.EnvironmentConfiguration
+	if returnFunc, ok := ret.Get(0).(func() *environments.EnvironmentConfiguration); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*environments.EnvironmentConfiguration)
+		}
+	}
+	return r0
+}
+
+// MockEnvironment_Configuration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Configuration'
+type MockEnvironment_Configuration_Call struct {
+	*mock.Call
+}
+
+// Configuration is a helper method to define mock.On call
+func (_e *MockEnvironment_Expecter) Configuration() *MockEnvironment_Configuration_Call {
+	return &MockEnvironment_Configuration_Call{Call: _e.mock.On("Configuration")}
+}
+
+func (_c *MockEnvironment_Configuration_Call) Run(run func()) *MockEnvironment_Configuration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_Configuration_Call) Return(environmentConfiguration *environments.EnvironmentConfiguration) *MockEnvironment_Configuration_Call {
+	_c.Call.Return(environmentConfiguration)
+	return _c
+}
+
+func (_c *MockEnvironment_Configuration_Call) RunAndReturn(run func() *environments.EnvironmentConfiguration) *MockEnvironment_Configuration_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateNamespace provides a mock function for the type MockEnvironment
 func (_mock *MockEnvironment) CreateNamespace(context1 context.Context, rev string, namespace *environments.Namespace) (string, error) {
 	ret := _mock.Called(context1, rev, namespace)

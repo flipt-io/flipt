@@ -44,6 +44,7 @@ func (r ResourceType) String() string {
 type Environment interface {
 	Key() string
 	Default() bool
+	Configuration() *environments.EnvironmentConfiguration
 	// Namespaces
 
 	GetNamespace(_ context.Context, key string) (*environments.NamespaceResponse, error)

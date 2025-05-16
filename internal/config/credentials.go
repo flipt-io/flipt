@@ -69,16 +69,24 @@ type CredentialConfig struct {
 func (c *CredentialConfig) validate() error {
 	switch c.Type {
 	case CredentialTypeBasic:
+		if c.Basic == nil {
+			return errors.New("basic auth configuration is required")
+		}
+
 		if err := c.Basic.validate(); err != nil {
 			return err
 		}
 	case CredentialTypeSSH:
+		if c.SSH == nil {
+			return errors.New("ssh configuration is required")
+		}
+
 		if err := c.SSH.validate(); err != nil {
 			return err
 		}
 	case CredentialTypeAccessToken:
 		if c.AccessToken == nil || *c.AccessToken == "" {
-			return errFieldRequired("string", "access_token")
+			return errors.New("access token is required")
 		}
 	default:
 		return fmt.Errorf("unexpected credential type %q", c.Type)

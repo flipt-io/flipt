@@ -75,6 +75,13 @@ message Environment {
   string key = 1;
   string name = 2;
   optional bool default = 3;
+  optional EnvironmentConfiguration configuration = 4;
+}
+
+message EnvironmentConfiguration {
+  string remote = 1;
+  string branch = 2;
+  string directory = 3;
 }
 
 message ListEnvironmentsRequest {}

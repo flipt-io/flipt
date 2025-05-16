@@ -12,7 +12,7 @@ import {
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';
 
-import { NamespaceSwitcher } from './NamespaceSwitcher';
+import { EnvironmentNamespaceSwitcher } from './EnvironmentNamespaceSwitcher';
 import { NavSecondary } from './NavSecondary';
 
 export function AppSidebar({
@@ -21,10 +21,11 @@ export function AppSidebar({
 }: { ns: string } & React.ComponentProps<typeof Sidebar>) {
   const { session } = useSession();
   const user = getUser(session);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <NamespaceSwitcher />
+        <EnvironmentNamespaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />

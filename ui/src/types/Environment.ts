@@ -1,6 +1,12 @@
 export interface IEnvironment {
   key: string;
-  storage: string;
-  directory: string;
+  name?: string;
   default?: boolean;
+  configuration?: IEnvironmentConfiguration;
+}
+
+export interface IEnvironmentConfiguration {
+  remote: string;
+  branch: string;
+  directory: string;
 }
