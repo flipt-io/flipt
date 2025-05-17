@@ -18,6 +18,7 @@ import {
   selectNamespaces
 } from '~/app/namespaces/namespacesApi';
 
+import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -152,19 +153,14 @@ export default function Flag() {
       {/* flag header / actions */}
       <PageHeader
         title={
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             {flag.name}
-            <div className="ml-4 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
-              {flag.type === FlagType.BOOLEAN ? (
-                <ToggleLeftIcon className="h-3.5 w-3.5" />
-              ) : (
-                <VariableIcon className="h-3.5 w-3.5" />
-              )}
-              {flagTypeToLabel(flag.type)}
-            </div>
+            <Badge variant="outlinemuted" className="hidden sm:block">
+              {flag.key}
+            </Badge>
             {info.analytics?.enabled && (
               <button
-                className="ml-2 p-1 rounded hover:bg-accent"
+                className=" p-1 rounded hover:bg-accent hidden sm:block"
                 title="View Analytics"
                 onClick={() =>
                   navigate(`/namespaces/${namespace.key}/analytics/${flag.key}`)
@@ -174,7 +170,7 @@ export default function Flag() {
               </button>
             )}
             <button
-              className="ml-2 p-1 rounded hover:bg-accent"
+              className="p-1 rounded hover:bg-accent hidden sm:block"
               title="View in Playground"
               onClick={() =>
                 navigate(`/namespaces/${namespace.key}/playground/${flag.key}`)
@@ -229,14 +225,18 @@ export default function Flag() {
       </PageHeader>
 
       {/* Info Section */}
-      <div className="mb-8">
-        {flag.key && (
-          <div className="my-2 inline-flex items-center rounded-md bg-secondary/30 px-3 py-1.5">
-            <code className="text-sm font-mono text-muted-foreground">
-              {flag.key}
-            </code>
-          </div>
-        )}
+      <div className="flex mb-8 gap-3 mt-2">
+        <Badge variant="outlinemuted" className="sm:hidden">
+          {flag.key}
+        </Badge>
+        <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-muted-foreground">
+          {flag.type === FlagType.BOOLEAN ? (
+            <ToggleLeftIcon className="h-3.5 w-3.5" />
+          ) : (
+            <VariableIcon className="h-3.5 w-3.5" />
+          )}
+          {flagTypeToLabel(flag.type)}
+        </div>
       </div>
 
       {/* Form Section - Full Width */}
