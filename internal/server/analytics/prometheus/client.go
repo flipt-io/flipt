@@ -207,12 +207,9 @@ func (c *client) GetBatchFlagEvaluationsCount(ctx context.Context, req *panalyti
 			compressedValues := make([]float32, req.Limit)
 			compressedTimestamps := make([]string, req.Limit)
 
-			for i := 0; i < req.Limit; i++ {
+			for i := range req.Limit {
 				start := i * factor
-				end := (i + 1) * factor
-				if end > len(data.Values) {
-					end = len(data.Values)
-				}
+				end := min((i+1)*factor, len(data.Values))
 
 				sum := float32(0)
 				for j := start; j < end; j++ {

@@ -169,7 +169,7 @@ func (c *Client) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 
 	// Create a parameterized query with placeholders for the flag keys
 	placeholders := make([]string, len(req.FlagKeys))
-	args := make([]interface{}, len(req.FlagKeys)+2) // +2 for environment and namespace keys
+	args := make([]any, len(req.FlagKeys)+2) // +2 for environment and namespace keys
 
 	args[0] = req.EnvironmentKey
 	args[1] = req.NamespaceKey

@@ -114,7 +114,7 @@ func AuthenticationRequiredUnaryInterceptor(logger *zap.Logger, o ...containers.
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -175,7 +175,7 @@ func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTV
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -268,7 +268,7 @@ func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.J
 		}
 
 		if k == "user" {
-			userClaims, ok := v.(map[string]interface{})
+			userClaims, ok := v.(map[string]any)
 			if ok {
 				for _, fields := range [][2]string{
 					{"email", "email"},
@@ -312,7 +312,7 @@ func ClientTokenAuthenticationUnaryInterceptor(logger *zap.Logger, authenticator
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
@@ -409,7 +409,7 @@ func EmailMatchingUnaryInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o 
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		// skip auth for any preconfigured servers
 		if skipped(ctx, info, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))

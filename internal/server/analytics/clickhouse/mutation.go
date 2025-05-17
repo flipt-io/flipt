@@ -16,7 +16,7 @@ func (c *Client) IncrementFlagEvaluationCounts(ctx context.Context, responses []
 	}
 
 	valuePlaceHolders := make([]string, 0, len(responses))
-	valueArgs := make([]interface{}, 0, len(responses)*10)
+	valueArgs := make([]any, 0, len(responses)*10)
 
 	for _, response := range responses {
 		valuePlaceHolders = append(valuePlaceHolders, "(toDateTime(?, 'UTC'),?,?,?,?,?,?,?,?,?,?)")

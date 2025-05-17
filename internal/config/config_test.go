@@ -1217,7 +1217,7 @@ func isSnakeCase(s string) bool {
 func getStructTags(t reflect.Type) map[string]map[string]string {
 	tags := make(map[string]map[string]string)
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		field := t.Field(i)
 
 		// Get the field name.

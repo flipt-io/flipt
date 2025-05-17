@@ -223,7 +223,7 @@ func TestFlagStorage_PutResource(t *testing.T) {
 			),
 		)
 
-		metadata, err := structpb.NewStruct(map[string]interface{}{
+		metadata, err := structpb.NewStruct(map[string]any{
 			"team": "backend",
 		})
 		require.NoError(t, err)

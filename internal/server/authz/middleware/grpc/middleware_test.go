@@ -157,7 +157,7 @@ func TestAuthorizationRequiredInterceptor(t *testing.T) {
 				allowed = false
 
 				ctx     = authmiddlewaregrpc.ContextWithAuthentication(context.Background(), tt.authn)
-				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+				handler = func(ctx context.Context, req any) (any, error) {
 					allowed = true
 					return nil, nil
 				}

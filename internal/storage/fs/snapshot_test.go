@@ -52,16 +52,16 @@ func TestSnapshot_GetFlag(t *testing.T) {
 						Key:  "prod-variant",
 						Name: "Prod Variant",
 						Attachment: func() *structpb.Value {
-							v, _ := structpb.NewValue(map[string]interface{}{
+							v, _ := structpb.NewValue(map[string]any{
 								"pi":      3.141,
 								"happy":   true,
 								"name":    "Niels",
 								"nothing": nil,
-								"answer": map[string]interface{}{
+								"answer": map[string]any{
 									"everything": 42,
 								},
-								"list": []interface{}{1, 0, 2},
-								"object": map[string]interface{}{
+								"list": []any{1, 0, 2},
+								"object": map[string]any{
 									"currency": "USD",
 									"value":    42.99,
 								},
@@ -211,16 +211,16 @@ func TestSnapshot_ListFlags(t *testing.T) {
 							Key:  "prod-variant",
 							Name: "Prod Variant",
 							Attachment: func() *structpb.Value {
-								v, _ := structpb.NewValue(map[string]interface{}{
+								v, _ := structpb.NewValue(map[string]any{
 									"pi":      3.141,
 									"happy":   true,
 									"name":    "Niels",
 									"nothing": nil,
-									"answer": map[string]interface{}{
+									"answer": map[string]any{
 										"everything": 42,
 									},
-									"list": []interface{}{1, 0, 2},
-									"object": map[string]interface{}{
+									"list": []any{1, 0, 2},
+									"object": map[string]any{
 										"currency": "USD",
 										"value":    42.99,
 									},

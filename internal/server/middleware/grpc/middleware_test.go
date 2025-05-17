@@ -265,7 +265,7 @@ func TestErrorStreamInterceptor(t *testing.T) {
 
 		called := false
 		t.Run(tt.name, func(t *testing.T) {
-			handler := grpc.StreamHandler(func(srv interface{}, stream grpc.ServerStream) error {
+			handler := grpc.StreamHandler(func(srv any, stream grpc.ServerStream) error {
 				called = true
 				return wantErr
 			})
@@ -420,7 +420,7 @@ func TestFliptHeadersStreamInterceptor(t *testing.T) {
 			}
 
 			called := false
-			handler := func(srv interface{}, stream grpc.ServerStream) error {
+			handler := func(srv any, stream grpc.ServerStream) error {
 				called = true
 				environment, _ := cctx.FliptEnvironmentFromContext(stream.Context())
 				assert.Equal(t, tt.want.environment, environment)
