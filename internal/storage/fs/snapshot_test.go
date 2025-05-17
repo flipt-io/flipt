@@ -27,7 +27,8 @@ func ptr[P any](p P) *P {
 
 func TestSnapshot_GetFlag(t *testing.T) {
 	conf := DefaultFliptConfig()
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), conf, testdata)
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -158,7 +159,9 @@ func TestSnapshot_GetFlag(t *testing.T) {
 }
 
 func TestSnapshot_ListFlags(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -289,7 +292,9 @@ func TestSnapshot_ListFlags(t *testing.T) {
 }
 
 func TestSnapshot_CountFlags(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -331,7 +336,9 @@ func TestSnapshot_CountFlags(t *testing.T) {
 }
 
 func TestSnapshot_GetEvaluationRules(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -458,7 +465,9 @@ func storageEvaluationDistTransformer() cmp.Option {
 }
 
 func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	// First get the rules to get valid rule IDs
@@ -551,7 +560,9 @@ func TestSnapshot_GetEvaluationDistributions(t *testing.T) {
 }
 
 func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -652,7 +663,9 @@ func TestSnapshot_GetEvaluationRollouts(t *testing.T) {
 }
 
 func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
-	snap, err := SnapshotFromFS(zaptest.NewLogger(t), DefaultFliptConfig(), testdata)
+	conf := DefaultFliptConfig()
+	builder := NewSnapshotBuilder(zaptest.NewLogger(t))
+	snap, err := builder.SnapshotFromFS(conf, testdata)
 	require.NoError(t, err)
 
 	tests := []struct {

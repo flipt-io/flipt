@@ -66,7 +66,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var opts []containers.Option[fs.SnapshotOption]
+	var opts []containers.Option[fs.SnapshotBuilderOption]
 	if v.extraPath != "" {
 		schema, err := os.ReadFile(v.extraPath)
 		if err != nil {
@@ -82,6 +82,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 		return errors.New("non-empty working directory expected")
 	}
 
+	builder := fs.NewSnapshotBuilder(logger)
 	ofs := os.DirFS(v.workDirectory)
 	if len(args) == 0 {
 		var config *fs.Config
@@ -90,9 +91,9 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		_, err = fs.SnapshotFromFS(logger, config, ofs, opts...)
+		_, err = builder.SnapshotFromFS(config, ofs)
 	} else {
-		_, err = fs.SnapshotFromPaths(logger, ofs, args, opts...)
+		_, err = builder.SnapshotFromPaths(ofs, args)
 	}
 
 	errs, ok := validation.Unwrap(err)

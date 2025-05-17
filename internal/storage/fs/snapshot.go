@@ -19,9 +19,12 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/environments/graph"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/core"
+	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -57,38 +60,57 @@ func newNamespace() *namespace {
 	}
 }
 
-type SnapshotOption struct {
+type SnapshotBuilderOption struct {
 	validatorOption []validation.FeaturesValidatorOption
+	dependencyGraph *graph.ResourceGraph
 }
 
-func newSnapshotOption(opts ...containers.Option[SnapshotOption]) SnapshotOption {
-	so := SnapshotOption{}
+func newSnapshotOption(opts ...containers.Option[SnapshotBuilderOption]) SnapshotBuilderOption {
+	so := SnapshotBuilderOption{}
 	containers.ApplyAll(&so, opts...)
 	return so
 }
 
-func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotOption] {
-	return func(so *SnapshotOption) {
+func WithValidatorOption(opts ...validation.FeaturesValidatorOption) containers.Option[SnapshotBuilderOption] {
+	return func(so *SnapshotBuilderOption) {
 		so.validatorOption = opts
+	}
+}
+
+func WithDependencyGraph(dependencyGraph *graph.ResourceGraph) containers.Option[SnapshotBuilderOption] {
+	return func(so *SnapshotBuilderOption) {
+		so.dependencyGraph = dependencyGraph
+	}
+}
+
+type SnapshotBuilder struct {
+	logger *zap.Logger
+	opts   []containers.Option[SnapshotBuilderOption]
+}
+
+func NewSnapshotBuilder(logger *zap.Logger, opts ...containers.Option[SnapshotBuilderOption]) *SnapshotBuilder {
+	return &SnapshotBuilder{
+		logger: logger,
+		opts:   opts,
 	}
 }
 
 // SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func SnapshotFromFS(logger *zap.Logger, conf *Config, src fs.FS, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+func (b *SnapshotBuilder) SnapshotFromFS(conf *Config, src fs.FS) (*Snapshot, error) {
 	paths, err := conf.List(src)
 	if err != nil {
 		return nil, err
 	}
 
-	return SnapshotFromPaths(logger, src, paths, opts...)
+	return b.SnapshotFromPaths(src, paths)
 }
 
 // SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
-func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
-	logger.Debug("opening state files", zap.Strings("paths", paths))
+func (b *SnapshotBuilder) SnapshotFromPaths(ffs fs.FS, paths []string) (*Snapshot, error) {
+	b.logger.Debug("opening state files", zap.Strings("paths", paths))
 
 	var files []fs.File
 	for _, file := range paths {
@@ -100,14 +122,14 @@ func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths []string, opts ...co
 		files = append(files, fi)
 	}
 
-	return SnapshotFromFiles(logger, files, opts...)
+	return b.SnapshotFromFiles(files)
 }
 
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
-func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.Option[SnapshotOption]) (*Snapshot, error) {
+func (b *SnapshotBuilder) SnapshotFromFiles(files []fs.File) (*Snapshot, error) {
 	var (
-		so = newSnapshotOption(opts...)
+		so = newSnapshotOption(b.opts...)
 		s  = EmptySnapshot()
 	)
 
@@ -120,7 +142,7 @@ func SnapshotFromFiles(logger *zap.Logger, files []fs.File, opts ...containers.O
 		}
 
 		for _, doc := range docs {
-			if err := s.addDoc(doc); err != nil {
+			if err := s.addDoc(doc, so); err != nil {
 				return nil, err
 			}
 		}
@@ -176,7 +198,7 @@ func EmptySnapshot() *Snapshot {
 }
 
 // documentsFromFile parses and validates a document from a single fs.File instance
-func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error) {
+func documentsFromFile(fi fs.File, opts SnapshotBuilderOption) ([]*ext.Document, error) {
 	validator, err := validation.NewFeaturesValidator(opts.validatorOption...)
 	if err != nil {
 		return nil, err
@@ -248,7 +270,7 @@ func documentsFromFile(fi fs.File, opts SnapshotOption) ([]*ext.Document, error)
 // codepaths (v1 types / eval).
 // The snapshot generated contains all the necessary state to serve server-side
 // evaluation as well as returning entire snapshot state for client-side evaluation.
-func (s *Snapshot) addDoc(doc *ext.Document) error {
+func (s *Snapshot) addDoc(doc *ext.Document, opts SnapshotBuilderOption) error {
 	var (
 		namespaceKey = doc.Namespace.GetKey()
 		ns           = s.ns[namespaceKey]
@@ -317,6 +339,8 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 
 	for _, f := range doc.Flags {
 		var (
+			dependencies = []environments.TypedResource{}
+
 			flagType = core.FlagType_value[f.Type]
 			flag     = &core.Flag{
 				Key:         f.Key,
@@ -415,6 +439,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 				if segment == nil {
 					return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 				}
+
+				// track dependency between flag and segment
+				dependencies = append(dependencies, environments.TypedResource{
+					ResourceType: environments.SegmentResourceType,
+					Resource: &rpcenvironments.Resource{
+						NamespaceKey: doc.Namespace.GetKey(),
+						Key:          segmentKey,
+					},
+				})
 
 				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
 				for _, constraint := range segment.Constraints {
@@ -541,6 +574,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 						return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 					}
 
+					// track dependency between flag and segment
+					dependencies = append(dependencies, environments.TypedResource{
+						ResourceType: environments.SegmentResourceType,
+						Resource: &rpcenvironments.Resource{
+							NamespaceKey: doc.Namespace.GetKey(),
+							Key:          segmentKey,
+						},
+					})
+
 					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
 					for _, c := range segment.Constraints {
 						constraints = append(constraints, storage.EvaluationConstraint{
@@ -594,6 +636,15 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 		}
 
 		ns.evalRollouts[f.Key] = evalRollouts
+		if opts.dependencyGraph != nil {
+			opts.dependencyGraph.SetDependencies(environments.TypedResource{
+				ResourceType: environments.FlagResourceType,
+				Resource: &rpcenvironments.Resource{
+					NamespaceKey: doc.Namespace.GetKey(),
+					Key:          f.Key,
+				},
+			}, dependencies)
+		}
 	}
 
 	ns.etag = doc.Etag
