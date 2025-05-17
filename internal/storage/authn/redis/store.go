@@ -5,6 +5,7 @@ import (
 	errs "errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,10 +23,10 @@ import (
 var _ authn.Store = (*Store)(nil)
 
 const (
-	authIDKeyPrefix    = "auth:id:"
-	authTokenKeyPrefix = "auth:token:" //nolint:gosec
-	authMethodPrefix   = "auth:method:"
-	authAllKey         = "auth:all"
+	authIDKeyPrefix    = "auth:id"
+	authTokenKeyPrefix = "auth:token" //nolint:gosec
+	authMethodPrefix   = "auth:method"
+	authAllPrefix      = "auth:all"
 
 	allPattern = "*"
 
@@ -37,31 +38,48 @@ const (
 )
 
 type Store struct {
-	client             *goredis.Client
+	client             goredis.UniversalClient
 	logger             *zap.Logger
 	now                func() *timestamppb.Timestamp
 	generateID         func() string
 	generateToken      func() string
 	cleanupGracePeriod time.Duration
+	prefix             string
 }
 
 // Helper functions to generate Redis keys
-func authIDKey(id string) string {
-	return authIDKeyPrefix + id
+func authIDKey(prefix, id string) string {
+	if prefix == "" {
+		return strings.Join([]string{authIDKeyPrefix, id}, ":")
+	}
+	return strings.Join([]string{prefix, authIDKeyPrefix, id}, ":")
 }
 
-func authTokenKey(token string) string {
-	return authTokenKeyPrefix + token
+func authTokenKey(prefix, token string) string {
+	if prefix == "" {
+		return strings.Join([]string{authTokenKeyPrefix, token}, ":")
+	}
+	return strings.Join([]string{prefix, authTokenKeyPrefix, token}, ":")
 }
 
-func authMethodKey(method auth.Method) string {
-	return authMethodPrefix + method.String()
+func authMethodKey(prefix string, method auth.Method) string {
+	if prefix == "" {
+		return strings.Join([]string{authMethodPrefix, method.String()}, ":")
+	}
+	return strings.Join([]string{prefix, authMethodPrefix, method.String()}, ":")
+}
+
+func authAllKey(prefix string) string {
+	if prefix == "" {
+		return strings.Join([]string{authAllPrefix}, ":")
+	}
+	return strings.Join([]string{prefix, authAllPrefix}, ":")
 }
 
 // Option is a type which configures a *Store
 type Option func(*Store)
 
-func NewStore(c *goredis.Client, logger *zap.Logger, opts ...Option) *Store {
+func NewStore(c goredis.UniversalClient, logger *zap.Logger, opts ...Option) *Store {
 	store := &Store{
 		client:             c,
 		logger:             logger.With(zap.String("store", "redis")),
@@ -80,6 +98,13 @@ func NewStore(c *goredis.Client, logger *zap.Logger, opts ...Option) *Store {
 
 func (s *Store) String() string {
 	return "redis"
+}
+
+// WithPrefix sets the prefix for the store.
+func WithPrefix(prefix string) Option {
+	return func(s *Store) {
+		s.prefix = prefix
+	}
 }
 
 // WithNowFunc overrides the stores now() function used to obtain
@@ -149,7 +174,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 
 	var (
 		pipe  = s.client.Pipeline()
-		idKey = authIDKey(authentication.Id)
+		idKey = authIDKey(s.prefix, authentication.Id)
 	)
 
 	v, err := protojson.Marshal(authentication)
@@ -168,17 +193,17 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *authn.CreateAuthent
 	}
 
 	// Store token hash -> id mapping
-	tokenKey := authTokenKey(hashedToken)
+	tokenKey := authTokenKey(s.prefix, hashedToken)
 	pipe.Set(ctx, tokenKey, authentication.Id, 0)
 	if authentication.ExpiresAt != nil {
 		pipe.ExpireAt(ctx, tokenKey, authentication.ExpiresAt.AsTime().Add(s.cleanupGracePeriod))
 	}
 
 	// Add to the set of all authentications for listing
-	pipe.SAdd(ctx, authAllKey, authentication.Id)
+	pipe.SAdd(ctx, authAllKey(s.prefix), authentication.Id)
 
 	// Add to method index for filtering
-	pipe.SAdd(ctx, authMethodKey(authentication.Method), authentication.Id)
+	pipe.SAdd(ctx, authMethodKey(s.prefix, authentication.Method), authentication.Id)
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return "", nil, fmt.Errorf("storing authentication: %w", err)
@@ -194,9 +219,9 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *authn.DeleteAuth
 	}
 
 	// Determine source set based on method filter
-	sourceKey := authAllKey
+	sourceKey := authAllKey(s.prefix)
 	if req.Method != nil {
-		sourceKey = authMethodKey(*req.Method)
+		sourceKey = authMethodKey(s.prefix, *req.Method)
 	}
 
 	ids, err := s.scanMatchingIDs(ctx, sourceKey, req)
@@ -258,7 +283,7 @@ func (s *Store) filterExpiredIDs(ctx context.Context, ids []string, expiredBefor
 	)
 
 	for i, id := range ids {
-		expiryCmds[i] = pipe.HGet(ctx, authIDKey(id), expiresAtKey)
+		expiryCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), expiresAtKey)
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
@@ -309,12 +334,12 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 	)
 
 	for i, id := range ids {
-		tokenCmds[i] = pipe.HGet(ctx, authIDKey(id), tokenHashKey)
+		tokenCmds[i] = pipe.HGet(ctx, authIDKey(s.prefix, id), tokenHashKey)
 		if method != nil {
-			pipe.SRem(ctx, authMethodKey(*method), id)
+			pipe.SRem(ctx, authMethodKey(s.prefix, *method), id)
 		}
-		pipe.SRem(ctx, authAllKey, id)
-		pipe.Del(ctx, authIDKey(id))
+		pipe.SRem(ctx, authAllKey(s.prefix), id)
+		pipe.Del(ctx, authIDKey(s.prefix, id))
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil && !errs.Is(err, goredis.Nil) {
@@ -324,7 +349,7 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 	pipe = s.client.Pipeline()
 	for i := range ids {
 		if tokenHash, err := tokenCmds[i].Result(); err == nil {
-			pipe.Del(ctx, authTokenKey(tokenHash))
+			pipe.Del(ctx, authTokenKey(s.prefix, tokenHash))
 		}
 	}
 
@@ -338,7 +363,7 @@ func (s *Store) deleteAuthenticationBatch(ctx context.Context, ids []string, met
 // ExpireAuthenticationByID implements authn.Store.
 func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
 	// Get the token hash first
-	idKey := authIDKey(id)
+	idKey := authIDKey(s.prefix, id)
 	tokenHash, err := s.client.HGet(ctx, idKey, tokenHashKey).Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
@@ -384,7 +409,7 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 
 	// Set TTL on both ID and token hash keys, adding the grace period
 	pipe.ExpireAt(ctx, idKey, expireAt.AsTime().Add(s.cleanupGracePeriod))
-	pipe.ExpireAt(ctx, authTokenKey(tokenHash), expireAt.AsTime().Add(s.cleanupGracePeriod))
+	pipe.ExpireAt(ctx, authTokenKey(s.prefix, tokenHash), expireAt.AsTime().Add(s.cleanupGracePeriod))
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("updating authentication expiry: %w", err)
@@ -401,7 +426,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	}
 
 	// Get ID from token hash
-	tokenKey := authTokenKey(hashedToken)
+	tokenKey := authTokenKey(s.prefix, hashedToken)
 	id, err := s.client.Get(ctx, tokenKey).Result()
 	if err != nil {
 		if errs.Is(err, goredis.Nil) {
@@ -415,7 +440,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 // GetAuthenticationByID implements authn.Store.
 func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
-	idKey := authIDKey(id)
+	idKey := authIDKey(s.prefix, id)
 	result, err := s.client.HGetAll(ctx, idKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("getting authentication by id: %w", err)
@@ -452,9 +477,9 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	}
 
 	// Determine which set to scan based on method filter
-	var key = authAllKey
+	var key = authAllKey(s.prefix)
 	if req.Predicate.Method != nil {
-		key = authMethodKey(*req.Predicate.Method)
+		key = authMethodKey(s.prefix, *req.Predicate.Method)
 	}
 
 	// Scan the set with cursor pagination
@@ -473,7 +498,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	cmds := make(map[string]*goredis.MapStringStringCmd, len(ids))
 
 	for _, id := range ids {
-		cmds[id] = pipe.HGetAll(ctx, authIDKey(id))
+		cmds[id] = pipe.HGetAll(ctx, authIDKey(s.prefix, id))
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil {

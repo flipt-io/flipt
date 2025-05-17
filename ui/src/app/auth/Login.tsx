@@ -13,6 +13,7 @@ import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
 import Loading from '~/components/Loading';
 import { Toaster } from '~/components/Sonner';
+import { Button } from '~/components/ui/button';
 
 import { IAuthMethod } from '~/types/Auth';
 
@@ -20,7 +21,6 @@ import logoFlag from '~/assets/logo-flag.png';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { upperFirst } from '~/utils/helpers';
-import { Button } from '~/components/ui/button';
 
 interface ILoginProvider {
   displayName: string;
@@ -152,9 +152,9 @@ function InnerLoginButtons() {
             <div className="mt-2 max-w-xl text-sm text-muted-foreground">
               <p>
                 Authentication is set to{' '}
-                <span className="font-medium">required</span>
-                , however, there are no login providers configured. Please see
-                the documentation for more information.
+                <span className="font-medium">required</span>, however, there
+                are no login providers configured. Please see the documentation
+                for more information.
               </p>
             </div>
             <div className="mt-3 text-sm leading-6">
@@ -189,7 +189,9 @@ function InnerLogin() {
         height={64}
         className="h-16 w-16 mb-4 rounded-lg"
       />
-      <h2 className="text-2xl font-bold text-foreground mb-2">Login to Flipt</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-2">
+        Login to Flipt
+      </h2>
       <InnerLoginButtons />
     </div>
   );
