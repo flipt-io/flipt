@@ -12,7 +12,6 @@ import {
 import {
   CheckSquareIcon,
   FlagIcon,
-  InfoIcon,
   PowerIcon,
   ToggleLeftIcon,
   VariableIcon,
@@ -45,8 +44,6 @@ import { INamespace } from '~/types/Namespace';
 
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
-
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
