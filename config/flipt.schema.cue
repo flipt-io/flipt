@@ -45,7 +45,7 @@ import "list"
 				key: string
 			}
 			storage?: {
-				type:     *"memory" | "redis"
+				type: *"memory" | "redis"
 				cleanup?: {
 					grace_period?: =~#duration | int | *"30m"
 				}
@@ -63,6 +63,8 @@ import "list"
 					ca_cert_path?:       string
 					ca_cert_bytes?:      string
 					insecure_skip_tls?:  bool | *false
+					mode?:               "single" | "cluster" | *""
+					prefix?:             string | *"flipt"
 				}
 			}
 		}
@@ -75,7 +77,7 @@ import "list"
 					tokens: [string]: {
 						credential: string
 						metadata: [string]: string
-					},
+					}
 				}
 			}
 
@@ -254,11 +256,11 @@ import "list"
 	}
 
 	#tracing: {
-		enabled?:        bool | *false
+		enabled?: bool | *false
 	}
 
 	#ui: {
-		enabled?: bool | *true
+		enabled?:       bool | *true
 		default_theme?: "light" | "dark" | *"system"
 		topbar?: {
 			color?: string
