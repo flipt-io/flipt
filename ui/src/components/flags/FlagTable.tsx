@@ -12,9 +12,11 @@ import {
 import {
   CheckSquareIcon,
   FlagIcon,
+  InfoIcon,
   PowerIcon,
   ToggleLeftIcon,
-  VariableIcon
+  VariableIcon,
+  XSquareIcon
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,12 +46,16 @@ import { INamespace } from '~/types/Namespace';
 import { useError } from '~/data/hooks/error';
 import { cls } from '~/utils/helpers';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+
 function VariantFlagBadge({ enabled }: { enabled: boolean }) {
   return (
     <div
       className={cls(
-        'inline-flex items-center gap-1.5 py-1.5 text-xs font-medium transition-colors',
-        enabled ? 'text-chart-2' : 'text-chart-3'
+        'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium transition-colors rounded-md',
+        enabled
+          ? 'text-green-700 bg-green-100/40 dark:bg-green-600/20'
+          : 'text-orange-700 bg-orange-100/40 dark:bg-orange-600/20'
       )}
     >
       <PowerIcon className="h-3.5 w-3.5" />
@@ -61,13 +67,25 @@ function VariantFlagBadge({ enabled }: { enabled: boolean }) {
 function BooleanFlagBadge({ enabled }: { enabled: boolean }) {
   return (
     <div
+      title="The default value for this flag"
       className={cls(
-        'inline-flex items-center gap-1.5  py-1.5 text-xs font-medium transition-colors',
-        enabled ? 'text-chart-2' : 'text-chart-3'
+        'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium transition-colors rounded-md',
+        enabled
+          ? 'text-green-700 bg-green-100/40 dark:bg-green-600/20'
+          : 'text-orange-700 bg-orange-100/40 dark:bg-orange-600/20'
       )}
     >
-      <CheckSquareIcon className="h-3.5 w-3.5" />
-      Default {enabled ? 'True' : 'False'}
+      {enabled ? (
+        <>
+          <CheckSquareIcon className="h-3.5 w-3.5" />
+          True
+        </>
+      ) : (
+        <>
+          <XSquareIcon className="h-3.5 w-3.5" />
+          False
+        </>
+      )}
     </div>
   );
 }
@@ -115,7 +133,7 @@ function FlagListItem({
               {item.description}
             </p>
           )}
-          <div className="flex gap-3 mt-2">
+          <div className="flex gap-3 mt-4">
             <CombinedFlagBadge item={item} />
             {/* Status Column - Contains both type badge and toggle */}
             {item.type === FlagType.VARIANT ? (
@@ -130,7 +148,10 @@ function FlagListItem({
           {/* Sparkline */}
           <div className="mt-2 flex items-center min-h-[24px]">
             {evaluationValues.length > 0 && (
-              <div className="w-[128px]" title="Evaluation requests over time">
+              <div
+                className="w-[256px]"
+                title="Evaluation requests in the last 30 minutes"
+              >
                 <Box sx={{ flexGrow: 1 }}>
                   <SparkLineChart
                     data={evaluationValues}
