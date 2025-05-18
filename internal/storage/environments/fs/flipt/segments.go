@@ -182,6 +182,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 				found = true
 				// remove entry from list
 				doc.Segments = slices.Delete(doc.Segments, i, i+1)
+				break
 			}
 		}
 	}

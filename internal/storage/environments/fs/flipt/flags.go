@@ -189,6 +189,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 				found = true
 				// remove entry from list
 				doc.Flags = slices.Delete(doc.Flags, i, i+1)
+				break
 			}
 		}
 	}
