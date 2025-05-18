@@ -3,11 +3,14 @@ package git
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"text/template"
 
+	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"go.flipt.io/flipt/internal/config"
@@ -35,12 +38,13 @@ type Environment struct {
 	repo    *storagegit.Repository
 	storage environmentsfs.Storage
 
-	mu   sync.RWMutex
-	refs map[string]string
-
-	head      plumbing.Hash
-	snap      *storagefs.Snapshot
-	publisher *evaluation.SnapshotPublisher
+	mu            sync.RWMutex
+	branches      map[string]*Environment
+	refs          map[string]string
+	currentBranch string
+	head          plumbing.Hash
+	snap          *storagefs.Snapshot
+	publisher     *evaluation.SnapshotPublisher
 }
 
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
@@ -55,13 +59,15 @@ func NewEnvironmentFromRepo(
 	publisher *evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
 	return &Environment{
-		logger:    logger,
-		cfg:       cfg,
-		repo:      repo,
-		storage:   storage,
-		refs:      map[string]string{},
-		snap:      storagefs.EmptySnapshot(),
-		publisher: publisher,
+		logger:        logger,
+		cfg:           cfg,
+		repo:          repo,
+		storage:       storage,
+		refs:          map[string]string{},
+		snap:          storagefs.EmptySnapshot(),
+		publisher:     publisher,
+		currentBranch: repo.GetDefaultBranch(),
+		branches:      map[string]*Environment{},
 	}, nil
 }
 
@@ -73,16 +79,64 @@ func (e *Environment) Default() bool {
 	return e.cfg.Default
 }
 
+func (e *Environment) Repository() *storagegit.Repository {
+	return e.repo
+}
+
 func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration {
 	return &rpcenvironments.EnvironmentConfiguration{
 		Remote:    e.repo.GetRemote(),
-		Branch:    e.repo.GetDefaultBranch(),
+		Branch:    e.currentBranch,
 		Directory: e.cfg.Directory,
 	}
 }
 
+// Branch creates a new branch from the current environment and returns a new Environment
+// that is backed by the new branch.
+// The new Environment is added to the branches map and the current branch is updated.
+func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error) {
+	// generate an ID for the branched environment
+	name := strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
+	branchName := fmt.Sprintf("flipt/%s/%s", e.cfg.Name, name)
+
+	cfg := *e.cfg
+	cfg.Name = name
+
+	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(branchName)); err != nil {
+		return nil, err
+	}
+
+	env, err := NewEnvironmentFromRepo(
+		ctx,
+		e.logger,
+		&cfg,
+		e.repo,
+		e.storage,
+		e.publisher, // TODO: create new publisher that tracks this ref
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	env.currentBranch = branchName
+
+	env.Notify(ctx, e.head)
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.branches[cfg.Name] = env
+
+	return env, nil
+}
+
+func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (*rpcenvironments.ProposeEnvironmentResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {
-	err = e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	err = e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		ns, err := e.storage.GetNamespace(ctx, environmentsfs.SubFilesystem(fs, e.cfg.Directory), key)
 		if err != nil {
 			return err
@@ -99,7 +153,7 @@ func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcen
 }
 
 func (e *Environment) ListNamespaces(ctx context.Context) (resp *rpcenvironments.ListNamespacesResponse, err error) {
-	err = e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	err = e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		items, err := e.storage.ListNamespaces(ctx, environmentsfs.SubFilesystem(fs, e.cfg.Directory))
 		if err != nil {
 			return err
@@ -156,11 +210,11 @@ func (e *Environment) DeleteNamespace(ctx context.Context, rev, key string) (str
 
 func (e *Environment) updateNamespace(ctx context.Context, rev string, fn func(environmentsfs.Filesystem) (storagefs.Change, error)) (string, error) {
 	hash := plumbing.NewHash(rev)
-	hash, err := e.repo.UpdateAndPush(ctx, func(src environmentsfs.Filesystem) (string, error) {
+	hash, err := e.repo.UpdateAndPush(ctx, e.currentBranch, func(src environmentsfs.Filesystem) (string, error) {
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {
 			return "", err
 		}
@@ -185,7 +239,7 @@ func (e *Environment) View(ctx context.Context, typ serverenvs.ResourceType, fn 
 		return fmt.Errorf("git storage view: %w", err)
 	}
 
-	if err := e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	if err := e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		return fn(ctx, &store{typ: typ, rstore: rstore, base: hash, fs: environmentsfs.SubFilesystem(fs, e.cfg.Directory)})
 	}); err != nil {
 		return err
@@ -202,7 +256,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 	}()
 
 	hash := plumbing.NewHash(rev)
-	hash, err = e.repo.UpdateAndPush(ctx, func(src environmentsfs.Filesystem) (string, error) {
+	hash, err = e.repo.UpdateAndPush(ctx, e.currentBranch, func(src environmentsfs.Filesystem) (string, error) {
 		rstore, err := e.storage.Resource(typ)
 		if err != nil {
 			return "", fmt.Errorf("git storage update: %w", err)
@@ -211,7 +265,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {
 			return "", err
 		}
@@ -373,13 +427,13 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 }
 
 func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (snap *storagefs.Snapshot, err error) {
-	return snap, e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	return snap, e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		if e.cfg.Directory != "" {
 			fs = environmentsfs.SubFilesystem(fs, e.cfg.Directory)
 		}
 
 		iofs := environmentsfs.ToFS(fs)
-		conf, err := storagefs.GetConfig(iofs)
+		conf, err := storagefs.GetConfig(e.logger, iofs)
 		if err != nil {
 			return err
 		}

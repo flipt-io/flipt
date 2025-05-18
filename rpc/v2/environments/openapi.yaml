@@ -10,6 +10,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: environments
             operationId: listEnvironments
             responses:
                 "200":
@@ -49,6 +50,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: resources
             operationId: getResource
             parameters:
                 - name: environmentKey
@@ -90,7 +92,6 @@ paths:
             parameters:
                 - name: environmentKey
                   in: path
-                  description: type is the fully-qualified protobuf message name
                   required: true
                   schema:
                     type: string
@@ -125,6 +126,47 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
+    /api/v2/environments/{baseEnvironmentKey}/branches:
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: branchEnvironment
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Environment'
+    /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}:
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: proposeEnvironment
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProposeEnvironmentResponse'
     /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
@@ -193,6 +235,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: namespaces
             operationId: getNamespace
             parameters:
                 - name: environmentKey
@@ -327,6 +370,8 @@ components:
                     type: string
                 directory:
                     type: string
+                base:
+                    type: string
         GoogleProtobufAny:
             type: object
             properties:
@@ -377,6 +422,16 @@ components:
                 namespace:
                     $ref: '#/components/schemas/Namespace'
                 revision:
+                    type: string
+        ProposeEnvironmentResponse:
+            type: object
+            properties:
+                scm:
+                    enum:
+                        - GITHUB_SCM
+                    type: string
+                    format: enum
+                url:
                     type: string
         Resource:
             type: object

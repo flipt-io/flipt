@@ -70,7 +70,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	if empty {
 		logger.Debug("repository empty, attempting to add and push a README")
 		// add initial readme if repo is empty
-		if _, err := repo.UpdateAndPush(ctx, func(fs envsfs.Filesystem) (string, error) {
+		if _, err := repo.UpdateAndPush(ctx, repo.defaultBranch, func(fs envsfs.Filesystem) (string, error) {
 			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 			if err != nil {
 				return "", err
@@ -353,20 +353,18 @@ func ViewWithHash(hash plumbing.Hash) containers.Option[ViewOptions] {
 	}
 }
 
-// View reads the head of the default configured branch and passes the resulting git tree via
+// View reads the head of the given branch and passes the resulting git tree via
 // the envsfs.Filesystem abstraction to the provided function.
 func (r *Repository) View(
 	ctx context.Context,
+	branch string,
 	fn func(hash plumbing.Hash, fs envsfs.Filesystem) error,
 	opts ...containers.Option[ViewOptions],
 ) (err error) {
 	var vopts ViewOptions
 	containers.ApplyAll(&vopts, opts...)
 
-	var (
-		branch   = r.defaultBranch
-		finished = r.metrics.recordView(ctx, branch)
-	)
+	finished := r.metrics.recordView(ctx, branch)
 
 	r.mu.RLock()
 	defer func() {
@@ -415,14 +413,14 @@ func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOpt
 
 // UpdateAndPush calls the provided function with a Filesystem implementation which intercepts any write
 // operations and builds the changes into a commit.
-// Given an upstream remote is configured, the commit is also pushed to the configured default branch.
+// Given an upstream remote is configured, the commit is also pushed to the given branch.
 func (r *Repository) UpdateAndPush(
 	ctx context.Context,
+	branch string,
 	fn func(fs envsfs.Filesystem) (string, error),
 	opts ...containers.Option[UpdateAndPushOptions],
 ) (hash plumbing.Hash, err error) {
 	var (
-		branch   = r.defaultBranch
 		finished = r.metrics.recordUpdate(ctx, branch)
 		options  UpdateAndPushOptions
 		commit   *object.Commit

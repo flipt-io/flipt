@@ -46,6 +46,60 @@ func (x *EnvironmentsServiceClient) ListEnvironments(ctx context.Context, v *env
 	return &output, nil
 }
 
+func (x *EnvironmentsServiceClient) BranchEnvironment(ctx context.Context, v *environments.BranchEnvironmentRequest, _ ...grpc.CallOption) (*environments.Environment, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v2/environments/%v/branches", v.BaseEnvironmentKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output environments.Environment
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest, _ ...grpc.CallOption) (*environments.ProposeEnvironmentResponse, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v2/environments/%v/branches/%v", v.BaseEnvironmentKey, v.EnvironmentKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output environments.ProposeEnvironmentResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (x *EnvironmentsServiceClient) GetNamespace(ctx context.Context, v *environments.GetNamespaceRequest, _ ...grpc.CallOption) (*environments.NamespaceResponse, error) {
 	var body io.Reader
 	var values url.Values

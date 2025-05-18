@@ -20,6 +20,22 @@ func (x *Environments) ListEnvironments(ctx context.Context, v *environments.Lis
 	return x.transport.ListEnvironments(ctx, v)
 }
 
+func (x *Environments) BranchEnvironment(ctx context.Context, v *environments.BranchEnvironmentRequest) (*environments.Environment, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.BranchEnvironment(ctx, v)
+}
+
+func (x *Environments) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest) (*environments.ProposeEnvironmentResponse, error) {
+	ctx, err := authenticate(ctx, x.authenticationProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.ProposeEnvironment(ctx, v)
+}
+
 func (x *Environments) GetNamespace(ctx context.Context, v *environments.GetNamespaceRequest) (*environments.NamespaceResponse, error) {
 	ctx, err := authenticate(ctx, x.authenticationProvider)
 	if err != nil {

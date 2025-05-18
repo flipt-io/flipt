@@ -6,6 +6,7 @@ import (
 	"io"
 	"iter"
 	"strings"
+	"sync"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/common"
@@ -45,6 +46,9 @@ type Environment interface {
 	Key() string
 	Default() bool
 	Configuration() *environments.EnvironmentConfiguration
+	Branch(ctx context.Context) (Environment, error)
+	Propose(ctx context.Context, branch Environment) (*environments.ProposeEnvironmentResponse, error)
+
 	// Namespaces
 
 	GetNamespace(_ context.Context, key string) (*environments.NamespaceResponse, error)
@@ -84,25 +88,26 @@ type ResourceStore interface {
 
 type EnvironmentStore struct {
 	logger     *zap.Logger
-	byName     map[string]Environment
+	byKey      map[string]Environment
 	defaultEnv Environment
+	mu         sync.RWMutex
 }
 
 func NewEnvironmentStore(logger *zap.Logger, envs ...Environment) (*EnvironmentStore, error) {
 	store := &EnvironmentStore{
 		logger: logger,
-		byName: map[string]Environment{},
+		byKey:  map[string]Environment{},
 	}
 
 	for _, env := range envs {
-		store.byName[env.Key()] = env
+		store.byKey[env.Key()] = env
 		if env.Default() {
 			store.defaultEnv = env
 		}
 	}
 
 	if store.defaultEnv == nil {
-		env, ok := store.byName[flipt.DefaultEnvironment]
+		env, ok := store.byKey[flipt.DefaultEnvironment]
 		switch {
 		case ok:
 			store.defaultEnv = env
@@ -117,8 +122,11 @@ func NewEnvironmentStore(logger *zap.Logger, envs ...Environment) (*EnvironmentS
 }
 
 func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
 	return iter.Seq[Environment](func(yield func(Environment) bool) {
-		for _, env := range e.byName {
+		for _, env := range e.byKey {
 			if !yield(env) {
 				return
 			}
@@ -126,11 +134,50 @@ func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
 	})
 }
 
-// Get returns the environment identified by name.
-func (e *EnvironmentStore) Get(ctx context.Context, name string) (Environment, error) {
-	env, ok := e.byName[name]
+func (e *EnvironmentStore) Add(env Environment) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.byKey[env.Key()] = env
+	return nil
+}
+
+func (e *EnvironmentStore) Branch(ctx context.Context, base string) (Environment, error) {
+	baseEnv, err := e.Get(ctx, base)
+	if err != nil {
+		return nil, err
+	}
+
+	branchEnv, err := baseEnv.Branch(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return branchEnv, nil
+}
+
+func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch string) (*environments.ProposeEnvironmentResponse, error) {
+	baseEnv, err := e.Get(ctx, base)
+	if err != nil {
+		return nil, err
+	}
+
+	branchEnv, err := e.Get(ctx, branch)
+	if err != nil {
+		return nil, err
+	}
+
+	return baseEnv.Propose(ctx, branchEnv)
+}
+
+// Get returns the environment identified by key.
+func (e *EnvironmentStore) Get(ctx context.Context, key string) (Environment, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	env, ok := e.byKey[key]
 	if !ok {
-		return nil, errors.ErrNotFoundf("environment: %q", name)
+		return nil, errors.ErrNotFoundf("environment: %q", key)
 	}
 
 	return env, nil
