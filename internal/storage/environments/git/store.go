@@ -112,10 +112,12 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 // The new Environment is added to the branches map and the current branch is updated.
 func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error) {
 	// generate an ID for the branched environment
-	name := strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
-	branchName := fmt.Sprintf("flipt/%s/%s", e.cfg.Name, name)
+	var (
+		name       = strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
+		branchName = fmt.Sprintf("flipt/%s/%s", e.cfg.Name, name)
+		cfg        = *e.cfg
+	)
 
-	cfg := *e.cfg
 	cfg.Name = name
 
 	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(e.currentBranch)); err != nil {
@@ -128,7 +130,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 		&cfg,
 		e.repo,
 		e.storage,
-		evaluation.NewNoopPublisher(), // we dont track evaluation snapshots for branches
+		evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 	)
 
 	if err != nil {
@@ -145,6 +147,35 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	e.branches[cfg.Name] = env
 
 	return env, nil
+}
+
+func (e *Environment) ListBranches(ctx context.Context) (*rpcenvironments.ListEnvironmentBranchesResponse, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	iter, err := e.listBranchEnvs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	branches := []*branchEnvConfig{}
+	for cfg := range iter.All() {
+		branches = append(branches, cfg)
+	}
+
+	if err := iter.Err(); err != nil {
+		return nil, err
+	}
+
+	br := &rpcenvironments.ListEnvironmentBranchesResponse{}
+	for _, cfg := range branches {
+		br.Branches = append(br.Branches, &rpcenvironments.BranchEnvironment{
+			EnvironmentKey: cfg.Name,
+			Branch:         cfg.branch,
+		})
+	}
+
+	return br, nil
 }
 
 func (e *Environment) listBranchEnvs(_ context.Context) (*branchEnvIterator, error) {
@@ -185,8 +216,6 @@ func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 				name, _, _ := strings.Cut(candidate, "/")
 				cfg := *e.env.cfg
 				cfg.Name = name
-
-				e.logger.Debug("found branch", zap.String("branch", branch), zap.String("environment", name))
 
 				if !yield(&branchEnvConfig{
 					EnvironmentConfig: &cfg,
@@ -513,7 +542,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				cfg.EnvironmentConfig,
 				e.repo,
 				e.storage,
-				evaluation.NewNoopPublisher(), // we dont publish evaluation snapshots for branches
+				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 			)
 
 			e.branches[cfg.Name] = env

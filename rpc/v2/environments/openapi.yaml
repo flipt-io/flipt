@@ -127,6 +127,23 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
     /api/v2/environments/{baseEnvironmentKey}/branches:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listEnvironmentBranches
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListEnvironmentBranchesResponse'
         post:
             tags:
                 - EnvironmentsService
@@ -340,6 +357,13 @@ paths:
                                 $ref: '#/components/schemas/ResourceResponse'
 components:
     schemas:
+        BranchEnvironment:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                branch:
+                    type: string
         DeleteNamespaceResponse:
             type: object
             properties:
@@ -380,6 +404,13 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListEnvironmentBranchesResponse:
+            type: object
+            properties:
+                branches:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/BranchEnvironment'
         ListEnvironmentsResponse:
             type: object
             properties:

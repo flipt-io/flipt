@@ -214,7 +214,6 @@ func (g Go) Lint() error {
 
 // Generates the Go protobuf files and gRPC stubs
 func (g Go) Proto() error {
-	mg.Deps(Bootstrap)
 	fmt.Println(" > Generating proto files...")
 	for _, module := range []string{
 		"rpc/flipt",

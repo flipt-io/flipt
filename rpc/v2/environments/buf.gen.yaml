@@ -13,13 +13,6 @@ plugins:
     opt:
       - paths=source_relative
     strategy: all
-  - local: protoc-gen-go-flipt-sdk
-    out: ../../../sdk/go/v2
-    opt:
-      - paths=source_relative
-      - grpc_api_configuration=environments.yaml
-      - go_import_path=go.flipt.io/flipt/sdk/go/v2
-    strategy: all
   - remote: buf.build/community/google-gnostic-openapi:v0.7.0
     out: .
     opt:

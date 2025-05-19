@@ -46,6 +46,7 @@ type Environment interface {
 	Key() string
 	Default() bool
 	Configuration() *environments.EnvironmentConfiguration
+	ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)
 	Branch(ctx context.Context) (Environment, error)
 	Propose(ctx context.Context, branch Environment) (*environments.ProposeEnvironmentResponse, error)
 

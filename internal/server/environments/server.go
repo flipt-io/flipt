@@ -83,6 +83,15 @@ func (s *Server) BranchEnvironment(ctx context.Context, req *environments.Branch
 	}, nil
 }
 
+func (s *Server) ListEnvironmentBranches(ctx context.Context, req *environments.ListEnvironmentBranchesRequest) (br *environments.ListEnvironmentBranchesResponse, err error) {
+	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return env.ListBranches(ctx)
+}
+
 func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespaceRequest) (ns *environments.NamespaceResponse, err error) {
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
