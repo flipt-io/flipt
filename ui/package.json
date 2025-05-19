@@ -28,7 +28,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.2.0",
-    "@loadable/component": "^5.16.4",
+    "@loadable/component": "^5.16.7",
     "@radix-ui/react-dropdown-menu": "^2.1.7",
     "@radix-ui/react-select": "^2.2.4",
     "@radix-ui/react-slot": "^1.2.0",
