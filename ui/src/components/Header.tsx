@@ -40,6 +40,9 @@ export function Header({
         </div>
         {!sidebarOpen && (
           <>
+            {currentEnvironment?.configuration?.remote && (
+              <span className="mx-2 h-6 w-px bg-border rounded" />
+            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
