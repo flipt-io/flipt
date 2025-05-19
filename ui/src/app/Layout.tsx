@@ -52,9 +52,12 @@ function InnerLayout() {
   const currentNamespace = useSelector(selectCurrentNamespace);
   const info = useSelector(selectInfo);
 
-  const namespaces = useListNamespacesQuery({
-    environmentKey: currentEnvironment.key
-  });
+  const namespaces = useListNamespacesQuery(
+    {
+      environmentKey: currentEnvironment.key
+    },
+    { skip: environments.isLoading }
+  );
 
   const sidebarOpen = useSelector(selectSidebar);
   const setSidebarOpen = () => {

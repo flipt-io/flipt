@@ -147,7 +147,7 @@ function FlagListItem({
             {evaluationValues.length > 0 && (
               <div
                 className="w-[256px]"
-                title="Evaluation requests in the last 30 minutes"
+                title="Evaluation requests in the last 24 hours"
               >
                 <Box sx={{ flexGrow: 1 }}>
                   <SparkLineChart
