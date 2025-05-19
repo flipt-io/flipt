@@ -42,7 +42,8 @@ require (
 	github.com/open-policy-agent/opa v0.70.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/prometheus/common v0.63.0
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/extra/redisotel/v9 v9.8.0
+	github.com/redis/go-redis/v9 v9.8.0
 	github.com/samber/lo v1.49.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
@@ -221,6 +222,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.8.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect

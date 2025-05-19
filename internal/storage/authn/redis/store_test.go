@@ -13,6 +13,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/internal/storage/authn"
 	authtesting "go.flipt.io/flipt/internal/storage/authn/testing"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 )
 
@@ -89,5 +90,24 @@ func TestAuthenticationStoreRedis(t *testing.T) {
 
 	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) authn.Store {
 		return NewStore(rdb, zap.NewNop())
+	})
+}
+
+func TestPrefixKeys(t *testing.T) {
+	t.Run("authIDKey", func(t *testing.T) {
+		require.Equal(t, "flipt:auth:id:123", authIDKey("flipt", "123"))
+		require.Equal(t, "auth:id:123", authIDKey("", "123"))
+	})
+	t.Run("authTokenKey", func(t *testing.T) {
+		require.Equal(t, "flipt:auth:token:123", authTokenKey("flipt", "123"))
+		require.Equal(t, "auth:token:123", authTokenKey("", "123"))
+	})
+	t.Run("authMethodKey", func(t *testing.T) {
+		require.Equal(t, "flipt:auth:method:METHOD_TOKEN", authMethodKey("flipt", auth.Method_METHOD_TOKEN))
+		require.Equal(t, "auth:method:METHOD_TOKEN", authMethodKey("", auth.Method_METHOD_TOKEN))
+	})
+	t.Run("authAllKey", func(t *testing.T) {
+		require.Equal(t, "flipt:auth:all", authAllKey("flipt"))
+		require.Equal(t, "auth:all", authAllKey(""))
 	})
 }

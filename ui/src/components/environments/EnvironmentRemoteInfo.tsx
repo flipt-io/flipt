@@ -55,8 +55,7 @@ export function EnvironmentRemoteInfo({
       href={repoUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-1 text-inherit hover:underline"
-      title={repoUrl}
+      className="flex gap-1 text-inherit hover:underline ml-auto"
       style={{ textDecoration: 'none' }}
     >
       <Tooltip>
@@ -69,7 +68,9 @@ export function EnvironmentRemoteInfo({
             <span className="truncate max-w-[200px]">{repoName}</span>
           </Badge>
         </TooltipTrigger>
-        <TooltipContent>{`Branch: ${configuration.branch}`}</TooltipContent>
+        <TooltipContent
+          title={repoUrl}
+        >{`Branch: ${configuration.branch}`}</TooltipContent>
       </Tooltip>
     </a>
   );

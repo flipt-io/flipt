@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
+import { Badge } from '~/components/Badge';
 import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
@@ -44,15 +45,12 @@ function SegmentListItem({ item, path }: { item: ISegment; path: string }) {
       <div className="flex items-start gap-6 p-4">
         {/* Segment Info and Tags Column */}
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{item.name}</span>
-            <span className="text-muted-foreground">&middot;</span>
-            <code className="text-xs text-muted-foreground font-mono">
-              {item.key}
-            </code>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-base">{item.name}</span>
+            <Badge variant="outlinemuted">{item.key}</Badge>
           </div>
           {item.description && (
-            <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
+            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
               {item.description}
             </p>
           )}
@@ -60,7 +58,7 @@ function SegmentListItem({ item, path }: { item: ISegment; path: string }) {
 
         {/* Status Column */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-secondary-foreground">
+          <div className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-secondary/50 text-muted-foreground">
             {item.matchType === SegmentMatchType.ALL ? (
               <SigmaIcon className="h-3.5 w-3.5" />
             ) : (
