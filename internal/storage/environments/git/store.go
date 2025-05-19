@@ -44,7 +44,7 @@ type Environment struct {
 	currentBranch string
 	head          plumbing.Hash
 	snap          *storagefs.Snapshot
-	publisher     *evaluation.SnapshotPublisher
+	publisher     evaluation.SnapshotPublisher
 }
 
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
@@ -56,7 +56,7 @@ func NewEnvironmentFromRepo(
 	cfg *config.EnvironmentConfig,
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
-	publisher *evaluation.SnapshotPublisher,
+	publisher evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
 	return &Environment{
 		logger:        logger,
@@ -112,7 +112,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 		&cfg,
 		e.repo,
 		e.storage,
-		e.publisher, // TODO: create new publisher that tracks this ref
+		evaluation.NewNoopPublisher(),
 	)
 
 	if err != nil {
@@ -120,8 +120,6 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	}
 
 	env.currentBranch = branchName
-
-	env.Notify(ctx, e.head)
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -426,6 +424,7 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 
 }
 
+// buildSnapshot builds a snapshot from the current branch for all namespaces in the environment
 func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (snap *storagefs.Snapshot, err error) {
 	return snap, e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		if e.cfg.Directory != "" {

@@ -15,6 +15,11 @@ import (
 	"go.uber.org/zap"
 )
 
+type SnapshotPublisher interface {
+	Publish(snap *storagefs.Snapshot) error
+	Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error)
+}
+
 type subscription struct {
 	logger *zap.Logger
 	mu     sync.Mutex
@@ -64,7 +69,7 @@ type publishOptions struct {
 	timeout time.Duration
 }
 
-type SnapshotPublisher struct {
+type Publisher struct {
 	logger *zap.Logger
 
 	mu   sync.Mutex
@@ -82,7 +87,7 @@ func WithTimeout(timeout time.Duration) OptionsFunc {
 	}
 }
 
-func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *SnapshotPublisher {
+func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *Publisher {
 	options := publishOptions{
 		timeout: 15 * time.Second,
 	}
@@ -91,14 +96,14 @@ func NewSnapshotPublisher(logger *zap.Logger, opts ...OptionsFunc) *SnapshotPubl
 		opt(&options)
 	}
 
-	return &SnapshotPublisher{
+	return &Publisher{
 		logger:  logger,
 		subs:    make(map[string][]*subscription),
 		options: options,
 	}
 }
 
-func (p *SnapshotPublisher) Publish(snap *storagefs.Snapshot) error {
+func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 	ctx := context.Background()
 	last, err := snap.EvaluationSnapshot(ctx)
 	if err != nil {
@@ -168,7 +173,7 @@ func (p *SnapshotPublisher) Publish(snap *storagefs.Snapshot) error {
 	return nil
 }
 
-func (p *SnapshotPublisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
+func (p *Publisher) Subscribe(ctx context.Context, ns string, ch chan<- *rpcevaluation.EvaluationNamespaceSnapshot) (io.Closer, error) {
 	var (
 		id  = uuid.New().String()
 		sub = &subscription{id: id, ch: ch, logger: p.logger.With(zap.String("subscription", id))}

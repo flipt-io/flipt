@@ -37,11 +37,18 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 
 	// First collect all environments
 	for env := range s.envs.List(ctx) {
+		cfg := env.Configuration()
+
+		if cfg.Base != nil {
+			// ignore branched environments
+			continue
+		}
+
 		el.Environments = append(el.Environments, &environments.Environment{
 			Key:           env.Key(),
 			Name:          env.Key(),
 			Default:       ptr(env.Default()),
-			Configuration: env.Configuration(),
+			Configuration: cfg,
 		})
 	}
 
@@ -60,6 +67,20 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 	}
 
 	return el, nil
+}
+
+func (s *Server) BranchEnvironment(ctx context.Context, req *environments.BranchEnvironmentRequest) (resp *environments.Environment, err error) {
+	env, err := s.envs.Branch(ctx, req.BaseEnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &environments.Environment{
+		Key:           env.Key(),
+		Name:          env.Key(),
+		Default:       ptr(env.Default()),
+		Configuration: env.Configuration(),
+	}, nil
 }
 
 func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespaceRequest) (ns *environments.NamespaceResponse, err error) {
