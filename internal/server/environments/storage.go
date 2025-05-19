@@ -153,6 +153,8 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string) (Environment
 		return nil, err
 	}
 
+	e.Add(branchEnv)
+
 	return branchEnv, nil
 }
 

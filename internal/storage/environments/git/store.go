@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"strings"
 	"sync"
 	"text/template"
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"go.flipt.io/flipt/internal/config"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
@@ -71,6 +73,13 @@ func NewEnvironmentFromRepo(
 	}, nil
 }
 
+func (e *Environment) Branches() []string {
+	return []string{
+		e.currentBranch,
+		fmt.Sprintf("flipt/%s/*", e.cfg.Name),
+	}
+}
+
 func (e *Environment) Key() string {
 	return e.cfg.Name
 }
@@ -102,7 +111,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	cfg := *e.cfg
 	cfg.Name = name
 
-	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(branchName)); err != nil {
+	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(e.currentBranch)); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +121,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 		&cfg,
 		e.repo,
 		e.storage,
-		evaluation.NewNoopPublisher(),
+		evaluation.NewNoopPublisher(), // we dont track evaluation snapshots for branches
 	)
 
 	if err != nil {
@@ -120,6 +129,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	}
 
 	env.currentBranch = branchName
+	env.updateSnapshot(ctx)
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -127,6 +137,64 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	e.branches[cfg.Name] = env
 
 	return env, nil
+}
+
+func (e *Environment) listBranchEnvs(_ context.Context) (*branchEnvIterator, error) {
+	refs, err := e.repo.References()
+	if err != nil {
+		return nil, err
+	}
+
+	return &branchEnvIterator{
+		logger: e.logger,
+		refs:   refs,
+		env:    e,
+	}, nil
+}
+
+type branchEnvIterator struct {
+	logger *zap.Logger
+	refs   storer.ReferenceIter
+	env    *Environment
+
+	err error
+}
+
+type branchEnvConfig struct {
+	*config.EnvironmentConfig
+	branch string
+}
+
+func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
+	return iter.Seq[*branchEnvConfig](func(yield func(*branchEnvConfig) bool) {
+		e.err = e.refs.ForEach(func(r *plumbing.Reference) error {
+			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
+
+			// if one of our branches that we created
+			if candidate := strings.TrimPrefix(branch, fmt.Sprintf("flipt/%s/", e.env.cfg.Name)); candidate != branch {
+				// get the name of the environment from the branch name
+				// e.g. flipt/my-env/my-branch -> my-env
+				name, _, _ := strings.Cut(candidate, "/")
+				cfg := *e.env.cfg
+				cfg.Name = name
+
+				e.logger.Debug("found branch", zap.String("branch", branch), zap.String("environment", name))
+
+				if !yield(&branchEnvConfig{
+					EnvironmentConfig: &cfg,
+					branch:            branch,
+				}) {
+					return storer.ErrStop
+				}
+			}
+
+			return nil
+		})
+	})
+}
+
+func (e *branchEnvIterator) Err() error {
+	return e.err
 }
 
 func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (*rpcenvironments.ProposeEnvironmentResponse, error) {
@@ -392,14 +460,97 @@ func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, 
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
-func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
+func (e *Environment) Notify(ctx context.Context, refs map[string]plumbing.Hash) error {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash.String() {
+		e.logger.Debug("updating base env snapshot",
+			zap.String("environment", e.cfg.Name),
+			zap.String("from", e.refs[e.currentBranch]),
+			zap.String("to", hash.String()),
+		)
+
+		e.refs[e.currentBranch] = hash.String()
+		e.updateSnapshot(ctx)
+	}
+
+	return nil
+}
+
+// RefreshEnvironment refreshes the environment from the remote repository
+// and updates the local environment with the new branches and namespaces
+// it returns the set of newly observed environments to be added to the store
+func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]string) (newBranches []serverenvs.Environment, err error) {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
+		e.logger.Debug("updating base env snapshot",
+			zap.String("environment", e.cfg.Name),
+			zap.String("from", e.refs[e.currentBranch]),
+			zap.String("to", hash),
+		)
+
+		e.refs[e.currentBranch] = hash
+		e.updateSnapshot(ctx)
+	}
+
+	iterator, err := e.listBranchEnvs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for cfg := range iterator.All() {
+		env, ok := e.branches[cfg.Name]
+		// if we dont have an environment for this branch, create one
+		if !ok {
+			env, err = NewEnvironmentFromRepo(
+				ctx,
+				e.logger,
+				cfg.EnvironmentConfig,
+				e.repo,
+				e.storage,
+				evaluation.NewNoopPublisher(), // we dont publish evaluation snapshots for branches
+			)
+
+			e.branches[cfg.Name] = env
+			newBranches = append(newBranches, env)
+			env.updateSnapshot(ctx)
+			continue
+		}
+
+		// otherwise update the snapshot if the branch has advanced
+		if hash, ok := refs[cfg.branch]; ok && e.refs[cfg.branch] != hash {
+			e.logger.Debug("updating branch env snapshot",
+				zap.String("environment", cfg.Name),
+				zap.String("from", e.refs[cfg.branch]),
+				zap.String("to", hash),
+			)
+
+			e.refs[cfg.branch] = hash
+			env.updateSnapshot(ctx)
+		}
+	}
+
+	if err := iterator.Err(); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+func (e *Environment) updateSnapshot(ctx context.Context) error {
+	hash, err := e.repo.Resolve(e.currentBranch)
+	if err != nil {
+		return err
+	}
+
+	e.mu.RLock()
+	head := e.head
+	e.mu.RUnlock()
+
 	// check if head has advanced
-	if e.head == head {
+	if head == hash {
 		// head has not advanced so we skip building
 		return nil
 	}
 
-	snap, err := e.buildSnapshot(ctx, head)
+	snap, err := e.buildSnapshot(ctx, hash)
 	if err != nil {
 		e.logger.Error("updating snapshot",
 			zap.Error(err),
@@ -417,11 +568,10 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	e.head = head
+	e.head = hash
 	e.snap = snap
 
 	return nil
-
 }
 
 // buildSnapshot builds a snapshot from the current branch for all namespaces in the environment

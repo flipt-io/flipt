@@ -61,7 +61,26 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 		}
 	}
 
-	return serverconfig.NewEnvironmentStore(logger, envs...)
+	envStore, err := serverconfig.NewEnvironmentStore(logger, envs...)
+	if err != nil {
+		return nil, err
+	}
+
+	// subscribe to all git environments to be notified of new branches
+	for _, env := range envs {
+		gitEnv, ok := env.(*environmentsgit.Environment)
+		if !ok {
+			continue
+		}
+
+		gitEnv.Repository().Subscribe(&environmentSubscriber{
+			Environment: gitEnv,
+			logger:      logger,
+			envs:        envStore,
+		})
+	}
+
+	return envStore, nil
 }
 
 type sourceBuilder struct {
@@ -108,9 +127,6 @@ func (s *sourceBuilder) forEnvironment(
 	if err != nil {
 		return nil, err
 	}
-
-	// register the environment for updates to the target branch
-	repo.Subscribe(storage.Branch, env)
 
 	logger.Debug("configured environment",
 		zap.String("environment", envConf.Name),
@@ -195,4 +211,27 @@ func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.
 	}
 
 	return gitRepo, nil
+}
+
+type environmentSubscriber struct {
+	*environmentsgit.Environment
+
+	logger *zap.Logger
+	envs   *serverconfig.EnvironmentStore
+}
+
+func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]string) error {
+	// this returns the set of newly observed environments based on this one to be added to the store
+	envs, err := s.RefreshEnvironment(ctx, refs)
+	if err != nil {
+		return err
+	}
+
+	for _, env := range envs {
+		// we ignore the error as we're only interested in new environments
+		// add only errors when attempting to add an existing env
+		_ = s.envs.Add(env)
+	}
+
+	return err
 }

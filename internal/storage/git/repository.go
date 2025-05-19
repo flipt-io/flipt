@@ -43,7 +43,7 @@ type Repository struct {
 	sigEmail           string
 	maxOpenDescriptors int
 
-	subs []subscription
+	subs []Subscriber
 
 	pollInterval time.Duration
 	cancel       func()
@@ -53,12 +53,8 @@ type Repository struct {
 }
 
 type Subscriber interface {
-	Notify(ctx context.Context, head plumbing.Hash) error
-}
-
-type subscription struct {
-	Subscriber
-	branch string
+	Branches() []string
+	Notify(ctx context.Context, heads map[string]string) error
 }
 
 func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.Option[Repository]) (*Repository, error) {
@@ -251,19 +247,19 @@ func (r *Repository) Close() error {
 	return nil
 }
 
-// Subscribe registers the functions for the given branch name.
-// It will be called each time the branch is updated while holding a lock.
-func (r *Repository) Subscribe(branch string, sub Subscriber) {
+func (r *Repository) Subscribe(sub Subscriber) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.subs = append(r.subs, subscription{sub, branch})
+	r.subs = append(r.subs, sub)
 }
 
 func (r *Repository) fetchHeads() []string {
 	heads := map[string]struct{}{r.defaultBranch: {}}
 	for _, sub := range r.subs {
-		heads[sub.branch] = struct{}{}
+		for _, head := range sub.Branches() {
+			heads[head] = struct{}{}
+		}
 	}
 
 	return slices.Collect(maps.Keys(heads))
@@ -537,21 +533,21 @@ func (r *Repository) UpdateAndPush(
 }
 
 func (r *Repository) updateSubs(ctx context.Context, refs map[string]plumbing.Hash) {
-	// update subscribers when refs match
-OUTER:
+	// update subscribers for each matching ref
 	for _, sub := range r.subs {
+		matched := map[string]string{}
 		for ref, hash := range refs {
-			if !refMatch(ref, sub.branch) {
-				continue
+			for _, branch := range sub.Branches() {
+				if refMatch(ref, branch) {
+					matched[ref] = hash.String()
+				}
 			}
+		}
 
-			if err := sub.Notify(ctx, hash); err != nil {
-				r.metrics.recordUpdateSubsError(ctx)
+		if err := sub.Notify(ctx, matched); err != nil {
+			r.metrics.recordUpdateSubsError(ctx)
 
-				r.logger.Error("while updating subscriber", zap.Error(err))
-			}
-
-			continue OUTER
+			r.logger.Error("while updating subscriber", zap.Error(err))
 		}
 	}
 }

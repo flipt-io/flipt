@@ -4,39 +4,56 @@
 log:
   level: DEBUG
 
-# authentication:
-#   required: false
-#   session:
-#     domain: "localhost:8080"
-#     secure: false
-#   methods:
-#     token:
-#       enabled: true
-#       bootstrap:
-#         token: "secret"
-#         expiration: 24h
-#       cleanup:
-#         interval: 2h
-#         grace_period: 48h
+authentication:
+  required: true
+  session:
+    domain: "localhost:8080"
+    secure: false
+  methods:
+    github:
+      enabled: true
+      client_id: ${FLIPT_GITHUB_CLIENT_ID}
+      client_secret: ${FLIPT_GITHUB_CLIENT_SECRET}
+      redirect_address: "http://localhost:8080"
+      scopes:
+        - user:email
 
-# storage:
-#   default:
-#     name: "local" 
-#   staging:
-#     name: "staging"
 
-# environments:
-#   local:
-#     name: "local"
-#     default: true
+storage:
+  default:
+    name: "local" 
+  staging:
+    name: "staging"
+    remote: "https://github.com/flipt-io/flipt-features"
+    branch: "main"
+    credentials: "github"
 
-#   staging:
-#     name: "staging"
-#     storage: "staging"
+environments:
+  local:
+    name: "local"
+    default: true
+
+  staging:
+    name: "staging"
+    storage: "staging"
+    directory: "features"
+
+credentials:
+  github:
+    type: "basic"
+    basic:
+      username: markphelps
+      password: ${FLIPT_GITHUB_TOKEN}
 
 cors:
   enabled: true
   allowed_origins: ["*"]
+
+analytics:
+  storage:
+    clickhouse:
+      enabled: true
+      url: "clickhouse://localhost:9001/flipt_analytics_v2"
 
 # server:
 #   protocol: http
