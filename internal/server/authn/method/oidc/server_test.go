@@ -55,15 +55,15 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 	}
 
 	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
-		CustomClaims: map[string]interface{}{},
+		CustomClaims: map[string]any{},
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 					"roles": []string{"admin"},
@@ -71,11 +71,11 @@ func Test_Server_ImplicitFlow(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 					"roles": []string{"editor"},
@@ -162,15 +162,15 @@ func Test_Server_PKCE(t *testing.T) {
 	}
 
 	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
-		CustomClaims: map[string]interface{}{},
+		CustomClaims: map[string]any{},
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 					"roles": []string{"admin"},
@@ -178,11 +178,11 @@ func Test_Server_PKCE(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 					"roles": []string{"editor"},
@@ -268,15 +268,15 @@ func Test_Server_Nonce(t *testing.T) {
 	require.NoError(t, err)
 
 	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
-		CustomClaims: map[string]interface{}{},
+		CustomClaims: map[string]any{},
 		SubjectInfo: map[string]*oidc.TestSubject{
 			"mark": {
 				Password: "phelps",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "mark@flipt.io",
 					"name":  "Mark Phelps",
 					"roles": []string{"admin"},
@@ -284,11 +284,11 @@ func Test_Server_Nonce(t *testing.T) {
 			},
 			"george": {
 				Password: "macrorie",
-				UserInfo: map[string]interface{}{
+				UserInfo: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 				},
-				CustomClaims: map[string]interface{}{
+				CustomClaims: map[string]any{
 					"email": "george@flipt.io",
 					"name":  "George MacRorie",
 					"roles": []string{"editor"},

@@ -41,16 +41,17 @@ func getAuthStore(
 
 	var (
 		cleanupGracePeriod                   = cfg.Authentication.Session.Storage.Cleanup.GracePeriod
+		prefix                               = cfg.Authentication.Session.Storage.Redis.Prefix
 		store              storageauth.Store = storageauthmemory.NewStore(logger, storageauthmemory.WithCleanupGracePeriod(cleanupGracePeriod))
 	)
 
 	if cfg.Authentication.Session.Storage.Type == config.AuthenticationSessionStorageTypeRedis {
-		rdb, err := storageauthredis.NewClient(cfg.Authentication.Session.Storage.Redis)
+		rdb, err := storageauthredis.NewClient(*cfg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create redis client: %w", err)
 		}
 
-		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod))
+		store = storageauthredis.NewStore(rdb, logger, storageauthredis.WithCleanupGracePeriod(cleanupGracePeriod), storageauthredis.WithPrefix(prefix))
 	}
 
 	// if token method is enabled we decorate the store with a static store implementation

@@ -14,6 +14,7 @@ import {
   useGetSegmentQuery
 } from '~/app/segments/segmentsApi';
 
+import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -141,7 +142,14 @@ export default function Segment() {
 
       {/* segment header / actions */}
       <PageHeader
-        title={<div className="flex items-center">{segment.name}</div>}
+        title={
+          <div className="flex items-center gap-2">
+            {segment.name}
+            <Badge variant="outlinemuted" className="hidden sm:block">
+              {segment.key}
+            </Badge>
+          </div>
+        }
       >
         <Dropdown
           label="Actions"
@@ -167,14 +175,10 @@ export default function Segment() {
       </PageHeader>
 
       {/* Key Section */}
-      <div className="mb-8">
-        {segment.key && (
-          <div className="my-2 inline-flex items-center rounded-md bg-secondary/30 px-3 py-1.5">
-            <code className="text-sm font-mono text-muted-foreground dark:text-gray-300">
-              {segment.key}
-            </code>
-          </div>
-        )}
+      <div className="flex mb-8 gap-3 mt-2">
+        <Badge variant="outlinemuted" className="sm:hidden">
+          {segment.key}
+        </Badge>
       </div>
 
       {/* Form Section - Full Width */}

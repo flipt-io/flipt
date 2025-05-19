@@ -143,7 +143,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		storageMetadataOIDCProvider: req.Provider,
 	}
 
-	rawClaims := make(map[string]interface{})
+	rawClaims := make(map[string]any)
 	if err := responseToken.IDToken().Claims(&rawClaims); err != nil {
 		return nil, err
 	}

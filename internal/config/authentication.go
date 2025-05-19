@@ -198,6 +198,11 @@ const (
 	AuthenticationSessionStorageTypeRedis  = AuthenticationSessionStorageType("redis")
 )
 
+var (
+	_ validator = (*AuthenticationSessionStorageConfig)(nil)
+	_ defaulter = (*AuthenticationSessionStorageConfig)(nil)
+)
+
 type AuthenticationSessionStorageConfig struct {
 	Type    AuthenticationSessionStorageType          `json:"type" mapstructure:"type" yaml:"type"`
 	Redis   AuthenticationSessionStorageRedisConfig   `json:"redis,omitempty" mapstructure:"redis" yaml:"redis,omitempty"`
@@ -206,6 +211,16 @@ type AuthenticationSessionStorageConfig struct {
 
 func (c AuthenticationSessionStorageConfig) validate() error {
 	return c.Cleanup.validate()
+}
+
+func (c *AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
+	v.SetDefault("type", AuthenticationSessionStorageTypeMemory)
+
+	if c.Type == AuthenticationSessionStorageTypeRedis {
+		return c.Redis.setDefaults(v)
+	}
+
+	return nil
 }
 
 // AuthenticationSessionStorageCleanupConfig configures the schedule for cleaning up expired authentication records.
@@ -221,24 +236,36 @@ func (c AuthenticationSessionStorageCleanupConfig) validate() error {
 	return nil
 }
 
+type RedisCacheMode string
+
+const (
+	RedisCacheModeSingle  RedisCacheMode = "single"
+	RedisCacheModeCluster RedisCacheMode = "cluster"
+)
+
+var (
+	_ validator = (*AuthenticationSessionStorageRedisConfig)(nil)
+	_ defaulter = (*AuthenticationSessionStorageRedisConfig)(nil)
+)
+
 // AuthenticationSessionStorageRedisConfig contains fields, which configure the connection
 // credentials for redis backed session storage.
 type AuthenticationSessionStorageRedisConfig struct {
-	Host            string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
-	Port            int           `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
-	RequireTLS      bool          `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
-	Username        string        `json:"-" mapstructure:"username" yaml:"-"`
-	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
-	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
-	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
-	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
-	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
-	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
-	CaCertBytes     string        `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
-	CaCertPath      string        `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
-	InsecureSkipTLS bool          `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
-	// TODO: add prefix support
-	// TODO: add cluster support
+	Host            string         `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Port            int            `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	RequireTLS      bool           `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	Username        string         `json:"-" mapstructure:"username" yaml:"-"`
+	Password        string         `json:"-" mapstructure:"password" yaml:"-"`
+	DB              int            `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	PoolSize        int            `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
+	MinIdleConn     int            `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
+	ConnMaxIdleTime time.Duration  `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	NetTimeout      time.Duration  `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
+	CaCertBytes     string         `json:"-" mapstructure:"ca_cert_bytes" yaml:"-"`
+	CaCertPath      string         `json:"-" mapstructure:"ca_cert_path" yaml:"-"`
+	InsecureSkipTLS bool           `json:"-" mapstructure:"insecure_skip_tls" yaml:"-"`
+	Prefix          string         `json:"prefix" mapstructure:"prefix" yaml:"prefix"`
+	Mode            RedisCacheMode `json:"mode" mapstructure:"mode" yaml:"mode"`
 }
 
 func (cfg *AuthenticationSessionStorageRedisConfig) validate() error {
@@ -246,6 +273,12 @@ func (cfg *AuthenticationSessionStorageRedisConfig) validate() error {
 		return errString("", "please provide exclusively one of ca_cert_bytes or ca_cert_path")
 	}
 
+	return nil
+}
+
+func (cfg *AuthenticationSessionStorageRedisConfig) setDefaults(v *viper.Viper) error {
+	v.SetDefault("mode", RedisCacheModeSingle)
+	v.SetDefault("prefix", "flipt")
 	return nil
 }
 
@@ -379,6 +412,14 @@ func (a *AuthenticationMethod[C]) validate() error {
 
 	return a.Method.validate()
 }
+
+var (
+	_ validator = (*AuthenticationMethodTokenConfig)(nil)
+	_ validator = (*AuthenticationMethodOIDCConfig)(nil)
+	_ validator = (*AuthenticationMethodKubernetesConfig)(nil)
+	_ validator = (*AuthenticationMethodGithubConfig)(nil)
+	_ validator = (*AuthenticationMethodJWTConfig)(nil)
+)
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".

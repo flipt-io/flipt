@@ -141,7 +141,7 @@ func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Optio
 	return engine, nil
 }
 
-func (e *Engine) IsAllowed(ctx context.Context, input map[string]interface{}) (bool, error) {
+func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
