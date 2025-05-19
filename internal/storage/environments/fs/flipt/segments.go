@@ -14,6 +14,7 @@ import (
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/anypb"
+	"slices"
 )
 
 var _ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)
@@ -180,7 +181,8 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 			if s.Key == key {
 				found = true
 				// remove entry from list
-				doc.Segments = append(doc.Segments[:i], doc.Segments[i+1:]...)
+				doc.Segments = slices.Delete(doc.Segments, i, i+1)
+				break
 			}
 		}
 	}

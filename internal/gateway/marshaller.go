@@ -35,11 +35,11 @@ func NewV1toV2MarshallerAdapter(logger *zap.Logger) *V1toV2MarshallerAdapter {
 	}, logger}
 }
 
-func (m *V1toV2MarshallerAdapter) ContentType(v interface{}) string {
+func (m *V1toV2MarshallerAdapter) ContentType(v any) string {
 	return "application/json"
 }
 
-func (m *V1toV2MarshallerAdapter) Marshal(v interface{}) ([]byte, error) {
+func (m *V1toV2MarshallerAdapter) Marshal(v any) ([]byte, error) {
 	return m.JSONPb.Marshal(v)
 }
 
@@ -51,7 +51,7 @@ type decoderInterceptor struct {
 	unmarshaller protojson.UnmarshalOptions
 }
 
-func (c *decoderInterceptor) Decode(v interface{}) error {
+func (c *decoderInterceptor) Decode(v any) error {
 	var err error
 	if pt, ok := v.(protoiface.MessageV1); ok {
 		unmarshaler := &jsonpb.Unmarshaler{AllowUnknownFields: !c.unmarshaller.DiscardUnknown}

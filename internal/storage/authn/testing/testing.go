@@ -41,7 +41,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 	t.Run(fmt.Sprintf("Create %d authentications", len(created)), func(t *testing.T) {
 		uniqueTokens := make(map[string]struct{}, len(created))
-		for i := 0; i < len(created); i++ {
+		for i := range len(created) {
 			// the first token will have a null expiration
 			var expires *timestamppb.Timestamp
 			if i > 0 {
@@ -119,7 +119,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// }
 
 		assert.Len(t, all, len(expected), "number of authentications should match")
-		for i := 0; i < len(expected); i++ {
+		for i := range expected {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
 	})
@@ -168,7 +168,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		// along with the first authentication without an expiry
 		expected := allAuths(append(created[:1], created[51:99]...))
 		assert.Len(t, all, len(expected), "number of authentications should match")
-		for i := 0; i < len(expected); i++ {
+		for i := range expected {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
 	})
@@ -192,7 +192,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 		expected := allAuths(append(created[:1], created[76:99]...))
 		assert.Len(t, all, len(expected), "number of authentications should match")
-		for i := 0; i < len(expected); i++ {
+		for i := range expected {
 			assert.Equal(t, expected[i].Id, all[i].Id, "authentication IDs should match at index %d", i)
 		}
 	})
