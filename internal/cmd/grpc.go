@@ -192,7 +192,7 @@ func NewGRPCServer(
 	}
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
-		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
 			logger.Error("panic recovered", zap.Any("panic", p))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),

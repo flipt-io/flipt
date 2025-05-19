@@ -46,14 +46,14 @@ func TestEngine_IsAllowed(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected bool
 	}{
 		{
 			name: "admin can create namespace in default environment",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "admin@company.com",
 					},
 				},
@@ -67,9 +67,9 @@ func TestEngine_IsAllowed(t *testing.T) {
 		},
 		{
 			name: "namespace_admin can create namespace in development environment",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"platform-team"},
 					},
 				},
@@ -83,9 +83,9 @@ func TestEngine_IsAllowed(t *testing.T) {
 		},
 		{
 			name: "developer can create resource in frontend namespace",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"dev-team"},
 					},
 				},
@@ -100,9 +100,9 @@ func TestEngine_IsAllowed(t *testing.T) {
 		},
 		{
 			name: "readonly can only read in analytics namespace",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "analyst@company.com",
 					},
 				},
@@ -117,9 +117,9 @@ func TestEngine_IsAllowed(t *testing.T) {
 		},
 		{
 			name: "readonly cannot create in analytics namespace",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "analyst@company.com",
 					},
 				},
@@ -159,15 +159,15 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		input       map[string]interface{}
+		input       map[string]any
 		expected    []string
 		shouldError bool
 	}{
 		{
 			name: "admin can see all environments",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "admin@company.com",
 					},
 				},
@@ -176,9 +176,9 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 		},
 		{
 			name: "namespace_admin can see development and staging",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"platform-team"},
 					},
 				},
@@ -187,9 +187,9 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 		},
 		{
 			name: "developer can see development and staging",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"dev-team"},
 					},
 				},
@@ -198,9 +198,9 @@ func TestEngine_ViewableEnvironments(t *testing.T) {
 		},
 		{
 			name: "readonly can see production",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "analyst@company.com",
 					},
 				},
@@ -239,16 +239,16 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 	tests := []struct {
 		name        string
 		env         string
-		input       map[string]interface{}
+		input       map[string]any
 		expected    []string
 		shouldError bool
 	}{
 		{
 			name: "admin can see all namespaces in production",
 			env:  "production",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "admin@company.com",
 					},
 				},
@@ -258,9 +258,9 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 		{
 			name: "namespace_admin can see all namespaces in development",
 			env:  "development",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"platform-team"},
 					},
 				},
@@ -270,9 +270,9 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 		{
 			name: "developer can see frontend and backend in development",
 			env:  "development",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.groups": []string{"dev-team"},
 					},
 				},
@@ -282,9 +282,9 @@ func TestEngine_ViewableNamespaces(t *testing.T) {
 		{
 			name: "readonly can see analytics and reporting in production",
 			env:  "production",
-			input: map[string]interface{}{
-				"authentication": map[string]interface{}{
-					"metadata": map[string]interface{}{
+			input: map[string]any{
+				"authentication": map[string]any{
+					"metadata": map[string]any{
 						"io.flipt.auth.user": "analyst@company.com",
 					},
 				},
