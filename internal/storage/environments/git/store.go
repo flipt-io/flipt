@@ -541,7 +541,7 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		return nil, err
 	}
 
-	return
+	return newBranches, nil
 }
 
 func (e *Environment) updateSnapshot(ctx context.Context) error {
@@ -600,8 +600,4 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
-}
-
-func ptr[T any](t T) *T {
-	return &t
 }
