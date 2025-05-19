@@ -3,33 +3,22 @@
 # version: "1.0"
 log:
   level: DEBUG
-# authentication:
-#   required: false
-#   session:
-#     domain: "localhost:8080"
-#     secure: false
-#   methods:
-#     token:
-#       enabled: true
-#       bootstrap:
-#         token: "secret"
-#         expiration: 24h
-#       cleanup:
-#         interval: 2h
-#         grace_period: 48h
 
-audit:
-  sinks:
-    log:
-      enabled: true
+storage:
+  default:
+    name: "local" 
+  staging:
+    name: "staging"
+
+environments:
+  local:
+    name: "local"
+    default: true
+
+  staging:
+    name: "staging"
+    storage: "staging"
 
 cors:
   enabled: true
   allowed_origins: ["*"]
-
-# server:
-#   protocol: http
-#   host: 0.0.0.0
-#   https_port: 443
-#   http_port: 8080
-#   grpc_port: 9000
