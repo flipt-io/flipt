@@ -51,26 +51,29 @@ export function EnvironmentRemoteInfo({
   const repoName = extractRepoName(configuration.remote);
 
   return (
-    <a
-      href={repoUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-1 text-inherit hover:underline"
-      title={repoUrl}
-      style={{ textDecoration: 'none' }}
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1 bg-background font-semibold text-xs"
-          >
-            <ProviderIcon className="w-4 h-4 text-muted-foreground" />
-            <span className="truncate max-w-[200px]">{repoName}</span>
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>{`Branch: ${configuration.branch}`}</TooltipContent>
-      </Tooltip>
-    </a>
+    <>
+      <a
+        href={repoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex gap-1 text-inherit hover:underline ml-auto"
+        title={repoUrl}
+        style={{ textDecoration: 'none' }}
+      >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-1 bg-background font-semibold text-xs"
+            >
+              <ProviderIcon className="w-4 h-4 text-muted-foreground" />
+              <span className="truncate max-w-[200px]">{repoName}</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>{`Branch: ${configuration.branch}`}</TooltipContent>
+        </Tooltip>
+      </a>
+      <span className="mx-2 h-6 w-px bg-muted-foreground/20 rounded" />
+    </>
   );
 }

@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router';
 import { selectSorting, setSorting } from '~/app/segments/segmentsApi';
 import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
+import { Badge } from '~/components/Badge';
 import { Button } from '~/components/Button';
 import Searchbox from '~/components/Searchbox';
 import { DataTablePagination } from '~/components/TablePagination';
@@ -31,8 +32,6 @@ import {
 } from '~/types/Segment';
 
 import { useError } from '~/data/hooks/error';
-
-import { Badge } from '../Badge';
 
 function SegmentListItem({ item, path }: { item: ISegment; path: string }) {
   const navigate = useNavigate();
