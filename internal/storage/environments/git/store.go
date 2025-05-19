@@ -44,6 +44,7 @@ type Environment struct {
 	branches      map[string]*Environment
 	refs          map[string]string
 	currentBranch string
+	base          string
 	head          plumbing.Hash
 	snap          *storagefs.Snapshot
 	publisher     evaluation.SnapshotPublisher
@@ -93,10 +94,16 @@ func (e *Environment) Repository() *storagegit.Repository {
 }
 
 func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration {
+	var base *string
+	if e.base != "" {
+		base = &e.base
+	}
+
 	return &rpcenvironments.EnvironmentConfiguration{
 		Remote:    e.repo.GetRemote(),
 		Branch:    e.currentBranch,
 		Directory: e.cfg.Directory,
+		Base:      base,
 	}
 }
 
@@ -129,6 +136,7 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 	}
 
 	env.currentBranch = branchName
+	env.base = e.Key()
 	env.updateSnapshot(ctx)
 
 	e.mu.Lock()
@@ -509,6 +517,8 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 			)
 
 			e.branches[cfg.Name] = env
+			env.currentBranch = cfg.branch
+			env.base = e.Key()
 			newBranches = append(newBranches, env)
 			env.updateSnapshot(ctx)
 			continue
@@ -590,4 +600,8 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
+}
+
+func ptr[T any](t T) *T {
+	return &t
 }

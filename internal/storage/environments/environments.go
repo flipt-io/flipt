@@ -75,7 +75,6 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 
 		gitEnv.Repository().Subscribe(&environmentSubscriber{
 			Environment: gitEnv,
-			logger:      logger,
 			envs:        envStore,
 		})
 	}
@@ -215,9 +214,7 @@ func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.
 
 type environmentSubscriber struct {
 	*environmentsgit.Environment
-
-	logger *zap.Logger
-	envs   *serverconfig.EnvironmentStore
+	envs *serverconfig.EnvironmentStore
 }
 
 func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]string) error {
