@@ -306,6 +306,7 @@ func withPostgres(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		return fn(ctx, client, base, flipt.
 			WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+			WithEnvVariable("FLIPT_DB_PREPARED_STATEMENTS_ENABLED", "false").
 			WithServiceBinding("postgres", client.Container().
 				From("postgres:alpine").
 				WithEnvVariable("POSTGRES_PASSWORD", "password").
