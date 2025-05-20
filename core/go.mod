@@ -1,8 +1,8 @@
 module go.flipt.io/flipt/core
 
-go 1.23.0
+go 1.23.7
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	cuelang.org/go v0.11.1
@@ -18,6 +18,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

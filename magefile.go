@@ -18,17 +18,7 @@ import (
 
 var (
 	tools = []string{
-		"github.com/bufbuild/buf/cmd/buf",
-		"github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking",
-		"github.com/bufbuild/buf/cmd/protoc-gen-buf-lint",
-		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint",
-		"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway",
-		"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2",
-		"golang.org/x/tools/cmd/goimports",
-		"github.com/rakyll/gotest",
-		"google.golang.org/grpc/cmd/protoc-gen-go-grpc",
-		"google.golang.org/protobuf/cmd/protoc-gen-go",
-		"../internal/cmd/protoc-gen-go-flipt-sdk/...",
+		"./internal/cmd/protoc-gen-go-flipt-sdk/...",
 	}
 
 	Default = Build
@@ -37,26 +27,10 @@ var (
 // Installs tools required for development
 func Bootstrap() error {
 	fmt.Println(" > Bootstrapping tools...")
-	if err := os.MkdirAll("_tools", 0755); err != nil {
-		return fmt.Errorf("creating dir: %w", err)
-	}
-
-	// create module if go.mod doesnt exist
-	if _, err := os.Stat("_tools/go.mod"); os.IsNotExist(err) {
-		cmd := exec.Command("go", "mod", "init", "tools")
-		cmd.Dir = "_tools"
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}
-
 	install := []string{"install", "-v"}
 	install = append(install, tools...)
 
 	cmd := exec.Command("go", install...)
-	cmd.Dir = "_tools"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -197,19 +171,19 @@ func (g Go) Fmt() error {
 		return fmt.Errorf("finding files: %w", err)
 	}
 
-	args := append([]string{"-w"}, files...)
-	return sh.RunV("goimports", args...)
+	args := append([]string{"tool", "golang.org/x/tools/cmd/goimports", "-w"}, files...)
+	return sh.RunV("go", args...)
 }
 
 // Runs the Go linters
 func (g Go) Lint() error {
 	fmt.Println(" > Linting...")
 
-	if err := sh.RunV("golangci-lint", "run"); err != nil {
+	if err := sh.RunV("go", "tool", "github.com/golangci/golangci-lint/v2/cmd/golangci-lint", "run"); err != nil {
 		return fmt.Errorf("linting: %w", err)
 	}
 
-	return sh.RunV("buf", "lint")
+	return sh.RunV("go", "tool", "github.com/bufbuild/buf/cmd/buf", "lint")
 }
 
 // Generates the Go protobuf files and gRPC stubs
@@ -221,7 +195,7 @@ func (g Go) Proto() error {
 		"rpc/v2/analytics",
 		"rpc/v2/evaluation",
 	} {
-		cmd := exec.Command("buf", "generate")
+		cmd := exec.Command("go", "tool", "github.com/bufbuild/buf/cmd/buf", "generate")
 		cmd.Dir = module
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -234,15 +208,8 @@ func (g Go) Proto() error {
 
 // Generates mocks
 func (g Go) Mockery() error {
-	// check if mockery is on the path
-	if _, err := exec.LookPath("mockery"); err != nil {
-		fmt.Printf("\n%v\n", color.YellowString("mockery not found in path"))
-		fmt.Printf("\n%v\n", color.YellowString("Please install mockery to generate mocks"))
-		return nil
-	}
-
 	fmt.Println(" > Generating mocks...")
-	return sh.RunV("mockery")
+	return sh.RunV("go", "tool", "github.com/vektra/mockery/v3")
 }
 
 // Generates mocks and proto files
@@ -258,26 +225,14 @@ func (g Go) Generate() error {
 func (g Go) Test() error {
 	fmt.Println(" > Testing...")
 
-	var (
-		testCmd  = "gotest"
-		testArgs = []string{}
-	)
-
-	// check if gotest is on path and use that instead for better output
-	// https://github.com/rakyll/gotest
-	if _, err := exec.LookPath("gotest"); err != nil {
-		testCmd = "go"
-		testArgs = append(testArgs, "test")
-	}
-
-	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "-coverpkg=./..."}...)
+	testArgs := []string{"tool", "github.com/rakyll/gotest", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "-coverpkg=./..."}
 
 	if os.Getenv("FLIPT_TEST_SHORT") != "" {
 		testArgs = append(testArgs, "-short")
 	}
 
 	testArgs = append(testArgs, "./...")
-	return sh.RunV(testCmd, testArgs...)
+	return sh.RunV("go", testArgs...)
 }
 
 type UI mg.Namespace

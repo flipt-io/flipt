@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 
+	"slices"
+
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
 	serverenvironments "go.flipt.io/flipt/internal/server/environments"
@@ -14,7 +16,6 @@ import (
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/anypb"
-	"slices"
 )
 
 var _ environmentsfs.ResourceStorage = (*SegmentStorage)(nil)

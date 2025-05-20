@@ -3,6 +3,8 @@ package grpc_middleware
 import (
 	"context"
 
+	"slices"
+
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/authn/middleware/grpc"
@@ -11,7 +13,6 @@ import (
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"slices"
 )
 
 // SkipsAuthorizationServer is a grpc.Server which should always skip authentication.

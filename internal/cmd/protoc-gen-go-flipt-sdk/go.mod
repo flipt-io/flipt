@@ -1,8 +1,8 @@
 module go.flipt.io/protoc-gen-go-flipt-sdk
 
-go 1.23.0
+go 1.23.7
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2
