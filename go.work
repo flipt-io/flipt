@@ -2,7 +2,6 @@ go 1.24.3
 
 use (
 	.
-	./_tools
 	./build
 	./core
 	./errors
