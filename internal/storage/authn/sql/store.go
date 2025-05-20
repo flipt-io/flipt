@@ -123,7 +123,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storageauth.CreateA
 		Values(
 			&authentication.Id,
 			&hashedToken,
-			&authentication.Method,
+			int32(authentication.Method),
 			&storagesql.JSONField[map[string]string]{T: authentication.Metadata},
 			&storagesql.NullableTimestamp{Timestamp: authentication.ExpiresAt},
 			&storagesql.Timestamp{Timestamp: authentication.CreatedAt},
@@ -292,7 +292,7 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.Dele
 	}
 
 	if req.Method != nil {
-		query = query.Where(sq.Eq{"method": req.Method})
+		query = query.Where(sq.Eq{"method": int32(*req.Method)})
 	}
 
 	if req.ExpiredBefore != nil {
