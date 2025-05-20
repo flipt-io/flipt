@@ -144,12 +144,12 @@ message ProposeEnvironmentRequest {
 }
 
 enum SCM {
-    GITHUB_SCM = 0;
+  GITHUB_SCM = 0;
 }
 
 message ProposeEnvironmentResponse {
-    SCM scm = 1;
-    string url = 2;
+  SCM scm = 1;
+  string url = 2;
 }
 
 /* Namespace */
