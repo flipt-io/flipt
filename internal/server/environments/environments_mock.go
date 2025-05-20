@@ -570,6 +570,62 @@ func (_c *MockEnvironment_Key_Call) RunAndReturn(run func() string) *MockEnviron
 	return _c
 }
 
+// ListBranches provides a mock function for the type MockEnvironment
+func (_mock *MockEnvironment) ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListBranches")
+	}
+
+	var r0 *environments.ListEnvironmentBranchesResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*environments.ListEnvironmentBranchesResponse, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *environments.ListEnvironmentBranchesResponse); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*environments.ListEnvironmentBranchesResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockEnvironment_ListBranches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBranches'
+type MockEnvironment_ListBranches_Call struct {
+	*mock.Call
+}
+
+// ListBranches is a helper method to define mock.On call
+//   - ctx
+func (_e *MockEnvironment_Expecter) ListBranches(ctx interface{}) *MockEnvironment_ListBranches_Call {
+	return &MockEnvironment_ListBranches_Call{Call: _e.mock.On("ListBranches", ctx)}
+}
+
+func (_c *MockEnvironment_ListBranches_Call) Run(run func(ctx context.Context)) *MockEnvironment_ListBranches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_ListBranches_Call) Return(listEnvironmentBranchesResponse *environments.ListEnvironmentBranchesResponse, err error) *MockEnvironment_ListBranches_Call {
+	_c.Call.Return(listEnvironmentBranchesResponse, err)
+	return _c
+}
+
+func (_c *MockEnvironment_ListBranches_Call) RunAndReturn(run func(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)) *MockEnvironment_ListBranches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListNamespaces provides a mock function for the type MockEnvironment
 func (_mock *MockEnvironment) ListNamespaces(context1 context.Context) (*environments.ListNamespacesResponse, error) {
 	ret := _mock.Called(context1)
