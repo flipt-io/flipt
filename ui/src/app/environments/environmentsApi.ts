@@ -1,7 +1,11 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
-import { IEnvironment } from '~/types/Environment';
+import {
+  IBranchEnvironment,
+  IEnvironment,
+  IListBranchEnvironmentsResponse
+} from '~/types/Environment';
 import { LoadingStatus } from '~/types/Meta';
 
 import { RootState } from '~/store';
@@ -104,10 +108,17 @@ export const environmentsApi = createApi({
           type: 'Environment' as const,
           id: name
         })) || []
+    }),
+    listBranchEnvironments: builder.query<
+      { branches: IBranchEnvironment[] },
+      { baseEnvironmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey }) => `/${baseEnvironmentKey}/branches`
     })
   })
 });
 
-export const { useListEnvironmentsQuery } = environmentsApi;
+export const { useListEnvironmentsQuery, useListBranchEnvironmentsQuery } =
+  environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;
