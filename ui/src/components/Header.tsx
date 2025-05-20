@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
@@ -11,10 +10,8 @@ import {
   TooltipTrigger
 } from '~/components/ui/tooltip';
 
-import { ISelectable } from '~/types/Selectable';
-
 import { Badge } from './Badge';
-import { EnvironmentBranchSelector } from './EnvironmentBranchSelector';
+import { EnvironmentBranchSelector } from './environments/EnvironmentBranchSelector';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
 export function Header({
@@ -28,8 +25,7 @@ export function Header({
 }) {
   const info = useSelector(selectInfo);
   const currentEnvironment = useSelector(selectCurrentEnvironment);
-  const [selectedBranch, setSelectedBranch] =
-    React.useState<ISelectable | null>(null);
+
   const topbarStyle = {
     backgroundColor: info?.ui?.topbarColor,
     borderRadius: '1rem 1rem 0 0'
@@ -42,18 +38,15 @@ export function Header({
       <div className="flex w-full items-center justify-between px-4 lg:gap-2 lg:px-6">
         <div className="flex items-center justify-between w-full gap-3 min-w-0">
           <SidebarTrigger className="-ml-2" />
-          <EnvironmentRemoteInfo environment={currentEnvironment} />
-          <span className="mx-2 h-6 w-px bg-border rounded" />
-          <EnvironmentBranchSelector
-            selectedBranch={selectedBranch}
-            setSelectedBranch={setSelectedBranch}
-          />
+          <div className="flex items-center gap-2">
+            <EnvironmentBranchSelector environment={currentEnvironment} />
+            {currentEnvironment?.configuration?.remote && (
+              <EnvironmentRemoteInfo environment={currentEnvironment} />
+            )}
+          </div>
         </div>
         {!sidebarOpen && (
           <>
-            {currentEnvironment?.configuration?.remote && (
-              <span className="mx-2 h-6 w-px bg-border rounded" />
-            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge

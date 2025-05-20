@@ -1,11 +1,7 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
-import {
-  IBranchEnvironment,
-  IEnvironment,
-  IListBranchEnvironmentsResponse
-} from '~/types/Environment';
+import { IBranchEnvironment, IEnvironment } from '~/types/Environment';
 import { LoadingStatus } from '~/types/Meta';
 
 import { RootState } from '~/store';
@@ -67,7 +63,18 @@ export const environmentsSlice = createSlice({
 
 export const { currentEnvironmentChanged } = environmentsSlice.actions;
 
+// only base environments
 export const selectEnvironments = createSelector(
+  [(state: RootState) => state.environments.environments],
+  (environments) => {
+    return Object.entries(environments)
+      .map(([_, value]) => value)
+      .filter((env) => env.configuration?.base === undefined) as IEnvironment[]; // ignore branched environments
+  }
+);
+
+// all environments, including branched environments
+export const selectAllEnvironments = createSelector(
   [(state: RootState) => state.environments.environments],
   (environments) => {
     return Object.entries(environments).map(

@@ -16,7 +16,3 @@ export interface IBranchEnvironment {
   environmentKey: string;
   branch: string;
 }
-
-export interface IListBranchEnvironmentsResponse {
-  branches: IBranchEnvironment[];
-}

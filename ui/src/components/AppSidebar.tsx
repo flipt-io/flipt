@@ -9,14 +9,11 @@ import {
   SidebarHeader
 } from '~/components/ui/sidebar';
 
-import { ISelectable } from '~/types/Selectable';
-
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';
 
-import { EnvironmentBranchSelector } from './EnvironmentBranchSelector';
-import { EnvironmentNamespaceSwitcher } from './EnvironmentNamespaceSwitcher';
 import { NavSecondary } from './NavSecondary';
+import { EnvironmentNamespaceSwitcher } from './environments/EnvironmentNamespaceSwitcher';
 
 export function AppSidebar({
   ns,
@@ -24,18 +21,11 @@ export function AppSidebar({
 }: { ns: string } & React.ComponentProps<typeof Sidebar>) {
   const { session } = useSession();
   const user = getUser(session);
-  const [selectedBranch, setSelectedBranch] =
-    React.useState<ISelectable | null>(null);
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <EnvironmentNamespaceSwitcher />
-        <EnvironmentBranchSelector
-          selectedBranch={selectedBranch}
-          setSelectedBranch={setSelectedBranch}
-          className="mt-2"
-        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain ns={ns} />

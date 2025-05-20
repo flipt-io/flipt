@@ -39,11 +39,6 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 	for env := range s.envs.List(ctx) {
 		cfg := env.Configuration()
 
-		if cfg.Base != nil {
-			// ignore branched environments
-			continue
-		}
-
 		el.Environments = append(el.Environments, &environments.Environment{
 			Key:           env.Key(),
 			Name:          env.Key(),

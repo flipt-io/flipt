@@ -1,11 +1,6 @@
 import { FolderGit, Github, Gitlab } from 'lucide-react';
 
 import { Badge } from '~/components/Badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '~/components/ui/tooltip';
 
 import { IEnvironment } from '~/types/Environment';
 
