@@ -117,6 +117,7 @@ delete segment default/someSegment`,
 	}
 }
 
+//nolint:unparam
 func newTestEnvironment(t *testing.T, envName string) *Environment {
 	logger := zaptest.NewLogger(t)
 	ctx := context.Background()

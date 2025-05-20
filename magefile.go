@@ -234,8 +234,6 @@ func (g Go) Proto() error {
 
 // Generates mocks
 func (g Go) Mockery() error {
-	mg.Deps(Bootstrap)
-
 	// check if mockery is on the path
 	if _, err := exec.LookPath("mockery"); err != nil {
 		fmt.Printf("\n%v\n", color.YellowString("mockery not found in path"))
