@@ -12,6 +12,8 @@ import (
 	io "io"
 	http "net/http"
 	url "net/url"
+	status "google.golang.org/grpc/status"
+	codes "google.golang.org/grpc/codes"
 )
 
 type EnvironmentsServiceClient struct {
@@ -336,6 +338,18 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 		return nil, err
 	}
 	return &output, nil
+}
+
+func (x *EnvironmentsServiceClient) BranchEnvironment(ctx context.Context, v *environments.BranchEnvironmentRequest, _ ...grpc.CallOption) (*environments.Environment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BranchEnvironment not implemented")
+}
+
+func (x *EnvironmentsServiceClient) ListEnvironmentBranches(ctx context.Context, v *environments.ListEnvironmentBranchesRequest, _ ...grpc.CallOption) (*environments.ListEnvironmentBranchesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironmentBranches not implemented")
+}
+
+func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest, _ ...grpc.CallOption) (*environments.ProposeEnvironmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
 }
 
 func (t Transport) EnvironmentsClient() environments.EnvironmentsServiceClient {
