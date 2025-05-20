@@ -494,7 +494,7 @@ require (
 	google.golang.org/api v0.228.0 // indirect
 	google.golang.org/genproto v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250505200425-f936aa4a68b2 // indirect
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
