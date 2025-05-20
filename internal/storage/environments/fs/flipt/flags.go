@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 
+	"slices"
+
 	"go.flipt.io/flipt/core/validation"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
@@ -19,7 +21,6 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
-	"slices"
 )
 
 var _ environmentsfs.ResourceStorage = (*FlagStorage)(nil)
