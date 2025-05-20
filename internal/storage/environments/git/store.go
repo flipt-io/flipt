@@ -139,7 +139,9 @@ func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error
 
 	env.currentBranch = branchName
 	env.base = e.Key()
-	env.updateSnapshot(ctx)
+	if err := env.updateSnapshot(ctx); err != nil {
+		return nil, err
+	}
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -506,7 +508,9 @@ func (e *Environment) Notify(ctx context.Context, refs map[string]plumbing.Hash)
 		)
 
 		e.refs[e.currentBranch] = hash.String()
-		e.updateSnapshot(ctx)
+		if err := e.updateSnapshot(ctx); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -524,7 +528,9 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 		)
 
 		e.refs[e.currentBranch] = hash
-		e.updateSnapshot(ctx)
+		if err := e.updateSnapshot(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	iterator, err := e.listBranchEnvs(ctx)
@@ -545,11 +551,17 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 			)
 
+			if err != nil {
+				return nil, err
+			}
+
 			e.branches[cfg.Name] = env
 			env.currentBranch = cfg.branch
 			env.base = e.Key()
 			newBranches = append(newBranches, env)
-			env.updateSnapshot(ctx)
+			if err := env.updateSnapshot(ctx); err != nil {
+				return nil, err
+			}
 			continue
 		}
 
@@ -562,7 +574,9 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 			)
 
 			e.refs[cfg.branch] = hash
-			env.updateSnapshot(ctx)
+			if err := env.updateSnapshot(ctx); err != nil {
+				return nil, err
+			}
 		}
 	}
 

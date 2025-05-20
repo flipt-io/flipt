@@ -135,12 +135,11 @@ func (e *EnvironmentStore) List(ctx context.Context) iter.Seq[Environment] {
 	})
 }
 
-func (e *EnvironmentStore) Add(env Environment) error {
+func (e *EnvironmentStore) Add(env Environment) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
 	e.byKey[env.Key()] = env
-	return nil
 }
 
 func (e *EnvironmentStore) Branch(ctx context.Context, base string) (Environment, error) {

@@ -225,9 +225,7 @@ func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]stri
 	}
 
 	for _, env := range envs {
-		// we ignore the error as we're only interested in new environments
-		// add only errors when attempting to add an existing env
-		_ = s.envs.Add(env)
+		s.envs.Add(env)
 	}
 
 	return err

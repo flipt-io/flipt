@@ -45,7 +45,7 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on enviroment %q", branch.Key(), e.Key())
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", branch.Key(), e.Key())
 	}
 
 	type templateContext struct {

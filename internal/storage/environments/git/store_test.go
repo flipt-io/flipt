@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/environments"
-	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -173,7 +172,7 @@ func Test_Environment_RefreshEnvironment(t *testing.T) {
 	references, err := env.repo.References()
 	require.NoError(t, err)
 	refs := map[string]string{}
-	references.ForEach(func(r *plumbing.Reference) error {
+	_ = references.ForEach(func(r *plumbing.Reference) error {
 		if r.Name().IsRemote() {
 			refs[strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")] = r.Hash().String()
 		}
@@ -310,7 +309,7 @@ func Test_Environment_ViewAndUpdate(t *testing.T) {
 	env.storage = fs.NewStorage(logger, rs)
 
 	// View
-	err = env.View(ctx, rs.ResourceType(), func(_ context.Context, s serverenvs.ResourceStoreView) error {
+	err = env.View(ctx, rs.ResourceType(), func(_ context.Context, s environments.ResourceStoreView) error {
 		resp, err := s.GetResource(ctx, "default", "foo")
 		require.NoError(t, err)
 		assert.Equal(t, "foo", resp.Resource.Key)
@@ -324,7 +323,7 @@ func Test_Environment_ViewAndUpdate(t *testing.T) {
 	require.NoError(t, err)
 	rev := resp.Revision
 
-	_, err = env.Update(ctx, rev, rs.ResourceType(), func(_ context.Context, s serverenvs.ResourceStore) error {
+	_, err = env.Update(ctx, rev, rs.ResourceType(), func(_ context.Context, s environments.ResourceStore) error {
 		err := s.CreateResource(ctx, &rpcenvironments.Resource{NamespaceKey: "default", Key: "bar"})
 		require.NoError(t, err)
 		return nil
