@@ -1,6 +1,8 @@
 package audit
 
 import (
+	"strings"
+
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -132,12 +134,13 @@ func NewSegment(s *flipt.Segment) *Segment {
 }
 
 type Rule struct {
-	Id            string          `json:"id"`
-	FlagKey       string          `json:"flag_key"`
-	SegmentKey    string          `json:"segment_key"`
-	Distributions []*Distribution `json:"distributions"`
-	Rank          int32           `json:"rank"`
-	NamespaceKey  string          `json:"namespace_key"`
+	Id              string          `json:"id"`
+	FlagKey         string          `json:"flag_key"`
+	SegmentKey      string          `json:"segment_key"`
+	Distributions   []*Distribution `json:"distributions"`
+	Rank            int32           `json:"rank"`
+	NamespaceKey    string          `json:"namespace_key"`
+	SegmentOperator string          `json:"segment_operator,omitempty"`
 }
 
 func NewRule(r *flipt.Rule) *Rule {
@@ -146,7 +149,7 @@ func NewRule(r *flipt.Rule) *Rule {
 		d = append(d, NewDistribution(rd))
 	}
 
-	return &Rule{
+	result := &Rule{
 		Id:            r.Id,
 		FlagKey:       r.FlagKey,
 		SegmentKey:    r.SegmentKey,
@@ -154,6 +157,13 @@ func NewRule(r *flipt.Rule) *Rule {
 		Rank:          r.Rank,
 		NamespaceKey:  r.NamespaceKey,
 	}
+
+	if result.SegmentKey == "" && len(r.SegmentKeys) > 0 {
+		result.SegmentKey = strings.Join(r.SegmentKeys, ",")
+		result.SegmentOperator = r.SegmentOperator.String()
+	}
+
+	return result
 }
 
 type Rollout struct {
@@ -171,8 +181,9 @@ type RolloutThreshold struct {
 }
 
 type RolloutSegment struct {
-	Key   string `json:"key"`
-	Value bool   `json:"value"`
+	Key      string `json:"key"`
+	Value    bool   `json:"value"`
+	Operator string `json:"operator,omitempty"`
 }
 
 func NewRollout(r *flipt.Rollout) *Rollout {
@@ -185,10 +196,15 @@ func NewRollout(r *flipt.Rollout) *Rollout {
 
 	switch rout := r.Rule.(type) {
 	case *flipt.Rollout_Segment:
-		rollout.Segment = &RolloutSegment{
+		s := &RolloutSegment{
 			Key:   rout.Segment.SegmentKey,
 			Value: rout.Segment.Value,
 		}
+		if s.Key == "" && len(rout.Segment.SegmentKeys) > 0 {
+			s.Key = strings.Join(rout.Segment.SegmentKeys, ",")
+			s.Operator = rout.Segment.SegmentOperator.String()
+		}
+		rollout.Segment = s
 	case *flipt.Rollout_Threshold:
 		rollout.Threshold = &RolloutThreshold{
 			Percentage: rout.Threshold.Percentage,
