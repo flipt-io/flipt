@@ -38,6 +38,14 @@ type Environment struct {
 	SCM SCM
 }
 
+func NewEnvironment(logger *zap.Logger, env *git.Environment, scm SCM) *Environment {
+	return &Environment{
+		logger:      logger,
+		Environment: env,
+		SCM:         scm,
+	}
+}
+
 func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (resp *environments.ProposeEnvironmentResponse, err error) {
 	var (
 		baseCfg   = e.Configuration()

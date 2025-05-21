@@ -27,7 +27,18 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ serverenvs.Environment = (*Environment)(nil)
+var (
+	_ serverenvs.Environment = (*Environment)(nil)
+	_ RepositoryEnvironment  = (*Environment)(nil)
+)
+
+// TODO: this is a bit of a hack to get the environment store to work with the git environment
+// we should probably refactor this to be more explicit about the relationship between the two
+type RepositoryEnvironment interface {
+	Repository() *storagegit.Repository
+	RefreshEnvironment(context.Context, map[string]string) ([]serverenvs.Environment, error)
+	storagegit.Subscriber
+}
 
 // Environment is an implementation of the configuration servers Environment interface
 // which is backed by a Git repository.
@@ -508,15 +519,15 @@ func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, 
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
-func (e *Environment) Notify(ctx context.Context, refs map[string]plumbing.Hash) error {
-	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash.String() {
+func (e *Environment) Notify(ctx context.Context, refs map[string]string) error {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
 		e.logger.Debug("updating base env snapshot",
 			zap.String("environment", e.cfg.Name),
 			zap.String("from", e.refs[e.currentBranch]),
-			zap.String("to", hash.String()),
+			zap.String("to", hash),
 		)
 
-		e.refs[e.currentBranch] = hash.String()
+		e.refs[e.currentBranch] = hash
 		if err := e.updateSnapshot(ctx); err != nil {
 			return err
 		}

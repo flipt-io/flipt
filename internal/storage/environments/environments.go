@@ -8,10 +8,13 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	giturl "github.com/kubescape/go-git-url"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/credentials"
+	enterprisegit "go.flipt.io/flipt/internal/enterprise/storage/environments/git"
+	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/github"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -68,14 +71,14 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 
 	// subscribe to all git environments to be notified of new branches
 	for _, env := range envs {
-		gitEnv, ok := env.(*environmentsgit.Environment)
+		gitEnv, ok := env.(environmentsgit.RepositoryEnvironment)
 		if !ok {
 			continue
 		}
 
 		gitEnv.Repository().Subscribe(&environmentSubscriber{
-			Environment: gitEnv,
-			envs:        envStore,
+			RepositoryEnvironment: gitEnv,
+			envs:                  envStore,
 		})
 	}
 
@@ -114,8 +117,9 @@ func (s *sourceBuilder) forEnvironment(
 		return nil, err
 	}
 
+	var env serverconfig.Environment
 	// build new git backend environment over repository
-	env, err := environmentsgit.NewEnvironmentFromRepo(
+	env, err = environmentsgit.NewEnvironmentFromRepo(
 		ctx,
 		logger,
 		envConf,
@@ -125,6 +129,40 @@ func (s *sourceBuilder) forEnvironment(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO: this is where we should do the license check or maybe higher up?
+	if envConf.SCM != nil {
+		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
+
+		gitURL, err := giturl.NewGitURL(repo.GetRemote())
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse git url: %w", err)
+		}
+
+		var (
+			repoOwner = gitURL.GetOwnerName()
+			repoName  = gitURL.GetRepoName()
+		)
+
+		switch envConf.SCM.Type {
+		case config.GitHubSCMType:
+			if envConf.SCM.Credentials != nil {
+				creds, err := credentials.Get(*envConf.SCM.Credentials)
+				if err != nil {
+					return nil, err
+				}
+
+				client, err := creds.HTTPClient(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				scm = github.NewSCM(ctx, repoOwner, repoName, client)
+			}
+		}
+
+		env = enterprisegit.NewEnvironment(logger, env.(*environmentsgit.Environment), scm)
 	}
 
 	logger.Debug("configured environment",
@@ -213,7 +251,7 @@ func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.
 }
 
 type environmentSubscriber struct {
-	*environmentsgit.Environment
+	environmentsgit.RepositoryEnvironment
 	envs *serverconfig.EnvironmentStore
 }
 

@@ -1,0 +1,5 @@
+environments:
+  default:
+    name: default
+    scm:
+      type: invalid
