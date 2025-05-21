@@ -1,12 +1,11 @@
 import { GitBranchIcon } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useMemo, useState } from 'react';
 import * as Yup from 'yup';
+
 import {
   currentEnvironmentChanged,
-  selectAllEnvironments,
-  useListBranchEnvironmentsQuery,
   useCreateBranchEnvironmentMutation,
+  useListBranchEnvironmentsQuery,
   useListEnvironmentsQuery
 } from '~/app/environments/environmentsApi';
 
@@ -15,11 +14,11 @@ import Combobox from '~/components/Combobox';
 import { IBranchEnvironment, IEnvironment } from '~/types/Environment';
 import { ISelectable } from '~/types/Selectable';
 
-import { useAppDispatch } from '~/data/hooks/store';
-import { cn } from '~/lib/utils';
-import { keyValidation } from '~/data/validations';
-import { useSuccess } from '~/data/hooks/success';
 import { useError } from '~/data/hooks/error';
+import { useAppDispatch } from '~/data/hooks/store';
+import { useSuccess } from '~/data/hooks/success';
+import { keyValidation } from '~/data/validations';
+import { cn } from '~/lib/utils';
 
 export function EnvironmentBranchSelector({
   environment,
@@ -29,37 +28,71 @@ export function EnvironmentBranchSelector({
   className?: string;
 }) {
   const dispatch = useAppDispatch();
-  const { data: environmentsData, isLoading: isEnvironmentsLoading, error: environmentsError } = useListEnvironmentsQuery();
-  const environments = environmentsData?.environments ?? [];
+  const {
+    data: environmentsData,
+    isLoading: isEnvironmentsLoading,
+    error: environmentsError
+  } = useListEnvironmentsQuery();
+  const environments = useMemo(
+    () => environmentsData?.environments ?? [],
+    [environmentsData]
+  );
 
   // Determine the base environment (if branched, use its base)
   const isBranched = !!environment.configuration?.base;
   const baseEnvKey = isBranched
     ? environment.configuration?.base || ''
     : environment.key;
-  const baseEnvironment = environments.find((env: IEnvironment) => env.key === baseEnvKey);
+  const baseEnvironment = environments.find(
+    (env: IEnvironment) => env.key === baseEnvKey
+  );
 
   // Query branches for the base environment
-  const { data: branchesData, isLoading: isBranchesLoading, error: branchesError } = useListBranchEnvironmentsQuery(
+  const {
+    data: branchesData,
+    isLoading: isBranchesLoading,
+    error: branchesError
+  } = useListBranchEnvironmentsQuery(
     { baseEnvironmentKey: baseEnvKey },
     { skip: !baseEnvKey }
   );
-  const branches = branchesData?.branches ?? [];
+  const branches = useMemo(() => branchesData?.branches ?? [], [branchesData]);
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const branchValidationSchema = Yup.object({
-    branchName: keyValidation.test('is-valid-branch-name', 'Invalid branch name', (value) => {
-      if (!value) return false;
-      return !(/^flipt\/[\w-]+$/.test(value));
-    })
+    branchName: keyValidation.test(
+      'is-valid-branch-name',
+      'Invalid branch name',
+      (value) => {
+        if (!value) return false;
+        return !/^flipt\/[\w-]+$/.test(value);
+      }
+    )
   });
 
   const [createBranchEnvironment] = useCreateBranchEnvironmentMutation();
 
   const [inputValue, setInputValue] = useState('');
   const [pendingEnvKey, setPendingEnvKey] = useState<string | null>(null);
+
+  // Handler for creating a new branch
+  const handleCreateBranch = async (branchName: string) => {
+    try {
+      await branchValidationSchema.validate({ branchName });
+      await createBranchEnvironment({
+        baseEnvironmentKey: baseEnvKey,
+        environmentKey: branchName
+      }).unwrap();
+      setPendingEnvKey(branchName);
+      setInputValue('');
+      clearError();
+      setSuccess(`Successfully created branch "${branchName}"`);
+    } catch (error) {
+      setError(error);
+    }
+  };
 
   const changeEnvironment = (option: ISelectable | null) => {
     if (!option) return;
@@ -76,31 +109,13 @@ export function EnvironmentBranchSelector({
     setInputValue('');
   };
 
-  // Handler for creating a new branch
-  const handleCreateBranch = async (branchName: string) => {
-    try {
-      await branchValidationSchema.validate({ branchName });
-      const env = await createBranchEnvironment({
-        baseEnvironmentKey: baseEnvKey,
-        environmentKey: branchName
-      }).unwrap();
-
-      setPendingEnvKey(env.environmentKey); // Set the key to watch for
-      setInputValue('');
-      setSuccess(`Successfully created branch "${branchName}"`);
-    } catch (error) {
-      setError(error);
-    }
-  };
-
-  // Watch for the new environment to appear in the environments list
   useEffect(() => {
     if (
       pendingEnvKey &&
-      environments.some(env => env.key === pendingEnvKey)
+      environments.some((env) => env.key === pendingEnvKey)
     ) {
       dispatch(currentEnvironmentChanged({ key: pendingEnvKey }));
-      setPendingEnvKey(null); // Reset
+      setPendingEnvKey(null);
     }
   }, [environments, pendingEnvKey, dispatch]);
 

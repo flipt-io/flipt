@@ -99,9 +99,9 @@ export const namespaceApi = createApi({
         url: `/${environmentKey}/namespaces`,
         method: 'POST',
         body: {
-            ...values,
-            revision
-          }
+          ...values,
+          revision
+        }
       }),
       invalidatesTags: () => [
         { type: 'Namespace' },
@@ -118,8 +118,8 @@ export const namespaceApi = createApi({
         url: `/${environmentKey}/namespaces`,
         method: 'PUT',
         body: {
-            ...values,
-            revision
+          ...values,
+          revision
         }
       }),
       invalidatesTags: () => [

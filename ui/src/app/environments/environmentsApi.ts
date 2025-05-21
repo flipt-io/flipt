@@ -61,7 +61,8 @@ export const environmentsSlice = createSlice({
   }
 });
 
-export const { currentEnvironmentChanged } = environmentsSlice.actions;
+export const { currentEnvironmentChanged, environmentsChanged } =
+  environmentsSlice.actions;
 
 // only base environments
 export const selectEnvironments = createSelector(
