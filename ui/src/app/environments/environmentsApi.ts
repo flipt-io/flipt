@@ -106,26 +106,42 @@ export const selectCurrentEnvironment = createSelector(
 export const environmentsApi = createApi({
   reducerPath: 'environments-api',
   baseQuery,
-  tagTypes: ['Environment'],
+  tagTypes: ['Environment', 'BranchEnvironment'],
   endpoints: (builder) => ({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({
       query: () => '',
-      providesTags: (result, _error) =>
-        result?.environments.map(({ key: name }) => ({
-          type: 'Environment' as const,
-          id: name
-        })) || []
+      providesTags: () => [{ type: 'Environment' }]
     }),
     listBranchEnvironments: builder.query<
       { branches: IBranchEnvironment[] },
       { baseEnvironmentKey: string }
     >({
-      query: ({ baseEnvironmentKey }) => `/${baseEnvironmentKey}/branches`
+      query: ({ baseEnvironmentKey }) => `/${baseEnvironmentKey}/branches`,
+      providesTags: () => [{ type: 'BranchEnvironment' }]
+    }),
+    createBranchEnvironment: builder.mutation<
+      IBranchEnvironment,
+      { baseEnvironmentKey: string; environmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey, environmentKey }) => ({
+        url: `/${baseEnvironmentKey}/branches`,
+        method: 'POST',
+        body: {
+          environmentKey
+        }
+      }),
+      invalidatesTags: () => [
+        { type: 'Environment' },
+        { type: 'BranchEnvironment' }
+      ]
     })
   })
 });
 
-export const { useListEnvironmentsQuery, useListBranchEnvironmentsQuery } =
-  environmentsApi;
+export const {
+  useListEnvironmentsQuery,
+  useListBranchEnvironmentsQuery,
+  useCreateBranchEnvironmentMutation
+} = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;

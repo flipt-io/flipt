@@ -65,7 +65,7 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 }
 
 func (s *Server) BranchEnvironment(ctx context.Context, req *environments.BranchEnvironmentRequest) (resp *environments.Environment, err error) {
-	env, err := s.envs.Branch(ctx, req.BaseEnvironmentKey)
+	env, err := s.envs.Branch(ctx, req.BaseEnvironmentKey, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}

@@ -95,16 +95,14 @@ export const namespaceApi = createApi({
       INamespace,
       { environmentKey: string; values: INamespace; revision: string }
     >({
-      query({ environmentKey, values, revision }) {
-        return {
-          url: `/${environmentKey}/namespaces`,
-          method: 'POST',
-          body: {
+      query: ({ environmentKey, values, revision }) => ({
+        url: `/${environmentKey}/namespaces`,
+        method: 'POST',
+        body: {
             ...values,
             revision
           }
-        };
-      },
+      }),
       invalidatesTags: () => [
         { type: 'Namespace' },
         { type: 'Flag' },
@@ -116,16 +114,14 @@ export const namespaceApi = createApi({
       INamespace,
       { environmentKey: string; values: INamespace; revision: string }
     >({
-      query({ environmentKey, values, revision }) {
-        return {
-          url: `/${environmentKey}/namespaces`,
-          method: 'PUT',
-          body: {
+      query: ({ environmentKey, values, revision }) => ({
+        url: `/${environmentKey}/namespaces`,
+        method: 'PUT',
+        body: {
             ...values,
             revision
-          }
-        };
-      },
+        }
+      }),
       invalidatesTags: () => [
         { type: 'Namespace' },
         { type: 'Flag' },
@@ -137,12 +133,10 @@ export const namespaceApi = createApi({
       void,
       { environmentKey: string; namespaceKey: string; revision: string }
     >({
-      query({ environmentKey, namespaceKey, revision }) {
-        return {
-          url: `/${environmentKey}/namespaces/${namespaceKey}?revision=${revision}`,
-          method: 'DELETE'
-        };
-      },
+      query: ({ environmentKey, namespaceKey, revision }) => ({
+        url: `/${environmentKey}/namespaces/${namespaceKey}?revision=${revision}`,
+        method: 'DELETE'
+      }),
       invalidatesTags: () => [
         { type: 'Namespace' },
         { type: 'Flag' },

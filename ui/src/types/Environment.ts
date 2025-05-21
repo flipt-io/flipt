@@ -13,6 +13,7 @@ export interface IEnvironmentConfiguration {
 }
 
 export interface IBranchEnvironment {
+  baseEnvironmentKey: string;
   environmentKey: string;
   branch: string;
 }

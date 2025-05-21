@@ -25,6 +25,7 @@ type ComboboxProps<T extends ISelectable> = {
   setSelected?: (v: T | null) => void;
   disabled?: boolean;
   className?: string;
+  onInputChange?: (value: string) => void;
 };
 
 export default function Combobox<T extends ISelectable>(
@@ -38,7 +39,8 @@ export default function Combobox<T extends ISelectable>(
     selected,
     setSelected,
     placeholder,
-    disabled
+    disabled,
+    onInputChange
   } = props;
 
   const ref = useRef(null);
@@ -54,7 +56,7 @@ export default function Combobox<T extends ISelectable>(
           variant="outline"
           aria-expanded={openOptions}
           className={cls(
-            'w-full justify-between border-gray-300 shadow-xs border mt-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-violet-500 px-3',
+            'justify-between border-gray-300 shadow-xs border mt-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-violet-500 px-3',
             className,
             { 'text-muted-foreground dark:text-muted-foreground': !selected }
           )}
@@ -66,13 +68,14 @@ export default function Combobox<T extends ISelectable>(
       <PopoverContent
         aria-labelledby={name + '-select-button'}
         className="p-0"
-        style={{ width: 'var(--radix-popover-trigger-width)' }}
+        style={{ minWidth: 'var(--radix-popover-trigger-width)' }}
         ref={ref}
       >
         <Command>
           <CommandInput
             placeholder="Search ..."
             className="h-8 border-0 ring-0"
+            onValueChange={onInputChange}
           />
           <CommandList>
             <CommandEmpty className="py-2 text-center text-sm text-muted-foreground">

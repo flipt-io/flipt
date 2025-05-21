@@ -128,7 +128,14 @@ func (g Go) Bench() error {
 
 // Runs the Go server in development mode using the local config, without bundling assets
 func (g Go) Run() error {
-	return sh.RunV("go", "run", "./cmd/flipt/...", "server", "--config", "config/local.yml")
+	config := "config/dev.yml"
+
+	// check if config/dev.yml exists, if not use config/local.yml
+	if _, err := os.Stat(config); os.IsNotExist(err) {
+		config = "config/local.yml"
+	}
+
+	return sh.RunV("go", "run", "./cmd/flipt/...", "server", "--config", config)
 }
 
 // Builds the Go server for development, without bundling assets

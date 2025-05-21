@@ -47,7 +47,7 @@ type Environment interface {
 	Default() bool
 	Configuration() *environments.EnvironmentConfiguration
 	ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)
-	Branch(ctx context.Context) (Environment, error)
+	Branch(ctx context.Context, branch string) (Environment, error)
 	Propose(ctx context.Context, branch Environment) (*environments.ProposeEnvironmentResponse, error)
 
 	// Namespaces
@@ -142,13 +142,13 @@ func (e *EnvironmentStore) Add(env Environment) {
 	e.byKey[env.Key()] = env
 }
 
-func (e *EnvironmentStore) Branch(ctx context.Context, base string) (Environment, error) {
+func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch string) (Environment, error) {
 	baseEnv, err := e.Get(ctx, base)
 	if err != nil {
 		return nil, err
 	}
 
-	branchEnv, err := baseEnv.Branch(ctx)
+	branchEnv, err := baseEnv.Branch(ctx, branch)
 	if err != nil {
 		return nil, err
 	}

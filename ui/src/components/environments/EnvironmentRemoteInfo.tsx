@@ -9,6 +9,8 @@ function extractRepoName(remote: string): string {
   // Remove protocol and trailing .git
   let url = remote.replace(/^https?:\/\//, '').replace(/\.git$/, '');
 
+  // TODO: test with gitlab, bitbucket, etc.
+
   // Handle SSH URLs
   if (url.includes('@')) {
     // git@github.com:org/repo.git or git@gitlab.com:group/subgroup/repo.git
