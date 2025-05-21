@@ -232,6 +232,13 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		query = query.Where(sq.Eq{"method": int32(*req.Predicate.Method)})
 	}
 
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return set, err
+	}
+
+	s.logger.Warn("query", zap.String("query", sql), zap.Any("args", args))
+
 	var offset int
 	if v, err := strconv.ParseInt(req.QueryParams.PageToken, 10, 64); err == nil {
 		offset = int(v)
