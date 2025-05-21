@@ -134,7 +134,7 @@ func Test_Environment_BranchCreation(t *testing.T) {
 	env := newTestEnvironment(t, "production")
 	ctx := context.Background()
 
-	branchEnv, err := env.Branch(ctx)
+	branchEnv, err := env.Branch(ctx, "flipt/production/testbranch")
 	require.NoError(t, err)
 	assert.NotNil(t, branchEnv)
 	assert.NotEqual(t, env.Key(), branchEnv.Key())
@@ -151,7 +151,7 @@ func Test_Environment_ListBranches(t *testing.T) {
 	assert.Empty(t, resp.Branches)
 
 	// Create a branch
-	_, err = env.Branch(ctx)
+	_, err = env.Branch(ctx, "flipt/production/testbranch")
 	require.NoError(t, err)
 
 	resp, err = env.ListBranches(ctx)

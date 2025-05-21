@@ -110,11 +110,19 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 // Branch creates a new branch from the current environment and returns a new Environment
 // that is backed by the new branch.
 // The new Environment is added to the branches map and the current branch is updated.
-func (e *Environment) Branch(ctx context.Context) (serverenvs.Environment, error) {
-	// generate an ID for the branched environment
+func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Environment, error) {
 	var (
-		name       = strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
-		branchName = fmt.Sprintf("flipt/%s/%s", e.cfg.Name, name)
+		branchPrefix = fmt.Sprintf("flipt/%s/", e.cfg.Name)
+		name         = strings.TrimSpace(strings.TrimPrefix(branch, branchPrefix))
+	)
+
+	if name == "" {
+		// generate a name for the branched environment if no name is provided
+		name = strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
+	}
+
+	var (
+		branchName = fmt.Sprintf("%s%s", branchPrefix, name)
 		cfg        = *e.cfg
 	)
 
@@ -172,8 +180,9 @@ func (e *Environment) ListBranches(ctx context.Context) (*rpcenvironments.ListEn
 	br := &rpcenvironments.ListEnvironmentBranchesResponse{}
 	for _, cfg := range branches {
 		br.Branches = append(br.Branches, &rpcenvironments.BranchEnvironment{
-			EnvironmentKey: cfg.Name,
-			Branch:         cfg.branch,
+			EnvironmentKey:     cfg.Name,
+			Branch:             cfg.branch,
+			BaseEnvironmentKey: e.cfg.Name,
 		})
 	}
 

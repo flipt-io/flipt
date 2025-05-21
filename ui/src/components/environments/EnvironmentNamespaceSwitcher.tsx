@@ -162,7 +162,7 @@ export function EnvironmentNamespaceSwitcher() {
     return {
       key: namespace.key,
       name: namespace.name,
-      environment: environment.key
+      environment: environment?.configuration?.base || environment.key
     };
   }, [namespace, environment]);
 

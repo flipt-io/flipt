@@ -154,6 +154,12 @@ paths:
                   required: true
                   schema:
                     type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BranchEnvironmentRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -363,6 +369,15 @@ components:
                 environmentKey:
                     type: string
                 branch:
+                    type: string
+                baseEnvironmentKey:
+                    type: string
+        BranchEnvironmentRequest:
+            type: object
+            properties:
+                baseEnvironmentKey:
+                    type: string
+                environmentKey:
                     type: string
         DeleteNamespaceResponse:
             type: object

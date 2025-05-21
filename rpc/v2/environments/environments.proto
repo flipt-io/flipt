@@ -18,7 +18,10 @@ service EnvironmentsService {
 
   rpc BranchEnvironment(BranchEnvironmentRequest) returns (Environment) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
-    option (google.api.http) = {post: "/api/v2/environments/{base_environment_key}/branches"};
+    option (google.api.http) = {
+      post: "/api/v2/environments/{base_environment_key}/branches"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "branchEnvironment"};
   }
 
@@ -123,11 +126,13 @@ message ListEnvironmentsResponse {
 
 message BranchEnvironmentRequest {
   string base_environment_key = 1;
+  string environment_key = 2;
 }
 
 message BranchEnvironment {
   string environment_key = 1;
   string branch = 2;
+  string base_environment_key = 3;
 }
 
 message ListEnvironmentBranchesRequest {
