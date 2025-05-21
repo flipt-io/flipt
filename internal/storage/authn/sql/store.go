@@ -229,7 +229,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
 
 	if req.Predicate.Method != nil {
-		query = query.Where(sq.Eq{"method": *req.Predicate.Method})
+		query = query.Where(sq.Eq{"method": int32(*req.Predicate.Method)})
 	}
 
 	var offset int
@@ -292,7 +292,7 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.Dele
 	}
 
 	if req.Method != nil {
-		query = query.Where(sq.Eq{"method": req.Method})
+		query = query.Where(sq.Eq{"method": int32(*req.Method)})
 	}
 
 	if req.ExpiredBefore != nil {
