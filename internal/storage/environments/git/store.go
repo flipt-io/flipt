@@ -3,13 +3,18 @@ package git
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"iter"
+	"strings"
 	"sync"
 	"text/template"
 
+	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"go.flipt.io/flipt/internal/config"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
@@ -35,12 +40,14 @@ type Environment struct {
 	repo    *storagegit.Repository
 	storage environmentsfs.Storage
 
-	mu   sync.RWMutex
-	refs map[string]string
-
-	head      plumbing.Hash
-	snap      *storagefs.Snapshot
-	publisher *evaluation.SnapshotPublisher
+	mu            sync.RWMutex
+	branches      map[string]*Environment
+	refs          map[string]string
+	currentBranch string
+	base          string
+	head          plumbing.Hash
+	snap          *storagefs.Snapshot
+	publisher     evaluation.SnapshotPublisher
 }
 
 // NewEnvironmentFromRepo takes a git repository and a set of typed resource storage implementations and exposes
@@ -52,17 +59,26 @@ func NewEnvironmentFromRepo(
 	cfg *config.EnvironmentConfig,
 	repo *storagegit.Repository,
 	storage environmentsfs.Storage,
-	publisher *evaluation.SnapshotPublisher,
+	publisher evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
 	return &Environment{
-		logger:    logger,
-		cfg:       cfg,
-		repo:      repo,
-		storage:   storage,
-		refs:      map[string]string{},
-		snap:      storagefs.EmptySnapshot(),
-		publisher: publisher,
+		logger:        logger,
+		cfg:           cfg,
+		repo:          repo,
+		storage:       storage,
+		refs:          map[string]string{},
+		snap:          storagefs.EmptySnapshot(),
+		publisher:     publisher,
+		currentBranch: repo.GetDefaultBranch(),
+		branches:      map[string]*Environment{},
 	}, nil
+}
+
+func (e *Environment) Branches() []string {
+	return []string{
+		e.currentBranch,
+		fmt.Sprintf("flipt/%s/*", e.cfg.Name),
+	}
 }
 
 func (e *Environment) Key() string {
@@ -73,16 +89,168 @@ func (e *Environment) Default() bool {
 	return e.cfg.Default
 }
 
+func (e *Environment) Repository() *storagegit.Repository {
+	return e.repo
+}
+
 func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration {
+	var base *string
+	if e.base != "" {
+		base = &e.base
+	}
+
 	return &rpcenvironments.EnvironmentConfiguration{
 		Remote:    e.repo.GetRemote(),
-		Branch:    e.repo.GetDefaultBranch(),
+		Branch:    e.currentBranch,
 		Directory: e.cfg.Directory,
+		Base:      base,
 	}
 }
 
+// Branch creates a new branch from the current environment and returns a new Environment
+// that is backed by the new branch.
+// The new Environment is added to the branches map and the current branch is updated.
+func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Environment, error) {
+	var (
+		branchPrefix = fmt.Sprintf("flipt/%s/", e.cfg.Name)
+		name         = strings.TrimSpace(strings.TrimPrefix(branch, branchPrefix))
+	)
+
+	if name == "" {
+		// generate a name for the branched environment if no name is provided
+		name = strings.ReplaceAll(namesgenerator.GetRandomName(0), "_", "")
+	}
+
+	var (
+		branchName = fmt.Sprintf("%s%s", branchPrefix, name)
+		cfg        = *e.cfg
+	)
+
+	cfg.Name = name
+
+	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(e.currentBranch)); err != nil {
+		return nil, err
+	}
+
+	env, err := NewEnvironmentFromRepo(
+		ctx,
+		e.logger,
+		&cfg,
+		e.repo,
+		e.storage,
+		evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	env.currentBranch = branchName
+	env.base = e.Key()
+	if err := env.updateSnapshot(ctx); err != nil {
+		return nil, err
+	}
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.branches[cfg.Name] = env
+
+	return env, nil
+}
+
+func (e *Environment) ListBranches(ctx context.Context) (*rpcenvironments.ListEnvironmentBranchesResponse, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	iter, err := e.listBranchEnvs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	branches := []*branchEnvConfig{}
+	for cfg := range iter.All() {
+		branches = append(branches, cfg)
+	}
+
+	if err := iter.Err(); err != nil {
+		return nil, err
+	}
+
+	br := &rpcenvironments.ListEnvironmentBranchesResponse{}
+	for _, cfg := range branches {
+		br.Branches = append(br.Branches, &rpcenvironments.BranchEnvironment{
+			EnvironmentKey:     cfg.Name,
+			Branch:             cfg.branch,
+			BaseEnvironmentKey: e.cfg.Name,
+		})
+	}
+
+	return br, nil
+}
+
+func (e *Environment) listBranchEnvs(_ context.Context) (*branchEnvIterator, error) {
+	refs, err := e.repo.References()
+	if err != nil {
+		return nil, err
+	}
+
+	return &branchEnvIterator{
+		logger: e.logger,
+		refs:   refs,
+		env:    e,
+	}, nil
+}
+
+type branchEnvIterator struct {
+	logger *zap.Logger
+	refs   storer.ReferenceIter
+	env    *Environment
+
+	err error
+}
+
+type branchEnvConfig struct {
+	*config.EnvironmentConfig
+	branch string
+}
+
+func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
+	return iter.Seq[*branchEnvConfig](func(yield func(*branchEnvConfig) bool) {
+		e.err = e.refs.ForEach(func(r *plumbing.Reference) error {
+			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
+
+			// if one of our branches that we created
+			if candidate := strings.TrimPrefix(branch, fmt.Sprintf("flipt/%s/", e.env.cfg.Name)); candidate != branch {
+				// get the name of the environment from the branch name
+				// e.g. flipt/my-env/my-branch -> my-env
+				name, _, _ := strings.Cut(candidate, "/")
+				cfg := *e.env.cfg
+				cfg.Name = name
+
+				if !yield(&branchEnvConfig{
+					EnvironmentConfig: &cfg,
+					branch:            branch,
+				}) {
+					return storer.ErrStop
+				}
+			}
+
+			return nil
+		})
+	})
+}
+
+func (e *branchEnvIterator) Err() error {
+	return e.err
+}
+
+func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (*rpcenvironments.ProposeEnvironmentResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {
-	err = e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	err = e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		ns, err := e.storage.GetNamespace(ctx, environmentsfs.SubFilesystem(fs, e.cfg.Directory), key)
 		if err != nil {
 			return err
@@ -99,7 +267,7 @@ func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcen
 }
 
 func (e *Environment) ListNamespaces(ctx context.Context) (resp *rpcenvironments.ListNamespacesResponse, err error) {
-	err = e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	err = e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		items, err := e.storage.ListNamespaces(ctx, environmentsfs.SubFilesystem(fs, e.cfg.Directory))
 		if err != nil {
 			return err
@@ -156,11 +324,11 @@ func (e *Environment) DeleteNamespace(ctx context.Context, rev, key string) (str
 
 func (e *Environment) updateNamespace(ctx context.Context, rev string, fn func(environmentsfs.Filesystem) (storagefs.Change, error)) (string, error) {
 	hash := plumbing.NewHash(rev)
-	hash, err := e.repo.UpdateAndPush(ctx, func(src environmentsfs.Filesystem) (string, error) {
+	hash, err := e.repo.UpdateAndPush(ctx, e.currentBranch, func(src environmentsfs.Filesystem) (string, error) {
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {
 			return "", err
 		}
@@ -185,7 +353,7 @@ func (e *Environment) View(ctx context.Context, typ serverenvs.ResourceType, fn 
 		return fmt.Errorf("git storage view: %w", err)
 	}
 
-	if err := e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	if err := e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		return fn(ctx, &store{typ: typ, rstore: rstore, base: hash, fs: environmentsfs.SubFilesystem(fs, e.cfg.Directory)})
 	}); err != nil {
 		return err
@@ -202,7 +370,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 	}()
 
 	hash := plumbing.NewHash(rev)
-	hash, err = e.repo.UpdateAndPush(ctx, func(src environmentsfs.Filesystem) (string, error) {
+	hash, err = e.repo.UpdateAndPush(ctx, e.currentBranch, func(src environmentsfs.Filesystem) (string, error) {
 		rstore, err := e.storage.Resource(typ)
 		if err != nil {
 			return "", fmt.Errorf("git storage update: %w", err)
@@ -211,7 +379,7 @@ func (e *Environment) Update(ctx context.Context, rev string, typ serverenvs.Res
 		// chroot our filesystem to the configured directory
 		src = environmentsfs.SubFilesystem(src, e.cfg.Directory)
 
-		conf, err := storagefs.GetConfig(environmentsfs.ToFS(src))
+		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {
 			return "", err
 		}
@@ -340,14 +508,111 @@ func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, 
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
-func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
+func (e *Environment) Notify(ctx context.Context, refs map[string]plumbing.Hash) error {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash.String() {
+		e.logger.Debug("updating base env snapshot",
+			zap.String("environment", e.cfg.Name),
+			zap.String("from", e.refs[e.currentBranch]),
+			zap.String("to", hash.String()),
+		)
+
+		e.refs[e.currentBranch] = hash.String()
+		if err := e.updateSnapshot(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// RefreshEnvironment refreshes the environment from the remote repository
+// and updates the local environment with the new branches and namespaces
+// it returns the set of newly observed environments to be added to the store
+func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]string) (newBranches []serverenvs.Environment, err error) {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
+		e.logger.Debug("updating base env snapshot",
+			zap.String("environment", e.cfg.Name),
+			zap.String("from", e.refs[e.currentBranch]),
+			zap.String("to", hash),
+		)
+
+		e.refs[e.currentBranch] = hash
+		if err := e.updateSnapshot(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	iterator, err := e.listBranchEnvs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for cfg := range iterator.All() {
+		env, ok := e.branches[cfg.Name]
+		// if we dont have an environment for this branch, create one
+		if !ok {
+			env, err = NewEnvironmentFromRepo(
+				ctx,
+				e.logger,
+				cfg.EnvironmentConfig,
+				e.repo,
+				e.storage,
+				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
+			)
+
+			if err != nil {
+				return nil, err
+			}
+
+			e.branches[cfg.Name] = env
+			env.currentBranch = cfg.branch
+			env.base = e.Key()
+			newBranches = append(newBranches, env)
+			if err := env.updateSnapshot(ctx); err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		// otherwise update the snapshot if the branch has advanced
+		if hash, ok := refs[cfg.branch]; ok && e.refs[cfg.branch] != hash {
+			e.logger.Debug("updating branch env snapshot",
+				zap.String("environment", cfg.Name),
+				zap.String("from", e.refs[cfg.branch]),
+				zap.String("to", hash),
+			)
+
+			e.refs[cfg.branch] = hash
+			if err := env.updateSnapshot(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err := iterator.Err(); err != nil {
+		return nil, err
+	}
+
+	return newBranches, nil
+}
+
+func (e *Environment) updateSnapshot(ctx context.Context) error {
+	hash, err := e.repo.Resolve(e.currentBranch)
+	if err != nil {
+		return err
+	}
+
+	e.mu.RLock()
+	head := e.head
+	e.mu.RUnlock()
+
 	// check if head has advanced
-	if e.head == head {
+	if head == hash {
 		// head has not advanced so we skip building
 		return nil
 	}
 
-	snap, err := e.buildSnapshot(ctx, head)
+	snap, err := e.buildSnapshot(ctx, hash)
 	if err != nil {
 		e.logger.Error("updating snapshot",
 			zap.Error(err),
@@ -365,21 +630,21 @@ func (e *Environment) Notify(ctx context.Context, head plumbing.Hash) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	e.head = head
+	e.head = hash
 	e.snap = snap
 
 	return nil
-
 }
 
+// buildSnapshot builds a snapshot from the current branch for all namespaces in the environment
 func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (snap *storagefs.Snapshot, err error) {
-	return snap, e.repo.View(ctx, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
+	return snap, e.repo.View(ctx, e.currentBranch, func(hash plumbing.Hash, fs environmentsfs.Filesystem) error {
 		if e.cfg.Directory != "" {
 			fs = environmentsfs.SubFilesystem(fs, e.cfg.Directory)
 		}
 
 		iofs := environmentsfs.ToFS(fs)
-		conf, err := storagefs.GetConfig(iofs)
+		conf, err := storagefs.GetConfig(e.logger, iofs)
 		if err != nil {
 			return err
 		}

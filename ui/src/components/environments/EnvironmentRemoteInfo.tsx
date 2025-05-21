@@ -1,11 +1,6 @@
 import { FolderGit, Github, Gitlab } from 'lucide-react';
 
 import { Badge } from '~/components/Badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '~/components/ui/tooltip';
 
 import { IEnvironment } from '~/types/Environment';
 
@@ -13,6 +8,8 @@ function extractRepoName(remote: string): string {
   if (!remote) return '';
   // Remove protocol and trailing .git
   let url = remote.replace(/^https?:\/\//, '').replace(/\.git$/, '');
+
+  // TODO: test with gitlab, bitbucket, etc.
 
   // Handle SSH URLs
   if (url.includes('@')) {
@@ -58,20 +55,13 @@ export function EnvironmentRemoteInfo({
       className="flex gap-1 text-inherit hover:underline ml-auto"
       style={{ textDecoration: 'none' }}
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1 bg-background font-semibold text-xs"
-          >
-            <ProviderIcon className="w-4 h-4 text-muted-foreground" />
-            <span className="truncate max-w-[200px]">{repoName}</span>
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent
-          title={repoUrl}
-        >{`Branch: ${configuration.branch}`}</TooltipContent>
-      </Tooltip>
+      <Badge
+        variant="secondary"
+        className="flex items-center gap-2 px-2 py-1 bg-background font-semibold text-xs"
+      >
+        <ProviderIcon className="w-4 h-4 text-muted-foreground" />
+        <span className="truncate max-w-[200px]">{repoName}</span>
+      </Badge>
     </a>
   );
 }

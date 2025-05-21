@@ -9,6 +9,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gobwas/glob"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,6 +29,10 @@ updated multiple resources
 {{ $change }}
 {{- end }}
 {{- end }}`
+
+	defaultProposalTitleTmpl string = `Flipt: Update features in {{ .Base.Name }}`
+	defaultProposalBodyTmpl  string = `Update Flipt resources in [{{ .Base.Name }}]({{ .Base.HostURL }})
+The branched environment can be viewed at [{{ .Branch.Name }}]({{ .Branch.HostURL }})`
 )
 
 type Config struct {
@@ -37,6 +42,8 @@ type Config struct {
 
 type ConfigTemplates struct {
 	CommitMessageTemplate *template.Template
+	ProposalTitleTemplate *template.Template
+	ProposalBodyTemplate  *template.Template
 }
 
 // DefaultFliptConfig returns the default value for the Config struct.
@@ -52,6 +59,8 @@ func DefaultFliptConfig() *Config {
 		},
 		Templates: ConfigTemplates{
 			CommitMessageTemplate: template.Must(template.New("commitMessage").Parse(defaultCommitMsgTmpl)),
+			ProposalTitleTemplate: template.Must(template.New("proposalTitle").Parse(defaultProposalTitleTmpl)),
+			ProposalBodyTemplate:  template.Must(template.New("proposalBody").Parse(defaultProposalBodyTmpl)),
 		},
 	}
 }
@@ -59,7 +68,7 @@ func DefaultFliptConfig() *Config {
 // GetConfig supports opening and parsing flipt configuration within a target filesystem.
 // It initially attempts to parse the broader flipt.yml configuration file.
 // Failing to locate this, it falls back to parsing the .flipt.yml index file.
-func GetConfig(src fs.FS) (*Config, error) {
+func GetConfig(logger *zap.Logger, src fs.FS) (*Config, error) {
 	fi, err := src.Open(configFileNameYAML)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
@@ -78,7 +87,7 @@ func GetConfig(src fs.FS) (*Config, error) {
 
 	defer fi.Close()
 
-	return parseConfig(fi)
+	return parseConfig(logger, fi)
 }
 
 func (c *Config) List(src fs.FS) (paths []string, err error) {
@@ -113,13 +122,15 @@ func (c *Config) List(src fs.FS) (paths []string, err error) {
 type config struct {
 	Version   string `yaml:"version"`
 	Templates struct {
-		CommitMsg string `yaml:"commit_message"`
+		CommitMsg     string `yaml:"commit_message"`
+		ProposalTitle string `yaml:"proposal_title"`
+		ProposalBody  string `yaml:"proposal_body"`
 	} `yaml:"templates"`
 }
 
 // parseConfig reads the contents of r as yaml and parses
 // the configuration with some predefined defaults
-func parseConfig(r io.Reader) (_ *Config, err error) {
+func parseConfig(logger *zap.Logger, r io.Reader) (_ *Config, err error) {
 	conf := config{Version: defaultConfigVersion()}
 	if err := yaml.NewDecoder(r).Decode(&conf); err != nil {
 		return nil, err
@@ -136,14 +147,30 @@ func parseConfig(r io.Reader) (_ *Config, err error) {
 
 	c := DefaultFliptConfig()
 	if conf.Templates.CommitMsg != "" {
-		tmpl, err := template.
-			New("commitMessage").
-			Parse(conf.Templates.CommitMsg)
+		tmpl, err := template.New("commitMessage").Parse(conf.Templates.CommitMsg)
 		if err != nil {
 			return nil, err
 		}
 
 		c.Templates.CommitMessageTemplate = tmpl
+	}
+
+	if conf.Templates.ProposalTitle != "" {
+		tmpl, err := template.New("proposalTitle").Parse(conf.Templates.ProposalTitle)
+		if err != nil {
+			logger.Warn("failed to parse template", zap.String("template", "proposalTitle"), zap.Error(err))
+		} else {
+			c.Templates.ProposalTitleTemplate = tmpl
+		}
+	}
+
+	if conf.Templates.ProposalBody != "" {
+		tmpl, err := template.New("proposalBody").Parse(conf.Templates.ProposalBody)
+		if err != nil {
+			logger.Warn("failed to parse template", zap.String("template", "proposalBody"), zap.Error(err))
+		} else {
+			c.Templates.ProposalBodyTemplate = tmpl
+		}
 	}
 
 	return c, nil

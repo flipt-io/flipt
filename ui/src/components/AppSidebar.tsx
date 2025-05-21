@@ -12,8 +12,8 @@ import {
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';
 
-import { EnvironmentNamespaceSwitcher } from './EnvironmentNamespaceSwitcher';
 import { NavSecondary } from './NavSecondary';
+import { EnvironmentNamespaceSwitcher } from './environments/EnvironmentNamespaceSwitcher';
 
 export function AppSidebar({
   ns,

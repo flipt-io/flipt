@@ -10,6 +10,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: environments
             operationId: listEnvironments
             responses:
                 "200":
@@ -49,6 +50,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: resources
             operationId: getResource
             parameters:
                 - name: environmentKey
@@ -90,7 +92,6 @@ paths:
             parameters:
                 - name: environmentKey
                   in: path
-                  description: type is the fully-qualified protobuf message name
                   required: true
                   schema:
                     type: string
@@ -125,6 +126,70 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
+    /api/v2/environments/{baseEnvironmentKey}/branches:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listEnvironmentBranches
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListEnvironmentBranchesResponse'
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: branchEnvironment
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BranchEnvironmentRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Environment'
+    /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}:
+        post:
+            tags:
+                - EnvironmentsService
+            operationId: proposeEnvironment
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProposeEnvironmentResponse'
     /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
@@ -193,6 +258,7 @@ paths:
         get:
             tags:
                 - EnvironmentsService
+            description: namespaces
             operationId: getNamespace
             parameters:
                 - name: environmentKey
@@ -297,6 +363,22 @@ paths:
                                 $ref: '#/components/schemas/ResourceResponse'
 components:
     schemas:
+        BranchEnvironment:
+            type: object
+            properties:
+                environmentKey:
+                    type: string
+                branch:
+                    type: string
+                baseEnvironmentKey:
+                    type: string
+        BranchEnvironmentRequest:
+            type: object
+            properties:
+                baseEnvironmentKey:
+                    type: string
+                environmentKey:
+                    type: string
         DeleteNamespaceResponse:
             type: object
             properties:
@@ -327,6 +409,8 @@ components:
                     type: string
                 directory:
                     type: string
+                base:
+                    type: string
         GoogleProtobufAny:
             type: object
             properties:
@@ -335,6 +419,13 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListEnvironmentBranchesResponse:
+            type: object
+            properties:
+                branches:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/BranchEnvironment'
         ListEnvironmentsResponse:
             type: object
             properties:
@@ -377,6 +468,16 @@ components:
                 namespace:
                     $ref: '#/components/schemas/Namespace'
                 revision:
+                    type: string
+        ProposeEnvironmentResponse:
+            type: object
+            properties:
+                scm:
+                    enum:
+                        - GITHUB_SCM
+                    type: string
+                    format: enum
+                url:
                     type: string
         Resource:
             type: object

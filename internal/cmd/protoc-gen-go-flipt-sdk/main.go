@@ -159,6 +159,10 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File, importPath protog
 		}
 
 		for _, method := range srv.Methods {
+			if shouldIgnoreMethod(method) {
+				continue
+			}
+
 			var (
 				signature       = []any{"func (x *", serviceName, ") ", method.GoName, "(ctx ", context("Context")}
 				returnStatement = []any{"x.transport.", method.GoName, "(ctx, "}
@@ -283,6 +287,13 @@ func New(t Transport, opts ...Option) SDK {
 
 func shouldIgnoreService(srv *protogen.Service) bool {
 	if v := proto.GetExtension(srv.Desc.Options(), visibility.E_ApiVisibility).(*visibility.VisibilityRule); v != nil {
+		return v.Restriction == ignoreDecl
+	}
+	return false
+}
+
+func shouldIgnoreMethod(method *protogen.Method) bool {
+	if v := proto.GetExtension(method.Desc.Options(), visibility.E_MethodVisibility).(*visibility.VisibilityRule); v != nil {
 		return v.Restriction == ignoreDecl
 	}
 	return false

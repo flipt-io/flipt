@@ -43,7 +43,7 @@ type Repository struct {
 	sigEmail           string
 	maxOpenDescriptors int
 
-	subs []subscription
+	subs []Subscriber
 
 	pollInterval time.Duration
 	cancel       func()
@@ -53,12 +53,8 @@ type Repository struct {
 }
 
 type Subscriber interface {
-	Notify(ctx context.Context, head plumbing.Hash) error
-}
-
-type subscription struct {
-	Subscriber
-	branch string
+	Branches() []string
+	Notify(ctx context.Context, heads map[string]string) error
 }
 
 func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.Option[Repository]) (*Repository, error) {
@@ -70,7 +66,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	if empty {
 		logger.Debug("repository empty, attempting to add and push a README")
 		// add initial readme if repo is empty
-		if _, err := repo.UpdateAndPush(ctx, func(fs envsfs.Filesystem) (string, error) {
+		if _, err := repo.UpdateAndPush(ctx, repo.defaultBranch, func(fs envsfs.Filesystem) (string, error) {
 			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 			if err != nil {
 				return "", err
@@ -251,19 +247,19 @@ func (r *Repository) Close() error {
 	return nil
 }
 
-// Subscribe registers the functions for the given branch name.
-// It will be called each time the branch is updated while holding a lock.
-func (r *Repository) Subscribe(branch string, sub Subscriber) {
+func (r *Repository) Subscribe(sub Subscriber) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.subs = append(r.subs, subscription{sub, branch})
+	r.subs = append(r.subs, sub)
 }
 
 func (r *Repository) fetchHeads() []string {
 	heads := map[string]struct{}{r.defaultBranch: {}}
 	for _, sub := range r.subs {
-		heads[sub.branch] = struct{}{}
+		for _, head := range sub.Branches() {
+			heads[head] = struct{}{}
+		}
 	}
 
 	return slices.Collect(maps.Keys(heads))
@@ -353,20 +349,18 @@ func ViewWithHash(hash plumbing.Hash) containers.Option[ViewOptions] {
 	}
 }
 
-// View reads the head of the default configured branch and passes the resulting git tree via
+// View reads the head of the given branch and passes the resulting git tree via
 // the envsfs.Filesystem abstraction to the provided function.
 func (r *Repository) View(
 	ctx context.Context,
+	branch string,
 	fn func(hash plumbing.Hash, fs envsfs.Filesystem) error,
 	opts ...containers.Option[ViewOptions],
 ) (err error) {
 	var vopts ViewOptions
 	containers.ApplyAll(&vopts, opts...)
 
-	var (
-		branch   = r.defaultBranch
-		finished = r.metrics.recordView(ctx, branch)
-	)
+	finished := r.metrics.recordView(ctx, branch)
 
 	r.mu.RLock()
 	defer func() {
@@ -415,14 +409,14 @@ func UpdateIfHeadMatches(hash *plumbing.Hash) containers.Option[UpdateAndPushOpt
 
 // UpdateAndPush calls the provided function with a Filesystem implementation which intercepts any write
 // operations and builds the changes into a commit.
-// Given an upstream remote is configured, the commit is also pushed to the configured default branch.
+// Given an upstream remote is configured, the commit is also pushed to the given branch.
 func (r *Repository) UpdateAndPush(
 	ctx context.Context,
+	branch string,
 	fn func(fs envsfs.Filesystem) (string, error),
 	opts ...containers.Option[UpdateAndPushOptions],
 ) (hash plumbing.Hash, err error) {
 	var (
-		branch   = r.defaultBranch
 		finished = r.metrics.recordUpdate(ctx, branch)
 		options  UpdateAndPushOptions
 		commit   *object.Commit
@@ -539,21 +533,21 @@ func (r *Repository) UpdateAndPush(
 }
 
 func (r *Repository) updateSubs(ctx context.Context, refs map[string]plumbing.Hash) {
-	// update subscribers when refs match
-OUTER:
+	// update subscribers for each matching ref
 	for _, sub := range r.subs {
+		matched := map[string]string{}
 		for ref, hash := range refs {
-			if !refMatch(ref, sub.branch) {
-				continue
+			for _, branch := range sub.Branches() {
+				if refMatch(ref, branch) {
+					matched[ref] = hash.String()
+				}
 			}
+		}
 
-			if err := sub.Notify(ctx, hash); err != nil {
-				r.metrics.recordUpdateSubsError(ctx)
+		if err := sub.Notify(ctx, matched); err != nil {
+			r.metrics.recordUpdateSubsError(ctx)
 
-				r.logger.Error("while updating subscriber", zap.Error(err))
-			}
-
-			continue OUTER
+			r.logger.Error("while updating subscriber", zap.Error(err))
 		}
 	}
 }

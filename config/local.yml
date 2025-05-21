@@ -4,40 +4,6 @@
 log:
   level: DEBUG
 
-# authentication:
-#   required: false
-#   session:
-#     domain: "localhost:8080"
-#     secure: false
-#   methods:
-#     token:
-#       enabled: true
-#       bootstrap:
-#         token: "secret"
-#         expiration: 24h
-#       cleanup:
-#         interval: 2h
-#         grace_period: 48h
-
-# storage:
-#   default:
-#     name: "local" 
-#   staging:
-#     name: "staging"
-
-# environments:
-#   local:
-#     name: "local"
-#     default: true
-
-#   staging:
-#     name: "staging"
-#     storage: "staging"
-
-cors:
-  enabled: true
-  allowed_origins: ["*"]
-
 # server:
 #   protocol: http
 #   host: 0.0.0.0

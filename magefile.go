@@ -27,13 +27,14 @@ var (
 // Installs tools required for development
 func Bootstrap() error {
 	fmt.Println(" > Bootstrapping tools...")
-	install := []string{"install", "-v"}
-	install = append(install, tools...)
 
-	cmd := exec.Command("go", install...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	for _, tool := range tools {
+		if err := sh.RunV("go", "install", "-v", tool); err != nil {
+			return fmt.Errorf("installing tool %q: %w", tool, err)
+		}
+	}
+
+	return sh.RunV("go", "install", "tool")
 }
 
 // Builds the project similar to a release build
@@ -127,7 +128,14 @@ func (g Go) Bench() error {
 
 // Runs the Go server in development mode using the local config, without bundling assets
 func (g Go) Run() error {
-	return sh.RunV("go", "run", "./cmd/flipt/...", "server", "--config", "config/local.yml")
+	config := "config/dev.yml"
+
+	// check if config/dev.yml exists, if not use config/local.yml
+	if _, err := os.Stat(config); os.IsNotExist(err) {
+		config = "config/local.yml"
+	}
+
+	return sh.RunV("go", "run", "./cmd/flipt/...", "server", "--config", config)
 }
 
 // Builds the Go server for development, without bundling assets
@@ -189,6 +197,7 @@ func (g Go) Lint() error {
 // Generates the Go protobuf files and gRPC stubs
 func (g Go) Proto() error {
 	mg.Deps(Bootstrap)
+
 	fmt.Println(" > Generating proto files...")
 	for _, module := range []string{
 		"rpc/flipt",

@@ -4,24 +4,50 @@ package environments;
 
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
 
 service EnvironmentsService {
+  // environments
   rpc ListEnvironments(ListEnvironmentsRequest) returns (ListEnvironmentsResponse) {
     option (google.api.http) = {get: "/api/v2/environments"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironments"};
   }
 
+  rpc BranchEnvironment(BranchEnvironmentRequest) returns (Environment) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {
+      post: "/api/v2/environments/{base_environment_key}/branches"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "branchEnvironment"};
+  }
+
+  rpc ListEnvironmentBranches(ListEnvironmentBranchesRequest) returns (ListEnvironmentBranchesResponse) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {get: "/api/v2/environments/{base_environment_key}/branches"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironmentBranches"};
+  }
+
+  rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (ProposeEnvironmentResponse) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "proposeEnvironment"};
+  }
+
+  // namespaces
   rpc GetNamespace(GetNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getNamespace"};
   }
+
   rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listNamespaces"};
   }
+
   rpc CreateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {
       post: "/api/v2/environments/{environment_key}/namespaces"
@@ -29,6 +55,7 @@ service EnvironmentsService {
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "createNamespace"};
   }
+
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {
       put: "/api/v2/environments/{environment_key}/namespaces"
@@ -36,19 +63,23 @@ service EnvironmentsService {
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "updateNamespace"};
   }
+
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteNamespace"};
   }
 
+  // resources
   rpc GetResource(GetResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "getResource"};
   }
+
   rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
     option (google.api.http) = {get: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listResources"};
   }
+
   rpc CreateResource(UpdateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
       post: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources"
@@ -56,6 +87,7 @@ service EnvironmentsService {
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "createResource"};
   }
+
   rpc UpdateResource(UpdateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
       put: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources"
@@ -63,6 +95,7 @@ service EnvironmentsService {
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "updateResource"};
   }
+
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/namespaces/{namespace_key}/resources/{type_url=*}/{key}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "deleteResource"};
@@ -82,12 +115,46 @@ message EnvironmentConfiguration {
   string remote = 1;
   string branch = 2;
   string directory = 3;
+  optional string base = 4;
 }
 
 message ListEnvironmentsRequest {}
 
 message ListEnvironmentsResponse {
   repeated Environment environments = 1;
+}
+
+message BranchEnvironmentRequest {
+  string base_environment_key = 1;
+  string environment_key = 2;
+}
+
+message BranchEnvironment {
+  string environment_key = 1;
+  string branch = 2;
+  string base_environment_key = 3;
+}
+
+message ListEnvironmentBranchesRequest {
+  string base_environment_key = 1;
+}
+
+message ListEnvironmentBranchesResponse {
+  repeated BranchEnvironment branches = 1;
+}
+
+message ProposeEnvironmentRequest {
+  string base_environment_key = 1;
+  string environment_key = 2;
+}
+
+enum SCM {
+  GITHUB_SCM = 0;
+}
+
+message ProposeEnvironmentResponse {
+  SCM scm = 1;
+  string url = 2;
 }
 
 /* Namespace */
@@ -177,7 +244,6 @@ message UpdateResourceRequest {
 }
 
 message DeleteResourceRequest {
-  // type is the fully-qualified protobuf message name
   string environment_key = 1;
   string namespace_key = 2;
   string type_url = 3;

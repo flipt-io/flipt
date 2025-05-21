@@ -43,6 +43,10 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protoge
 		}
 		for _, s := range f.Services {
 			for _, m := range s.Methods {
+				if shouldIgnoreMethod(m) {
+					continue
+				}
+
 				if rule := proto.GetExtension(m.Desc.Options(), annotations.E_Http).(*annotations.HttpRule); rule != nil {
 					rule.Selector = string(m.Desc.FullName())
 					config.Http.Rules = append(config.Http.Rules, rule)
@@ -167,6 +171,9 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protoge
 			g.P("}\n")
 
 			for _, method := range srv.Methods {
+				if shouldIgnoreMethod(method) {
+					continue
+				}
 				generateHTTPMethod(g, m, method, returnType)
 			}
 
@@ -201,6 +208,9 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string, importPath protoge
 			g.P("}\n")
 
 			for _, method := range srv.Methods {
+				if shouldIgnoreMethod(method) {
+					continue
+				}
 				generateHTTPMethod(g, m, method, unexportedReturnType)
 			}
 		}

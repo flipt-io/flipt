@@ -1,12 +1,12 @@
 module go.flipt.io/flipt/sdk/go
 
-go 1.23.0
+go 1.23.7
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	go.flipt.io/flipt/rpc/flipt v1.54.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250505200425-f936aa4a68b2
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 )

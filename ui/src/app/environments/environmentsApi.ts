@@ -1,7 +1,7 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
-import { IEnvironment } from '~/types/Environment';
+import { IBranchEnvironment, IEnvironment } from '~/types/Environment';
 import { LoadingStatus } from '~/types/Meta';
 
 import { RootState } from '~/store';
@@ -61,9 +61,21 @@ export const environmentsSlice = createSlice({
   }
 });
 
-export const { currentEnvironmentChanged } = environmentsSlice.actions;
+export const { currentEnvironmentChanged, environmentsChanged } =
+  environmentsSlice.actions;
 
+// only base environments
 export const selectEnvironments = createSelector(
+  [(state: RootState) => state.environments.environments],
+  (environments) => {
+    return Object.entries(environments)
+      .map(([_, value]) => value)
+      .filter((env) => env.configuration?.base === undefined) as IEnvironment[]; // ignore branched environments
+  }
+);
+
+// all environments, including branched environments
+export const selectAllEnvironments = createSelector(
   [(state: RootState) => state.environments.environments],
   (environments) => {
     return Object.entries(environments).map(
@@ -95,19 +107,42 @@ export const selectCurrentEnvironment = createSelector(
 export const environmentsApi = createApi({
   reducerPath: 'environments-api',
   baseQuery,
-  tagTypes: ['Environment'],
+  tagTypes: ['Environment', 'BranchEnvironment'],
   endpoints: (builder) => ({
     listEnvironments: builder.query<{ environments: IEnvironment[] }, void>({
       query: () => '',
-      providesTags: (result, _error) =>
-        result?.environments.map(({ key: name }) => ({
-          type: 'Environment' as const,
-          id: name
-        })) || []
+      providesTags: () => [{ type: 'Environment' }]
+    }),
+    listBranchEnvironments: builder.query<
+      { branches: IBranchEnvironment[] },
+      { baseEnvironmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey }) => `/${baseEnvironmentKey}/branches`,
+      providesTags: () => [{ type: 'BranchEnvironment' }]
+    }),
+    createBranchEnvironment: builder.mutation<
+      IBranchEnvironment,
+      { baseEnvironmentKey: string; environmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey, environmentKey }) => ({
+        url: `/${baseEnvironmentKey}/branches`,
+        method: 'POST',
+        body: {
+          environmentKey
+        }
+      }),
+      invalidatesTags: () => [
+        { type: 'Environment' },
+        { type: 'BranchEnvironment' }
+      ]
     })
   })
 });
 
-export const { useListEnvironmentsQuery } = environmentsApi;
+export const {
+  useListEnvironmentsQuery,
+  useListBranchEnvironmentsQuery,
+  useCreateBranchEnvironmentMutation
+} = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;
