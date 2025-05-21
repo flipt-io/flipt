@@ -42,8 +42,8 @@ func (_m *MockEnvironment) EXPECT() *MockEnvironment_Expecter {
 }
 
 // Branch provides a mock function for the type MockEnvironment
-func (_mock *MockEnvironment) Branch(ctx context.Context) (Environment, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockEnvironment) Branch(ctx context.Context, branch string) (Environment, error) {
+	ret := _mock.Called(ctx, branch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Branch")
@@ -51,18 +51,18 @@ func (_mock *MockEnvironment) Branch(ctx context.Context) (Environment, error) {
 
 	var r0 Environment
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (Environment, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (Environment, error)); ok {
+		return returnFunc(ctx, branch)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) Environment); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) Environment); ok {
+		r0 = returnFunc(ctx, branch)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(Environment)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, branch)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -76,13 +76,14 @@ type MockEnvironment_Branch_Call struct {
 
 // Branch is a helper method to define mock.On call
 //   - ctx
-func (_e *MockEnvironment_Expecter) Branch(ctx interface{}) *MockEnvironment_Branch_Call {
-	return &MockEnvironment_Branch_Call{Call: _e.mock.On("Branch", ctx)}
+//   - branch
+func (_e *MockEnvironment_Expecter) Branch(ctx interface{}, branch interface{}) *MockEnvironment_Branch_Call {
+	return &MockEnvironment_Branch_Call{Call: _e.mock.On("Branch", ctx, branch)}
 }
 
-func (_c *MockEnvironment_Branch_Call) Run(run func(ctx context.Context)) *MockEnvironment_Branch_Call {
+func (_c *MockEnvironment_Branch_Call) Run(run func(ctx context.Context, branch string)) *MockEnvironment_Branch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -92,7 +93,7 @@ func (_c *MockEnvironment_Branch_Call) Return(environment Environment, err error
 	return _c
 }
 
-func (_c *MockEnvironment_Branch_Call) RunAndReturn(run func(ctx context.Context) (Environment, error)) *MockEnvironment_Branch_Call {
+func (_c *MockEnvironment_Branch_Call) RunAndReturn(run func(ctx context.Context, branch string) (Environment, error)) *MockEnvironment_Branch_Call {
 	_c.Call.Return(run)
 	return _c
 }
