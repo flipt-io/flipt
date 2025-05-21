@@ -24,25 +24,18 @@ import (
 	"go.uber.org/zap"
 )
 
-// RepositoryObserver defines an interface for objects that want to be notified of repository changes.
-type RepositoryObserver interface {
-	Notify(ctx context.Context, refs map[string]string) error
-}
-
-// RepositoryManager manages git repositories and their observers.
+// RepositoryManager manages git repositories.
 type RepositoryManager struct {
-	logger    *zap.Logger
-	cfg       *config.Config
-	repos     map[string]*storagegit.Repository
-	observers map[string][]RepositoryObserver
+	logger *zap.Logger
+	cfg    *config.Config
+	repos  map[string]*storagegit.Repository
 }
 
 func NewRepositoryManager(logger *zap.Logger, cfg *config.Config) *RepositoryManager {
 	return &RepositoryManager{
-		logger:    logger,
-		cfg:       cfg,
-		repos:     map[string]*storagegit.Repository{},
-		observers: map[string][]RepositoryObserver{},
+		logger: logger,
+		cfg:    cfg,
+		repos:  map[string]*storagegit.Repository{},
 	}
 }
 
@@ -124,16 +117,6 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 	return rm.repos[envConf.Storage], nil
 }
 
-func (rm *RepositoryManager) Subscribe(repoKey string, observer RepositoryObserver) {
-	rm.observers[repoKey] = append(rm.observers[repoKey], observer)
-}
-
-func (rm *RepositoryManager) NotifyAll(ctx context.Context, repoKey string, refs map[string]string) {
-	for _, obs := range rm.observers[repoKey] {
-		_ = obs.Notify(ctx, refs) // ignore errors for now
-	}
-}
-
 // EnvironmentFactory creates environments and wraps them as needed.
 type EnvironmentFactory struct {
 	logger      *zap.Logger
@@ -184,7 +167,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		return nil, err
 	}
 
-	// SCM wrapping as decorator
+	// wrap the environment with an SCM if configured
 	if envConf.SCM != nil {
 		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
 
@@ -225,15 +208,27 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	return env, nil
 }
 
-// RepositoryObserverFunc is a function adapter for RepositoryObserver
-type RepositoryObserverFunc func(ctx context.Context, refs map[string]string) error
-
-// Notify implements the RepositoryObserver interface
-func (f RepositoryObserverFunc) Notify(ctx context.Context, refs map[string]string) error {
-	return f(ctx, refs)
+// environmentSubscriber is a subscriber for storagegit.Repository
+type environmentSubscriber struct {
+	branchesFn func() []string
+	notifyFn   func(ctx context.Context, refs map[string]string) error
 }
 
-// NewStore is a constructor that handles all the known declarative backend storage types
+func (s *environmentSubscriber) Branches() []string {
+	return s.branchesFn()
+}
+
+func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]string) error {
+	return s.notifyFn(ctx, refs)
+}
+
+type repoEnv interface {
+	Repository() *storagegit.Repository
+	RefreshEnvironment(context.Context, map[string]string) ([]serverconfig.Environment, error)
+	Branches() []string
+}
+
+// NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
 func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 	_ *serverconfig.EnvironmentStore,
@@ -274,30 +269,33 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 		return nil, err
 	}
 
-	// subscribe all git environments to their repositories using a closure observer
+	// subscribe all git environments to their repositories using a custom subscriber
 	for _, env := range envs {
-		type repoEnv interface {
-			Repository() *storagegit.Repository
-			RefreshEnvironment(context.Context, map[string]string) ([]serverconfig.Environment, error)
-		}
-
 		gitEnv, ok := env.(repoEnv)
 		if !ok {
 			continue
 		}
 
-		repoKey := gitEnv.Repository().GetRemote()
+		var (
+			repo = gitEnv.Repository()
+			sub  = &environmentSubscriber{
+				branchesFn: func() []string {
+					return gitEnv.Branches()
+				},
+				notifyFn: func(ctx context.Context, refs map[string]string) error {
+					newEnvs, err := gitEnv.RefreshEnvironment(ctx, refs)
+					if err != nil {
+						return err
+					}
+					for _, e := range newEnvs {
+						envStore.Add(e)
+					}
+					return nil
+				},
+			}
+		)
 
-		repoManager.Subscribe(repoKey, RepositoryObserverFunc(func(ctx context.Context, refs map[string]string) error {
-			newEnvs, err := gitEnv.RefreshEnvironment(ctx, refs)
-			if err != nil {
-				return err
-			}
-			for _, e := range newEnvs {
-				envStore.Add(e)
-			}
-			return nil
-		}))
+		repo.Subscribe(sub)
 	}
 
 	return envStore, nil
