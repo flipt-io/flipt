@@ -585,7 +585,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
-			Set("segment_operator", segmentOperator).
+			Set("segment_operator", int32(segmentOperator)).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err

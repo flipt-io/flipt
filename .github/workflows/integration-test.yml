@@ -42,6 +42,7 @@ jobs:
             "api/sqlite",
             "api/libsql",
             "api/postgres",
+            "api/postgres/no-prepared-statements",
             "api/mysql",
             "api/cockroach",
             "api/cache",
