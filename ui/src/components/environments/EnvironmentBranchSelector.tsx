@@ -189,7 +189,7 @@ export function EnvironmentBranchSelector({
         setSelected={changeEnvironment}
         placeholder="Switch or create branch"
         disabled={isBranchesLoading}
-        className="border-none font-semibold text-xs focus:outline-none focus:ring-0 ring-0"
+        className="px-2 py-1 bg-background font-semibold text-xs border-none shadow-none focus:outline-none focus:ring-0 ring-0"
         onInputChange={setInputValue}
       />
     </div>
