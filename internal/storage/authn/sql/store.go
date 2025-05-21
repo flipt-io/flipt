@@ -292,7 +292,7 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.Dele
 	}
 
 	if req.Method != nil {
-		query = query.Where(sq.Eq{"method": int32(*req.Method)})
+		query = query.Where(sq.Eq{"method": req.Method})
 	}
 
 	if req.ExpiredBefore != nil {
