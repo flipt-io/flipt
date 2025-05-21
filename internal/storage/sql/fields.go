@@ -80,5 +80,11 @@ func (f *JSONField[T]) Scan(v any) error {
 }
 
 func (f *JSONField[T]) Value() (driver.Value, error) {
-	return json.Marshal(f.T)
+	v, err := json.Marshal(f.T)
+	// INFO: This could potentially be a breaking change or introduce bugs.
+	// Postgres stores data differently when using prepared statements versus the simple protocol.
+	// If a byte array is returned, the simple protocol stores it as hex-encoded data.
+	// For example, `{"user":"alice","role":"admin"}` would be stored as `\x7b2275736572223a22616c696365222c22726f6c65223a2261646d696e227d`.
+	// To avoid this inconsistency, a string is returned instead.
+	return string(v), err
 }

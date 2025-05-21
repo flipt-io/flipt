@@ -350,7 +350,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 	query := s.builder.Update("segments").
 		Set("name", r.Name).
 		Set("description", r.Description).
-		Set("match_type", r.MatchType).
+		Set("match_type", int32(r.MatchType)).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: flipt.Now()}).
 		Where(sq.Eq{"namespace_key": r.NamespaceKey, "\"key\"": r.Key})
 
@@ -469,7 +469,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 	}
 
 	res, err := s.builder.Update("constraints").
-		Set("type", r.Type).
+		Set("type", int32(r.Type)).
 		Set("property", r.Property).
 		Set("operator", operator).
 		Set("value", r.Value).
