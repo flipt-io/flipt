@@ -24,168 +24,44 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewStore is a constructor that handles all the known declarative backend storage types
-// Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
-	_ *serverconfig.EnvironmentStore,
-	err error,
-) {
-	if len(cfg.Environments) == 0 {
-		return nil, errors.New("no environments configured")
-	}
+// RepositoryObserver defines an interface for objects that want to be notified of repository changes.
+type RepositoryObserver interface {
+	Notify(ctx context.Context, refs map[string]string) error
+}
 
+// RepositoryManager manages git repositories and their observers.
+type RepositoryManager struct {
+	logger    *zap.Logger
+	cfg       *config.Config
+	repos     map[string]*storagegit.Repository
+	observers map[string][]RepositoryObserver
+}
+
+func NewRepositoryManager(logger *zap.Logger, cfg *config.Config) *RepositoryManager {
+	return &RepositoryManager{
+		logger:    logger,
+		cfg:       cfg,
+		repos:     map[string]*storagegit.Repository{},
+		observers: map[string][]RepositoryObserver{},
+	}
+}
+
+func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.EnvironmentConfig, storage *config.StorageConfig, credentials *credentials.CredentialSource) (*storagegit.Repository, error) {
 	var (
-		builder = sourceBuilder{
-			logger: logger,
-			cfg:    cfg,
-			repos:  map[string]*storagegit.Repository{},
-		}
-		envs        []serverconfig.Environment
-		credentials = credentials.New(logger, cfg.Credentials)
+		logger = rm.logger
+		_, ok  = rm.repos[envConf.Storage]
 	)
 
-	for name, envConf := range cfg.Environments {
-		env, err := builder.forEnvironment(ctx, logger, envConf, credentials)
-		if err != nil {
-			return nil, fmt.Errorf("environment %q: %w", name, err)
-		}
-
-		envs = append(envs, env)
-	}
-
-	// perform an extra fetch before proceeding to ensure any
-	// branched environments have been added
-	for _, repo := range builder.repos {
-		if err := repo.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
-				!errors.Is(err, git.NoMatchingRefSpecError{}) {
-				return nil, err
-			}
-		}
-	}
-
-	envStore, err := serverconfig.NewEnvironmentStore(logger, envs...)
-	if err != nil {
-		return nil, err
-	}
-
-	// subscribe to all git environments to be notified of new branches
-	for _, env := range envs {
-		gitEnv, ok := env.(environmentsgit.RepositoryEnvironment)
-		if !ok {
-			continue
-		}
-
-		gitEnv.Repository().Subscribe(&environmentSubscriber{
-			RepositoryEnvironment: gitEnv,
-			envs:                  envStore,
-		})
-	}
-
-	return envStore, nil
-}
-
-type sourceBuilder struct {
-	logger *zap.Logger
-	cfg    *config.Config
-	repos  map[string]*storagegit.Repository
-}
-
-func (s *sourceBuilder) forEnvironment(
-	ctx context.Context,
-	logger *zap.Logger,
-	envConf *config.EnvironmentConfig,
-	credentials *credentials.CredentialSource,
-) (serverconfig.Environment, error) {
-	var (
-		srcs        = s.cfg.Storage
-		storage, ok = srcs[envConf.Storage]
-	)
-
-	if !ok {
-		return nil, fmt.Errorf("missing storage for name %q", envConf.Storage)
-	}
-
-	fileStorage := fs.NewStorage(
-		logger,
-		configcoreflipt.NewFlagStorage(logger),
-		configcoreflipt.NewSegmentStorage(logger),
-	)
-
-	repo, err := s.getOrCreateGitRepo(ctx, envConf, storage, credentials)
-	if err != nil {
-		return nil, err
-	}
-
-	var env serverconfig.Environment
-	// build new git backend environment over repository
-	env, err = environmentsgit.NewEnvironmentFromRepo(
-		ctx,
-		logger,
-		envConf,
-		repo,
-		fileStorage,
-		evaluation.NewSnapshotPublisher(logger),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: this is where we should do the license check or maybe higher up?
-	if envConf.SCM != nil {
-		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
-
-		gitURL, err := giturl.NewGitURL(repo.GetRemote())
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse git url: %w", err)
-		}
-
-		var (
-			repoOwner = gitURL.GetOwnerName()
-			repoName  = gitURL.GetRepoName()
-		)
-
-		switch envConf.SCM.Type {
-		case config.GitHubSCMType:
-			if envConf.SCM.Credentials != nil {
-				creds, err := credentials.Get(*envConf.SCM.Credentials)
-				if err != nil {
-					return nil, err
-				}
-
-				client, err := creds.HTTPClient(ctx)
-				if err != nil {
-					return nil, err
-				}
-
-				scm = github.NewSCM(ctx, repoOwner, repoName, client)
-			}
-		}
-
-		env = enterprisegit.NewEnvironment(logger, env.(*environmentsgit.Environment), scm)
-	}
-
-	logger.Debug("configured environment",
-		zap.String("environment", envConf.Name),
-		zap.String("storage", envConf.Storage))
-
-	return env, nil
-}
-
-func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.EnvironmentConfig, storage *config.StorageConfig, credentials *credentials.CredentialSource) (_ *storagegit.Repository, err error) {
-	logger := s.logger
-
-	gitRepo, ok := s.repos[envConf.Storage]
 	if !ok {
 		// fallback to using first environments branch as the default
-		// in the case where it is not configured on the source
-		defaultBranch := storage.Branch
-
-		opts := []containers.Option[storagegit.Repository]{
-			storagegit.WithInsecureTLS(storage.InsecureSkipTLS),
-			storagegit.WithSignature(storage.Signature.Name, storage.Signature.Email),
-			storagegit.WithDefaultBranch(defaultBranch),
-		}
+		var (
+			defaultBranch = storage.Branch
+			opts          = []containers.Option[storagegit.Repository]{
+				storagegit.WithInsecureTLS(storage.InsecureSkipTLS),
+				storagegit.WithSignature(storage.Signature.Name, storage.Signature.Email),
+				storagegit.WithDefaultBranch(defaultBranch),
+			}
+		)
 
 		if storage.Remote != "" {
 			opts = append(opts, storagegit.WithRemote("origin", storage.Remote))
@@ -202,15 +78,15 @@ func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.
 		case config.LocalStorageBackendType:
 			path := storage.Backend.Path
 			if path == "" {
+				var err error
 				path, err = os.MkdirTemp(os.TempDir(), "flipt-git-*")
 				if err != nil {
 					return nil, fmt.Errorf("making tempory directory for git storage: %w", err)
 				}
 			}
-
 			opts = append(opts, storagegit.WithFilesystemStorage(path))
-
 			logger = logger.With(zap.String("git_storage_type", "filesystem"), zap.String("git_storage_path", path))
+
 		case config.MemoryStorageBackendType:
 			logger = logger.With(zap.String("git_storage_type", "memory"))
 		}
@@ -230,41 +106,199 @@ func (s *sourceBuilder) getOrCreateGitRepo(ctx context.Context, envConf *config.
 			if err != nil {
 				return nil, err
 			}
-
 			auth, err := creds.GitAuthentication()
 			if err != nil {
 				return nil, err
 			}
-
 			opts = append(opts, storagegit.WithAuth(auth))
 		}
 
-		gitRepo, err = storagegit.NewRepository(ctx, logger, opts...)
+		newRepo, err := storagegit.NewRepository(ctx, logger, opts...)
 		if err != nil {
 			return nil, err
 		}
 
-		s.repos[envConf.Storage] = gitRepo
+		rm.repos[envConf.Storage] = newRepo
 	}
 
-	return gitRepo, nil
+	return rm.repos[envConf.Storage], nil
 }
 
-type environmentSubscriber struct {
-	environmentsgit.RepositoryEnvironment
-	envs *serverconfig.EnvironmentStore
+func (rm *RepositoryManager) Subscribe(repoKey string, observer RepositoryObserver) {
+	rm.observers[repoKey] = append(rm.observers[repoKey], observer)
 }
 
-func (s *environmentSubscriber) Notify(ctx context.Context, refs map[string]string) error {
-	// this returns the set of newly observed environments based on this one to be added to the store
-	envs, err := s.RefreshEnvironment(ctx, refs)
+func (rm *RepositoryManager) NotifyAll(ctx context.Context, repoKey string, refs map[string]string) {
+	for _, obs := range rm.observers[repoKey] {
+		_ = obs.Notify(ctx, refs) // ignore errors for now
+	}
+}
+
+// EnvironmentFactory creates environments and wraps them as needed.
+type EnvironmentFactory struct {
+	logger      *zap.Logger
+	cfg         *config.Config
+	credentials *credentials.CredentialSource
+	repoManager *RepositoryManager
+}
+
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager) *EnvironmentFactory {
+	return &EnvironmentFactory{
+		logger:      logger,
+		cfg:         cfg,
+		credentials: credentials,
+		repoManager: repoManager,
+	}
+}
+
+func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *config.EnvironmentConfig) (serverconfig.Environment, error) {
+	var (
+		srcs        = f.cfg.Storage
+		storage, ok = srcs[envConf.Storage]
+	)
+	if !ok {
+		return nil, fmt.Errorf("missing storage for name %q", envConf.Storage)
+	}
+
+	fileStorage := fs.NewStorage(
+		f.logger,
+		configcoreflipt.NewFlagStorage(f.logger),
+		configcoreflipt.NewSegmentStorage(f.logger),
+	)
+
+	repo, err := f.repoManager.GetOrCreate(ctx, envConf, storage, f.credentials)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	// build new git backend environment over repository
+	env, err := environmentsgit.NewEnvironmentFromRepo(
+		ctx,
+		f.logger,
+		envConf,
+		repo,
+		fileStorage,
+		evaluation.NewSnapshotPublisher(f.logger),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// SCM wrapping as decorator
+	if envConf.SCM != nil {
+		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
+
+		gitURL, err := giturl.NewGitURL(repo.GetRemote())
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse git url: %w", err)
+		}
+		var (
+			repoOwner = gitURL.GetOwnerName()
+			repoName  = gitURL.GetRepoName()
+		)
+
+		switch envConf.SCM.Type {
+		case config.GitHubSCMType:
+			if envConf.SCM.Credentials != nil {
+				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
+				if err != nil {
+					return nil, err
+				}
+
+				client, err := creds.HTTPClient(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				scm = github.NewSCM(ctx, repoOwner, repoName, client)
+			}
+		}
+
+		wrapped := enterprisegit.NewEnvironment(f.logger, env, scm)
+		return wrapped, nil
+	}
+
+	f.logger.Debug("configured environment",
+		zap.String("environment", envConf.Name),
+		zap.String("storage", envConf.Storage))
+
+	return env, nil
+}
+
+// RepositoryObserverFunc is a function adapter for RepositoryObserver
+type RepositoryObserverFunc func(ctx context.Context, refs map[string]string) error
+
+// Notify implements the RepositoryObserver interface
+func (f RepositoryObserverFunc) Notify(ctx context.Context, refs map[string]string) error {
+	return f(ctx, refs)
+}
+
+// NewStore is a constructor that handles all the known declarative backend storage types
+// Given the provided storage type is know, the relevant backend is configured and returned
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
+	_ *serverconfig.EnvironmentStore,
+	err error,
+) {
+	if len(cfg.Environments) == 0 {
+		return nil, errors.New("no environments configured")
+	}
+
+	var (
+		credentials = credentials.New(logger, cfg.Credentials)
+		repoManager = NewRepositoryManager(logger, cfg)
+		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager)
+	)
+
+	var envs []serverconfig.Environment
+	for name, envConf := range cfg.Environments {
+		env, err := factory.Create(ctx, name, envConf)
+		if err != nil {
+			return nil, fmt.Errorf("environment %q: %w", name, err)
+		}
+		envs = append(envs, env)
+	}
+
+	// perform an extra fetch before proceeding to ensure any
+	// branched environments have been added
+	for _, repo := range repoManager.repos {
+		if err := repo.Fetch(ctx); err != nil {
+			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
+				!errors.Is(err, git.NoMatchingRefSpecError{}) {
+				return nil, err
+			}
+		}
+	}
+
+	envStore, err := serverconfig.NewEnvironmentStore(logger, envs...)
+	if err != nil {
+		return nil, err
+	}
+
+	// subscribe all git environments to their repositories using a closure observer
 	for _, env := range envs {
-		s.envs.Add(env)
+		type repoEnv interface {
+			Repository() *storagegit.Repository
+			RefreshEnvironment(context.Context, map[string]string) ([]serverconfig.Environment, error)
+		}
+
+		gitEnv, ok := env.(repoEnv)
+		if !ok {
+			continue
+		}
+
+		repoKey := gitEnv.Repository().GetRemote()
+
+		repoManager.Subscribe(repoKey, RepositoryObserverFunc(func(ctx context.Context, refs map[string]string) error {
+			newEnvs, err := gitEnv.RefreshEnvironment(ctx, refs)
+			if err != nil {
+				return err
+			}
+			for _, e := range newEnvs {
+				envStore.Add(e)
+			}
+			return nil
+		}))
 	}
 
-	return err
+	return envStore, nil
 }
