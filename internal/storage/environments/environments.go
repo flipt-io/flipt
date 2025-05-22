@@ -254,17 +254,6 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 		envs = append(envs, env)
 	}
 
-	// perform an extra fetch before proceeding to ensure any
-	// branched environments have been added
-	for _, repo := range repoManager.repos {
-		if err := repo.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
-				!errors.Is(err, git.NoMatchingRefSpecError{}) {
-				return nil, err
-			}
-		}
-	}
-
 	envStore, err := serverconfig.NewEnvironmentStore(logger, envs...)
 	if err != nil {
 		return nil, err
@@ -297,6 +286,17 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 		)
 
 		repo.Subscribe(sub)
+	}
+
+	// perform an extra fetch before proceeding to ensure any
+	// branched environments have been added
+	for _, repo := range repoManager.repos {
+		if err := repo.Fetch(ctx); err != nil {
+			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
+				!errors.Is(err, git.NoMatchingRefSpecError{}) {
+				return nil, err
+			}
+		}
 	}
 
 	return envStore, nil
