@@ -57,7 +57,7 @@ export function CreateMergeProposalModal({
       await proposeEnvironment({
         baseEnvironmentKey: environment.configuration?.base ?? '',
         environmentKey: environment.key,
-        title: values.description,
+        body: values.description,
         draft: values.draft
       }).unwrap();
       setOpen(false);

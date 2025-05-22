@@ -283,5 +283,3 @@ message DeleteResourceRequest {
 message DeleteResourceResponse {
   string revision = 100;
 }
-
-
