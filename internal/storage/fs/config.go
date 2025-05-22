@@ -33,15 +33,15 @@ updated multiple resources
 	defaultProposalTitleTmpl string = `Flipt: Update features in {{ .Base.Directory }} on {{ .Base.Branch }}`
 	defaultProposalBodyTmpl  string = `This pull request updates Flipt resources in {{ .Base.Directory }} on branch {{ .Base.Branch }}.
 
-**Source:**  
+🟢 **Source:**
 - Directory: {{ .Branch.Directory }}
 - Branch: {{ .Branch.Branch }}
 
-**Target:**  
+🎯 **Target:**
 - Directory: {{ .Base.Directory }}
 - Branch: {{ .Base.Branch }}
 
-Please review the changes and merge if everything looks good.`
+👀 Please review the changes and merge if everything looks good.`
 )
 
 type Config struct {
