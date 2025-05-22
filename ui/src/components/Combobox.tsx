@@ -1,7 +1,8 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { type VariantProps } from 'class-variance-authority';
+import { Check, ChevronsUpDown, LucideIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-import { Button } from '~/components/Button';
+import { Button, buttonVariants } from '~/components/Button';
 import {
   Command,
   CommandEmpty,
@@ -26,10 +27,11 @@ type ComboboxProps<T extends ISelectable> = {
   disabled?: boolean;
   className?: string;
   onInputChange?: (value: string) => void;
+  icon?: LucideIcon;
 };
 
 export default function Combobox<T extends ISelectable>(
-  props: ComboboxProps<T>
+  props: ComboboxProps<T> & VariantProps<typeof buttonVariants>
 ) {
   const {
     id,
@@ -40,9 +42,11 @@ export default function Combobox<T extends ISelectable>(
     setSelected,
     placeholder,
     disabled,
-    onInputChange
+    onInputChange,
+    icon
   } = props;
 
+  const Icon = icon;
   const ref = useRef(null);
   const [openOptions, setOpenOptions] = useState(false);
   return (
@@ -53,14 +57,14 @@ export default function Combobox<T extends ISelectable>(
           name={name + '-select-button'}
           id={id + '-select-button'}
           data-testid={name + '-select-button'}
-          variant="outline"
+          variant={props.variant || 'secondaryline'}
+          size={props.size}
           aria-expanded={openOptions}
-          className={cls(
-            'justify-between border-gray-300 shadow-xs border mt-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-violet-500 px-3',
-            className,
-            { 'text-muted-foreground dark:text-muted-foreground': !selected }
-          )}
+          className={cls('justify-between gap-2', className, {
+            'text-muted-foreground': !selected
+          })}
         >
+          {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
           {selected ? selected.displayValue : placeholder}
           <ChevronsUpDown className="text-muted-foreground h-4 w-4" />
         </Button>

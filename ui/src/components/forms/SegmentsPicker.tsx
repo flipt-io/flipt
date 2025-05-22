@@ -137,6 +137,7 @@ export default function SegmentsPicker({
               placeholder="Select or search for a segment"
               values={getSegmentOptions()}
               selected={selectedSegment}
+              className="w-full"
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
