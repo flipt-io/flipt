@@ -1,4 +1,3 @@
-import { GitBranchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import * as Yup from 'yup';
 
@@ -94,10 +93,10 @@ export function EnvironmentBranchSelector({
     }
   };
 
-  const changeEnvironment = (option: ISelectable | null) => {
+  const changeEnvironment = async (option: ISelectable | null) => {
     if (!option) return;
     if (option.key.startsWith('__create__')) {
-      handleCreateBranch(option.key.replace('__create__', ''));
+      await handleCreateBranch(option.key.replace('__create__', ''));
       return;
     }
     const env = environments.find(

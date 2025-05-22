@@ -23,6 +23,7 @@ var _ serverenvs.Environment = (*Environment)(nil)
 
 type SCM interface {
 	Propose(context.Context, ProposalRequest) (*environments.ProposeEnvironmentResponse, error)
+	ListChanges(context.Context, ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error)
 }
 
 type ProposalRequest struct {
@@ -30,6 +31,14 @@ type ProposalRequest struct {
 	Head  string
 	Title string
 	Body  string
+	Draft bool
+}
+
+type ListChangesRequest struct {
+	Base  string
+	Head  string
+	Since string
+	Limit int32
 }
 
 type Environment struct {
@@ -46,7 +55,24 @@ func NewEnvironment(logger *zap.Logger, env *git.Environment, scm SCM) *Environm
 	}
 }
 
-func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (resp *environments.ProposeEnvironmentResponse, err error) {
+func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
+	var (
+		baseCfg   = e.Configuration()
+		branchCfg = branch.Configuration()
+	)
+
+	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", branch.Key(), e.Key())
+	}
+
+	return e.SCM.ListChanges(ctx, ListChangesRequest{
+		Base:  baseCfg.Branch,
+		Head:  branchCfg.Branch,
+		Limit: 10,
+	})
+}
+
+func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.ProposeEnvironmentResponse, err error) {
 	var (
 		baseCfg   = e.Configuration()
 		branchCfg = branch.Configuration()
@@ -70,16 +96,27 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 			return err
 		}
 
+		var (
+			title = &bytes.Buffer{}
+			body  = &bytes.Buffer{}
+		)
+
 		tmplCtx := templateContext{Base: baseCfg, Branch: branchCfg}
 
-		title := &bytes.Buffer{}
-		if err := conf.Templates.ProposalTitleTemplate.Execute(title, tmplCtx); err != nil {
-			return err
+		if opts.Title != "" {
+			title.WriteString(opts.Title)
+		} else {
+			if err := conf.Templates.ProposalTitleTemplate.Execute(title, tmplCtx); err != nil {
+				return err
+			}
 		}
 
-		body := &bytes.Buffer{}
-		if err := conf.Templates.ProposalBodyTemplate.Execute(body, tmplCtx); err != nil {
-			return err
+		if opts.Body != "" {
+			body.WriteString(opts.Body)
+		} else {
+			if err := conf.Templates.ProposalBodyTemplate.Execute(body, tmplCtx); err != nil {
+				return err
+			}
 		}
 
 		resp, err = e.SCM.Propose(ctx, ProposalRequest{
@@ -87,6 +124,7 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 			Head:  branchCfg.Branch,
 			Title: title.String(),
 			Body:  body.String(),
+			Draft: opts.Draft,
 		})
 
 		return err

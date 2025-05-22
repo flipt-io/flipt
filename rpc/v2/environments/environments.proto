@@ -31,6 +31,12 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironmentBranches"};
   }
 
+  rpc ListBranchedEnvironmentChanges(ListBranchedEnvironmentChangesRequest) returns (ListBranchedEnvironmentChangesResponse) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {get: "/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "listBranchedEnvironmentChanges"};
+  }
+
   rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (ProposeEnvironmentResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"};
@@ -146,6 +152,9 @@ message ListEnvironmentBranchesResponse {
 message ProposeEnvironmentRequest {
   string base_environment_key = 1;
   string environment_key = 2;
+  optional string title = 3;
+  optional string body = 4;
+  optional bool draft = 5;
 }
 
 enum SCM {
@@ -155,6 +164,26 @@ enum SCM {
 message ProposeEnvironmentResponse {
   SCM scm = 1;
   string url = 2;
+}
+
+message Change {
+  string revision = 1;
+  string message = 2;
+  optional string author_name = 3;
+  optional string author_email = 4;
+  string timestamp = 5;
+  optional string scm_url = 6;
+}
+
+message ListBranchedEnvironmentChangesRequest {
+  string base_environment_key = 1;
+  string environment_key = 2;
+  optional string from = 3;
+  optional int32 limit = 4;
+}
+
+message ListBranchedEnvironmentChangesResponse {
+  repeated Change changes = 1;
 }
 
 /* Namespace */
@@ -254,3 +283,5 @@ message DeleteResourceRequest {
 message DeleteResourceResponse {
   string revision = 100;
 }
+
+
