@@ -29,16 +29,8 @@ import (
 
 var (
 	_ serverenvs.Environment = (*Environment)(nil)
-	_ RepositoryEnvironment  = (*Environment)(nil)
+	_ storagegit.Subscriber  = (*Environment)(nil)
 )
-
-// TODO: this is a bit of a hack to get the environment store to work with the git environment
-// we should probably refactor this to be more explicit about the relationship between the two
-type RepositoryEnvironment interface {
-	Repository() *storagegit.Repository
-	RefreshEnvironment(context.Context, map[string]string) ([]serverenvs.Environment, error)
-	storagegit.Subscriber
-}
 
 // Environment is an implementation of the configuration servers Environment interface
 // which is backed by a Git repository.

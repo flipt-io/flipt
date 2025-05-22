@@ -168,6 +168,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	}
 
 	// wrap the environment with an SCM if configured
+	// TODO: check for enterprise license
 	if envConf.SCM != nil {
 		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
 
