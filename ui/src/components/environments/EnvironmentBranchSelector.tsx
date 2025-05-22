@@ -180,7 +180,6 @@ export function EnvironmentBranchSelector({
 
   return (
     <div className={cn('flex items-center', className)}>
-      <GitBranchIcon className="h-4 w-4 text-muted-foreground" />
       <Combobox<ISelectable>
         id="environment-branch-combobox"
         name="environmentBranch"
@@ -189,8 +188,11 @@ export function EnvironmentBranchSelector({
         setSelected={changeEnvironment}
         placeholder="Switch or create branch"
         disabled={isBranchesLoading}
-        className="px-2 py-1 bg-background font-semibold text-xs border-none shadow-none focus:outline-none focus:ring-0 ring-0"
+        className="font-semibold text-xs"
         onInputChange={setInputValue}
+        icon={GitBranchIcon}
+        variant="ghost"
+        size="sm"
       />
     </div>
   );

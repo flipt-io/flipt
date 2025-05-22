@@ -8,7 +8,7 @@ type ButtonProps = React.ComponentProps<'button'> &
     asChild?: boolean;
   };
 
-export { Button };
+export { Button, buttonVariants };
 
 export const ButtonWithPlus = (props: ButtonProps) => {
   return (
