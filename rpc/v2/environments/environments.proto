@@ -39,7 +39,10 @@ service EnvironmentsService {
 
   rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (ProposeEnvironmentResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
-    option (google.api.http) = {post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"};
+    option (google.api.http) = {
+      post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"
+      body: "*"
+    };
     option (gnostic.openapi.v3.operation) = {operation_id: "proposeEnvironment"};
   }
 

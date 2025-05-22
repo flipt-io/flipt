@@ -183,18 +183,12 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: title
-                  in: query
-                  schema:
-                    type: string
-                - name: body
-                  in: query
-                  schema:
-                    type: string
-                - name: draft
-                  in: query
-                  schema:
-                    type: boolean
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProposeEnvironmentRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -535,6 +529,19 @@ components:
                     $ref: '#/components/schemas/Namespace'
                 revision:
                     type: string
+        ProposeEnvironmentRequest:
+            type: object
+            properties:
+                baseEnvironmentKey:
+                    type: string
+                environmentKey:
+                    type: string
+                title:
+                    type: string
+                body:
+                    type: string
+                draft:
+                    type: boolean
         ProposeEnvironmentResponse:
             type: object
             properties:

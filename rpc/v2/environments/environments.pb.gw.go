@@ -200,15 +200,15 @@ func local_request_EnvironmentsService_ListBranchedEnvironmentChanges_0(ctx cont
 	return msg, metadata, err
 }
 
-var filter_EnvironmentsService_ProposeEnvironment_0 = &utilities.DoubleArray{Encoding: map[string]int{"base_environment_key": 0, "environment_key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
-
 func request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context, marshaler runtime.Marshaler, client EnvironmentsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ProposeEnvironmentRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	io.Copy(io.Discard, req.Body)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 	val, ok := pathParams["base_environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
@@ -224,12 +224,6 @@ func request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context, marsh
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EnvironmentsService_ProposeEnvironment_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ProposeEnvironment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -241,6 +235,9 @@ func local_request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context,
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 	val, ok := pathParams["base_environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
@@ -256,12 +253,6 @@ func local_request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context,
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EnvironmentsService_ProposeEnvironment_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ProposeEnvironment(ctx, &protoReq)
 	return msg, metadata, err

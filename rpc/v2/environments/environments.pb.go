@@ -1888,13 +1888,13 @@ const file_environments_proto_rawDesc = "" +
 	"\brevision\x18d \x01(\tR\brevision*\x15\n" +
 	"\x03SCM\x12\x0e\n" +
 	"\n" +
-	"GITHUB_SCM\x10\x002\xc5\x17\n" +
+	"GITHUB_SCM\x10\x002\xc9\x17\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
 	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc5\x01\n" +
 	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"m\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x029:\x01*\"4/api/v2/environments/{base_environment_key}/branches\x12\xe8\x01\n" +
 	"\x17ListEnvironmentBranches\x12,.environments.ListEnvironmentBranchesRequest\x1a-.environments.ListEnvironmentBranchesResponse\"p\xbaG\x19*\x17listEnvironmentBranches\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x026\x124/api/v2/environments/{base_environment_key}/branches\x12\x9f\x02\n" +
-	"\x1eListBranchedEnvironmentChanges\x123.environments.ListBranchedEnvironmentChangesRequest\x1a4.environments.ListBranchedEnvironmentChangesResponse\"\x91\x01\xbaG *\x1elistBranchedEnvironmentChanges\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02P\x12N/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes\x12\xe6\x01\n" +
-	"\x12ProposeEnvironment\x12'.environments.ProposeEnvironmentRequest\x1a(.environments.ProposeEnvironmentResponse\"}\xbaG\x14*\x12proposeEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02H\"F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xa4\x01\n" +
+	"\x1eListBranchedEnvironmentChanges\x123.environments.ListBranchedEnvironmentChangesRequest\x1a4.environments.ListBranchedEnvironmentChangesResponse\"\x91\x01\xbaG *\x1elistBranchedEnvironmentChanges\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02P\x12N/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes\x12\xea\x01\n" +
+	"\x12ProposeEnvironment\x12'.environments.ProposeEnvironmentRequest\x1a(.environments.ProposeEnvironmentResponse\"\x80\x01\xbaG\x14*\x12proposeEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xa4\x01\n" +
 	"\fGetNamespace\x12!.environments.GetNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x0e*\fgetNamespace\x82\xd3\xe4\x93\x029\x127/api/v2/environments/{environment_key}/namespaces/{key}\x12\xa9\x01\n" +
 	"\x0eListNamespaces\x12#.environments.ListNamespacesRequest\x1a$.environments.ListNamespacesResponse\"L\xbaG\x10*\x0elistNamespaces\x82\xd3\xe4\x93\x023\x121/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +
 	"\x0fCreateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x11*\x0fcreateNamespace\x82\xd3\xe4\x93\x026:\x01*\"1/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +
