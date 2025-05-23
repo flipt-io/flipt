@@ -33,7 +33,6 @@ export function Header({
   const [createBranchOpen, setCreateBranchOpen] = useState(false);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
-  // Determine if this is a branch
   const isBranch = currentEnvironment?.configuration?.base !== undefined;
   const hasRemote = currentEnvironment?.configuration?.remote !== undefined;
 
@@ -61,37 +60,46 @@ export function Header({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent side="bottom" align="end">
-                Current Namespace and Environment
+                Current namespace and environment
               </TooltipContent>
             </Tooltip>
           )}
-          {!isBranch && (
-            <>
-              <CreateBranchPopover
-                open={createBranchOpen}
-                setOpen={setCreateBranchOpen}
-                environment={currentEnvironment}
+          {isBranch ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="ml-1 px-2 cursor-pointer">
+                  <GitBranchPlusIcon className="w-4 h-4 text-gray-400" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                Branched from {currentEnvironment?.configuration?.base}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <CreateBranchPopover
+              open={createBranchOpen}
+              setOpen={setCreateBranchOpen}
+              environment={currentEnvironment}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-1"
+                type="button"
+                data-testid="create-branch-button"
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-1"
-                  type="button"
-                  data-testid="create-branch-button"
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <GitBranchPlusIcon className="w-4 h-4" />
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      Create Branch
-                    </TooltipContent>
-                  </Tooltip>
-                </Button>
-              </CreateBranchPopover>
-            </>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <GitBranchPlusIcon className="w-4 h-4" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center">
+                    Create branch
+                  </TooltipContent>
+                </Tooltip>
+              </Button>
+            </CreateBranchPopover>
           )}
           {isBranch && hasRemote && (
             <>
@@ -104,11 +112,11 @@ export function Header({
                     onClick={() => setMergeModalOpen(true)}
                   >
                     <GitPullRequest className="size-4" />
-                    <span className="sr-only">Create Merge Proposal</span>
+                    <span className="sr-only">Create merge proposal</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" align="center">
-                  Create Merge Proposal
+                  Create merge proposal
                 </TooltipContent>
               </Tooltip>
               <CreateMergeProposalModal
