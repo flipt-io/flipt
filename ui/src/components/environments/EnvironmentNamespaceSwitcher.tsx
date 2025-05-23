@@ -53,11 +53,9 @@ export function EnvironmentNamespaceSwitcher() {
   });
   const baseEnvKeys = Object.keys(grouped);
 
-  // Get current environment and namespace
   const currentEnv = useSelector(selectCurrentEnvironment);
   const currentNamespace = useSelector(selectCurrentNamespace);
 
-  // Popover open state
   const [open, setOpen] = useState(false);
 
   // Track selected env/branch in the left panel
@@ -126,7 +124,7 @@ export function EnvironmentNamespaceSwitcher() {
         const isSelected = selectedEnvKey === env.key;
         return (
           <div key={env.key}>
-            <div className="flex items-center">
+            <div className="flex items-center px-2">
               <Button
                 variant={isSelected ? 'soft' : 'ghost'}
                 size="sm"
@@ -138,7 +136,7 @@ export function EnvironmentNamespaceSwitcher() {
               </Button>
             </div>
             {branches.length > 0 && (
-              <div className="ml-6">
+              <div className="ml-6 pr-2">
                 {branches.map((branch: any) => (
                   <Button
                     key={branch.key || branch.environmentKey}
@@ -179,16 +177,18 @@ export function EnvironmentNamespaceSwitcher() {
       {namespaces.map((ns: any) => {
         const isSelected = currentNamespace?.key === ns.key;
         return (
-          <Button
-            key={ns.key}
-            variant={isSelected ? 'soft' : 'ghost'}
-            size="sm"
-            className={`w-full justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
-            onClick={() => handleSelectNamespace(ns.key)}
-          >
-            <Folder className="mr-2 w-4 h-4" />
-            <span className="truncate">{ns.name}</span>
-          </Button>
+          <div key={ns.key} className="px-2">
+            <Button
+              key={ns.key}
+              variant={isSelected ? 'soft' : 'ghost'}
+              size="sm"
+              className={`w-full justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+              onClick={() => handleSelectNamespace(ns.key)}
+            >
+              <Folder className="mr-2 w-4 h-4" />
+              <span className="truncate">{ns.name}</span>
+            </Button>
+          </div>
         );
       })}
     </div>
