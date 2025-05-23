@@ -97,6 +97,7 @@ export function CreateBranchButton({
               onFocus={() => setTooltipOpen(true)}
               onBlur={() => setTooltipOpen(false)}
               onClick={() => setTooltipOpen(false)}
+              data-testid="create-branch-button"
             >
               <GitBranchPlusIcon className="w-4 h-4" />
             </Button>
