@@ -456,11 +456,11 @@ components:
         EnvironmentConfiguration:
             type: object
             properties:
-                remote:
-                    type: string
                 branch:
                     type: string
                 directory:
+                    type: string
+                remote:
                     type: string
                 base:
                     type: string

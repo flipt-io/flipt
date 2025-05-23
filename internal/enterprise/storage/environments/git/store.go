@@ -89,7 +89,11 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 
 	if err := e.Repository().View(ctx, branchCfg.Branch, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
 		// chroot our filesystem to the configured directory
-		src = environmentsfs.SubFilesystem(src, baseCfg.Directory)
+		dir := ""
+		if baseCfg.Directory != nil {
+			dir = *baseCfg.Directory
+		}
+		src = environmentsfs.SubFilesystem(src, dir)
 
 		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {

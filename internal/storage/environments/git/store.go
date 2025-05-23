@@ -102,10 +102,20 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 		base = &e.base
 	}
 
+	var remote *string
+	if e.repo.GetRemote() != "" {
+		remote = ptr(e.repo.GetRemote())
+	}
+
+	var directory *string
+	if e.cfg.Directory != "" {
+		directory = &e.cfg.Directory
+	}
+
 	return &rpcenvironments.EnvironmentConfiguration{
-		Remote:    e.repo.GetRemote(),
 		Branch:    e.currentBranch,
-		Directory: e.cfg.Directory,
+		Remote:    remote,
+		Directory: directory,
 		Base:      base,
 	}
 }
@@ -659,4 +669,8 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }

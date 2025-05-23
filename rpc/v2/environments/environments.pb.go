@@ -138,9 +138,9 @@ func (x *Environment) GetConfiguration() *EnvironmentConfiguration {
 
 type EnvironmentConfiguration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Remote        string                 `protobuf:"bytes,1,opt,name=remote,proto3" json:"remote,omitempty"`
-	Branch        string                 `protobuf:"bytes,2,opt,name=branch,proto3" json:"branch,omitempty"`
-	Directory     string                 `protobuf:"bytes,3,opt,name=directory,proto3" json:"directory,omitempty"`
+	Branch        string                 `protobuf:"bytes,1,opt,name=branch,proto3" json:"branch,omitempty"`
+	Directory     *string                `protobuf:"bytes,2,opt,name=directory,proto3,oneof" json:"directory,omitempty"`
+	Remote        *string                `protobuf:"bytes,3,opt,name=remote,proto3,oneof" json:"remote,omitempty"`
 	Base          *string                `protobuf:"bytes,4,opt,name=base,proto3,oneof" json:"base,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -176,13 +176,6 @@ func (*EnvironmentConfiguration) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EnvironmentConfiguration) GetRemote() string {
-	if x != nil {
-		return x.Remote
-	}
-	return ""
-}
-
 func (x *EnvironmentConfiguration) GetBranch() string {
 	if x != nil {
 		return x.Branch
@@ -191,8 +184,15 @@ func (x *EnvironmentConfiguration) GetBranch() string {
 }
 
 func (x *EnvironmentConfiguration) GetDirectory() string {
-	if x != nil {
-		return x.Directory
+	if x != nil && x.Directory != nil {
+		return *x.Directory
+	}
+	return ""
+}
+
+func (x *EnvironmentConfiguration) GetRemote() string {
+	if x != nil && x.Remote != nil {
+		return *x.Remote
 	}
 	return ""
 }
@@ -1764,12 +1764,15 @@ const file_environments_proto_rawDesc = "" +
 	"\rconfiguration\x18\x04 \x01(\v2&.environments.EnvironmentConfigurationH\x01R\rconfiguration\x88\x01\x01B\n" +
 	"\n" +
 	"\b_defaultB\x10\n" +
-	"\x0e_configuration\"\x8a\x01\n" +
+	"\x0e_configuration\"\xad\x01\n" +
 	"\x18EnvironmentConfiguration\x12\x16\n" +
-	"\x06remote\x18\x01 \x01(\tR\x06remote\x12\x16\n" +
-	"\x06branch\x18\x02 \x01(\tR\x06branch\x12\x1c\n" +
-	"\tdirectory\x18\x03 \x01(\tR\tdirectory\x12\x17\n" +
-	"\x04base\x18\x04 \x01(\tH\x00R\x04base\x88\x01\x01B\a\n" +
+	"\x06branch\x18\x01 \x01(\tR\x06branch\x12!\n" +
+	"\tdirectory\x18\x02 \x01(\tH\x00R\tdirectory\x88\x01\x01\x12\x1b\n" +
+	"\x06remote\x18\x03 \x01(\tH\x01R\x06remote\x88\x01\x01\x12\x17\n" +
+	"\x04base\x18\x04 \x01(\tH\x02R\x04base\x88\x01\x01B\f\n" +
+	"\n" +
+	"_directoryB\t\n" +
+	"\a_remoteB\a\n" +
 	"\x05_base\"\x19\n" +
 	"\x17ListEnvironmentsRequest\"Y\n" +
 	"\x18ListEnvironmentsResponse\x12=\n" +

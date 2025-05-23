@@ -79,62 +79,72 @@ export function CreateMergeProposalModal({
           </span>
           .
         </p>
-        <div className="bg-muted rounded-md px-3 py-2 mb-6 border border-muted-foreground/10 min-h-[60px]">
-          {isLoading && (
-            <div className="text-sm text-muted-foreground">
-              Loading changes…
-            </div>
-          )}
-          {isError && (
-            <div className="text-sm text-destructive">
-              Failed to load changes.
-            </div>
-          )}
-          {!isLoading && !isError && data && (
-            <div className="max-h-64 overflow-y-auto">
-              <ul className="divide-y divide-muted-foreground/10">
-                {data.changes.length === 0 && (
-                  <li className="py-2 text-sm text-muted-foreground">
-                    No changes to merge.
-                  </li>
-                )}
-                {data.changes.map((change) => (
-                  <li key={change.revision} className="flex items-center py-1">
-                    <span className="font-mono text-xs text-muted-foreground bg-gray-100 rounded px-2 py-0.5 mr-3">
-                      {change.scmUrl ? (
-                        <a
-                          href={change.scmUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand"
-                        >
-                          {change.revision.slice(0, 7)}
-                        </a>
-                      ) : (
-                        change.revision.slice(0, 7)
-                      )}
-                    </span>
-                    <span>
-                      <span className="text-sm font-normal">
-                        {change.message}
+        {isError ? (
+          <div className="rounded-md px-3 py-2 mb-6 border border-red-200 min-h-[60px] bg-red-50 flex flex-col items-center justify-center text-center">
+            <span className="text-base font-semibold text-destructive mb-1">
+              Failed to load changes
+            </span>
+            <span className="text-sm text-destructive mb-2">
+              You will not be able to create a merge proposal until changes can
+              be loaded.
+            </span>
+          </div>
+        ) : (
+          <div className="bg-muted rounded-md px-3 py-2 mb-6 border border-muted-foreground/10 min-h-[60px]">
+            {isLoading && (
+              <div className="text-sm text-muted-foreground">
+                Loading changes…
+              </div>
+            )}
+            {!isLoading && data && (
+              <div className="max-h-64 overflow-y-auto">
+                <ul className="divide-y divide-muted-foreground/10">
+                  {data.changes.length === 0 && (
+                    <li className="py-2 text-sm text-muted-foreground">
+                      No changes to merge.
+                    </li>
+                  )}
+                  {data.changes.map((change) => (
+                    <li
+                      key={change.revision}
+                      className="flex items-center py-1"
+                    >
+                      <span className="font-mono text-xs text-muted-foreground bg-gray-100 rounded px-2 py-0.5 mr-3">
+                        {change.scmUrl ? (
+                          <a
+                            href={change.scmUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand"
+                          >
+                            {change.revision.slice(0, 7)}
+                          </a>
+                        ) : (
+                          change.revision.slice(0, 7)
+                        )}
                       </span>
-                      {change.authorName && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          by {change.authorName}
+                      <span>
+                        <span className="text-sm font-normal">
+                          {change.message}
                         </span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-                {data.changes.length === MAX_COMMITS && (
-                  <li className="py-2 text-center text-xs text-muted-foreground">
-                    ...and more
-                  </li>
-                )}
-              </ul>
-            </div>
-          )}
-        </div>
+                        {change.authorName && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            by {change.authorName}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                  {data.changes.length === MAX_COMMITS && (
+                    <li className="py-2 text-center text-xs text-muted-foreground">
+                      ...and more
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
         <Formik
           initialValues={{ description: '', draft: false }}
           validationSchema={validationSchema}
@@ -146,7 +156,8 @@ export function CreateMergeProposalModal({
           }}
         >
           {(formik) => {
-            const disableSave = !(formik.isValid && !formik.isSubmitting);
+            const disableSave =
+              !(formik.isValid && !formik.isSubmitting) || isError;
             return (
               <Form>
                 <div className="mb-6">
@@ -161,12 +172,13 @@ export function CreateMergeProposalModal({
                     as="textarea"
                     id="proposal-desc"
                     name="description"
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition"
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:bg-muted-foreground/10 disabled:cursor-not-allowed"
                     rows={3}
                     placeholder="Add context or reasoning for this merge proposal..."
                     maxLength={500}
                     onChange={formik.handleChange}
                     value={formik.values.description}
+                    disabled={isError}
                   />
                   <div className="text-xs text-muted-foreground text-right mt-1">
                     {formik.values.description.trim().length}/500
@@ -183,6 +195,7 @@ export function CreateMergeProposalModal({
                     id="draft-proposal"
                     name="draft"
                     className="mr-2 accent-brand"
+                    disabled={isError}
                   />
                   <label
                     htmlFor="draft-proposal"
@@ -191,6 +204,11 @@ export function CreateMergeProposalModal({
                     Open as <span className="font-medium">Draft</span>
                   </label>
                 </div>
+                {isError && (
+                  <div className="text-xs text-destructive mb-2">
+                    Cannot submit a proposal while changes failed to load.
+                  </div>
+                )}
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"

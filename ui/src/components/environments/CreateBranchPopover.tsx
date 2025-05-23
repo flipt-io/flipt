@@ -1,5 +1,4 @@
-import { GitBranchPlusIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import * as Yup from 'yup';
 
 import {
@@ -8,33 +7,32 @@ import {
 } from '~/app/environments/environmentsApi';
 
 import MoreInfo from '~/components/MoreInfo';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
+import { Popover, PopoverAnchor, PopoverContent } from '~/components/Popover';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '~/components/ui/tooltip';
+
+import { IEnvironment } from '~/types/Environment';
 
 import { useError } from '~/data/hooks/error';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 
-export function CreateBranchButton({
-  baseEnvironment
+export function CreateBranchPopover({
+  open,
+  setOpen,
+  environment,
+  children
 }: {
-  baseEnvironment: any;
+  environment: IEnvironment;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  children: React.ReactNode;
 }) {
-  const [showBranchPopover, setShowBranchPopover] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-
   const [branchInput, setBranchInput] = useState('');
 
   const [createBranch, { isLoading: isCreatingBranch }] =
     useCreateBranchEnvironmentMutation();
-  const branchInputRef = useRef<HTMLInputElement>(null);
 
   const { setSuccess } = useSuccess();
   const { setError, clearError } = useError();
@@ -51,13 +49,7 @@ export function CreateBranchButton({
     )
   });
 
-  useEffect(() => {
-    if (showBranchPopover && branchInputRef.current) {
-      branchInputRef.current.focus();
-    }
-  }, [showBranchPopover]);
-
-  if (!baseEnvironment) return null;
+  if (!environment) return null;
 
   const handleCreateBranch = async () => {
     const branchName = branchInput.trim();
@@ -65,11 +57,11 @@ export function CreateBranchButton({
     try {
       await branchValidationSchema.validate({ branchName });
       await createBranch({
-        baseEnvironmentKey: baseEnvironment.key,
+        baseEnvironmentKey: environment.key,
         environmentKey: branchName
       }).unwrap();
       setBranchInput('');
-      setShowBranchPopover(false);
+      setOpen(false);
       clearError();
       setSuccess('Branch created successfully');
       dispatch(currentEnvironmentChanged({ key: branchName }));
@@ -79,39 +71,12 @@ export function CreateBranchButton({
   };
 
   return (
-    <Popover open={showBranchPopover} onOpenChange={setShowBranchPopover}>
-      <Tooltip
-        open={!showBranchPopover && tooltipOpen}
-        onOpenChange={setTooltipOpen}
-      >
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-1 p-1 rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              tabIndex={-1}
-              type="button"
-              onMouseEnter={() => setTooltipOpen(true)}
-              onMouseLeave={() => setTooltipOpen(false)}
-              onFocus={() => setTooltipOpen(true)}
-              onBlur={() => setTooltipOpen(false)}
-              onClick={() => setTooltipOpen(false)}
-              data-testid="create-branch-button"
-            >
-              <GitBranchPlusIcon className="w-4 h-4" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent>
-          Create a new branch from this environment
-        </TooltipContent>
-      </Tooltip>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>{children}</PopoverAnchor>
       <PopoverContent
         className="rounded-xl shadow-2xl border border-gray-200 bg-white dark:bg-gray-900 p-4 w-96"
         align="start"
         sideOffset={4}
-        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="space-y-1 mb-1">
           <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
@@ -123,14 +88,13 @@ export function CreateBranchButton({
         </div>
         <div className="mt-6">
           <Input
-            ref={branchInputRef}
             type="text"
             placeholder="New branch name"
             value={branchInput}
             onChange={(e) => setBranchInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleCreateBranch();
-              if (e.key === 'Escape') setShowBranchPopover(false);
+              if (e.key === 'Escape') setOpen(false);
             }}
             disabled={isCreatingBranch}
             className="mb-4 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 text-base"
@@ -139,7 +103,7 @@ export function CreateBranchButton({
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setShowBranchPopover(false)}
+              onClick={() => setOpen(false)}
               type="button"
               className="font-semibold"
             >

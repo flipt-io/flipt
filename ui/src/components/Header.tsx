@@ -1,4 +1,4 @@
-import { GitPullRequest } from 'lucide-react';
+import { GitBranchPlusIcon, GitPullRequest } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/tooltip';
 
 import { Badge } from './Badge';
-import { CreateBranchButton } from './environments/CreateBranchButton';
+import { CreateBranchPopover } from './environments/CreateBranchPopover';
 import { CreateMergeProposalModal } from './environments/CreateMergeProposalModal';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
@@ -29,10 +29,13 @@ export function Header({
 }) {
   const info = useSelector(selectInfo);
   const currentEnvironment = useSelector(selectCurrentEnvironment);
+
+  const [createBranchOpen, setCreateBranchOpen] = useState(false);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   // Determine if this is a branch
   const isBranch = currentEnvironment?.configuration?.base !== undefined;
+  const hasRemote = currentEnvironment?.configuration?.remote !== undefined;
 
   const topbarStyle = {
     backgroundColor: info?.ui?.topbarColor,
@@ -62,12 +65,34 @@ export function Header({
               </TooltipContent>
             </Tooltip>
           )}
-          {currentEnvironment && !currentEnvironment?.configuration?.base && (
-            <CreateBranchButton baseEnvironment={currentEnvironment} />
+          {!isBranch && (
+            <>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CreateBranchPopover
+                    open={createBranchOpen}
+                    setOpen={setCreateBranchOpen}
+                    environment={currentEnvironment}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="ml-1"
+                      type="button"
+                      data-testid="create-branch-button"
+                      onClick={() => setCreateBranchOpen(true)}
+                    >
+                      <GitBranchPlusIcon className="w-4 h-4" />
+                    </Button>
+                  </CreateBranchPopover>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center">
+                  Create Branch
+                </TooltipContent>
+              </Tooltip>
+            </>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          {isBranch && (
+          {isBranch && hasRemote && (
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -92,7 +117,7 @@ export function Header({
               />
             </>
           )}
-          {currentEnvironment?.configuration?.remote && (
+          {hasRemote && (
             <EnvironmentRemoteInfo environment={currentEnvironment} />
           )}
         </div>
