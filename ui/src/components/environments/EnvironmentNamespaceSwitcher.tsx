@@ -1,31 +1,22 @@
-import { ChevronsUpDown } from 'lucide-react';
-import * as React from 'react';
+import { ChevronsUpDown, Folder, GitBranch, Server } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import {
   currentEnvironmentChanged,
+  selectAllEnvironments,
   selectCurrentEnvironment,
-  selectEnvironments
+  useListEnvironmentsQuery
 } from '~/app/environments/environmentsApi';
 import {
   currentNamespaceChanged,
   selectCurrentNamespace,
-  selectNamespaces
+  useListNamespacesQuery
 } from '~/app/namespaces/namespacesApi';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger
-} from '~/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
+import { Button } from '~/components/ui/button';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -33,161 +24,182 @@ import {
   useSidebar
 } from '~/components/ui/sidebar';
 
-import { IEnvironment } from '~/types/Environment';
-import { INamespace } from '~/types/Namespace';
-
 import logoFlag from '~/assets/logo-flag.png';
 import { useAppDispatch } from '~/data/hooks/store';
 
-export interface IEnv {
-  key: string;
-  namespaces: INamespace[];
-}
-const emptyNamespaces: INamespace[] = [];
-
-function Namespaces({
-  env,
-  onSelect
-}: {
-  env: IEnv;
-  onSelect: (env: string, ns: string) => void;
-}) {
-  return (
-    <>
-      <DropdownMenuLabel className="text-xs text-muted-foreground">
-        Namespaces
-      </DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      {env.namespaces.map((ns) => (
-        <DropdownMenuItem
-          key={ns.name}
-          onClick={() => onSelect(env.key, ns.key)}
-          className="gap-2 p-2"
-        >
-          <span className="truncate">{ns.name}</span>
-        </DropdownMenuItem>
-      ))}
-    </>
-  );
-}
-
-function Environments({
-  items,
-  activeEnvironment,
-  onSelect
-}: {
-  items: IEnv[];
-  activeEnvironment: string;
-  onSelect: (env: string, ns: string) => void;
-}) {
-  if (items.length == 1) {
-    const environment = items[0];
-
-    return <Namespaces env={environment} onSelect={onSelect} />;
-  }
-
-  return (
-    <>
-      <DropdownMenuLabel className="text-xs text-muted-foreground">
-        Environments
-      </DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      {items.map((environment) => {
-        if (environment.key == activeEnvironment) {
-          return (
-            <DropdownMenuSub key={environment.key}>
-              <DropdownMenuSubTrigger>{environment.key}</DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent sideOffset={4}>
-                  <Namespaces env={environment} onSelect={onSelect} />
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          );
-        }
-        return (
-          <DropdownMenuItem
-            key={environment.key}
-            onClick={() => onSelect(environment.key, 'default')}
-            className="gap-2 p-2"
-          >
-            <span className="truncate">{environment.key}</span>
-          </DropdownMenuItem>
-        );
-      })}
-    </>
-  );
-}
-
 export function EnvironmentNamespaceSwitcher() {
   const { isMobile } = useSidebar();
-
-  const environment = useSelector(selectCurrentEnvironment);
-  const environments = useSelector(selectEnvironments);
-  const namespaces = useSelector(selectNamespaces);
-  const items = React.useMemo(() => {
-    return environments.map((env) => {
-      const item = {
-        key: env.key,
-        namespaces: emptyNamespaces
-      };
-      if (env.key == environment.key) {
-        item.namespaces = namespaces || emptyNamespaces;
-      }
-      return item;
-    });
-  }, [environment, namespaces, environments]);
-
-  const namespace = useSelector(selectCurrentNamespace);
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const setCurrentNamespace = (namespace: INamespace) => {
-    dispatch(currentNamespaceChanged(namespace));
-  };
+  // Fetch all environments (triggers backend fetch if needed)
+  useListEnvironmentsQuery();
+  // Get all environments (base + branched) from Redux store
+  const allEnvs = useSelector(selectAllEnvironments);
 
-  const changeEnvironment = (key: string) => {
-    const env = environments?.find((el) => el.key == key) as IEnvironment;
-    if (env) {
+  // Group environments: base envs as top-level, branches nested under their base
+  const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
+  allEnvs.forEach((env) => {
+    if (env.configuration?.base) {
+      // It's a branch
+      const base = env.configuration.base;
+      if (!grouped[base]) grouped[base] = { base: null, branches: [] };
+      grouped[base].branches.push(env);
+    } else {
+      // It's a base env
+      if (!grouped[env.key]) grouped[env.key] = { base: env, branches: [] };
+      else grouped[env.key].base = env;
+    }
+  });
+  const baseEnvKeys = Object.keys(grouped);
+
+  // Get current environment and namespace
+  const currentEnv = useSelector(selectCurrentEnvironment);
+  const currentNamespace = useSelector(selectCurrentNamespace);
+
+  // Popover open state
+  const [open, setOpen] = useState(false);
+
+  // Track selected env/branch in the left panel
+  const [selectedEnvKey, setSelectedEnvKey] = useState<string>('');
+
+  // When current env changes, select it in the left panel
+  useEffect(() => {
+    if (typeof currentEnv?.key === 'string') {
+      setSelectedEnvKey(currentEnv.key || '');
+    }
+  }, [currentEnv]);
+
+  // For the selected environment (base or branch), fetch namespaces
+  const { data: nsData } = useListNamespacesQuery(
+    { environmentKey: selectedEnvKey },
+    { skip: !selectedEnvKey }
+  );
+  const namespaces = nsData?.items ?? [];
+
+  // Handlers
+  const handleSelectEnv = (env: any) => {
+    const key = env.key || env.environmentKey || '';
+    setSelectedEnvKey(key);
+    if (key !== currentEnv?.key) {
       dispatch(currentEnvironmentChanged(env));
     }
   };
-
-  const changeNamespace = (ns: string) => {
-    const value = namespaces?.find((el) => el.key == ns) as INamespace;
-    value && setCurrentNamespace(value);
+  const handleSelectBranch = (branch: any, baseKey: string) => {
+    const key = branch.key || branch.environmentKey || '';
+    setSelectedEnvKey(key);
+    if (key !== currentEnv?.key) {
+      dispatch(
+        currentEnvironmentChanged({
+          ...branch,
+          key,
+          configuration: { base: baseKey }
+        })
+      );
+    }
+  };
+  const handleSelectNamespace = (nsKey: string) => {
+    if (nsKey !== currentNamespace?.key) {
+      const ns = namespaces.find((n: any) => n.key === nsKey);
+      if (ns) {
+        dispatch(currentNamespaceChanged(ns));
+      }
+    }
+    setOpen(false);
+    navigate(`/namespaces/${nsKey}/flags`);
   };
 
-  const activeNamespace = React.useMemo(() => {
-    return {
-      key: namespace.key,
-      name: namespace.name,
-      environment: environment?.configuration?.base || environment.key
-    };
-  }, [namespace, environment]);
+  // Render left panel: environments and branches
+  const renderEnvList = () => (
+    <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+      <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
+        Environments
+      </div>
+      {baseEnvKeys.map((baseKey) => {
+        const group = grouped[baseKey];
+        if (!group.base) return null; // skip if no base env
+        const env = group.base;
+        const branches = group.branches;
+        const isSelected = selectedEnvKey === env.key;
+        return (
+          <div key={env.key}>
+            <div className="flex items-center">
+              <Button
+                variant={isSelected ? 'soft' : 'ghost'}
+                size="sm"
+                className={`flex-1 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+                onClick={() => handleSelectEnv(env)}
+              >
+                <Server className="mr-2 w-4 h-4" />
+                <span className="truncate">{env.name || env.key}</span>
+              </Button>
+            </div>
+            {branches.length > 0 && (
+              <div className="ml-6">
+                {branches.map((branch: any) => (
+                  <Button
+                    key={branch.key || branch.environmentKey}
+                    variant={
+                      selectedEnvKey === (branch.key || branch.environmentKey)
+                        ? 'soft'
+                        : 'ghost'
+                    }
+                    size="sm"
+                    className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvKey === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
+                    onClick={() => handleSelectBranch(branch, env.key)}
+                  >
+                    <GitBranch className="mr-2 w-4 h-4" />
+                    <span className="truncate">
+                      {branch.name || branch.environmentKey}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
-  const onSelect = (env: string, ns: string) => {
-    if (activeNamespace.environment != env) {
-      changeEnvironment(env);
-    }
-    if (activeNamespace.key != ns) {
-      changeNamespace(ns);
-    }
-    navigate(`/namespaces/${ns}/flags`);
-  };
-
-  if (!activeNamespace) {
-    return null;
-  }
+  // Render right panel: namespaces for selected env/branch
+  const renderNamespaceList = () => (
+    <div className="w-1/2 overflow-y-auto">
+      <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
+        Namespaces
+      </div>
+      {namespaces.length === 0 && (
+        <div className="px-4 py-2 text-muted-foreground text-sm">
+          No namespaces found
+        </div>
+      )}
+      {namespaces.map((ns: any) => {
+        const isSelected = currentNamespace?.key === ns.key;
+        return (
+          <Button
+            key={ns.key}
+            variant={isSelected ? 'soft' : 'ghost'}
+            size="sm"
+            className={`w-full justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+            onClick={() => handleSelectNamespace(ns.key)}
+          >
+            <Folder className="mr-2 w-4 h-4" />
+            <span className="truncate">{ns.name}</span>
+          </Button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <SidebarMenu>
       <SidebarMenuItem data-testid="namespace-listbox">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              onClick={() => setOpen(true)}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg ">
                 <img
@@ -200,29 +212,23 @@ export function EnvironmentNamespaceSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeNamespace.name}
+                  {currentNamespace?.name}
                 </span>
-                <span className="truncate text-xs">
-                  {activeNamespace.environment}
-                </span>
+                <span className="truncate text-xs">{currentEnv?.key}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+          </PopoverTrigger>
+          <PopoverContent
+            className="min-w-[500px] max-w-[90vw] p-0 flex h-[350px]"
             align="start"
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
-            data-testid="namespace-listbox-options"
           >
-            <Environments
-              activeEnvironment={environment.key}
-              items={items}
-              onSelect={onSelect}
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {renderEnvList()}
+            {renderNamespaceList()}
+          </PopoverContent>
+        </Popover>
       </SidebarMenuItem>
     </SidebarMenu>
   );
