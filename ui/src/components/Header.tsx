@@ -67,29 +67,30 @@ export function Header({
           )}
           {!isBranch && (
             <>
-              <Tooltip>
-                <TooltipTrigger>
-                  <CreateBranchPopover
-                    open={createBranchOpen}
-                    setOpen={setCreateBranchOpen}
-                    environment={currentEnvironment}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1"
-                      type="button"
-                      data-testid="create-branch-button"
-                      onClick={() => setCreateBranchOpen(true)}
-                    >
-                      <GitBranchPlusIcon className="w-4 h-4" />
-                    </Button>
-                  </CreateBranchPopover>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="center">
-                  Create Branch
-                </TooltipContent>
-              </Tooltip>
+              <CreateBranchPopover
+                open={createBranchOpen}
+                setOpen={setCreateBranchOpen}
+                environment={currentEnvironment}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-1"
+                  type="button"
+                  data-testid="create-branch-button"
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <GitBranchPlusIcon className="w-4 h-4" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      Create Branch
+                    </TooltipContent>
+                  </Tooltip>
+                </Button>
+              </CreateBranchPopover>
             </>
           )}
           {isBranch && hasRemote && (

@@ -7,7 +7,7 @@ import {
 } from '~/app/environments/environmentsApi';
 
 import MoreInfo from '~/components/MoreInfo';
-import { Popover, PopoverAnchor, PopoverContent } from '~/components/Popover';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 
@@ -70,9 +70,16 @@ export function CreateBranchPopover({
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      setBranchInput('');
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverAnchor asChild>{children}</PopoverAnchor>
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         className="rounded-xl shadow-2xl border border-gray-200 bg-white dark:bg-gray-900 p-4 w-96"
         align="start"
@@ -94,7 +101,7 @@ export function CreateBranchPopover({
             onChange={(e) => setBranchInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleCreateBranch();
-              if (e.key === 'Escape') setOpen(false);
+              if (e.key === 'Escape') handleOpenChange(false);
             }}
             disabled={isCreatingBranch}
             className="mb-4 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 text-base"
@@ -103,7 +110,7 @@ export function CreateBranchPopover({
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpenChange(false)}
               type="button"
               className="font-semibold"
             >
