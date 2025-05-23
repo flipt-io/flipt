@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Branches', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,8 +11,17 @@ test.describe('Branches', () => {
     await page.getByRole('textbox', { name: 'New branch name' }).fill('foo');
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Branch created successfully')).toBeVisible();
-    await page.getByTestId('environment-namespace-switcher').getByRole('button').click();
-    await page.getByTestId('environment-listbox').getByRole('button', { name: 'foo' }).click();
-    await page.getByTestId('environment-listbox').getByRole('button', { name: 'default' }).click();
+    await page
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('environment-listbox')
+      .getByRole('button', { name: 'foo' })
+      .click();
+    await page
+      .getByTestId('environment-listbox')
+      .getByRole('button', { name: 'default' })
+      .click();
   });
 });
