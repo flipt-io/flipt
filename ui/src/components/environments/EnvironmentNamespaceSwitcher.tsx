@@ -111,7 +111,10 @@ export function EnvironmentNamespaceSwitcher() {
 
   // Render left panel: environments and branches
   const renderEnvList = () => (
-    <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+    <div
+      className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto"
+      data-testid="environment-listbox"
+    >
       <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
         Environments
       </div>
@@ -164,7 +167,7 @@ export function EnvironmentNamespaceSwitcher() {
 
   // Render right panel: namespaces for selected env/branch
   const renderNamespaceList = () => (
-    <div className="w-1/2 overflow-y-auto">
+    <div className="w-1/2 overflow-y-auto" data-testid="namespace-listbox">
       <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
         Namespaces
       </div>
@@ -193,7 +196,7 @@ export function EnvironmentNamespaceSwitcher() {
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem data-testid="namespace-listbox">
+      <SidebarMenuItem data-testid="environment-namespace-switcher">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <SidebarMenuButton
