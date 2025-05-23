@@ -110,7 +110,7 @@ export function EnvironmentNamespaceSwitcher() {
   // Render left panel: environments and branches
   const renderEnvList = () => (
     <div
-      className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto"
+      className="w-1/2  border-r overflow-y-auto"
       data-testid="environment-listbox"
     >
       <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
@@ -128,10 +128,10 @@ export function EnvironmentNamespaceSwitcher() {
               <Button
                 variant={isSelected ? 'soft' : 'ghost'}
                 size="sm"
-                className={`flex-1 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+                className={`flex-1 gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
                 onClick={() => handleSelectEnv(env)}
               >
-                <Server className="mr-2 w-4 h-4" />
+                <Server className="w-4 h-4" />
                 <span className="truncate">{env.name || env.key}</span>
               </Button>
             </div>
@@ -146,10 +146,10 @@ export function EnvironmentNamespaceSwitcher() {
                         : 'ghost'
                     }
                     size="sm"
-                    className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvKey === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
+                    className={`w-full gap-2 justify-start px-3 py-1.5 rounded-md ${selectedEnvKey === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
                     onClick={() => handleSelectBranch(branch, env.key)}
                   >
-                    <GitBranch className="mr-2 w-4 h-4" />
+                    <GitBranch className="w-4 h-4" />
                     <span className="truncate">
                       {branch.name || branch.environmentKey}
                     </span>
@@ -182,10 +182,10 @@ export function EnvironmentNamespaceSwitcher() {
               key={ns.key}
               variant={isSelected ? 'soft' : 'ghost'}
               size="sm"
-              className={`w-full justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+              className={`w-full gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
               onClick={() => handleSelectNamespace(ns.key)}
             >
-              <Folder className="mr-2 w-4 h-4" />
+              <Folder className="w-4 h-4" />
               <span className="truncate">{ns.name}</span>
             </Button>
           </div>
