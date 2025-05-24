@@ -183,6 +183,12 @@ paths:
                   required: true
                   schema:
                     type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProposeEnvironmentRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -190,6 +196,38 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ProposeEnvironmentResponse'
+    /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}/changes:
+        get:
+            tags:
+                - EnvironmentsService
+            operationId: listBranchedEnvironmentChanges
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: from
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListBranchedEnvironmentChangesResponse'
     /api/v2/environments/{environmentKey}/namespaces:
         get:
             tags:
@@ -379,6 +417,21 @@ components:
                     type: string
                 environmentKey:
                     type: string
+        Change:
+            type: object
+            properties:
+                revision:
+                    type: string
+                message:
+                    type: string
+                authorName:
+                    type: string
+                authorEmail:
+                    type: string
+                timestamp:
+                    type: string
+                scmUrl:
+                    type: string
         DeleteNamespaceResponse:
             type: object
             properties:
@@ -403,11 +456,11 @@ components:
         EnvironmentConfiguration:
             type: object
             properties:
-                remote:
-                    type: string
                 branch:
                     type: string
                 directory:
+                    type: string
+                remote:
                     type: string
                 base:
                     type: string
@@ -419,6 +472,13 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListBranchedEnvironmentChangesResponse:
+            type: object
+            properties:
+                changes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Change'
         ListEnvironmentBranchesResponse:
             type: object
             properties:
@@ -469,6 +529,19 @@ components:
                     $ref: '#/components/schemas/Namespace'
                 revision:
                     type: string
+        ProposeEnvironmentRequest:
+            type: object
+            properties:
+                baseEnvironmentKey:
+                    type: string
+                environmentKey:
+                    type: string
+                title:
+                    type: string
+                body:
+                    type: string
+                draft:
+                    type: boolean
         ProposeEnvironmentResponse:
             type: object
             properties:

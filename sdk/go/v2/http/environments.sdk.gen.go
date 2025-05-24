@@ -352,6 +352,10 @@ func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *e
 	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
 }
 
+func (x *EnvironmentsServiceClient) ListBranchedEnvironmentChanges(ctx context.Context, v *environments.ListBranchedEnvironmentChangesRequest, _ ...grpc.CallOption) (*environments.ListBranchedEnvironmentChangesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBranchedEnvironmentChanges not implemented")
+}
+
 func (t Transport) EnvironmentsClient() environments.EnvironmentsServiceClient {
 	return &EnvironmentsServiceClient{client: t.client, addr: t.addr}
 }

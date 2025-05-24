@@ -1,7 +1,12 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { createApi } from '@reduxjs/toolkit/query/react';
 
-import { IBranchEnvironment, IEnvironment } from '~/types/Environment';
+import { IChange } from '~/types/Change';
+import {
+  IBranchEnvironment,
+  IEnvironment,
+  IEnvironmentProposal
+} from '~/types/Environment';
 import { LoadingStatus } from '~/types/Meta';
 
 import { RootState } from '~/store';
@@ -135,6 +140,29 @@ export const environmentsApi = createApi({
         { type: 'Environment' },
         { type: 'BranchEnvironment' }
       ]
+    }),
+    listBranchEnvironmentChanges: builder.query<
+      { changes: IChange[] },
+      { baseEnvironmentKey: string; environmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey, environmentKey }) =>
+        `/${baseEnvironmentKey}/branches/${environmentKey}/changes`
+    }),
+    proposeEnvironment: builder.mutation<
+      IEnvironmentProposal,
+      {
+        baseEnvironmentKey: string;
+        environmentKey: string;
+        title?: string;
+        body?: string;
+        draft?: boolean;
+      }
+    >({
+      query: ({ baseEnvironmentKey, environmentKey, title, body, draft }) => ({
+        url: `${baseEnvironmentKey}/branches/${environmentKey}`,
+        method: 'POST',
+        body: { title, body, draft }
+      })
     })
   })
 });
@@ -142,7 +170,9 @@ export const environmentsApi = createApi({
 export const {
   useListEnvironmentsQuery,
   useListBranchEnvironmentsQuery,
-  useCreateBranchEnvironmentMutation
+  useCreateBranchEnvironmentMutation,
+  useListBranchEnvironmentChangesQuery,
+  useProposeEnvironmentMutation
 } = environmentsApi;
 
 export const environmentsReducer = environmentsSlice.reducer;

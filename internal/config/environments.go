@@ -106,16 +106,42 @@ func (e *EnvironmentsConfig) setDefaults(v *viper.Viper) error {
 	return nil
 }
 
+type SCMType string
+
+const (
+	GitHubSCMType = SCMType("github")
+)
+
+type SCMConfig struct {
+	Type        SCMType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Credentials *string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
+}
+
+func (s SCMConfig) validate() error {
+	if s.Type != GitHubSCMType {
+		return fmt.Errorf("unexpected SCM type: %q", s.Type)
+	}
+	return nil
+}
+
 type EnvironmentConfig struct {
-	Name      string `json:"name" mapstructure:"name" yaml:"name,omitempty"`
-	Default   bool   `json:"default" mapstructure:"default" yaml:"default,omitempty"`
-	Storage   string `json:"storage" mapstructure:"storage" yaml:"storage,omitempty"`
-	Directory string `json:"directory" mapstructure:"directory" yaml:"directory,omitempty"`
+	Name      string     `json:"name" mapstructure:"name" yaml:"name,omitempty"`
+	Default   bool       `json:"default" mapstructure:"default" yaml:"default,omitempty"`
+	Storage   string     `json:"storage" mapstructure:"storage" yaml:"storage,omitempty"`
+	Directory string     `json:"directory" mapstructure:"directory" yaml:"directory,omitempty"`
+	SCM       *SCMConfig `json:"scm,omitempty" mapstructure:"scm" yaml:"scm,omitempty"`
 }
 
 func (e *EnvironmentConfig) validate() error {
 	if e.Name == "" {
 		return errFieldRequired("", "name")
 	}
+
+	if e.SCM != nil {
+		if err := e.SCM.validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

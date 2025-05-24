@@ -362,5 +362,3 @@ func Test_store_UpdateResource_and_DeleteResource(t *testing.T) {
 	assert.Equal(t, storagefs.VerbDelete, st.changes[0].Verb)
 	assert.Equal(t, "baz", st.changes[0].Resource.Key)
 }
-
-func ptr[T any](t T) *T { return &t }
