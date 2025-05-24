@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 
 @plugin '@tailwindcss/forms';
-@plugin 'tailwindcss-bg-patterns';
 @plugin 'tailwindcss-animate';
 @plugin "tailwindcss-radix";
 
