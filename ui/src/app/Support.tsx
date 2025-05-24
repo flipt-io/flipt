@@ -27,7 +27,7 @@ const gettingStartedTiles = [
     icon: GraduationCapIcon,
     name: 'Get Started',
     description: 'Learn how to create your first feature flag',
-    href: 'https://docs.flipt.io/introduction'
+    href: 'https://docs.flipt.io/v2/introduction'
   },
   {
     icon: SquareTerminalIcon,
@@ -39,8 +39,8 @@ const gettingStartedTiles = [
     icon: BookOpenIcon,
     name: 'Checkout a Guide',
     description:
-      'Use Flipt to its full potential. Read our guides including using Flipt with GitOps',
-    href: 'https://docs.flipt.io/guides'
+      'Use Flipt to its full potential. Read our guides using Flipt with GitOps',
+    href: 'https://docs.flipt.io/v2/guides'
   },
   {
     icon: PuzzleIcon,
@@ -120,39 +120,36 @@ function SupportTile(props: SupportTileProps) {
   return (
     <div
       className={cls(
-        'group relative flex flex-col justify-between overflow-hidden rounded-xl hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md hover:shadow-violet-300 dark:hover:shadow-violet-800/40',
-        // light styles
-        'bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]',
-        // dark styles
-        'transform-gpu dark:bg-gray-800 dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]',
+        'group relative border flex flex-col justify-between overflow-hidden rounded-xl bg-secondary/20 dark:bg-secondary/50 hover:bg-accent/50',
         className
       )}
     >
-      <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
+      <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10 ">
         {Icon && (
-          <Icon className="h-6 w-6 origin-left transform-gpu text-gray-700 dark:text-gray-200 transition-all duration-300 ease-in-out group-hover:scale-50" />
+          <Icon className="h-6 w-6 origin-left transform-gpu text-muted-foreground " />
         )}
-        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-secondary-foreground">
           {name}
         </h3>
         <p className="max-w-lg text-muted-foreground">{description}</p>
       </div>
       <div
+        tabIndex={0}
         className={cls(
-          'absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100'
+          'absolute bottom-0 flex w-full sm:translate-y-10 transform-gpu flex-row items-center p-4 sm:opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0'
         )}
       >
         <a
           href={href || '/#/onboarding'}
           target="_blank"
           rel="noreferrer"
-          className="flex flex-row space-x-1 px-2 py-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 sm:px-3 sm:py-2"
+          className="flex flex-row space-x-1 px-2 py-1 text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent sm:px-3 sm:py-2 rounded-md"
         >
           <span className="flex">{cta || 'Learn More'}</span>
           <CTAIcon className="my-auto flex h-4 w-4 align-middle" />
         </a>
       </div>
-      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] dark:group-hover:bg-violet-600/[.03]" />
+      <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 " />
     </div>
   );
 }
@@ -170,10 +167,10 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
     <>
       <div className="flex flex-row justify-between pb-5 sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 sm:leading-9 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl ">
+          <h1 className="text-2xl font-bold leading-7 sm:leading-9 text-foreground sm:truncate sm:text-3xl ">
             {title}
           </h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Here are some things to help you get started with Flipt
           </p>
         </div>
@@ -193,7 +190,7 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
         )}
       </div>
       <div className="my-8">
-        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {gettingStartedTiles.map((tile, i) => (
             <SupportTile key={i} {...tile} />
           ))}
@@ -210,7 +207,7 @@ export default function Onboarding({ firstTime = false }: OnboardingProps) {
         </div>
       </div>
       <div className="my-8">
-        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid w-full auto-rows-[12rem] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {moreTiles.map((tile, i) => (
             <SupportTile key={i} {...tile} />
           ))}
