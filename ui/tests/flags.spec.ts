@@ -144,10 +144,13 @@ test.describe('Flags', () => {
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Flags', exact: true }).click();
-    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox-options')
-      .getByRole('menuitem', { name: 'copy flag' })
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'copy flag' })
       .click();
 
     // verify flag was copied

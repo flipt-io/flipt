@@ -82,10 +82,13 @@ test.describe('Segments', () => {
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Segments', exact: true }).click();
-    await page.getByTestId('namespace-listbox').getByRole('button').click();
     await page
-      .getByTestId('namespace-listbox-options')
-      .getByRole('menuitem', { name: 'copy segment' })
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'copy segment' })
       .click();
 
     // verify segment was copied
