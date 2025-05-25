@@ -252,10 +252,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                   </div>
                 ) : null}
               </div>
-              <div className="mt-6 flex space-x-8">
-                {ruleSegments &&
-                  ruleSegments.length > 1 &&
-                  segmentOperators.map((segmentOperator, index) => (
+              {ruleSegments && ruleSegments.length > 1 && (
+                <div className="mt-4 flex space-x-8">
+                  {segmentOperators.map((segmentOperator, index) => (
                     <div
                       className="flex space-x-2 cursor-pointer"
                       key={index}
@@ -271,9 +270,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                           id={segmentOperator.id}
                           name={fieldPrefix + 'segmentOperator'}
                           type="radio"
-                          className={cls(
-                            'h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer'
-                          )}
+                          className="h-4 w-4 border text-ring focus:ring-ring cursor-pointer"
                           checked={segmentOperator.id === rule.segmentOperator}
                           value={segmentOperator.id}
                           readOnly
@@ -292,7 +289,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       </div>
                     </div>
                   ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
           <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">

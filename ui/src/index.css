@@ -105,7 +105,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.928 0.006 264.531);
   --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
+  --ring: oklch(0.627 0.265 303.9);
   --chart-1: oklch(0.398 0.07 227.392);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.646 0.222 41.116);
@@ -149,7 +149,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --ring: oklch(0.71 0.16 294);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -192,7 +192,7 @@
 
   /* Default focus states for interactive elements - only shown during keyboard navigation */
   :where(button, input, select, textarea, a, [role='button']):focus-visible {
-    @apply border-violet-400 ring-1 ring-violet-400 outline-none;
+    @apply border-ring ring-ring ring-1 outline-none;
   }
 
   /* Remove default focus styles when using mouse */
@@ -204,6 +204,13 @@
 
   /* Default focus state for placeholder text */
   :where(input, textarea):focus-visible::placeholder {
-    @apply text-gray-400;
+    @apply text-muted-foreground;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  input[type='date'],
+  input[type='time'] {
+    @apply min-h-9;
   }
 }

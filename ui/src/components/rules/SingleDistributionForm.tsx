@@ -64,6 +64,7 @@ export default function SingleDistributionFormInput(
           values={formattedVariants}
           selected={selectedVariant}
           setSelected={handleSelect}
+          className="w-full"
         />
       </div>
     </div>
