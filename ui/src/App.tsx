@@ -1,6 +1,5 @@
 import formbricks from '@formbricks/js/website';
 import { lazy, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import { RouterProvider, createHashRouter, redirect } from 'react-router';
 
@@ -177,12 +176,10 @@ export default function App() {
 
   return (
     <>
-      <Helmet>
-        <meta charSet="utf-8" />
-        <title>{title}</title>
-        <link rel="icon" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Helmet>
+      <meta charSet="utf-8" />
+      <title>{title}</title>
+      <link rel="icon" href="/favicon.svg" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <SessionProvider>
         <RouterProvider router={router} />
       </SessionProvider>
