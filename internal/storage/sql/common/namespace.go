@@ -222,6 +222,14 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 }
 
 func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (err error) {
+	if r.Force {
+		_, err = s.builder.Delete("flags").
+			Where(sq.Eq{"\"namespace_key\"": r.Key}).
+			ExecContext(ctx)
+		if err != nil {
+			return err
+		}
+	}
 
 	_, err = s.builder.Delete("namespaces").
 		Where(sq.Eq{"\"key\"": r.Key}).
