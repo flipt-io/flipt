@@ -16,7 +16,7 @@
   "dependencies": {
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lint": "^6.8.5",
-    "@codemirror/search": "^6.5.10",
+    "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.5",
     "@dnd-kit/core": "^6.3.1",
