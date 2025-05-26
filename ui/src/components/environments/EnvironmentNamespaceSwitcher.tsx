@@ -1,13 +1,12 @@
 import { ChevronsUpDown, Folder, GitBranch, Server } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import {
   currentEnvironmentChanged,
   selectAllEnvironments,
-  selectCurrentEnvironment,
-  useListEnvironmentsQuery
+  selectCurrentEnvironment
 } from '~/app/environments/environmentsApi';
 import {
   currentNamespaceChanged,
@@ -24,22 +23,51 @@ import {
   useSidebar
 } from '~/components/ui/sidebar';
 
+import { IEnvironment } from '~/types/Environment';
+import { INamespace } from '~/types/Namespace';
+
 import logoFlag from '~/assets/logo-flag.png';
 import { useAppDispatch } from '~/data/hooks/store';
 
-export function EnvironmentNamespaceSwitcher() {
-  const { isMobile } = useSidebar();
-  const navigate = useNavigate();
+function EnvironmentBranchList({
+  environments,
+  currentEnvironment,
+  setSelectedEnvironment,
+  selectedEnvironment
+}: {
+  environments: IEnvironment[];
+  currentEnvironment: string;
+  setSelectedEnvironment: (key: string) => void;
+  selectedEnvironment: string;
+}) {
   const dispatch = useAppDispatch();
 
-  // Fetch all environments (triggers backend fetch if needed)
-  useListEnvironmentsQuery();
-  // Get all environments (base + branched) from Redux store
-  const allEnvs = useSelector(selectAllEnvironments);
+  // Handlers
+  const handleSelectEnv = (env: IEnvironment) => {
+    const key = env.key;
+    setSelectedEnvironment(key);
+    if (key !== currentEnvironment) {
+      dispatch(currentEnvironmentChanged(key));
+      dispatch(currentNamespaceChanged(null));
+    }
+  };
+  const handleSelectBranch = (branch: any) => {
+    const key = branch.key || branch.environmentKey || '';
+    setSelectedEnvironment(key);
+    if (key !== currentEnvironment) {
+      dispatch(currentEnvironmentChanged(key));
+      dispatch(currentNamespaceChanged(null));
+    }
+  };
+
+  // When current env changes, select it in the left panel
+  useEffect(() => {
+    setSelectedEnvironment(currentEnvironment);
+  }, [setSelectedEnvironment, currentEnvironment]);
 
   // Group environments: base envs as top-level, branches nested under their base
   const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
-  allEnvs.forEach((env) => {
+  environments.forEach((env) => {
     if (env.configuration?.base) {
       // It's a branch
       const base = env.configuration.base;
@@ -51,64 +79,11 @@ export function EnvironmentNamespaceSwitcher() {
       else grouped[env.key].base = env;
     }
   });
+
   const baseEnvKeys = Object.keys(grouped);
 
-  const currentEnv = useSelector(selectCurrentEnvironment);
-  const currentNamespace = useSelector(selectCurrentNamespace);
-
-  const [open, setOpen] = useState(false);
-
-  // Track selected env/branch in the left panel
-  const [selectedEnvKey, setSelectedEnvKey] = useState<string>('');
-
-  // When current env changes, select it in the left panel
-  useEffect(() => {
-    if (typeof currentEnv?.key === 'string') {
-      setSelectedEnvKey(currentEnv.key || '');
-    }
-  }, [currentEnv]);
-
-  // For the selected environment (base or branch), fetch namespaces
-  const { data: nsData } = useListNamespacesQuery(
-    { environmentKey: selectedEnvKey },
-    { skip: !selectedEnvKey }
-  );
-  const namespaces = nsData?.items ?? [];
-
-  // Handlers
-  const handleSelectEnv = (env: any) => {
-    const key = env.key || env.environmentKey || '';
-    setSelectedEnvKey(key);
-    if (key !== currentEnv?.key) {
-      dispatch(currentEnvironmentChanged(env));
-    }
-  };
-  const handleSelectBranch = (branch: any, baseKey: string) => {
-    const key = branch.key || branch.environmentKey || '';
-    setSelectedEnvKey(key);
-    if (key !== currentEnv?.key) {
-      dispatch(
-        currentEnvironmentChanged({
-          ...branch,
-          key,
-          configuration: { base: baseKey }
-        })
-      );
-    }
-  };
-  const handleSelectNamespace = (nsKey: string) => {
-    if (nsKey !== currentNamespace?.key) {
-      const ns = namespaces.find((n: any) => n.key === nsKey);
-      if (ns) {
-        dispatch(currentNamespaceChanged(ns));
-      }
-    }
-    setOpen(false);
-    navigate(`/namespaces/${nsKey}/flags`);
-  };
-
   // Render left panel: environments and branches
-  const renderEnvList = () => (
+  return (
     <div
       className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto"
       data-testid="environment-listbox"
@@ -121,7 +96,7 @@ export function EnvironmentNamespaceSwitcher() {
         if (!group.base) return null; // skip if no base env
         const env = group.base;
         const branches = group.branches;
-        const isSelected = selectedEnvKey === env.key;
+        const isSelected = selectedEnvironment === env.key;
         return (
           <div key={env.key}>
             <div className="flex items-center px-2">
@@ -141,13 +116,14 @@ export function EnvironmentNamespaceSwitcher() {
                   <Button
                     key={branch.key || branch.environmentKey}
                     variant={
-                      selectedEnvKey === (branch.key || branch.environmentKey)
+                      selectedEnvironment ===
+                      (branch.key || branch.environmentKey)
                         ? 'soft'
                         : 'ghost'
                     }
                     size="sm"
-                    className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvKey === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
-                    onClick={() => handleSelectBranch(branch, env.key)}
+                    className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvironment === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
+                    onClick={() => handleSelectBranch(branch)}
                   >
                     <GitBranch className="mr-2 w-4 h-4" />
                     <span className="truncate">
@@ -162,9 +138,29 @@ export function EnvironmentNamespaceSwitcher() {
       })}
     </div>
   );
+}
 
-  // Render right panel: namespaces for selected env/branch
-  const renderNamespaceList = () => (
+function NamespaceList({
+  namespaces,
+  currentNamespace,
+  setOpen
+}: {
+  namespaces: INamespace[];
+  currentNamespace: INamespace;
+  setOpen: (open: boolean) => void;
+}) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleSelectNamespace = (key: string) => {
+    if (key !== currentNamespace?.key) {
+      dispatch(currentNamespaceChanged(key));
+    }
+    setOpen(false);
+    navigate(`/namespaces/${key}/flags`);
+  };
+
+  return (
     <div className="w-1/2 overflow-y-auto" data-testid="namespace-listbox">
       <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
         Namespaces
@@ -174,7 +170,7 @@ export function EnvironmentNamespaceSwitcher() {
           No namespaces found
         </div>
       )}
-      {namespaces.map((ns: any) => {
+      {namespaces.map((ns: INamespace) => {
         const isSelected = currentNamespace?.key === ns.key;
         return (
           <div key={ns.key} className="px-2">
@@ -192,6 +188,31 @@ export function EnvironmentNamespaceSwitcher() {
         );
       })}
     </div>
+  );
+}
+
+export function EnvironmentNamespaceSwitcher() {
+  const { isMobile } = useSidebar();
+
+  const currentEnvironment = useSelector(selectCurrentEnvironment);
+  const currentNamespace = useSelector(selectCurrentNamespace);
+
+  // Get all environments (base + branched) from Redux store
+  const environments = useSelector(selectAllEnvironments);
+
+  const [open, setOpen] = useState(false);
+
+  // Track selected env/branch in the left panel
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
+
+  // For the selected environment (base or branch), fetch namespaces
+  const { data: namespacesData } = useListNamespacesQuery(
+    { environmentKey: selectedEnvironment },
+    { skip: !selectedEnvironment, refetchOnMountOrArgChange: true }
+  );
+  const namespaces = useMemo(
+    () => namespacesData?.items ?? [],
+    [namespacesData]
   );
 
   return (
@@ -217,7 +238,9 @@ export function EnvironmentNamespaceSwitcher() {
                 <span className="truncate font-semibold">
                   {currentNamespace?.name}
                 </span>
-                <span className="truncate text-xs">{currentEnv?.key}</span>
+                <span className="truncate text-xs">
+                  {currentEnvironment?.key}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -228,8 +251,17 @@ export function EnvironmentNamespaceSwitcher() {
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
           >
-            {renderEnvList()}
-            {renderNamespaceList()}
+            <EnvironmentBranchList
+              environments={environments}
+              currentEnvironment={currentEnvironment.key}
+              setSelectedEnvironment={setSelectedEnvironment}
+              selectedEnvironment={selectedEnvironment}
+            />
+            <NamespaceList
+              namespaces={namespaces}
+              currentNamespace={currentNamespace}
+              setOpen={setOpen}
+            />
           </PopoverContent>
         </Popover>
       </SidebarMenuItem>

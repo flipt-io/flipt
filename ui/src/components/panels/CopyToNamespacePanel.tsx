@@ -10,9 +10,14 @@ import {
 
 import { Button } from '~/components/Button';
 import Listbox from '~/components/forms/Listbox';
-import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
+
+import { INamespace } from '~/types/Namespace';
+import { ISelectable } from '~/types/Selectable';
 
 import { useError } from '~/data/hooks/error';
+
+export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &
+  ISelectable;
 
 type CopyToNamespacePanelProps = {
   panelMessage: string | React.ReactNode;
