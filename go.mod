@@ -97,7 +97,7 @@ require (
 	gocloud.dev v0.41.0
 	golang.org/x/crypto v0.38.0
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
-	golang.org/x/net v0.39.0
+	golang.org/x/net v0.40.0
 	golang.org/x/oauth2 v0.29.0
 	golang.org/x/sync v0.14.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250425173222-7b384671a197
