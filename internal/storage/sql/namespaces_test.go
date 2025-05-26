@@ -382,6 +382,41 @@ func (s *DBTestSuite) TestDeleteNamespace() {
 	require.NoError(t, err)
 }
 
+func (s *DBTestSuite) TestDeleteNamespaceWithForce() {
+	t := s.T()
+
+	ns, err := s.store.CreateNamespace(t.Context(), &flipt.CreateNamespaceRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, ns)
+	// create segment
+	sg, err := s.store.CreateSegment(t.Context(), &flipt.CreateSegmentRequest{Key: t.Name(), Name: t.Name(), NamespaceKey: ns.Key, MatchType: flipt.MatchType_ALL_MATCH_TYPE})
+	require.NoError(t, err)
+
+	// create flag which uses segment
+	fg, err := s.store.CreateFlag(t.Context(), &flipt.CreateFlagRequest{Key: t.Name(), Name: t.Name(), NamespaceKey: ns.Key, Type: flipt.FlagType_BOOLEAN_FLAG_TYPE})
+	require.NoError(t, err)
+	_, err = s.store.CreateRollout(t.Context(), &flipt.CreateRolloutRequest{
+		NamespaceKey: ns.Key,
+		FlagKey:      fg.Key,
+		Rank:         1,
+		Rule: &flipt.CreateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
+				SegmentKeys: []string{sg.Key},
+				Value:       true,
+			},
+		},
+	})
+	require.NoError(t, err)
+	// verify success deletion with force
+	err = s.store.DeleteNamespace(t.Context(), &flipt.DeleteNamespaceRequest{Key: ns.Key, Force: true})
+	require.NoError(t, err)
+}
+
 func (s *DBTestSuite) TestDeleteNamespace_NotFound() {
 	t := s.T()
 
