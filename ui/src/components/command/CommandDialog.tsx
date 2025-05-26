@@ -211,7 +211,9 @@ export default function CommandMenu() {
                           name: environment.key,
                           onSelected: () => {
                             setOpen(false);
-                            dispatch(currentEnvironmentChanged(environment));
+                            dispatch(
+                              currentEnvironmentChanged(environment.key)
+                            );
                             setSearch('');
                             setPages((pages) => pages.slice(0, -1));
                           },
@@ -238,7 +240,7 @@ export default function CommandMenu() {
                           description: namespace.description,
                           onSelected: () => {
                             setOpen(false);
-                            dispatch(currentNamespaceChanged(namespace));
+                            dispatch(currentNamespaceChanged(namespace.key));
                             const newPath = addNamespaceToPath(
                               location.pathname,
                               namespace.key

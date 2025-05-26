@@ -33,8 +33,7 @@ export const environmentsSlice = createSlice({
   initialState,
   reducers: {
     currentEnvironmentChanged: (state, action) => {
-      const environment = action.payload;
-      state.currentEnvironment = environment.key;
+      state.currentEnvironment = action.payload;
     },
     environmentsChanged: (state, action) => {
       const environments: { [key: string]: IEnvironment } = {};

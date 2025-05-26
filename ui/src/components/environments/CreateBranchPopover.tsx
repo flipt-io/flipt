@@ -64,7 +64,7 @@ export function CreateBranchPopover({
       setOpen(false);
       clearError();
       setSuccess('Branch created successfully');
-      dispatch(currentEnvironmentChanged({ key: branchName }));
+      dispatch(currentEnvironmentChanged(branchName));
     } catch (e) {
       setError(e);
     }

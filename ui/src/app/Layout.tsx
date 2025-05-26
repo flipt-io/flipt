@@ -74,7 +74,7 @@ function InnerLayout() {
     // this allows the namespace to be changed by the url and not just the namespace dropdown,
     // which is required for 'deep' linking
     if (currentNamespace?.key !== namespaceKey) {
-      dispatch(currentNamespaceChanged({ key: namespaceKey }));
+      dispatch(currentNamespaceChanged(namespaceKey));
     }
   }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
