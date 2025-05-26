@@ -30,7 +30,7 @@
     "@heroicons/react": "^2.2.0",
     "@loadable/component": "^5.16.7",
     "@radix-ui/react-dropdown-menu": "^2.1.7",
-    "@radix-ui/react-select": "^2.2.4",
+    "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.0",
     "@radix-ui/react-switch": "^1.2.2",
     "@reduxjs/toolkit": "^2.7.0",
