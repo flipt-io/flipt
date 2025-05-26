@@ -17,6 +17,8 @@ import {
   TooltipTrigger
 } from '~/components/ui/tooltip';
 
+import { IEnvironment } from '~/types/Environment';
+
 import { useError } from '~/data/hooks/error';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
@@ -25,7 +27,7 @@ import { keyValidation } from '~/data/validations';
 export function CreateBranchButton({
   baseEnvironment
 }: {
-  baseEnvironment: any;
+  baseEnvironment: IEnvironment;
 }) {
   const [showBranchPopover, setShowBranchPopover] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -72,7 +74,7 @@ export function CreateBranchButton({
       setShowBranchPopover(false);
       clearError();
       setSuccess('Branch created successfully');
-      dispatch(currentEnvironmentChanged({ key: branchName }));
+      dispatch(currentEnvironmentChanged(branchName));
     } catch (e) {
       setError(e);
     }
