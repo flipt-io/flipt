@@ -85,7 +85,7 @@ function EnvironmentBranchList({
   // Render left panel: environments and branches
   return (
     <div
-      className="w-1/2 border-r border-gray-200 dark:border-gray-700 overflow-y-auto"
+      className="w-1/2  border-r overflow-y-auto"
       data-testid="environment-listbox"
     >
       <div className="p-4 text-xs text-muted-foreground font-semibold uppercase">
@@ -103,10 +103,10 @@ function EnvironmentBranchList({
               <Button
                 variant={isSelected ? 'soft' : 'ghost'}
                 size="sm"
-                className={`flex-1 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+                className={`flex-1 gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
                 onClick={() => handleSelectEnv(env)}
               >
-                <Server className="mr-2 w-4 h-4" />
+                <Server className="w-4 h-4" />
                 <span className="truncate">{env.name || env.key}</span>
               </Button>
             </div>
@@ -125,7 +125,7 @@ function EnvironmentBranchList({
                     className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvironment === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
                     onClick={() => handleSelectBranch(branch)}
                   >
-                    <GitBranch className="mr-2 w-4 h-4" />
+                    <GitBranch className="w-4 h-4" />
                     <span className="truncate">
                       {branch.name || branch.environmentKey}
                     </span>
@@ -178,10 +178,10 @@ function NamespaceList({
               key={ns.key}
               variant={isSelected ? 'soft' : 'ghost'}
               size="sm"
-              className={`w-full justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+              className={`w-full gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
               onClick={() => handleSelectNamespace(ns.key)}
             >
-              <Folder className="mr-2 w-4 h-4" />
+              <Folder className="w-4 h-4" />
               <span className="truncate">{ns.name}</span>
             </Button>
           </div>
