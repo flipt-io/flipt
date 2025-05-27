@@ -11,7 +11,7 @@ import {
 } from '~/components/ui/tooltip';
 
 import { Badge } from './Badge';
-import { EnvironmentBranchSelector } from './environments/EnvironmentBranchSelector';
+import { CreateBranchButton } from './environments/CreateBranchButton';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
 export function Header({
@@ -36,8 +36,8 @@ export function Header({
       style={topbarStyle}
     >
       <div className="flex w-full items-center justify-between px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-2" />
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-2" />
           {!sidebarOpen && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -54,9 +54,9 @@ export function Header({
               </TooltipContent>
             </Tooltip>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          <EnvironmentBranchSelector environment={currentEnvironment} />
+          {currentEnvironment && !currentEnvironment?.configuration?.base && (
+            <CreateBranchButton baseEnvironment={currentEnvironment} />
+          )}
           {currentEnvironment?.configuration?.remote && (
             <EnvironmentRemoteInfo environment={currentEnvironment} />
           )}
