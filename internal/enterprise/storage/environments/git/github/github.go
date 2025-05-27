@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/go-github/v64/github"
+	"github.com/google/go-github/v66/github"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	"go.flipt.io/flipt/rpc/v2/environments"
 )

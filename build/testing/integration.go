@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
-	jjwt "github.com/go-jose/go-jose/v3/jwt"
+	"github.com/go-jose/go-jose/v4"
+	jjwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
 	"github.com/hashicorp/cap/jwt"
 	"go.flipt.io/build/internal/dagger"
@@ -597,8 +597,7 @@ func signJWT(key crypto.PrivateKey, claims interface{}) string {
 	}
 
 	raw, err := jjwt.Signed(sig).
-		Claims(claims).
-		CompactSerialize()
+		Claims(claims).Serialize()
 	if err != nil {
 		panic(err)
 	}
