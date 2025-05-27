@@ -63,12 +63,10 @@ function SegmentTypeSelector({
             key={matchType.id}
             onClick={() => onTypeSelect(matchType.id)}
             className={cls(
-              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-violet-500 dark:hover:border-violet-400',
+              'relative flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm focus:outline-none hover:border-ring bg-secondary/20 dark:bg-secondary/80 ',
               {
-                'border-violet-500 ring ring-violet-500 dark:border-violet-400 dark:ring-violet-400':
-                  selectedType === matchType.id,
-                'border-gray-300 dark:border-gray-600':
-                  selectedType !== matchType.id
+                'border-ring ring-ring/50 ring-1 shadow-xs':
+                  selectedType === matchType.id
               }
             )}
           >

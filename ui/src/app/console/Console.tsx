@@ -266,7 +266,7 @@ export default function Console() {
                             <Combobox<FilterableFlag>
                               id="flagKey"
                               name="flagKey"
-                              className="mt-1"
+                              className="mt-1 w-full"
                               placeholder="Select or search for a flag"
                               values={flags}
                               selected={selectedFlag}

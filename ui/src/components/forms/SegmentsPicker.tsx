@@ -188,6 +188,7 @@ export default function SegmentsPicker({
               name={`segmentKey-${parentSegments.length}`}
               placeholder="Select or search for a segment"
               values={getSegmentOptions()}
+              className="w-full"
               selected={null}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(parentSegments.length, filterableSegment);

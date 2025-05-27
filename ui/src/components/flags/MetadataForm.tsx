@@ -406,10 +406,7 @@ export function MetadataForm({
                 type={entry.subtype === 'number' ? 'number' : 'text'}
                 value={entry.value?.toString() ?? ''}
                 onChange={(e) => handleChange(index, 'value', e.target.value)}
-                className={cls(
-                  'flex-1 disabled:opacity-75',
-                  error ? 'border-red-500' : ''
-                )}
+                className="flex-1"
                 aria-invalid={!!error}
                 aria-errormessage={`value-error-${index}`}
                 disabled={disabled || !entry.isNew}
@@ -437,10 +434,7 @@ export function MetadataForm({
                 value={entry.key}
                 onChange={(e) => handleChange(index, 'key', e.target.value)}
                 placeholder="Key"
-                className={cls(
-                  'w-48 disabled:opacity-75',
-                  keyError ? 'border-red-500' : ''
-                )}
+                className="w-48"
                 aria-invalid={!!keyError}
                 aria-errormessage={`key-error-${index}`}
                 disabled={disabled || !entry.isNew}
@@ -448,7 +442,7 @@ export function MetadataForm({
               />
               {keyError && (
                 <p
-                  className="mt-1 text-sm text-red-500 dark:text-red-400"
+                  className="mt-1 text-sm text-destructive"
                   id={`key-error-${index}`}
                 >
                   {keyError}
@@ -464,7 +458,10 @@ export function MetadataForm({
                   disabled={disabled}
                 >
                   <SelectTrigger
-                    className={cls('w-full', typeError ? 'border-red-500' : '')}
+                    className={cls(
+                      'w-full',
+                      typeError ? 'border-destructive' : ''
+                    )}
                     aria-invalid={!!typeError}
                     aria-errormessage={`type-error-${index}`}
                     data-testid={`metadata-type-${index}`}
