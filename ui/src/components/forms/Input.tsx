@@ -30,12 +30,13 @@ export default function Input(props: InputProps) {
     <>
       <input
         ref={forwardRef}
+        aria-invalid={hasError}
         className={cls(
-          'block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 shadow-xs dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-400 sm:text-sm',
-          className,
-          {
-            'border-red-400 dark:border-red-500': hasError
-          }
+          'placeholder:text-muted-foreground dbg-secondary/20 dark:bg-secondary/80 border-input w-min-0 w-full rounded-md text-sm flex items-center px-3 py-1 shadow-xs outline-none',
+          'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+          'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[1px]',
+          'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+          className
         )}
         id={id}
         type={type}
@@ -48,9 +49,7 @@ export default function Input(props: InputProps) {
         {...rest}
       />
       {hasError && meta.error?.length && meta.error.length > 0 ? (
-        <div className="mt-1 text-sm text-red-500 dark:text-red-400">
-          {meta.error}
-        </div>
+        <div className="pt-1 text-sm text-destructive">{meta.error}</div>
       ) : null}
     </>
   );

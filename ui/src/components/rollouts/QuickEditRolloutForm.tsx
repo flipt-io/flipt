@@ -190,7 +190,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 type="range"
                 min="0"
                 max="100"
-                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-gray-200 align-middle dark:bg-gray-600 sm:block"
+                className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg bg-secondary align-middle sm:block"
                 defaultValue={String(rollout.threshold?.percentage || 50)}
                 onChange={(e) => {
                   // Update the number input when slider changes
@@ -272,9 +272,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     )}
                   />
                 </div>
-                <div className="mt-6 flex space-x-8">
-                  {rolloutSegments.length > 1 &&
-                    segmentOperators.map((segmentOperator, index) => (
+                {rolloutSegments.length > 1 && (
+                  <div className="mt-4 flex space-x-8">
+                    {segmentOperators.map((segmentOperator, index) => (
                       <div
                         className="flex items-center space-x-2 cursor-pointer"
                         key={index}
@@ -290,7 +290,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                             id={segmentOperator.id}
                             name={fieldPrefix + 'segment.segmentOperator'}
                             type="radio"
-                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400 cursor-pointer"
+                            className="h-4 w-4 border text-ring focus:ring-ring cursor-pointer"
                             checked={
                               segmentOperator.id ===
                               rollout.segment?.segmentOperator
@@ -305,14 +305,15 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                             className="block text-sm text-gray-700 dark:text-gray-200 cursor-pointer"
                           >
                             {segmentOperator.name}{' '}
-                            <span className="font-light dark:text-gray-300">
+                            <span className="font-light">
                               {segmentOperator.meta}
                             </span>
                           </label>
                         </div>
                       </div>
                     ))}
-                </div>
+                  </div>
+                )}
               </div>
               <label
                 htmlFor={fieldPrefix + 'segment.value'}
