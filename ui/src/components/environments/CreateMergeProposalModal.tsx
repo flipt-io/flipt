@@ -204,11 +204,6 @@ export function CreateMergeProposalModal({
                     Open as <span className="font-medium">Draft</span>
                   </label>
                 </div>
-                {isError && (
-                  <div className="text-xs text-destructive mb-2">
-                    Cannot submit a proposal while changes failed to load.
-                  </div>
-                )}
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
