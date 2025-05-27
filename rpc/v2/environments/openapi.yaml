@@ -195,7 +195,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ProposeEnvironmentResponse'
+                                $ref: '#/components/schemas/EnvironmentProposalDetails'
     /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}/changes:
         get:
             tags:
@@ -410,6 +410,8 @@ components:
                     type: string
                 baseEnvironmentKey:
                     type: string
+                proposal:
+                    $ref: '#/components/schemas/EnvironmentProposalDetails'
         BranchEnvironmentRequest:
             type: object
             properties:
@@ -464,6 +466,23 @@ components:
                     type: string
                 base:
                     type: string
+        EnvironmentProposalDetails:
+            type: object
+            properties:
+                scm:
+                    enum:
+                        - GITHUB_SCM
+                    type: string
+                    format: enum
+                url:
+                    type: string
+                state:
+                    enum:
+                        - PROPOSAL_STATE_OPEN
+                        - PROPOSAL_STATE_MERGED
+                        - PROPOSAL_STATE_CLOSED
+                    type: string
+                    format: enum
         GoogleProtobufAny:
             type: object
             properties:
@@ -542,16 +561,6 @@ components:
                     type: string
                 draft:
                     type: boolean
-        ProposeEnvironmentResponse:
-            type: object
-            properties:
-                scm:
-                    enum:
-                        - GITHUB_SCM
-                    type: string
-                    format: enum
-                url:
-                    type: string
         Resource:
             type: object
             properties:

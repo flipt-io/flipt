@@ -101,7 +101,7 @@ func (s *Server) ListBranchedEnvironmentChanges(ctx context.Context, req *enviro
 	return env.ListBranchedChanges(ctx, branch)
 }
 
-func (s *Server) ProposeEnvironment(ctx context.Context, req *environments.ProposeEnvironmentRequest) (resp *environments.ProposeEnvironmentResponse, err error) {
+func (s *Server) ProposeEnvironment(ctx context.Context, req *environments.ProposeEnvironmentRequest) (resp *environments.EnvironmentProposalDetails, err error) {
 	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
 	if err != nil {
 		return nil, err

@@ -45,7 +45,7 @@ type EnvironmentsServiceClient interface {
 	BranchEnvironment(ctx context.Context, in *BranchEnvironmentRequest, opts ...grpc.CallOption) (*Environment, error)
 	ListEnvironmentBranches(ctx context.Context, in *ListEnvironmentBranchesRequest, opts ...grpc.CallOption) (*ListEnvironmentBranchesResponse, error)
 	ListBranchedEnvironmentChanges(ctx context.Context, in *ListBranchedEnvironmentChangesRequest, opts ...grpc.CallOption) (*ListBranchedEnvironmentChangesResponse, error)
-	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*ProposeEnvironmentResponse, error)
+	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error)
 	// namespaces
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
@@ -108,9 +108,9 @@ func (c *environmentsServiceClient) ListBranchedEnvironmentChanges(ctx context.C
 	return out, nil
 }
 
-func (c *environmentsServiceClient) ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*ProposeEnvironmentResponse, error) {
+func (c *environmentsServiceClient) ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProposeEnvironmentResponse)
+	out := new(EnvironmentProposalDetails)
 	err := c.cc.Invoke(ctx, EnvironmentsService_ProposeEnvironment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ type EnvironmentsServiceServer interface {
 	BranchEnvironment(context.Context, *BranchEnvironmentRequest) (*Environment, error)
 	ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error)
 	ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error)
-	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*ProposeEnvironmentResponse, error)
+	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error)
 	// namespaces
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
@@ -262,7 +262,7 @@ func (UnimplementedEnvironmentsServiceServer) ListEnvironmentBranches(context.Co
 func (UnimplementedEnvironmentsServiceServer) ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBranchedEnvironmentChanges not implemented")
 }
-func (UnimplementedEnvironmentsServiceServer) ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*ProposeEnvironmentResponse, error) {
+func (UnimplementedEnvironmentsServiceServer) ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error) {

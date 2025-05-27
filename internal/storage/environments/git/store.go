@@ -258,11 +258,15 @@ func (e *branchEnvIterator) Err() error {
 	return e.err
 }
 
-func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.ProposeEnvironmentResponse, error) {
+func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs.Environment) (*rpcenvironments.ListBranchedEnvironmentChangesResponse, error) {
+func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.ListBranchedEnvironmentChangesResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (e *Environment) GetProposal(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.EnvironmentProposalDetails, error) {
 	return nil, errors.New("not implemented")
 }
 

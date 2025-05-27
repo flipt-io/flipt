@@ -54,8 +54,11 @@ type Environment interface {
 	Configuration() *environments.EnvironmentConfiguration
 	ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)
 	Branch(ctx context.Context, branch string) (Environment, error)
-	ListBranchedChanges(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
-	Propose(ctx context.Context, branch Environment, opts ProposalOptions) (*environments.ProposeEnvironmentResponse, error)
+
+	// From Branched Environments
+	Propose(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
+	GetProposal(ctx context.Context, base Environment) (*environments.EnvironmentProposalDetails, error)
+	ListBranchedChanges(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
 
 	// Namespaces
 
@@ -165,7 +168,7 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 	return branchEnv, nil
 }
 
-func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch string, opts ProposalOptions) (*environments.ProposeEnvironmentResponse, error) {
+func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch string, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error) {
 	baseEnv, err := e.Get(ctx, base)
 	if err != nil {
 		return nil, err
@@ -176,7 +179,7 @@ func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch stri
 		return nil, err
 	}
 
-	return baseEnv.Propose(ctx, branchEnv, opts)
+	return branchEnv.Propose(ctx, baseEnv, opts)
 }
 
 // Get returns the environment identified by key.

@@ -8,26 +8,32 @@ package github
 import (
 	"context"
 	"fmt"
+	"iter"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/google/go-github/v64/github"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
+	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.uber.org/zap"
 )
 
 var _ git.SCM = (*SCM)(nil)
 
 type SCM struct {
+	logger    *zap.Logger
 	repoOwner string
 	repoName  string
 	client    *github.PullRequestsService
 	repos     *github.RepositoriesService
 }
 
-func NewSCM(ctx context.Context, repoOwner, repoName string, httpClient *http.Client) *SCM {
+func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client) *SCM {
 	ghClient := github.NewClient(httpClient)
 	return &SCM{
+		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
 		repoOwner: repoOwner,
 		repoName:  repoName,
 		client:    ghClient.PullRequests,
@@ -35,7 +41,7 @@ func NewSCM(ctx context.Context, repoOwner, repoName string, httpClient *http.Cl
 	}
 }
 
-func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.ProposeEnvironmentResponse, error) {
+func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
 	pr, _, err := s.client.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
@@ -47,9 +53,10 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	return &environments.ProposeEnvironmentResponse{
-		Scm: environments.SCM_GITHUB_SCM,
-		Url: pr.GetHTMLURL(),
+	return &environments.EnvironmentProposalDetails{
+		Scm:   environments.SCM_GITHUB_SCM,
+		Url:   pr.GetHTMLURL(),
+		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
 }
 
@@ -98,4 +105,98 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	return &environments.ListBranchedEnvironmentChangesResponse{
 		Changes: changes,
 	}, nil
+}
+
+func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
+	var (
+		baseCfg = env.Configuration()
+		prs     = s.listPRs(ctx, baseCfg.Branch)
+		details = map[string]*environments.EnvironmentProposalDetails{}
+	)
+
+	for pr := range prs.All() {
+		branch := pr.Head.GetRef()
+		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
+			continue
+		}
+
+		if _, ok := details[branch]; ok {
+			// we let existing PRs get replaced by other PRs for the same branch
+			// if the existing PR is not in an open state
+			if pr.GetState() != "open" {
+				continue
+			}
+		}
+
+		state := environments.ProposalState_PROPOSAL_STATE_OPEN
+		if pr.GetState() == "closed" {
+			state = environments.ProposalState_PROPOSAL_STATE_CLOSED
+			if pr.GetMerged() || pr.MergeCommitSHA != nil {
+				state = environments.ProposalState_PROPOSAL_STATE_MERGED
+			}
+		}
+
+		details[branch] = &environments.EnvironmentProposalDetails{
+			Scm:   environments.SCM_GITHUB_SCM,
+			Url:   pr.GetHTMLURL(),
+			State: state,
+		}
+	}
+
+	return details, nil
+}
+
+type prs struct {
+	logger    *zap.Logger
+	ctx       context.Context
+	client    *github.PullRequestsService
+	repoOwner string
+	repoName  string
+	base      string
+
+	err error
+}
+
+func (s *SCM) listPRs(ctx context.Context, base string) *prs {
+	return &prs{s.logger, ctx, s.client, s.repoOwner, s.repoName, base, nil}
+}
+
+func (p *prs) Err() error {
+	return p.err
+}
+
+func (p *prs) All() iter.Seq[*github.PullRequest] {
+	return iter.Seq[*github.PullRequest](func(yield func(*github.PullRequest) bool) {
+		opts := &github.PullRequestListOptions{
+			Base: p.base,
+			ListOptions: github.ListOptions{
+				PerPage: 100,
+			},
+			State: "all",
+		}
+
+		for {
+			prs, resp, err := p.client.List(p.ctx, p.repoOwner, p.repoName, opts)
+			if err != nil {
+				p.err = err
+				return
+			}
+
+			for _, pr := range prs {
+				if !strings.HasPrefix(pr.Head.GetRef(), "flipt/") {
+					continue
+				}
+
+				if !yield(pr) {
+					return
+				}
+			}
+
+			if resp.NextPage == 0 {
+				return
+			}
+
+			opts.Page = resp.NextPage
+		}
+	})
 }

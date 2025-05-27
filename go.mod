@@ -37,6 +37,7 @@ require (
 	github.com/h2non/gock v1.2.0
 	github.com/hashicorp/cap v0.7.0
 	github.com/iancoleman/strcase v0.3.0
+	github.com/kubescape/go-git-url v0.0.30
 	github.com/magefile/mage v1.15.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.70.0
@@ -313,7 +314,6 @@ require (
 	github.com/knadh/koanf/providers/posflag v0.1.0 // indirect
 	github.com/knadh/koanf/providers/structs v0.1.0 // indirect
 	github.com/knadh/koanf/v2 v2.1.2 // indirect
-	github.com/kubescape/go-git-url v0.0.30 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.14 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect

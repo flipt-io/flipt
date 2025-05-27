@@ -37,7 +37,7 @@ service EnvironmentsService {
     option (gnostic.openapi.v3.operation) = {operation_id: "listBranchedEnvironmentChanges"};
   }
 
-  rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (ProposeEnvironmentResponse) {
+  rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (EnvironmentProposalDetails) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {
       post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"
@@ -142,6 +142,7 @@ message BranchEnvironment {
   string environment_key = 1;
   string branch = 2;
   string base_environment_key = 3;
+  optional EnvironmentProposalDetails proposal = 4;
 }
 
 message ListEnvironmentBranchesRequest {
@@ -164,9 +165,16 @@ enum SCM {
   GITHUB_SCM = 0;
 }
 
-message ProposeEnvironmentResponse {
+enum ProposalState {
+  PROPOSAL_STATE_OPEN = 0;
+  PROPOSAL_STATE_MERGED = 1;
+  PROPOSAL_STATE_CLOSED = 2;
+}
+
+message EnvironmentProposalDetails {
   SCM scm = 1;
   string url = 2;
+  ProposalState state = 3;
 }
 
 message Change {

@@ -194,7 +194,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 					return nil, err
 				}
 
-				scm = github.NewSCM(ctx, repoOwner, repoName, client)
+				scm = github.NewSCM(f.logger, repoOwner, repoName, client)
 			}
 		}
 

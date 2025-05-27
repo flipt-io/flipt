@@ -348,7 +348,7 @@ func (x *EnvironmentsServiceClient) ListEnvironmentBranches(ctx context.Context,
 	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironmentBranches not implemented")
 }
 
-func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest, _ ...grpc.CallOption) (*environments.ProposeEnvironmentResponse, error) {
+func (x *EnvironmentsServiceClient) ProposeEnvironment(ctx context.Context, v *environments.ProposeEnvironmentRequest, _ ...grpc.CallOption) (*environments.EnvironmentProposalDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
 }
 

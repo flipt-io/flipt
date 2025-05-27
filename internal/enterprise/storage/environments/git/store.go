@@ -22,8 +22,9 @@ import (
 var _ serverenvs.Environment = (*Environment)(nil)
 
 type SCM interface {
-	Propose(context.Context, ProposalRequest) (*environments.ProposeEnvironmentResponse, error)
+	Propose(context.Context, ProposalRequest) (*environments.EnvironmentProposalDetails, error)
 	ListChanges(context.Context, ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error)
+	ListProposals(context.Context, serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error)
 }
 
 type ProposalRequest struct {
@@ -55,14 +56,14 @@ func NewEnvironment(logger *zap.Logger, env *git.Environment, scm SCM) *Environm
 	}
 }
 
-func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
+func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
 	var (
-		baseCfg   = e.Configuration()
-		branchCfg = branch.Configuration()
+		baseCfg   = base.Configuration()
+		branchCfg = e.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", branch.Key(), e.Key())
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
 	}
 
 	return e.SCM.ListChanges(ctx, ListChangesRequest{
@@ -72,14 +73,14 @@ func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs
 	})
 }
 
-func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.ProposeEnvironmentResponse, err error) {
+func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
 	var (
-		baseCfg   = e.Configuration()
-		branchCfg = branch.Configuration()
+		baseCfg   = base.Configuration()
+		branchCfg = e.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", branch.Key(), e.Key())
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
 	}
 
 	type templateContext struct {
@@ -137,4 +138,22 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 	}
 
 	return
+}
+
+func (e *Environment) ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error) {
+	proposals, err := e.SCM.ListProposals(ctx, e)
+	if err != nil {
+		return nil, err
+	}
+
+	branches, err := e.Environment.ListBranches(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, branch := range branches.Branches {
+		branch.Proposal = proposals[branch.Branch]
+	}
+
+	return branches, nil
 }

@@ -1,8 +1,11 @@
-import { GitBranchPlusIcon, GitPullRequest } from 'lucide-react';
+import { GitBranchIcon, GitBranchPlusIcon, GitPullRequest } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
+import {
+  selectCurrentEnvironment,
+  useListBranchEnvironmentsQuery
+} from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
 import { Button } from '~/components/ui/button';
@@ -15,7 +18,7 @@ import {
 
 import { Badge } from './Badge';
 import { CreateBranchPopover } from './environments/CreateBranchPopover';
-import { CreateMergeProposalModal } from './environments/CreateMergeProposalModal';
+import EnvironmentProposalStatus from './environments/EnvironmentProposalStatus';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
 export function Header({
@@ -31,7 +34,6 @@ export function Header({
   const currentEnvironment = useSelector(selectCurrentEnvironment);
 
   const [createBranchOpen, setCreateBranchOpen] = useState(false);
-  const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   const isBranch = currentEnvironment?.configuration?.base !== undefined;
   const hasRemote = currentEnvironment?.configuration?.remote !== undefined;
@@ -68,7 +70,7 @@ export function Header({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="ml-1 px-2 cursor-pointer">
-                  <GitBranchPlusIcon className="w-4 h-4 text-gray-400" />
+                  <GitBranchIcon className="w-4 h-4 text-gray-400" />
                 </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" align="center">
@@ -84,7 +86,7 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="ml-1"
+                className="ml-1 cursor-pointer"
                 type="button"
                 data-testid="create-branch-button"
               >
@@ -102,29 +104,7 @@ export function Header({
             </CreateBranchPopover>
           )}
           {isBranch && hasRemote && (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-1"
-                    onClick={() => setMergeModalOpen(true)}
-                  >
-                    <GitPullRequest className="size-4" />
-                    <span className="sr-only">Create merge proposal</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="center">
-                  Create merge proposal
-                </TooltipContent>
-              </Tooltip>
-              <CreateMergeProposalModal
-                open={mergeModalOpen}
-                setOpen={setMergeModalOpen}
-                environment={currentEnvironment}
-              />
-            </>
+            <EnvironmentProposalStatus environment={currentEnvironment} />
           )}
           {hasRemote && (
             <EnvironmentRemoteInfo environment={currentEnvironment} />
