@@ -1,11 +1,8 @@
-import { GitBranchIcon, GitBranchPlusIcon, GitPullRequest } from 'lucide-react';
+import { GitBranchIcon, GitBranchPlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import {
-  selectCurrentEnvironment,
-  useListBranchEnvironmentsQuery
-} from '~/app/environments/environmentsApi';
+import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
 import { Button } from '~/components/ui/button';

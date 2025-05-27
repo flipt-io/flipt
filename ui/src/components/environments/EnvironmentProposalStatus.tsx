@@ -23,26 +23,6 @@ import {
 
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
 
-export default function EnvironmentProposalStatus({
-  environment
-}: {
-  environment: IEnvironment;
-}) {
-  const { data: baseBranches } = useListBranchEnvironmentsQuery({
-    baseEnvironmentKey: environment.configuration?.base ?? ''
-  });
-
-  const proposal = baseBranches?.branches.find(
-    (branch) => branch.environmentKey === environment.key
-  )?.proposal;
-
-  if (proposal) {
-    return <MergeProposalStatus proposal={proposal} />;
-  }
-
-  return <NoMergeProposalStatus environment={environment} />;
-}
-
 function MergeProposalStatus({ proposal }: { proposal: IEnvironmentProposal }) {
   let prNumber: string | undefined;
 
@@ -122,4 +102,24 @@ function NoMergeProposalStatus({ environment }: { environment: IEnvironment }) {
       />
     </>
   );
+}
+
+export default function EnvironmentProposalStatus({
+  environment
+}: {
+  environment: IEnvironment;
+}) {
+  const { data: baseBranches } = useListBranchEnvironmentsQuery({
+    baseEnvironmentKey: environment.configuration?.base ?? ''
+  });
+
+  const proposal = baseBranches?.branches.find(
+    (branch) => branch.environmentKey === environment.key
+  )?.proposal;
+
+  if (proposal) {
+    return <MergeProposalStatus proposal={proposal} />;
+  }
+
+  return <NoMergeProposalStatus environment={environment} />;
 }

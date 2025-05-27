@@ -66,19 +66,22 @@ function EnvironmentBranchList({
   }, [setSelectedEnvironment, currentEnvironment]);
 
   // Group environments: base envs as top-level, branches nested under their base
-  const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
-  environments.forEach((env) => {
-    if (env.configuration?.base) {
-      // It's a branch
-      const base = env.configuration.base;
-      if (!grouped[base]) grouped[base] = { base: null, branches: [] };
-      grouped[base].branches.push(env);
-    } else {
-      // It's a base env
-      if (!grouped[env.key]) grouped[env.key] = { base: env, branches: [] };
-      else grouped[env.key].base = env;
-    }
-  });
+  const grouped = useMemo(() => {
+    const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
+    environments.forEach((env) => {
+      if (env.configuration?.base) {
+        // It's a branch
+        const base = env.configuration.base;
+        if (!grouped[base]) grouped[base] = { base: null, branches: [] };
+        grouped[base].branches.push(env);
+      } else {
+        // It's a base env
+        if (!grouped[env.key]) grouped[env.key] = { base: env, branches: [] };
+        else grouped[env.key].base = env;
+      }
+    });
+    return grouped;
+  }, [environments]);
 
   const baseEnvKeys = useMemo(
     () =>
