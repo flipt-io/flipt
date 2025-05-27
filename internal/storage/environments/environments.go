@@ -181,6 +181,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			repoName  = gitURL.GetRepoName()
 		)
 
+		//nolint
 		switch envConf.SCM.Type {
 		case config.GitHubSCMType:
 			if envConf.SCM.Credentials != nil {
