@@ -8,7 +8,7 @@ import { IDistribution } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import { FilterableSegment, ISegment, segmentOperators } from '~/types/Segment';
-import { FilterableVariant } from '~/types/Variant';
+import { FilterableVariant, IVariant } from '~/types/Variant';
 
 import { cls } from '~/utils/helpers';
 
@@ -16,10 +16,10 @@ import { distTypes } from './RuleForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
 
 type QuickEditRuleFormProps = {
-  flag: IFlag;
   rule: IRule;
   segments: ISegment[];
   onSuccess?: () => void;
+  variants: IVariant[];
 };
 
 export const validRollout = (rollouts: IDistribution[]): boolean => {
@@ -31,7 +31,7 @@ export const validRollout = (rollouts: IDistribution[]): boolean => {
 };
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
-  const { flag, rule, segments } = props;
+  const { rule, segments, variants } = props;
   const formik = useFormikContext<IFlag>();
 
   // Ensure rule.distributions is always treated as an array
@@ -71,7 +71,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       }
 
       const variantKey = distributions[0].variant;
-      const variant = flag.variants?.find((v) => v.key === variantKey);
+      const variant = variants?.find((v) => v.key === variantKey);
 
       if (!variant) {
         return null;
@@ -111,7 +111,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       const variantKey = distributions[0].variant;
       // Only update if the selected variant doesn't match the current distribution
       if (!selectedVariant || selectedVariant.key !== variantKey) {
-        const variant = flag.variants?.find((v) => v.key === variantKey);
+        const variant = variants?.find((v) => v.key === variantKey);
         if (variant) {
           setSelectedVariant({
             ...variant,
@@ -123,7 +123,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       // Clear selected variant if rule type is not single
       setSelectedVariant(null);
     }
-  }, [distributions, flag.variants, ruleType, selectedVariant]);
+  }, [distributions, variants, ruleType, selectedVariant]);
 
   const ruleSegmentKeys = useMemo(() => rule.segments || [], [rule.segments]);
 
@@ -332,11 +332,11 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           </div>
 
           {ruleType === DistributionType.Single &&
-            flag.variants &&
-            flag.variants.length > 0 && (
+            variants &&
+            variants.length > 0 && (
               <SingleDistributionFormInput
                 id={fieldPrefix + 'distributions.[0].variant'}
-                variants={flag.variants}
+                variants={variants}
                 selectedVariant={selectedVariant}
                 setSelectedVariant={handleVariantChange}
               />
@@ -376,7 +376,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   key={index}
                                   type="number"
                                   className={cls(
-                                    'block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-7 pr-12 text-gray-900 dark:text-gray-100 shadow-xs focus:border-violet-300 focus:ring-violet-300 sm:text-sm'
+                                    'block w-full rounded-md border pl-10 bg-secondary/20 dark:bg-secondary/80 sm:text-sm',
+                                    'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[1px]'
                                   )}
                                   value={dist.rollout}
                                   name={`${fieldPrefix}distributions.[${index}].rollout`}
@@ -386,10 +387,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   min="0"
                                   max="100"
                                 />
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                  <span className="text-gray-500 dark:text-gray-400 sm:text-sm">
-                                    %
-                                  </span>
+                                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                                  <span className="sm:text-sm">%</span>
                                 </div>
                               </div>
                             </div>
@@ -400,7 +399,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 )}
               />
               {formik.errors.rules && formik.errors.rules[ruleIndex] && (
-                <p className="mt-1 px-4 text-center text-sm text-red-500 dark:text-red-400 sm:px-6 sm:py-5">
+                <p className="mt-1 px-4 text-center text-sm text-destructive sm:px-6 sm:py-5">
                   Multi-variate rules must have distributions that add up to
                   100% or less.
                 </p>
