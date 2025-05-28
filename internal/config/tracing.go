@@ -15,9 +15,6 @@ type TracingConfig struct {
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("tracing", map[string]any{
-		"enabled": false,
-	})
-
+	v.SetDefault("tracing.enabled", false)
 	return nil
 }

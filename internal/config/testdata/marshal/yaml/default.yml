@@ -7,22 +7,6 @@ ui:
   enabled: true
   default_theme: system
 
-analytics:
-  buffer:
-    flush_period: "10s"
-
-cors:
-  enabled: false
-  allowed_origins:
-    - "*"
-  allowed_headers:
-    - "Accept"
-    - "Authorization"
-    - "Content-Type"
-    - "X-CSRF-Token"
-    - "X-Flipt-Environment"
-    - "X-Flipt-Namespace"
-
 server:
   host: 0.0.0.0
   http_port: 8080

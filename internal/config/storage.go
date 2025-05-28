@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -18,7 +17,7 @@ type StoragesConfig map[string]*StorageConfig
 func (s *StoragesConfig) validate() error {
 	for name, storage := range *s {
 		if err := storage.validate(); err != nil {
-			return fmt.Errorf("storage %s: %w", name, err)
+			return errFieldWrap("storage", name, err)
 		}
 	}
 
@@ -94,15 +93,15 @@ type StorageConfig struct {
 
 func (c *StorageConfig) validate() error {
 	if c.CaCertPath != "" && c.CaCertBytes != "" {
-		return errors.New("please provide only one of ca_cert_path or ca_cert_bytes")
+		return errFieldWrap("storage", "ca_cert", fmt.Errorf("please provide only one of ca_cert_path or ca_cert_bytes"))
 	}
 
 	if c.PollInterval < 1*time.Second {
-		return errors.New("poll interval must be at least 1 second")
+		return errFieldWrap("storage", "poll_interval", fmt.Errorf("poll interval must be at least 1 second"))
 	}
 
 	if c.Backend.Type == LocalStorageBackendType && c.Backend.Path == "" {
-		return errors.New("local path must be specified")
+		return errFieldRequired("storage", "local path")
 	}
 
 	return nil

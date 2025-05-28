@@ -53,45 +53,49 @@ type PrometheusConfig struct {
 	Headers map[string]string `json:"-" mapstructure:"headers" yaml:"-"`
 }
 
+// AnalyticsBufferConfig holds configuration for the buffering of sending the analytics
+// events to the backend storage.
+type AnalyticsBufferConfig struct {
+	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity" yaml:"capacity,omitempty"`
+	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period" yaml:"flush_period,omitempty"`
+}
+
 // AnalyticsConfig defines the configuration for various mechanisms for
 // reporting and querying analytical data for Flipt.
 type AnalyticsConfig struct {
 	Storage AnalyticsStorageConfig `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
-	Buffer  BufferConfig           `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
+	Buffer  AnalyticsBufferConfig  `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
 }
 
 func (a *AnalyticsConfig) Enabled() bool {
 	return a.Storage.Clickhouse.Enabled || a.Storage.Prometheus.Enabled
 }
 
+// IsZero returns true if the analytics config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (a AnalyticsConfig) IsZero() bool {
+	return !a.Enabled()
+}
+
 //nolint:unparam
 func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("analytics", map[string]any{
-		"storage": map[string]any{
-			"clickhouse": map[string]any{
-				"enabled": "false",
-				"url":     "",
-			},
-			"prometheus": map[string]any{
-				"enabled": "false",
-				"url":     "",
-			},
-		},
-		"buffer": map[string]any{
-			"flush_period": "10s",
-		},
-	})
-
+	v.SetDefault("analytics.storage.clickhouse.enabled", "false")
+	v.SetDefault("analytics.storage.clickhouse.url", "")
+	v.SetDefault("analytics.storage.prometheus.enabled", "false")
+	v.SetDefault("analytics.storage.prometheus.url", "")
+	v.SetDefault("analytics.buffer.flush_period", "10s")
 	return nil
 }
 
 func (a *AnalyticsConfig) validate() error {
-	if a.Storage.Clickhouse.Enabled && a.Storage.Clickhouse.URL == "" {
-		return errFieldRequired("analytics", "clickhouse url")
-	}
+	if a.Storage.Clickhouse.Enabled {
+		if a.Storage.Clickhouse.URL == "" {
+			return errFieldRequired("analytics", "clickhouse url")
+		}
 
-	if a.Buffer.FlushPeriod < time.Second*10 {
-		return errString("analytics", "buffer flush period below 10 seconds")
+		if a.Buffer.FlushPeriod < time.Second*10 {
+			return errString("analytics", "buffer flush period below 10 seconds")
+		}
 	}
 
 	return nil

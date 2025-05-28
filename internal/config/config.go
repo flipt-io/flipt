@@ -528,13 +528,6 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 	}
 }
 
-// BufferConfig holds configuration for the buffering of sending the audit
-// events to the sinks.
-type BufferConfig struct {
-	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity" yaml:"capacity,omitempty"`
-	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period" yaml:"flush_period,omitempty"`
-}
-
 // Default is the base config used when no configuration is explicit provided.
 func Default() *Config {
 	return &Config{
@@ -611,7 +604,6 @@ func Default() *Config {
 		Meta: MetaConfig{
 			CheckForUpdates:  true,
 			TelemetryEnabled: true,
-			StateDirectory:   "",
 		},
 
 		Authentication: AuthenticationConfig{
@@ -628,11 +620,18 @@ func Default() *Config {
 		},
 
 		Analytics: AnalyticsConfig{
-			Buffer: BufferConfig{
+			Buffer: AnalyticsBufferConfig{
 				FlushPeriod: 10 * time.Second,
 			},
 		},
 
-		Authorization: AuthorizationConfig{},
+		Authorization: AuthorizationConfig{
+			Backend: AuthorizationBackendLocal,
+			Local: &AuthorizationLocalConfig{
+				Policy: &AuthorizationSourceLocalConfig{
+					PollInterval: 5 * time.Minute,
+				},
+			},
+		},
 	}
 }

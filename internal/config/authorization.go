@@ -1,8 +1,6 @@
 package config
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -22,31 +20,16 @@ type AuthorizationConfig struct {
 	Local    *AuthorizationLocalConfig `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
 }
 
+// IsZero returns true if the authorization config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c AuthorizationConfig) IsZero() bool {
+	return !c.Required
+}
+
 func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
-	auth := map[string]any{"required": false}
-	if v.GetBool("authorization.required") {
-
-		auth["backend"] = AuthorizationBackendLocal
-		if v.GetString("authorization.local.data.path") == "" {
-			auth["local"] = map[string]any{
-				"policy": map[string]any{
-					"poll_interval": "5m",
-				},
-			}
-		} else {
-			auth["local"] = map[string]any{
-				"policy": map[string]any{
-					"poll_interval": "5m",
-				},
-				"data": map[string]any{
-					"poll_interval": "30s",
-				},
-			}
-		}
-
-		v.SetDefault("authorization", auth)
-	}
-
+	v.SetDefault("authorization.required", false)
+	v.SetDefault("authorization.backend", AuthorizationBackendLocal)
+	v.SetDefault("authorization.local.policy.poll_interval", 5*time.Minute)
 	return nil
 }
 
@@ -55,11 +38,11 @@ func (c *AuthorizationConfig) validate() error {
 		switch c.Backend {
 		case AuthorizationBackendLocal:
 			if c.Local == nil {
-				return errors.New("authorization: local backend must be configured")
+				return errFieldRequired("authorization", "local backend")
 			}
 
 			if err := c.Local.validate(); err != nil {
-				return fmt.Errorf("authorization: local: %w", err)
+				return errFieldWrap("authorization", "local", err)
 			}
 
 		default:
@@ -87,7 +70,7 @@ type AuthorizationLocalConfig struct {
 
 func (c *AuthorizationLocalConfig) validate() error {
 	if c.Policy == nil {
-		return errString("authorization", "policy source must be configured")
+		return errFieldRequired("authorization", "policy source")
 	}
 
 	if err := c.Policy.validate(); err != nil {

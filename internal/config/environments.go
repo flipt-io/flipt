@@ -21,7 +21,7 @@ func (e *EnvironmentsConfig) validate() error {
 
 	for name, v := range *e {
 		if err := v.validate(); err != nil {
-			return fmt.Errorf("environment %q: %w", name, err)
+			return errFieldWrap("environments", name, err)
 		}
 
 		// Initialize map for this storage if not exists
@@ -41,11 +41,11 @@ func (e *EnvironmentsConfig) validate() error {
 	}
 
 	if defaults == 0 {
-		return fmt.Errorf("no default environment configured")
+		return errFieldRequired("environments", "default environment")
 	}
 
 	if defaults > 1 {
-		return fmt.Errorf("only one environment can be default")
+		return errFieldWrap("environments", "default", fmt.Errorf("only one environment can be default"))
 	}
 
 	// Check for duplicate directory usage within same storage
@@ -62,7 +62,7 @@ func (e *EnvironmentsConfig) validate() error {
 		for dir, envs := range directories {
 			if len(envs) > 1 {
 				sort.Strings(envs) // Sort for deterministic output
-				return fmt.Errorf("environments [%s] share the same storage %q and directory %q", strings.Join(envs, ", "), storage, dir)
+				return errFieldWrap("environments", "directory", fmt.Errorf("environments [%s] share the same storage %q and directory %q", strings.Join(envs, ", "), storage, dir))
 			}
 		}
 	}
@@ -134,7 +134,7 @@ type EnvironmentConfig struct {
 
 func (e *EnvironmentConfig) validate() error {
 	if e.Name == "" {
-		return errFieldRequired("", "name")
+		return errFieldRequired("environments", "name")
 	}
 
 	if e.SCM != nil {

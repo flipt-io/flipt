@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/spf13/viper"
@@ -17,7 +16,7 @@ type CredentialsConfig map[string]*CredentialConfig
 func (c *CredentialsConfig) validate() error {
 	for name, v := range *c {
 		if err := v.validate(); err != nil {
-			return fmt.Errorf("credential %q: %w", name, err)
+			return errFieldWrap("credentials", name, err)
 		}
 	}
 
@@ -70,26 +69,26 @@ func (c *CredentialConfig) validate() error {
 	switch c.Type {
 	case CredentialTypeBasic:
 		if c.Basic == nil {
-			return errors.New("basic auth configuration is required")
+			return errFieldRequired("credentials", "basic auth configuration")
 		}
 
 		if err := c.Basic.validate(); err != nil {
-			return err
+			return errFieldWrap("credentials", "basic", err)
 		}
 	case CredentialTypeSSH:
 		if c.SSH == nil {
-			return errors.New("ssh configuration is required")
+			return errFieldRequired("credentials", "ssh configuration")
 		}
 
 		if err := c.SSH.validate(); err != nil {
-			return err
+			return errFieldWrap("credentials", "ssh", err)
 		}
 	case CredentialTypeAccessToken:
 		if c.AccessToken == nil || *c.AccessToken == "" {
-			return errors.New("access token is required")
+			return errFieldRequired("credentials", "access token")
 		}
 	default:
-		return fmt.Errorf("unexpected credential type %q", c.Type)
+		return errFieldWrap("credentials", "type", fmt.Errorf("unexpected credential type %q", c.Type))
 	}
 
 	return nil
@@ -104,7 +103,7 @@ type BasicAuthConfig struct {
 
 func (b BasicAuthConfig) validate() error {
 	if (b.Username != "" && b.Password == "") || (b.Username == "" && b.Password != "") {
-		return errors.New("both username and password need to be provided for basic auth")
+		return errFieldRequired("credentials", "both username and password for basic auth")
 	}
 
 	return nil
@@ -123,20 +122,20 @@ type SSHAuthConfig struct {
 func (a *SSHAuthConfig) validate() (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("ssh authentication: %w", err)
+			err = errFieldWrap("credentials", "ssh authentication", err)
 		}
 	}()
 
 	if a == nil {
-		return errors.New("configuration is mising")
+		return errFieldRequired("credentials", "ssh configuration is missing")
 	}
 
 	if a.Password == "" {
-		return errFieldRequired("string", "password")
+		return errFieldRequired("credentials", "password")
 	}
 
 	if (a.PrivateKeyBytes == "" && a.PrivateKeyPath == "") || (a.PrivateKeyBytes != "" && a.PrivateKeyPath != "") {
-		return errors.New("please provide exclusively one of private_key_bytes or private_key_path")
+		return errFieldWrap("credentials", "private_key", fmt.Errorf("please provide exclusively one of private_key_bytes or private_key_path"))
 	}
 
 	return nil

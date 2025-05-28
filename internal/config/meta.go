@@ -14,10 +14,7 @@ type MetaConfig struct {
 }
 
 func (c *MetaConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("meta", map[string]any{
-		"check_for_updates": true,
-		"telemetry_enabled": true,
-	})
-
+	v.SetDefault("meta.check_for_updates", true)
+	v.SetDefault("meta.telemetry_enabled", true)
 	return nil
 }

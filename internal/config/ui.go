@@ -41,11 +41,8 @@ type UIConfig struct {
 }
 
 func (c *UIConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("ui", map[string]any{
-		"enabled":       true,
-		"default_theme": SystemUITheme,
-	})
-
+	v.SetDefault("ui.enabled", true)
+	v.SetDefault("ui.default_theme", SystemUITheme)
 	return nil
 }
 

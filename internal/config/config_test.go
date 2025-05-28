@@ -612,22 +612,22 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "git basic auth partially provided",
 			path:    "./testdata/storage/git_basic_auth_invalid.yml",
-			wantErr: errors.New(`credential "default": both username and password need to be provided for basic auth`),
+			wantErr: errors.New("credentials: default credentials: basic credentials: both username and password for basic auth non-empty value is required"),
 		},
 		{
 			name:    "git ssh auth missing password",
 			path:    "./testdata/storage/git_ssh_auth_invalid_missing_password.yml",
-			wantErr: errors.New(`credential "default": ssh authentication: string: password non-empty value is required`),
+			wantErr: errors.New("credentials: default credentials: ssh credentials: ssh authentication credentials: password non-empty value is required"),
 		},
 		{
 			name:    "git ssh auth missing private key parts",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_missing.yml",
-			wantErr: errors.New(`credential "default": ssh authentication: please provide exclusively one of private_key_bytes or private_key_path`),
+			wantErr: errors.New("credentials: default credentials: ssh credentials: ssh authentication credentials: private_key please provide exclusively one of private_key_bytes or private_key_path"),
 		},
 		{
 			name:    "git ssh auth provided both private key forms",
 			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_both.yml",
-			wantErr: errors.New(`credential "default": ssh authentication: please provide exclusively one of private_key_bytes or private_key_path`),
+			wantErr: errors.New("credentials: default credentials: ssh credentials: ssh authentication credentials: private_key please provide exclusively one of private_key_bytes or private_key_path"),
 		},
 		{
 			name: "git valid with ssh auth",
@@ -720,17 +720,17 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "environments no default",
 			path:    "./testdata/environments/no_default.yml",
-			wantErr: errors.New("no default environment configured"),
+			wantErr: errors.New("environments: default environment non-empty value is required"),
 		},
 		{
 			name:    "environments sharing storage without distinct directories",
 			path:    "./testdata/environments/shared_storage_no_directories.yml",
-			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" and directory \"\""),
+			wantErr: errors.New("environments: directory environments [prod, staging] share the same storage \"git\" and directory \"\""),
 		},
 		{
 			name:    "environments sharing storage with same directory",
 			path:    "./testdata/environments/shared_storage_same_directory.yml",
-			wantErr: errors.New("environments [prod, staging] share the same storage \"git\" and directory \"repo\""),
+			wantErr: errors.New("environments: directory environments [prod, staging] share the same storage \"git\" and directory \"repo\""),
 		},
 		{
 			name: "environments sharing storage with different directories",
