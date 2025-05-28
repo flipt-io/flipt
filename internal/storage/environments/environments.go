@@ -3,6 +3,7 @@ package environments
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -184,6 +185,16 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		//nolint
 		switch envConf.SCM.Type {
 		case config.GitHubSCMType:
+			opts := []github.ClientOption{}
+			// To support GitHub Enterprise
+			if envConf.SCM.ApiURL != "" {
+				apiURL, err := url.Parse(envConf.SCM.ApiURL)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse api url: %w", err)
+				}
+				opts = append(opts, github.WithApiURL(apiURL))
+			}
+
 			if envConf.SCM.Credentials != nil {
 				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
 				if err != nil {
@@ -195,7 +206,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 					return nil, err
 				}
 
-				scm = github.NewSCM(f.logger, repoOwner, repoName, client)
+				scm = github.NewSCM(f.logger, repoOwner, repoName, client, opts...)
 			}
 		}
 

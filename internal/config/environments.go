@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 
@@ -112,17 +113,32 @@ const (
 	GitHubSCMType = SCMType("github")
 )
 
+var (
+	_ validator = (*SCMConfig)(nil)
+)
+
 type SCMConfig struct {
 	Type        SCMType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
 	Credentials *string `json:"credentials,omitempty" mapstructure:"credentials" yaml:"credentials,omitempty"`
+	ApiURL      string  `json:"api_url,omitempty" mapstructure:"api_url" yaml:"api_url,omitempty"`
 }
 
 func (s SCMConfig) validate() error {
 	if s.Type != GitHubSCMType {
-		return fmt.Errorf("unexpected SCM type: %q", s.Type)
+		return errFieldWrap("environments", "scm", fmt.Errorf("unexpected SCM type: %q", s.Type))
+	}
+
+	if s.ApiURL != "" {
+		if _, err := url.Parse(s.ApiURL); err != nil {
+			return errFieldWrap("environments", "scm", fmt.Errorf("invalid api url: %w", err))
+		}
 	}
 	return nil
 }
+
+var (
+	_ validator = (*EnvironmentConfig)(nil)
+)
 
 type EnvironmentConfig struct {
 	Name      string     `json:"name" mapstructure:"name" yaml:"name,omitempty"`

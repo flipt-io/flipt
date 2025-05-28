@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"iter"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 
@@ -30,8 +31,30 @@ type SCM struct {
 	repos     *github.RepositoriesService
 }
 
-func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client) *SCM {
+type ClientOption func(*github.Client)
+
+func WithApiURL(apiURL *url.URL) ClientOption {
+	return func(c *github.Client) {
+		// copied from go-github/github.go:WithEnterpriseURLs
+		if !strings.HasSuffix(apiURL.Path, "/") {
+			apiURL.Path += "/"
+		}
+		if !strings.HasSuffix(apiURL.Path, "/api/v3/") &&
+			!strings.HasPrefix(apiURL.Host, "api.") &&
+			!strings.Contains(apiURL.Host, ".api.") {
+			apiURL.Path += "api/v3/"
+		}
+
+		c.BaseURL = apiURL
+	}
+}
+
+func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client, opts ...ClientOption) *SCM {
 	ghClient := github.NewClient(httpClient)
+	for _, opt := range opts {
+		opt(ghClient)
+	}
+
 	return &SCM{
 		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
 		repoOwner: repoOwner,
