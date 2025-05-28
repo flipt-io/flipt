@@ -765,7 +765,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "environments invalid scm",
 			path:    "./testdata/environments/invalid_scm.yml",
-			wantErr: errors.New("environment \"default\": unexpected SCM type: \"invalid\""),
+			wantErr: errors.New("environments: default environments: scm unexpected SCM type: \"invalid\""),
 		},
 		{
 			name: "environments valid scm",
