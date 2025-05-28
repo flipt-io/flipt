@@ -19,10 +19,7 @@ type MetricsConfig struct {
 }
 
 func (c *MetricsConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("metrics", map[string]any{
-		"enabled":  true,
-		"exporter": MetricsPrometheus,
-	})
-
+	v.SetDefault("metrics.enabled", true)
+	v.SetDefault("metrics.exporter", MetricsPrometheus)
 	return nil
 }

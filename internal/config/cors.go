@@ -16,18 +16,21 @@ type CorsConfig struct {
 }
 
 func (c *CorsConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("cors", map[string]any{
-		"enabled":         false,
-		"allowed_origins": "*",
-		"allowed_headers": []string{
-			"Accept",
-			"Authorization",
-			"Content-Type",
-			"X-CSRF-Token",
-			common.HeaderFliptEnvironment,
-			common.HeaderFliptNamespace,
-		},
+	v.SetDefault("cors.enabled", false)
+	v.SetDefault("cors.allowed_origins", "*")
+	v.SetDefault("cors.allowed_headers", []string{
+		"Accept",
+		"Authorization",
+		"Content-Type",
+		"X-CSRF-Token",
+		common.HeaderFliptEnvironment,
+		common.HeaderFliptNamespace,
 	})
-
 	return nil
+}
+
+// IsZero returns true if the cors config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c CorsConfig) IsZero() bool {
+	return !c.Enabled
 }

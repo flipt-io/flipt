@@ -27,17 +27,12 @@ type LogKeys struct {
 }
 
 func (c *LogConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("log", map[string]any{
-		"level":      "INFO",
-		"encoding":   "console",
-		"grpc_level": "ERROR",
-		"keys": map[string]any{
-			"time":    "T",
-			"level":   "L",
-			"message": "M",
-		},
-	})
-
+	v.SetDefault("log.level", "INFO")
+	v.SetDefault("log.encoding", "console")
+	v.SetDefault("log.grpc_level", "ERROR")
+	v.SetDefault("log.keys.time", "T")
+	v.SetDefault("log.keys.level", "L")
+	v.SetDefault("log.keys.message", "M")
 	return nil
 }
 

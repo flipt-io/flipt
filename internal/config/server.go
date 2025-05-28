@@ -28,14 +28,11 @@ type ServerConfig struct {
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("server", map[string]any{
-		"host":       "0.0.0.0",
-		"protocol":   HTTP,
-		"http_port":  8080,
-		"https_port": 443,
-		"grpc_port":  9000,
-	})
-
+	v.SetDefault("server.host", "0.0.0.0")
+	v.SetDefault("server.protocol", HTTP)
+	v.SetDefault("server.http_port", 8080)
+	v.SetDefault("server.https_port", 443)
+	v.SetDefault("server.grpc_port", 9000)
 	return nil
 }
 

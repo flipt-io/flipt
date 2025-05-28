@@ -15,11 +15,6 @@ type ProfilingDiagnosticConfig struct {
 }
 
 func (c *DiagnosticConfig) setDefaults(v *viper.Viper) error {
-	v.SetDefault("diagnostics", map[string]any{
-		"profiling": map[string]any{
-			"enabled": true,
-		},
-	})
-
+	v.SetDefault("diagnostics.profiling.enabled", true)
 	return nil
 }
