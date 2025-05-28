@@ -222,18 +222,28 @@ func (s *Store) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceReq
 }
 
 func (s *Store) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
 	if r.Force {
 		_, err = s.builder.Delete("flags").
+			RunWith(tx).
 			Where(sq.Eq{"\"namespace_key\"": r.Key}).
 			ExecContext(ctx)
 		if err != nil {
+			_ = tx.Rollback()
 			return err
 		}
 	}
 
 	_, err = s.builder.Delete("namespaces").
+		RunWith(tx).
 		Where(sq.Eq{"\"key\"": r.Key}).
 		ExecContext(ctx)
-
-	return err
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
