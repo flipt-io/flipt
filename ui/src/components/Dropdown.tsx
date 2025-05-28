@@ -2,7 +2,7 @@ import { type VariantProps, cva } from 'class-variance-authority';
 import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
 import { Fragment } from 'react';
 
-import { Button } from '~/components/Button';
+import { Button, buttonVariants } from '~/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,11 +44,12 @@ type DropdownProps = {
   'data-testid'?: string;
 };
 
-export default function Dropdown(props: DropdownProps) {
+export default function Dropdown(
+  props: DropdownProps & VariantProps<typeof buttonVariants>
+) {
   const { label, actions, disabled = false, side, kind } = props;
   let BtnIcon = ChevronDown;
-  let variant: 'primary' | 'secondary' | 'soft' | 'link' | 'ghost' =
-    'secondary';
+  let variant = props.variant || 'secondary';
 
   if (kind === 'dots') {
     variant = 'ghost';
@@ -63,6 +64,7 @@ export default function Dropdown(props: DropdownProps) {
           variant={variant}
           type="button"
           data-testid={props['data-testid']}
+          size={props.size || 'default'}
         >
           {label}
           <BtnIcon className="ml-1 h-4 w-4" aria-hidden="true" />

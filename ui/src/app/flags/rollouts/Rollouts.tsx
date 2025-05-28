@@ -126,7 +126,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
           panelMessage={
             <>
               Are you sure you want to delete this rollout at
-              <span className="font-medium text-violet-500 dark:text-violet-400">
+              <span className="font-medium text-brand">
                 {' '}
                 position{' '}
                 {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
@@ -190,8 +190,8 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
               evaluated in order from top to bottom.
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Rules can be rearranged by clicking on the header and dragging and
-              dropping it into place.
+              Rollouts can be rearranged by clicking on the header and dragging
+              and dropping it into place.
             </p>
           </div>
           {rollouts && rollouts.length > 0 && (
@@ -212,7 +212,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
         <div className="mt-10">
           {rollouts && rollouts.length > 0 ? (
             <div className="flex">
-              <div className="w-full border border-gray-200 dark:border-gray-800 p-4 dark:bg-gray-900/80 lg:p-6">
+              <div className="w-full border bg-sidebar p-4 lg:p-6">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -264,7 +264,7 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
           ) : (
             <Well>
               <SplitSquareVerticalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
                 No Rollouts Yet
               </h3>
               <Button
