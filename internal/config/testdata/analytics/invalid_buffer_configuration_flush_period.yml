@@ -1,3 +1,7 @@
 analytics:
+  storage:
+    clickhouse:
+      enabled: true
+      url: "http://clickhouse:8123"
   buffer:
     flush_period: "5s"

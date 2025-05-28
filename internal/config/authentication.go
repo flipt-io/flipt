@@ -81,36 +81,26 @@ func (c AuthenticationConfig) IsZero() bool {
 }
 
 func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
-	methods := map[string]any{}
+	// Set top-level authentication defaults
+	v.SetDefault("authentication.required", false)
+	v.SetDefault("authentication.session.storage.type", "memory")
+	v.SetDefault("authentication.session.storage.cleanup.grace_period", "30m")
+	v.SetDefault("authentication.session.token_lifetime", "24h")
+	v.SetDefault("authentication.session.state_lifetime", "10m")
 
-	// set default for each methods
+	// Set defaults for each authentication method
 	for _, info := range c.Methods.AllMethods(context.Background()) {
-		method := map[string]any{"enabled": false}
-		// if the method has been enabled then set the defaults
-		// for its cleanup strategy
-		prefix := fmt.Sprintf("authentication.methods.%s", info.Name())
+		prefix := "authentication.methods." + info.Name()
+		v.SetDefault(prefix+".enabled", false)
 		if v.GetBool(prefix + ".enabled") {
-			// apply any method specific defaults
-			info.setDefaults(method)
+			// If enabled, apply method-specific defaults
+			methodDefaults := map[string]any{}
+			info.setDefaults(methodDefaults)
+			for k, val := range methodDefaults {
+				v.SetDefault(prefix+"."+k, val)
+			}
 		}
-
-		methods[info.Name()] = method
 	}
-
-	v.SetDefault("authentication", map[string]any{
-		"required": false,
-		"session": map[string]any{
-			"storage": map[string]any{
-				"type": "memory",
-				"cleanup": map[string]any{
-					"grace_period": "30m",
-				},
-			},
-			"token_lifetime": "24h",
-			"state_lifetime": "10m",
-		},
-		"methods": methods,
-	})
 
 	return nil
 }
@@ -130,8 +120,7 @@ func (c *AuthenticationConfig) validate() error {
 	// empty value.
 	if c.SessionEnabled() {
 		if c.Session.Domain == "" {
-			err := errFieldRequired("authentication", "session_domain")
-			return fmt.Errorf("when session compatible auth method enabled: %w", err)
+			return errFieldRequired("authentication", "session_domain")
 		}
 
 		host, err := getHostname(c.Session.Domain)
@@ -156,7 +145,7 @@ func (c *AuthenticationConfig) validate() error {
 	}
 
 	if c.Methods.Kubernetes.Enabled && c.Methods.JWT.Enabled {
-		return fmt.Errorf("authentication: kubernetes and jwt methods cannot currently both be enabled at the same time")
+		return errFieldWrap("authentication", "methods", fmt.Errorf("kubernetes and jwt methods cannot currently both be enabled at the same time"))
 	}
 
 	return nil
@@ -210,17 +199,21 @@ type AuthenticationSessionStorageConfig struct {
 }
 
 func (c AuthenticationSessionStorageConfig) validate() error {
-	return c.Cleanup.validate()
+	if err := c.Cleanup.validate(); err != nil {
+		return err
+	}
+
+	if c.Type == AuthenticationSessionStorageTypeRedis {
+		return c.Redis.validate()
+	}
+
+	return nil
 }
 
 func (c *AuthenticationSessionStorageConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("type", AuthenticationSessionStorageTypeMemory)
 
-	if c.Type == AuthenticationSessionStorageTypeRedis {
-		return c.Redis.setDefaults(v)
-	}
-
-	return nil
+	return c.Redis.setDefaults(v)
 }
 
 // AuthenticationSessionStorageCleanupConfig configures the schedule for cleaning up expired authentication records.
