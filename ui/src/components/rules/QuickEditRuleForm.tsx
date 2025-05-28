@@ -1,6 +1,7 @@
 import { Field, FieldArray, useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import Percent from '~/components/Percent';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
 import { DistributionType } from '~/types/Distribution';
@@ -363,21 +364,21 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         <div key={index}>
                           {dist && (
                             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1">
-                              <div>
-                                <label
-                                  htmlFor={`${fieldPrefix}distributions.[${index}].rollout`}
-                                  className="block truncate text-right text-sm text-gray-600 dark:text-gray-300 sm:mt-px sm:pr-2 sm:pt-2"
-                                >
-                                  {dist.variant}
-                                </label>
-                              </div>
+                              <label
+                                htmlFor={`${fieldPrefix}distributions.[${index}].rollout`}
+                                className="block truncate sm:text-right text-sm text-secondary-foreground sm:mt-px sm:pr-2 sm:pt-2"
+                              >
+                                {dist.variant}
+                              </label>
                               <div className="relative sm:col-span-1">
+                                <Percent />
                                 <Field
                                   key={index}
                                   type="number"
                                   className={cls(
-                                    'block w-full rounded-md border pl-10 bg-secondary/20 dark:bg-secondary/80 sm:text-sm',
-                                    'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[1px]'
+                                    'block w-full rounded-md border-input pl-10 bg-secondary/20 dark:bg-secondary/80 sm:text-sm',
+                                    'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[1px]',
+                                    'text-center'
                                   )}
                                   value={dist.rollout}
                                   name={`${fieldPrefix}distributions.[${index}].rollout`}
@@ -387,9 +388,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   min="0"
                                   max="100"
                                 />
-                                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                                  <span className="sm:text-sm">%</span>
-                                </div>
                               </div>
                             </div>
                           )}

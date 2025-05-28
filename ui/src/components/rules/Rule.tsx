@@ -48,7 +48,7 @@ const Rule = forwardRef(
           <span
             key={rule.id}
             className={cls(
-              'hidden h-4 w-4 justify-text-muted-foreground hover:cursor-move hover:text-brand sm:flex text-sm'
+              'hidden h-4 w-4 justify text-muted-foreground hover:cursor-move hover:text-brand sm:flex text-sm'
             )}
             {...rest}
           >

@@ -1,3 +1,4 @@
+import Percent from '~/components/Percent';
 import { Input } from '~/components/ui/input';
 
 import { IDistribution } from '~/types/Distribution';
@@ -26,24 +27,20 @@ export default function MultiDistributionFormInputs(
       </div>
       {distributions.map((dist: IDistribution, index: number) => (
         <div
-          className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
+          className="flex space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
           key={dist.variant}
         >
-          <div>
-            <label
-              htmlFor={dist.variant}
-              className="block truncate text-right text-sm text-secondary-foreground sm:mt-px sm:pr-2 sm:pt-2"
-            >
-              {dist.variant}
-            </label>
-          </div>
+          <label
+            htmlFor={dist.variant}
+            className="block truncate sm:text-right text-sm text-secondary-foreground sm:mt-px sm:pr-2 sm:pt-2"
+          >
+            {dist.variant}
+          </label>
           <div className="relative sm:col-span-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              %
-            </div>
+            <Percent />
             <Input
               type="number"
-              className="pl-10"
+              className="pl-10 text-center"
               value={dist.rollout}
               name={dist.variant}
               data-testid="distribution-input"

@@ -88,7 +88,7 @@ export function DefaultVariant(props: RulesProps) {
         <div className="w-full rounded-t-lg border-b p-2">
           <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
             <StarIcon className="hidden h-4 w-4 justify-start text-muted-foreground sm:flex" />
-            <h3 className="text-sm font-medium leading-6 text-secondary-foreground">
+            <h3 className="text-sm font-medium text-secondary-foreground">
               Default Rule
             </h3>
             <Dropdown
