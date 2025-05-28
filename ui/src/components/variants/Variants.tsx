@@ -51,7 +51,7 @@ export default function Variants({ variants }: VariantsProps) {
           panelMessage={
             <>
               Are you sure you want to delete the variant{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
+              <span className="font-medium text-brand">
                 {deletingVariant?.key}
               </span>
               ? This action cannot be undone.
@@ -110,7 +110,7 @@ export default function Variants({ variants }: VariantsProps) {
           ) : (
             <Well>
               <SlidersHorizontalIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-4 dark:text-gray-200">
+              <h3 className="text-lg font-medium text-muted-foreground mb-4">
                 No Variants Yet
               </h3>
               <Button

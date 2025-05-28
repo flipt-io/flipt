@@ -2,7 +2,6 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { FieldArray, Form, Formik } from 'formik';
 import { XIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { v4 as uuid } from 'uuid';
 import * as Yup from 'yup';
 
@@ -12,7 +11,6 @@ import MoreInfo from '~/components/MoreInfo';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 
 import { DistributionType, IDistribution } from '~/types/Distribution';
-import { IFlag } from '~/types/Flag';
 import { IRule } from '~/types/Rule';
 import {
   FilterableSegment,
@@ -20,7 +18,7 @@ import {
   SegmentOperatorType,
   segmentOperators
 } from '~/types/Segment';
-import { FilterableVariant } from '~/types/Variant';
+import { FilterableVariant, IVariant } from '~/types/Variant';
 
 import { useError } from '~/data/hooks/error';
 import { keyValidation } from '~/data/validations';
@@ -85,7 +83,7 @@ type RuleFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
   createRule: (rule: IRule) => void;
-  flag: IFlag;
+  variants: IVariant[];
   segments: ISegment[];
 };
 
@@ -95,7 +93,7 @@ interface Segment {
 }
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, onSuccess, flag, segments, createRule } = props;
+  const { setOpen, onSuccess, segments, createRule, variants } = props;
 
   const { setError, clearError } = useError();
 
@@ -107,10 +105,10 @@ export default function RuleForm(props: RuleFormProps) {
     useState<FilterableVariant | null>(null);
 
   const [distributions, setDistributions] = useState<IDistribution[]>(() => {
-    const percentages = computePercentages(flag.variants?.length || 0);
+    const percentages = computePercentages(variants.length || 0);
 
     return (
-      flag.variants?.map((variant, i) => ({
+      variants.map((variant, i) => ({
         variant: variant.key,
         rollout: percentages[i]
       })) || []
@@ -375,7 +373,7 @@ export default function RuleForm(props: RuleFormProps) {
                                 readOnly
                                 disabled={
                                   dist.id !== DistributionType.None &&
-                                  (!flag.variants || flag.variants.length === 0)
+                                  (!variants || variants.length === 0)
                                 }
                               />
                             </div>
@@ -399,18 +397,18 @@ export default function RuleForm(props: RuleFormProps) {
                     </fieldset>
                   </div>
                 </div>
-                {flag.variants &&
-                  flag.variants.length > 0 &&
+                {variants &&
+                  variants.length > 0 &&
                   ruleType === DistributionType.Single && (
                     <SingleDistributionFormInput
-                      variants={flag.variants}
+                      variants={variants}
                       selectedVariant={selectedVariant}
                       setSelectedVariant={handleVariantChange}
                       id="variant"
                     />
                   )}
-                {flag.variants &&
-                  flag.variants.length > 0 &&
+                {variants &&
+                  variants.length > 0 &&
                   ruleType === DistributionType.Multi && (
                     <MultiDistributionFormInputs
                       distributions={distributions}
@@ -418,22 +416,14 @@ export default function RuleForm(props: RuleFormProps) {
                     />
                   )}
                 {!distributionsValid && ruleType === DistributionType.Multi && (
-                  <p className="mt-1 px-4 text-center text-sm text-red-500 sm:px-6 sm:py-5">
+                  <p className="mt-1 px-4 text-center text-sm text-destructive sm:px-6 sm:py-5">
                     Multi-variate rules must have distributions that add up to
                     100% or less.
                   </p>
                 )}
-                {(!flag.variants || flag.variants?.length == 0) && (
-                  <p className="mt-1 px-4 text-center text-sm text-gray-500 dark:text-gray-400 sm:px-6 sm:py-5">
-                    Flag{' '}
-                    <Link
-                      to=".."
-                      className="text-violet-500 dark:text-violet-400"
-                    >
-                      {flag.key}
-                    </Link>{' '}
-                    has no variants. You can add variants in the details
-                    section.
+                {(!variants || variants?.length == 0) && (
+                  <p className="mt-1 px-4 text-center text-sm text-muted-foreground sm:px-6 sm:py-5">
+                    Flag has no variants.
                   </p>
                 )}
               </div>

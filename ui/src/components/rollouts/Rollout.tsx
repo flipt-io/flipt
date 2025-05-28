@@ -43,14 +43,14 @@ const Rollout = forwardRef(
       ref={ref}
       style={style}
       data-testid={`rollout-${typeof index === 'number' ? index : 0}`}
-      className={`${className} w-full items-center space-y-2 rounded-md border border-gray-200 dark:border-gray-700 bg-background dark:bg-gray-950 shadow-md shadow-violet-100 dark:shadow-violet-900/20 hover:shadow-violet-200 dark:hover:shadow-violet-800/30 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} w-full items-center space-y-2 rounded-md border bg-background hover:shadow-md hover:shadow-accent sm:flex sm:flex-col lg:px-6 lg:py-2`}
     >
       <div className="w-full rounded-t-lg border-b border-gray-200 dark:border-gray-700 p-2">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
           <span
             key={rollout.id}
             className={cls(
-              'hidden h-4 w-4 justify-start text-gray-400 dark:text-gray-400 hover:cursor-move hover:text-violet-300 dark:hover:text-violet-400 sm:flex'
+              'hidden h-4 w-4 justify text-muted-foreground hover:cursor-move hover:text-brand sm:flex text-sm'
             )}
             {...rest}
           >
@@ -58,7 +58,7 @@ const Rollout = forwardRef(
           </span>
           <h3
             className={cls(
-              'text-sm font-normal leading-6 text-gray-700 dark:text-gray-200 hover:cursor-move'
+              'text-sm font-normal hover:cursor-move text-secondary-foreground'
             )}
             {...rest}
           >
@@ -66,6 +66,7 @@ const Rollout = forwardRef(
           </h3>
           <Dropdown
             data-testid="rollout-menu-button"
+            size="icon"
             label=""
             kind="dots"
             actions={[
@@ -92,7 +93,7 @@ const Rollout = forwardRef(
         <div className="flex grow flex-col items-center justify-center sm:ml-2">
           {rollout.description && (
             <div className="flex pb-4 pt-2">
-              <p className="text-sm font-light text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground/75">
                 {rollout.description}
               </p>
             </div>

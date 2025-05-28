@@ -30,6 +30,9 @@ func (c *AuthorizationConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("authorization.required", false)
 	v.SetDefault("authorization.backend", AuthorizationBackendLocal)
 	v.SetDefault("authorization.local.policy.poll_interval", 5*time.Minute)
+	if v.GetString("authorization.local.data.path") != "" {
+		v.SetDefault("authorization.local.data.poll_interval", 30*time.Second)
+	}
 	return nil
 }
 

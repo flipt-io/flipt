@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	jjwt "github.com/go-jose/go-jose/v3/jwt"
+	jjwt "github.com/go-jose/go-jose/v4/jwt"
 	"github.com/hashicorp/cap/jwt"
 	"github.com/hashicorp/cap/oidc"
 	"github.com/stretchr/testify/assert"

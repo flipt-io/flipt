@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/google/go-github/v64/github"
+	"github.com/google/go-github/v66/github"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"

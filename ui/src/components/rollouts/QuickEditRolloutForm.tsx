@@ -1,6 +1,7 @@
 import { FieldArray, useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import Percent from '~/components/Percent';
 import Input from '~/components/forms/Input';
 import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
@@ -179,7 +180,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
               <label
                 htmlFor="threshold-percentage-range"
-                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
+                className="mb-2 block text-sm font-medium text-secondary-foreground"
               >
                 Percentage
               </label>
@@ -202,9 +203,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 onKeyUp={(e) => handlePercentageChange(e.currentTarget.value)}
               />
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foreground">
-                  %
-                </div>
+                <Percent />
                 <Input
                   forwardRef={percentageInputRef}
                   type="number"
@@ -225,7 +224,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'threshold.value'}
-                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
+                className="mb-2 block text-sm font-medium text-secondary-foreground"
               >
                 Value
               </label>
@@ -252,7 +251,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               <div>
                 <label
                   htmlFor={fieldPrefix + 'segment.segments'}
-                  className="block text-sm font-medium text-gray-900 dark:text-gray-100 sm:mt-px sm:pt-2"
+                  className="block text-sm font-medium text-secondary-foreground sm:mt-px sm:pt-2"
                 >
                   Segment
                 </label>
@@ -302,7 +301,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                         <div className="flex items-center">
                           <label
                             htmlFor={segmentOperator.id}
-                            className="block text-sm text-gray-700 dark:text-gray-200 cursor-pointer"
+                            className="block text-sm cursor-pointer"
                           >
                             {segmentOperator.name}{' '}
                             <span className="font-light">
@@ -317,7 +316,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               </div>
               <label
                 htmlFor={fieldPrefix + 'segment.value'}
-                className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100"
+                className="mb-2 block text-sm font-medium text-secondary-foreground"
               >
                 Value
               </label>
