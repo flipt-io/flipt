@@ -57,7 +57,6 @@ type Environment interface {
 
 	// From Branched Environments
 	Propose(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
-	GetProposal(ctx context.Context, base Environment) (*environments.EnvironmentProposalDetails, error)
 	ListBranchedChanges(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
 
 	// Namespaces

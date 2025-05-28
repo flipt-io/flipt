@@ -23,12 +23,24 @@ import (
 
 var _ git.SCM = (*SCM)(nil)
 
+// PullRequestsService defines the interface for GitHub pull request operations used by SCM.
+type PullRequestsService interface {
+	Create(ctx context.Context, owner, repo string, pr *github.NewPullRequest) (*github.PullRequest, *github.Response, error)
+	List(ctx context.Context, owner, repo string, opts *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
+}
+
+// RepositoriesService defines the interface for GitHub repository operations used by SCM.
+type RepositoriesService interface {
+	CompareCommits(ctx context.Context, owner, repo, base, head string, opts *github.ListOptions) (*github.CommitsComparison, *github.Response, error)
+}
+
+// SCM implements the git.SCM interface for GitHub.
 type SCM struct {
 	logger    *zap.Logger
 	repoOwner string
 	repoName  string
-	client    *github.PullRequestsService
-	repos     *github.RepositoriesService
+	prs       PullRequestsService
+	repos     RepositoriesService
 }
 
 type ClientOption func(*github.Client)
@@ -49,6 +61,7 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 	}
 }
 
+// NewSCM creates a new SCM instance.
 func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client, opts ...ClientOption) *SCM {
 	ghClient := github.NewClient(httpClient)
 	for _, opt := range opts {
@@ -59,13 +72,14 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Cli
 		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
 		repoOwner: repoOwner,
 		repoName:  repoName,
-		client:    ghClient.PullRequests,
+		prs:       ghClient.PullRequests,
 		repos:     ghClient.Repositories,
 	}
 }
 
+// Propose creates a new pull request with the given request.
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
-	pr, _, err := s.client.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
+	pr, _, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
 		Title: github.String(req.Title),
@@ -83,6 +97,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	}, nil
 }
 
+// ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	comparison, _, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
 	if err != nil {
@@ -130,6 +145,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	}, nil
 }
 
+// ListProposals lists all proposals for the given environment.
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	var (
 		baseCfg = env.Configuration()
@@ -172,7 +188,7 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 type prs struct {
 	logger    *zap.Logger
 	ctx       context.Context
-	client    *github.PullRequestsService
+	client    PullRequestsService
 	repoOwner string
 	repoName  string
 	base      string
@@ -181,7 +197,7 @@ type prs struct {
 }
 
 func (s *SCM) listPRs(ctx context.Context, base string) *prs {
-	return &prs{s.logger, ctx, s.client, s.repoOwner, s.repoName, base, nil}
+	return &prs{s.logger, ctx, s.prs, s.repoOwner, s.repoName, base, nil}
 }
 
 func (p *prs) Err() error {

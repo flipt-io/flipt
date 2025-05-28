@@ -527,63 +527,6 @@ func (_c *MockEnvironment_GetNamespace_Call) RunAndReturn(run func(context1 cont
 	return _c
 }
 
-// GetProposal provides a mock function for the type MockEnvironment
-func (_mock *MockEnvironment) GetProposal(ctx context.Context, base Environment) (*environments.EnvironmentProposalDetails, error) {
-	ret := _mock.Called(ctx, base)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetProposal")
-	}
-
-	var r0 *environments.EnvironmentProposalDetails
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment) (*environments.EnvironmentProposalDetails, error)); ok {
-		return returnFunc(ctx, base)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment) *environments.EnvironmentProposalDetails); ok {
-		r0 = returnFunc(ctx, base)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*environments.EnvironmentProposalDetails)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, Environment) error); ok {
-		r1 = returnFunc(ctx, base)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockEnvironment_GetProposal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProposal'
-type MockEnvironment_GetProposal_Call struct {
-	*mock.Call
-}
-
-// GetProposal is a helper method to define mock.On call
-//   - ctx
-//   - base
-func (_e *MockEnvironment_Expecter) GetProposal(ctx interface{}, base interface{}) *MockEnvironment_GetProposal_Call {
-	return &MockEnvironment_GetProposal_Call{Call: _e.mock.On("GetProposal", ctx, base)}
-}
-
-func (_c *MockEnvironment_GetProposal_Call) Run(run func(ctx context.Context, base Environment)) *MockEnvironment_GetProposal_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(Environment))
-	})
-	return _c
-}
-
-func (_c *MockEnvironment_GetProposal_Call) Return(environmentProposalDetails *environments.EnvironmentProposalDetails, err error) *MockEnvironment_GetProposal_Call {
-	_c.Call.Return(environmentProposalDetails, err)
-	return _c
-}
-
-func (_c *MockEnvironment_GetProposal_Call) RunAndReturn(run func(ctx context.Context, base Environment) (*environments.EnvironmentProposalDetails, error)) *MockEnvironment_GetProposal_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Key provides a mock function for the type MockEnvironment
 func (_mock *MockEnvironment) Key() string {
 	ret := _mock.Called()

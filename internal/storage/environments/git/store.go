@@ -3,13 +3,14 @@ package git
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"iter"
 	"strings"
 	"sync"
 	"text/template"
+
+	"go.flipt.io/flipt/errors"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v5"
@@ -259,15 +260,11 @@ func (e *branchEnvIterator) Err() error {
 }
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.ErrNotImplemented("Propose not implemented in non-enterprise version")
 }
 
 func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.ListBranchedEnvironmentChangesResponse, error) {
-	return nil, errors.New("not implemented")
-}
-
-func (e *Environment) GetProposal(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.EnvironmentProposalDetails, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-enterprise version")
 }
 
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {
