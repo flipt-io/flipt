@@ -210,7 +210,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 
 	result, err := scm.ListProposals(ctx, mockEnv)
 	require.NoError(t, err)
-	assert.Len(t, result, 0)
+	assert.Empty(t, result)
 }
 
 func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {

@@ -13,7 +13,6 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/environments"
-	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
@@ -166,7 +165,7 @@ func Test_Environment_ProposeNotImplemented(t *testing.T) {
 	env := newTestEnvironment(t, "production")
 	ctx := context.Background()
 
-	_, err := env.Propose(ctx, nil, serverenvs.ProposalOptions{})
+	_, err := env.Propose(ctx, nil, environments.ProposalOptions{})
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errors.ErrNotImplemented("Propose not implemented in non-enterprise version"))
 }
