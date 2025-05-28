@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
-	"github.com/go-jose/go-jose/v3/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/stretchr/testify/require"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
@@ -321,10 +321,11 @@ func signWithPrivateKeyClaims(t *testing.T, privPath string, claims map[string]a
 		jose.SigningKey{Algorithm: jose.RS256, Key: key},
 		(&jose.SignerOptions{}).WithType("JWT"),
 	)
+	require.NoError(t, err)
 
 	raw, err := jwt.Signed(sig).
 		Claims(claims).
-		CompactSerialize()
+		Serialize()
 	require.NoError(t, err)
 
 	return raw
