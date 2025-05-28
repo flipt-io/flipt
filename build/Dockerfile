@@ -2,15 +2,11 @@
 
 ARG BINARY=flipt
 
-FROM alpine:3.21.2
+FROM alpine:3.21.3
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
-
-RUN apk add --no-cache \
-    openssl \
-    ca-certificates
 
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
