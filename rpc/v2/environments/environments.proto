@@ -6,6 +6,7 @@ import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
 
@@ -19,28 +20,34 @@ service EnvironmentsService {
   rpc BranchEnvironment(BranchEnvironmentRequest) returns (Environment) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {
-      post: "/api/v2/environments/{base_environment_key}/branches"
+      post: "/api/v2/environments/{environment_key}/branches"
       body: "*"
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "branchEnvironment"};
   }
 
+  rpc DeleteBranchEnvironment(DeleteBranchEnvironmentRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {delete: "/api/v2/environments/{environment_key}/branches/{key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteBranchEnvironment"};
+  }
+
   rpc ListEnvironmentBranches(ListEnvironmentBranchesRequest) returns (ListEnvironmentBranchesResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
-    option (google.api.http) = {get: "/api/v2/environments/{base_environment_key}/branches"};
+    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/branches"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listEnvironmentBranches"};
   }
 
   rpc ListBranchedEnvironmentChanges(ListBranchedEnvironmentChangesRequest) returns (ListBranchedEnvironmentChangesResponse) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
-    option (google.api.http) = {get: "/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes"};
+    option (google.api.http) = {get: "/api/v2/environments/{environment_key}/branches/{key}/changes"};
     option (gnostic.openapi.v3.operation) = {operation_id: "listBranchedEnvironmentChanges"};
   }
 
   rpc ProposeEnvironment(ProposeEnvironmentRequest) returns (EnvironmentProposalDetails) {
     option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
     option (google.api.http) = {
-      post: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"
+      post: "/api/v2/environments/{environment_key}/branches/{key}"
       body: "*"
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "proposeEnvironment"};
@@ -121,7 +128,7 @@ message Environment {
 }
 
 message EnvironmentConfiguration {
-  string branch = 1;
+  string ref = 1;
   optional string directory = 2;
   optional string remote = 3;
   optional string base = 4;
@@ -134,19 +141,24 @@ message ListEnvironmentsResponse {
 }
 
 message BranchEnvironmentRequest {
-  string base_environment_key = 1;
-  string environment_key = 2;
+  string environment_key = 1;
+  string key = 2;
+}
+
+message DeleteBranchEnvironmentRequest {
+  string environment_key = 1;
+  string key = 2;
 }
 
 message BranchEnvironment {
   string environment_key = 1;
-  string branch = 2;
-  string base_environment_key = 3;
+  string key = 2;
+  string ref = 3;
   optional EnvironmentProposalDetails proposal = 4;
 }
 
 message ListEnvironmentBranchesRequest {
-  string base_environment_key = 1;
+  string environment_key = 1;
 }
 
 message ListEnvironmentBranchesResponse {
@@ -154,8 +166,8 @@ message ListEnvironmentBranchesResponse {
 }
 
 message ProposeEnvironmentRequest {
-  string base_environment_key = 1;
-  string environment_key = 2;
+  string environment_key = 1;
+  string key = 2;
   optional string title = 3;
   optional string body = 4;
   optional bool draft = 5;
@@ -187,8 +199,8 @@ message Change {
 }
 
 message ListBranchedEnvironmentChangesRequest {
-  string base_environment_key = 1;
-  string environment_key = 2;
+  string environment_key = 1;
+  string key = 2;
   optional string from = 3;
   optional int32 limit = 4;
 }

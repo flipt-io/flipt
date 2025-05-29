@@ -161,7 +161,7 @@ func TestSCM_ListProposals(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Branch: "main"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	pr := &github.PullRequest{
@@ -196,7 +196,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Branch: "main"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 
 	pr := &github.PullRequest{
 		Head:    &github.PullRequestBranch{Ref: github.String("otherprefix/testenv/feature")},
@@ -225,7 +225,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Branch: "main"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
@@ -263,7 +263,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Branch: "main"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
@@ -298,7 +298,7 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Branch: "main"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"

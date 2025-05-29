@@ -611,6 +611,34 @@ func (r *Repository) CreateBranchIfNotExists(branch string, opts ...containers.O
 		reference.Hash()))
 }
 
+func (r *Repository) DeleteBranch(ctx context.Context, branch string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Delete local branch
+	localRef := plumbing.NewBranchReferenceName(branch)
+	if err := r.Storer.RemoveReference(localRef); err != nil {
+		return fmt.Errorf("failed to delete local branch: %w", err)
+	}
+
+	// Delete remote branch if remote is configured
+	if r.remote != nil {
+		refSpec := config.RefSpec(fmt.Sprintf(":%s", plumbing.NewBranchReferenceName(branch)))
+		err := r.PushContext(ctx, &git.PushOptions{
+			RemoteName:      r.remote.Name,
+			Auth:            r.auth,
+			CABundle:        r.caBundle,
+			InsecureSkipTLS: r.insecureSkipTLS,
+			RefSpecs:        []config.RefSpec{refSpec},
+		})
+		if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return fmt.Errorf("failed to delete remote branch: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error) {
 	return newFilesystem(
 		r.logger,
