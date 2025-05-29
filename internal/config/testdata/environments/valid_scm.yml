@@ -1,0 +1,13 @@
+environments:
+  default:
+    name: default
+    scm:
+      type: github
+      credentials: git
+
+credentials:
+  git:
+    type: basic
+    basic:
+      username: user
+      password: pass

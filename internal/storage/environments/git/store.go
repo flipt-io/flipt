@@ -3,13 +3,14 @@ package git
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"iter"
 	"strings"
 	"sync"
 	"text/template"
+
+	"go.flipt.io/flipt/errors"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-git/go-git/v5"
@@ -27,7 +28,10 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ serverenvs.Environment = (*Environment)(nil)
+var (
+	_ serverenvs.Environment = (*Environment)(nil)
+	_ storagegit.Subscriber  = (*Environment)(nil)
+)
 
 // Environment is an implementation of the configuration servers Environment interface
 // which is backed by a Git repository.
@@ -99,10 +103,20 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 		base = &e.base
 	}
 
+	var remote *string
+	if e.repo.GetRemote() != "" {
+		remote = ptr(e.repo.GetRemote())
+	}
+
+	var directory *string
+	if e.cfg.Directory != "" {
+		directory = &e.cfg.Directory
+	}
+
 	return &rpcenvironments.EnvironmentConfiguration{
-		Remote:    e.repo.GetRemote(),
 		Branch:    e.currentBranch,
-		Directory: e.cfg.Directory,
+		Remote:    remote,
+		Directory: directory,
 		Base:      base,
 	}
 }
@@ -245,8 +259,12 @@ func (e *branchEnvIterator) Err() error {
 	return e.err
 }
 
-func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (*rpcenvironments.ProposeEnvironmentResponse, error) {
-	return nil, errors.New("not implemented")
+func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
+	return nil, errors.ErrNotImplemented("Propose not implemented in non-enterprise version")
+}
+
+func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.ListBranchedEnvironmentChangesResponse, error) {
+	return nil, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-enterprise version")
 }
 
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {
@@ -508,15 +526,15 @@ func (e *Environment) EvaluationNamespaceSnapshotSubscribe(ctx context.Context, 
 }
 
 // Notify is called whenever the tracked branch is fetched and advances
-func (e *Environment) Notify(ctx context.Context, refs map[string]plumbing.Hash) error {
-	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash.String() {
+func (e *Environment) Notify(ctx context.Context, refs map[string]string) error {
+	if hash, ok := refs[e.currentBranch]; ok && e.refs[e.currentBranch] != hash {
 		e.logger.Debug("updating base env snapshot",
 			zap.String("environment", e.cfg.Name),
 			zap.String("from", e.refs[e.currentBranch]),
-			zap.String("to", hash.String()),
+			zap.String("to", hash),
 		)
 
-		e.refs[e.currentBranch] = hash.String()
+		e.refs[e.currentBranch] = hash
 		if err := e.updateSnapshot(ctx); err != nil {
 			return err
 		}
@@ -652,4 +670,8 @@ func (e *Environment) buildSnapshot(ctx context.Context, hash plumbing.Hash) (sn
 		snap, err = storagefs.SnapshotFromFS(e.logger, conf, iofs)
 		return err
 	}, storagegit.ViewWithHash(hash))
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }

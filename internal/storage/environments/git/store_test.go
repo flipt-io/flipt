@@ -10,6 +10,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
@@ -158,6 +159,24 @@ func Test_Environment_ListBranches(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, resp.Branches, 1)
 	assert.Contains(t, resp.Branches[0].Branch, "flipt/production/")
+}
+
+func Test_Environment_ProposeNotImplemented(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	_, err := env.Propose(ctx, nil, environments.ProposalOptions{})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, errors.ErrNotImplemented("Propose not implemented in non-enterprise version"))
+}
+
+func Test_Environment_ListBranchedChangesNotImplemented(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	_, err := env.ListBranchedChanges(ctx, nil)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-enterprise version"))
 }
 
 func Test_Environment_RefreshEnvironment(t *testing.T) {
@@ -363,4 +382,21 @@ func Test_store_UpdateResource_and_DeleteResource(t *testing.T) {
 	assert.Equal(t, "baz", st.changes[0].Resource.Key)
 }
 
-func ptr[T any](t T) *T { return &t }
+func Test_store_ListResources(t *testing.T) {
+	ctx := context.Background()
+	rs := &testResourceStorage{}
+	st := &store{
+		typ:    rs.ResourceType(),
+		rstore: rs,
+		fs:     nil, // not used in mock
+		base:   plumbing.NewHash("deadbeef"),
+	}
+
+	resp, err := st.ListResources(ctx, "default")
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Len(t, resp.Resources, 1)
+	assert.Equal(t, "foo", resp.Resources[0].Key)
+	assert.Equal(t, "deadbeef00000000000000000000000000000000", resp.Revision)
+	assert.True(t, rs.listCalled)
+}

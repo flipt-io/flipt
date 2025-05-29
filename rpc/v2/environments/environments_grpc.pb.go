@@ -19,20 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EnvironmentsService_ListEnvironments_FullMethodName        = "/environments.EnvironmentsService/ListEnvironments"
-	EnvironmentsService_BranchEnvironment_FullMethodName       = "/environments.EnvironmentsService/BranchEnvironment"
-	EnvironmentsService_ListEnvironmentBranches_FullMethodName = "/environments.EnvironmentsService/ListEnvironmentBranches"
-	EnvironmentsService_ProposeEnvironment_FullMethodName      = "/environments.EnvironmentsService/ProposeEnvironment"
-	EnvironmentsService_GetNamespace_FullMethodName            = "/environments.EnvironmentsService/GetNamespace"
-	EnvironmentsService_ListNamespaces_FullMethodName          = "/environments.EnvironmentsService/ListNamespaces"
-	EnvironmentsService_CreateNamespace_FullMethodName         = "/environments.EnvironmentsService/CreateNamespace"
-	EnvironmentsService_UpdateNamespace_FullMethodName         = "/environments.EnvironmentsService/UpdateNamespace"
-	EnvironmentsService_DeleteNamespace_FullMethodName         = "/environments.EnvironmentsService/DeleteNamespace"
-	EnvironmentsService_GetResource_FullMethodName             = "/environments.EnvironmentsService/GetResource"
-	EnvironmentsService_ListResources_FullMethodName           = "/environments.EnvironmentsService/ListResources"
-	EnvironmentsService_CreateResource_FullMethodName          = "/environments.EnvironmentsService/CreateResource"
-	EnvironmentsService_UpdateResource_FullMethodName          = "/environments.EnvironmentsService/UpdateResource"
-	EnvironmentsService_DeleteResource_FullMethodName          = "/environments.EnvironmentsService/DeleteResource"
+	EnvironmentsService_ListEnvironments_FullMethodName               = "/environments.EnvironmentsService/ListEnvironments"
+	EnvironmentsService_BranchEnvironment_FullMethodName              = "/environments.EnvironmentsService/BranchEnvironment"
+	EnvironmentsService_ListEnvironmentBranches_FullMethodName        = "/environments.EnvironmentsService/ListEnvironmentBranches"
+	EnvironmentsService_ListBranchedEnvironmentChanges_FullMethodName = "/environments.EnvironmentsService/ListBranchedEnvironmentChanges"
+	EnvironmentsService_ProposeEnvironment_FullMethodName             = "/environments.EnvironmentsService/ProposeEnvironment"
+	EnvironmentsService_GetNamespace_FullMethodName                   = "/environments.EnvironmentsService/GetNamespace"
+	EnvironmentsService_ListNamespaces_FullMethodName                 = "/environments.EnvironmentsService/ListNamespaces"
+	EnvironmentsService_CreateNamespace_FullMethodName                = "/environments.EnvironmentsService/CreateNamespace"
+	EnvironmentsService_UpdateNamespace_FullMethodName                = "/environments.EnvironmentsService/UpdateNamespace"
+	EnvironmentsService_DeleteNamespace_FullMethodName                = "/environments.EnvironmentsService/DeleteNamespace"
+	EnvironmentsService_GetResource_FullMethodName                    = "/environments.EnvironmentsService/GetResource"
+	EnvironmentsService_ListResources_FullMethodName                  = "/environments.EnvironmentsService/ListResources"
+	EnvironmentsService_CreateResource_FullMethodName                 = "/environments.EnvironmentsService/CreateResource"
+	EnvironmentsService_UpdateResource_FullMethodName                 = "/environments.EnvironmentsService/UpdateResource"
+	EnvironmentsService_DeleteResource_FullMethodName                 = "/environments.EnvironmentsService/DeleteResource"
 )
 
 // EnvironmentsServiceClient is the client API for EnvironmentsService service.
@@ -43,7 +44,8 @@ type EnvironmentsServiceClient interface {
 	ListEnvironments(ctx context.Context, in *ListEnvironmentsRequest, opts ...grpc.CallOption) (*ListEnvironmentsResponse, error)
 	BranchEnvironment(ctx context.Context, in *BranchEnvironmentRequest, opts ...grpc.CallOption) (*Environment, error)
 	ListEnvironmentBranches(ctx context.Context, in *ListEnvironmentBranchesRequest, opts ...grpc.CallOption) (*ListEnvironmentBranchesResponse, error)
-	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*ProposeEnvironmentResponse, error)
+	ListBranchedEnvironmentChanges(ctx context.Context, in *ListBranchedEnvironmentChangesRequest, opts ...grpc.CallOption) (*ListBranchedEnvironmentChangesResponse, error)
+	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error)
 	// namespaces
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
@@ -96,9 +98,19 @@ func (c *environmentsServiceClient) ListEnvironmentBranches(ctx context.Context,
 	return out, nil
 }
 
-func (c *environmentsServiceClient) ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*ProposeEnvironmentResponse, error) {
+func (c *environmentsServiceClient) ListBranchedEnvironmentChanges(ctx context.Context, in *ListBranchedEnvironmentChangesRequest, opts ...grpc.CallOption) (*ListBranchedEnvironmentChangesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProposeEnvironmentResponse)
+	out := new(ListBranchedEnvironmentChangesResponse)
+	err := c.cc.Invoke(ctx, EnvironmentsService_ListBranchedEnvironmentChanges_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *environmentsServiceClient) ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnvironmentProposalDetails)
 	err := c.cc.Invoke(ctx, EnvironmentsService_ProposeEnvironment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -214,7 +226,8 @@ type EnvironmentsServiceServer interface {
 	ListEnvironments(context.Context, *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error)
 	BranchEnvironment(context.Context, *BranchEnvironmentRequest) (*Environment, error)
 	ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error)
-	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*ProposeEnvironmentResponse, error)
+	ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error)
+	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error)
 	// namespaces
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
@@ -246,7 +259,10 @@ func (UnimplementedEnvironmentsServiceServer) BranchEnvironment(context.Context,
 func (UnimplementedEnvironmentsServiceServer) ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironmentBranches not implemented")
 }
-func (UnimplementedEnvironmentsServiceServer) ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*ProposeEnvironmentResponse, error) {
+func (UnimplementedEnvironmentsServiceServer) ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBranchedEnvironmentChanges not implemented")
+}
+func (UnimplementedEnvironmentsServiceServer) ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposeEnvironment not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error) {
@@ -350,6 +366,24 @@ func _EnvironmentsService_ListEnvironmentBranches_Handler(srv interface{}, ctx c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EnvironmentsServiceServer).ListEnvironmentBranches(ctx, req.(*ListEnvironmentBranchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnvironmentsService_ListBranchedEnvironmentChanges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBranchedEnvironmentChangesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).ListBranchedEnvironmentChanges(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_ListBranchedEnvironmentChanges_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).ListBranchedEnvironmentChanges(ctx, req.(*ListBranchedEnvironmentChangesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -570,6 +604,10 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEnvironmentBranches",
 			Handler:    _EnvironmentsService_ListEnvironmentBranches_Handler,
+		},
+		{
+			MethodName: "ListBranchedEnvironmentChanges",
+			Handler:    _EnvironmentsService_ListBranchedEnvironmentChanges_Handler,
 		},
 		{
 			MethodName: "ProposeEnvironment",

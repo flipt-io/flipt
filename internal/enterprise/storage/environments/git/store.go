@@ -22,7 +22,9 @@ import (
 var _ serverenvs.Environment = (*Environment)(nil)
 
 type SCM interface {
-	Propose(context.Context, ProposalRequest) (*environments.ProposeEnvironmentResponse, error)
+	Propose(context.Context, ProposalRequest) (*environments.EnvironmentProposalDetails, error)
+	ListChanges(context.Context, ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error)
+	ListProposals(context.Context, serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error)
 }
 
 type ProposalRequest struct {
@@ -30,6 +32,14 @@ type ProposalRequest struct {
 	Head  string
 	Title string
 	Body  string
+	Draft bool
+}
+
+type ListChangesRequest struct {
+	Base  string
+	Head  string
+	Since string
+	Limit int32
 }
 
 type Environment struct {
@@ -38,14 +48,39 @@ type Environment struct {
 	SCM SCM
 }
 
-func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment) (resp *environments.ProposeEnvironmentResponse, err error) {
+func NewEnvironment(logger *zap.Logger, env *git.Environment, scm SCM) *Environment {
+	return &Environment{
+		logger:      logger,
+		Environment: env,
+		SCM:         scm,
+	}
+}
+
+func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
 	var (
-		baseCfg   = e.Configuration()
-		branchCfg = branch.Configuration()
+		baseCfg   = base.Configuration()
+		branchCfg = e.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", branch.Key(), e.Key())
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
+	}
+
+	return e.SCM.ListChanges(ctx, ListChangesRequest{
+		Base:  baseCfg.Branch,
+		Head:  branchCfg.Branch,
+		Limit: 10,
+	})
+}
+
+func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
+	var (
+		baseCfg   = base.Configuration()
+		branchCfg = e.Configuration()
+	)
+
+	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
 	}
 
 	type templateContext struct {
@@ -55,23 +90,38 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 
 	if err := e.Repository().View(ctx, branchCfg.Branch, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
 		// chroot our filesystem to the configured directory
-		src = environmentsfs.SubFilesystem(src, baseCfg.Directory)
+		dir := ""
+		if baseCfg.Directory != nil {
+			dir = *baseCfg.Directory
+		}
+		src = environmentsfs.SubFilesystem(src, dir)
 
 		conf, err := storagefs.GetConfig(e.logger, environmentsfs.ToFS(src))
 		if err != nil {
 			return err
 		}
 
+		var (
+			title = &bytes.Buffer{}
+			body  = &bytes.Buffer{}
+		)
+
 		tmplCtx := templateContext{Base: baseCfg, Branch: branchCfg}
 
-		title := &bytes.Buffer{}
-		if err := conf.Templates.ProposalTitleTemplate.Execute(title, tmplCtx); err != nil {
-			return err
+		if opts.Title != "" {
+			title.WriteString(opts.Title)
+		} else {
+			if err := conf.Templates.ProposalTitleTemplate.Execute(title, tmplCtx); err != nil {
+				return err
+			}
 		}
 
-		body := &bytes.Buffer{}
-		if err := conf.Templates.ProposalBodyTemplate.Execute(body, tmplCtx); err != nil {
-			return err
+		if opts.Body != "" {
+			body.WriteString(opts.Body)
+		} else {
+			if err := conf.Templates.ProposalBodyTemplate.Execute(body, tmplCtx); err != nil {
+				return err
+			}
 		}
 
 		resp, err = e.SCM.Propose(ctx, ProposalRequest{
@@ -79,6 +129,7 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 			Head:  branchCfg.Branch,
 			Title: title.String(),
 			Body:  body.String(),
+			Draft: opts.Draft,
 		})
 
 		return err
@@ -87,4 +138,22 @@ func (e *Environment) Propose(ctx context.Context, branch serverenvs.Environment
 	}
 
 	return
+}
+
+func (e *Environment) ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error) {
+	proposals, err := e.SCM.ListProposals(ctx, e)
+	if err != nil {
+		return nil, err
+	}
+
+	branches, err := e.Environment.ListBranches(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, branch := range branches.Branches {
+		branch.Proposal = proposals[branch.Branch]
+	}
+
+	return branches, nil
 }

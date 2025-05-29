@@ -762,6 +762,39 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name:    "environments invalid scm",
+			path:    "./testdata/environments/invalid_scm.yml",
+			wantErr: errors.New("environments: default environments: scm unexpected SCM type: \"invalid\""),
+		},
+		{
+			name: "environments valid scm",
+			path: "./testdata/environments/valid_scm.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Environments = EnvironmentsConfig{
+					"default": {
+						Name:    "default",
+						Storage: "default",
+						Default: true,
+						SCM: &SCMConfig{
+							Type:        GitHubSCMType,
+							Credentials: ptr("git"),
+						},
+					},
+				}
+				cfg.Credentials = CredentialsConfig{
+					"git": {
+						Type: "basic",
+						Basic: &BasicAuthConfig{
+							Username: "user",
+							Password: "pass",
+						},
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1244,4 +1277,8 @@ func getStructTags(t reflect.Type) map[string]map[string]string {
 	}
 
 	return tags
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }

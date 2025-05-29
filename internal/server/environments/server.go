@@ -87,6 +87,48 @@ func (s *Server) ListEnvironmentBranches(ctx context.Context, req *environments.
 	return env.ListBranches(ctx)
 }
 
+func (s *Server) ListBranchedEnvironmentChanges(ctx context.Context, req *environments.ListBranchedEnvironmentChangesRequest) (br *environments.ListBranchedEnvironmentChangesResponse, err error) {
+	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	branch, err := env.Branch(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return env.ListBranchedChanges(ctx, branch)
+}
+
+func (s *Server) ProposeEnvironment(ctx context.Context, req *environments.ProposeEnvironmentRequest) (resp *environments.EnvironmentProposalDetails, err error) {
+	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	branch, err := env.Branch(ctx, req.EnvironmentKey)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := ProposalOptions{}
+
+	if req.Title != nil {
+		opts.Title = *req.Title
+	}
+
+	if req.Body != nil {
+		opts.Body = *req.Body
+	}
+
+	if req.Draft != nil {
+		opts.Draft = *req.Draft
+	}
+
+	return env.Propose(ctx, branch, opts)
+}
+
 func (s *Server) GetNamespace(ctx context.Context, req *environments.GetNamespaceRequest) (ns *environments.NamespaceResponse, err error) {
 	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {

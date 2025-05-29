@@ -16,7 +16,7 @@ export default function Modal(props: ModalProps) {
         <div className="fixed inset-0 z-20 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <Dialog.Content
-              className="relative w-full max-w-lg rounded-lg bg-background dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl dark:shadow-2xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6
+              className="relative w-full max-w-2xl rounded-lg bg-background dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl dark:shadow-2xl sm:my-8 sm:w-full sm:max-w-2xl sm:p-6
                 border dark:border-gray-700
                 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-4 
                 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-4 

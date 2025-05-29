@@ -16,4 +16,21 @@ export interface IBranchEnvironment {
   baseEnvironmentKey: string;
   environmentKey: string;
   branch: string;
+  proposal?: IEnvironmentProposal;
+}
+
+export enum SCM {
+  GITHUB = 'GITHUB_SCM'
+}
+
+export enum ProposalState {
+  OPEN = 'PROPOSAL_STATE_OPEN',
+  MERGED = 'PROPOSAL_STATE_MERGED',
+  CLOSED = 'PROPOSAL_STATE_CLOSED'
+}
+
+export interface IEnvironmentProposal {
+  scm: SCM;
+  url: string;
+  state?: ProposalState;
 }

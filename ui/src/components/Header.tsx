@@ -1,8 +1,11 @@
+import { GitBranchIcon, GitBranchPlusIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
+import { Button } from '~/components/ui/button';
 import { SidebarTrigger } from '~/components/ui/sidebar';
 import {
   Tooltip,
@@ -11,7 +14,8 @@ import {
 } from '~/components/ui/tooltip';
 
 import { Badge } from './Badge';
-import { CreateBranchButton } from './environments/CreateBranchButton';
+import { CreateBranchPopover } from './environments/CreateBranchPopover';
+import EnvironmentProposalStatus from './environments/EnvironmentProposalStatus';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 
 export function Header({
@@ -25,6 +29,11 @@ export function Header({
 }) {
   const info = useSelector(selectInfo);
   const currentEnvironment = useSelector(selectCurrentEnvironment);
+
+  const [createBranchOpen, setCreateBranchOpen] = useState(false);
+
+  const isBranch = currentEnvironment?.configuration?.base !== undefined;
+  const hasRemote = currentEnvironment?.configuration?.remote !== undefined;
 
   const topbarStyle = {
     backgroundColor: info?.ui?.topbarColor,
@@ -54,10 +63,47 @@ export function Header({
               </TooltipContent>
             </Tooltip>
           )}
-          {currentEnvironment && !currentEnvironment?.configuration?.base && (
-            <CreateBranchButton baseEnvironment={currentEnvironment} />
+          {isBranch ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="ml-1 px-2 cursor-pointer">
+                  <GitBranchIcon className="w-4 h-4 text-gray-400" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                Branched from {currentEnvironment?.configuration?.base}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <CreateBranchPopover
+              open={createBranchOpen}
+              setOpen={setCreateBranchOpen}
+              environment={currentEnvironment}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-1 cursor-pointer"
+                type="button"
+                data-testid="create-branch-button"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <GitBranchPlusIcon className="w-4 h-4" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center">
+                    Create branch
+                  </TooltipContent>
+                </Tooltip>
+              </Button>
+            </CreateBranchPopover>
           )}
-          {currentEnvironment?.configuration?.remote && (
+          {isBranch && hasRemote && (
+            <EnvironmentProposalStatus environment={currentEnvironment} />
+          )}
+          {hasRemote && (
             <EnvironmentRemoteInfo environment={currentEnvironment} />
           )}
         </div>

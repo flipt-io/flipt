@@ -66,21 +66,34 @@ function EnvironmentBranchList({
   }, [setSelectedEnvironment, currentEnvironment]);
 
   // Group environments: base envs as top-level, branches nested under their base
-  const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
-  environments.forEach((env) => {
-    if (env.configuration?.base) {
-      // It's a branch
-      const base = env.configuration.base;
-      if (!grouped[base]) grouped[base] = { base: null, branches: [] };
-      grouped[base].branches.push(env);
-    } else {
-      // It's a base env
-      if (!grouped[env.key]) grouped[env.key] = { base: env, branches: [] };
-      else grouped[env.key].base = env;
-    }
-  });
+  const grouped = useMemo(() => {
+    const grouped = {} as Record<string, { base: any | null; branches: any[] }>;
+    environments.forEach((env) => {
+      if (env.configuration?.base) {
+        // It's a branch
+        const base = env.configuration.base;
+        if (!grouped[base]) grouped[base] = { base: null, branches: [] };
+        grouped[base].branches.push(env);
+      } else {
+        // It's a base env
+        if (!grouped[env.key]) grouped[env.key] = { base: env, branches: [] };
+        else grouped[env.key].base = env;
+      }
+    });
+    return grouped;
+  }, [environments]);
 
-  const baseEnvKeys = Object.keys(grouped);
+  const baseEnvKeys = useMemo(
+    () =>
+      Object.keys(grouped).sort((a, b) => {
+        const envA = grouped[a].base;
+        const envB = grouped[b].base;
+        const nameA = (envA?.name || envA?.key || '').toLowerCase();
+        const nameB = (envB?.name || envB?.key || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }),
+    [grouped]
+  );
 
   // Render left panel: environments and branches
   return (
@@ -103,34 +116,49 @@ function EnvironmentBranchList({
               <Button
                 variant={isSelected ? 'soft' : 'ghost'}
                 size="sm"
-                className={`flex-1 gap-2 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
+                className={`flex-1 justify-start px-3 py-1.5 rounded-md ${isSelected ? 'font-semibold' : 'font-normal'}`}
                 onClick={() => handleSelectEnv(env)}
               >
-                <Server className="w-4 h-4" />
+                <Server className="mr-2 w-4 h-4" />
                 <span className="truncate">{env.name || env.key}</span>
               </Button>
             </div>
             {branches.length > 0 && (
               <div className="ml-6 pr-2">
-                {branches.map((branch: any) => (
-                  <Button
-                    key={branch.key || branch.environmentKey}
-                    variant={
-                      selectedEnvironment ===
-                      (branch.key || branch.environmentKey)
-                        ? 'soft'
-                        : 'ghost'
-                    }
-                    size="sm"
-                    className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvironment === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
-                    onClick={() => handleSelectBranch(branch)}
-                  >
-                    <GitBranch className="w-4 h-4" />
-                    <span className="truncate">
-                      {branch.name || branch.environmentKey}
-                    </span>
-                  </Button>
-                ))}
+                {branches
+                  .slice() // copy to avoid mutating original
+                  .sort((a, b) => {
+                    const nameA = (
+                      a.name ||
+                      a.environmentKey ||
+                      ''
+                    ).toLowerCase();
+                    const nameB = (
+                      b.name ||
+                      b.environmentKey ||
+                      ''
+                    ).toLowerCase();
+                    return nameA.localeCompare(nameB);
+                  })
+                  .map((branch: any) => (
+                    <Button
+                      key={branch.key || branch.environmentKey}
+                      variant={
+                        selectedEnvironment ===
+                        (branch.key || branch.environmentKey)
+                          ? 'soft'
+                          : 'ghost'
+                      }
+                      size="sm"
+                      className={`w-full justify-start px-3 py-1.5 rounded-md ${selectedEnvironment === (branch.key || branch.environmentKey) ? 'font-semibold' : 'font-normal'}`}
+                      onClick={() => handleSelectBranch(branch)}
+                    >
+                      <GitBranch className="mr-2 w-4 h-4" />
+                      <span className="truncate">
+                        {branch.name || branch.environmentKey}
+                      </span>
+                    </Button>
+                  ))}
               </div>
             )}
           </div>

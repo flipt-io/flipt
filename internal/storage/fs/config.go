@@ -30,9 +30,18 @@ updated multiple resources
 {{- end }}
 {{- end }}`
 
-	defaultProposalTitleTmpl string = `Flipt: Update features in {{ .Base.Name }}`
-	defaultProposalBodyTmpl  string = `Update Flipt resources in [{{ .Base.Name }}]({{ .Base.HostURL }})
-The branched environment can be viewed at [{{ .Branch.Name }}]({{ .Branch.HostURL }})`
+	defaultProposalTitleTmpl string = `Flipt: Update features in {{ .Base.Directory }} on {{ .Base.Branch }}`
+	defaultProposalBodyTmpl  string = `This pull request updates Flipt resources in {{ .Base.Directory }} on branch {{ .Base.Branch }}.
+
+🟢 **Source:**
+- Directory: {{ .Branch.Directory }}
+- Branch: {{ .Branch.Branch }}
+
+🎯 **Target:**
+- Directory: {{ .Base.Directory }}
+- Branch: {{ .Base.Branch }}
+
+👀 Please review the changes and merge if everything looks good.`
 )
 
 type Config struct {

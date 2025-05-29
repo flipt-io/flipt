@@ -19,3 +19,7 @@ packages:
   go.flipt.io/flipt/internal/server/analytics:
     interfaces:
       Client: {}
+  go.flipt.io/flipt/internal/enterprise/storage/environments/git/github:
+    interfaces:
+      PullRequestsService: {}
+      RepositoriesService: {}
