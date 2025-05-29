@@ -54,10 +54,11 @@ type Environment interface {
 	Configuration() *environments.EnvironmentConfiguration
 	ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)
 	Branch(ctx context.Context, branch string) (Environment, error)
+	ListBranchedChanges(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
 
 	// From Branched Environments
+
 	Propose(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
-	ListBranchedChanges(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
 
 	// Namespaces
 
