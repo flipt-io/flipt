@@ -17,7 +17,7 @@ import {
   SCM
 } from '~/types/Environment';
 
-import { CreateMergeProposalModal } from './CreateMergeProposalModal';
+import { CreateMergeProposalModal } from './branches/CreateMergeProposalModal';
 
 function OpenMergeProposalStatus({
   proposal

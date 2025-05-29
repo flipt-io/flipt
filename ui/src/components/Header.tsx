@@ -14,7 +14,6 @@ import {
 } from '~/components/ui/tooltip';
 
 import { Badge } from './Badge';
-import EnvironmentProposalStatus from './environments/EnvironmentProposalStatus';
 import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 import BranchActionsDropdown from './environments/branches/BranchActionsDropdown';
 import { CreateBranchPopover } from './environments/branches/CreateBranchPopover';
@@ -92,9 +91,6 @@ export function Header({
                 </Tooltip>
               </Button>
             </CreateBranchPopover>
-          )}
-          {isBranch && hasRemote && (
-            <EnvironmentProposalStatus environment={currentEnvironment} />
           )}
           {hasRemote && (
             <EnvironmentRemoteInfo environment={currentEnvironment} />
