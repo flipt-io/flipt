@@ -68,7 +68,7 @@ export default function BranchActionsDropdown({
             className="flex items-center gap-2 px-2 py-1 bg-background font-semibold text-xs cursor-pointer"
           >
             <Server className="w-4 h-4" />
-            Base: {baseBranch}
+            Branched from: <span className="font-mono">{baseBranch}</span>
           </Badge>
         </DropdownMenuTrigger>
         <DropdownMenuContent>

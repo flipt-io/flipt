@@ -77,7 +77,7 @@ export function Header({
               >
                 <span className="flex items-center gap-2 text-xs">
                   <GitBranchPlusIcon className="w-4 h-4" />
-                  Branch environment
+                  Create branch
                 </span>
               </Badge>
             </CreateBranchPopover>
