@@ -56,14 +56,14 @@ func NewEnvironment(logger *zap.Logger, env *git.Environment, scm SCM) *Environm
 	}
 }
 
-func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
+func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs.Environment) (resp *environments.ListBranchedEnvironmentChangesResponse, err error) {
 	var (
-		baseCfg   = base.Configuration()
-		branchCfg = e.Configuration()
+		baseCfg   = e.Configuration()
+		branchCfg = branch.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
-		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
+		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), branch.Key())
 	}
 
 	return e.SCM.ListChanges(ctx, ListChangesRequest{
@@ -75,8 +75,8 @@ func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.E
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
 	var (
-		baseCfg   = base.Configuration()
-		branchCfg = e.Configuration()
+		baseCfg   = e.Configuration()
+		branchCfg = base.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {

@@ -107,7 +107,7 @@ export function CreateMergeProposalModal({
                   {data.changes.map((change) => (
                     <li
                       key={change.revision}
-                      className="flex items-center py-1"
+                      className="flex items-center py-2"
                     >
                       <span className="font-mono text-xs text-muted-foreground bg-gray-100 rounded px-2 py-0.5 mr-3">
                         {change.scmUrl ? (
