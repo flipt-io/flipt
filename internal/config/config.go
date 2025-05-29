@@ -451,7 +451,8 @@ func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstruc
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data any) (any, error) {
+		data any,
+	) (any, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -469,7 +470,8 @@ func experimentalFieldSkipHookFunc(types ...reflect.Type) mapstructure.DecodeHoo
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data any) (any, error) {
+		data any,
+	) (any, error) {
 		if len(types) == 0 {
 			return data, nil
 		}
@@ -495,7 +497,8 @@ func stringToEnvsubstHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data any) (any, error) {
+		data any,
+	) (any, error) {
 		if f.Kind() != reflect.String || f != reflect.TypeOf("") {
 			return data, nil
 		}
@@ -514,7 +517,8 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Kind,
 		t reflect.Kind,
-		data any) (any, error) {
+		data any,
+	) (any, error) {
 		if f != reflect.String || t != reflect.Slice {
 			return data, nil
 		}
@@ -616,6 +620,9 @@ func Default() *Config {
 				},
 				TokenLifetime: 24 * time.Hour,
 				StateLifetime: 10 * time.Minute,
+				CSRF: AuthenticationSessionCSRFConfig{
+					Secure: true,
+				},
 			},
 		},
 

@@ -43,6 +43,7 @@ import "list"
 			state_lifetime: =~#duration | *"10m"
 			csrf?: {
 				key: string
+				secure: bool
 			}
 			storage?: {
 				type: *"memory" | "redis"
