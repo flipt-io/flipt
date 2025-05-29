@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"runtime/debug"
 	"sync"
 
 	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -174,7 +175,7 @@ func NewGRPCServer(
 	// base inteceptors
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
-			logger.Error("panic recovered", zap.Any("panic", p))
+			logger.Error("panic recovered", zap.Any("panic", p), zap.ByteString("stacktrace", debug.Stack()))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),
 		grpc_ctxtags.UnaryServerInterceptor(),
@@ -193,7 +194,7 @@ func NewGRPCServer(
 
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p any) (err error) {
-			logger.Error("panic recovered", zap.Any("panic", p))
+			logger.Error("panic recovered", zap.Any("panic", p), zap.ByteString("stacktrace", debug.Stack()))
 			return status.Errorf(codes.Internal, "%v", p)
 		})),
 		grpc_ctxtags.StreamServerInterceptor(),

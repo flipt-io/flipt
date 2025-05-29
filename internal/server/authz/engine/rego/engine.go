@@ -155,7 +155,7 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, err
 		return false, nil
 	}
 
-	return results[0].Expressions[0].Value.(bool), nil
+	return results.Allowed(), nil
 }
 
 func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error) {
@@ -178,9 +178,9 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 		return nil, nil
 	}
 
-	values, ok := results[0].Expressions[0].Value.([]any)
+	values, ok := results[0].Bindings["x"].([]any)
 	if !ok {
-		return nil, fmt.Errorf("unexpected result type: %T", results[0].Expressions[0].Value)
+		return nil, fmt.Errorf("unexpected result type: %T", results[0].Bindings["x"])
 	}
 
 	environments := make([]string, len(values))
@@ -275,7 +275,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	// Prepare environments query
 	r = rego.New(
-		rego.Query("data.flipt.authz.v2.viewable_environments"),
+		rego.Query("x = data.flipt.authz.v2.viewable_environments"),
 		m,
 		s,
 	)
