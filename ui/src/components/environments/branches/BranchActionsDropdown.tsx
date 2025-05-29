@@ -1,11 +1,21 @@
-import { GitBranchIcon, GitPullRequestArrow, GitPullRequestCreate } from 'lucide-react';
+import {
+  FolderGit,
+  GitPullRequestArrow,
+  GitPullRequestCreate,
+  Github,
+  Gitlab,
+  Server,
+  Trash2Icon
+} from 'lucide-react';
 import { useState } from 'react';
 
+import { useListBranchEnvironmentsQuery } from '~/app/environments/environmentsApi';
+
+import { Badge } from '~/components/Badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu';
@@ -14,9 +24,8 @@ import { IEnvironment, ProposalState, SCM } from '~/types/Environment';
 
 import { getRepoUrlFromConfig } from '~/utils/helpers';
 
-import DeleteBranchModal from './DeleteBranchModal';
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
-import { useListBranchEnvironmentsQuery } from '~/app/environments/environmentsApi';
+import DeleteBranchModal from './DeleteBranchModal';
 
 export default function BranchActionsDropdown({
   environment
@@ -38,54 +47,57 @@ export default function BranchActionsDropdown({
     (branch) => branch.environmentKey === environment.key
   )?.proposal;
 
-  let prNumber: string | undefined;
-
-  // TODO: support other SCMs
-  if (proposal && proposal.scm === SCM.GITHUB) {
-    prNumber = proposal.url.split('/').pop();
-  }
-
   const isProposalOpen = proposal && proposal.state === ProposalState.OPEN;
 
   const handleViewBranch = () => {
     window.open(repoUrl, '_blank');
   };
 
+  let ProviderIcon = FolderGit;
+  if (environment.configuration?.remote?.includes('github.com'))
+    ProviderIcon = Github;
+  if (environment.configuration?.remote?.includes('gitlab.com'))
+    ProviderIcon = Gitlab;
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <span className="ml-1 px-2 cursor-pointer">
-            <GitBranchIcon className="w-4 h-4" />
-          </span>
+          <Badge
+            variant="secondary"
+            className="flex items-center gap-2 px-2 py-1 bg-background font-semibold text-xs cursor-pointer"
+          >
+            <Server className="w-4 h-4" />
+            Base: {baseBranch}
+          </Badge>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuLabel className="text-sm font-normal text-gray-500">
-            Base branch: <span className="font-mono">{baseBranch}</span>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
           {hasRemote && (
             <>
-              <DropdownMenuItem onClick={handleViewBranch} className="flex items-center gap-1">
-                <GitBranchIcon className="w-4 h-4 mr-2" />
-                View branch
+              <DropdownMenuItem
+                onClick={handleViewBranch}
+                className="flex items-center gap-1"
+              >
+                <ProviderIcon className="w-4 h-4 mr-2" />
+                View remote
               </DropdownMenuItem>
               {!isProposalOpen ? (
-                <DropdownMenuItem onClick={() => setMergeModalOpen(true)} className="flex items-center gap-1">
+                <DropdownMenuItem
+                  onClick={() => setMergeModalOpen(true)}
+                  className="flex items-center gap-1"
+                >
                   <GitPullRequestCreate className="w-4 h-4 mr-2" />
                   Propose changes
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onClick={() => window.open(proposal?.url ?? '', '_blank')} className="flex items-center gap-1">
+                <DropdownMenuItem
+                  onClick={() => window.open(proposal?.url ?? '', '_blank')}
+                  className="flex items-center gap-1"
+                >
                   <GitPullRequestArrow className="w-4 h-4 mr-2" />
-                  {prNumber ? (
-                    <div className="flex items-center gap-1">
-                      <span>View open merge proposal</span>
-                      <span className="text-xs font-mono">#{prNumber}</span>
-                    </div>
-                  ) : (
+                  <div className="flex items-center gap-1">
                     <span>View open merge proposal</span>
-                  )}
+                  </div>
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -94,7 +106,9 @@ export default function BranchActionsDropdown({
           <DropdownMenuItem
             variant="destructive"
             onClick={() => setDeleteModalOpen(true)}
+            className="flex items-center gap-1"
           >
+            <Trash2Icon className="w-4 h-4 mr-2" />
             Delete branch
           </DropdownMenuItem>
         </DropdownMenuContent>

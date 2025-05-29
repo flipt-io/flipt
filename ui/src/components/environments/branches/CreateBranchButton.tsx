@@ -91,7 +91,7 @@ export function CreateBranchButton({
             <Button
               variant="ghost"
               size="icon"
-              className="ml-1 p-1 rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="ml-1 p-1 flex items-center gap-2 rounded focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               tabIndex={-1}
               type="button"
               onMouseEnter={() => setTooltipOpen(true)}
@@ -102,6 +102,7 @@ export function CreateBranchButton({
               data-testid="create-branch-button"
             >
               <GitBranchPlusIcon className="w-4 h-4" />
+              Branch environment
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>

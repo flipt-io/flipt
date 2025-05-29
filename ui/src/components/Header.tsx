@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
-import { Button } from '~/components/ui/button';
 import { SidebarTrigger } from '~/components/ui/sidebar';
 import {
   Tooltip,
@@ -14,7 +13,6 @@ import {
 } from '~/components/ui/tooltip';
 
 import { Badge } from './Badge';
-import { EnvironmentRemoteInfo } from './environments/EnvironmentRemoteInfo';
 import BranchActionsDropdown from './environments/branches/BranchActionsDropdown';
 import { CreateBranchPopover } from './environments/branches/CreateBranchPopover';
 
@@ -33,7 +31,6 @@ export function Header({
   const [createBranchOpen, setCreateBranchOpen] = useState(false);
 
   const isBranch = currentEnvironment?.configuration?.base !== undefined;
-  const hasRemote = currentEnvironment?.configuration?.remote !== undefined;
 
   const topbarStyle = {
     backgroundColor: info?.ui?.topbarColor,
@@ -45,15 +42,16 @@ export function Header({
       className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear"
       style={topbarStyle}
     >
-      <div className="flex w-full items-center justify-between px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="-ml-2" />
-        <div className="flex items-center gap-2">
+      <div className="flex w-full items-center px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-2 flex-shrink-0" />
+        <div className="flex-1" />
+        <div className="flex items-center gap-2 flex-shrink-0">
           {!sidebarOpen && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
                   variant="secondary"
-                  className="px-3 py-1 bg-background font-semibold text-xs"
+                  className="px-3 py-1 bg-background text-xs flex-shrink-0 cursor-pointer"
                 >
                   {ns} <span className="mx-1 text-muted-foreground">•</span>{' '}
                   {env}
@@ -72,28 +70,17 @@ export function Header({
               setOpen={setCreateBranchOpen}
               environment={currentEnvironment}
             >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-1 cursor-pointer"
-                type="button"
+              <Badge
+                variant="secondary"
+                className="px-3 py-1 bg-background text-xs flex-shrink-0 cursor-pointer"
                 data-testid="create-branch-button"
               >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <GitBranchPlusIcon className="w-4 h-4" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" align="center">
-                    Create branch
-                  </TooltipContent>
-                </Tooltip>
-              </Button>
+                <span className="flex items-center gap-2 text-xs">
+                  <GitBranchPlusIcon className="w-4 h-4" />
+                  Branch environment
+                </span>
+              </Badge>
             </CreateBranchPopover>
-          )}
-          {hasRemote && (
-            <EnvironmentRemoteInfo environment={currentEnvironment} />
           )}
         </div>
       </div>
