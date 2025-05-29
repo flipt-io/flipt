@@ -13,6 +13,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -385,6 +386,58 @@ func (x *BranchEnvironmentRequest) GetEnvironmentKey() string {
 	return ""
 }
 
+type DeleteBranchEnvironmentRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
+	EnvironmentKey     string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *DeleteBranchEnvironmentRequest) Reset() {
+	*x = DeleteBranchEnvironmentRequest{}
+	mi := &file_environments_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBranchEnvironmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBranchEnvironmentRequest) ProtoMessage() {}
+
+func (x *DeleteBranchEnvironmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_environments_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBranchEnvironmentRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBranchEnvironmentRequest) Descriptor() ([]byte, []int) {
+	return file_environments_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *DeleteBranchEnvironmentRequest) GetBaseEnvironmentKey() string {
+	if x != nil {
+		return x.BaseEnvironmentKey
+	}
+	return ""
+}
+
+func (x *DeleteBranchEnvironmentRequest) GetEnvironmentKey() string {
+	if x != nil {
+		return x.EnvironmentKey
+	}
+	return ""
+}
+
 type BranchEnvironment struct {
 	state              protoimpl.MessageState      `protogen:"open.v1"`
 	EnvironmentKey     string                      `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
@@ -397,7 +450,7 @@ type BranchEnvironment struct {
 
 func (x *BranchEnvironment) Reset() {
 	*x = BranchEnvironment{}
-	mi := &file_environments_proto_msgTypes[5]
+	mi := &file_environments_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -409,7 +462,7 @@ func (x *BranchEnvironment) String() string {
 func (*BranchEnvironment) ProtoMessage() {}
 
 func (x *BranchEnvironment) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[5]
+	mi := &file_environments_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -422,7 +475,7 @@ func (x *BranchEnvironment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BranchEnvironment.ProtoReflect.Descriptor instead.
 func (*BranchEnvironment) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{5}
+	return file_environments_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BranchEnvironment) GetEnvironmentKey() string {
@@ -462,7 +515,7 @@ type ListEnvironmentBranchesRequest struct {
 
 func (x *ListEnvironmentBranchesRequest) Reset() {
 	*x = ListEnvironmentBranchesRequest{}
-	mi := &file_environments_proto_msgTypes[6]
+	mi := &file_environments_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +527,7 @@ func (x *ListEnvironmentBranchesRequest) String() string {
 func (*ListEnvironmentBranchesRequest) ProtoMessage() {}
 
 func (x *ListEnvironmentBranchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[6]
+	mi := &file_environments_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +540,7 @@ func (x *ListEnvironmentBranchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnvironmentBranchesRequest.ProtoReflect.Descriptor instead.
 func (*ListEnvironmentBranchesRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{6}
+	return file_environments_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListEnvironmentBranchesRequest) GetBaseEnvironmentKey() string {
@@ -506,7 +559,7 @@ type ListEnvironmentBranchesResponse struct {
 
 func (x *ListEnvironmentBranchesResponse) Reset() {
 	*x = ListEnvironmentBranchesResponse{}
-	mi := &file_environments_proto_msgTypes[7]
+	mi := &file_environments_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -518,7 +571,7 @@ func (x *ListEnvironmentBranchesResponse) String() string {
 func (*ListEnvironmentBranchesResponse) ProtoMessage() {}
 
 func (x *ListEnvironmentBranchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[7]
+	mi := &file_environments_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -531,7 +584,7 @@ func (x *ListEnvironmentBranchesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnvironmentBranchesResponse.ProtoReflect.Descriptor instead.
 func (*ListEnvironmentBranchesResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{7}
+	return file_environments_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListEnvironmentBranchesResponse) GetBranches() []*BranchEnvironment {
@@ -554,7 +607,7 @@ type ProposeEnvironmentRequest struct {
 
 func (x *ProposeEnvironmentRequest) Reset() {
 	*x = ProposeEnvironmentRequest{}
-	mi := &file_environments_proto_msgTypes[8]
+	mi := &file_environments_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -566,7 +619,7 @@ func (x *ProposeEnvironmentRequest) String() string {
 func (*ProposeEnvironmentRequest) ProtoMessage() {}
 
 func (x *ProposeEnvironmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[8]
+	mi := &file_environments_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,7 +632,7 @@ func (x *ProposeEnvironmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeEnvironmentRequest.ProtoReflect.Descriptor instead.
 func (*ProposeEnvironmentRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{8}
+	return file_environments_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ProposeEnvironmentRequest) GetBaseEnvironmentKey() string {
@@ -628,7 +681,7 @@ type EnvironmentProposalDetails struct {
 
 func (x *EnvironmentProposalDetails) Reset() {
 	*x = EnvironmentProposalDetails{}
-	mi := &file_environments_proto_msgTypes[9]
+	mi := &file_environments_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -640,7 +693,7 @@ func (x *EnvironmentProposalDetails) String() string {
 func (*EnvironmentProposalDetails) ProtoMessage() {}
 
 func (x *EnvironmentProposalDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[9]
+	mi := &file_environments_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -653,7 +706,7 @@ func (x *EnvironmentProposalDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnvironmentProposalDetails.ProtoReflect.Descriptor instead.
 func (*EnvironmentProposalDetails) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{9}
+	return file_environments_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EnvironmentProposalDetails) GetScm() SCM {
@@ -691,7 +744,7 @@ type Change struct {
 
 func (x *Change) Reset() {
 	*x = Change{}
-	mi := &file_environments_proto_msgTypes[10]
+	mi := &file_environments_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -703,7 +756,7 @@ func (x *Change) String() string {
 func (*Change) ProtoMessage() {}
 
 func (x *Change) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[10]
+	mi := &file_environments_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -716,7 +769,7 @@ func (x *Change) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Change.ProtoReflect.Descriptor instead.
 func (*Change) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{10}
+	return file_environments_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Change) GetRevision() string {
@@ -773,7 +826,7 @@ type ListBranchedEnvironmentChangesRequest struct {
 
 func (x *ListBranchedEnvironmentChangesRequest) Reset() {
 	*x = ListBranchedEnvironmentChangesRequest{}
-	mi := &file_environments_proto_msgTypes[11]
+	mi := &file_environments_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +838,7 @@ func (x *ListBranchedEnvironmentChangesRequest) String() string {
 func (*ListBranchedEnvironmentChangesRequest) ProtoMessage() {}
 
 func (x *ListBranchedEnvironmentChangesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[11]
+	mi := &file_environments_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +851,7 @@ func (x *ListBranchedEnvironmentChangesRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListBranchedEnvironmentChangesRequest.ProtoReflect.Descriptor instead.
 func (*ListBranchedEnvironmentChangesRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{11}
+	return file_environments_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListBranchedEnvironmentChangesRequest) GetBaseEnvironmentKey() string {
@@ -838,7 +891,7 @@ type ListBranchedEnvironmentChangesResponse struct {
 
 func (x *ListBranchedEnvironmentChangesResponse) Reset() {
 	*x = ListBranchedEnvironmentChangesResponse{}
-	mi := &file_environments_proto_msgTypes[12]
+	mi := &file_environments_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +903,7 @@ func (x *ListBranchedEnvironmentChangesResponse) String() string {
 func (*ListBranchedEnvironmentChangesResponse) ProtoMessage() {}
 
 func (x *ListBranchedEnvironmentChangesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[12]
+	mi := &file_environments_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +916,7 @@ func (x *ListBranchedEnvironmentChangesResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListBranchedEnvironmentChangesResponse.ProtoReflect.Descriptor instead.
 func (*ListBranchedEnvironmentChangesResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{12}
+	return file_environments_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListBranchedEnvironmentChangesResponse) GetChanges() []*Change {
@@ -885,7 +938,7 @@ type Namespace struct {
 
 func (x *Namespace) Reset() {
 	*x = Namespace{}
-	mi := &file_environments_proto_msgTypes[13]
+	mi := &file_environments_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -897,7 +950,7 @@ func (x *Namespace) String() string {
 func (*Namespace) ProtoMessage() {}
 
 func (x *Namespace) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[13]
+	mi := &file_environments_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -910,7 +963,7 @@ func (x *Namespace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Namespace.ProtoReflect.Descriptor instead.
 func (*Namespace) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{13}
+	return file_environments_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Namespace) GetKey() string {
@@ -951,7 +1004,7 @@ type GetNamespaceRequest struct {
 
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
-	mi := &file_environments_proto_msgTypes[14]
+	mi := &file_environments_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1016,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[14]
+	mi := &file_environments_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1029,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{14}
+	return file_environments_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetNamespaceRequest) GetEnvironmentKey() string {
@@ -1003,7 +1056,7 @@ type NamespaceResponse struct {
 
 func (x *NamespaceResponse) Reset() {
 	*x = NamespaceResponse{}
-	mi := &file_environments_proto_msgTypes[15]
+	mi := &file_environments_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1015,7 +1068,7 @@ func (x *NamespaceResponse) String() string {
 func (*NamespaceResponse) ProtoMessage() {}
 
 func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[15]
+	mi := &file_environments_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1028,7 +1081,7 @@ func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamespaceResponse.ProtoReflect.Descriptor instead.
 func (*NamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{15}
+	return file_environments_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *NamespaceResponse) GetNamespace() *Namespace {
@@ -1054,7 +1107,7 @@ type ListNamespacesRequest struct {
 
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
-	mi := &file_environments_proto_msgTypes[16]
+	mi := &file_environments_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1119,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[16]
+	mi := &file_environments_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1132,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{16}
+	return file_environments_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListNamespacesRequest) GetEnvironmentKey() string {
@@ -1099,7 +1152,7 @@ type ListNamespacesResponse struct {
 
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
-	mi := &file_environments_proto_msgTypes[17]
+	mi := &file_environments_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1111,7 +1164,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[17]
+	mi := &file_environments_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,7 +1177,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{17}
+	return file_environments_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListNamespacesResponse) GetItems() []*Namespace {
@@ -1155,7 +1208,7 @@ type UpdateNamespaceRequest struct {
 
 func (x *UpdateNamespaceRequest) Reset() {
 	*x = UpdateNamespaceRequest{}
-	mi := &file_environments_proto_msgTypes[18]
+	mi := &file_environments_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1220,7 @@ func (x *UpdateNamespaceRequest) String() string {
 func (*UpdateNamespaceRequest) ProtoMessage() {}
 
 func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[18]
+	mi := &file_environments_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1233,7 @@ func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{18}
+	return file_environments_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateNamespaceRequest) GetEnvironmentKey() string {
@@ -1236,7 +1289,7 @@ type DeleteNamespaceRequest struct {
 
 func (x *DeleteNamespaceRequest) Reset() {
 	*x = DeleteNamespaceRequest{}
-	mi := &file_environments_proto_msgTypes[19]
+	mi := &file_environments_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1248,7 +1301,7 @@ func (x *DeleteNamespaceRequest) String() string {
 func (*DeleteNamespaceRequest) ProtoMessage() {}
 
 func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[19]
+	mi := &file_environments_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1261,7 +1314,7 @@ func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{19}
+	return file_environments_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteNamespaceRequest) GetEnvironmentKey() string {
@@ -1294,7 +1347,7 @@ type DeleteNamespaceResponse struct {
 
 func (x *DeleteNamespaceResponse) Reset() {
 	*x = DeleteNamespaceResponse{}
-	mi := &file_environments_proto_msgTypes[20]
+	mi := &file_environments_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1306,7 +1359,7 @@ func (x *DeleteNamespaceResponse) String() string {
 func (*DeleteNamespaceResponse) ProtoMessage() {}
 
 func (x *DeleteNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[20]
+	mi := &file_environments_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1319,7 +1372,7 @@ func (x *DeleteNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{20}
+	return file_environments_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *DeleteNamespaceResponse) GetRevision() string {
@@ -1341,7 +1394,7 @@ type GetResourceRequest struct {
 
 func (x *GetResourceRequest) Reset() {
 	*x = GetResourceRequest{}
-	mi := &file_environments_proto_msgTypes[21]
+	mi := &file_environments_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1353,7 +1406,7 @@ func (x *GetResourceRequest) String() string {
 func (*GetResourceRequest) ProtoMessage() {}
 
 func (x *GetResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[21]
+	mi := &file_environments_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1366,7 +1419,7 @@ func (x *GetResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResourceRequest.ProtoReflect.Descriptor instead.
 func (*GetResourceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{21}
+	return file_environments_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetResourceRequest) GetEnvironmentKey() string {
@@ -1408,7 +1461,7 @@ type Resource struct {
 
 func (x *Resource) Reset() {
 	*x = Resource{}
-	mi := &file_environments_proto_msgTypes[22]
+	mi := &file_environments_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1420,7 +1473,7 @@ func (x *Resource) String() string {
 func (*Resource) ProtoMessage() {}
 
 func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[22]
+	mi := &file_environments_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1433,7 +1486,7 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{22}
+	return file_environments_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Resource) GetNamespaceKey() string {
@@ -1467,7 +1520,7 @@ type ResourceResponse struct {
 
 func (x *ResourceResponse) Reset() {
 	*x = ResourceResponse{}
-	mi := &file_environments_proto_msgTypes[23]
+	mi := &file_environments_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1479,7 +1532,7 @@ func (x *ResourceResponse) String() string {
 func (*ResourceResponse) ProtoMessage() {}
 
 func (x *ResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[23]
+	mi := &file_environments_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1492,7 +1545,7 @@ func (x *ResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceResponse.ProtoReflect.Descriptor instead.
 func (*ResourceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{23}
+	return file_environments_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ResourceResponse) GetResource() *Resource {
@@ -1520,7 +1573,7 @@ type ListResourcesRequest struct {
 
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
-	mi := &file_environments_proto_msgTypes[24]
+	mi := &file_environments_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1532,7 +1585,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[24]
+	mi := &file_environments_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1545,7 +1598,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{24}
+	return file_environments_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListResourcesRequest) GetEnvironmentKey() string {
@@ -1579,7 +1632,7 @@ type ListResourcesResponse struct {
 
 func (x *ListResourcesResponse) Reset() {
 	*x = ListResourcesResponse{}
-	mi := &file_environments_proto_msgTypes[25]
+	mi := &file_environments_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1591,7 +1644,7 @@ func (x *ListResourcesResponse) String() string {
 func (*ListResourcesResponse) ProtoMessage() {}
 
 func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[25]
+	mi := &file_environments_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1604,7 +1657,7 @@ func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{25}
+	return file_environments_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListResourcesResponse) GetResources() []*Resource {
@@ -1634,7 +1687,7 @@ type UpdateResourceRequest struct {
 
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
-	mi := &file_environments_proto_msgTypes[26]
+	mi := &file_environments_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1646,7 +1699,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[26]
+	mi := &file_environments_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1659,7 +1712,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{26}
+	return file_environments_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateResourceRequest) GetEnvironmentKey() string {
@@ -1710,7 +1763,7 @@ type DeleteResourceRequest struct {
 
 func (x *DeleteResourceRequest) Reset() {
 	*x = DeleteResourceRequest{}
-	mi := &file_environments_proto_msgTypes[27]
+	mi := &file_environments_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1722,7 +1775,7 @@ func (x *DeleteResourceRequest) String() string {
 func (*DeleteResourceRequest) ProtoMessage() {}
 
 func (x *DeleteResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[27]
+	mi := &file_environments_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +1788,7 @@ func (x *DeleteResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResourceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteResourceRequest) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{27}
+	return file_environments_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeleteResourceRequest) GetEnvironmentKey() string {
@@ -1782,7 +1835,7 @@ type DeleteResourceResponse struct {
 
 func (x *DeleteResourceResponse) Reset() {
 	*x = DeleteResourceResponse{}
-	mi := &file_environments_proto_msgTypes[28]
+	mi := &file_environments_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1794,7 +1847,7 @@ func (x *DeleteResourceResponse) String() string {
 func (*DeleteResourceResponse) ProtoMessage() {}
 
 func (x *DeleteResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_environments_proto_msgTypes[28]
+	mi := &file_environments_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1807,7 +1860,7 @@ func (x *DeleteResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResourceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResourceResponse) Descriptor() ([]byte, []int) {
-	return file_environments_proto_rawDescGZIP(), []int{28}
+	return file_environments_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DeleteResourceResponse) GetRevision() string {
@@ -1821,7 +1874,7 @@ var File_environments_proto protoreflect.FileDescriptor
 
 const file_environments_proto_rawDesc = "" +
 	"\n" +
-	"\x12environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\"\xc3\x01\n" +
+	"\x12environments.proto\x12\fenvironments\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc3\x01\n" +
 	"\vEnvironment\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -1843,6 +1896,9 @@ const file_environments_proto_rawDesc = "" +
 	"\x18ListEnvironmentsResponse\x12=\n" +
 	"\fenvironments\x18\x01 \x03(\v2\x19.environments.EnvironmentR\fenvironments\"u\n" +
 	"\x18BranchEnvironmentRequest\x120\n" +
+	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
+	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"{\n" +
+	"\x1eDeleteBranchEnvironmentRequest\x120\n" +
 	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
 	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"\xde\x01\n" +
 	"\x11BranchEnvironment\x12'\n" +
@@ -1963,10 +2019,11 @@ const file_environments_proto_rawDesc = "" +
 	"\rProposalState\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x00\x12\x19\n" +
 	"\x15PROPOSAL_STATE_MERGED\x10\x01\x12\x19\n" +
-	"\x15PROPOSAL_STATE_CLOSED\x10\x022\xc9\x17\n" +
+	"\x15PROPOSAL_STATE_CLOSED\x10\x022\xb0\x19\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
 	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc5\x01\n" +
-	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"m\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x029:\x01*\"4/api/v2/environments/{base_environment_key}/branches\x12\xe8\x01\n" +
+	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"m\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x029:\x01*\"4/api/v2/environments/{base_environment_key}/branches\x12\xe4\x01\n" +
+	"\x17DeleteBranchEnvironment\x12,.environments.DeleteBranchEnvironmentRequest\x1a\x16.google.protobuf.Empty\"\x82\x01\xbaG\x19*\x17deleteBranchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02H*F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xe8\x01\n" +
 	"\x17ListEnvironmentBranches\x12,.environments.ListEnvironmentBranchesRequest\x1a-.environments.ListEnvironmentBranchesResponse\"p\xbaG\x19*\x17listEnvironmentBranches\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x026\x124/api/v2/environments/{base_environment_key}/branches\x12\x9f\x02\n" +
 	"\x1eListBranchedEnvironmentChanges\x123.environments.ListBranchedEnvironmentChangesRequest\x1a4.environments.ListBranchedEnvironmentChangesResponse\"\x91\x01\xbaG *\x1elistBranchedEnvironmentChanges\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02P\x12N/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes\x12\xea\x01\n" +
 	"\x12ProposeEnvironment\x12'.environments.ProposeEnvironmentRequest\x1a(.environments.EnvironmentProposalDetails\"\x80\x01\xbaG\x14*\x12proposeEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xa4\x01\n" +
@@ -1994,7 +2051,7 @@ func file_environments_proto_rawDescGZIP() []byte {
 }
 
 var file_environments_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_environments_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_environments_proto_goTypes = []any{
 	(SCM)(0),                                       // 0: environments.SCM
 	(ProposalState)(0),                             // 1: environments.ProposalState
@@ -2003,78 +2060,82 @@ var file_environments_proto_goTypes = []any{
 	(*ListEnvironmentsRequest)(nil),                // 4: environments.ListEnvironmentsRequest
 	(*ListEnvironmentsResponse)(nil),               // 5: environments.ListEnvironmentsResponse
 	(*BranchEnvironmentRequest)(nil),               // 6: environments.BranchEnvironmentRequest
-	(*BranchEnvironment)(nil),                      // 7: environments.BranchEnvironment
-	(*ListEnvironmentBranchesRequest)(nil),         // 8: environments.ListEnvironmentBranchesRequest
-	(*ListEnvironmentBranchesResponse)(nil),        // 9: environments.ListEnvironmentBranchesResponse
-	(*ProposeEnvironmentRequest)(nil),              // 10: environments.ProposeEnvironmentRequest
-	(*EnvironmentProposalDetails)(nil),             // 11: environments.EnvironmentProposalDetails
-	(*Change)(nil),                                 // 12: environments.Change
-	(*ListBranchedEnvironmentChangesRequest)(nil),  // 13: environments.ListBranchedEnvironmentChangesRequest
-	(*ListBranchedEnvironmentChangesResponse)(nil), // 14: environments.ListBranchedEnvironmentChangesResponse
-	(*Namespace)(nil),                              // 15: environments.Namespace
-	(*GetNamespaceRequest)(nil),                    // 16: environments.GetNamespaceRequest
-	(*NamespaceResponse)(nil),                      // 17: environments.NamespaceResponse
-	(*ListNamespacesRequest)(nil),                  // 18: environments.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),                 // 19: environments.ListNamespacesResponse
-	(*UpdateNamespaceRequest)(nil),                 // 20: environments.UpdateNamespaceRequest
-	(*DeleteNamespaceRequest)(nil),                 // 21: environments.DeleteNamespaceRequest
-	(*DeleteNamespaceResponse)(nil),                // 22: environments.DeleteNamespaceResponse
-	(*GetResourceRequest)(nil),                     // 23: environments.GetResourceRequest
-	(*Resource)(nil),                               // 24: environments.Resource
-	(*ResourceResponse)(nil),                       // 25: environments.ResourceResponse
-	(*ListResourcesRequest)(nil),                   // 26: environments.ListResourcesRequest
-	(*ListResourcesResponse)(nil),                  // 27: environments.ListResourcesResponse
-	(*UpdateResourceRequest)(nil),                  // 28: environments.UpdateResourceRequest
-	(*DeleteResourceRequest)(nil),                  // 29: environments.DeleteResourceRequest
-	(*DeleteResourceResponse)(nil),                 // 30: environments.DeleteResourceResponse
-	(*anypb.Any)(nil),                              // 31: google.protobuf.Any
+	(*DeleteBranchEnvironmentRequest)(nil),         // 7: environments.DeleteBranchEnvironmentRequest
+	(*BranchEnvironment)(nil),                      // 8: environments.BranchEnvironment
+	(*ListEnvironmentBranchesRequest)(nil),         // 9: environments.ListEnvironmentBranchesRequest
+	(*ListEnvironmentBranchesResponse)(nil),        // 10: environments.ListEnvironmentBranchesResponse
+	(*ProposeEnvironmentRequest)(nil),              // 11: environments.ProposeEnvironmentRequest
+	(*EnvironmentProposalDetails)(nil),             // 12: environments.EnvironmentProposalDetails
+	(*Change)(nil),                                 // 13: environments.Change
+	(*ListBranchedEnvironmentChangesRequest)(nil),  // 14: environments.ListBranchedEnvironmentChangesRequest
+	(*ListBranchedEnvironmentChangesResponse)(nil), // 15: environments.ListBranchedEnvironmentChangesResponse
+	(*Namespace)(nil),                              // 16: environments.Namespace
+	(*GetNamespaceRequest)(nil),                    // 17: environments.GetNamespaceRequest
+	(*NamespaceResponse)(nil),                      // 18: environments.NamespaceResponse
+	(*ListNamespacesRequest)(nil),                  // 19: environments.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),                 // 20: environments.ListNamespacesResponse
+	(*UpdateNamespaceRequest)(nil),                 // 21: environments.UpdateNamespaceRequest
+	(*DeleteNamespaceRequest)(nil),                 // 22: environments.DeleteNamespaceRequest
+	(*DeleteNamespaceResponse)(nil),                // 23: environments.DeleteNamespaceResponse
+	(*GetResourceRequest)(nil),                     // 24: environments.GetResourceRequest
+	(*Resource)(nil),                               // 25: environments.Resource
+	(*ResourceResponse)(nil),                       // 26: environments.ResourceResponse
+	(*ListResourcesRequest)(nil),                   // 27: environments.ListResourcesRequest
+	(*ListResourcesResponse)(nil),                  // 28: environments.ListResourcesResponse
+	(*UpdateResourceRequest)(nil),                  // 29: environments.UpdateResourceRequest
+	(*DeleteResourceRequest)(nil),                  // 30: environments.DeleteResourceRequest
+	(*DeleteResourceResponse)(nil),                 // 31: environments.DeleteResourceResponse
+	(*anypb.Any)(nil),                              // 32: google.protobuf.Any
+	(*emptypb.Empty)(nil),                          // 33: google.protobuf.Empty
 }
 var file_environments_proto_depIdxs = []int32{
 	3,  // 0: environments.Environment.configuration:type_name -> environments.EnvironmentConfiguration
 	2,  // 1: environments.ListEnvironmentsResponse.environments:type_name -> environments.Environment
-	11, // 2: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
-	7,  // 3: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
+	12, // 2: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
+	8,  // 3: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
 	0,  // 4: environments.EnvironmentProposalDetails.scm:type_name -> environments.SCM
 	1,  // 5: environments.EnvironmentProposalDetails.state:type_name -> environments.ProposalState
-	12, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
-	15, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace
-	15, // 8: environments.ListNamespacesResponse.items:type_name -> environments.Namespace
-	31, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
-	24, // 10: environments.ResourceResponse.resource:type_name -> environments.Resource
-	24, // 11: environments.ListResourcesResponse.resources:type_name -> environments.Resource
-	31, // 12: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
+	13, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
+	16, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace
+	16, // 8: environments.ListNamespacesResponse.items:type_name -> environments.Namespace
+	32, // 9: environments.Resource.payload:type_name -> google.protobuf.Any
+	25, // 10: environments.ResourceResponse.resource:type_name -> environments.Resource
+	25, // 11: environments.ListResourcesResponse.resources:type_name -> environments.Resource
+	32, // 12: environments.UpdateResourceRequest.payload:type_name -> google.protobuf.Any
 	4,  // 13: environments.EnvironmentsService.ListEnvironments:input_type -> environments.ListEnvironmentsRequest
 	6,  // 14: environments.EnvironmentsService.BranchEnvironment:input_type -> environments.BranchEnvironmentRequest
-	8,  // 15: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
-	13, // 16: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
-	10, // 17: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
-	16, // 18: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
-	18, // 19: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
-	20, // 20: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
-	20, // 21: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
-	21, // 22: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
-	23, // 23: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
-	26, // 24: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
-	28, // 25: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
-	28, // 26: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
-	29, // 27: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
-	5,  // 28: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
-	2,  // 29: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
-	9,  // 30: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
-	14, // 31: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
-	11, // 32: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
-	17, // 33: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
-	19, // 34: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
-	17, // 35: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
-	17, // 36: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
-	22, // 37: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
-	25, // 38: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
-	27, // 39: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
-	25, // 40: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
-	25, // 41: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
-	30, // 42: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
-	28, // [28:43] is the sub-list for method output_type
-	13, // [13:28] is the sub-list for method input_type
+	7,  // 15: environments.EnvironmentsService.DeleteBranchEnvironment:input_type -> environments.DeleteBranchEnvironmentRequest
+	9,  // 16: environments.EnvironmentsService.ListEnvironmentBranches:input_type -> environments.ListEnvironmentBranchesRequest
+	14, // 17: environments.EnvironmentsService.ListBranchedEnvironmentChanges:input_type -> environments.ListBranchedEnvironmentChangesRequest
+	11, // 18: environments.EnvironmentsService.ProposeEnvironment:input_type -> environments.ProposeEnvironmentRequest
+	17, // 19: environments.EnvironmentsService.GetNamespace:input_type -> environments.GetNamespaceRequest
+	19, // 20: environments.EnvironmentsService.ListNamespaces:input_type -> environments.ListNamespacesRequest
+	21, // 21: environments.EnvironmentsService.CreateNamespace:input_type -> environments.UpdateNamespaceRequest
+	21, // 22: environments.EnvironmentsService.UpdateNamespace:input_type -> environments.UpdateNamespaceRequest
+	22, // 23: environments.EnvironmentsService.DeleteNamespace:input_type -> environments.DeleteNamespaceRequest
+	24, // 24: environments.EnvironmentsService.GetResource:input_type -> environments.GetResourceRequest
+	27, // 25: environments.EnvironmentsService.ListResources:input_type -> environments.ListResourcesRequest
+	29, // 26: environments.EnvironmentsService.CreateResource:input_type -> environments.UpdateResourceRequest
+	29, // 27: environments.EnvironmentsService.UpdateResource:input_type -> environments.UpdateResourceRequest
+	30, // 28: environments.EnvironmentsService.DeleteResource:input_type -> environments.DeleteResourceRequest
+	5,  // 29: environments.EnvironmentsService.ListEnvironments:output_type -> environments.ListEnvironmentsResponse
+	2,  // 30: environments.EnvironmentsService.BranchEnvironment:output_type -> environments.Environment
+	33, // 31: environments.EnvironmentsService.DeleteBranchEnvironment:output_type -> google.protobuf.Empty
+	10, // 32: environments.EnvironmentsService.ListEnvironmentBranches:output_type -> environments.ListEnvironmentBranchesResponse
+	15, // 33: environments.EnvironmentsService.ListBranchedEnvironmentChanges:output_type -> environments.ListBranchedEnvironmentChangesResponse
+	12, // 34: environments.EnvironmentsService.ProposeEnvironment:output_type -> environments.EnvironmentProposalDetails
+	18, // 35: environments.EnvironmentsService.GetNamespace:output_type -> environments.NamespaceResponse
+	20, // 36: environments.EnvironmentsService.ListNamespaces:output_type -> environments.ListNamespacesResponse
+	18, // 37: environments.EnvironmentsService.CreateNamespace:output_type -> environments.NamespaceResponse
+	18, // 38: environments.EnvironmentsService.UpdateNamespace:output_type -> environments.NamespaceResponse
+	23, // 39: environments.EnvironmentsService.DeleteNamespace:output_type -> environments.DeleteNamespaceResponse
+	26, // 40: environments.EnvironmentsService.GetResource:output_type -> environments.ResourceResponse
+	28, // 41: environments.EnvironmentsService.ListResources:output_type -> environments.ListResourcesResponse
+	26, // 42: environments.EnvironmentsService.CreateResource:output_type -> environments.ResourceResponse
+	26, // 43: environments.EnvironmentsService.UpdateResource:output_type -> environments.ResourceResponse
+	31, // 44: environments.EnvironmentsService.DeleteResource:output_type -> environments.DeleteResourceResponse
+	29, // [29:45] is the sub-list for method output_type
+	13, // [13:29] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -2087,19 +2148,19 @@ func file_environments_proto_init() {
 	}
 	file_environments_proto_msgTypes[0].OneofWrappers = []any{}
 	file_environments_proto_msgTypes[1].OneofWrappers = []any{}
-	file_environments_proto_msgTypes[5].OneofWrappers = []any{}
-	file_environments_proto_msgTypes[8].OneofWrappers = []any{}
-	file_environments_proto_msgTypes[10].OneofWrappers = []any{}
+	file_environments_proto_msgTypes[6].OneofWrappers = []any{}
+	file_environments_proto_msgTypes[9].OneofWrappers = []any{}
 	file_environments_proto_msgTypes[11].OneofWrappers = []any{}
-	file_environments_proto_msgTypes[13].OneofWrappers = []any{}
-	file_environments_proto_msgTypes[18].OneofWrappers = []any{}
+	file_environments_proto_msgTypes[12].OneofWrappers = []any{}
+	file_environments_proto_msgTypes[14].OneofWrappers = []any{}
+	file_environments_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_environments_proto_rawDesc), len(file_environments_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   29,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

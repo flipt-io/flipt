@@ -6,6 +6,7 @@ import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/v2/environments";
 
@@ -23,6 +24,12 @@ service EnvironmentsService {
       body: "*"
     };
     option (gnostic.openapi.v3.operation) = {operation_id: "branchEnvironment"};
+  }
+
+  rpc DeleteBranchEnvironment(DeleteBranchEnvironmentRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_visibility) = {restriction: "flipt:sdk:ignore"};
+    option (google.api.http) = {delete: "/api/v2/environments/{base_environment_key}/branches/{environment_key}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "deleteBranchEnvironment"};
   }
 
   rpc ListEnvironmentBranches(ListEnvironmentBranchesRequest) returns (ListEnvironmentBranchesResponse) {
@@ -134,6 +141,11 @@ message ListEnvironmentsResponse {
 }
 
 message BranchEnvironmentRequest {
+  string base_environment_key = 1;
+  string environment_key = 2;
+}
+
+message DeleteBranchEnvironmentRequest {
   string base_environment_key = 1;
   string environment_key = 2;
 }

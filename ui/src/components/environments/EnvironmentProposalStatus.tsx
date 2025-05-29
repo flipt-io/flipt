@@ -1,8 +1,4 @@
-import {
-  GitPullRequestArrow,
-  GitPullRequestClosed,
-  GitPullRequestCreate
-} from 'lucide-react';
+import { GitPullRequestArrow, GitPullRequestCreate } from 'lucide-react';
 import { useState } from 'react';
 
 import { useListBranchEnvironmentsQuery } from '~/app/environments/environmentsApi';
@@ -23,26 +19,17 @@ import {
 
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
 
-function MergeProposalStatus({ proposal }: { proposal: IEnvironmentProposal }) {
+function OpenMergeProposalStatus({
+  proposal
+}: {
+  proposal: IEnvironmentProposal;
+}) {
   let prNumber: string | undefined;
 
   // TODO: support other SCMs
   if (proposal.scm === SCM.GITHUB) {
     prNumber = proposal.url.split('/').pop();
   }
-
-  const statusColor =
-    proposal.state === ProposalState.OPEN ? 'text-green-500' : '';
-  const statusIcon =
-    proposal.state === ProposalState.OPEN ? (
-      <GitPullRequestArrow className={`w-4 h-4 ${statusColor}`} />
-    ) : (
-      <GitPullRequestClosed className={`w-4 h-4 ${statusColor}`} />
-    );
-  const statusText =
-    proposal.state === ProposalState.OPEN
-      ? 'View open merge proposal'
-      : 'View closed merge proposal';
 
   return (
     <>
@@ -56,18 +43,18 @@ function MergeProposalStatus({ proposal }: { proposal: IEnvironmentProposal }) {
               window.open(proposal.url, '_blank');
             }}
           >
-            {statusIcon}
+            <GitPullRequestArrow className={`w-4 h-4 text-green-500`} />
             <span className="sr-only">Merge proposal</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" align="center">
           {prNumber ? (
             <div className="flex items-center gap-1">
-              <span>{statusText}</span>
+              <span>View open merge proposal</span>
               <span className="text-xs font-mono">#{prNumber}</span>
             </div>
           ) : (
-            <span>{statusText}</span>
+            <span>View open merge proposal</span>
           )}
         </TooltipContent>
       </Tooltip>
@@ -117,8 +104,8 @@ export default function EnvironmentProposalStatus({
     (branch) => branch.environmentKey === environment.key
   )?.proposal;
 
-  if (proposal) {
-    return <MergeProposalStatus proposal={proposal} />;
+  if (proposal && proposal.state === ProposalState.OPEN) {
+    return <OpenMergeProposalStatus proposal={proposal} />;
   }
 
   return <NoMergeProposalStatus environment={environment} />;

@@ -96,6 +96,59 @@ func local_request_EnvironmentsService_BranchEnvironment_0(ctx context.Context, 
 	return msg, metadata, err
 }
 
+func request_EnvironmentsService_DeleteBranchEnvironment_0(ctx context.Context, marshaler runtime.Marshaler, client EnvironmentsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq DeleteBranchEnvironmentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	io.Copy(io.Discard, req.Body)
+	val, ok := pathParams["base_environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+	}
+	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+	}
+	val, ok = pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	msg, err := client.DeleteBranchEnvironment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_EnvironmentsService_DeleteBranchEnvironment_0(ctx context.Context, marshaler runtime.Marshaler, server EnvironmentsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq DeleteBranchEnvironmentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["base_environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+	}
+	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+	}
+	val, ok = pathParams["environment_key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
+	}
+	protoReq.EnvironmentKey, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	msg, err := server.DeleteBranchEnvironment(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_EnvironmentsService_ListEnvironmentBranches_0(ctx context.Context, marshaler runtime.Marshaler, client EnvironmentsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListEnvironmentBranchesRequest
@@ -914,6 +967,26 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		}
 		forward_EnvironmentsService_BranchEnvironment_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodDelete, pattern_EnvironmentsService_DeleteBranchEnvironment_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_EnvironmentsService_DeleteBranchEnvironment_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_EnvironmentsService_DeleteBranchEnvironment_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_EnvironmentsService_ListEnvironmentBranches_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1248,6 +1321,23 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		}
 		forward_EnvironmentsService_BranchEnvironment_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodDelete, pattern_EnvironmentsService_DeleteBranchEnvironment_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_EnvironmentsService_DeleteBranchEnvironment_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_EnvironmentsService_DeleteBranchEnvironment_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_EnvironmentsService_ListEnvironmentBranches_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1475,6 +1565,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 var (
 	pattern_EnvironmentsService_ListEnvironments_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v2", "environments"}, ""))
 	pattern_EnvironmentsService_BranchEnvironment_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "base_environment_key", "branches"}, ""))
+	pattern_EnvironmentsService_DeleteBranchEnvironment_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key"}, ""))
 	pattern_EnvironmentsService_ListEnvironmentBranches_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "base_environment_key", "branches"}, ""))
 	pattern_EnvironmentsService_ListBranchedEnvironmentChanges_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key", "changes"}, ""))
 	pattern_EnvironmentsService_ProposeEnvironment_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key"}, ""))
@@ -1493,6 +1584,7 @@ var (
 var (
 	forward_EnvironmentsService_ListEnvironments_0               = runtime.ForwardResponseMessage
 	forward_EnvironmentsService_BranchEnvironment_0              = runtime.ForwardResponseMessage
+	forward_EnvironmentsService_DeleteBranchEnvironment_0        = runtime.ForwardResponseMessage
 	forward_EnvironmentsService_ListEnvironmentBranches_0        = runtime.ForwardResponseMessage
 	forward_EnvironmentsService_ListBranchedEnvironmentChanges_0 = runtime.ForwardResponseMessage
 	forward_EnvironmentsService_ProposeEnvironment_0             = runtime.ForwardResponseMessage

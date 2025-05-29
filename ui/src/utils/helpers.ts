@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { ICommand } from '~/types/Cli';
 import { ICurlOptions } from '~/types/Curl';
+import { IEnvironmentConfiguration } from '~/types/Environment';
 
 import { defaultHeaders } from '~/data/api';
 
@@ -115,4 +116,37 @@ export function generateCurlCommand(curlOptions: ICurlOptions) {
 
 export function generateCliCommand(command: ICommand): string {
   return `flipt ${command.commandName} ${command.arguments?.join(' ')} ${command.options?.map(({ key, value }) => `${key} ${value}`).join(' ')}`;
+}
+
+export function getRepoUrlFromConfig(configuration: IEnvironmentConfiguration) {
+  // TODO: support other SCMs as this is only works for GitHub currently
+  let repoUrl = configuration.remote;
+  if (configuration.branch && configuration.directory) {
+    repoUrl += `/tree/${configuration.branch}/${configuration.directory}`;
+  } else if (configuration.branch) {
+    repoUrl += `/tree/${configuration.branch}`;
+  }
+  return repoUrl;
+}
+
+export function extractRepoName(remote: string): string {
+  if (!remote) return '';
+  // Remove protocol and trailing .git
+  let url = remote.replace(/^https?:\/\//, '').replace(/\.git$/, '');
+
+  // TODO: test with gitlab, bitbucket, etc.
+
+  // Handle SSH URLs
+  if (url.includes('@')) {
+    // git@github.com:org/repo.git or git@gitlab.com:group/subgroup/repo.git
+    url = url.split(':')[1] || '';
+    url = url.replace(/\.git$/, '');
+    return url;
+  }
+
+  // For HTTP(S) URLs, remove domain
+  const parts = url.split('/');
+  // Remove the domain part (e.g., github.com)
+  parts.shift();
+  return parts.join('/');
 }
