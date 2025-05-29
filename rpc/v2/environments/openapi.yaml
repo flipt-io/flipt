@@ -126,13 +126,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteResourceResponse'
-    /api/v2/environments/{baseEnvironmentKey}/branches:
+    /api/v2/environments/{environmentKey}/branches:
         get:
             tags:
                 - EnvironmentsService
             operationId: listEnvironmentBranches
             parameters:
-                - name: baseEnvironmentKey
+                - name: environmentKey
                   in: path
                   required: true
                   schema:
@@ -149,7 +149,7 @@ paths:
                 - EnvironmentsService
             operationId: branchEnvironment
             parameters:
-                - name: baseEnvironmentKey
+                - name: environmentKey
                   in: path
                   required: true
                   schema:
@@ -167,18 +167,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Environment'
-    /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}:
+    /api/v2/environments/{environmentKey}/branches/{key}:
         post:
             tags:
                 - EnvironmentsService
             operationId: proposeEnvironment
             parameters:
-                - name: baseEnvironmentKey
+                - name: environmentKey
                   in: path
                   required: true
                   schema:
                     type: string
-                - name: environmentKey
+                - name: key
                   in: path
                   required: true
                   schema:
@@ -196,18 +196,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/EnvironmentProposalDetails'
-    /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}/changes:
+        delete:
+            tags:
+                - EnvironmentsService
+            operationId: deleteBranchEnvironment
+            parameters:
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: key
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/v2/environments/{environmentKey}/branches/{key}/changes:
         get:
             tags:
                 - EnvironmentsService
             operationId: listBranchedEnvironmentChanges
             parameters:
-                - name: baseEnvironmentKey
+                - name: environmentKey
                   in: path
                   required: true
                   schema:
                     type: string
-                - name: environmentKey
+                - name: key
                   in: path
                   required: true
                   schema:
@@ -406,18 +425,18 @@ components:
             properties:
                 environmentKey:
                     type: string
-                branch:
+                key:
                     type: string
-                baseEnvironmentKey:
+                ref:
                     type: string
                 proposal:
                     $ref: '#/components/schemas/EnvironmentProposalDetails'
         BranchEnvironmentRequest:
             type: object
             properties:
-                baseEnvironmentKey:
-                    type: string
                 environmentKey:
+                    type: string
+                key:
                     type: string
         Change:
             type: object
@@ -458,7 +477,7 @@ components:
         EnvironmentConfiguration:
             type: object
             properties:
-                branch:
+                ref:
                     type: string
                 directory:
                     type: string
@@ -551,9 +570,9 @@ components:
         ProposeEnvironmentRequest:
             type: object
             properties:
-                baseEnvironmentKey:
-                    type: string
                 environmentKey:
+                    type: string
+                key:
                     type: string
                 title:
                     type: string

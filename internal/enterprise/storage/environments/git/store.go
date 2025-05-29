@@ -67,8 +67,8 @@ func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs
 	}
 
 	return e.SCM.ListChanges(ctx, ListChangesRequest{
-		Base:  baseCfg.Branch,
-		Head:  branchCfg.Branch,
+		Base:  baseCfg.Ref,
+		Head:  branchCfg.Ref,
 		Limit: 10,
 	})
 }
@@ -88,7 +88,7 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 		Branch *environments.EnvironmentConfiguration
 	}
 
-	if err := e.Repository().View(ctx, branchCfg.Branch, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
+	if err := e.Repository().View(ctx, branchCfg.Ref, func(hash plumbing.Hash, src environmentsfs.Filesystem) error {
 		// chroot our filesystem to the configured directory
 		dir := ""
 		if baseCfg.Directory != nil {
@@ -125,8 +125,8 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 		}
 
 		resp, err = e.SCM.Propose(ctx, ProposalRequest{
-			Base:  baseCfg.Branch,
-			Head:  branchCfg.Branch,
+			Base:  baseCfg.Ref,
+			Head:  branchCfg.Ref,
 			Title: title.String(),
 			Body:  body.String(),
 			Draft: opts.Draft,
@@ -152,7 +152,7 @@ func (e *Environment) ListBranches(ctx context.Context) (*environments.ListEnvir
 	}
 
 	for _, branch := range branches.Branches {
-		branch.Proposal = proposals[branch.Branch]
+		branch.Proposal = proposals[branch.Ref]
 	}
 
 	return branches, nil

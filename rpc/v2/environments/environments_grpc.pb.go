@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -21,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	EnvironmentsService_ListEnvironments_FullMethodName               = "/environments.EnvironmentsService/ListEnvironments"
 	EnvironmentsService_BranchEnvironment_FullMethodName              = "/environments.EnvironmentsService/BranchEnvironment"
+	EnvironmentsService_DeleteBranchEnvironment_FullMethodName        = "/environments.EnvironmentsService/DeleteBranchEnvironment"
 	EnvironmentsService_ListEnvironmentBranches_FullMethodName        = "/environments.EnvironmentsService/ListEnvironmentBranches"
 	EnvironmentsService_ListBranchedEnvironmentChanges_FullMethodName = "/environments.EnvironmentsService/ListBranchedEnvironmentChanges"
 	EnvironmentsService_ProposeEnvironment_FullMethodName             = "/environments.EnvironmentsService/ProposeEnvironment"
@@ -43,6 +45,7 @@ type EnvironmentsServiceClient interface {
 	// environments
 	ListEnvironments(ctx context.Context, in *ListEnvironmentsRequest, opts ...grpc.CallOption) (*ListEnvironmentsResponse, error)
 	BranchEnvironment(ctx context.Context, in *BranchEnvironmentRequest, opts ...grpc.CallOption) (*Environment, error)
+	DeleteBranchEnvironment(ctx context.Context, in *DeleteBranchEnvironmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListEnvironmentBranches(ctx context.Context, in *ListEnvironmentBranchesRequest, opts ...grpc.CallOption) (*ListEnvironmentBranchesResponse, error)
 	ListBranchedEnvironmentChanges(ctx context.Context, in *ListBranchedEnvironmentChangesRequest, opts ...grpc.CallOption) (*ListBranchedEnvironmentChangesResponse, error)
 	ProposeEnvironment(ctx context.Context, in *ProposeEnvironmentRequest, opts ...grpc.CallOption) (*EnvironmentProposalDetails, error)
@@ -82,6 +85,16 @@ func (c *environmentsServiceClient) BranchEnvironment(ctx context.Context, in *B
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Environment)
 	err := c.cc.Invoke(ctx, EnvironmentsService_BranchEnvironment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *environmentsServiceClient) DeleteBranchEnvironment(ctx context.Context, in *DeleteBranchEnvironmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, EnvironmentsService_DeleteBranchEnvironment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,6 +238,7 @@ type EnvironmentsServiceServer interface {
 	// environments
 	ListEnvironments(context.Context, *ListEnvironmentsRequest) (*ListEnvironmentsResponse, error)
 	BranchEnvironment(context.Context, *BranchEnvironmentRequest) (*Environment, error)
+	DeleteBranchEnvironment(context.Context, *DeleteBranchEnvironmentRequest) (*emptypb.Empty, error)
 	ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error)
 	ListBranchedEnvironmentChanges(context.Context, *ListBranchedEnvironmentChangesRequest) (*ListBranchedEnvironmentChangesResponse, error)
 	ProposeEnvironment(context.Context, *ProposeEnvironmentRequest) (*EnvironmentProposalDetails, error)
@@ -255,6 +269,9 @@ func (UnimplementedEnvironmentsServiceServer) ListEnvironments(context.Context, 
 }
 func (UnimplementedEnvironmentsServiceServer) BranchEnvironment(context.Context, *BranchEnvironmentRequest) (*Environment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BranchEnvironment not implemented")
+}
+func (UnimplementedEnvironmentsServiceServer) DeleteBranchEnvironment(context.Context, *DeleteBranchEnvironmentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBranchEnvironment not implemented")
 }
 func (UnimplementedEnvironmentsServiceServer) ListEnvironmentBranches(context.Context, *ListEnvironmentBranchesRequest) (*ListEnvironmentBranchesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEnvironmentBranches not implemented")
@@ -348,6 +365,24 @@ func _EnvironmentsService_BranchEnvironment_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EnvironmentsServiceServer).BranchEnvironment(ctx, req.(*BranchEnvironmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnvironmentsService_DeleteBranchEnvironment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBranchEnvironmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentsServiceServer).DeleteBranchEnvironment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentsService_DeleteBranchEnvironment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentsServiceServer).DeleteBranchEnvironment(ctx, req.(*DeleteBranchEnvironmentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -600,6 +635,10 @@ var EnvironmentsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BranchEnvironment",
 			Handler:    _EnvironmentsService_BranchEnvironment_Handler,
+		},
+		{
+			MethodName: "DeleteBranchEnvironment",
+			Handler:    _EnvironmentsService_DeleteBranchEnvironment_Handler,
 		},
 		{
 			MethodName: "ListEnvironmentBranches",

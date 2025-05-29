@@ -14,6 +14,7 @@ import (
 	url "net/url"
 	status "google.golang.org/grpc/status"
 	codes "google.golang.org/grpc/codes"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type EnvironmentsServiceClient struct {
@@ -342,6 +343,10 @@ func (x *EnvironmentsServiceClient) DeleteResource(ctx context.Context, v *envir
 
 func (x *EnvironmentsServiceClient) BranchEnvironment(ctx context.Context, v *environments.BranchEnvironmentRequest, _ ...grpc.CallOption) (*environments.Environment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BranchEnvironment not implemented")
+}
+
+func (x *EnvironmentsServiceClient) DeleteBranchEnvironment(ctx context.Context, v *environments.DeleteBranchEnvironmentRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBranchEnvironment not implemented")
 }
 
 func (x *EnvironmentsServiceClient) ListEnvironmentBranches(ctx context.Context, v *environments.ListEnvironmentBranchesRequest, _ ...grpc.CallOption) (*environments.ListEnvironmentBranchesResponse, error) {

@@ -9,8 +9,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '~/components/Dialog';
-
-import { cn } from '~/lib/utils';
+import { cn } from '~/components/utils';
 
 function Command({
   className,

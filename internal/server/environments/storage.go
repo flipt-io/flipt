@@ -59,6 +59,7 @@ type Environment interface {
 	Branch(ctx context.Context, branch string) (Environment, error)
 	ListBranchedChanges(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
 	Propose(ctx context.Context, branch Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
+	DeleteBranch(ctx context.Context, branch string) error
 
 	// Namespaces
 
@@ -150,6 +151,23 @@ func (e *EnvironmentStore) Add(env Environment) {
 	defer e.mu.Unlock()
 
 	e.byKey[env.Key()] = env
+}
+
+func (e *EnvironmentStore) DeleteBranch(ctx context.Context, base, branch string) error {
+	baseEnv, err := e.Get(ctx, base)
+	if err != nil {
+		return err
+	}
+
+	if err := baseEnv.DeleteBranch(ctx, branch); err != nil {
+		return err
+	}
+
+	e.mu.Lock()
+	delete(e.byKey, branch)
+	e.mu.Unlock()
+
+	return nil
 }
 
 func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch string) (Environment, error) {

@@ -1,4 +1,4 @@
-import { cn } from '~/lib/utils';
+import { cn } from '~/components/utils';
 
 export interface PageHeaderProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
