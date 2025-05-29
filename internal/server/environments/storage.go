@@ -52,12 +52,13 @@ type Environment interface {
 	Key() string
 	Default() bool
 	Configuration() *environments.EnvironmentConfiguration
+
+	// Branches
+
 	ListBranches(ctx context.Context) (*environments.ListEnvironmentBranchesResponse, error)
 	Branch(ctx context.Context, branch string) (Environment, error)
-
-	// From Branched Environments
-	Propose(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
-	ListBranchedChanges(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
+	ListBranchedChanges(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)
+	Propose(ctx context.Context, branch Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)
 
 	// Namespaces
 
@@ -178,7 +179,7 @@ func (e *EnvironmentStore) Propose(ctx context.Context, base string, branch stri
 		return nil, err
 	}
 
-	return branchEnv.Propose(ctx, baseEnv, opts)
+	return baseEnv.Propose(ctx, branchEnv, opts)
 }
 
 // Get returns the environment identified by key.
