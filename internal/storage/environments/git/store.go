@@ -114,7 +114,7 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 	}
 
 	return &rpcenvironments.EnvironmentConfiguration{
-		Branch:    e.currentBranch,
+		Ref:       e.currentBranch,
 		Remote:    remote,
 		Directory: directory,
 		Base:      base,
@@ -194,9 +194,9 @@ func (e *Environment) ListBranches(ctx context.Context) (*rpcenvironments.ListEn
 	br := &rpcenvironments.ListEnvironmentBranchesResponse{}
 	for _, cfg := range branches {
 		br.Branches = append(br.Branches, &rpcenvironments.BranchEnvironment{
-			EnvironmentKey:     cfg.Name,
-			Branch:             cfg.branch,
-			BaseEnvironmentKey: e.cfg.Name,
+			Key:            cfg.Name,
+			Ref:            cfg.branch,
+			EnvironmentKey: e.cfg.Name,
 		})
 	}
 

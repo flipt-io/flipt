@@ -158,7 +158,7 @@ func Test_Environment_ListBranches(t *testing.T) {
 	resp, err = env.ListBranches(ctx)
 	require.NoError(t, err)
 	assert.Len(t, resp.Branches, 1)
-	assert.Contains(t, resp.Branches[0].Branch, "flipt/production/")
+	assert.Contains(t, resp.Branches[0].Ref, "flipt/production/")
 }
 
 func Test_Environment_ProposeNotImplemented(t *testing.T) {

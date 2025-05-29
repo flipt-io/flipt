@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu';
 
-import { IEnvironment, ProposalState, SCM } from '~/types/Environment';
+import { IEnvironment, ProposalState } from '~/types/Environment';
 
 import { getRepoUrlFromConfig } from '~/utils/helpers';
 
@@ -40,7 +40,7 @@ export default function BranchActionsDropdown({
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
   const { data: baseBranches } = useListBranchEnvironmentsQuery({
-    baseEnvironmentKey: environment.configuration?.base ?? ''
+    environmentKey: environment.configuration?.base ?? ''
   });
 
   const proposal = baseBranches?.branches.find(

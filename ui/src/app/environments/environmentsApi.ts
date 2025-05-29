@@ -119,20 +119,20 @@ export const environmentsApi = createApi({
     }),
     listBranchEnvironments: builder.query<
       { branches: IBranchEnvironment[] },
-      { baseEnvironmentKey: string }
+      { environmentKey: string }
     >({
-      query: ({ baseEnvironmentKey }) => `/${baseEnvironmentKey}/branches`,
+      query: ({ environmentKey }) => `/${environmentKey}/branches`,
       providesTags: () => [{ type: 'BranchEnvironment' }]
     }),
     createBranchEnvironment: builder.mutation<
       IBranchEnvironment,
-      { baseEnvironmentKey: string; environmentKey: string }
+      { environmentKey: string; key: string }
     >({
-      query: ({ baseEnvironmentKey, environmentKey }) => ({
-        url: `/${baseEnvironmentKey}/branches`,
+      query: ({ environmentKey, key }) => ({
+        url: `/${environmentKey}/branches`,
         method: 'POST',
         body: {
-          environmentKey
+          key
         }
       }),
       invalidatesTags: () => [
@@ -142,10 +142,10 @@ export const environmentsApi = createApi({
     }),
     deleteBranchEnvironment: builder.mutation<
       void,
-      { baseEnvironmentKey: string; environmentKey: string }
+      { environmentKey: string; key: string }
     >({
-      query: ({ baseEnvironmentKey, environmentKey }) => ({
-        url: `/${baseEnvironmentKey}/branches/${environmentKey}`,
+      query: ({ environmentKey, key }) => ({
+        url: `/${environmentKey}/branches/${key}`,
         method: 'DELETE'
       }),
       invalidatesTags: () => [
@@ -155,23 +155,23 @@ export const environmentsApi = createApi({
     }),
     listBranchEnvironmentChanges: builder.query<
       { changes: IChange[] },
-      { baseEnvironmentKey: string; environmentKey: string }
+      { environmentKey: string; key: string }
     >({
-      query: ({ baseEnvironmentKey, environmentKey }) =>
-        `/${baseEnvironmentKey}/branches/${environmentKey}/changes`
+      query: ({ environmentKey, key }) =>
+        `/${environmentKey}/branches/${key}/changes`
     }),
     proposeEnvironment: builder.mutation<
       IEnvironmentProposal,
       {
-        baseEnvironmentKey: string;
         environmentKey: string;
+        key: string;
         title?: string;
         body?: string;
         draft?: boolean;
       }
     >({
-      query: ({ baseEnvironmentKey, environmentKey, title, body, draft }) => ({
-        url: `${baseEnvironmentKey}/branches/${environmentKey}`,
+      query: ({ environmentKey, key, title, body, draft }) => ({
+        url: `${environmentKey}/branches/${key}`,
         method: 'POST',
         body: { title, body, draft }
       })

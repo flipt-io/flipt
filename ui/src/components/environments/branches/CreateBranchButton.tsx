@@ -67,8 +67,8 @@ export function CreateBranchButton({
     try {
       await branchValidationSchema.validate({ branchName });
       await createBranch({
-        baseEnvironmentKey: baseEnvironment.key,
-        environmentKey: branchName
+        environmentKey: baseEnvironment.key,
+        key: branchName
       }).unwrap();
       setBranchInput('');
       setShowBranchPopover(false);

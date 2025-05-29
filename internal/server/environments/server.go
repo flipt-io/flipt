@@ -66,7 +66,7 @@ func (s *Server) ListEnvironments(ctx context.Context, req *environments.ListEnv
 }
 
 func (s *Server) BranchEnvironment(ctx context.Context, req *environments.BranchEnvironmentRequest) (resp *environments.Environment, err error) {
-	env, err := s.envs.Branch(ctx, req.BaseEnvironmentKey, req.EnvironmentKey)
+	env, err := s.envs.Branch(ctx, req.EnvironmentKey, req.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +80,11 @@ func (s *Server) BranchEnvironment(ctx context.Context, req *environments.Branch
 }
 
 func (s *Server) DeleteBranchEnvironment(ctx context.Context, req *environments.DeleteBranchEnvironmentRequest) (resp *emptypb.Empty, err error) {
-	return &emptypb.Empty{}, s.envs.DeleteBranch(ctx, req.BaseEnvironmentKey, req.EnvironmentKey)
+	return &emptypb.Empty{}, s.envs.DeleteBranch(ctx, req.EnvironmentKey, req.Key)
 }
 
 func (s *Server) ListEnvironmentBranches(ctx context.Context, req *environments.ListEnvironmentBranchesRequest) (br *environments.ListEnvironmentBranchesResponse, err error) {
-	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
@@ -93,12 +93,12 @@ func (s *Server) ListEnvironmentBranches(ctx context.Context, req *environments.
 }
 
 func (s *Server) ListBranchedEnvironmentChanges(ctx context.Context, req *environments.ListBranchedEnvironmentChangesRequest) (br *environments.ListBranchedEnvironmentChangesResponse, err error) {
-	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
 
-	branch, err := env.Branch(ctx, req.EnvironmentKey)
+	branch, err := env.Branch(ctx, req.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -107,12 +107,12 @@ func (s *Server) ListBranchedEnvironmentChanges(ctx context.Context, req *enviro
 }
 
 func (s *Server) ProposeEnvironment(ctx context.Context, req *environments.ProposeEnvironmentRequest) (resp *environments.EnvironmentProposalDetails, err error) {
-	env, err := s.envs.Get(ctx, req.BaseEnvironmentKey)
+	env, err := s.envs.Get(ctx, req.EnvironmentKey)
 	if err != nil {
 		return nil, err
 	}
 
-	branch, err := env.Branch(ctx, req.EnvironmentKey)
+	branch, err := env.Branch(ctx, req.Key)
 	if err != nil {
 		return nil, err
 	}

@@ -57,8 +57,8 @@ export function CreateBranchPopover({
     try {
       await branchValidationSchema.validate({ branchName });
       await createBranch({
-        baseEnvironmentKey: environment.key,
-        environmentKey: branchName
+        environmentKey: environment.key,
+        key: branchName
       }).unwrap();
       setBranchInput('');
       setOpen(false);

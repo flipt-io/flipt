@@ -188,7 +188,7 @@ func (x *Environment) GetConfiguration() *EnvironmentConfiguration {
 
 type EnvironmentConfiguration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Branch        string                 `protobuf:"bytes,1,opt,name=branch,proto3" json:"branch,omitempty"`
+	Ref           string                 `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
 	Directory     *string                `protobuf:"bytes,2,opt,name=directory,proto3,oneof" json:"directory,omitempty"`
 	Remote        *string                `protobuf:"bytes,3,opt,name=remote,proto3,oneof" json:"remote,omitempty"`
 	Base          *string                `protobuf:"bytes,4,opt,name=base,proto3,oneof" json:"base,omitempty"`
@@ -226,9 +226,9 @@ func (*EnvironmentConfiguration) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EnvironmentConfiguration) GetBranch() string {
+func (x *EnvironmentConfiguration) GetRef() string {
 	if x != nil {
-		return x.Branch
+		return x.Ref
 	}
 	return ""
 }
@@ -335,11 +335,11 @@ func (x *ListEnvironmentsResponse) GetEnvironments() []*Environment {
 }
 
 type BranchEnvironmentRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	EnvironmentKey     string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	Key            string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BranchEnvironmentRequest) Reset() {
@@ -372,13 +372,6 @@ func (*BranchEnvironmentRequest) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *BranchEnvironmentRequest) GetBaseEnvironmentKey() string {
-	if x != nil {
-		return x.BaseEnvironmentKey
-	}
-	return ""
-}
-
 func (x *BranchEnvironmentRequest) GetEnvironmentKey() string {
 	if x != nil {
 		return x.EnvironmentKey
@@ -386,12 +379,19 @@ func (x *BranchEnvironmentRequest) GetEnvironmentKey() string {
 	return ""
 }
 
+func (x *BranchEnvironmentRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
 type DeleteBranchEnvironmentRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	EnvironmentKey     string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	Key            string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *DeleteBranchEnvironmentRequest) Reset() {
@@ -424,13 +424,6 @@ func (*DeleteBranchEnvironmentRequest) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *DeleteBranchEnvironmentRequest) GetBaseEnvironmentKey() string {
-	if x != nil {
-		return x.BaseEnvironmentKey
-	}
-	return ""
-}
-
 func (x *DeleteBranchEnvironmentRequest) GetEnvironmentKey() string {
 	if x != nil {
 		return x.EnvironmentKey
@@ -438,14 +431,21 @@ func (x *DeleteBranchEnvironmentRequest) GetEnvironmentKey() string {
 	return ""
 }
 
+func (x *DeleteBranchEnvironmentRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
 type BranchEnvironment struct {
-	state              protoimpl.MessageState      `protogen:"open.v1"`
-	EnvironmentKey     string                      `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	Branch             string                      `protobuf:"bytes,2,opt,name=branch,proto3" json:"branch,omitempty"`
-	BaseEnvironmentKey string                      `protobuf:"bytes,3,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	Proposal           *EnvironmentProposalDetails `protobuf:"bytes,4,opt,name=proposal,proto3,oneof" json:"proposal,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState      `protogen:"open.v1"`
+	EnvironmentKey string                      `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	Key            string                      `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Ref            string                      `protobuf:"bytes,3,opt,name=ref,proto3" json:"ref,omitempty"`
+	Proposal       *EnvironmentProposalDetails `protobuf:"bytes,4,opt,name=proposal,proto3,oneof" json:"proposal,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BranchEnvironment) Reset() {
@@ -485,16 +485,16 @@ func (x *BranchEnvironment) GetEnvironmentKey() string {
 	return ""
 }
 
-func (x *BranchEnvironment) GetBranch() string {
+func (x *BranchEnvironment) GetKey() string {
 	if x != nil {
-		return x.Branch
+		return x.Key
 	}
 	return ""
 }
 
-func (x *BranchEnvironment) GetBaseEnvironmentKey() string {
+func (x *BranchEnvironment) GetRef() string {
 	if x != nil {
-		return x.BaseEnvironmentKey
+		return x.Ref
 	}
 	return ""
 }
@@ -507,10 +507,10 @@ func (x *BranchEnvironment) GetProposal() *EnvironmentProposalDetails {
 }
 
 type ListEnvironmentBranchesRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListEnvironmentBranchesRequest) Reset() {
@@ -543,9 +543,9 @@ func (*ListEnvironmentBranchesRequest) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ListEnvironmentBranchesRequest) GetBaseEnvironmentKey() string {
+func (x *ListEnvironmentBranchesRequest) GetEnvironmentKey() string {
 	if x != nil {
-		return x.BaseEnvironmentKey
+		return x.EnvironmentKey
 	}
 	return ""
 }
@@ -595,14 +595,14 @@ func (x *ListEnvironmentBranchesResponse) GetBranches() []*BranchEnvironment {
 }
 
 type ProposeEnvironmentRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	EnvironmentKey     string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	Title              *string                `protobuf:"bytes,3,opt,name=title,proto3,oneof" json:"title,omitempty"`
-	Body               *string                `protobuf:"bytes,4,opt,name=body,proto3,oneof" json:"body,omitempty"`
-	Draft              *bool                  `protobuf:"varint,5,opt,name=draft,proto3,oneof" json:"draft,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	Key            string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Title          *string                `protobuf:"bytes,3,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	Body           *string                `protobuf:"bytes,4,opt,name=body,proto3,oneof" json:"body,omitempty"`
+	Draft          *bool                  `protobuf:"varint,5,opt,name=draft,proto3,oneof" json:"draft,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ProposeEnvironmentRequest) Reset() {
@@ -635,16 +635,16 @@ func (*ProposeEnvironmentRequest) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *ProposeEnvironmentRequest) GetBaseEnvironmentKey() string {
+func (x *ProposeEnvironmentRequest) GetEnvironmentKey() string {
 	if x != nil {
-		return x.BaseEnvironmentKey
+		return x.EnvironmentKey
 	}
 	return ""
 }
 
-func (x *ProposeEnvironmentRequest) GetEnvironmentKey() string {
+func (x *ProposeEnvironmentRequest) GetKey() string {
 	if x != nil {
-		return x.EnvironmentKey
+		return x.Key
 	}
 	return ""
 }
@@ -815,13 +815,13 @@ func (x *Change) GetScmUrl() string {
 }
 
 type ListBranchedEnvironmentChangesRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	BaseEnvironmentKey string                 `protobuf:"bytes,1,opt,name=base_environment_key,json=baseEnvironmentKey,proto3" json:"base_environment_key,omitempty"`
-	EnvironmentKey     string                 `protobuf:"bytes,2,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
-	From               *string                `protobuf:"bytes,3,opt,name=from,proto3,oneof" json:"from,omitempty"`
-	Limit              *int32                 `protobuf:"varint,4,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EnvironmentKey string                 `protobuf:"bytes,1,opt,name=environment_key,json=environmentKey,proto3" json:"environment_key,omitempty"`
+	Key            string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	From           *string                `protobuf:"bytes,3,opt,name=from,proto3,oneof" json:"from,omitempty"`
+	Limit          *int32                 `protobuf:"varint,4,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ListBranchedEnvironmentChangesRequest) Reset() {
@@ -854,16 +854,16 @@ func (*ListBranchedEnvironmentChangesRequest) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *ListBranchedEnvironmentChangesRequest) GetBaseEnvironmentKey() string {
+func (x *ListBranchedEnvironmentChangesRequest) GetEnvironmentKey() string {
 	if x != nil {
-		return x.BaseEnvironmentKey
+		return x.EnvironmentKey
 	}
 	return ""
 }
 
-func (x *ListBranchedEnvironmentChangesRequest) GetEnvironmentKey() string {
+func (x *ListBranchedEnvironmentChangesRequest) GetKey() string {
 	if x != nil {
-		return x.EnvironmentKey
+		return x.Key
 	}
 	return ""
 }
@@ -1882,9 +1882,9 @@ const file_environments_proto_rawDesc = "" +
 	"\rconfiguration\x18\x04 \x01(\v2&.environments.EnvironmentConfigurationH\x01R\rconfiguration\x88\x01\x01B\n" +
 	"\n" +
 	"\b_defaultB\x10\n" +
-	"\x0e_configuration\"\xad\x01\n" +
-	"\x18EnvironmentConfiguration\x12\x16\n" +
-	"\x06branch\x18\x01 \x01(\tR\x06branch\x12!\n" +
+	"\x0e_configuration\"\xa7\x01\n" +
+	"\x18EnvironmentConfiguration\x12\x10\n" +
+	"\x03ref\x18\x01 \x01(\tR\x03ref\x12!\n" +
 	"\tdirectory\x18\x02 \x01(\tH\x00R\tdirectory\x88\x01\x01\x12\x1b\n" +
 	"\x06remote\x18\x03 \x01(\tH\x01R\x06remote\x88\x01\x01\x12\x17\n" +
 	"\x04base\x18\x04 \x01(\tH\x02R\x04base\x88\x01\x01B\f\n" +
@@ -1894,26 +1894,26 @@ const file_environments_proto_rawDesc = "" +
 	"\x05_base\"\x19\n" +
 	"\x17ListEnvironmentsRequest\"Y\n" +
 	"\x18ListEnvironmentsResponse\x12=\n" +
-	"\fenvironments\x18\x01 \x03(\v2\x19.environments.EnvironmentR\fenvironments\"u\n" +
-	"\x18BranchEnvironmentRequest\x120\n" +
-	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
-	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"{\n" +
-	"\x1eDeleteBranchEnvironmentRequest\x120\n" +
-	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
-	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\"\xde\x01\n" +
+	"\fenvironments\x18\x01 \x03(\v2\x19.environments.EnvironmentR\fenvironments\"U\n" +
+	"\x18BranchEnvironmentRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\"[\n" +
+	"\x1eDeleteBranchEnvironmentRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\"\xb8\x01\n" +
 	"\x11BranchEnvironment\x12'\n" +
-	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x16\n" +
-	"\x06branch\x18\x02 \x01(\tR\x06branch\x120\n" +
-	"\x14base_environment_key\x18\x03 \x01(\tR\x12baseEnvironmentKey\x12I\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x10\n" +
+	"\x03ref\x18\x03 \x01(\tR\x03ref\x12I\n" +
 	"\bproposal\x18\x04 \x01(\v2(.environments.EnvironmentProposalDetailsH\x00R\bproposal\x88\x01\x01B\v\n" +
-	"\t_proposal\"R\n" +
-	"\x1eListEnvironmentBranchesRequest\x120\n" +
-	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\"^\n" +
+	"\t_proposal\"I\n" +
+	"\x1eListEnvironmentBranchesRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\"^\n" +
 	"\x1fListEnvironmentBranchesResponse\x12;\n" +
-	"\bbranches\x18\x01 \x03(\v2\x1f.environments.BranchEnvironmentR\bbranches\"\xe2\x01\n" +
-	"\x19ProposeEnvironmentRequest\x120\n" +
-	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
-	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\x12\x19\n" +
+	"\bbranches\x18\x01 \x03(\v2\x1f.environments.BranchEnvironmentR\bbranches\"\xc2\x01\n" +
+	"\x19ProposeEnvironmentRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x19\n" +
 	"\x05title\x18\x03 \x01(\tH\x00R\x05title\x88\x01\x01\x12\x17\n" +
 	"\x04body\x18\x04 \x01(\tH\x01R\x04body\x88\x01\x01\x12\x19\n" +
 	"\x05draft\x18\x05 \x01(\bH\x02R\x05draft\x88\x01\x01B\b\n" +
@@ -1935,10 +1935,10 @@ const file_environments_proto_rawDesc = "" +
 	"\f_author_nameB\x0f\n" +
 	"\r_author_emailB\n" +
 	"\n" +
-	"\b_scm_url\"\xc9\x01\n" +
-	"%ListBranchedEnvironmentChangesRequest\x120\n" +
-	"\x14base_environment_key\x18\x01 \x01(\tR\x12baseEnvironmentKey\x12'\n" +
-	"\x0fenvironment_key\x18\x02 \x01(\tR\x0eenvironmentKey\x12\x17\n" +
+	"\b_scm_url\"\xa9\x01\n" +
+	"%ListBranchedEnvironmentChangesRequest\x12'\n" +
+	"\x0fenvironment_key\x18\x01 \x01(\tR\x0eenvironmentKey\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x17\n" +
 	"\x04from\x18\x03 \x01(\tH\x00R\x04from\x88\x01\x01\x12\x19\n" +
 	"\x05limit\x18\x04 \x01(\x05H\x01R\x05limit\x88\x01\x01B\a\n" +
 	"\x05_fromB\b\n" +
@@ -2019,14 +2019,14 @@ const file_environments_proto_rawDesc = "" +
 	"\rProposalState\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x00\x12\x19\n" +
 	"\x15PROPOSAL_STATE_MERGED\x10\x01\x12\x19\n" +
-	"\x15PROPOSAL_STATE_CLOSED\x10\x022\xb0\x19\n" +
+	"\x15PROPOSAL_STATE_CLOSED\x10\x022\xf1\x18\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
-	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc5\x01\n" +
-	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"m\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x029:\x01*\"4/api/v2/environments/{base_environment_key}/branches\x12\xe4\x01\n" +
-	"\x17DeleteBranchEnvironment\x12,.environments.DeleteBranchEnvironmentRequest\x1a\x16.google.protobuf.Empty\"\x82\x01\xbaG\x19*\x17deleteBranchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02H*F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xe8\x01\n" +
-	"\x17ListEnvironmentBranches\x12,.environments.ListEnvironmentBranchesRequest\x1a-.environments.ListEnvironmentBranchesResponse\"p\xbaG\x19*\x17listEnvironmentBranches\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x026\x124/api/v2/environments/{base_environment_key}/branches\x12\x9f\x02\n" +
-	"\x1eListBranchedEnvironmentChanges\x123.environments.ListBranchedEnvironmentChangesRequest\x1a4.environments.ListBranchedEnvironmentChangesResponse\"\x91\x01\xbaG *\x1elistBranchedEnvironmentChanges\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02P\x12N/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes\x12\xea\x01\n" +
-	"\x12ProposeEnvironment\x12'.environments.ProposeEnvironmentRequest\x1a(.environments.EnvironmentProposalDetails\"\x80\x01\xbaG\x14*\x12proposeEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v2/environments/{base_environment_key}/branches/{environment_key}\x12\xa4\x01\n" +
+	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc0\x01\n" +
+	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"h\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x024:\x01*\"//api/v2/environments/{environment_key}/branches\x12\xd2\x01\n" +
+	"\x17DeleteBranchEnvironment\x12,.environments.DeleteBranchEnvironmentRequest\x1a\x16.google.protobuf.Empty\"q\xbaG\x19*\x17deleteBranchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x027*5/api/v2/environments/{environment_key}/branches/{key}\x12\xe3\x01\n" +
+	"\x17ListEnvironmentBranches\x12,.environments.ListEnvironmentBranchesRequest\x1a-.environments.ListEnvironmentBranchesResponse\"k\xbaG\x19*\x17listEnvironmentBranches\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x021\x12//api/v2/environments/{environment_key}/branches\x12\x8e\x02\n" +
+	"\x1eListBranchedEnvironmentChanges\x123.environments.ListBranchedEnvironmentChangesRequest\x1a4.environments.ListBranchedEnvironmentChangesResponse\"\x80\x01\xbaG *\x1elistBranchedEnvironmentChanges\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02?\x12=/api/v2/environments/{environment_key}/branches/{key}/changes\x12\xd8\x01\n" +
+	"\x12ProposeEnvironment\x12'.environments.ProposeEnvironmentRequest\x1a(.environments.EnvironmentProposalDetails\"o\xbaG\x14*\x12proposeEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x02::\x01*\"5/api/v2/environments/{environment_key}/branches/{key}\x12\xa4\x01\n" +
 	"\fGetNamespace\x12!.environments.GetNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x0e*\fgetNamespace\x82\xd3\xe4\x93\x029\x127/api/v2/environments/{environment_key}/namespaces/{key}\x12\xa9\x01\n" +
 	"\x0eListNamespaces\x12#.environments.ListNamespacesRequest\x1a$.environments.ListNamespacesResponse\"L\xbaG\x10*\x0elistNamespaces\x82\xd3\xe4\x93\x023\x121/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +
 	"\x0fCreateNamespace\x12$.environments.UpdateNamespaceRequest\x1a\x1f.environments.NamespaceResponse\"P\xbaG\x11*\x0fcreateNamespace\x82\xd3\xe4\x93\x026:\x01*\"1/api/v2/environments/{environment_key}/namespaces\x12\xaa\x01\n" +

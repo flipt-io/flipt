@@ -38,8 +38,8 @@ export function CreateMergeProposalModal({
 }: CreateMergeProposalModalProps) {
   const { data, isLoading, isError } = useListBranchEnvironmentChangesQuery(
     {
-      baseEnvironmentKey: environment.configuration?.base ?? '',
-      environmentKey: environment.key
+      environmentKey: environment.configuration?.base ?? '',
+      key: environment.key
     },
     { skip: !open }
   );
@@ -55,8 +55,8 @@ export function CreateMergeProposalModal({
   }) => {
     try {
       await proposeEnvironment({
-        baseEnvironmentKey: environment.configuration?.base ?? '',
-        environmentKey: environment.key,
+        environmentKey: environment.configuration?.base ?? '',
+        key: environment.key,
         body: values.description,
         draft: values.draft
       }).unwrap();

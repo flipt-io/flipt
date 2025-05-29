@@ -149,7 +149,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	var (
 		baseCfg = env.Configuration()
-		prs     = s.listPRs(ctx, baseCfg.Branch)
+		prs     = s.listPRs(ctx, baseCfg.Ref)
 		details = map[string]*environments.EnvironmentProposalDetails{}
 	)
 

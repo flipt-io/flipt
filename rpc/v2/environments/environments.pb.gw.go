@@ -63,13 +63,13 @@ func request_EnvironmentsService_BranchEnvironment_0(ctx context.Context, marsha
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["base_environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
 	}
 	msg, err := client.BranchEnvironment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -84,13 +84,13 @@ func local_request_EnvironmentsService_BranchEnvironment_0(ctx context.Context, 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["base_environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
 	}
 	msg, err := server.BranchEnvironment(ctx, &protoReq)
 	return msg, metadata, err
@@ -103,21 +103,21 @@ func request_EnvironmentsService_DeleteBranchEnvironment_0(ctx context.Context, 
 		err      error
 	)
 	io.Copy(io.Discard, req.Body)
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	msg, err := client.DeleteBranchEnvironment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -129,21 +129,21 @@ func local_request_EnvironmentsService_DeleteBranchEnvironment_0(ctx context.Con
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	msg, err := server.DeleteBranchEnvironment(ctx, &protoReq)
 	return msg, metadata, err
@@ -156,13 +156,13 @@ func request_EnvironmentsService_ListEnvironmentBranches_0(ctx context.Context, 
 		err      error
 	)
 	io.Copy(io.Discard, req.Body)
-	val, ok := pathParams["base_environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
 	}
 	msg, err := client.ListEnvironmentBranches(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -174,19 +174,19 @@ func local_request_EnvironmentsService_ListEnvironmentBranches_0(ctx context.Con
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["base_environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
+	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
 	}
 	msg, err := server.ListEnvironmentBranches(ctx, &protoReq)
 	return msg, metadata, err
 }
 
-var filter_EnvironmentsService_ListBranchedEnvironmentChanges_0 = &utilities.DoubleArray{Encoding: map[string]int{"base_environment_key": 0, "environment_key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+var filter_EnvironmentsService_ListBranchedEnvironmentChanges_0 = &utilities.DoubleArray{Encoding: map[string]int{"environment_key": 0, "key": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 
 func request_EnvironmentsService_ListBranchedEnvironmentChanges_0(ctx context.Context, marshaler runtime.Marshaler, client EnvironmentsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
@@ -195,21 +195,21 @@ func request_EnvironmentsService_ListBranchedEnvironmentChanges_0(ctx context.Co
 		err      error
 	)
 	io.Copy(io.Discard, req.Body)
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -227,21 +227,21 @@ func local_request_EnvironmentsService_ListBranchedEnvironmentChanges_0(ctx cont
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -262,21 +262,21 @@ func request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context, marsh
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	msg, err := client.ProposeEnvironment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -291,21 +291,21 @@ func local_request_EnvironmentsService_ProposeEnvironment_0(ctx context.Context,
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["base_environment_key"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "base_environment_key")
-	}
-	protoReq.BaseEnvironmentKey, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "base_environment_key", err)
-	}
-	val, ok = pathParams["environment_key"]
+	val, ok := pathParams["environment_key"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "environment_key")
 	}
 	protoReq.EnvironmentKey, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "environment_key", err)
+	}
+	val, ok = pathParams["key"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "key")
+	}
+	protoReq.Key, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 	msg, err := server.ProposeEnvironment(ctx, &protoReq)
 	return msg, metadata, err
@@ -953,7 +953,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/BranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/BranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -973,7 +973,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -993,7 +993,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListEnvironmentBranches", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListEnvironmentBranches", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1013,7 +1013,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListBranchedEnvironmentChanges", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ListBranchedEnvironmentChanges", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}/changes"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1033,7 +1033,7 @@ func RegisterEnvironmentsServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ProposeEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/environments.EnvironmentsService/ProposeEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1308,7 +1308,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/BranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/BranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1325,7 +1325,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/DeleteBranchEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1342,7 +1342,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListEnvironmentBranches", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListEnvironmentBranches", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1359,7 +1359,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListBranchedEnvironmentChanges", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}/changes"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ListBranchedEnvironmentChanges", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}/changes"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1376,7 +1376,7 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ProposeEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{base_environment_key}/branches/{environment_key}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/environments.EnvironmentsService/ProposeEnvironment", runtime.WithHTTPPathPattern("/api/v2/environments/{environment_key}/branches/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1564,11 +1564,11 @@ func RegisterEnvironmentsServiceHandlerClient(ctx context.Context, mux *runtime.
 
 var (
 	pattern_EnvironmentsService_ListEnvironments_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v2", "environments"}, ""))
-	pattern_EnvironmentsService_BranchEnvironment_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "base_environment_key", "branches"}, ""))
-	pattern_EnvironmentsService_DeleteBranchEnvironment_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key"}, ""))
-	pattern_EnvironmentsService_ListEnvironmentBranches_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "base_environment_key", "branches"}, ""))
-	pattern_EnvironmentsService_ListBranchedEnvironmentChanges_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key", "changes"}, ""))
-	pattern_EnvironmentsService_ProposeEnvironment_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "base_environment_key", "branches", "environment_key"}, ""))
+	pattern_EnvironmentsService_BranchEnvironment_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "environment_key", "branches"}, ""))
+	pattern_EnvironmentsService_DeleteBranchEnvironment_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "environment_key", "branches", "key"}, ""))
+	pattern_EnvironmentsService_ListEnvironmentBranches_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "environment_key", "branches"}, ""))
+	pattern_EnvironmentsService_ListBranchedEnvironmentChanges_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v2", "environments", "environment_key", "branches", "key", "changes"}, ""))
+	pattern_EnvironmentsService_ProposeEnvironment_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "environment_key", "branches", "key"}, ""))
 	pattern_EnvironmentsService_GetNamespace_0                   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v2", "environments", "environment_key", "namespaces", "key"}, ""))
 	pattern_EnvironmentsService_ListNamespaces_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "environment_key", "namespaces"}, ""))
 	pattern_EnvironmentsService_CreateNamespace_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v2", "environments", "environment_key", "namespaces"}, ""))

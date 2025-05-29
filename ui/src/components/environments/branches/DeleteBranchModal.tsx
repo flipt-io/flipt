@@ -44,8 +44,8 @@ export default function DeleteBranchModal({
   const handleDeleteBranch = async () => {
     try {
       await deleteBranchEnvironment({
-        baseEnvironmentKey: baseBranch,
-        environmentKey: environment.key
+        environmentKey: baseBranch,
+        key: environment.key
       });
       clearError();
       setSuccess('Branch deleted successfully');
