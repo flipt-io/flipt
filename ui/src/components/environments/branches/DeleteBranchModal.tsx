@@ -1,4 +1,4 @@
-import { Field, Form, Formik } from 'formik';
+import { Form, Formik } from 'formik';
 import * as Yup from 'yup';
 
 import {
@@ -8,6 +8,7 @@ import {
 
 import Modal from '~/components/Modal';
 import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
 
 import { IEnvironment } from '~/types/Environment';
 
@@ -79,7 +80,7 @@ export default function DeleteBranchModal({
         >
           {({ isSubmitting, isValid, errors, touched }) => (
             <Form>
-              <Field
+              <Input
                 name="confirmName"
                 type="text"
                 placeholder={environment.key}
