@@ -70,9 +70,9 @@ export function CreateMergeProposalModal({
 
   return (
     <Modal open={open} setOpen={setOpen}>
-      <div className="p-6">
-        <h2 className="text-2xl font-bold mb-1">Create Merge Proposal</h2>
-        <p className="text-muted-foreground mb-6">
+      <div className="p-6 space-y-4">
+        <h2 className="text-2xl font-bold">Create Merge Proposal</h2>
+        <p className="text-muted-foreground">
           Propose merging changes from this environment back into{' '}
           <span className="font-semibold">
             {environment.configuration?.base}
@@ -80,7 +80,7 @@ export function CreateMergeProposalModal({
           .
         </p>
         {isError ? (
-          <div className="rounded-md px-3 py-2 mb-6 border border-red-200 min-h-[60px] bg-red-50 flex flex-col items-center justify-center text-center">
+          <div className="rounded-md px-3 py-2 border border-red-200 min-h-[60px] bg-red-50 flex flex-col items-center justify-center text-center">
             <span className="text-base font-semibold text-destructive mb-1">
               Failed to load changes
             </span>
@@ -90,7 +90,7 @@ export function CreateMergeProposalModal({
             </span>
           </div>
         ) : (
-          <div className="bg-muted rounded-md px-3 py-2 mb-6 border border-muted-foreground/10 min-h-[60px]">
+          <div className="bg-muted rounded-md px-3 py-2 border border-muted-foreground/10 min-h-[60px]">
             {isLoading && (
               <div className="text-sm text-muted-foreground">
                 Loading changes…
@@ -160,7 +160,7 @@ export function CreateMergeProposalModal({
               !(formik.isValid && !formik.isSubmitting) || isError;
             return (
               <Form>
-                <div className="mb-6">
+                <div>
                   <label
                     className="block text-sm font-medium mb-1"
                     htmlFor="proposal-desc"

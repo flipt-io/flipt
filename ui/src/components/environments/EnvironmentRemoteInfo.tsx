@@ -4,27 +4,7 @@ import { Badge } from '~/components/Badge';
 
 import { IEnvironment } from '~/types/Environment';
 
-function extractRepoName(remote: string): string {
-  if (!remote) return '';
-  // Remove protocol and trailing .git
-  let url = remote.replace(/^https?:\/\//, '').replace(/\.git$/, '');
-
-  // TODO: test with gitlab, bitbucket, etc.
-
-  // Handle SSH URLs
-  if (url.includes('@')) {
-    // git@github.com:org/repo.git or git@gitlab.com:group/subgroup/repo.git
-    url = url.split(':')[1] || '';
-    url = url.replace(/\.git$/, '');
-    return url;
-  }
-
-  // For HTTP(S) URLs, remove domain
-  const parts = url.split('/');
-  // Remove the domain part (e.g., github.com)
-  parts.shift();
-  return parts.join('/');
-}
+import { extractRepoName, getRepoUrlFromConfig } from '~/utils/helpers';
 
 export function EnvironmentRemoteInfo({
   environment
@@ -38,13 +18,7 @@ export function EnvironmentRemoteInfo({
   if (configuration.remote.includes('github.com')) ProviderIcon = Github;
   if (configuration.remote.includes('gitlab.com')) ProviderIcon = Gitlab;
 
-  let repoUrl = configuration.remote;
-  if (configuration.branch && configuration.directory) {
-    repoUrl += `/tree/${configuration.branch}/${configuration.directory}`;
-  } else if (configuration.branch) {
-    repoUrl += `/tree/${configuration.branch}`;
-  }
-
+  const repoUrl = getRepoUrlFromConfig(configuration);
   const repoName = extractRepoName(configuration.remote);
 
   return (

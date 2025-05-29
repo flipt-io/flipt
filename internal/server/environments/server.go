@@ -10,6 +10,7 @@ import (
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var _ environments.EnvironmentsServiceServer = (*Server)(nil)
@@ -76,6 +77,10 @@ func (s *Server) BranchEnvironment(ctx context.Context, req *environments.Branch
 		Default:       ptr(env.Default()),
 		Configuration: env.Configuration(),
 	}, nil
+}
+
+func (s *Server) DeleteBranchEnvironment(ctx context.Context, req *environments.DeleteBranchEnvironmentRequest) (resp *emptypb.Empty, err error) {
+	return &emptypb.Empty{}, s.envs.DeleteBranch(ctx, req.BaseEnvironmentKey, req.EnvironmentKey)
 }
 
 func (s *Server) ListEnvironmentBranches(ctx context.Context, req *environments.ListEnvironmentBranchesRequest) (br *environments.ListEnvironmentBranchesResponse, err error) {

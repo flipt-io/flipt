@@ -203,6 +203,20 @@ func (e *Environment) ListBranches(ctx context.Context) (*rpcenvironments.ListEn
 	return br, nil
 }
 
+func (e *Environment) DeleteBranch(ctx context.Context, branch string) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	gitBranch := fmt.Sprintf("flipt/%s/%s", e.cfg.Name, branch)
+	if err := e.repo.DeleteBranch(ctx, gitBranch); err != nil {
+		return err
+	}
+
+	delete(e.branches, branch)
+
+	return nil
+}
+
 func (e *Environment) listBranchEnvs(_ context.Context) (*branchEnvIterator, error) {
 	refs, err := e.repo.References()
 	if err != nil {

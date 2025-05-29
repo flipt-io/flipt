@@ -244,6 +244,52 @@ func (_c *MockEnvironment_Default_Call) RunAndReturn(run func() bool) *MockEnvir
 	return _c
 }
 
+// DeleteBranch provides a mock function for the type MockEnvironment
+func (_mock *MockEnvironment) DeleteBranch(ctx context.Context, branch string) error {
+	ret := _mock.Called(ctx, branch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBranch")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, branch)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockEnvironment_DeleteBranch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBranch'
+type MockEnvironment_DeleteBranch_Call struct {
+	*mock.Call
+}
+
+// DeleteBranch is a helper method to define mock.On call
+//   - ctx
+//   - branch
+func (_e *MockEnvironment_Expecter) DeleteBranch(ctx interface{}, branch interface{}) *MockEnvironment_DeleteBranch_Call {
+	return &MockEnvironment_DeleteBranch_Call{Call: _e.mock.On("DeleteBranch", ctx, branch)}
+}
+
+func (_c *MockEnvironment_DeleteBranch_Call) Run(run func(ctx context.Context, branch string)) *MockEnvironment_DeleteBranch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockEnvironment_DeleteBranch_Call) Return(err error) *MockEnvironment_DeleteBranch_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockEnvironment_DeleteBranch_Call) RunAndReturn(run func(ctx context.Context, branch string) error) *MockEnvironment_DeleteBranch_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteNamespace provides a mock function for the type MockEnvironment
 func (_mock *MockEnvironment) DeleteNamespace(context1 context.Context, rev string, key string) (string, error) {
 	ret := _mock.Called(context1, rev, key)

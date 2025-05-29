@@ -196,6 +196,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/EnvironmentProposalDetails'
+        delete:
+            tags:
+                - EnvironmentsService
+            operationId: deleteBranchEnvironment
+            parameters:
+                - name: baseEnvironmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: environmentKey
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
     /api/v2/environments/{baseEnvironmentKey}/branches/{environmentKey}/changes:
         get:
             tags:

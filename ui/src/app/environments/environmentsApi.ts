@@ -140,6 +140,19 @@ export const environmentsApi = createApi({
         { type: 'BranchEnvironment' }
       ]
     }),
+    deleteBranchEnvironment: builder.mutation<
+      void,
+      { baseEnvironmentKey: string; environmentKey: string }
+    >({
+      query: ({ baseEnvironmentKey, environmentKey }) => ({
+        url: `/${baseEnvironmentKey}/branches/${environmentKey}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: () => [
+        { type: 'Environment' },
+        { type: 'BranchEnvironment' }
+      ]
+    }),
     listBranchEnvironmentChanges: builder.query<
       { changes: IChange[] },
       { baseEnvironmentKey: string; environmentKey: string }
@@ -170,6 +183,7 @@ export const {
   useListEnvironmentsQuery,
   useListBranchEnvironmentsQuery,
   useCreateBranchEnvironmentMutation,
+  useDeleteBranchEnvironmentMutation,
   useListBranchEnvironmentChangesQuery,
   useProposeEnvironmentMutation
 } = environmentsApi;
