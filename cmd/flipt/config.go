@@ -71,7 +71,7 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	var b bytes.Buffer
-	b.WriteString("# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json\n\n")
+	b.WriteString("# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/v2/config/flipt.schema.json\n\n")
 	b.Write(out)
 
 	if err := os.WriteFile(file, b.Bytes(), 0600); err != nil {

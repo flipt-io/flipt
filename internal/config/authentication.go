@@ -87,6 +87,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("authentication.session.storage.cleanup.grace_period", "30m")
 	v.SetDefault("authentication.session.token_lifetime", "24h")
 	v.SetDefault("authentication.session.state_lifetime", "10m")
+	v.SetDefault("authentication.session.csrf.secure", true)
 
 	// Set defaults for each authentication method
 	for _, info := range c.Methods.AllMethods(context.Background()) {
@@ -279,6 +280,8 @@ func (cfg *AuthenticationSessionStorageRedisConfig) setDefaults(v *viper.Viper) 
 type AuthenticationSessionCSRFConfig struct {
 	// Key is the private key string used to authenticate csrf tokens.
 	Key string `json:"-" mapstructure:"key"`
+	// Secure signals to the CSRF middleware that the request is being served over TLS or plaintext HTTP
+	Secure bool `json:"secure,omitempty" mapstructure:"secure" yaml:"secure,omitempty"`
 }
 
 // AuthenticationMethodsConfig is a set of configuration for each authentication

@@ -203,6 +203,9 @@ func TestLoad(t *testing.T) {
 					},
 					TokenLifetime: 24 * time.Hour,
 					StateLifetime: 10 * time.Minute,
+					CSRF: AuthenticationSessionCSRFConfig{
+						Secure: true,
+					},
 				}
 				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
@@ -236,6 +239,9 @@ func TestLoad(t *testing.T) {
 					},
 					TokenLifetime: 24 * time.Hour,
 					StateLifetime: 10 * time.Minute,
+					CSRF: AuthenticationSessionCSRFConfig{
+						Secure: true,
+					},
 				}
 				cfg.Authentication.Methods = AuthenticationMethodsConfig{
 					OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
@@ -372,7 +378,8 @@ func TestLoad(t *testing.T) {
 						TokenLifetime: 24 * time.Hour,
 						StateLifetime: 10 * time.Minute,
 						CSRF: AuthenticationSessionCSRFConfig{
-							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
+							Key:    "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
+							Secure: true,
 						},
 						Storage: AuthenticationSessionStorageConfig{
 							Type: AuthenticationSessionStorageTypeMemory,
@@ -494,7 +501,8 @@ func TestLoad(t *testing.T) {
 						TokenLifetime: 24 * time.Hour,
 						StateLifetime: 10 * time.Minute,
 						CSRF: AuthenticationSessionCSRFConfig{
-							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
+							Key:    "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
+							Secure: true,
 						},
 						Storage: AuthenticationSessionStorageConfig{
 							Type: AuthenticationSessionStorageTypeMemory,

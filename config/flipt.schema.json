@@ -167,6 +167,9 @@
               "properties": {
                 "key": {
                   "type": "string"
+                },
+                "secure": {
+                  "type": "boolean"
                 }
               }
             },

@@ -193,11 +193,13 @@ func NewHTTPServer(
 						r.Header.Get("origin") == "" {
 						r = csrf.UnsafeSkipCheck(r)
 					}
-
+					if !cfg.Authentication.Session.CSRF.Secure {
+						r = csrf.PlaintextHTTPRequest(r)
+					}
 					handler.ServeHTTP(w, r)
 				})
 			})
-			r.Use(csrf.Protect([]byte(key), csrf.Path("/")))
+			r.Use(csrf.Protect([]byte(key), csrf.Path("/"), csrf.Secure(cfg.Authentication.Session.CSRF.Secure)))
 		}
 
 		r.Mount("/api/v1", api)
