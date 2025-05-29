@@ -75,8 +75,8 @@ func (e *Environment) ListBranchedChanges(ctx context.Context, branch serverenvs
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (resp *environments.EnvironmentProposalDetails, err error) {
 	var (
-		baseCfg   = base.Configuration()
-		branchCfg = e.Configuration()
+		baseCfg   = e.Configuration()
+		branchCfg = base.Configuration()
 	)
 
 	if branchCfg.Base != nil && *branchCfg.Base != e.Key() {
