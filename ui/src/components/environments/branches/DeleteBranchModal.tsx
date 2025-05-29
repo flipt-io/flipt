@@ -78,39 +78,44 @@ export default function DeleteBranchModal({
             actions.setSubmitting(false);
           }}
         >
-          {({ isSubmitting, isValid, errors, touched }) => (
-            <Form>
-              <Input
-                name="confirmName"
-                type="text"
-                placeholder={environment.key}
-                className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-destructive focus:border-destructive transition mb-2"
-                disabled={isSubmitting}
-              />
-              {errors.confirmName && touched.confirmName && (
-                <div className="text-xs text-destructive mb-2">
-                  {errors.confirmName}
-                </div>
-              )}
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setOpen(false)}
+          {(formik) => {
+            const { isSubmitting, isValid, errors, touched } = formik;
+            return (
+              <Form>
+                <Input
+                  name="confirmName"
+                  type="text"
+                  placeholder={environment.key}
+                  className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-destructive focus:border-destructive transition mb-2"
                   disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  type="submit"
-                  disabled={!isValid || isSubmitting}
-                >
-                  {isSubmitting ? 'Deleting...' : 'Delete Branch'}
-                </Button>
-              </div>
-            </Form>
-          )}
+                  onChange={formik.handleChange}
+                  value={formik.values.confirmName}
+                />
+                {errors.confirmName && touched.confirmName && (
+                  <div className="text-xs text-destructive mb-2">
+                    {errors.confirmName}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    type="submit"
+                    disabled={!isValid || isSubmitting}
+                  >
+                    {isSubmitting ? 'Deleting...' : 'Delete Branch'}
+                  </Button>
+                </div>
+              </Form>
+            );
+          }}
         </Formik>
       </div>
     </Modal>
