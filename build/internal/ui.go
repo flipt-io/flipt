@@ -9,7 +9,7 @@ import (
 func UI(ctx context.Context, client *dagger.Client, source *dagger.Directory) (*dagger.Container, error) {
 	cache := client.CacheVolume("node-modules-cache")
 
-	return client.Container().From("node:18-bullseye-slim").
+	return client.Container().From("node:22-bullseye-slim").
 		WithMountedDirectory("/src", source.
 			WithoutDirectory("dist").
 			WithoutDirectory("node_modules")).
