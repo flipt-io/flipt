@@ -6,6 +6,18 @@ test.describe('Branches', () => {
   });
 
   test('can create branch', async ({ page }) => {
+    await page
+      .getByTestId('environment-namespace-switcher')
+      .getByRole('button')
+      .click();
+    await page
+      .getByTestId('environment-listbox')
+      .getByRole('button', { name: 'local' })
+      .click();
+    await page
+      .getByTestId('namespace-listbox')
+      .getByRole('button', { name: 'default' })
+      .click();
     await page.getByTestId('create-branch-button').click();
     await page.getByRole('textbox', { name: 'New branch name' }).click();
     await page.getByRole('textbox', { name: 'New branch name' }).fill('foo');
