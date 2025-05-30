@@ -4,6 +4,30 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
+func (r *ListEnvironmentsRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithNoEnvironment())}
+}
+
+func (r *BranchEnvironmentRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+}
+
+func (r *DeleteBranchEnvironmentRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+}
+
+func (r *ListEnvironmentBranchesRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+}
+
+func (r *ListBranchedEnvironmentChangesRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+}
+
+func (r *ProposeEnvironmentRequest) Request() []flipt.Request {
+	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey))}
+}
+
 func (r *GetNamespaceRequest) Request() []flipt.Request {
 	return []flipt.Request{flipt.NewRequest(flipt.ScopeEnvironment, flipt.ActionRead, flipt.WithEnvironment(r.EnvironmentKey), flipt.WithNamespace(r.Key))}
 }
