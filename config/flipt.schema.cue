@@ -42,7 +42,7 @@ import "list"
 			token_lifetime: =~#duration | *"24h"
 			state_lifetime: =~#duration | *"10m"
 			csrf?: {
-				key: string
+				key:    string
 				secure: bool
 			}
 			storage?: {
@@ -171,11 +171,18 @@ import "list"
 		}
 	}
 
+	#scm: {
+		type:        "github"
+		credentials: string
+		api_url?:    string
+	}
+
 	#environments: [string]: {
 		name:      string
 		default:   bool | *false
 		storage:   string
 		directory: string | *""
+		scm?:      #scm
 	}
 
 	#storage: [string]: {
