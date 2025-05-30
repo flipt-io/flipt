@@ -177,7 +177,7 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 	}
 
 	for key := range e.byKey {
-		if strings.ToLower(key) == strings.ToLower(strings.TrimSpace(branch)) {
+		if strings.EqualFold(key, strings.TrimSpace(branch)) {
 			return nil, errors.ErrAlreadyExistsf("environment: %q", branch)
 		}
 	}
