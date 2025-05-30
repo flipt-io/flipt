@@ -114,12 +114,12 @@ func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Optio
 
 	// update data store with initial data if source is configured
 	if err := engine.updateData(ctx, storage.AddOp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating authz policy data: %w", err)
 	}
 
 	// fetch policy and then compile and set query engine
 	if err := engine.updatePolicy(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating authz policy: %w", err)
 	}
 
 	// begin polling for updates for policy
@@ -146,6 +146,12 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, err
 	defer e.mu.RUnlock()
 
 	e.logger.Debug("evaluating policy", zap.Any("input", input))
+
+	if e.queryAllow == (rego.PreparedEvalQuery{}) {
+		e.logger.Debug("allow query not prepared, skipping evaluation")
+		return false, nil
+	}
+
 	results, err := e.queryAllow.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, err
@@ -155,7 +161,7 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, err
 		return false, nil
 	}
 
-	return results[0].Expressions[0].Value.(bool), nil
+	return results.Allowed(), nil
 }
 
 func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any) ([]string, error) {
@@ -164,7 +170,7 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
-	if e.queryEnvironments == nil {
+	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
 		e.logger.Debug("environments query not prepared, skipping evaluation")
 		return nil, nil
 	}
@@ -178,9 +184,9 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 		return nil, nil
 	}
 
-	values, ok := results[0].Expressions[0].Value.([]any)
+	values, ok := results[0].Bindings["x"].([]any)
 	if !ok {
-		return nil, fmt.Errorf("unexpected result type: %T", results[0].Expressions[0].Value)
+		return nil, fmt.Errorf("unexpected result type: %T", results[0].Bindings["x"])
 	}
 
 	environments := make([]string, len(values))
@@ -198,7 +204,7 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 		zap.String("environment", env),
 		zap.Any("input", input))
 
-	if e.queryNamespaces == nil {
+	if e.queryNamespaces == nil || *e.queryNamespaces == (rego.PreparedEvalQuery{}) {
 		e.logger.Debug("namespaces query not prepared, skipping evaluation")
 		return nil, nil
 	}
@@ -245,9 +251,10 @@ func poll(ctx context.Context, d time.Duration, fn func()) {
 }
 
 func (e *Engine) updatePolicy(ctx context.Context) error {
-	e.mu.RLock()
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	policyHash := e.policyHash
-	e.mu.RUnlock()
 
 	policy, hash, err := e.policySource.Get(ctx, policyHash)
 	if err != nil {
@@ -258,8 +265,10 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return fmt.Errorf("getting policy definition: %w", err)
 	}
 
-	m := rego.Module("policy.rego", string(policy))
-	s := rego.Store(e.store)
+	var (
+		m = rego.Module("policy.rego", string(policy))
+		s = rego.Store(e.store)
+	)
 
 	// Prepare allow query
 	r := rego.New(
@@ -275,7 +284,7 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 
 	// Prepare environments query
 	r = rego.New(
-		rego.Query("data.flipt.authz.v2.viewable_environments"),
+		rego.Query("x = data.flipt.authz.v2.viewable_environments"),
 		m,
 		s,
 	)
@@ -299,12 +308,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		e.queryNamespaces = &queryNamespaces
 	}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
 	if !bytes.Equal(e.policyHash, policyHash) {
 		e.logger.Warn("policy hash doesn't match original one. skipping updating")
 		return nil
 	}
+
 	e.policyHash = hash
 	e.queryAllow = queryAllow
 
@@ -312,6 +320,9 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 }
 
 func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	if e.dataSource == nil {
 		return nil
 	}
