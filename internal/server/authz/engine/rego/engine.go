@@ -146,6 +146,12 @@ func (e *Engine) IsAllowed(ctx context.Context, input map[string]any) (bool, err
 	defer e.mu.RUnlock()
 
 	e.logger.Debug("evaluating policy", zap.Any("input", input))
+
+	if e.queryAllow == (rego.PreparedEvalQuery{}) {
+		e.logger.Debug("allow query not prepared, skipping evaluation")
+		return false, nil
+	}
+
 	results, err := e.queryAllow.Eval(ctx, rego.EvalInput(input))
 	if err != nil {
 		return false, err
@@ -164,7 +170,7 @@ func (e *Engine) ViewableEnvironments(ctx context.Context, input map[string]any)
 
 	e.logger.Debug("evaluating viewable environments", zap.Any("input", input))
 
-	if e.queryEnvironments == nil {
+	if e.queryEnvironments == nil || *e.queryEnvironments == (rego.PreparedEvalQuery{}) {
 		e.logger.Debug("environments query not prepared, skipping evaluation")
 		return nil, nil
 	}
@@ -198,7 +204,7 @@ func (e *Engine) ViewableNamespaces(ctx context.Context, env string, input map[s
 		zap.String("environment", env),
 		zap.Any("input", input))
 
-	if e.queryNamespaces == nil {
+	if e.queryNamespaces == nil || *e.queryNamespaces == (rego.PreparedEvalQuery{}) {
 		e.logger.Debug("namespaces query not prepared, skipping evaluation")
 		return nil, nil
 	}
