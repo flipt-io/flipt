@@ -75,10 +75,16 @@ export function Header({
                 className="px-3 py-1 bg-background text-xs flex-shrink-0 cursor-pointer"
                 data-testid="create-branch-button"
               >
-                <span className="flex items-center gap-2 text-xs">
-                  <GitBranchPlusIcon className="w-4 h-4" />
-                  Create branch
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-2 text-xs">
+                      <GitBranchPlusIcon className="w-4 h-4" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="end">
+                    Create branch
+                  </TooltipContent>
+                </Tooltip>
               </Badge>
             </CreateBranchPopover>
           )}

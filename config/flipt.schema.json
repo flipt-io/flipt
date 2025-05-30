@@ -699,6 +699,29 @@
             "directory": {
               "type": "string",
               "default": ""
+            },
+            "scm": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "credentials"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "github"
+                  ],
+                  "default": "github"
+                },
+                "credentials": {
+                  "type": "string"
+                },
+                "api_url": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
