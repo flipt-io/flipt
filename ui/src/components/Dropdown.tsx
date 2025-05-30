@@ -1,4 +1,4 @@
-import { type VariantProps, cva } from 'class-variance-authority';
+import { type VariantProps } from 'class-variance-authority';
 import { ChevronDown, EllipsisVerticalIcon } from 'lucide-react';
 import { Fragment } from 'react';
 
@@ -13,21 +13,7 @@ import {
 
 import { Icon } from '~/types/Icon';
 
-import { cls } from '~/utils/helpers';
-
-const dropdownVariants = cva('', {
-  variants: {
-    variant: {
-      default: 'text-secondary-foreground',
-      destructive: 'text-destructive focus:bg-destructive focus:text-white'
-    }
-  },
-  defaultVariants: {
-    variant: 'default'
-  }
-});
-
-interface DropdownAction extends VariantProps<typeof dropdownVariants> {
+interface DropdownAction extends VariantProps<typeof DropdownMenuItem> {
   id: string;
   label: string;
   icon?: Icon;
@@ -84,7 +70,7 @@ export default function Dropdown(
                 }
               }}
               disabled={action.disabled}
-              className={cls(dropdownVariants({ variant: action.variant }))}
+              variant={action.variant}
             >
               {action.icon && (
                 <action.icon aria-hidden="true" className="text-inherit" />
