@@ -114,12 +114,12 @@ func newEngine(ctx context.Context, logger *zap.Logger, opts ...containers.Optio
 
 	// update data store with initial data if source is configured
 	if err := engine.updateData(ctx, storage.AddOp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating authz policy data: %w", err)
 	}
 
 	// fetch policy and then compile and set query engine
 	if err := engine.updatePolicy(ctx); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating authz policy: %w", err)
 	}
 
 	// begin polling for updates for policy
@@ -245,9 +245,10 @@ func poll(ctx context.Context, d time.Duration, fn func()) {
 }
 
 func (e *Engine) updatePolicy(ctx context.Context) error {
-	e.mu.RLock()
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	policyHash := e.policyHash
-	e.mu.RUnlock()
 
 	policy, hash, err := e.policySource.Get(ctx, policyHash)
 	if err != nil {
@@ -258,8 +259,10 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		return fmt.Errorf("getting policy definition: %w", err)
 	}
 
-	m := rego.Module("policy.rego", string(policy))
-	s := rego.Store(e.store)
+	var (
+		m = rego.Module("policy.rego", string(policy))
+		s = rego.Store(e.store)
+	)
 
 	// Prepare allow query
 	r := rego.New(
@@ -299,12 +302,11 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 		e.queryNamespaces = &queryNamespaces
 	}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
 	if !bytes.Equal(e.policyHash, policyHash) {
 		e.logger.Warn("policy hash doesn't match original one. skipping updating")
 		return nil
 	}
+
 	e.policyHash = hash
 	e.queryAllow = queryAllow
 
@@ -312,6 +314,9 @@ func (e *Engine) updatePolicy(ctx context.Context) error {
 }
 
 func (e *Engine) updateData(ctx context.Context, op storage.PatchOp) (err error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	if e.dataSource == nil {
 		return nil
 	}
