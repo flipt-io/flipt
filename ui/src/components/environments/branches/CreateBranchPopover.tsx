@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 
 import {
   currentEnvironmentChanged,
+  selectAllEnvironments,
   useCreateBranchEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
@@ -34,19 +36,34 @@ export function CreateBranchPopover({
   const [createBranch, { isLoading: isCreatingBranch }] =
     useCreateBranchEnvironmentMutation();
 
+  // Get all environments (base + branched) from Redux store
+  const environments = useSelector(selectAllEnvironments);
+
+  const environmentNames = useMemo(
+    () => environments.map((env) => env.name),
+    [environments]
+  );
+
   const { setSuccess } = useSuccess();
   const { setError, clearError } = useError();
   const dispatch = useAppDispatch();
 
   const branchValidationSchema = Yup.object({
-    branchName: keyValidation.test(
-      'is-valid-branch-name',
-      'Invalid branch name',
-      (value) => {
+    branchName: keyValidation
+      .test('is-valid-branch-name', 'Invalid branch name', (value) => {
         if (!value) return false;
         return !/^flipt\/[\w-]+$/.test(value);
-      }
-    )
+      })
+      .test(
+        'not-duplicate-environment',
+        'Branch name cannot match an existing environment (case-insensitive)',
+        (value) => {
+          if (!value) return true;
+          return !environmentNames.some(
+            (envName) => envName?.toLowerCase() === value.toLowerCase()
+          );
+        }
+      )
   });
 
   if (!environment) return null;

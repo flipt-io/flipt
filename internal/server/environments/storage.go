@@ -176,6 +176,12 @@ func (e *EnvironmentStore) Branch(ctx context.Context, base string, branch strin
 		return nil, err
 	}
 
+	for key := range e.byKey {
+		if strings.EqualFold(key, strings.TrimSpace(branch)) {
+			return nil, errors.ErrAlreadyExistsf("environment: %q", branch)
+		}
+	}
+
 	branchEnv, err := baseEnv.Branch(ctx, branch)
 	if err != nil {
 		return nil, err
