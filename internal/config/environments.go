@@ -111,11 +111,10 @@ type SCMType string
 
 const (
 	GitHubSCMType = SCMType("github")
+	GiteaSCMType  = SCMType("gitea")
 )
 
-var (
-	_ validator = (*SCMConfig)(nil)
-)
+var _ validator = (*SCMConfig)(nil)
 
 type SCMConfig struct {
 	Type        SCMType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
@@ -124,7 +123,7 @@ type SCMConfig struct {
 }
 
 func (s SCMConfig) validate() error {
-	if s.Type != GitHubSCMType {
+	if s.Type != GitHubSCMType && s.Type != GiteaSCMType {
 		return errFieldWrap("environments", "scm", fmt.Errorf("unexpected SCM type: %q", s.Type))
 	}
 
@@ -136,9 +135,7 @@ func (s SCMConfig) validate() error {
 	return nil
 }
 
-var (
-	_ validator = (*EnvironmentConfig)(nil)
-)
+var _ validator = (*EnvironmentConfig)(nil)
 
 type EnvironmentConfig struct {
 	Name      string     `json:"name" mapstructure:"name" yaml:"name,omitempty"`
