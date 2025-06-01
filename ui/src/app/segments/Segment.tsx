@@ -17,7 +17,6 @@ import {
 import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
-import Modal from '~/components/Modal';
 import { PageHeader } from '~/components/Page';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -77,68 +76,63 @@ export default function Segment() {
   return (
     <>
       {/* segment delete modal */}
-      <Modal open={showDeleteSegmentModal} setOpen={setShowDeleteSegmentModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the segment{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {segment.key}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Segment"
-          setOpen={setShowDeleteSegmentModal}
-          handleDelete={() => {
-            skipRefetch.current = true;
-            return deleteSegment({
-              environmentKey: environment.key,
-              namespaceKey: namespace.key,
-              segmentKey: segment.key,
-              revision
-            }).unwrap();
-          }}
-          onSuccess={() => {
-            navigate(`/namespaces/${namespace.key}/segments`, {
-              replace: true
-            });
-            setSuccess('Successfully deleted segment');
-          }}
-          onError={() => {
-            skipRefetch.current = false;
-          }}
-        />
-      </Modal>
+      <DeletePanel
+        open={showDeleteSegmentModal}
+        setOpen={setShowDeleteSegmentModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete the segment{' '}
+            <span className="font-medium text-brand">{segment.key}</span>?
+          </>
+        }
+        panelType="Segment"
+        handleDelete={() => {
+          skipRefetch.current = true;
+          return deleteSegment({
+            environmentKey: environment.key,
+            namespaceKey: namespace.key,
+            segmentKey: segment.key,
+            revision
+          }).unwrap();
+        }}
+        onSuccess={() => {
+          navigate(`/namespaces/${namespace.key}/segments`, {
+            replace: true
+          });
+          setSuccess('Successfully deleted segment');
+        }}
+        onError={() => {
+          skipRefetch.current = false;
+        }}
+      />
 
       {/* segment copy modal */}
-      <Modal open={showCopySegmentModal} setOpen={setShowCopySegmentModal}>
-        <CopyToNamespacePanel
-          panelMessage={
-            <>
-              Copy the segment{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {segment.key}
-              </span>{' '}
-              to the namespace:
-            </>
-          }
-          panelType="Segment"
-          setOpen={setShowCopySegmentModal}
-          handleCopy={(namespaceKey: string) =>
-            copySegment({
-              environmentKey: environment.key,
-              from: { namespaceKey: namespace.key, segmentKey: segment.key },
-              to: { namespaceKey: namespaceKey, segmentKey: segment.key }
-            }).unwrap()
-          }
-          onSuccess={() => {
-            clearError();
-            setShowCopySegmentModal(false);
-            setSuccess('Successfully copied segment');
-          }}
-        />
-      </Modal>
+      <CopyToNamespacePanel
+        open={showCopySegmentModal}
+        setOpen={setShowCopySegmentModal}
+        panelMessage={
+          <>
+            Copy the segment{' '}
+            <span className="font-medium text-violet-500 dark:text-violet-400">
+              {segment.key}
+            </span>{' '}
+            to the namespace:
+          </>
+        }
+        panelType="Segment"
+        handleCopy={(namespaceKey: string) =>
+          copySegment({
+            environmentKey: environment.key,
+            from: { namespaceKey: namespace.key, segmentKey: segment.key },
+            to: { namespaceKey: namespaceKey, segmentKey: segment.key }
+          }).unwrap()
+        }
+        onSuccess={() => {
+          clearError();
+          setShowCopySegmentModal(false);
+          setSuccess('Successfully copied segment');
+        }}
+      />
 
       {/* segment header / actions */}
       <PageHeader

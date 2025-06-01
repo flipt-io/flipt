@@ -6,8 +6,17 @@ import {
   useProposeEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
+import { Badge } from '~/components/Badge';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/Dialog';
 import Loading from '~/components/Loading';
-import Modal from '~/components/Modal';
 import { Button } from '~/components/ui/button';
 
 import { IEnvironment } from '~/types/Environment';
@@ -69,18 +78,20 @@ export function CreateMergeProposalModal({
   };
 
   return (
-    <Modal open={open} setOpen={setOpen}>
-      <div className="p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Create Merge Proposal</h2>
-        <p className="text-muted-foreground">
-          Propose merging changes from this environment back into{' '}
-          <span className="font-semibold">
-            {environment.configuration?.base}
-          </span>
-          .
-        </p>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Merge Proposal</DialogTitle>
+          <DialogDescription>
+            Propose merging changes from this environment back into{' '}
+            <span className="font-semibold">
+              {environment.configuration?.base}
+            </span>
+            .
+          </DialogDescription>
+        </DialogHeader>
         {isError ? (
-          <div className="rounded-md px-3 py-2 border border-red-200 min-h-[60px] bg-red-50 flex flex-col items-center justify-center text-center">
+          <div className="rounded-md px-3 py-2 border border-destructive/50 min-h-[60px] bg-destructive/5 flex flex-col items-center justify-center text-center">
             <span className="text-base font-semibold text-destructive mb-1">
               Failed to load changes
             </span>
@@ -90,7 +101,7 @@ export function CreateMergeProposalModal({
             </span>
           </div>
         ) : (
-          <div className="bg-muted rounded-md px-3 py-2 border border-muted-foreground/10 min-h-[60px]">
+          <div className="bg-muted/80 dark:bg-input/10 rounded-md p-2 border border-muted-foreground/10 min-h-[60px]">
             {isLoading && (
               <div className="text-sm text-muted-foreground">
                 Loading changes…
@@ -107,9 +118,9 @@ export function CreateMergeProposalModal({
                   {data.changes.map((change) => (
                     <li
                       key={change.revision}
-                      className="flex items-center py-2"
+                      className="flex items-center py-2 pl-1 gap-2"
                     >
-                      <span className="font-mono text-xs text-muted-foreground bg-gray-100 rounded px-2 py-0.5 mr-3">
+                      <Badge variant="outlinemuted">
                         {change.scmUrl ? (
                           <a
                             href={change.scmUrl}
@@ -122,17 +133,15 @@ export function CreateMergeProposalModal({
                         ) : (
                           change.revision.slice(0, 7)
                         )}
+                      </Badge>
+                      <span className="text-sm font-normal">
+                        {change.message}
                       </span>
-                      <span>
-                        <span className="text-sm font-normal">
-                          {change.message}
+                      {change.authorName && (
+                        <span className="text-xs text-muted-foreground">
+                          by {change.authorName}
                         </span>
-                        {change.authorName && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            by {change.authorName}
-                          </span>
-                        )}
-                      </span>
+                      )}
                     </li>
                   ))}
                   {data.changes.length === MAX_COMMITS && (
@@ -157,7 +166,9 @@ export function CreateMergeProposalModal({
         >
           {(formik) => {
             const disableSave =
-              !(formik.isValid && !formik.isSubmitting) || isError;
+              !(formik.isValid && !formik.isSubmitting) ||
+              isError ||
+              data?.changes?.length == 0;
             return (
               <Form>
                 <div>
@@ -172,7 +183,7 @@ export function CreateMergeProposalModal({
                     as="textarea"
                     id="proposal-desc"
                     name="description"
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:bg-muted-foreground/10 disabled:cursor-not-allowed"
+                    className="w-full rounded-md border-input bg-secondary/20 dark:bg-input/20 px-3 py-2 text-sm focus:ring-2 focus:ring-brand focus:border-brand transition disabled:opacity-80 disabled:cursor-not-allowed"
                     rows={3}
                     placeholder="Add context or reasoning for this merge proposal..."
                     maxLength={500}
@@ -194,24 +205,19 @@ export function CreateMergeProposalModal({
                     type="checkbox"
                     id="draft-proposal"
                     name="draft"
-                    className="mr-2 accent-brand"
+                    className="border mr-2 rounded checked:bg-brand accent-brand focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[1px] focus:ring-2 focus:ring-brand focus:border-brand transition disabled:opacity-80 disabled:cursor-not-allowed"
                     disabled={isError}
                   />
                   <label
                     htmlFor="draft-proposal"
-                    className="text-sm select-none cursor-pointer"
+                    className="text-sm select-none cursor-pointer aria-disabled:opacity-80 aria-disabled:cursor-not-allowed"
+                    aria-disabled={isError}
                   >
                     Open as <span className="font-medium">Draft</span>
                   </label>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => setOpen(false)}
-                  >
-                    Cancel
-                  </Button>
+                <DialogFooter>
+                  <DialogClose>Cancel</DialogClose>
                   <Button
                     variant="primary"
                     type="submit"
@@ -223,12 +229,12 @@ export function CreateMergeProposalModal({
                       'Submit Proposal'
                     )}
                   </Button>
-                </div>
+                </DialogFooter>
               </Form>
             );
           }}
         </Formik>
-      </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 }

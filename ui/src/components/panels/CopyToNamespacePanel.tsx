@@ -1,5 +1,3 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import { FilesIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -9,6 +7,15 @@ import {
 } from '~/app/namespaces/namespacesApi';
 
 import { Button } from '~/components/Button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/Dialog';
 import Listbox from '~/components/forms/Listbox';
 
 import { INamespace } from '~/types/Namespace';
@@ -21,6 +28,7 @@ export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &
 
 type CopyToNamespacePanelProps = {
   panelMessage: string | React.ReactNode;
+  open: boolean;
   setOpen: (open: boolean) => void;
   handleCopy: (namespaceKey: string) => Promise<any>;
   panelType: string;
@@ -28,7 +36,8 @@ type CopyToNamespacePanelProps = {
 };
 
 export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
-  const { setOpen, panelType, panelMessage, onSuccess, handleCopy } = props;
+  const { open, setOpen, panelType, panelMessage, onSuccess, handleCopy } =
+    props;
 
   const { setError, clearError } = useError();
 
@@ -42,7 +51,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   const [selectedNamespace, setSelectedNamespace] =
     useState<SelectableNamespace>({
       ...namespaces[0],
-      displayValue: namespaces[0].name
+      displayValue: namespaces[0]?.name
     });
 
   const handleSubmit = () => {
@@ -50,60 +59,49 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
   };
 
   return (
-    <>
-      <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-          <FilesIcon className="h-8 w-8 text-brand" aria-hidden="true" />
-        </div>
-        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <Dialog.Title className="text-lg font-medium leading-6 text-secondary-foreground">
-            Copy {panelType}
-          </Dialog.Title>
-          <div className="mt-2">
-            <p className="text-sm text-muted-foreground">{panelMessage}</p>
-          </div>
-          <div className="mt-4">
-            <Listbox<SelectableNamespace>
-              id="copyToNamespace"
-              name="namespaceKey"
-              values={namespaces.map((n) => ({
-                ...n,
-                displayValue: n.name
-              }))}
-              selected={{
-                ...selectedNamespace,
-                displayValue: selectedNamespace?.name || ''
-              }}
-              setSelected={setSelectedNamespace}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-row-reverse space-x-2 space-x-reverse sm:mt-4">
-        <Button
-          variant="primary"
-          type="button"
-          onClick={() => {
-            handleSubmit()
-              ?.then(() => {
-                clearError();
-                if (onSuccess) {
-                  onSuccess();
-                }
-                setOpen(false);
-              })
-              .catch((err) => {
-                setError(err);
-              });
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Copy {panelType}</DialogTitle>
+          <DialogDescription>{panelMessage}</DialogDescription>
+        </DialogHeader>
+        <Listbox<SelectableNamespace>
+          id="copyToNamespace"
+          name="namespaceKey"
+          values={namespaces.map((n) => ({
+            ...n,
+            displayValue: n.name
+          }))}
+          selected={{
+            ...selectedNamespace,
+            displayValue: selectedNamespace?.name || ''
           }}
-        >
-          Copy
-        </Button>
-        <Button variant="link" onClick={() => setOpen(false)}>
-          Cancel
-        </Button>
-      </div>
-    </>
+          setSelected={setSelectedNamespace}
+          className="my-2"
+        />
+        <DialogFooter>
+          <DialogClose>Cancel</DialogClose>
+          <Button
+            variant="primary"
+            type="button"
+            onClick={() => {
+              handleSubmit()
+                ?.then(() => {
+                  clearError();
+                  if (onSuccess) {
+                    onSuccess();
+                  }
+                  setOpen(false);
+                })
+                .catch((err) => {
+                  setError(err);
+                });
+            }}
+          >
+            Copy
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

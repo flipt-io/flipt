@@ -8,8 +8,17 @@ import {
   useCreateBranchEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '~/components/Dialog';
 import MoreInfo from '~/components/MoreInfo';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 
@@ -95,57 +104,95 @@ export function CreateBranchPopover({
   };
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent
-        className="rounded-xl shadow-2xl border border-gray-200 bg-white dark:bg-gray-900 p-4 w-96"
-        align="start"
-        sideOffset={4}
-      >
-        <div className="space-y-1 mb-1">
-          <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-            Create Branch
-          </div>
-          <MoreInfo href="https://www.flipt.io/docs/v2/concepts#branches">
-            Learn more about branches
-          </MoreInfo>
-        </div>
-        <div className="mt-6">
-          <Input
-            type="text"
-            placeholder="New branch name"
-            value={branchInput}
-            onChange={(e) => setBranchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleCreateBranch();
-              if (e.key === 'Escape') handleOpenChange(false);
-            }}
-            disabled={isCreatingBranch}
-            className="mb-4 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 text-base"
-          />
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => handleOpenChange(false)}
-              type="button"
-              className="font-semibold"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleCreateBranch}
-              disabled={isCreatingBranch || !branchInput.trim()}
-              type="button"
-              className="font-semibold"
-            >
-              Create
-            </Button>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Branch</DialogTitle>
+          <DialogDescription>
+            <MoreInfo href="https://www.flipt.io/docs/v2/concepts#branches">
+              Learn more about branches
+            </MoreInfo>
+          </DialogDescription>
+        </DialogHeader>
+
+        <Input
+          type="text"
+          placeholder="New branch name"
+          value={branchInput}
+          onChange={(e) => setBranchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleCreateBranch();
+            if (e.key === 'Escape') handleOpenChange(false);
+          }}
+          disabled={isCreatingBranch}
+          className="mt-2"
+        />
+        <DialogFooter>
+          <DialogClose>Cancel</DialogClose>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleCreateBranch}
+            disabled={isCreatingBranch || !branchInput.trim()}
+            type="button"
+            className="font-semibold"
+          >
+            Create
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    //   <PopoverTrigger asChild>{children}</Di>
+    //   <PopoverContent
+    //     className="rounded-xl shadow-2xl border p-4 w-96"
+    //     align="end"
+    //     sideOffset={4}
+    //   >
+    //     <div className="space-y-1 mb-1">
+    //       <div className="text-lg font-medium text-secondary-foreground">
+    //         Create Branch
+    //       </div>
+    //       <MoreInfo href="https://www.flipt.io/docs/v2/concepts#branches">
+    //         Learn more about branches
+    //       </MoreInfo>
+    //     </div>
+    //     <div className="mt-6">
+    //       <Input
+    //         type="text"
+    //         placeholder="New branch name"
+    //         value={branchInput}
+    //         onChange={(e) => setBranchInput(e.target.value)}
+    //         onKeyDown={(e) => {
+    //           if (e.key === 'Enter') handleCreateBranch();
+    //           if (e.key === 'Escape') handleOpenChange(false);
+    //         }}
+    //         disabled={isCreatingBranch}
+    //         className="mb-4 px-4 py-2 border"
+    //       />
+    //       <div className="flex gap-2 justify-end">
+    //         <Button
+    //           variant="secondary"
+    //           size="sm"
+    //           onClick={() => handleOpenChange(false)}
+    //           type="button"
+    //           className="font-semibold"
+    //         >
+    //           Cancel
+    //         </Button>
+    //         <Button
+    //           variant="primary"
+    //           size="sm"
+    //           onClick={handleCreateBranch}
+    //           disabled={isCreatingBranch || !branchInput.trim()}
+    //           type="button"
+    //           className="font-semibold"
+    //         >
+    //           Create
+    //         </Button>
+    //       </div>
+    //     </div>
+    //   </PopoverContent>
+    // </Dialog>
   );
 }

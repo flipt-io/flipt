@@ -2,7 +2,6 @@ import { FilterIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
-import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
 import ConstraintTable from '~/components/constraints/ConstraintTable';
@@ -50,33 +49,29 @@ export default function Constraints({ constraints }: ConstraintsProps) {
       </Slideover>
 
       {/* constraint delete modal */}
-      <Modal
+      <DeletePanel
         open={showDeleteConstraintModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete the constraint for{' '}
+            <span className="font-medium text-brand">
+              {deletingConstraint?.property}
+            </span>
+            ?
+          </>
+        }
+        panelType="Constraint"
         setOpen={setShowDeleteConstraintModal}
-      >
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the constraint for{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {deletingConstraint?.property}
-              </span>
-              ? This action cannot be undone.
-            </>
+        handleDelete={() => {
+          try {
+            deleteConstraint(deletingConstraint!);
+          } catch (e) {
+            return Promise.reject(e);
           }
-          panelType="Constraint"
-          setOpen={setShowDeleteConstraintModal}
-          handleDelete={() => {
-            try {
-              deleteConstraint(deletingConstraint!);
-            } catch (e) {
-              return Promise.reject(e);
-            }
-            setDeletingConstraint(null);
-            return Promise.resolve();
-          }}
-        />
-      </Modal>
+          setDeletingConstraint(null);
+          return Promise.resolve();
+        }}
+      />
 
       {/* constraints */}
       <div className="mt-2 min-w-full">
