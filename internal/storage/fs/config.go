@@ -30,16 +30,16 @@ updated multiple resources
 {{- end }}
 {{- end }}`
 
-	defaultProposalTitleTmpl string = `Flipt: Update features in {{ .Base.Directory }} on {{ .Base.Branch }}`
-	defaultProposalBodyTmpl  string = `This pull request updates Flipt resources in {{ .Base.Directory }} on branch {{ .Base.Branch }}.
+	defaultProposalTitleTmpl string = `Flipt: Update features {{with .Base.Directory}}in {{.}} {{end}}on {{.Base.Ref}}`
+	defaultProposalBodyTmpl  string = `This pull request updates Flipt resources {{with .Base.Directory}}in {{.}} {{end}}on branch {{.Base.Ref}}.
 
-🟢 **Source:**
-- Directory: {{ .Branch.Directory }}
-- Branch: {{ .Branch.Branch }}
+🟢 **Source:**{{if .Branch.Directory}}
+- Directory: {{.Branch.Directory}}{{end}}
+- Branch: {{.Branch.Ref}}
 
-🎯 **Target:**
-- Directory: {{ .Base.Directory }}
-- Branch: {{ .Base.Branch }}
+🎯 **Target:**{{if .Base.Directory}}
+- Directory: {{.Base.Directory}}{{end}}
+- Branch: {{.Base.Ref}}
 
 👀 Please review the changes and merge if everything looks good.`
 )
