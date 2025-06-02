@@ -2,7 +2,6 @@ import { SlidersHorizontalIcon } from 'lucide-react';
 import { useContext, useRef, useState } from 'react';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
-import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
@@ -46,30 +45,29 @@ export default function Variants({ variants }: VariantsProps) {
       </Slideover>
 
       {/* variant delete modal */}
-      <Modal open={showDeleteVariantModal} setOpen={setShowDeleteVariantModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the variant{' '}
-              <span className="font-medium text-brand">
-                {deletingVariant?.key}
-              </span>
-              ? This action cannot be undone.
-            </>
+      <DeletePanel
+        open={showDeleteVariantModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete the variant{' '}
+            <span className="font-medium text-brand">
+              {deletingVariant?.key}
+            </span>
+            ?
+          </>
+        }
+        panelType="Variant"
+        setOpen={setShowDeleteVariantModal}
+        handleDelete={() => {
+          try {
+            deleteVariant(deletingVariant!);
+          } catch (e) {
+            return Promise.reject(e);
           }
-          panelType="Variant"
-          setOpen={setShowDeleteVariantModal}
-          handleDelete={() => {
-            try {
-              deleteVariant(deletingVariant!);
-            } catch (e) {
-              return Promise.reject(e);
-            }
-            setDeletingVariant(null);
-            return Promise.resolve();
-          }}
-        />
-      </Modal>
+          setDeletingVariant(null);
+          return Promise.resolve();
+        }}
+      />
 
       {/* variants */}
       <div className="mt-2 min-w-full">

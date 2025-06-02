@@ -21,7 +21,6 @@ import {
 import { Badge } from '~/components/Badge';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
-import Modal from '~/components/Modal';
 import { PageHeader } from '~/components/Page';
 import FlagForm from '~/components/flags/FlagForm';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
@@ -89,66 +88,59 @@ export default function Flag() {
   return (
     <>
       {/* flag delete modal */}
-      <Modal open={showDeleteFlagModal} setOpen={setShowDeleteFlagModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the flag{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {flag.key}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Flag"
-          setOpen={setShowDeleteFlagModal}
-          handleDelete={() => {
-            skipRefetch.current = true;
-            return deleteFlag({
-              environmentKey: environment.key,
-              namespaceKey: namespace.key,
-              flagKey: flag.key,
-              revision
-            }).unwrap();
-          }}
-          onSuccess={() => {
-            navigate(`/namespaces/${namespace.key}/flags`);
-            setSuccess('Successfully deleted flag');
-          }}
-          onError={() => {
-            skipRefetch.current = false;
-          }}
-        />
-      </Modal>
+      <DeletePanel
+        open={showDeleteFlagModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete the flag{' '}
+            <span className="font-medium text-brand">{flag.key}</span>?
+          </>
+        }
+        panelType="Flag"
+        setOpen={setShowDeleteFlagModal}
+        handleDelete={() => {
+          skipRefetch.current = true;
+          return deleteFlag({
+            environmentKey: environment.key,
+            namespaceKey: namespace.key,
+            flagKey: flag.key,
+            revision
+          }).unwrap();
+        }}
+        onSuccess={() => {
+          navigate(`/namespaces/${namespace.key}/flags`);
+          setSuccess('Successfully deleted flag');
+        }}
+        onError={() => {
+          skipRefetch.current = false;
+        }}
+      />
 
       {/* flag copy modal */}
-      <Modal open={showCopyFlagModal} setOpen={setShowCopyFlagModal}>
-        <CopyToNamespacePanel
-          panelMessage={
-            <>
-              Copy the flag{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {flag.key}
-              </span>{' '}
-              to the namespace:
-            </>
-          }
-          panelType="Flag"
-          setOpen={setShowCopyFlagModal}
-          handleCopy={(namespaceKey: string) =>
-            copyFlag({
-              environmentKey: environment.key,
-              from: { namespaceKey: namespace.key, flagKey: flag.key },
-              to: { namespaceKey: namespaceKey, flagKey: flag.key }
-            }).unwrap()
-          }
-          onSuccess={() => {
-            clearError();
-            setShowCopyFlagModal(false);
-            setSuccess('Successfully copied flag');
-          }}
-        />
-      </Modal>
+      <CopyToNamespacePanel
+        open={showCopyFlagModal}
+        panelMessage={
+          <>
+            Copy the flag{' '}
+            <span className="font-medium text-brand">{flag.key}</span> to the
+            namespace:
+          </>
+        }
+        panelType="Flag"
+        setOpen={setShowCopyFlagModal}
+        handleCopy={(namespaceKey: string) =>
+          copyFlag({
+            environmentKey: environment.key,
+            from: { namespaceKey: namespace.key, flagKey: flag.key },
+            to: { namespaceKey: namespaceKey, flagKey: flag.key }
+          }).unwrap()
+        }
+        onSuccess={() => {
+          clearError();
+          setShowCopyFlagModal(false);
+          setSuccess('Successfully copied flag');
+        }}
+      />
 
       {/* flag header / actions */}
       <PageHeader

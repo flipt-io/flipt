@@ -25,7 +25,6 @@ import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Dropdown from '~/components/Dropdown';
 import Loading from '~/components/Loading';
-import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
@@ -211,29 +210,28 @@ export default function Rules({ flag, variants, rules }: RulesProps) {
   return (
     <>
       {/* rule delete modal */}
-      <Modal open={showDeleteRuleModal} setOpen={setShowDeleteRuleModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete this rule at
-              <span className="font-medium text-brand">
-                {' '}
-                position {rules.findIndex((r) => r.id === deletingRule?.id) + 1}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Rule"
-          setOpen={setShowDeleteRuleModal}
-          handleDelete={() => {
-            if (!deletingRule) {
-              return Promise.resolve();
-            }
-            deleteRule(deletingRule);
+      <DeletePanel
+        open={showDeleteRuleModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete this rule at
+            <span className="font-medium text-brand">
+              {' '}
+              position {rules.findIndex((r) => r.id === deletingRule?.id) + 1}
+            </span>
+            ?
+          </>
+        }
+        panelType="Rule"
+        setOpen={setShowDeleteRuleModal}
+        handleDelete={() => {
+          if (!deletingRule) {
             return Promise.resolve();
-          }}
-        />
-      </Modal>
+          }
+          deleteRule(deletingRule);
+          return Promise.resolve();
+        }}
+      />
 
       {/* rule create form */}
       <Slideover

@@ -6,7 +6,15 @@ import {
   useDeleteBranchEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
-import Modal from '~/components/Modal';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/Dialog';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 
@@ -54,21 +62,10 @@ export default function DeleteBranchModal({
       setError(e);
     }
   };
+
   return (
-    <Modal open={open} setOpen={setOpen}>
-      <div className="p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Delete Branch</h2>
-        <p className="font-semibold">
-          This action is <span className="underline">destructive</span> and
-          cannot be undone.
-        </p>
-        <p>
-          Deleting the branch{' '}
-          <span className="font-mono font-semibold">{environment.key}</span>{' '}
-          will permanently remove all of its data. It will also delete the
-          branch from the remote repository if it exists.
-        </p>
-        <p>Please type the branch environment name to confirm.</p>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
         <Formik
           initialValues={{ confirmName: '' }}
           validationSchema={validationSchema}
@@ -82,29 +79,47 @@ export default function DeleteBranchModal({
             const { isSubmitting, isValid, errors, touched } = formik;
             return (
               <Form>
-                <Input
-                  name="confirmName"
-                  type="text"
-                  placeholder={environment.key}
-                  className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-destructive focus:border-destructive transition mb-2"
-                  disabled={isSubmitting}
-                  onChange={formik.handleChange}
-                  value={formik.values.confirmName}
-                />
-                {errors.confirmName && touched.confirmName && (
-                  <div className="text-xs text-destructive mb-2">
-                    {errors.confirmName}
-                  </div>
-                )}
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => setOpen(false)}
+                <DialogHeader>
+                  <DialogTitle>Delete Branch</DialogTitle>
+                  <DialogDescription>
+                    This action is{' '}
+                    <span className="underline">destructive</span> and cannot be
+                    undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="my-4">
+                  <p>
+                    Deleting the branch will permanently remove all of its data.
+                    It will also delete the branch from the remote repository if
+                    it exists.
+                  </p>
+                  <p className="pb-2 pt-4">
+                    To confirm deletion, type{' '}
+                    <span className="font-bold">{environment.key}</span> in the
+                    field below:
+                  </p>
+                  <Input
+                    name="confirmName"
+                    type="text"
+                    autoCorrect="off"
+                    autoComplete="off"
+                    placeholder={environment.key}
+                    className="w-full rounded-md border-destructive px-3 py-2 text-sm focus-visible:border-destructive/20 focus-visible::ring-2 focus-visible:ring-destructive focus-visible::border-destructive transition mb-2"
                     disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.confirmName}
+                  />
+                  {errors.confirmName &&
+                    touched.confirmName &&
+                    formik.dirty && (
+                      <div className="text-xs text-destructive mb-2">
+                        {errors.confirmName}
+                      </div>
+                    )}
+                </div>
+                <DialogFooter>
+                  <DialogClose disabled={isSubmitting}>Cancel</DialogClose>
                   <Button
                     variant="destructive"
                     type="submit"
@@ -112,12 +127,12 @@ export default function DeleteBranchModal({
                   >
                     {isSubmitting ? 'Deleting...' : 'Delete Branch'}
                   </Button>
-                </div>
+                </DialogFooter>
               </Form>
             );
           }}
         </Formik>
-      </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 }

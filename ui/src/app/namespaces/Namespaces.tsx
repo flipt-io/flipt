@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
-import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
@@ -59,31 +58,27 @@ export default function Namespaces() {
       </Slideover>
 
       {/* namespace delete modal */}
-      <Modal
+      <DeletePanel
         open={showDeleteNamespaceModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete the namespace{' '}
+            <span className="font-medium text-brand">
+              {deletingNamespace?.key}
+            </span>
+            ?
+          </>
+        }
+        panelType="Namespace"
         setOpen={setShowDeleteNamespaceModal}
-      >
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the namespace{' '}
-              <span className="font-medium text-violet-500 dark:text-violet-400">
-                {deletingNamespace?.key}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Namespace"
-          setOpen={setShowDeleteNamespaceModal}
-          handleDelete={() =>
-            deleteNamespace({
-              environmentKey: environment.key,
-              namespaceKey: deletingNamespace?.key!,
-              revision: revision
-            }).unwrap()
-          }
-        />
-      </Modal>
+        handleDelete={() =>
+          deleteNamespace({
+            environmentKey: environment.key,
+            namespaceKey: deletingNamespace?.key!,
+            revision: revision
+          }).unwrap()
+        }
+      />
 
       <div className="my-10">
         <div className="sm:flex sm:items-center">

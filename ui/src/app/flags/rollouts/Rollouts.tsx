@@ -23,7 +23,6 @@ import { useListSegmentsQuery } from '~/app/segments/segmentsApi';
 
 import { Button, ButtonWithPlus } from '~/components/Button';
 import Loading from '~/components/Loading';
-import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';
 import Well from '~/components/Well';
 import { FlagFormContext } from '~/components/flags/FlagFormContext';
@@ -121,30 +120,29 @@ export default function Rollouts({ flag, rollouts }: RolloutsProps) {
   return (
     <>
       {/* rollout delete modal */}
-      <Modal open={showDeleteRolloutModal} setOpen={setShowDeleteRolloutModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete this rollout at
-              <span className="font-medium text-brand">
-                {' '}
-                position{' '}
-                {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Rollout"
-          setOpen={setShowDeleteRolloutModal}
-          handleDelete={() => {
-            if (!deletingRollout) {
-              return Promise.resolve();
-            }
-            deleteRollout(deletingRollout);
+      <DeletePanel
+        open={showDeleteRolloutModal}
+        panelMessage={
+          <>
+            Are you sure you want to delete this rollout at
+            <span className="font-medium text-brand">
+              {' '}
+              position{' '}
+              {rollouts.findIndex((r) => r.id === deletingRollout?.id) + 1}
+            </span>
+            ?
+          </>
+        }
+        panelType="Rollout"
+        setOpen={setShowDeleteRolloutModal}
+        handleDelete={() => {
+          if (!deletingRollout) {
             return Promise.resolve();
-          }}
-        />
-      </Modal>
+          }
+          deleteRollout(deletingRollout);
+          return Promise.resolve();
+        }}
+      />
 
       {/* rollout create form */}
       <Slideover
