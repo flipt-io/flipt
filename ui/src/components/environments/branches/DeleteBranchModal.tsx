@@ -94,8 +94,9 @@ export default function DeleteBranchModal({
                     it exists.
                   </p>
                   <p className="pb-2 pt-4">
-                    To confirm deletion, type &quot;{environment.key}&quot; in
-                    the field below
+                    To confirm deletion, type{' '}
+                    <span className="font-bold">{environment.key}</span> in the
+                    field below:
                   </p>
                   <Input
                     name="confirmName"

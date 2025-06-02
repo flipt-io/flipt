@@ -113,10 +113,8 @@ export default function Segment() {
         panelMessage={
           <>
             Copy the segment{' '}
-            <span className="font-medium text-violet-500 dark:text-violet-400">
-              {segment.key}
-            </span>{' '}
-            to the namespace:
+            <span className="font-medium text-brand">{segment.key}</span> to the
+            namespace:
           </>
         }
         panelType="Segment"

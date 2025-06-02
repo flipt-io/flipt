@@ -88,7 +88,6 @@ export default function Flag() {
   return (
     <>
       {/* flag delete modal */}
-      {/* <Modal open={showDeleteFlagModal} setOpen={setShowDeleteFlagModal}> */}
       <DeletePanel
         open={showDeleteFlagModal}
         panelMessage={
@@ -123,10 +122,8 @@ export default function Flag() {
         panelMessage={
           <>
             Copy the flag{' '}
-            <span className="font-medium text-violet-500 dark:text-violet-400">
-              {flag.key}
-            </span>{' '}
-            to the namespace:
+            <span className="font-medium text-brand">{flag.key}</span> to the
+            namespace:
           </>
         }
         panelType="Flag"
