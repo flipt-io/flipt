@@ -23,3 +23,11 @@ flags:
     threshold:
       percentage: 50
       value: true
+  - description: enabled for 0%
+    threshold:
+      percentage: 0
+      value: true
+  - description: enabled for 0.0%
+    threshold:
+      percentage: 0.0
+      value: true
