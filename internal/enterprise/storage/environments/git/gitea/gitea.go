@@ -97,7 +97,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	}
 
 	slices.SortFunc(changes, func(i, j *environments.Change) int {
-		return cmp.Compare(i.Timestamp, i.Timestamp)
+		return cmp.Compare(i.Timestamp, j.Timestamp)
 	})
 
 	return &environments.ListBranchedEnvironmentChangesResponse{
