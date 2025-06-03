@@ -172,7 +172,7 @@ import "list"
 	}
 
 	#scm: {
-		type:        "github"
+		type:        *"github" | "gitea"
 		credentials: string
 		api_url?:    string
 	}
