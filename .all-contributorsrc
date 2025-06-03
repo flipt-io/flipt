@@ -529,6 +529,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "o-mago",
+      "name": "Alexandre Cabral",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23153316?v=4",
+      "profile": "http://o-mago.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
