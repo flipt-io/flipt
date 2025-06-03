@@ -77,286 +77,6 @@ func (EvaluateReason) EnumDescriptor() ([]byte, []int) {
 	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{0}
 }
 
-type GetProviderConfigurationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetProviderConfigurationRequest) Reset() {
-	*x = GetProviderConfigurationRequest{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetProviderConfigurationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetProviderConfigurationRequest) ProtoMessage() {}
-
-func (x *GetProviderConfigurationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetProviderConfigurationRequest.ProtoReflect.Descriptor instead.
-func (*GetProviderConfigurationRequest) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{0}
-}
-
-type GetProviderConfigurationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Capabilities  *Capabilities          `protobuf:"bytes,2,opt,name=capabilities,proto3" json:"capabilities,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetProviderConfigurationResponse) Reset() {
-	*x = GetProviderConfigurationResponse{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetProviderConfigurationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetProviderConfigurationResponse) ProtoMessage() {}
-
-func (x *GetProviderConfigurationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetProviderConfigurationResponse.ProtoReflect.Descriptor instead.
-func (*GetProviderConfigurationResponse) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *GetProviderConfigurationResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetProviderConfigurationResponse) GetCapabilities() *Capabilities {
-	if x != nil {
-		return x.Capabilities
-	}
-	return nil
-}
-
-type Capabilities struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	CacheInvalidation *CacheInvalidation     `protobuf:"bytes,1,opt,name=cache_invalidation,json=cacheInvalidation,proto3" json:"cache_invalidation,omitempty"`
-	FlagEvaluation    *FlagEvaluation        `protobuf:"bytes,2,opt,name=flag_evaluation,json=flagEvaluation,proto3" json:"flag_evaluation,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *Capabilities) Reset() {
-	*x = Capabilities{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Capabilities) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Capabilities) ProtoMessage() {}
-
-func (x *Capabilities) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Capabilities.ProtoReflect.Descriptor instead.
-func (*Capabilities) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *Capabilities) GetCacheInvalidation() *CacheInvalidation {
-	if x != nil {
-		return x.CacheInvalidation
-	}
-	return nil
-}
-
-func (x *Capabilities) GetFlagEvaluation() *FlagEvaluation {
-	if x != nil {
-		return x.FlagEvaluation
-	}
-	return nil
-}
-
-type CacheInvalidation struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Polling       *Polling               `protobuf:"bytes,1,opt,name=polling,proto3" json:"polling,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CacheInvalidation) Reset() {
-	*x = CacheInvalidation{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CacheInvalidation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CacheInvalidation) ProtoMessage() {}
-
-func (x *CacheInvalidation) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CacheInvalidation.ProtoReflect.Descriptor instead.
-func (*CacheInvalidation) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *CacheInvalidation) GetPolling() *Polling {
-	if x != nil {
-		return x.Polling
-	}
-	return nil
-}
-
-type Polling struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Enabled              bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	MinPollingIntervalMs uint32                 `protobuf:"varint,2,opt,name=min_polling_interval_ms,json=minPollingIntervalMs,proto3" json:"min_polling_interval_ms,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
-}
-
-func (x *Polling) Reset() {
-	*x = Polling{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Polling) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Polling) ProtoMessage() {}
-
-func (x *Polling) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Polling.ProtoReflect.Descriptor instead.
-func (*Polling) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *Polling) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
-	}
-	return false
-}
-
-func (x *Polling) GetMinPollingIntervalMs() uint32 {
-	if x != nil {
-		return x.MinPollingIntervalMs
-	}
-	return 0
-}
-
-type FlagEvaluation struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	SupportedTypes []string               `protobuf:"bytes,1,rep,name=supported_types,json=supportedTypes,proto3" json:"supported_types,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *FlagEvaluation) Reset() {
-	*x = FlagEvaluation{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FlagEvaluation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FlagEvaluation) ProtoMessage() {}
-
-func (x *FlagEvaluation) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FlagEvaluation.ProtoReflect.Descriptor instead.
-func (*FlagEvaluation) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *FlagEvaluation) GetSupportedTypes() []string {
-	if x != nil {
-		return x.SupportedTypes
-	}
-	return nil
-}
-
 type EvaluateFlagRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -367,7 +87,7 @@ type EvaluateFlagRequest struct {
 
 func (x *EvaluateFlagRequest) Reset() {
 	*x = EvaluateFlagRequest{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[6]
+	mi := &file_ofrep_ofrep_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -379,7 +99,7 @@ func (x *EvaluateFlagRequest) String() string {
 func (*EvaluateFlagRequest) ProtoMessage() {}
 
 func (x *EvaluateFlagRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[6]
+	mi := &file_ofrep_ofrep_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -392,7 +112,7 @@ func (x *EvaluateFlagRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluateFlagRequest.ProtoReflect.Descriptor instead.
 func (*EvaluateFlagRequest) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{6}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *EvaluateFlagRequest) GetKey() string {
@@ -422,7 +142,7 @@ type EvaluationResponse struct {
 
 func (x *EvaluationResponse) Reset() {
 	*x = EvaluationResponse{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[7]
+	mi := &file_ofrep_ofrep_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -434,7 +154,7 @@ func (x *EvaluationResponse) String() string {
 func (*EvaluationResponse) ProtoMessage() {}
 
 func (x *EvaluationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[7]
+	mi := &file_ofrep_ofrep_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -447,7 +167,7 @@ func (x *EvaluationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluationResponse.ProtoReflect.Descriptor instead.
 func (*EvaluationResponse) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{7}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *EvaluationResponse) GetKey() string {
@@ -494,7 +214,7 @@ type EvaluateBulkRequest struct {
 
 func (x *EvaluateBulkRequest) Reset() {
 	*x = EvaluateBulkRequest{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[8]
+	mi := &file_ofrep_ofrep_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -506,7 +226,7 @@ func (x *EvaluateBulkRequest) String() string {
 func (*EvaluateBulkRequest) ProtoMessage() {}
 
 func (x *EvaluateBulkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[8]
+	mi := &file_ofrep_ofrep_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -519,7 +239,7 @@ func (x *EvaluateBulkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvaluateBulkRequest.ProtoReflect.Descriptor instead.
 func (*EvaluateBulkRequest) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{8}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EvaluateBulkRequest) GetContext() map[string]string {
@@ -538,7 +258,7 @@ type BulkEvaluationResponse struct {
 
 func (x *BulkEvaluationResponse) Reset() {
 	*x = BulkEvaluationResponse{}
-	mi := &file_ofrep_ofrep_proto_msgTypes[9]
+	mi := &file_ofrep_ofrep_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -550,7 +270,7 @@ func (x *BulkEvaluationResponse) String() string {
 func (*BulkEvaluationResponse) ProtoMessage() {}
 
 func (x *BulkEvaluationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ofrep_ofrep_proto_msgTypes[9]
+	mi := &file_ofrep_ofrep_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -563,7 +283,7 @@ func (x *BulkEvaluationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkEvaluationResponse.ProtoReflect.Descriptor instead.
 func (*BulkEvaluationResponse) Descriptor() ([]byte, []int) {
-	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{9}
+	return file_ofrep_ofrep_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *BulkEvaluationResponse) GetFlags() []*EvaluationResponse {
@@ -577,21 +297,7 @@ var File_ofrep_ofrep_proto protoreflect.FileDescriptor
 
 const file_ofrep_ofrep_proto_rawDesc = "" +
 	"\n" +
-	"\x11ofrep/ofrep.proto\x12\vflipt.ofrep\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1cgoogle/protobuf/struct.proto\"!\n" +
-	"\x1fGetProviderConfigurationRequest\"u\n" +
-	" GetProviderConfigurationResponse\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12=\n" +
-	"\fcapabilities\x18\x02 \x01(\v2\x19.flipt.ofrep.CapabilitiesR\fcapabilities\"\xa3\x01\n" +
-	"\fCapabilities\x12M\n" +
-	"\x12cache_invalidation\x18\x01 \x01(\v2\x1e.flipt.ofrep.CacheInvalidationR\x11cacheInvalidation\x12D\n" +
-	"\x0fflag_evaluation\x18\x02 \x01(\v2\x1b.flipt.ofrep.FlagEvaluationR\x0eflagEvaluation\"C\n" +
-	"\x11CacheInvalidation\x12.\n" +
-	"\apolling\x18\x01 \x01(\v2\x14.flipt.ofrep.PollingR\apolling\"Z\n" +
-	"\aPolling\x12\x18\n" +
-	"\aenabled\x18\x01 \x01(\bR\aenabled\x125\n" +
-	"\x17min_polling_interval_ms\x18\x02 \x01(\rR\x14minPollingIntervalMs\"9\n" +
-	"\x0eFlagEvaluation\x12'\n" +
-	"\x0fsupported_types\x18\x01 \x03(\tR\x0esupportedTypes\"\xac\x01\n" +
+	"\x11ofrep/ofrep.proto\x12\vflipt.ofrep\x1a$gnostic/openapi/v3/annotations.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xac\x01\n" +
 	"\x13EvaluateFlagRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12G\n" +
 	"\acontext\x18\x02 \x03(\v2-.flipt.ofrep.EvaluateFlagRequest.ContextEntryR\acontext\x1a:\n" +
@@ -615,11 +321,10 @@ const file_ofrep_ofrep_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\f\n" +
 	"\bDISABLED\x10\x01\x12\x13\n" +
 	"\x0fTARGETING_MATCH\x10\x02\x12\v\n" +
-	"\aDEFAULT\x10\x032\x85\x04\n" +
-	"\fOFREPService\x12\xb0\x01\n" +
-	"\x18GetProviderConfiguration\x12,.flipt.ofrep.GetProviderConfigurationRequest\x1a-.flipt.ofrep.GetProviderConfigurationResponse\"7\xbaG\x15*\x13ofrep.configuration\x82\xd3\xe4\x93\x02\x19\x12\x17/ofrep/v1/configuration\x12\x93\x01\n" +
-	"\fEvaluateFlag\x12 .flipt.ofrep.EvaluateFlagRequest\x1a\x1f.flipt.ofrep.EvaluationResponse\"@\xbaG\x14*\x12ofrep.evaluateFlag\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/ofrep/v1/evaluate/flags/{key}\x12\x91\x01\n" +
-	"\fEvaluateBulk\x12 .flipt.ofrep.EvaluateBulkRequest\x1a#.flipt.ofrep.BulkEvaluationResponse\":\xbaG\x14*\x12ofrep.evaluateBulk\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/ofrep/v1/evaluate/flags\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB#Z!go.flipt.io/flipt/rpc/flipt/ofrepb\x06proto3"
+	"\aDEFAULT\x10\x032\xd7\x02\n" +
+	"\fOFREPService\x12\x93\x01\n" +
+	"\fEvaluateFlag\x12 .flipt.ofrep.EvaluateFlagRequest\x1a\x1f.flipt.ofrep.EvaluationResponse\"@\xbaG\x14*\x12ofrep.evaluateFlag\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/ofrep/v1/evaluate/flags/{key}\x12\x96\x01\n" +
+	"\fEvaluateBulk\x12 .flipt.ofrep.EvaluateBulkRequest\x1a#.flipt.ofrep.BulkEvaluationResponse\"?\xbaG\x19*\x17ofrep.evaluateFlagsBulk\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/ofrep/v1/evaluate/flags\x1a\x18\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignoreB#Z!go.flipt.io/flipt/rpc/flipt/ofrepb\x06proto3"
 
 var (
 	file_ofrep_ofrep_proto_rawDescOnce sync.Once
@@ -634,46 +339,34 @@ func file_ofrep_ofrep_proto_rawDescGZIP() []byte {
 }
 
 var file_ofrep_ofrep_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_ofrep_ofrep_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_ofrep_ofrep_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_ofrep_ofrep_proto_goTypes = []any{
-	(EvaluateReason)(0),                      // 0: flipt.ofrep.EvaluateReason
-	(*GetProviderConfigurationRequest)(nil),  // 1: flipt.ofrep.GetProviderConfigurationRequest
-	(*GetProviderConfigurationResponse)(nil), // 2: flipt.ofrep.GetProviderConfigurationResponse
-	(*Capabilities)(nil),                     // 3: flipt.ofrep.Capabilities
-	(*CacheInvalidation)(nil),                // 4: flipt.ofrep.CacheInvalidation
-	(*Polling)(nil),                          // 5: flipt.ofrep.Polling
-	(*FlagEvaluation)(nil),                   // 6: flipt.ofrep.FlagEvaluation
-	(*EvaluateFlagRequest)(nil),              // 7: flipt.ofrep.EvaluateFlagRequest
-	(*EvaluationResponse)(nil),               // 8: flipt.ofrep.EvaluationResponse
-	(*EvaluateBulkRequest)(nil),              // 9: flipt.ofrep.EvaluateBulkRequest
-	(*BulkEvaluationResponse)(nil),           // 10: flipt.ofrep.BulkEvaluationResponse
-	nil,                                      // 11: flipt.ofrep.EvaluateFlagRequest.ContextEntry
-	nil,                                      // 12: flipt.ofrep.EvaluateBulkRequest.ContextEntry
-	(*structpb.Struct)(nil),                  // 13: google.protobuf.Struct
-	(*structpb.Value)(nil),                   // 14: google.protobuf.Value
+	(EvaluateReason)(0),            // 0: flipt.ofrep.EvaluateReason
+	(*EvaluateFlagRequest)(nil),    // 1: flipt.ofrep.EvaluateFlagRequest
+	(*EvaluationResponse)(nil),     // 2: flipt.ofrep.EvaluationResponse
+	(*EvaluateBulkRequest)(nil),    // 3: flipt.ofrep.EvaluateBulkRequest
+	(*BulkEvaluationResponse)(nil), // 4: flipt.ofrep.BulkEvaluationResponse
+	nil,                            // 5: flipt.ofrep.EvaluateFlagRequest.ContextEntry
+	nil,                            // 6: flipt.ofrep.EvaluateBulkRequest.ContextEntry
+	(*structpb.Struct)(nil),        // 7: google.protobuf.Struct
+	(*structpb.Value)(nil),         // 8: google.protobuf.Value
 }
 var file_ofrep_ofrep_proto_depIdxs = []int32{
-	3,  // 0: flipt.ofrep.GetProviderConfigurationResponse.capabilities:type_name -> flipt.ofrep.Capabilities
-	4,  // 1: flipt.ofrep.Capabilities.cache_invalidation:type_name -> flipt.ofrep.CacheInvalidation
-	6,  // 2: flipt.ofrep.Capabilities.flag_evaluation:type_name -> flipt.ofrep.FlagEvaluation
-	5,  // 3: flipt.ofrep.CacheInvalidation.polling:type_name -> flipt.ofrep.Polling
-	11, // 4: flipt.ofrep.EvaluateFlagRequest.context:type_name -> flipt.ofrep.EvaluateFlagRequest.ContextEntry
-	0,  // 5: flipt.ofrep.EvaluationResponse.reason:type_name -> flipt.ofrep.EvaluateReason
-	13, // 6: flipt.ofrep.EvaluationResponse.metadata:type_name -> google.protobuf.Struct
-	14, // 7: flipt.ofrep.EvaluationResponse.value:type_name -> google.protobuf.Value
-	12, // 8: flipt.ofrep.EvaluateBulkRequest.context:type_name -> flipt.ofrep.EvaluateBulkRequest.ContextEntry
-	8,  // 9: flipt.ofrep.BulkEvaluationResponse.flags:type_name -> flipt.ofrep.EvaluationResponse
-	1,  // 10: flipt.ofrep.OFREPService.GetProviderConfiguration:input_type -> flipt.ofrep.GetProviderConfigurationRequest
-	7,  // 11: flipt.ofrep.OFREPService.EvaluateFlag:input_type -> flipt.ofrep.EvaluateFlagRequest
-	9,  // 12: flipt.ofrep.OFREPService.EvaluateBulk:input_type -> flipt.ofrep.EvaluateBulkRequest
-	2,  // 13: flipt.ofrep.OFREPService.GetProviderConfiguration:output_type -> flipt.ofrep.GetProviderConfigurationResponse
-	8,  // 14: flipt.ofrep.OFREPService.EvaluateFlag:output_type -> flipt.ofrep.EvaluationResponse
-	10, // 15: flipt.ofrep.OFREPService.EvaluateBulk:output_type -> flipt.ofrep.BulkEvaluationResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	5, // 0: flipt.ofrep.EvaluateFlagRequest.context:type_name -> flipt.ofrep.EvaluateFlagRequest.ContextEntry
+	0, // 1: flipt.ofrep.EvaluationResponse.reason:type_name -> flipt.ofrep.EvaluateReason
+	7, // 2: flipt.ofrep.EvaluationResponse.metadata:type_name -> google.protobuf.Struct
+	8, // 3: flipt.ofrep.EvaluationResponse.value:type_name -> google.protobuf.Value
+	6, // 4: flipt.ofrep.EvaluateBulkRequest.context:type_name -> flipt.ofrep.EvaluateBulkRequest.ContextEntry
+	2, // 5: flipt.ofrep.BulkEvaluationResponse.flags:type_name -> flipt.ofrep.EvaluationResponse
+	1, // 6: flipt.ofrep.OFREPService.EvaluateFlag:input_type -> flipt.ofrep.EvaluateFlagRequest
+	3, // 7: flipt.ofrep.OFREPService.EvaluateBulk:input_type -> flipt.ofrep.EvaluateBulkRequest
+	2, // 8: flipt.ofrep.OFREPService.EvaluateFlag:output_type -> flipt.ofrep.EvaluationResponse
+	4, // 9: flipt.ofrep.OFREPService.EvaluateBulk:output_type -> flipt.ofrep.BulkEvaluationResponse
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_ofrep_ofrep_proto_init() }
@@ -687,7 +380,7 @@ func file_ofrep_ofrep_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ofrep_ofrep_proto_rawDesc), len(file_ofrep_ofrep_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   12,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

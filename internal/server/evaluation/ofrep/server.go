@@ -52,15 +52,3 @@ func (s *Server) EvaluateFlag(ctx context.Context, r *ofrep.EvaluateFlagRequest)
 func (s *Server) EvaluateBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
 	return s.bridge.OFREPFlagEvaluationBulk(ctx, r)
 }
-
-// GetProviderConfiguration returns the configuration set by the running flipt instance.
-func (s *Server) GetProviderConfiguration(_ context.Context, _ *ofrep.GetProviderConfigurationRequest) (*ofrep.GetProviderConfigurationResponse, error) {
-	return &ofrep.GetProviderConfigurationResponse{
-		Name: "flipt",
-		Capabilities: &ofrep.Capabilities{
-			FlagEvaluation: &ofrep.FlagEvaluation{
-				SupportedTypes: []string{"string", "boolean"},
-			},
-		},
-	}, nil
-}

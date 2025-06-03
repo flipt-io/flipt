@@ -10,31 +10,6 @@ import "google/protobuf/struct.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/ofrep";
 
-message GetProviderConfigurationRequest {}
-
-message GetProviderConfigurationResponse {
-  string name = 1;
-  Capabilities capabilities = 2;
-}
-
-message Capabilities {
-  CacheInvalidation cache_invalidation = 1;
-  FlagEvaluation flag_evaluation = 2;
-}
-
-message CacheInvalidation {
-  Polling polling = 1;
-}
-
-message Polling {
-  bool enabled = 1;
-  uint32 min_polling_interval_ms = 2;
-}
-
-message FlagEvaluation {
-  repeated string supported_types = 1;
-}
-
 message EvaluateFlagRequest {
   string key = 1;
   map<string, string> context = 2;
@@ -65,11 +40,6 @@ message BulkEvaluationResponse {
 
 service OFREPService {
   option (google.api.api_visibility) = {restriction: "flipt:sdk:ignore"};
-  // OFREP provider configuration
-  rpc GetProviderConfiguration(GetProviderConfigurationRequest) returns (GetProviderConfigurationResponse) {
-    option (google.api.http) = {get: "/ofrep/v1/configuration"};
-    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.configuration"};
-  }
   // OFREP single flag evaluation
   rpc EvaluateFlag(EvaluateFlagRequest) returns (EvaluationResponse) {
     option (google.api.http) = {
@@ -84,6 +54,6 @@ service OFREPService {
       post: "/ofrep/v1/evaluate/flags"
       body: "*"
     };
-    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.evaluateBulk"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ofrep.evaluateFlagsBulk"};
   }
 }

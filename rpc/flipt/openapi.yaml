@@ -262,25 +262,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VariantEvaluationResponse'
-    /ofrep/v1/configuration:
-        get:
-            tags:
-                - OFREPService
-            description: OFREP provider configuration
-            operationId: ofrep.configuration
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetProviderConfigurationResponse'
     /ofrep/v1/evaluate/flags:
         post:
             tags:
                 - OFREPService
             description: OFREP bulk flag evaluation
-            operationId: ofrep.evaluateBulk
+            operationId: ofrep.evaluateFlagsBulk
             requestBody:
                 content:
                     application/json:
@@ -411,11 +398,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/EvaluationResponse'
-        CacheInvalidation:
-            type: object
-            properties:
-                polling:
-                    $ref: '#/components/schemas/Polling'
         CallbackResponse:
             type: object
             properties:
@@ -423,13 +405,6 @@ components:
                     type: string
                 authentication:
                     $ref: '#/components/schemas/Authentication'
-        Capabilities:
-            type: object
-            properties:
-                cacheInvalidation:
-                    $ref: '#/components/schemas/CacheInvalidation'
-                flagEvaluation:
-                    $ref: '#/components/schemas/FlagEvaluation'
         Distribution:
             type: object
             properties:
@@ -541,13 +516,6 @@ components:
                     type: string
                 metadata:
                     type: object
-        FlagEvaluation:
-            type: object
-            properties:
-                supportedTypes:
-                    type: array
-                    items:
-                        type: string
         FlagList:
             type: object
             properties:
@@ -560,13 +528,6 @@ components:
                 totalCount:
                     type: integer
                     format: int32
-        GetProviderConfigurationResponse:
-            type: object
-            properties:
-                name:
-                    type: string
-                capabilities:
-                    $ref: '#/components/schemas/Capabilities'
         GoogleProtobufValue:
             description: Represents a dynamically typed value which can be either null, a number, a string, a boolean, a recursive struct value, or a list of values.
         ListAuthenticationsResponse:
@@ -578,14 +539,6 @@ components:
                         $ref: '#/components/schemas/Authentication'
                 nextPageToken:
                     type: string
-        Polling:
-            type: object
-            properties:
-                enabled:
-                    type: boolean
-                minPollingIntervalMs:
-                    type: integer
-                    format: uint32
         Rollout:
             type: object
             properties:

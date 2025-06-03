@@ -19,17 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OFREPService_GetProviderConfiguration_FullMethodName = "/flipt.ofrep.OFREPService/GetProviderConfiguration"
-	OFREPService_EvaluateFlag_FullMethodName             = "/flipt.ofrep.OFREPService/EvaluateFlag"
-	OFREPService_EvaluateBulk_FullMethodName             = "/flipt.ofrep.OFREPService/EvaluateBulk"
+	OFREPService_EvaluateFlag_FullMethodName = "/flipt.ofrep.OFREPService/EvaluateFlag"
+	OFREPService_EvaluateBulk_FullMethodName = "/flipt.ofrep.OFREPService/EvaluateBulk"
 )
 
 // OFREPServiceClient is the client API for OFREPService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OFREPServiceClient interface {
-	// OFREP provider configuration
-	GetProviderConfiguration(ctx context.Context, in *GetProviderConfigurationRequest, opts ...grpc.CallOption) (*GetProviderConfigurationResponse, error)
 	// OFREP single flag evaluation
 	EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluationResponse, error)
 	// OFREP bulk flag evaluation
@@ -42,16 +39,6 @@ type oFREPServiceClient struct {
 
 func NewOFREPServiceClient(cc grpc.ClientConnInterface) OFREPServiceClient {
 	return &oFREPServiceClient{cc}
-}
-
-func (c *oFREPServiceClient) GetProviderConfiguration(ctx context.Context, in *GetProviderConfigurationRequest, opts ...grpc.CallOption) (*GetProviderConfigurationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetProviderConfigurationResponse)
-	err := c.cc.Invoke(ctx, OFREPService_GetProviderConfiguration_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *oFREPServiceClient) EvaluateFlag(ctx context.Context, in *EvaluateFlagRequest, opts ...grpc.CallOption) (*EvaluationResponse, error) {
@@ -78,8 +65,6 @@ func (c *oFREPServiceClient) EvaluateBulk(ctx context.Context, in *EvaluateBulkR
 // All implementations must embed UnimplementedOFREPServiceServer
 // for forward compatibility.
 type OFREPServiceServer interface {
-	// OFREP provider configuration
-	GetProviderConfiguration(context.Context, *GetProviderConfigurationRequest) (*GetProviderConfigurationResponse, error)
 	// OFREP single flag evaluation
 	EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluationResponse, error)
 	// OFREP bulk flag evaluation
@@ -94,9 +79,6 @@ type OFREPServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOFREPServiceServer struct{}
 
-func (UnimplementedOFREPServiceServer) GetProviderConfiguration(context.Context, *GetProviderConfigurationRequest) (*GetProviderConfigurationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProviderConfiguration not implemented")
-}
 func (UnimplementedOFREPServiceServer) EvaluateFlag(context.Context, *EvaluateFlagRequest) (*EvaluationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluateFlag not implemented")
 }
@@ -122,24 +104,6 @@ func RegisterOFREPServiceServer(s grpc.ServiceRegistrar, srv OFREPServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&OFREPService_ServiceDesc, srv)
-}
-
-func _OFREPService_GetProviderConfiguration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProviderConfigurationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OFREPServiceServer).GetProviderConfiguration(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OFREPService_GetProviderConfiguration_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OFREPServiceServer).GetProviderConfiguration(ctx, req.(*GetProviderConfigurationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _OFREPService_EvaluateFlag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -185,10 +149,6 @@ var OFREPService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "flipt.ofrep.OFREPService",
 	HandlerType: (*OFREPServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetProviderConfiguration",
-			Handler:    _OFREPService_GetProviderConfiguration_Handler,
-		},
 		{
 			MethodName: "EvaluateFlag",
 			Handler:    _OFREPService_EvaluateFlag_Handler,
