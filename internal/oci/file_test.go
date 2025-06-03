@@ -3,8 +3,10 @@ package oci
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"embed"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path"
 	"strings"
 	"testing"
@@ -229,6 +232,37 @@ func TestStore_Build(t *testing.T) {
 	require.False(t, resp.Matched)
 
 	assert.Len(t, resp.Files, 2)
+
+	expectedHashes := make(map[string]bool, 2)
+
+	expectedFiles := []string{"./testdata/expected_default.json", "./testdata/expected_production.json"}
+
+	for _, fileName := range expectedFiles {
+		expectedFile, err := os.Open(fileName)
+		require.NoError(t, err)
+
+		info, err := expectedFile.Stat()
+		require.NoError(t, err)
+
+		buf := make([]byte, info.Size())
+		_, err = expectedFile.Read(buf)
+		require.NoError(t, err)
+
+		hash := sha256.Sum256(buf)
+
+		expectedHashes[hex.EncodeToString(hash[:])] = true
+
+		expectedFile.Close()
+	}
+
+	for _, file := range resp.Files {
+		info, err := file.Stat()
+		require.NoError(t, err)
+
+		hash := strings.Split(info.Name(), ".")[0]
+
+		assert.Contains(t, expectedHashes, hash)
+	}
 }
 
 func TestStore_List(t *testing.T) {
