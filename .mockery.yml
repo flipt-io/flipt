@@ -1,7 +1,7 @@
-dir: '{{.InterfaceDir}}'
+dir: "{{.InterfaceDir}}"
 structname: Mock{{.InterfaceName}}
-pkgname: '{{.SrcPackageName}}'
-filename: '{{.SrcPackageName}}_mock.go'
+pkgname: "{{.SrcPackageName}}"
+filename: "{{.SrcPackageName}}_mock.go"
 template: testify
 packages:
   go.flipt.io/flipt/internal/server/environments:
@@ -23,3 +23,7 @@ packages:
     interfaces:
       PullRequestsService: {}
       RepositoriesService: {}
+  go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea:
+    interfaces:
+      Client: {}
+

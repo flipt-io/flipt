@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"iter"
 	"net/http"
 	"slices"
 	"strings"
@@ -17,15 +18,20 @@ import (
 
 var _ git.SCM = (*SCM)(nil)
 
+type (
+	ClientOption = gitea.ClientOption
+	Client       interface {
+		CreatePullRequest(owner, repo string, opt gitea.CreatePullRequestOption) (*gitea.PullRequest, *gitea.Response, error)
+		CompareCommits(user, repo, prev, current string) (*gitea.Compare, *gitea.Response, error)
+		ListRepoPullRequests(owner, repo string, opt gitea.ListPullRequestsOptions) ([]*gitea.PullRequest, *gitea.Response, error)
+	}
+)
+
 type SCM struct {
-	client    *gitea.Client
+	client    Client
 	repoOwner string
 	repoName  string
 }
-
-type (
-	ClientOption = gitea.ClientOption
-)
 
 func WithHttpClient(httpClient *http.Client) ClientOption {
 	return gitea.SetHTTPClient(httpClient)
@@ -60,7 +66,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 	return &environments.EnvironmentProposalDetails{
-		Scm:   environments.SCM_GITHUB_SCM,
+		Scm:   environments.SCM_GITEA_SCM,
 		Url:   pr.HTMLURL,
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
@@ -97,7 +103,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	}
 
 	slices.SortFunc(changes, func(i, j *environments.Change) int {
-		return cmp.Compare(i.Timestamp, i.Timestamp)
+		return cmp.Compare(i.Timestamp, j.Timestamp)
 	})
 
 	return &environments.ListBranchedEnvironmentChangesResponse{
@@ -107,18 +113,11 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	details := map[string]*environments.EnvironmentProposalDetails{}
-	prs, _, err := s.client.ListRepoPullRequests(s.repoOwner, s.repoName, gitea.ListPullRequestsOptions{
-		State: gitea.StateAll,
-	})
-	if err != nil {
-		return nil, err
-	}
+	prs := s.listPRs(ctx, env.Key())
 
-	for _, pr := range prs {
+	for pr := range prs.All() {
+		fmt.Printf("Found PR: %s\n", pr.HTMLURL)
 		branch := pr.Head.Ref
-		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
-			continue
-		}
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
 		if pr.State == gitea.StateClosed {
 			state = environments.ProposalState_PROPOSAL_STATE_CLOSED
@@ -128,11 +127,62 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Scm:   environments.SCM_GITHUB_SCM,
+			Scm:   environments.SCM_GITEA_SCM,
 			Url:   pr.HTMLURL,
 			State: state,
 		}
 	}
 
-	return details, nil
+	return details, prs.Err()
+}
+
+func (s *SCM) listPRs(ctx context.Context, base string) *prs {
+	return &prs{ctx, s.client, s.repoOwner, s.repoName, base, nil}
+}
+
+type prs struct {
+	ctx       context.Context
+	client    Client
+	repoOwner string
+	repoName  string
+	base      string
+
+	err error
+}
+
+func (p *prs) Err() error {
+	return p.err
+}
+
+func (p *prs) All() iter.Seq[*gitea.PullRequest] {
+	return iter.Seq[*gitea.PullRequest](func(yield func(*gitea.PullRequest) bool) {
+		opts := gitea.ListPullRequestsOptions{
+			State: gitea.StateAll,
+		}
+		opts.PageSize = 100
+		prefix := fmt.Sprintf("flipt/%s/", p.base)
+		for {
+			prs, resp, err := p.client.ListRepoPullRequests(p.repoOwner, p.repoName, opts)
+			if err != nil {
+				p.err = err
+				return
+			}
+
+			for _, pr := range prs {
+				if !strings.HasPrefix(pr.Head.Ref, prefix) || pr.Base.Name != p.base {
+					continue
+				}
+
+				if !yield(pr) {
+					return
+				}
+			}
+
+			if resp.NextPage == 0 {
+				return
+			}
+
+			opts.Page = resp.NextPage
+		}
+	})
 }

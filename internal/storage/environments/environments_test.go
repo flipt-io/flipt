@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseGiteaRepo(t *testing.T) {
@@ -17,7 +18,7 @@ func TestParseGiteaRepo(t *testing.T) {
 	for i, ex := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			owner, repo, err := parseGiteaRepo(ex)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, "admin", owner)
 			assert.Equal(t, "demo-repo", repo)
 		})
