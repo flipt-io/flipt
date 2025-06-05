@@ -3,6 +3,16 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.58.4](https://github.com/flipt-io/flipt/releases/tag/v1.58.4) - 2025-06-05
+
+### Changed
+
+- `storage`: use transaction for force namespace deletion (#4255)
+
+### Fixed
+
+- `audit`: add rollout ID to audit payload for create/update actions (#4294)
+- allow percentage threshold zero value (#4290)
 
 ## [v1.58.3](https://github.com/flipt-io/flipt/releases/tag/v1.58.3) - 2025-05-26
 
