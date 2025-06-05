@@ -173,6 +173,7 @@ type Rollout struct {
 	Description  string            `json:"description"`
 	Threshold    *RolloutThreshold `json:"threshold,omitempty"`
 	Segment      *RolloutSegment   `json:"segment,omitempty"`
+	ID           string            `json:"id,omitempty"`
 }
 
 type RolloutThreshold struct {
@@ -188,6 +189,7 @@ type RolloutSegment struct {
 
 func NewRollout(r *flipt.Rollout) *Rollout {
 	rollout := &Rollout{
+		ID:           r.Id,
 		NamespaceKey: r.NamespaceKey,
 		FlagKey:      r.FlagKey,
 		Rank:         r.Rank,

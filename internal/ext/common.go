@@ -41,7 +41,7 @@ type Rule struct {
 
 type Distribution struct {
 	VariantKey string  `yaml:"variant,omitempty" json:"variant,omitempty"`
-	Rollout    float32 `yaml:"rollout,omitempty" json:"rollout,omitempty"`
+	Rollout    float32 `yaml:"rollout" json:"rollout"`
 }
 
 type Rollout struct {
@@ -58,7 +58,7 @@ type SegmentRule struct {
 }
 
 type ThresholdRule struct {
-	Percentage float32 `yaml:"percentage,omitempty" json:"percentage,omitempty"`
+	Percentage float32 `yaml:"percentage" json:"percentage"`
 	Value      bool    `yaml:"value,omitempty" json:"value,omitempty"`
 }
 
