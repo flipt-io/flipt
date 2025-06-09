@@ -83,7 +83,7 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 		return nil, errors.ErrInvalidf("environment %q is not a based on environment %q", e.Key(), base.Key())
 	}
 
-	type TemplateContext struct {
+	type templateContext struct {
 		Base   *environments.EnvironmentConfiguration
 		Branch *environments.EnvironmentConfiguration
 	}
@@ -106,7 +106,7 @@ func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, 
 			body  = &bytes.Buffer{}
 		)
 
-		tmplCtx := TemplateContext{Base: baseCfg, Branch: branchCfg}
+		tmplCtx := templateContext{Base: baseCfg, Branch: branchCfg}
 
 		if opts.Title != "" {
 			title.WriteString(opts.Title)

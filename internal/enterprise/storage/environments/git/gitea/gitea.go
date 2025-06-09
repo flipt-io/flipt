@@ -116,7 +116,6 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 	prs := s.listPRs(ctx, env.Key())
 
 	for pr := range prs.All() {
-		fmt.Printf("Found PR: %s\n", pr.HTMLURL)
 		branch := pr.Head.Ref
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
 		if pr.State == gitea.StateClosed {

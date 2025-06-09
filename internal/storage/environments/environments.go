@@ -229,7 +229,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			//
 			scm, err = gitea.NewSCM(envConf.SCM.ApiURL, ownerName, repoName, options...)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to setup gitea scm: %w", err)
 			}
 		}
 
