@@ -97,7 +97,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "package-changed": "^3.0.0",
     "playwright": "^1.51.0",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.4",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.11",
