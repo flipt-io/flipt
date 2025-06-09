@@ -142,7 +142,7 @@ func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Env
 
 	cfg.Name = name
 
-	if err := e.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(e.currentBranch)); err != nil {
+	if err := e.repo.CreateBranchIfNotExists(ctx, branchName, storagegit.WithBase(e.currentBranch)); err != nil {
 		return nil, err
 	}
 

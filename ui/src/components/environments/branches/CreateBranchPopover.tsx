@@ -104,7 +104,7 @@ export function CreateBranchPopover({
   };
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
