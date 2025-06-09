@@ -185,7 +185,7 @@ func Test_Environment_RefreshEnvironment(t *testing.T) {
 
 	// Simulate creating a branch directly in the repo
 	branchName := "flipt/production/testbranch"
-	err := env.repo.CreateBranchIfNotExists(branchName, storagegit.WithBase(env.currentBranch))
+	err := env.repo.CreateBranchIfNotExists(ctx, branchName, storagegit.WithBase(env.currentBranch))
 	require.NoError(t, err)
 
 	// Simulate refs map as would be passed by the repository

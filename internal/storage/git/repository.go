@@ -583,7 +583,7 @@ func WithBase(name string) containers.Option[CreateBranchOptions] {
 	}
 }
 
-func (r *Repository) CreateBranchIfNotExists(branch string, opts ...containers.Option[CreateBranchOptions]) error {
+func (r *Repository) CreateBranchIfNotExists(ctx context.Context, branch string, opts ...containers.Option[CreateBranchOptions]) (err error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -598,6 +598,9 @@ func (r *Repository) CreateBranchIfNotExists(branch string, opts ...containers.O
 		return nil
 	}
 
+	finished := r.metrics.recordBranchCreated(ctx)
+	defer finished(err)
+
 	opt := CreateBranchOptions{base: r.defaultBranch}
 
 	containers.ApplyAll(&opt, opts...)
@@ -607,13 +610,34 @@ func (r *Repository) CreateBranchIfNotExists(branch string, opts ...containers.O
 		return fmt.Errorf("base reference %q not found: %w", opt.base, err)
 	}
 
-	return r.Storer.SetReference(plumbing.NewHashReference(remoteRef,
-		reference.Hash()))
+	if err := r.Storer.SetReference(plumbing.NewHashReference(remoteRef,
+		reference.Hash())); err != nil {
+		return fmt.Errorf("failed to create branch: %w", err)
+	}
+
+	if r.remote != nil {
+		localRef := plumbing.NewRemoteReferenceName(remoteName, branch)
+		refSpec := config.RefSpec(fmt.Sprintf("%s:%s", localRef, plumbing.NewBranchReferenceName(branch)))
+		if err := r.PushContext(ctx, &git.PushOptions{
+			RemoteName:      r.remote.Name,
+			Auth:            r.auth,
+			CABundle:        r.caBundle,
+			InsecureSkipTLS: r.insecureSkipTLS,
+			RefSpecs:        []config.RefSpec{refSpec},
+		}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return fmt.Errorf("failed to push branch to remote: %w", err)
+		}
+	}
+
+	return nil
 }
 
-func (r *Repository) DeleteBranch(ctx context.Context, branch string) error {
+func (r *Repository) DeleteBranch(ctx context.Context, branch string) (err error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	finished := r.metrics.recordBranchDeleted(ctx)
+	defer finished(err)
 
 	// Delete local branch
 	localRef := plumbing.NewBranchReferenceName(branch)
