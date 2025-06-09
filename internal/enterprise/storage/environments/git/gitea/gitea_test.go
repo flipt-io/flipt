@@ -33,7 +33,7 @@ func TestSCM_Propose(t *testing.T) {
 	}
 
 	mockPR := &gitea.PullRequest{HTMLURL: "http://example.com/pr"}
-	mockClient.On("CreatePullRequest", "owner", "repo", mock.Anything).Return(mockPR, nil, nil)
+	mockClient.EXPECT().CreatePullRequest("owner", "repo", mock.Anything).Return(mockPR, nil, nil)
 
 	result, err := scm.Propose(ctx, req)
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestSCM_Propose_Error(t *testing.T) {
 	ctx := context.Background()
 	req := git.ProposalRequest{}
 
-	mockClient.On("CreatePullRequest", "owner", "repo", mock.Anything).Return(nil, nil, errors.New("create error"))
+	mockClient.EXPECT().CreatePullRequest("owner", "repo", mock.Anything).Return(nil, nil, errors.New("create error"))
 
 	result, err := scm.Propose(ctx, req)
 	require.Error(t, err)
@@ -89,7 +89,7 @@ func TestSCM_ListChanges(t *testing.T) {
 	}
 	comparison := &gitea.Compare{Commits: []*gitea.Commit{commit}}
 
-	mockClient.On("CompareCommits", "owner", "repo", "main", "feature").Return(comparison, nil, nil)
+	mockClient.EXPECT().CompareCommits("owner", "repo", "main", "feature").Return(comparison, nil, nil)
 
 	result, err := scm.ListChanges(ctx, req)
 	require.NoError(t, err)
@@ -112,7 +112,7 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 	ctx := context.Background()
 	req := git.ListChangesRequest{Base: "main", Head: "feature"}
 
-	mockClient.On("CompareCommits", "owner", "repo", "main", "feature").Return(nil, nil, errors.New("compare error"))
+	mockClient.EXPECT().CompareCommits("owner", "repo", "main", "feature").Return(nil, nil, errors.New("compare error"))
 
 	result, err := scm.ListChanges(ctx, req)
 	require.Error(t, err)
@@ -140,7 +140,7 @@ func TestSCM_ListProposals(t *testing.T) {
 	}
 	prs := []*gitea.PullRequest{pr}
 
-	mockClient.On("ListRepoPullRequests", "owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
+	mockClient.EXPECT().ListRepoPullRequests("owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
 	require.NoError(t, err)
@@ -205,7 +205,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	}
 	prs := []*gitea.PullRequest{prClosed, prOpen}
 
-	mockClient.On("ListRepoPullRequests", "owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
+	mockClient.EXPECT().ListRepoPullRequests("owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
 	require.NoError(t, err)
@@ -238,7 +238,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	}
 	prs := []*gitea.PullRequest{prClosedMerged}
 
-	mockClient.On("ListRepoPullRequests", "owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
+	mockClient.EXPECT().ListRepoPullRequests("owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
 	require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	}
 	prs := []*gitea.PullRequest{prClosed}
 
-	mockClient.On("ListRepoPullRequests", "owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
+	mockClient.EXPECT().ListRepoPullRequests("owner", "repo", mock.Anything).Return(prs, &gitea.Response{}, nil)
 
 	result, err := scm.ListProposals(ctx, mockEnv)
 	require.NoError(t, err)
