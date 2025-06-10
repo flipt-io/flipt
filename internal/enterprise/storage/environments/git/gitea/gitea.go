@@ -11,38 +11,86 @@ import (
 	"time"
 
 	"code.gitea.io/sdk/gitea"
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
+	"go.uber.org/zap"
 )
 
 var _ git.SCM = (*SCM)(nil)
 
-type (
-	ClientOption = gitea.ClientOption
-	Client       interface {
-		CreatePullRequest(owner, repo string, opt gitea.CreatePullRequestOption) (*gitea.PullRequest, *gitea.Response, error)
-		CompareCommits(user, repo, prev, current string) (*gitea.Compare, *gitea.Response, error)
-		ListRepoPullRequests(owner, repo string, opt gitea.ListPullRequestsOptions) ([]*gitea.PullRequest, *gitea.Response, error)
-	}
-)
+type Client interface {
+	CreatePullRequest(owner, repo string, opt gitea.CreatePullRequestOption) (*gitea.PullRequest, *gitea.Response, error)
+	CompareCommits(user, repo, prev, current string) (*gitea.Compare, *gitea.Response, error)
+	ListRepoPullRequests(owner, repo string, opt gitea.ListPullRequestsOptions) ([]*gitea.PullRequest, *gitea.Response, error)
+}
 
 type SCM struct {
+	logger    *zap.Logger
 	client    Client
 	repoOwner string
 	repoName  string
 }
 
-func WithHttpClient(httpClient *http.Client) ClientOption {
-	return gitea.SetHTTPClient(httpClient)
+type giteaOptions struct {
+	httpClient  *http.Client
+	credentials *credentials.Credential
 }
 
-func NewSCM(url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
-	client, err := gitea.NewClient(url, opts...)
-	if err != nil {
-		return nil, err
+type ClientOption func(*giteaOptions)
+
+func WithHttpClient(httpClient *http.Client) ClientOption {
+	return func(c *giteaOptions) {
+		c.httpClient = httpClient
 	}
+}
+
+func WithCredentials(credentials *credentials.Credential) ClientOption {
+	return func(c *giteaOptions) {
+		c.credentials = credentials
+	}
+}
+
+func NewSCM(logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+	giteaOpts := &giteaOptions{
+		httpClient: http.DefaultClient,
+	}
+
+	for _, opt := range opts {
+		opt(giteaOpts)
+	}
+
+	clientOpts := []gitea.ClientOption{}
+
+	if giteaOpts.httpClient != nil {
+		clientOpts = append(clientOpts, gitea.SetHTTPClient(giteaOpts.httpClient))
+	}
+
+	if giteaOpts.credentials != nil {
+		auth, err := giteaOpts.credentials.Authentication()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get gitea authentication: %w", err)
+		}
+
+		switch t := auth.(type) {
+		case *githttp.TokenAuth:
+			clientOpts = append(clientOpts, gitea.SetToken(t.Token))
+		case *githttp.BasicAuth:
+			clientOpts = append(clientOpts, gitea.SetBasicAuth(t.Username, t.Password))
+		default:
+			return nil, fmt.Errorf("unsupported credential type: %T", t)
+		}
+	}
+
+	client, err := gitea.NewClient(url, clientOpts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gitea client: %w", err)
+	}
+
 	return &SCM{
+		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "gitea")),
 		repoOwner: repoOwner,
 		repoName:  repoName,
 		client:    client,
@@ -50,21 +98,23 @@ func NewSCM(url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error)
 }
 
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
-	title := req.Title
 	if req.Draft {
 		// gitea's way to say it's a draft PR. It actually could be customized by administrator and
 		// [WIP] just is a default value.
-		title = "[WIP] " + title
+		req.Title = fmt.Sprintf("[WIP] %s", req.Title)
 	}
+
 	pr, _, err := s.client.CreatePullRequest(s.repoOwner, s.repoName, gitea.CreatePullRequestOption{
 		Base:  req.Base,
 		Head:  req.Head,
-		Title: title,
+		Title: req.Title,
 		Body:  req.Body,
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
+
 	return &environments.EnvironmentProposalDetails{
 		Scm:   environments.SCM_GITEA_SCM,
 		Url:   pr.HTMLURL,
@@ -77,6 +127,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
+
 	var (
 		changes []*environments.Change
 		limit   = req.Limit
@@ -112,8 +163,10 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 }
 
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
-	details := map[string]*environments.EnvironmentProposalDetails{}
-	prs := s.listPRs(ctx, env.Key())
+	var (
+		details = map[string]*environments.EnvironmentProposalDetails{}
+		prs     = s.listPRs(ctx, env.Key())
+	)
 
 	for pr := range prs.All() {
 		branch := pr.Head.Ref
@@ -158,8 +211,11 @@ func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 		opts := gitea.ListPullRequestsOptions{
 			State: gitea.StateAll,
 		}
+
 		opts.PageSize = 100
+
 		prefix := fmt.Sprintf("flipt/%s/", p.base)
+
 		for {
 			prs, resp, err := p.client.ListRepoPullRequests(p.repoOwner, p.repoName, opts)
 			if err != nil {

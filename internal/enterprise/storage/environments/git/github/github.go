@@ -14,7 +14,9 @@ import (
 	"sort"
 	"strings"
 
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/google/go-github/v66/github"
+	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
@@ -43,10 +45,16 @@ type SCM struct {
 	repos     RepositoriesService
 }
 
-type ClientOption func(*github.Client)
+type gitHubOptions struct {
+	apiURL      *url.URL
+	httpClient  *http.Client
+	credentials *credentials.Credential
+}
+
+type ClientOption func(*gitHubOptions)
 
 func WithApiURL(apiURL *url.URL) ClientOption {
-	return func(c *github.Client) {
+	return func(c *gitHubOptions) {
 		// copied from go-github/github.go:WithEnterpriseURLs
 		if !strings.HasSuffix(apiURL.Path, "/") {
 			apiURL.Path += "/"
@@ -57,24 +65,59 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 			apiURL.Path += "api/v3/"
 		}
 
-		c.BaseURL = apiURL
+		c.apiURL = apiURL
 	}
 }
 
-// NewSCM creates a new SCM instance.
-func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client, opts ...ClientOption) *SCM {
-	ghClient := github.NewClient(httpClient)
+func WithHttpClient(httpClient *http.Client) ClientOption {
+	return func(c *gitHubOptions) {
+		c.httpClient = httpClient
+	}
+}
+
+func WithCredentials(credentials *credentials.Credential) ClientOption {
+	return func(c *gitHubOptions) {
+		c.credentials = credentials
+	}
+}
+
+// NewSCM creates a new GitHub SCM instance.
+func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+	githubOpts := &gitHubOptions{
+		httpClient: http.DefaultClient,
+	}
+
 	for _, opt := range opts {
-		opt(ghClient)
+		opt(githubOpts)
+	}
+
+	client := github.NewClient(githubOpts.httpClient)
+
+	if githubOpts.apiURL != nil {
+		client.BaseURL = githubOpts.apiURL
+	}
+
+	if githubOpts.credentials != nil {
+		auth, err := githubOpts.credentials.Authentication()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get github authentication: %w", err)
+		}
+
+		switch t := auth.(type) {
+		case *githttp.TokenAuth:
+			client = client.WithAuthToken(t.Token)
+		default:
+			return nil, fmt.Errorf("unsupported credential type: %T", t)
+		}
 	}
 
 	return &SCM{
 		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
 		repoOwner: repoOwner,
 		repoName:  repoName,
-		prs:       ghClient.PullRequests,
-		repos:     ghClient.Repositories,
-	}
+		prs:       client.PullRequests,
+		repos:     client.Repositories,
+	}, nil
 }
 
 // Propose creates a new pull request with the given request.

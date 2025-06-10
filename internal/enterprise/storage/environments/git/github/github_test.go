@@ -323,36 +323,36 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 func TestWithApiURL(t *testing.T) {
 	t.Run("adds trailing slash if missing", func(t *testing.T) {
 		u, _ := url.Parse("https://github.example.com")
-		client := &github.Client{}
-		WithApiURL(u)(client)
-		assert.Equal(t, "https://github.example.com/api/v3/", client.BaseURL.String())
+		opts := &gitHubOptions{}
+		WithApiURL(u)(opts)
+		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
 	})
 
 	t.Run("does not add /api/v3/ if already present", func(t *testing.T) {
 		u, _ := url.Parse("https://github.example.com/api/v3/")
-		client := &github.Client{}
-		WithApiURL(u)(client)
-		assert.Equal(t, "https://github.example.com/api/v3/", client.BaseURL.String())
+		opts := &gitHubOptions{}
+		WithApiURL(u)(opts)
+		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
 	})
 
 	t.Run("adds /api/v3/ if missing and path has trailing slash", func(t *testing.T) {
 		u, _ := url.Parse("https://github.example.com/")
-		client := &github.Client{}
-		WithApiURL(u)(client)
-		assert.Equal(t, "https://github.example.com/api/v3/", client.BaseURL.String())
+		opts := &gitHubOptions{}
+		WithApiURL(u)(opts)
+		assert.Equal(t, "https://github.example.com/api/v3/", opts.apiURL.String())
 	})
 
 	t.Run("does not add /api/v3/ for api.github.com host", func(t *testing.T) {
 		u, _ := url.Parse("https://api.github.com/")
-		client := &github.Client{}
-		WithApiURL(u)(client)
-		assert.Equal(t, "https://api.github.com/", client.BaseURL.String())
+		opts := &gitHubOptions{}
+		WithApiURL(u)(opts)
+		assert.Equal(t, "https://api.github.com/", opts.apiURL.String())
 	})
 
 	t.Run("does not add /api/v3/ for .api. in host", func(t *testing.T) {
 		u, _ := url.Parse("https://foo.api.github.com/")
-		client := &github.Client{}
-		WithApiURL(u)(client)
-		assert.Equal(t, "https://foo.api.github.com/", client.BaseURL.String())
+		opts := &gitHubOptions{}
+		WithApiURL(u)(opts)
+		assert.Equal(t, "https://foo.api.github.com/", opts.apiURL.String())
 	})
 }

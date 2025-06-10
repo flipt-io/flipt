@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,70 +74,6 @@ func TestCredentialSource_Get(t *testing.T) {
 	}
 }
 
-func TestCredential_HTTPClient(t *testing.T) {
-	logger := zap.NewNop()
-	ctx := context.Background()
-
-	tests := []struct {
-		name    string
-		config  *config.CredentialConfig
-		wantErr bool
-	}{
-		{
-			name: "basic auth",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeBasic,
-				Basic: &config.BasicAuthConfig{
-					Username: "user",
-					Password: "pass",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "access token",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeAccessToken,
-				AccessToken: func() *string {
-					s := "token123"
-					return &s
-				}(),
-			},
-			wantErr: false,
-		},
-		{
-			name: "ssh not supported for http",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeSSH,
-				SSH: &config.SSHAuthConfig{
-					User:     "git",
-					Password: "pass",
-				},
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Credential{
-				logger: logger,
-				config: tt.config,
-			}
-
-			client, err := c.HTTPClient(ctx)
-			if tt.wantErr {
-				require.Error(t, err)
-				assert.Nil(t, client)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, client)
-		})
-	}
-}
-
 func TestCredential_GitAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
@@ -190,7 +125,7 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				config: tt.config,
 			}
 
-			auth, err := c.GitAuthentication()
+			auth, err := c.Authentication()
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.Nil(t, auth)

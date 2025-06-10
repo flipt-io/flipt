@@ -176,6 +176,7 @@ message ProposeEnvironmentRequest {
 enum SCM {
   GITHUB_SCM = 0;
   GITEA_SCM = 1;
+  GITLAB_SCM = 2;
 }
 
 enum ProposalState {

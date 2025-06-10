@@ -1,10 +1,7 @@
 package credentials
 
 import (
-	"context"
-	"encoding/base64"
 	"fmt"
-	"net/http"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -13,7 +10,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/oauth2"
 )
 
 type CredentialSource struct {
@@ -39,28 +35,7 @@ type Credential struct {
 	config *config.CredentialConfig
 }
 
-func (c *Credential) HTTPClient(ctx context.Context) (*http.Client, error) {
-	switch c.config.Type {
-	case config.CredentialTypeBasic:
-		return oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
-			TokenType: "Basic",
-			AccessToken: base64.StdEncoding.EncodeToString([]byte(
-				c.config.Basic.Username + ":" + c.config.Basic.Password,
-			)),
-		})), nil
-	case config.CredentialTypeAccessToken:
-		return oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
-			TokenType:   "Bearer",
-			AccessToken: *c.config.AccessToken,
-		})), nil
-	case config.CredentialTypeSSH:
-		return nil, fmt.Errorf("credential type %q not supported for HTTP", c.config.Type)
-	}
-
-	return nil, fmt.Errorf("unxpected credential type: %q", c.config.Type)
-}
-
-func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) {
+func (c *Credential) Authentication() (auth transport.AuthMethod, err error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
 		return &githttp.BasicAuth{
