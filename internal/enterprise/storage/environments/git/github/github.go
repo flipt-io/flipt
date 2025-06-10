@@ -7,6 +7,7 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"iter"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 var _ git.SCM = (*SCM)(nil)
@@ -104,6 +106,13 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 		}
 
 		switch t := auth.(type) {
+		case *githttp.BasicAuth:
+			client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
+				&oauth2.Token{
+					TokenType:   "Basic",
+					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf([]byte{}, "%s:%s", t.Username, t.Password)),
+				}),
+			))
 		case *githttp.TokenAuth:
 			client = client.WithAuthToken(t.Token)
 		default:

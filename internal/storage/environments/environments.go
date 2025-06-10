@@ -16,6 +16,7 @@ import (
 	enterprisegit "go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/github"
+	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -209,6 +210,31 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			scm, err = github.NewSCM(f.logger, repoOwner, repoName, opts...)
 			if err != nil {
 				return nil, fmt.Errorf("failed to setup github scm: %w", err)
+			}
+		case config.GitLabSCMType:
+			opts := []gitlab.ClientOption{}
+
+			// To support GitLab Enterprise
+			if envConf.SCM.ApiURL != "" {
+				apiURL, err := url.Parse(envConf.SCM.ApiURL)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse api url: %w", err)
+				}
+				opts = append(opts, gitlab.WithApiURL(apiURL))
+			}
+
+			if envConf.SCM.Credentials != nil {
+				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
+				if err != nil {
+					return nil, err
+				}
+
+				opts = append(opts, gitlab.WithCredentials(creds))
+			}
+
+			scm, err = gitlab.NewSCM(f.logger, repoOwner, repoName, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
 			}
 		case config.GiteaSCMType:
 			opts := []gitea.ClientOption{}
