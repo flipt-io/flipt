@@ -1,13 +1,11 @@
 import {
   BookOpenIcon,
   CircleAlertIcon,
-  CodeXmlIcon,
   ExternalLinkIcon,
   GraduationCapIcon,
   MailIcon,
   MessageCircle,
   PuzzleIcon,
-  SquareTerminalIcon,
   StarIcon,
   UsersIcon
 } from 'lucide-react';

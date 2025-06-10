@@ -110,7 +110,7 @@ export function CreateBranchPopover({
         <DialogHeader>
           <DialogTitle>Create Branch</DialogTitle>
           <DialogDescription>
-            <MoreInfo href="https://www.flipt.io/docs/v2/concepts#branches">
+            <MoreInfo href="https://docs.flipt.io/v2/concepts#branches">
               Learn more about branches
             </MoreInfo>
           </DialogDescription>

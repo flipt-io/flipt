@@ -1,7 +1,6 @@
 import {
   BookOpenIcon,
   ChevronRightIcon,
-  MenuIcon,
   RssIcon,
   UsersIcon
 } from 'lucide-react';
@@ -15,12 +14,6 @@ const links = [
     description: 'Learn how to integrate Flipt with your app',
     href: 'https://docs.flipt.io/v2/',
     icon: BookOpenIcon
-  },
-  {
-    title: 'API Reference',
-    description: 'A complete API reference for our REST API',
-    href: 'https://docs.flipt.io/v2/reference/overview',
-    icon: MenuIcon
   },
   {
     title: 'Community',
