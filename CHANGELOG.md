@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v1.58.5](https://github.com/flipt-io/flipt/releases/tag/v1.58.5) - 2025-06-10
+
+### Fixed
+
+- `csrf`: update middleware usage to comply with gorilla/csrf changes (#4343)
+
 ## [v1.58.4](https://github.com/flipt-io/flipt/releases/tag/v1.58.4) - 2025-06-05
 
 ### Changed
