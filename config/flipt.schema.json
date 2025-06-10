@@ -84,7 +84,8 @@
             "csrf": {
               "type": "object",
               "properties": {
-                "key": { "type": "string" }
+                "key": { "type": "string" },
+                "secure": { "type": "boolean" }
               },
               "required": []
             }
@@ -1426,8 +1427,7 @@
     "experimental": {
       "type": "object",
       "additionalProperties": false,
-      "properties": {
-      },
+      "properties": {},
       "title": "Experimental"
     }
   }

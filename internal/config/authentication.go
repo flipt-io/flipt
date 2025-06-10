@@ -134,6 +134,9 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 		"session": map[string]any{
 			"token_lifetime": "24h",
 			"state_lifetime": "10m",
+			"csrf": map[string]any{
+				"secure": true,
+			},
 		},
 		"methods": methods,
 	})
@@ -241,6 +244,8 @@ type AuthenticationSession struct {
 type AuthenticationSessionCSRF struct {
 	// Key is the private key string used to authenticate csrf tokens.
 	Key string `json:"-" mapstructure:"key"`
+	// Secure signals to the CSRF middleware that the request is being served over TLS or plaintext HTTP
+	Secure bool `json:"secure,omitempty" mapstructure:"secure" yaml:"secure,omitempty"`
 }
 
 // AuthenticationMethods is a set of configuration for each authentication
