@@ -7,7 +7,7 @@ test.describe('Onboarding', () => {
 
       await expect(page.locator('h1')).toContainText('Onboarding');
       await expect(
-        page.getByRole('heading', { name: 'Get Started' })
+        page.getByRole('heading', { name: 'Quick Start' })
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Checkout a Guide' })
@@ -43,7 +43,7 @@ test.describe('Onboarding', () => {
     test('has expected content', async ({ page }) => {
       await expect(page.locator('h1')).toContainText('Support');
       await expect(
-        page.getByText('Get Started', { exact: true })
+        page.getByText('Quick Start', { exact: true })
       ).toBeVisible();
       await expect(
         page.getByText('Checkout a Guide', { exact: true })
