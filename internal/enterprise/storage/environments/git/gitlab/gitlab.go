@@ -101,9 +101,9 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 
 		switch t := auth.(type) {
 		case *githttp.BasicAuth:
-			client, err = gitlab.NewBasicAuthClient(t.Username, t.Password)
+			client, err = gitlab.NewBasicAuthClient(t.Username, t.Password, clientOpts...)
 		case *githttp.TokenAuth:
-			client, err = gitlab.NewClient(t.Token)
+			client, err = gitlab.NewClient(t.Token, clientOpts...)
 		default:
 			return nil, fmt.Errorf("unsupported credential type: %T", t)
 		}
@@ -111,7 +111,6 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gitlab client: %w", err)
 		}
-
 	}
 
 	// gitlab project ID can be a numeric ID or the repoOwner/repoName
