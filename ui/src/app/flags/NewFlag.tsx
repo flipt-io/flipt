@@ -7,7 +7,7 @@ export default function NewFlag() {
     <>
       <PageHeader title="New Flag" />
       <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#flags">
+        <MoreInfo href="https://docs.flipt.io/v2/concepts#flags">
           Learn more about flags
         </MoreInfo>
       </div>

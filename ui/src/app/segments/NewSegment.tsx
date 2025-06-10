@@ -7,7 +7,7 @@ export default function NewSegment() {
     <>
       <PageHeader title="New Segment" />
       <div className="mb-8 space-y-4">
-        <MoreInfo href="https://www.flipt.io/docs/concepts#segments">
+        <MoreInfo href="https://docs.flipt.io/v2/concepts#segments">
           Learn more about segments
         </MoreInfo>
       </div>

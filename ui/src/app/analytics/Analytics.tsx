@@ -185,7 +185,7 @@ export default function Analytics() {
                 See the configuration{' '}
                 <a
                   className="text-violet-500 dark:text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 transition-colors"
-                  href="https://www.flipt.io/docs/configuration/analytics"
+                  href="https://docs.flipt.io/v2/configuration/analytics"
                 >
                   documentation
                 </a>{' '}

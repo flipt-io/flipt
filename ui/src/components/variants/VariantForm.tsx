@@ -81,7 +81,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
                   <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {title}
                   </Dialog.Title>
-                  <MoreInfo href="https://www.flipt.io/docs/concepts#variants">
+                  <MoreInfo href="https://docs.flipt.io/v2/concepts#variants">
                     Learn more about variants
                   </MoreInfo>
                 </div>

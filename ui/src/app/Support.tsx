@@ -1,13 +1,11 @@
 import {
   BookOpenIcon,
   CircleAlertIcon,
-  CodeXmlIcon,
   ExternalLinkIcon,
   GraduationCapIcon,
   MailIcon,
   MessageCircle,
   PuzzleIcon,
-  SquareTerminalIcon,
   StarIcon,
   UsersIcon
 } from 'lucide-react';
@@ -25,15 +23,9 @@ import { onboardingCompleted } from './events/eventSlice';
 const gettingStartedTiles = [
   {
     icon: GraduationCapIcon,
-    name: 'Get Started',
+    name: 'Quick Start',
     description: 'Learn how to create your first feature flag',
-    href: 'https://docs.flipt.io/v2/introduction'
-  },
-  {
-    icon: SquareTerminalIcon,
-    name: 'Try the CLI',
-    description: 'Use the Flipt CLI to manage your feature flags and more',
-    href: 'https://docs.flipt.io/cli/overview'
+    href: 'https://docs.flipt.io/v2/quickstart'
   },
   {
     icon: BookOpenIcon,
@@ -46,7 +38,7 @@ const gettingStartedTiles = [
     icon: PuzzleIcon,
     name: 'Integrate Your Application',
     description: 'Use our SDKs to integrate your applications in your language',
-    href: 'https://docs.flipt.io/integration/overview'
+    href: 'https://docs.flipt.io/v2/integration/overview'
   }
 ];
 
@@ -60,12 +52,6 @@ const moreTiles = [
     href: 'https://flipt.io/discord'
   },
   {
-    icon: CodeXmlIcon,
-    name: 'View API Reference',
-    description: 'Learn how to use the Flipt REST API',
-    href: 'https://www.flipt.io/docs/reference/overview'
-  },
-  {
     icon: StarIcon,
     name: 'Support Us',
     description: 'Show your support by starring us on GitHub',
@@ -76,9 +62,9 @@ const moreTiles = [
     icon: UsersIcon,
     name: 'Join the Community',
     description:
-      'Engage with our community on Discourse for support, discussions, and knowledge sharing',
-    cta: 'Join Discourse',
-    href: 'https://community.flipt.io'
+      'Engage with our community on GitHub for support, discussions, and knowledge sharing',
+    cta: 'Join GitHub',
+    href: 'https://github.com/flipt-io/flipt/discussions'
   },
   {
     icon: MailIcon,
@@ -154,11 +140,11 @@ function SupportTile(props: SupportTileProps) {
   );
 }
 
-interface OnboardingProps {
+interface SupportProps {
   firstTime?: boolean;
 }
 
-export default function Onboarding({ firstTime = false }: OnboardingProps) {
+export default function Support({ firstTime = false }: SupportProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const title = firstTime ? 'Onboarding' : 'Support';

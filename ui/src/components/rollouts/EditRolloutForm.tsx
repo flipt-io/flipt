@@ -168,7 +168,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                   <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Edit Rollout
                   </Dialog.Title>
-                  <MoreInfo href="https://www.flipt.io/docs/concepts#rollouts">
+                  <MoreInfo href="https://docs.flipt.io/v2/concepts#rollouts">
                     Learn more about rollouts
                   </MoreInfo>
                 </div>

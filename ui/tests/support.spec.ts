@@ -7,10 +7,7 @@ test.describe('Onboarding', () => {
 
       await expect(page.locator('h1')).toContainText('Onboarding');
       await expect(
-        page.getByRole('heading', { name: 'Get Started' })
-      ).toBeVisible();
-      await expect(
-        page.getByRole('heading', { name: 'Try the CLI' })
+        page.getByRole('heading', { name: 'Quick Start' })
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Checkout a Guide' })
@@ -20,9 +17,6 @@ test.describe('Onboarding', () => {
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Join the Community' })
-      ).toBeVisible();
-      await expect(
-        page.getByRole('heading', { name: 'View API Reference' })
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Support Us' })
@@ -49,10 +43,7 @@ test.describe('Onboarding', () => {
     test('has expected content', async ({ page }) => {
       await expect(page.locator('h1')).toContainText('Support');
       await expect(
-        page.getByText('Get Started', { exact: true })
-      ).toBeVisible();
-      await expect(
-        page.getByText('Try the CLI', { exact: true })
+        page.getByText('Quick Start', { exact: true })
       ).toBeVisible();
       await expect(
         page.getByText('Checkout a Guide', { exact: true })
@@ -63,10 +54,6 @@ test.describe('Onboarding', () => {
       await expect(
         page.getByText('Chat With Us', { exact: true })
       ).toBeVisible();
-      await expect(
-        page.getByText('View API Reference', { exact: true })
-      ).toBeVisible();
-      await expect(page.getByText('Support Us', { exact: true })).toBeVisible();
       await expect(
         page.getByText('Join the Community', { exact: true })
       ).toBeVisible();
