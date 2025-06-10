@@ -223,7 +223,7 @@ export default function RuleForm(props: RuleFormProps) {
                     <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       New Rule
                     </Dialog.Title>
-                    <MoreInfo href="https://www.flipt.io/docs/concepts#rules">
+                    <MoreInfo href="https://docs.flipt.io/v2/concepts#rules">
                       Learn more about rules
                     </MoreInfo>
                   </div>

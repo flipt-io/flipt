@@ -25,15 +25,9 @@ import { onboardingCompleted } from './events/eventSlice';
 const gettingStartedTiles = [
   {
     icon: GraduationCapIcon,
-    name: 'Get Started',
+    name: 'Quick Start',
     description: 'Learn how to create your first feature flag',
-    href: 'https://docs.flipt.io/v2/introduction'
-  },
-  {
-    icon: SquareTerminalIcon,
-    name: 'Try the CLI',
-    description: 'Use the Flipt CLI to manage your feature flags and more',
-    href: 'https://docs.flipt.io/cli/overview'
+    href: 'https://docs.flipt.io/v2/quickstart'
   },
   {
     icon: BookOpenIcon,
@@ -46,7 +40,7 @@ const gettingStartedTiles = [
     icon: PuzzleIcon,
     name: 'Integrate Your Application',
     description: 'Use our SDKs to integrate your applications in your language',
-    href: 'https://docs.flipt.io/integration/overview'
+    href: 'https://docs.flipt.io/v2/integration/overview'
   }
 ];
 
@@ -58,12 +52,6 @@ const moreTiles = [
       'Join our Discord community to engage with the team and other Flipt users',
     cta: 'Join Discord',
     href: 'https://flipt.io/discord'
-  },
-  {
-    icon: CodeXmlIcon,
-    name: 'View API Reference',
-    description: 'Learn how to use the Flipt REST API',
-    href: 'https://www.flipt.io/docs/reference/overview'
   },
   {
     icon: StarIcon,

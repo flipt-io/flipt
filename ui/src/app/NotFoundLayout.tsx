@@ -13,13 +13,13 @@ const links = [
   {
     title: 'Documentation',
     description: 'Learn how to integrate Flipt with your app',
-    href: 'https://www.flipt.io/docs',
+    href: 'https://docs.flipt.io/v2/',
     icon: BookOpenIcon
   },
   {
     title: 'API Reference',
     description: 'A complete API reference for our REST API',
-    href: 'https://www.flipt.io/docs/reference/overview',
+    href: 'https://docs.flipt.io/v2/reference/overview',
     icon: MenuIcon
   },
   {
