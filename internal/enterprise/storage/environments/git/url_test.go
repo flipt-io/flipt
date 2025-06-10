@@ -10,17 +10,17 @@ import (
 
 func TestParseGiteaRepo(t *testing.T) {
 	tests := []string{
-		"https://gitea.example.com/admin/demo-repo.git",
-		"git@gitea.example.com:admin/demo-repo.git",
-		"git://gitea.example.com/admin/demo-repo.git",
+		"https://gitea.example.com/flipt-io/flipt.git",
+		"git@gitea.example.com:flipt-io/flipt.git",
+		"git://gitea.example.com/flipt-io/flipt.git",
 	}
 
 	for i, ex := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			gitURL, err := ParseGitURL(ex)
 			require.NoError(t, err)
-			assert.Equal(t, "admin", gitURL.Owner)
-			assert.Equal(t, "demo-repo", gitURL.Repo)
+			assert.Equal(t, "flipt-io", gitURL.Owner)
+			assert.Equal(t, "flipt", gitURL.Repo)
 		})
 	}
 }
@@ -30,6 +30,23 @@ func TestParseGithubRepo(t *testing.T) {
 		"https://github.com/flipt-io/flipt",
 		"https://www.github.com/flipt-io/flipt",
 		"git@github.com:flipt-io/flipt.git",
+	}
+
+	for i, ex := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			gitURL, err := ParseGitURL(ex)
+			require.NoError(t, err)
+			assert.Equal(t, "flipt-io", gitURL.Owner)
+			assert.Equal(t, "flipt", gitURL.Repo)
+		})
+	}
+}
+
+func TestParseGitlabRepo(t *testing.T) {
+	tests := []string{
+		"https://gitlab.com/flipt-io/flipt",
+		"https://www.gitlab.com/flipt-io/flipt",
+		"git@gitlab.com:flipt-io/flipt.git",
 	}
 
 	for i, ex := range tests {
