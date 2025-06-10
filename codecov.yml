@@ -6,4 +6,4 @@ ignore:
   - "internal/cmd/protoc-*"
   - "rpc"
   - "ui"
-  - "**/mock_*.go"
+  - "**/*_mock.go"

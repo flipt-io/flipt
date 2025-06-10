@@ -491,6 +491,7 @@ components:
                 scm:
                     enum:
                         - GITHUB_SCM
+                        - GITEA_SCM
                     type: string
                     format: enum
                 url:

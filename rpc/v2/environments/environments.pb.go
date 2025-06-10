@@ -30,15 +30,18 @@ type SCM int32
 
 const (
 	SCM_GITHUB_SCM SCM = 0
+	SCM_GITEA_SCM  SCM = 1
 )
 
 // Enum value maps for SCM.
 var (
 	SCM_name = map[int32]string{
 		0: "GITHUB_SCM",
+		1: "GITEA_SCM",
 	}
 	SCM_value = map[string]int32{
 		"GITHUB_SCM": 0,
+		"GITEA_SCM":  1,
 	}
 )
 
@@ -2012,10 +2015,11 @@ const file_environments_proto_rawDesc = "" +
 	"\x03key\x18\x04 \x01(\tR\x03key\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"4\n" +
 	"\x16DeleteResourceResponse\x12\x1a\n" +
-	"\brevision\x18d \x01(\tR\brevision*\x15\n" +
+	"\brevision\x18d \x01(\tR\brevision*$\n" +
 	"\x03SCM\x12\x0e\n" +
 	"\n" +
-	"GITHUB_SCM\x10\x00*^\n" +
+	"GITHUB_SCM\x10\x00\x12\r\n" +
+	"\tGITEA_SCM\x10\x01*^\n" +
 	"\rProposalState\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x00\x12\x19\n" +
 	"\x15PROPOSAL_STATE_MERGED\x10\x01\x12\x19\n" +

@@ -618,8 +618,8 @@ func (_c *MockEnvironment_Key_Call) RunAndReturn(run func() string) *MockEnviron
 }
 
 // ListBranchedChanges provides a mock function for the type MockEnvironment
-func (_mock *MockEnvironment) ListBranchedChanges(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	ret := _mock.Called(ctx, base)
+func (_mock *MockEnvironment) ListBranchedChanges(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error) {
+	ret := _mock.Called(ctx, branch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListBranchedChanges")
@@ -628,17 +628,17 @@ func (_mock *MockEnvironment) ListBranchedChanges(ctx context.Context, base Envi
 	var r0 *environments.ListBranchedEnvironmentChangesResponse
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)); ok {
-		return returnFunc(ctx, base)
+		return returnFunc(ctx, branch)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment) *environments.ListBranchedEnvironmentChangesResponse); ok {
-		r0 = returnFunc(ctx, base)
+		r0 = returnFunc(ctx, branch)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*environments.ListBranchedEnvironmentChangesResponse)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, Environment) error); ok {
-		r1 = returnFunc(ctx, base)
+		r1 = returnFunc(ctx, branch)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -652,12 +652,12 @@ type MockEnvironment_ListBranchedChanges_Call struct {
 
 // ListBranchedChanges is a helper method to define mock.On call
 //   - ctx
-//   - base
-func (_e *MockEnvironment_Expecter) ListBranchedChanges(ctx interface{}, base interface{}) *MockEnvironment_ListBranchedChanges_Call {
-	return &MockEnvironment_ListBranchedChanges_Call{Call: _e.mock.On("ListBranchedChanges", ctx, base)}
+//   - branch
+func (_e *MockEnvironment_Expecter) ListBranchedChanges(ctx interface{}, branch interface{}) *MockEnvironment_ListBranchedChanges_Call {
+	return &MockEnvironment_ListBranchedChanges_Call{Call: _e.mock.On("ListBranchedChanges", ctx, branch)}
 }
 
-func (_c *MockEnvironment_ListBranchedChanges_Call) Run(run func(ctx context.Context, base Environment)) *MockEnvironment_ListBranchedChanges_Call {
+func (_c *MockEnvironment_ListBranchedChanges_Call) Run(run func(ctx context.Context, branch Environment)) *MockEnvironment_ListBranchedChanges_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(Environment))
 	})
@@ -669,7 +669,7 @@ func (_c *MockEnvironment_ListBranchedChanges_Call) Return(listBranchedEnvironme
 	return _c
 }
 
-func (_c *MockEnvironment_ListBranchedChanges_Call) RunAndReturn(run func(ctx context.Context, base Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)) *MockEnvironment_ListBranchedChanges_Call {
+func (_c *MockEnvironment_ListBranchedChanges_Call) RunAndReturn(run func(ctx context.Context, branch Environment) (*environments.ListBranchedEnvironmentChangesResponse, error)) *MockEnvironment_ListBranchedChanges_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -787,8 +787,8 @@ func (_c *MockEnvironment_ListNamespaces_Call) RunAndReturn(run func(context1 co
 }
 
 // Propose provides a mock function for the type MockEnvironment
-func (_mock *MockEnvironment) Propose(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error) {
-	ret := _mock.Called(ctx, base, opts)
+func (_mock *MockEnvironment) Propose(ctx context.Context, branch Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error) {
+	ret := _mock.Called(ctx, branch, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Propose")
@@ -797,17 +797,17 @@ func (_mock *MockEnvironment) Propose(ctx context.Context, base Environment, opt
 	var r0 *environments.EnvironmentProposalDetails
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment, ProposalOptions) (*environments.EnvironmentProposalDetails, error)); ok {
-		return returnFunc(ctx, base, opts)
+		return returnFunc(ctx, branch, opts)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, Environment, ProposalOptions) *environments.EnvironmentProposalDetails); ok {
-		r0 = returnFunc(ctx, base, opts)
+		r0 = returnFunc(ctx, branch, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*environments.EnvironmentProposalDetails)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, Environment, ProposalOptions) error); ok {
-		r1 = returnFunc(ctx, base, opts)
+		r1 = returnFunc(ctx, branch, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -821,13 +821,13 @@ type MockEnvironment_Propose_Call struct {
 
 // Propose is a helper method to define mock.On call
 //   - ctx
-//   - base
+//   - branch
 //   - opts
-func (_e *MockEnvironment_Expecter) Propose(ctx interface{}, base interface{}, opts interface{}) *MockEnvironment_Propose_Call {
-	return &MockEnvironment_Propose_Call{Call: _e.mock.On("Propose", ctx, base, opts)}
+func (_e *MockEnvironment_Expecter) Propose(ctx interface{}, branch interface{}, opts interface{}) *MockEnvironment_Propose_Call {
+	return &MockEnvironment_Propose_Call{Call: _e.mock.On("Propose", ctx, branch, opts)}
 }
 
-func (_c *MockEnvironment_Propose_Call) Run(run func(ctx context.Context, base Environment, opts ProposalOptions)) *MockEnvironment_Propose_Call {
+func (_c *MockEnvironment_Propose_Call) Run(run func(ctx context.Context, branch Environment, opts ProposalOptions)) *MockEnvironment_Propose_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(Environment), args[2].(ProposalOptions))
 	})
@@ -839,7 +839,7 @@ func (_c *MockEnvironment_Propose_Call) Return(environmentProposalDetails *envir
 	return _c
 }
 
-func (_c *MockEnvironment_Propose_Call) RunAndReturn(run func(ctx context.Context, base Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)) *MockEnvironment_Propose_Call {
+func (_c *MockEnvironment_Propose_Call) RunAndReturn(run func(ctx context.Context, branch Environment, opts ProposalOptions) (*environments.EnvironmentProposalDetails, error)) *MockEnvironment_Propose_Call {
 	_c.Call.Return(run)
 	return _c
 }
