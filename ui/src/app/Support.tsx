@@ -62,9 +62,9 @@ const moreTiles = [
     icon: UsersIcon,
     name: 'Join the Community',
     description:
-      'Engage with our community on Discourse for support, discussions, and knowledge sharing',
-    cta: 'Join Discourse',
-    href: 'https://community.flipt.io'
+      'Engage with our community on GitHub for support, discussions, and knowledge sharing',
+    cta: 'Join GitHub',
+    href: 'https://github.com/flipt-io/flipt/discussions'
   },
   {
     icon: MailIcon,
@@ -140,11 +140,11 @@ function SupportTile(props: SupportTileProps) {
   );
 }
 
-interface OnboardingProps {
+interface SupportProps {
   firstTime?: boolean;
 }
 
-export default function Onboarding({ firstTime = false }: OnboardingProps) {
+export default function Support({ firstTime = false }: SupportProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const title = firstTime ? 'Onboarding' : 'Support';
