@@ -144,8 +144,18 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()), zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+	var (
+		body   = []byte{}
+		status = 0
+	)
+
+	if resp != nil && resp.Body != nil {
+		body, _ = io.ReadAll(resp.Body)
+		status = resp.StatusCode
+		_ = resp.Body.Close()
+	}
+
+	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()), zap.Int("status", status), zap.String("response", string(body)))
 
 	return &environments.EnvironmentProposalDetails{
 		Url:   pr.GetHTMLURL(),
@@ -161,8 +171,18 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-	s.logger.Info("changes compared", zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+	var (
+		body   = []byte{}
+		status = 0
+	)
+
+	if resp != nil && resp.Body != nil {
+		body, _ = io.ReadAll(resp.Body)
+		status = resp.StatusCode
+		_ = resp.Body.Close()
+	}
+
+	s.logger.Info("changes compared", zap.Int("status", status), zap.String("response", string(body)))
 
 	var (
 		changes []*environments.Change

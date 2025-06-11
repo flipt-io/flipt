@@ -126,7 +126,7 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 
 // Propose creates a new merge request with the given request.
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
-	s.logger.Info("proposing merge request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
+	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
 	createOpts := &gitlab.CreateMergeRequestOptions{
 		Title:        &req.Title,
@@ -146,8 +146,17 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create merge request: %w", err)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-	s.logger.Info("merge request created", zap.String("mr", mr.WebURL), zap.String("state", string(mr.State)), zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+	var (
+		body   = []byte{}
+		status = 0
+	)
+
+	if resp != nil && resp.Body != nil {
+		body, _ = io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+	}
+
+	s.logger.Info("pull request created", zap.String("pr", mr.WebURL), zap.String("state", mr.State), zap.Int("status", status), zap.String("response", string(body)))
 
 	return &environments.EnvironmentProposalDetails{
 		Url:   mr.WebURL,
@@ -168,8 +177,18 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-	s.logger.Info("changes compared", zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+	var (
+		body   = []byte{}
+		status = 0
+	)
+
+	if resp != nil && resp.Body != nil {
+		body, _ = io.ReadAll(resp.Body)
+		status = resp.StatusCode
+		_ = resp.Body.Close()
+	}
+
+	s.logger.Info("changes compared", zap.Int("status", status), zap.String("response", string(body)))
 
 	var (
 		changes []*environments.Change

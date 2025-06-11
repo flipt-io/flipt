@@ -13,11 +13,13 @@ import (
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
+	"go.uber.org/zap"
 )
 
 func TestSCM_Propose(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -44,6 +46,7 @@ func TestSCM_Propose(t *testing.T) {
 func TestSCM_Propose_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -62,6 +65,7 @@ func TestSCM_Propose_Error(t *testing.T) {
 func TestSCM_ListChanges(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -103,6 +107,7 @@ func TestSCM_ListChanges(t *testing.T) {
 func TestSCM_ListChanges_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -152,6 +157,7 @@ func TestSCM_ListProposals(t *testing.T) {
 func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -179,6 +185,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -215,6 +222,7 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
@@ -248,6 +256,7 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,
