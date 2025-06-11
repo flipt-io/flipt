@@ -1167,6 +1167,7 @@ func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
 	)
 
 	store.On("DeleteRollout", mock.Anything, req).Return(nil)
+	store.On("GetRollout", mock.Anything, mock.Anything, req.Id).Return(&flipt.Rollout{}, nil)
 
 	unaryInterceptor := AuditEventUnaryInterceptor(logger, &checkerDummy{})
 
@@ -1329,6 +1330,7 @@ func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 	)
 
 	store.On("DeleteRule", mock.Anything, req).Return(nil)
+	store.On("GetRule", mock.Anything, mock.Anything, req.Id).Return(&flipt.Rule{}, nil)
 
 	unaryInterceptor := AuditEventUnaryInterceptor(logger, &checkerDummy{})
 
