@@ -226,9 +226,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
-		if mr.State == "closed" {
+		switch mr.State {
+		case "closed":
 			state = environments.ProposalState_PROPOSAL_STATE_CLOSED
-		} else if mr.State == "merged" {
+		case "merged":
 			state = environments.ProposalState_PROPOSAL_STATE_MERGED
 		}
 
