@@ -8,6 +8,7 @@ package gitlab
 import (
 	"context"
 	"fmt"
+	"io"
 	"iter"
 	"net/http"
 	"net/url"
@@ -125,6 +126,8 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 
 // Propose creates a new merge request with the given request.
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
+	s.logger.Info("proposing merge request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
+
 	createOpts := &gitlab.CreateMergeRequestOptions{
 		Title:        &req.Title,
 		Description:  &req.Body,
@@ -138,13 +141,15 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		createOpts.Title = gitlab.Ptr(fmt.Sprintf("Draft: %s", req.Title))
 	}
 
-	mr, _, err := s.mrs.CreateMergeRequest(s.projectID, createOpts)
+	mr, resp, err := s.mrs.CreateMergeRequest(s.projectID, createOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create merge request: %w", err)
 	}
 
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("merge request created", zap.String("mr", mr.WebURL), zap.String("state", string(mr.State)), zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+
 	return &environments.EnvironmentProposalDetails{
-		Scm:   environments.SCM_GITLAB_SCM,
 		Url:   mr.WebURL,
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
@@ -152,15 +157,19 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 // ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
 	compareOpts := &gitlab.CompareOptions{
 		From: &req.Base,
 		To:   &req.Head,
 	}
 
-	comparison, _, err := s.repos.Compare(s.projectID, compareOpts)
+	comparison, resp, err := s.repos.Compare(s.projectID, compareOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
+
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("changes compared", zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
 
 	var (
 		changes []*environments.Change
@@ -234,7 +243,6 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Scm:   environments.SCM_GITLAB_SCM,
 			Url:   mr.WebURL,
 			State: state,
 		}

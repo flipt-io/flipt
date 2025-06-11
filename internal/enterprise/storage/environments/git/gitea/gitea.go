@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"io"
 	"iter"
 	"net/http"
 	"slices"
@@ -97,35 +98,41 @@ func NewSCM(logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientO
 }
 
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
+	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 	if req.Draft {
 		// gitea's way to say it's a draft PR. It actually could be customized by administrator and
 		// [WIP] just is a default value.
 		req.Title = fmt.Sprintf("[WIP] %s", req.Title)
 	}
 
-	pr, _, err := s.client.CreatePullRequest(s.repoOwner, s.repoName, gitea.CreatePullRequestOption{
+	pr, resp, err := s.client.CreatePullRequest(s.repoOwner, s.repoName, gitea.CreatePullRequestOption{
 		Base:  req.Base,
 		Head:  req.Head,
 		Title: req.Title,
 		Body:  req.Body,
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("pull request created", zap.String("pr", pr.HTMLURL), zap.String("state", string(pr.State)), zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+
 	return &environments.EnvironmentProposalDetails{
-		Scm:   environments.SCM_GITEA_SCM,
 		Url:   pr.HTMLURL,
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	comparition, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
+	comparition, resp, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
+
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("changes compared", zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
 
 	var (
 		changes []*environments.Change
@@ -178,7 +185,6 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Scm:   environments.SCM_GITEA_SCM,
 			Url:   pr.HTMLURL,
 			State: state,
 		}

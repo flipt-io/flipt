@@ -10,17 +10,20 @@ export interface IEnvironmentConfiguration {
   branch: string;
   directory: string;
   base?: string;
+  scm?: SCM;
 }
 
 export interface IBranchEnvironment {
-  baseEnvironmentKey: string;
   environmentKey: string;
+  key: string;
   branch: string;
   proposal?: IEnvironmentProposal;
 }
 
 export enum SCM {
-  GITHUB = 'GITHUB_SCM'
+  GITHUB = 'GITHUB_SCM',
+  GITLAB = 'GITLAB_SCM',
+  GITEA = 'GITEA_SCM'
 }
 
 export enum ProposalState {
@@ -30,7 +33,6 @@ export enum ProposalState {
 }
 
 export interface IEnvironmentProposal {
-  scm: SCM;
   url: string;
   state?: ProposalState;
 }

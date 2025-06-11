@@ -132,6 +132,7 @@ message EnvironmentConfiguration {
   optional string directory = 2;
   optional string remote = 3;
   optional string base = 4;
+  optional SCM scm = 5;
 }
 
 message ListEnvironmentsRequest {}
@@ -186,9 +187,8 @@ enum ProposalState {
 }
 
 message EnvironmentProposalDetails {
-  SCM scm = 1;
-  string url = 2;
-  ProposalState state = 3;
+  string url = 1;
+  ProposalState state = 2;
 }
 
 message Change {

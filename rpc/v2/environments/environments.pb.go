@@ -198,6 +198,7 @@ type EnvironmentConfiguration struct {
 	Directory     *string                `protobuf:"bytes,2,opt,name=directory,proto3,oneof" json:"directory,omitempty"`
 	Remote        *string                `protobuf:"bytes,3,opt,name=remote,proto3,oneof" json:"remote,omitempty"`
 	Base          *string                `protobuf:"bytes,4,opt,name=base,proto3,oneof" json:"base,omitempty"`
+	Scm           *SCM                   `protobuf:"varint,5,opt,name=scm,proto3,enum=environments.SCM,oneof" json:"scm,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,6 +259,13 @@ func (x *EnvironmentConfiguration) GetBase() string {
 		return *x.Base
 	}
 	return ""
+}
+
+func (x *EnvironmentConfiguration) GetScm() SCM {
+	if x != nil && x.Scm != nil {
+		return *x.Scm
+	}
+	return SCM_GITHUB_SCM
 }
 
 type ListEnvironmentsRequest struct {
@@ -678,9 +686,8 @@ func (x *ProposeEnvironmentRequest) GetDraft() bool {
 
 type EnvironmentProposalDetails struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Scm           SCM                    `protobuf:"varint,1,opt,name=scm,proto3,enum=environments.SCM" json:"scm,omitempty"`
-	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
-	State         ProposalState          `protobuf:"varint,3,opt,name=state,proto3,enum=environments.ProposalState" json:"state,omitempty"`
+	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	State         ProposalState          `protobuf:"varint,2,opt,name=state,proto3,enum=environments.ProposalState" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -713,13 +720,6 @@ func (x *EnvironmentProposalDetails) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EnvironmentProposalDetails.ProtoReflect.Descriptor instead.
 func (*EnvironmentProposalDetails) Descriptor() ([]byte, []int) {
 	return file_environments_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *EnvironmentProposalDetails) GetScm() SCM {
-	if x != nil {
-		return x.Scm
-	}
-	return SCM_GITHUB_SCM
 }
 
 func (x *EnvironmentProposalDetails) GetUrl() string {
@@ -1888,16 +1888,18 @@ const file_environments_proto_rawDesc = "" +
 	"\rconfiguration\x18\x04 \x01(\v2&.environments.EnvironmentConfigurationH\x01R\rconfiguration\x88\x01\x01B\n" +
 	"\n" +
 	"\b_defaultB\x10\n" +
-	"\x0e_configuration\"\xa7\x01\n" +
+	"\x0e_configuration\"\xd9\x01\n" +
 	"\x18EnvironmentConfiguration\x12\x10\n" +
 	"\x03ref\x18\x01 \x01(\tR\x03ref\x12!\n" +
 	"\tdirectory\x18\x02 \x01(\tH\x00R\tdirectory\x88\x01\x01\x12\x1b\n" +
 	"\x06remote\x18\x03 \x01(\tH\x01R\x06remote\x88\x01\x01\x12\x17\n" +
-	"\x04base\x18\x04 \x01(\tH\x02R\x04base\x88\x01\x01B\f\n" +
+	"\x04base\x18\x04 \x01(\tH\x02R\x04base\x88\x01\x01\x12(\n" +
+	"\x03scm\x18\x05 \x01(\x0e2\x11.environments.SCMH\x03R\x03scm\x88\x01\x01B\f\n" +
 	"\n" +
 	"_directoryB\t\n" +
 	"\a_remoteB\a\n" +
-	"\x05_base\"\x19\n" +
+	"\x05_baseB\x06\n" +
+	"\x04_scm\"\x19\n" +
 	"\x17ListEnvironmentsRequest\"Y\n" +
 	"\x18ListEnvironmentsResponse\x12=\n" +
 	"\fenvironments\x18\x01 \x03(\v2\x19.environments.EnvironmentR\fenvironments\"U\n" +
@@ -1925,11 +1927,10 @@ const file_environments_proto_rawDesc = "" +
 	"\x05draft\x18\x05 \x01(\bH\x02R\x05draft\x88\x01\x01B\b\n" +
 	"\x06_titleB\a\n" +
 	"\x05_bodyB\b\n" +
-	"\x06_draft\"\x86\x01\n" +
-	"\x1aEnvironmentProposalDetails\x12#\n" +
-	"\x03scm\x18\x01 \x01(\x0e2\x11.environments.SCMR\x03scm\x12\x10\n" +
-	"\x03url\x18\x02 \x01(\tR\x03url\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x1b.environments.ProposalStateR\x05state\"\xf5\x01\n" +
+	"\x06_draft\"a\n" +
+	"\x1aEnvironmentProposalDetails\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x121\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x1b.environments.ProposalStateR\x05state\"\xf5\x01\n" +
 	"\x06Change\x12\x1a\n" +
 	"\brevision\x18\x01 \x01(\tR\brevision\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12$\n" +
@@ -2099,10 +2100,10 @@ var file_environments_proto_goTypes = []any{
 }
 var file_environments_proto_depIdxs = []int32{
 	3,  // 0: environments.Environment.configuration:type_name -> environments.EnvironmentConfiguration
-	2,  // 1: environments.ListEnvironmentsResponse.environments:type_name -> environments.Environment
-	12, // 2: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
-	8,  // 3: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
-	0,  // 4: environments.EnvironmentProposalDetails.scm:type_name -> environments.SCM
+	0,  // 1: environments.EnvironmentConfiguration.scm:type_name -> environments.SCM
+	2,  // 2: environments.ListEnvironmentsResponse.environments:type_name -> environments.Environment
+	12, // 3: environments.BranchEnvironment.proposal:type_name -> environments.EnvironmentProposalDetails
+	8,  // 4: environments.ListEnvironmentBranchesResponse.branches:type_name -> environments.BranchEnvironment
 	1,  // 5: environments.EnvironmentProposalDetails.state:type_name -> environments.ProposalState
 	13, // 6: environments.ListBranchedEnvironmentChangesResponse.changes:type_name -> environments.Change
 	16, // 7: environments.NamespaceResponse.namespace:type_name -> environments.Namespace

@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"iter"
 	"net/http"
 	"net/url"
@@ -130,7 +131,9 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 
 // Propose creates a new pull request with the given request.
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
-	pr, _, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
+	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
+
+	pr, resp, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
 		Title: github.String(req.Title),
@@ -141,8 +144,10 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()), zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
+
 	return &environments.EnvironmentProposalDetails{
-		Scm:   environments.SCM_GITHUB_SCM,
 		Url:   pr.GetHTMLURL(),
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
@@ -150,10 +155,14 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 // ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	comparison, _, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
+	comparison, resp, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
+
+	body, _ := io.ReadAll(resp.Body)
+	s.logger.Info("changes compared", zap.Int("status", resp.StatusCode), zap.String("response", string(body)))
 
 	var (
 		changes []*environments.Change
@@ -227,7 +236,6 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Scm:   environments.SCM_GITHUB_SCM,
 			Url:   pr.GetHTMLURL(),
 			State: state,
 		}

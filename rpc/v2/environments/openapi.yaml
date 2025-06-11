@@ -485,9 +485,6 @@ components:
                     type: string
                 base:
                     type: string
-        EnvironmentProposalDetails:
-            type: object
-            properties:
                 scm:
                     enum:
                         - GITHUB_SCM
@@ -495,6 +492,9 @@ components:
                         - GITLAB_SCM
                     type: string
                     format: enum
+        EnvironmentProposalDetails:
+            type: object
+            properties:
                 url:
                     type: string
                 state:
