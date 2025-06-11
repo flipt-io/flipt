@@ -9,7 +9,7 @@ import (
 )
 
 func TestParseGitURL(t *testing.T) {
-	t.Run("github", func(t *testing.T) {
+	t.Run("gitea", func(t *testing.T) {
 		tests := []string{
 			"https://gitea.example.com/flipt-io/flipt.git",
 			"git@gitea.example.com:flipt-io/flipt.git",
@@ -26,7 +26,7 @@ func TestParseGitURL(t *testing.T) {
 		}
 	})
 
-	t.Run("gitea", func(t *testing.T) {
+	t.Run("github", func(t *testing.T) {
 		tests := []string{
 			"https://github.com/flipt-io/flipt",
 			"https://www.github.com/flipt-io/flipt",
