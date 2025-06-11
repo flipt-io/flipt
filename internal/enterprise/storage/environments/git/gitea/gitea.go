@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"code.gitea.io/sdk/gitea"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
@@ -35,8 +35,8 @@ type SCM struct {
 }
 
 type giteaOptions struct {
-	httpClient  *http.Client
-	credentials *credentials.Credential
+	httpClient *http.Client
+	apiAuth    *credentials.APIAuth
 }
 
 type ClientOption func(*giteaOptions)
@@ -47,9 +47,9 @@ func WithHttpClient(httpClient *http.Client) ClientOption {
 	}
 }
 
-func WithCredentials(credentials *credentials.Credential) ClientOption {
+func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *giteaOptions) {
-		c.credentials = credentials
+		c.apiAuth = apiAuth
 	}
 }
 
@@ -68,19 +68,18 @@ func NewSCM(logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientO
 		clientOpts = append(clientOpts, gitea.SetHTTPClient(giteaOpts.httpClient))
 	}
 
-	if giteaOpts.credentials != nil {
-		auth, err := giteaOpts.credentials.Authentication()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get gitea authentication: %w", err)
-		}
-
-		switch t := auth.(type) {
-		case *githttp.TokenAuth:
-			clientOpts = append(clientOpts, gitea.SetToken(t.Token))
-		case *githttp.BasicAuth:
-			clientOpts = append(clientOpts, gitea.SetBasicAuth(t.Username, t.Password))
+	if giteaOpts.apiAuth != nil {
+		// Configure API client authentication
+		apiAuth := giteaOpts.apiAuth
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			// Use token for API operations
+			clientOpts = append(clientOpts, gitea.SetToken(apiAuth.Token))
+		case config.CredentialTypeBasic:
+			// Use basic auth for API operations
+			clientOpts = append(clientOpts, gitea.SetBasicAuth(apiAuth.Username, apiAuth.Password))
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", t)
+			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
 		}
 	}
 

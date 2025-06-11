@@ -15,8 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/google/go-github/v66/github"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
@@ -48,9 +48,9 @@ type SCM struct {
 }
 
 type gitHubOptions struct {
-	apiURL      *url.URL
-	httpClient  *http.Client
-	credentials *credentials.Credential
+	apiURL     *url.URL
+	httpClient *http.Client
+	apiAuth    *credentials.APIAuth
 }
 
 type ClientOption func(*gitHubOptions)
@@ -77,9 +77,9 @@ func WithHttpClient(httpClient *http.Client) ClientOption {
 	}
 }
 
-func WithCredentials(credentials *credentials.Credential) ClientOption {
+func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *gitHubOptions) {
-		c.credentials = credentials
+		c.apiAuth = apiAuth
 	}
 }
 
@@ -99,24 +99,23 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 		client.BaseURL = githubOpts.apiURL
 	}
 
-	if githubOpts.credentials != nil {
-		auth, err := githubOpts.credentials.Authentication()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get github authentication: %w", err)
-		}
-
-		switch t := auth.(type) {
-		case *githttp.BasicAuth:
+	if githubOpts.apiAuth != nil {
+		// Configure API client authentication
+		apiAuth := githubOpts.apiAuth
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			// Use token for API operations
+			client = client.WithAuthToken(apiAuth.Token)
+		case config.CredentialTypeBasic:
+			// Use basic auth for API operations - convert to OAuth2 token format
 			client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 				&oauth2.Token{
 					TokenType:   "Basic",
-					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf([]byte{}, "%s:%s", t.Username, t.Password)),
+					AccessToken: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", apiAuth.Username, apiAuth.Password))),
 				}),
 			))
-		case *githttp.TokenAuth:
-			client = client.WithAuthToken(t.Token)
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", t)
+			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
 		}
 	}
 

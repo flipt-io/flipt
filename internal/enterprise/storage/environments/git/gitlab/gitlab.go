@@ -14,8 +14,8 @@ import (
 	"sort"
 	"strings"
 
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
@@ -45,9 +45,9 @@ type SCM struct {
 }
 
 type gitLabOptions struct {
-	apiURL      *url.URL
-	httpClient  *http.Client
-	credentials *credentials.Credential
+	apiURL     *url.URL
+	httpClient *http.Client
+	apiAuth    *credentials.APIAuth
 }
 
 type ClientOption func(*gitLabOptions)
@@ -64,9 +64,9 @@ func WithHttpClient(httpClient *http.Client) ClientOption {
 	}
 }
 
-func WithCredentials(credentials *credentials.Credential) ClientOption {
+func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *gitLabOptions) {
-		c.credentials = credentials
+		c.apiAuth = apiAuth
 	}
 }
 
@@ -83,6 +83,7 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 	var (
 		clientOpts []gitlab.ClientOptionFunc
 		client     *gitlab.Client
+		err        error
 	)
 
 	if gitlabOpts.apiURL != nil {
@@ -93,21 +94,19 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 		clientOpts = append(clientOpts, gitlab.WithHTTPClient(gitlabOpts.httpClient))
 	}
 
-	if gitlabOpts.credentials != nil {
-		auth, err := gitlabOpts.credentials.Authentication()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get gitlab authentication: %w", err)
-		}
-
-		switch t := auth.(type) {
-		case *githttp.BasicAuth:
-			client, err = gitlab.NewBasicAuthClient(t.Username, t.Password, clientOpts...)
-		case *githttp.TokenAuth:
-			client, err = gitlab.NewClient(t.Token, clientOpts...)
+	if gitlabOpts.apiAuth != nil {
+		// Configure API client authentication
+		apiAuth := gitlabOpts.apiAuth
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			// Use token for API operations
+			client, err = gitlab.NewClient(apiAuth.Token, clientOpts...)
+		case config.CredentialTypeBasic:
+			// Use basic auth for API operations
+			client, err = gitlab.NewBasicAuthClient(apiAuth.Username, apiAuth.Password, clientOpts...)
 		default:
-			return nil, fmt.Errorf("unsupported credential type: %T", t)
+			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
 		}
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gitlab client: %w", err)
 		}

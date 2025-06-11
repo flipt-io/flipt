@@ -101,7 +101,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 			if err != nil {
 				return nil, err
 			}
-			auth, err := creds.Authentication()
+			auth, err := creds.GitAuthentication()
 			if err != nil {
 				return nil, err
 			}
@@ -204,7 +204,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 					return nil, err
 				}
 
-				opts = append(opts, github.WithCredentials(creds))
+				opts = append(opts, github.WithApiAuth(creds.APIAuthentication()))
 			}
 
 			scm, err = github.NewSCM(f.logger, repoOwner, repoName, opts...)
@@ -229,7 +229,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 					return nil, err
 				}
 
-				opts = append(opts, gitlab.WithCredentials(creds))
+				opts = append(opts, gitlab.WithApiAuth(creds.APIAuthentication()))
 			}
 
 			scm, err = gitlab.NewSCM(f.logger, repoOwner, repoName, opts...)
@@ -244,7 +244,8 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 				if err != nil {
 					return nil, err
 				}
-				opts = append(opts, gitea.WithCredentials(creds))
+
+				opts = append(opts, gitea.WithApiAuth(creds.APIAuthentication()))
 			}
 
 			scm, err = gitea.NewSCM(f.logger, envConf.SCM.ApiURL, repoOwner, repoName, opts...)
