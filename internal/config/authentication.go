@@ -246,6 +246,8 @@ type AuthenticationSessionCSRF struct {
 	Key string `json:"-" mapstructure:"key"`
 	// Secure signals to the CSRF middleware that the request is being served over TLS or plaintext HTTP
 	Secure bool `json:"secure,omitempty" mapstructure:"secure" yaml:"secure,omitempty"`
+	// TrustedOrigins is a list of trusted origins that are allowed to send requests
+	TrustedOrigins []string `json:"trustedOrigins,omitempty" mapstructure:"trusted_origins" yaml:"trusted_origins,omitempty"`
 }
 
 // AuthenticationMethods is a set of configuration for each authentication
