@@ -119,7 +119,7 @@ export function generateCliCommand(command: ICommand): string {
 }
 
 export function getRepoUrlFromConfig(configuration: IEnvironmentConfiguration) {
-  // TODO: support other SCMs as this is only works for GitHub currently
+  // TODO: support other SCMs as this is only works for GitHub/GitLab currently
   let repoUrl = configuration.remote;
   if (configuration.branch && configuration.directory) {
     repoUrl += `/tree/${configuration.branch}/${configuration.directory}`;
@@ -133,8 +133,6 @@ export function extractRepoName(remote: string): string {
   if (!remote) return '';
   // Remove protocol and trailing .git
   let url = remote.replace(/^https?:\/\//, '').replace(/\.git$/, '');
-
-  // TODO: test with gitlab, bitbucket, etc.
 
   // Handle SSH URLs
   if (url.includes('@')) {

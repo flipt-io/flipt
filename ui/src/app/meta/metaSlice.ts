@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { IInfo, LoadingStatus } from '~/types/Meta';
+import { IInfo, LoadingStatus, Product } from '~/types/Meta';
 
 import { getMeta } from '~/data/api';
 
@@ -20,6 +20,7 @@ const initialState: IMetaSlice = {
       updateAvailable: false,
       isRelease: false
     },
+    product: Product.OSS,
     status: LoadingStatus.IDLE
   }
 };
@@ -41,6 +42,8 @@ export const metaSlice = createSlice({
 });
 
 export const selectInfo = (state: { meta: IMetaSlice }) => state.meta.info;
+export const isEnterprise = (state: { meta: IMetaSlice }) =>
+  state.meta.info.product === Product.ENTERPRISE;
 
 export const fetchInfoAsync = createAsyncThunk('meta/fetchInfo', async () => {
   const response = await getMeta();

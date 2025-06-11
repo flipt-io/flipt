@@ -121,18 +121,20 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 
 // EnvironmentFactory creates environments and wraps them as needed.
 type EnvironmentFactory struct {
-	logger      *zap.Logger
-	cfg         *config.Config
-	credentials *credentials.CredentialSource
-	repoManager *RepositoryManager
+	logger         *zap.Logger
+	cfg            *config.Config
+	credentials    *credentials.CredentialSource
+	repoManager    *RepositoryManager
+	licenseManager interface{ IsEnterprise() bool } // Accepts LicenseManager or a mock for tests
 }
 
-func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager) *EnvironmentFactory {
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager interface{ IsEnterprise() bool }) *EnvironmentFactory {
 	return &EnvironmentFactory{
-		logger:      logger,
-		cfg:         cfg,
-		credentials: credentials,
-		repoManager: repoManager,
+		logger:         logger,
+		cfg:            cfg,
+		credentials:    credentials,
+		repoManager:    repoManager,
+		licenseManager: licenseManager,
 	}
 }
 
@@ -170,8 +172,14 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	}
 
 	// wrap the environment with an SCM if configured
-	// TODO: check for enterprise license
 	if envConf.SCM != nil {
+		// License check: only allow SCM if enterprise is enabled
+		if f.licenseManager == nil || !f.licenseManager.IsEnterprise() {
+			f.logger.Warn("Enterprise license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
+			wrapped := enterprisegit.NewEnvironment(f.logger, env, &enterprisegit.SCMNotImplemented{})
+			return wrapped, nil
+		}
+
 		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
 
 		repoURL, err := enterprisegit.ParseGitURL(repo.GetRemote())
@@ -287,7 +295,7 @@ type repoEnv interface {
 
 // NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licenseManager interface{ IsEnterprise() bool }) (
 	_ *serverconfig.EnvironmentStore,
 	err error,
 ) {
@@ -298,7 +306,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 	var (
 		credentials = credentials.New(logger, cfg.Credentials)
 		repoManager = NewRepositoryManager(logger, cfg)
-		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager)
+		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager)
 	)
 
 	var envs []serverconfig.Environment

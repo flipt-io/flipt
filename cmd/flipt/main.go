@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/enterprise/license"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/logs"
@@ -48,6 +49,8 @@ var (
 	analyticsKey       string
 	analyticsEndpoint  string
 	banner             string
+	keygenAccountID    string
+	keygenProductID    string
 )
 
 var (
@@ -367,10 +370,20 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
+	licenseManagerOpts := []license.LicenseManagerOption{}
+	if !isRelease {
+		// TODO: need to enforce this for development purposes only, not just for non-release versions
+		licenseManagerOpts = append(licenseManagerOpts, license.WithForceEnterprise())
+	}
+
+	licenseManager := license.NewLicenseManager(ctx, logger, keygenAccountID, keygenProductID, cfg.Enterprise.LicenseKey, licenseManagerOpts...)
+	defer licenseManager.Close()
+
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, v, isRelease),
 		info.WithLatestRelease(releaseInfo),
 		info.WithConfig(cfg),
+		info.WithLicenseManager(licenseManager),
 	)
 
 	if cfg.Meta.TelemetryEnabled {
@@ -399,7 +412,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		otelgrpc.UnaryServerInterceptor(),
 	))
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate, licenseManager)
 	if err != nil {
 		return err
 	}

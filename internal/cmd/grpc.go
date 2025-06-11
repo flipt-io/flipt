@@ -86,6 +86,7 @@ func NewGRPCServer(
 	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
+	licenseManager interface{ IsEnterprise() bool },
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
@@ -108,7 +109,7 @@ func NewGRPCServer(
 	})
 
 	// configure a declarative backend store
-	environmentStore, err := environments.NewStore(ctx, logger, cfg)
+	environmentStore, err := environments.NewStore(ctx, logger, cfg, licenseManager)
 	if err != nil {
 		return nil, err
 	}

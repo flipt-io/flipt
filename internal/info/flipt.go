@@ -50,6 +50,12 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
+func WithLicenseManager(licenseManager interface{ IsEnterprise() bool }) Option {
+	return func(f *Flipt) {
+		f.licenseManager = licenseManager
+	}
+}
+
 type Option func(f *Flipt)
 
 type Build struct {
@@ -71,12 +77,20 @@ type Analytics struct {
 	Enabled bool `json:"enabled,omitempty"`
 }
 
+type Product string
+
+var (
+	ProductOSS        = Product("oss")
+	ProductEnterprise = Product("enterprise")
+)
+
 type UI struct {
 	Theme       config.UITheme `json:"theme,omitempty"`
 	TopbarColor string         `json:"topbarColor,omitempty"`
 }
 
 type Flipt struct {
+	licenseManager interface{ IsEnterprise() bool }
 	Build          *Build          `json:"build,omitempty"`
 	Authentication *Authentication `json:"authentication,omitempty"`
 	Analytics      *Analytics      `json:"analytics,omitempty"`
@@ -85,6 +99,10 @@ type Flipt struct {
 
 func (f Flipt) IsDevelopment() bool {
 	return f.Build.Version == "dev"
+}
+
+func (f Flipt) IsEnterprise() bool {
+	return f.licenseManager.IsEnterprise()
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -108,4 +126,20 @@ func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// MarshalJSON implements custom JSON marshaling for Flipt to include the dynamic product field.
+func (f Flipt) MarshalJSON() ([]byte, error) {
+	type Alias Flipt // Prevent recursion
+	aux := struct {
+		Alias
+		Product Product `json:"product"`
+	}{
+		Alias:   (Alias)(f),
+		Product: ProductOSS,
+	}
+	if f.IsEnterprise() {
+		aux.Product = ProductEnterprise
+	}
+	return json.Marshal(aux)
 }
