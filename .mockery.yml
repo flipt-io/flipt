@@ -26,4 +26,7 @@ packages:
   go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea:
     interfaces:
       Client: {}
-
+  go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab:
+    interfaces:
+      MergeRequestsService: {}
+      RepositoriesService: {}

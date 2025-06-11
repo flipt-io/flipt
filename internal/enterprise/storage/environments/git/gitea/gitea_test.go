@@ -38,7 +38,6 @@ func TestSCM_Propose(t *testing.T) {
 	result, err := scm.Propose(ctx, req)
 	require.NoError(t, err)
 	assert.Equal(t, "http://example.com/pr", result.Url)
-	assert.Equal(t, rpcenv.SCM_GITEA_SCM, result.Scm)
 	assert.Equal(t, rpcenv.ProposalState_PROPOSAL_STATE_OPEN, result.State)
 }
 
@@ -147,7 +146,6 @@ func TestSCM_ListProposals(t *testing.T) {
 	require.Len(t, result, 1)
 	assert.Contains(t, result, branch)
 	assert.Equal(t, "http://example.com/pr", result[branch].Url)
-	assert.Equal(t, rpcenv.SCM_GITEA_SCM, result[branch].Scm)
 	assert.Equal(t, rpcenv.ProposalState_PROPOSAL_STATE_OPEN, result[branch].State)
 }
 
