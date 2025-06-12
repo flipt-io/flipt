@@ -41,70 +41,45 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300">
-      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between px-8 py-4 gap-4">
-        {/* Version + Badge */}
-        <div className="flex items-center space-x-2">
-          {ref() && (
-            <a
-              href={refURL()}
-              className="text-violet-500 dark:text-violet-400 font-medium text-xs hover:underline focus:outline-none focus:ring-2 focus:ring-violet-400 rounded"
-              title="View build details on GitHub"
-              aria-label="View build details on GitHub"
-            >
-              {ref()}
-            </a>
-          )}
-          {info?.product && (
-            <a
-              href="https://docs.flipt.io/v2/editions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold align-middle transition-colors duration-150
-                ${
-                  info.product === 'enterprise'
-                    ? 'bg-violet-500 text-white dark:bg-violet-400 dark:text-gray-900 hover:bg-violet-600 dark:hover:bg-violet-500'
-                    : 'border border-violet-500 text-violet-500 bg-transparent hover:bg-violet-50 dark:hover:bg-violet-900'
-                }
-              `}
-              title={
-                info.product === 'enterprise'
-                  ? 'Enterprise Edition'
-                  : 'Open Source Edition'
-              }
-              aria-label={
-                info.product === 'enterprise'
-                  ? 'Enterprise Edition'
-                  : 'Open Source Edition'
-              }
-            >
-              {info.product === 'enterprise' ? 'Enterprise' : 'Open Source'}
-            </a>
-          )}
+    <footer className="body-font sticky top-[100vh] text-gray-700 dark:text-gray-300">
+      <div className="mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
+        <div className="container mx-auto flex flex-col items-center space-x-4 sm:flex-row">
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 sm:mt-0">
+            <span className="hidden sm:inline">
+              {ref() && (
+                <>
+                  <a
+                    href={refURL()}
+                    className="text-violet-500 dark:text-violet-400"
+                  >
+                    {ref()}
+                  </a>
+                  &nbsp;|&nbsp;
+                </>
+              )}
+            </span>
+            <span className="block sm:inline">
+              &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
+              reserved.
+            </span>
+          </p>
         </div>
-        {/* Copyright */}
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-left">
-          &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
-          reserved.
-        </div>
-        {/* Social */}
-        <div className="flex items-center space-x-4">
+        <span className="mt-4 inline-flex justify-center space-x-5 sm:ml-auto sm:mt-0 sm:justify-start">
           {social.map((item) => (
             <a
               key={item.name}
               href={item.href}
-              className="text-gray-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors duration-150 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-violet-400"
-              title={item.name}
-              aria-label={item.name}
+              className="text-muted-foreground hover:text-gray-500 dark:hover:text-gray-100"
             >
+              <span className="sr-only">{item.name}</span>
               <FontAwesomeIcon
                 icon={item.icon}
-                className="h-5 w-5"
+                className="text-gray h-5 w-5"
                 aria-hidden={true}
               />
             </a>
           ))}
-        </div>
+        </span>
       </div>
     </footer>
   );
