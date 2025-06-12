@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -264,6 +265,17 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 			}
 		}()
 
+		// When delete occurs there is no object returned. Audit log for rollout and rule
+		// includes a limited set of fields, so we need to store the deleted record in the context
+		// to improve audit log information. See https://github.com/orgs/flipt-io/discussions/4311
+		if slices.ContainsFunc(requests, func(r flipt.Request) bool {
+			return r.Action == flipt.ActionDelete && slices.Contains([]flipt.Subject{
+				flipt.SubjectRollout, flipt.SubjectRule,
+			}, r.Subject)
+		}) {
+			ctx = context.WithValue(ctx, audit.DeletedRecordCtxKey, map[any]any{})
+		}
+
 		resp, err := handler(ctx, req)
 		for _, request := range requests {
 			if err != nil {
@@ -279,7 +291,18 @@ func AuditEventUnaryInterceptor(logger *zap.Logger, eventPairChecker audit.Event
 			// Delete and Order request(s) have to be handled separately because they do not
 			// return the concrete type but rather an *empty.Empty response.
 			if request.Action == flipt.ActionDelete {
-				events = append(events, audit.NewEvent(request, actor, r))
+				payload := any(r)
+				// Try to load deleted record from context and add extra info if possible.
+				data, ok := ctx.Value(audit.DeletedRecordCtxKey).(map[any]any)
+				if ok && data[req] != nil {
+					switch r := data[req].(type) {
+					case *flipt.Rollout:
+						payload = audit.NewRollout(r)
+					case *flipt.Rule:
+						payload = audit.NewRule(r)
+					}
+				}
+				events = append(events, audit.NewEvent(request, actor, payload))
 				continue
 			}
 

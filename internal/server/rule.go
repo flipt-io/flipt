@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -64,6 +65,17 @@ func (s *Server) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*f
 // DeleteRule deletes a rule
 func (s *Server) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) (*empty.Empty, error) {
 	s.logger.Debug("delete rule", zap.Stringer("request", r))
+	// prefetch and store the rule in the audit context if possible
+	data, ok := ctx.Value(audit.DeletedRecordCtxKey).(map[any]any)
+	if ok && data != nil {
+		rule, err := s.store.GetRule(ctx,
+			storage.NewNamespace(r.NamespaceKey), r.Id,
+		)
+		if err == nil {
+			data[r] = rule
+		}
+	}
+	// delete the rule
 	if err := s.store.DeleteRule(ctx, r); err != nil {
 		return nil, err
 	}

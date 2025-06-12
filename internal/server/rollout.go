@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -59,6 +60,17 @@ func (s *Server) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutReques
 
 func (s *Server) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) (*empty.Empty, error) {
 	s.logger.Debug("delete rollout rule", zap.Stringer("request", r))
+	// prefetch and store the rollout in the audit context if possible
+	data, ok := ctx.Value(audit.DeletedRecordCtxKey).(map[any]any)
+	if ok && data != nil {
+		rollout, err := s.store.GetRollout(ctx,
+			storage.NewNamespace(r.NamespaceKey), r.Id,
+		)
+		if err == nil {
+			data[r] = rollout
+		}
+	}
+	// delete the rollout
 	err := s.store.DeleteRollout(ctx, r)
 	s.logger.Debug("delete rollout rule", zap.Error(err))
 	return &empty.Empty{}, err

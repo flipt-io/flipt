@@ -216,3 +216,7 @@ func NewRollout(r *flipt.Rollout) *Rollout {
 
 	return rollout
 }
+
+type contextKey string
+
+const DeletedRecordCtxKey contextKey = "x-deleted-record"
