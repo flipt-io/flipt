@@ -454,11 +454,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	_ = httpServer.Shutdown(shutdownCtx)
 	_ = grpcServer.Shutdown(shutdownCtx)
 
-	if err := g.Wait(); err != nil {
-		return err
-	}
-
-	return nil
+	return g.Wait()
 }
 
 func ensureDir(path string) error {
