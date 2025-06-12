@@ -146,13 +146,13 @@ func (lm *Manager) periodicRevalidate(ctx context.Context) {
 	}
 }
 
-func (lm *Manager) validateAndSet(ctx context.Context) bool {
+func (lm *Manager) validateAndSet(ctx context.Context) {
 	if lm.licenseKey == "" {
 		lm.mu.Lock()
 		lm.isEnterprise = false
 		lm.mu.Unlock()
 		lm.logger.Warn("no enterprise license key provided; enterprise features are disabled.")
-		return false
+		return
 	}
 
 	license, err := keygen.Validate(ctx, lm.fingerprint)
@@ -164,28 +164,28 @@ func (lm *Manager) validateAndSet(ctx context.Context) bool {
 			if err != nil {
 				if errors.Is(err, keygen.ErrMachineLimitExceeded) {
 					lm.logger.Warn("machine limit has been exceeded; enterprise features are disabled.")
-					return false
+					return
 				}
 				lm.logger.Warn("machine activation failed; enterprise features are disabled.")
-				return false
+				return
 			}
 		case errors.Is(err, keygen.ErrLicenseExpired):
 			lm.logger.Warn("license is expired; enterprise features are disabled.")
-			return false
+			return
 		default:
 			lm.logger.Warn("license is invalid; enterprise features are disabled.", zap.Error(err))
-			return false
+			return
 		}
 	}
 
 	if license == nil {
 		lm.logger.Error("license is nil; enterprise features are disabled.")
-		return false
+		return
 	}
 
 	if license.Expiry == nil {
 		lm.logger.Error("license has no expiry date; enterprise features are disabled.")
-		return false
+		return
 	}
 
 	lm.mu.Lock()
@@ -196,5 +196,4 @@ func (lm *Manager) validateAndSet(ctx context.Context) bool {
 	lm.logger.Info("enterprise license validated; enterprise features enabled.",
 		zap.Time("expires_at", *license.Expiry))
 
-	return true
 }
