@@ -123,19 +123,19 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
-	comparition, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
+	comparision, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	s.logger.Info("changes compared", zap.Int("commits", len(comparition.Commits)))
+	s.logger.Info("changes compared", zap.Int("commits", len(comparision.Commits)))
 
 	var (
 		changes []*environments.Change
 		limit   = req.Limit
 	)
 
-	for _, commit := range comparition.Commits {
+	for _, commit := range comparision.Commits {
 		if limit > 0 && int32(len(changes)) >= limit {
 			break
 		}
