@@ -274,8 +274,7 @@ func isSet(env string) bool {
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer shutdownCancel()
+	shutdownCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
 	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
 		otelResource, err := otel.NewResource(ctx, v)
@@ -455,7 +454,11 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	_ = httpServer.Shutdown(shutdownCtx)
 	_ = grpcServer.Shutdown(shutdownCtx)
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ensureDir(path string) error {

@@ -69,7 +69,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 			done:            make(chan struct{}),
 		}
 
-		logger.Debug("creating license manager", zap.String("account_id", accountID), zap.String("product_id", productID), zap.String("license_key", licenseKey))
+		logger.Debug("creating license manager")
 
 		for _, opt := range opts {
 			opt(lm)
@@ -86,6 +86,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 			keygen.Account = lm.accountID
 			keygen.Product = lm.productID
 			keygen.LicenseKey = lm.licenseKey
+			keygen.Logger = keygen.NewNilLogger()
 
 			if lm.verifyKey != "" {
 				keygen.PublicKey = lm.verifyKey
