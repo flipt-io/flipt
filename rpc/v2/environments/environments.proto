@@ -175,15 +175,17 @@ message ProposeEnvironmentRequest {
 }
 
 enum SCM {
-  GITHUB_SCM = 0;
-  GITEA_SCM = 1;
-  GITLAB_SCM = 2;
+  SCM_UNKNOWN = 0;
+  SCM_GITHUB = 1;
+  SCM_GITEA = 2;
+  SCM_GITLAB = 3;
 }
 
 enum ProposalState {
-  PROPOSAL_STATE_OPEN = 0;
-  PROPOSAL_STATE_MERGED = 1;
-  PROPOSAL_STATE_CLOSED = 2;
+  PROPOSAL_STATE_UNKNOWN = 0;
+  PROPOSAL_STATE_OPEN = 1;
+  PROPOSAL_STATE_MERGED = 2;
+  PROPOSAL_STATE_CLOSED = 3;
 }
 
 message EnvironmentProposalDetails {

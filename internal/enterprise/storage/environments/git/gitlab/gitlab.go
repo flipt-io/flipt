@@ -8,7 +8,6 @@ package gitlab
 import (
 	"context"
 	"fmt"
-	"io"
 	"iter"
 	"net/http"
 	"net/url"
@@ -56,12 +55,6 @@ type ClientOption func(*gitLabOptions)
 func WithApiURL(apiURL *url.URL) ClientOption {
 	return func(c *gitLabOptions) {
 		c.apiURL = apiURL
-	}
-}
-
-func WithHttpClient(httpClient *http.Client) ClientOption {
-	return func(c *gitLabOptions) {
-		c.httpClient = httpClient
 	}
 }
 
@@ -141,22 +134,12 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		createOpts.Title = gitlab.Ptr(fmt.Sprintf("Draft: %s", req.Title))
 	}
 
-	mr, resp, err := s.mrs.CreateMergeRequest(s.projectID, createOpts)
+	mr, _, err := s.mrs.CreateMergeRequest(s.projectID, createOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create merge request: %w", err)
 	}
 
-	var (
-		body   = []byte{}
-		status = 0
-	)
-
-	if resp != nil && resp.Body != nil {
-		body, _ = io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-	}
-
-	s.logger.Info("pull request created", zap.String("pr", mr.WebURL), zap.String("state", mr.State), zap.Int("status", status), zap.String("response", string(body)))
+	s.logger.Info("pull request created", zap.String("pr", mr.WebURL), zap.String("state", mr.State))
 
 	return &environments.EnvironmentProposalDetails{
 		Url:   mr.WebURL,
@@ -172,23 +155,12 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		To:   &req.Head,
 	}
 
-	comparison, resp, err := s.repos.Compare(s.projectID, compareOpts)
+	comparison, _, err := s.repos.Compare(s.projectID, compareOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	var (
-		body   = []byte{}
-		status = 0
-	)
-
-	if resp != nil && resp.Body != nil {
-		body, _ = io.ReadAll(resp.Body)
-		status = resp.StatusCode
-		_ = resp.Body.Close()
-	}
-
-	s.logger.Info("changes compared", zap.Int("status", status), zap.String("response", string(body)))
+	s.logger.Info("changes compareddd", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change

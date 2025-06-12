@@ -29,22 +29,25 @@ const (
 type SCM int32
 
 const (
-	SCM_GITHUB_SCM SCM = 0
-	SCM_GITEA_SCM  SCM = 1
-	SCM_GITLAB_SCM SCM = 2
+	SCM_SCM_UNKNOWN SCM = 0
+	SCM_SCM_GITHUB  SCM = 1
+	SCM_SCM_GITEA   SCM = 2
+	SCM_SCM_GITLAB  SCM = 3
 )
 
 // Enum value maps for SCM.
 var (
 	SCM_name = map[int32]string{
-		0: "GITHUB_SCM",
-		1: "GITEA_SCM",
-		2: "GITLAB_SCM",
+		0: "SCM_UNKNOWN",
+		1: "SCM_GITHUB",
+		2: "SCM_GITEA",
+		3: "SCM_GITLAB",
 	}
 	SCM_value = map[string]int32{
-		"GITHUB_SCM": 0,
-		"GITEA_SCM":  1,
-		"GITLAB_SCM": 2,
+		"SCM_UNKNOWN": 0,
+		"SCM_GITHUB":  1,
+		"SCM_GITEA":   2,
+		"SCM_GITLAB":  3,
 	}
 )
 
@@ -78,22 +81,25 @@ func (SCM) EnumDescriptor() ([]byte, []int) {
 type ProposalState int32
 
 const (
-	ProposalState_PROPOSAL_STATE_OPEN   ProposalState = 0
-	ProposalState_PROPOSAL_STATE_MERGED ProposalState = 1
-	ProposalState_PROPOSAL_STATE_CLOSED ProposalState = 2
+	ProposalState_PROPOSAL_STATE_UNKNOWN ProposalState = 0
+	ProposalState_PROPOSAL_STATE_OPEN    ProposalState = 1
+	ProposalState_PROPOSAL_STATE_MERGED  ProposalState = 2
+	ProposalState_PROPOSAL_STATE_CLOSED  ProposalState = 3
 )
 
 // Enum value maps for ProposalState.
 var (
 	ProposalState_name = map[int32]string{
-		0: "PROPOSAL_STATE_OPEN",
-		1: "PROPOSAL_STATE_MERGED",
-		2: "PROPOSAL_STATE_CLOSED",
+		0: "PROPOSAL_STATE_UNKNOWN",
+		1: "PROPOSAL_STATE_OPEN",
+		2: "PROPOSAL_STATE_MERGED",
+		3: "PROPOSAL_STATE_CLOSED",
 	}
 	ProposalState_value = map[string]int32{
-		"PROPOSAL_STATE_OPEN":   0,
-		"PROPOSAL_STATE_MERGED": 1,
-		"PROPOSAL_STATE_CLOSED": 2,
+		"PROPOSAL_STATE_UNKNOWN": 0,
+		"PROPOSAL_STATE_OPEN":    1,
+		"PROPOSAL_STATE_MERGED":  2,
+		"PROPOSAL_STATE_CLOSED":  3,
 	}
 )
 
@@ -265,7 +271,7 @@ func (x *EnvironmentConfiguration) GetScm() SCM {
 	if x != nil && x.Scm != nil {
 		return *x.Scm
 	}
-	return SCM_GITHUB_SCM
+	return SCM_SCM_UNKNOWN
 }
 
 type ListEnvironmentsRequest struct {
@@ -733,7 +739,7 @@ func (x *EnvironmentProposalDetails) GetState() ProposalState {
 	if x != nil {
 		return x.State
 	}
-	return ProposalState_PROPOSAL_STATE_OPEN
+	return ProposalState_PROPOSAL_STATE_UNKNOWN
 }
 
 type Change struct {
@@ -2019,17 +2025,19 @@ const file_environments_proto_rawDesc = "" +
 	"\x03key\x18\x04 \x01(\tR\x03key\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"4\n" +
 	"\x16DeleteResourceResponse\x12\x1a\n" +
-	"\brevision\x18d \x01(\tR\brevision*4\n" +
-	"\x03SCM\x12\x0e\n" +
+	"\brevision\x18d \x01(\tR\brevision*E\n" +
+	"\x03SCM\x12\x0f\n" +
+	"\vSCM_UNKNOWN\x10\x00\x12\x0e\n" +
 	"\n" +
-	"GITHUB_SCM\x10\x00\x12\r\n" +
-	"\tGITEA_SCM\x10\x01\x12\x0e\n" +
+	"SCM_GITHUB\x10\x01\x12\r\n" +
+	"\tSCM_GITEA\x10\x02\x12\x0e\n" +
 	"\n" +
-	"GITLAB_SCM\x10\x02*^\n" +
-	"\rProposalState\x12\x17\n" +
-	"\x13PROPOSAL_STATE_OPEN\x10\x00\x12\x19\n" +
-	"\x15PROPOSAL_STATE_MERGED\x10\x01\x12\x19\n" +
-	"\x15PROPOSAL_STATE_CLOSED\x10\x022\xf1\x18\n" +
+	"SCM_GITLAB\x10\x03*z\n" +
+	"\rProposalState\x12\x1a\n" +
+	"\x16PROPOSAL_STATE_UNKNOWN\x10\x00\x12\x17\n" +
+	"\x13PROPOSAL_STATE_OPEN\x10\x01\x12\x19\n" +
+	"\x15PROPOSAL_STATE_MERGED\x10\x02\x12\x19\n" +
+	"\x15PROPOSAL_STATE_CLOSED\x10\x032\xf1\x18\n" +
 	"\x13EnvironmentsService\x12\x94\x01\n" +
 	"\x10ListEnvironments\x12%.environments.ListEnvironmentsRequest\x1a&.environments.ListEnvironmentsResponse\"1\xbaG\x12*\x10listEnvironments\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v2/environments\x12\xc0\x01\n" +
 	"\x11BranchEnvironment\x12&.environments.BranchEnvironmentRequest\x1a\x19.environments.Environment\"h\xbaG\x13*\x11branchEnvironment\xfa\xd2\xe4\x93\x02\x12\x12\x10flipt:sdk:ignore\x82\xd3\xe4\x93\x024:\x01*\"//api/v2/environments/{environment_key}/branches\x12\xd2\x01\n" +

@@ -21,12 +21,14 @@ export interface IBranchEnvironment {
 }
 
 export enum SCM {
-  GITHUB = 'GITHUB_SCM',
-  GITLAB = 'GITLAB_SCM',
-  GITEA = 'GITEA_SCM'
+  UNKNOWN = 'SCM_UNKNOWN',
+  GITHUB = 'SCM_GITHUB',
+  GITLAB = 'SCM_GITLAB',
+  GITEA = 'SCM_GITEA'
 }
 
 export enum ProposalState {
+  UNKNOWN = 'PROPOSAL_STATE_UNKNOWN',
   OPEN = 'PROPOSAL_STATE_OPEN',
   MERGED = 'PROPOSAL_STATE_MERGED',
   CLOSED = 'PROPOSAL_STATE_CLOSED'

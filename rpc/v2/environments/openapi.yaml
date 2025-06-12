@@ -487,9 +487,10 @@ components:
                     type: string
                 scm:
                     enum:
-                        - GITHUB_SCM
-                        - GITEA_SCM
-                        - GITLAB_SCM
+                        - SCM_UNKNOWN
+                        - SCM_GITHUB
+                        - SCM_GITEA
+                        - SCM_GITLAB
                     type: string
                     format: enum
         EnvironmentProposalDetails:
@@ -499,6 +500,7 @@ components:
                     type: string
                 state:
                     enum:
+                        - PROPOSAL_STATE_UNKNOWN
                         - PROPOSAL_STATE_OPEN
                         - PROPOSAL_STATE_MERGED
                         - PROPOSAL_STATE_CLOSED

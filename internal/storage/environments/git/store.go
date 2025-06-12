@@ -117,11 +117,11 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 	if e.cfg.SCM != nil {
 		switch e.cfg.SCM.Type {
 		case config.GitHubSCMType:
-			scm = ptr(rpcenvironments.SCM_GITHUB_SCM)
+			scm = ptr(rpcenvironments.SCM_SCM_GITHUB)
 		case config.GitLabSCMType:
-			scm = ptr(rpcenvironments.SCM_GITLAB_SCM)
+			scm = ptr(rpcenvironments.SCM_SCM_GITLAB)
 		case config.GiteaSCMType:
-			scm = ptr(rpcenvironments.SCM_GITEA_SCM)
+			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
 		}
 	}
 

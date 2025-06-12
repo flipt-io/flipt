@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"iter"
 	"net/http"
 	"net/url"
@@ -72,12 +71,6 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 	}
 }
 
-func WithHttpClient(httpClient *http.Client) ClientOption {
-	return func(c *gitHubOptions) {
-		c.httpClient = httpClient
-	}
-}
-
 func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *gitHubOptions) {
 		c.apiAuth = apiAuth
@@ -133,7 +126,7 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
-	pr, resp, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
+	pr, _, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
 		Title: github.String(req.Title),
@@ -144,18 +137,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	var (
-		body   = []byte{}
-		status = 0
-	)
-
-	if resp != nil && resp.Body != nil {
-		body, _ = io.ReadAll(resp.Body)
-		status = resp.StatusCode
-		_ = resp.Body.Close()
-	}
-
-	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()), zap.Int("status", status), zap.String("response", string(body)))
+	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()))
 
 	return &environments.EnvironmentProposalDetails{
 		Url:   pr.GetHTMLURL(),
@@ -166,23 +148,12 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 // ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
-	comparison, resp, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
+	comparison, _, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	var (
-		body   = []byte{}
-		status = 0
-	)
-
-	if resp != nil && resp.Body != nil {
-		body, _ = io.ReadAll(resp.Body)
-		status = resp.StatusCode
-		_ = resp.Body.Close()
-	}
-
-	s.logger.Info("changes compared", zap.Int("status", status), zap.String("response", string(body)))
+	s.logger.Info("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
