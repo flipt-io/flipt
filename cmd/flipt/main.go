@@ -49,6 +49,7 @@ var (
 	analyticsKey       string
 	analyticsEndpoint  string
 	banner             string
+	keygenVerifyKey    string
 	keygenAccountID    string
 	keygenProductID    string
 )
@@ -273,6 +274,9 @@ func isSet(env string) bool {
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
 	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
 		otelResource, err := otel.NewResource(ctx, v)
 		if err != nil {
@@ -285,12 +289,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		}
 
 		defer func() {
-			_ = logsExpShutdown(ctx)
+			_ = logsExpShutdown(shutdownCtx)
 		}()
 
 		logProcessor := log.NewBatchProcessor(logsExp)
 		defer func() {
-			_ = logProcessor.Shutdown(ctx)
+			_ = logProcessor.Shutdown(shutdownCtx)
 		}()
 
 		loggerProvider := log.NewLoggerProvider(
@@ -299,7 +303,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		)
 
 		defer func() {
-			_ = loggerProvider.Shutdown(ctx)
+			_ = loggerProvider.Shutdown(shutdownCtx)
 		}()
 
 		global.SetLoggerProvider(loggerProvider)
@@ -371,13 +375,27 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
-	if !isRelease {
-		// TODO: need to enforce this for development purposes only, not just for non-release versions
-		licenseManagerOpts = append(licenseManagerOpts, license.WithForceEnterprise())
+
+	// // Enable enterprise features in development mode if explicitly requested
+	// if !isRelease {
+	// 	logger.Warn("enterprise features enabled for development mode",
+	// 		zap.String("warning", "this is for development only and violates the Flipt Fair Core License (FCL) in production"),
+	// 		zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
+	// 	licenseManagerOpts = append(licenseManagerOpts, license.WithForceEnterprise())
+	// }
+
+	if keygenVerifyKey != "" {
+		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
 	}
 
-	licenseManager := license.NewLicenseManager(ctx, logger, keygenAccountID, keygenProductID, cfg.Enterprise.LicenseKey, licenseManagerOpts...)
-	defer licenseManager.Close()
+	licenseManager, licenseManagerShutdown, err := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.Enterprise.LicenseKey, licenseManagerOpts...)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = licenseManagerShutdown(shutdownCtx)
+	}()
 
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, v, isRelease),
@@ -433,9 +451,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	<-ctx.Done()
 
 	logger.Info("shutting down...")
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
 
 	_ = httpServer.Shutdown(shutdownCtx)
 	_ = grpcServer.Shutdown(shutdownCtx)

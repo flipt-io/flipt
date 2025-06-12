@@ -175,7 +175,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	if envConf.SCM != nil {
 		// License check: only allow SCM if enterprise is enabled
 		if f.licenseManager == nil || !f.licenseManager.IsEnterprise() {
-			f.logger.Warn("Enterprise license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
+			f.logger.Warn("enterprise license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
 			wrapped := enterprisegit.NewEnvironment(f.logger, env, &enterprisegit.SCMNotImplemented{})
 			return wrapped, nil
 		}
