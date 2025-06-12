@@ -274,7 +274,8 @@ func isSet(env string) bool {
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
-	shutdownCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
 
 	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
 		otelResource, err := otel.NewResource(ctx, v)
