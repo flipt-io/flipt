@@ -85,7 +85,11 @@
               "type": "object",
               "properties": {
                 "key": { "type": "string" },
-                "secure": { "type": "boolean" }
+                "secure": { "type": "boolean" },
+                "trusted_origins": {
+                  "type": ["array", "null"],
+                  "default": []
+                }
               },
               "required": []
             }
