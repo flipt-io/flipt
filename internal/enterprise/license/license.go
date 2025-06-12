@@ -98,10 +98,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 			}
 
 			lm.fingerprint = fingerprint
-			// Try online validation first, fallback to offline if needed
-			if !lm.validateAndSet(ctx) {
-				lm.validateOfflineAndSet()
-			}
+			lm.validateAndSet(ctx)
 			go lm.periodicRevalidate(ctx)
 		}
 
@@ -140,10 +137,7 @@ func (lm *Manager) periodicRevalidate(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			// Try online validation first, fallback to offline cache
-			if !lm.validateAndSet(ctx) {
-				lm.validateOfflineAndSet()
-			}
+			lm.validateAndSet(ctx)
 		case <-ctx.Done():
 			close(lm.done)
 			return
@@ -202,9 +196,4 @@ func (lm *Manager) validateAndSet(ctx context.Context) bool {
 		zap.Time("expires_at", *license.Expiry))
 
 	return true
-}
-
-func (lm *Manager) validateOfflineAndSet() bool {
-	// TODO: implement offline validation
-	return false
 }
