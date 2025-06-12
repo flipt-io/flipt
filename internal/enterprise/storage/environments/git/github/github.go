@@ -7,6 +7,7 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"iter"
 	"net/http"
@@ -15,10 +16,13 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v66/github"
+	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 var _ git.SCM = (*SCM)(nil)
@@ -43,10 +47,16 @@ type SCM struct {
 	repos     RepositoriesService
 }
 
-type ClientOption func(*github.Client)
+type gitHubOptions struct {
+	apiURL     *url.URL
+	httpClient *http.Client
+	apiAuth    *credentials.APIAuth
+}
+
+type ClientOption func(*gitHubOptions)
 
 func WithApiURL(apiURL *url.URL) ClientOption {
-	return func(c *github.Client) {
+	return func(c *gitHubOptions) {
 		// copied from go-github/github.go:WithEnterpriseURLs
 		if !strings.HasSuffix(apiURL.Path, "/") {
 			apiURL.Path += "/"
@@ -57,28 +67,65 @@ func WithApiURL(apiURL *url.URL) ClientOption {
 			apiURL.Path += "api/v3/"
 		}
 
-		c.BaseURL = apiURL
+		c.apiURL = apiURL
 	}
 }
 
-// NewSCM creates a new SCM instance.
-func NewSCM(logger *zap.Logger, repoOwner, repoName string, httpClient *http.Client, opts ...ClientOption) *SCM {
-	ghClient := github.NewClient(httpClient)
+func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
+	return func(c *gitHubOptions) {
+		c.apiAuth = apiAuth
+	}
+}
+
+// NewSCM creates a new GitHub SCM instance.
+func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+	githubOpts := &gitHubOptions{
+		httpClient: http.DefaultClient,
+	}
+
 	for _, opt := range opts {
-		opt(ghClient)
+		opt(githubOpts)
+	}
+
+	client := github.NewClient(githubOpts.httpClient)
+
+	if githubOpts.apiURL != nil {
+		client.BaseURL = githubOpts.apiURL
+	}
+
+	if githubOpts.apiAuth != nil {
+		// Configure API client authentication
+		apiAuth := githubOpts.apiAuth
+		switch apiAuth.Type() {
+		case config.CredentialTypeAccessToken:
+			// Use token for API operations
+			client = client.WithAuthToken(apiAuth.Token)
+		case config.CredentialTypeBasic:
+			// Use basic auth for API operations - convert to OAuth2 token format
+			client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
+				&oauth2.Token{
+					TokenType:   "Basic",
+					AccessToken: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", apiAuth.Username, apiAuth.Password))),
+				}),
+			))
+		default:
+			return nil, fmt.Errorf("unsupported credential type: %T", apiAuth.Type())
+		}
 	}
 
 	return &SCM{
 		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
 		repoOwner: repoOwner,
 		repoName:  repoName,
-		prs:       ghClient.PullRequests,
-		repos:     ghClient.Repositories,
-	}
+		prs:       client.PullRequests,
+		repos:     client.Repositories,
+	}, nil
 }
 
 // Propose creates a new pull request with the given request.
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
+	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
+
 	pr, _, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
@@ -90,8 +137,9 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
+	s.logger.Info("pull request created", zap.String("pr", pr.GetHTMLURL()), zap.String("state", pr.GetState()))
+
 	return &environments.EnvironmentProposalDetails{
-		Scm:   environments.SCM_GITHUB_SCM,
 		Url:   pr.GetHTMLURL(),
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
 	}, nil
@@ -99,10 +147,13 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 // ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
 	comparison, _, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
+
+	s.logger.Info("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
@@ -176,7 +227,6 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Scm:   environments.SCM_GITHUB_SCM,
 			Url:   pr.GetHTMLURL(),
 			State: state,
 		}

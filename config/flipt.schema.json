@@ -712,7 +712,8 @@
                   "type": "string",
                   "enum": [
                     "github",
-                    "gitea"
+                    "gitea",
+                    "gitlab"
                   ],
                   "default": "github"
                 },

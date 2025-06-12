@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu';
 
-import { IEnvironment, ProposalState } from '~/types/Environment';
+import { IEnvironment, ProposalState, SCM } from '~/types/Environment';
 
 import { getRepoUrlFromConfig } from '~/utils/helpers';
 
@@ -42,22 +42,20 @@ export default function BranchActionsDropdown({
   const { data: baseBranches } = useListBranchEnvironmentsQuery({
     environmentKey: environment.configuration?.base ?? ''
   });
+  const branch = baseBranches?.branches.find(
+    (branch) => branch.key === environment.key
+  );
 
-  const proposal = baseBranches?.branches.find(
-    (branch) => branch.environmentKey === environment.key
-  )?.proposal;
-
-  const isProposalOpen = proposal && proposal.state === ProposalState.OPEN;
+  const proposal = branch?.proposal;
+  const scm = environment.configuration?.scm;
 
   const handleViewBranch = () => {
     window.open(repoUrl, '_blank');
   };
 
   let ProviderIcon = FolderGit;
-  if (environment.configuration?.remote?.includes('github.com'))
-    ProviderIcon = Github;
-  if (environment.configuration?.remote?.includes('gitlab.com'))
-    ProviderIcon = Gitlab;
+  if (scm === SCM.GITHUB) ProviderIcon = Github;
+  if (scm === SCM.GITLAB) ProviderIcon = Gitlab;
 
   return (
     <>
@@ -81,7 +79,7 @@ export default function BranchActionsDropdown({
                 <ProviderIcon className="w-4 h-4 mr-2" />
                 View remote
               </DropdownMenuItem>
-              {!isProposalOpen ? (
+              {proposal?.state !== ProposalState.OPEN ? (
                 <DropdownMenuItem
                   onClick={() => setMergeModalOpen(true)}
                   className="flex items-center gap-1"

@@ -113,11 +113,24 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 		directory = &e.cfg.Directory
 	}
 
+	var scm *rpcenvironments.SCM
+	if e.cfg.SCM != nil {
+		switch e.cfg.SCM.Type {
+		case config.GitHubSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_GITHUB)
+		case config.GitLabSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_GITLAB)
+		case config.GiteaSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
+		}
+	}
+
 	return &rpcenvironments.EnvironmentConfiguration{
 		Ref:       e.currentBranch,
 		Remote:    remote,
 		Directory: directory,
 		Base:      base,
+		Scm:       scm,
 	}
 }
 

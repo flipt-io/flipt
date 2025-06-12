@@ -132,6 +132,7 @@ message EnvironmentConfiguration {
   optional string directory = 2;
   optional string remote = 3;
   optional string base = 4;
+  optional SCM scm = 5;
 }
 
 message ListEnvironmentsRequest {}
@@ -174,20 +175,22 @@ message ProposeEnvironmentRequest {
 }
 
 enum SCM {
-  GITHUB_SCM = 0;
-  GITEA_SCM = 1;
+  SCM_UNKNOWN = 0;
+  SCM_GITHUB = 1;
+  SCM_GITEA = 2;
+  SCM_GITLAB = 3;
 }
 
 enum ProposalState {
-  PROPOSAL_STATE_OPEN = 0;
-  PROPOSAL_STATE_MERGED = 1;
-  PROPOSAL_STATE_CLOSED = 2;
+  PROPOSAL_STATE_UNKNOWN = 0;
+  PROPOSAL_STATE_OPEN = 1;
+  PROPOSAL_STATE_MERGED = 2;
+  PROPOSAL_STATE_CLOSED = 3;
 }
 
 message EnvironmentProposalDetails {
-  SCM scm = 1;
-  string url = 2;
-  ProposalState state = 3;
+  string url = 1;
+  ProposalState state = 2;
 }
 
 message Change {

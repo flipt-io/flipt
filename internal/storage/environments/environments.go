@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	giturl "github.com/kubescape/go-git-url"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -18,6 +16,7 @@ import (
 	enterprisegit "go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea"
 	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/github"
+	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -175,18 +174,21 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	if envConf.SCM != nil {
 		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
 
+		repoURL, err := enterprisegit.ParseGitURL(repo.GetRemote())
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse git url: %w", err)
+		}
+
+		var (
+			repoOwner = repoURL.Owner
+			repoName  = repoURL.Repo
+		)
+
 		//nolint
 		switch envConf.SCM.Type {
 		case config.GitHubSCMType:
-			gitURL, err := giturl.NewGitURL(repo.GetRemote())
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse git url: %w", err)
-			}
-			var (
-				repoOwner = gitURL.GetOwnerName()
-				repoName  = gitURL.GetRepoName()
-			)
 			opts := []github.ClientOption{}
+
 			// To support GitHub Enterprise
 			if envConf.SCM.ApiURL != "" {
 				apiURL, err := url.Parse(envConf.SCM.ApiURL)
@@ -202,32 +204,51 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 					return nil, err
 				}
 
-				client, err := creds.HTTPClient(ctx)
-				if err != nil {
-					return nil, err
-				}
-
-				scm = github.NewSCM(f.logger, repoOwner, repoName, client, opts...)
+				opts = append(opts, github.WithApiAuth(creds.APIAuthentication()))
 			}
-		case config.GiteaSCMType:
-			options := []gitea.ClientOption{}
+
+			scm, err = github.NewSCM(f.logger, repoOwner, repoName, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to setup github scm: %w", err)
+			}
+		case config.GitLabSCMType:
+			opts := []gitlab.ClientOption{}
+
+			// To support GitLab Enterprise
+			if envConf.SCM.ApiURL != "" {
+				apiURL, err := url.Parse(envConf.SCM.ApiURL)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse api url: %w", err)
+				}
+				opts = append(opts, gitlab.WithApiURL(apiURL))
+			}
+
 			if envConf.SCM.Credentials != nil {
 				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
 				if err != nil {
 					return nil, err
 				}
-				client, err := creds.HTTPClient(ctx)
+
+				opts = append(opts, gitlab.WithApiAuth(creds.APIAuthentication()))
+			}
+
+			scm, err = gitlab.NewSCM(f.logger, repoOwner, repoName, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
+			}
+		case config.GiteaSCMType:
+			opts := []gitea.ClientOption{}
+
+			if envConf.SCM.Credentials != nil {
+				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
 				if err != nil {
 					return nil, err
 				}
-				options = append(options, gitea.WithHttpClient(client))
+
+				opts = append(opts, gitea.WithApiAuth(creds.APIAuthentication()))
 			}
-			ownerName, repoName, err := parseGiteaRepo(repo.GetRemote())
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse gitea url: %w", err)
-			}
-			//
-			scm, err = gitea.NewSCM(envConf.SCM.ApiURL, ownerName, repoName, options...)
+
+			scm, err = gitea.NewSCM(f.logger, envConf.SCM.ApiURL, repoOwner, repoName, opts...)
 			if err != nil {
 				return nil, fmt.Errorf("failed to setup gitea scm: %w", err)
 			}
@@ -335,36 +356,4 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 	}
 
 	return envStore, nil
-}
-
-func parseGiteaRepo(rawURL string) (owner, repo string, err error) {
-	// Handle SSH-style URL: git@gitea.example.com:owner/repo.git
-	if strings.Contains(rawURL, ":") && strings.Contains(rawURL, "@") && !strings.HasPrefix(rawURL, "http") {
-		// Example: git@gitea.example.com:owner/repo.git
-		parts := strings.SplitN(rawURL, ":", 2)
-		if len(parts) != 2 {
-			return "", "", errors.New("invalid SSH URL format")
-		}
-		path := strings.TrimSuffix(parts[1], ".git")
-		subParts := strings.SplitN(path, "/", 2)
-		if len(subParts) != 2 {
-			return "", "", errors.New("invalid SSH repo path")
-		}
-		return subParts[0], subParts[1], nil
-	}
-
-	// Try parsing as a regular URL
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", "", fmt.Errorf("invalid URL: %w", err)
-	}
-
-	path := strings.TrimSuffix(u.Path, ".git")
-	path = strings.TrimPrefix(path, "/")
-	parts := strings.SplitN(path, "/", 2)
-	if len(parts) != 2 {
-		return "", "", errors.New("invalid path structure")
-	}
-
-	return parts[0], parts[1], nil
 }

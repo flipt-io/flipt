@@ -1,10 +1,7 @@
 package credentials
 
 import (
-	"context"
-	"encoding/base64"
 	"fmt"
-	"net/http"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -13,7 +10,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/oauth2"
 )
 
 type CredentialSource struct {
@@ -39,27 +35,9 @@ type Credential struct {
 	config *config.CredentialConfig
 }
 
-func (c *Credential) HTTPClient(ctx context.Context) (*http.Client, error) {
-	switch c.config.Type {
-	case config.CredentialTypeBasic:
-		return oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
-			TokenType: "Basic",
-			AccessToken: base64.StdEncoding.EncodeToString([]byte(
-				c.config.Basic.Username + ":" + c.config.Basic.Password,
-			)),
-		})), nil
-	case config.CredentialTypeAccessToken:
-		return oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
-			TokenType:   "Bearer",
-			AccessToken: *c.config.AccessToken,
-		})), nil
-	case config.CredentialTypeSSH:
-		return nil, fmt.Errorf("credential type %q not supported for HTTP", c.config.Type)
-	}
-
-	return nil, fmt.Errorf("unxpected credential type: %q", c.config.Type)
-}
-
+// GitAuthentication returns the appropriate transport.AuthMethod for Git operations.
+// This method handles the complexity of converting different credential types
+// to the format expected by Git operations.
 func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) {
 	switch c.config.Type {
 	case config.CredentialTypeBasic:
@@ -95,8 +73,61 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 
 		return method, nil
 	case config.CredentialTypeAccessToken:
-		return &githttp.TokenAuth{Token: *c.config.AccessToken}, nil
+		// For Git operations, access tokens need to be converted to HTTP Basic Auth
+		// Different providers have different conventions:
+		// - GitLab: username="oauth2", password=token
+		// - GitHub: username=token, password="" OR username="x-access-token", password=token
+		// We'll use the GitLab format as it's more widely supported
+		return &githttp.BasicAuth{
+			Username: "oauth2",
+			Password: *c.config.AccessToken,
+		}, nil
 	}
 
-	return nil, fmt.Errorf("unxpected credential type: %q", c.config.Type)
+	return nil, fmt.Errorf("unexpected credential type: %q", c.config.Type)
+}
+
+// APIAuth represents different ways to authenticate with SCM APIs
+type APIAuth struct {
+	// Type of authentication
+	typ config.CredentialType
+	// Token for Bearer token authentication (GitHub, GitLab, Gitea)
+	Token string
+	// Username and Password for basic authentication
+	Username string
+	Password string
+}
+
+// Type returns the credential type.
+func (a *APIAuth) Type() config.CredentialType {
+	return a.typ
+}
+
+// APIAuthentication returns authentication information for SCM API operations.
+// This provides a clean abstraction for different authentication methods.
+func (c *Credential) APIAuthentication() *APIAuth {
+	switch c.config.Type {
+	case config.CredentialTypeBasic:
+		return &APIAuth{
+			typ:      c.config.Type,
+			Username: c.config.Basic.Username,
+			Password: c.config.Basic.Password,
+		}
+	case config.CredentialTypeAccessToken:
+		return &APIAuth{
+			typ:   c.config.Type,
+			Token: *c.config.AccessToken,
+		}
+	case config.CredentialTypeSSH:
+		// SSH is not used for API operations, return empty auth
+		return &APIAuth{
+			typ: c.config.Type,
+		}
+	}
+	return &APIAuth{}
+}
+
+// Type returns the credential type.
+func (c *Credential) Type() config.CredentialType {
+	return c.config.Type
 }

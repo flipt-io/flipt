@@ -1,9 +1,10 @@
 package credentials
 
 import (
-	"context"
 	"testing"
 
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
@@ -75,77 +76,14 @@ func TestCredentialSource_Get(t *testing.T) {
 	}
 }
 
-func TestCredential_HTTPClient(t *testing.T) {
-	logger := zap.NewNop()
-	ctx := context.Background()
-
-	tests := []struct {
-		name    string
-		config  *config.CredentialConfig
-		wantErr bool
-	}{
-		{
-			name: "basic auth",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeBasic,
-				Basic: &config.BasicAuthConfig{
-					Username: "user",
-					Password: "pass",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "access token",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeAccessToken,
-				AccessToken: func() *string {
-					s := "token123"
-					return &s
-				}(),
-			},
-			wantErr: false,
-		},
-		{
-			name: "ssh not supported for http",
-			config: &config.CredentialConfig{
-				Type: config.CredentialTypeSSH,
-				SSH: &config.SSHAuthConfig{
-					User:     "git",
-					Password: "pass",
-				},
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Credential{
-				logger: logger,
-				config: tt.config,
-			}
-
-			client, err := c.HTTPClient(ctx)
-			if tt.wantErr {
-				require.Error(t, err)
-				assert.Nil(t, client)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, client)
-		})
-	}
-}
-
 func TestCredential_GitAuthentication(t *testing.T) {
 	logger := zap.NewNop()
 
 	tests := []struct {
-		name    string
-		config  *config.CredentialConfig
-		wantErr bool
+		name      string
+		config    *config.CredentialConfig
+		wantErr   bool
+		checkAuth func(*testing.T, transport.AuthMethod)
 	}{
 		{
 			name: "basic auth",
@@ -157,6 +95,12 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				},
 			},
 			wantErr: false,
+			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
+				basicAuth, ok := auth.(*githttp.BasicAuth)
+				require.True(t, ok, "expected BasicAuth")
+				assert.Equal(t, "user", basicAuth.Username)
+				assert.Equal(t, "pass", basicAuth.Password)
+			},
 		},
 		{
 			name: "access token",
@@ -168,6 +112,13 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				}(),
 			},
 			wantErr: false,
+			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
+				// Access tokens should be converted to BasicAuth for Git operations
+				basicAuth, ok := auth.(*githttp.BasicAuth)
+				require.True(t, ok, "expected BasicAuth for access token")
+				assert.Equal(t, "oauth2", basicAuth.Username)
+				assert.Equal(t, "token123", basicAuth.Password)
+			},
 		},
 		{
 			name: "ssh with private key bytes",
@@ -180,6 +131,9 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				},
 			},
 			wantErr: true, // Will error due to invalid key
+			checkAuth: func(t *testing.T, auth transport.AuthMethod) {
+				// This test expects an error, so auth should be nil
+			},
 		},
 	}
 
@@ -199,6 +153,143 @@ func TestCredential_GitAuthentication(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.NotNil(t, auth)
+
+			if tt.checkAuth != nil {
+				tt.checkAuth(t, auth)
+			}
+		})
+	}
+}
+
+func TestCredential_Type(t *testing.T) {
+	logger := zap.NewNop()
+
+	tests := []struct {
+		name         string
+		config       *config.CredentialConfig
+		expectedType config.CredentialType
+	}{
+		{
+			name: "access token",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeAccessToken,
+				AccessToken: func() *string {
+					s := "token123"
+					return &s
+				}(),
+			},
+			expectedType: config.CredentialTypeAccessToken,
+		},
+		{
+			name: "basic auth",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeBasic,
+				Basic: &config.BasicAuthConfig{
+					Username: "user",
+					Password: "pass",
+				},
+			},
+			expectedType: config.CredentialTypeBasic,
+		},
+		{
+			name: "ssh",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeSSH,
+				SSH: &config.SSHAuthConfig{
+					User:           "git",
+					Password:       "pass",
+					PrivateKeyPath: "/path/to/key",
+				},
+			},
+			expectedType: config.CredentialTypeSSH,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Credential{
+				logger: logger,
+				config: tt.config,
+			}
+
+			assert.Equal(t, tt.expectedType, c.Type())
+		})
+	}
+}
+
+func TestCredential_APIAuthentication(t *testing.T) {
+	logger := zap.NewNop()
+
+	tests := []struct {
+		name      string
+		config    *config.CredentialConfig
+		checkAuth func(*testing.T, *APIAuth)
+	}{
+		{
+			name: "access token credential",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeAccessToken,
+				AccessToken: func() *string {
+					s := "glpat-abc123"
+					return &s
+				}(),
+			},
+			checkAuth: func(t *testing.T, auth *APIAuth) {
+				assert.Equal(t, config.CredentialTypeAccessToken, auth.Type())
+				assert.Equal(t, "glpat-abc123", auth.Token)
+				assert.Empty(t, auth.Username)
+				assert.Empty(t, auth.Password)
+			},
+		},
+		{
+			name: "basic auth credential",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeBasic,
+				Basic: &config.BasicAuthConfig{
+					Username: "user",
+					Password: "pass",
+				},
+			},
+			checkAuth: func(t *testing.T, auth *APIAuth) {
+				assert.Equal(t, config.CredentialTypeBasic, auth.Type())
+				assert.Empty(t, auth.Token)
+				assert.Equal(t, "user", auth.Username)
+				assert.Equal(t, "pass", auth.Password)
+			},
+		},
+		{
+			name: "ssh credential",
+			config: &config.CredentialConfig{
+				Type: config.CredentialTypeSSH,
+				SSH: &config.SSHAuthConfig{
+					User:           "git",
+					Password:       "pass",
+					PrivateKeyPath: "/path/to/key",
+				},
+			},
+			checkAuth: func(t *testing.T, auth *APIAuth) {
+				// SSH doesn't provide API authentication
+				assert.Equal(t, config.CredentialTypeSSH, auth.Type())
+				assert.Empty(t, auth.Token)
+				assert.Empty(t, auth.Username)
+				assert.Empty(t, auth.Password)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Credential{
+				logger: logger,
+				config: tt.config,
+			}
+
+			auth := c.APIAuthentication()
+			assert.NotNil(t, auth)
+
+			if tt.checkAuth != nil {
+				tt.checkAuth(t, auth)
+			}
 		})
 	}
 }
