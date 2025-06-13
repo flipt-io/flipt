@@ -100,7 +100,28 @@ func build(mode buildMode) error {
 		return fmt.Errorf("getting git commit: %w", err)
 	}
 
-	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
+	ldFlags := []string{
+		fmt.Sprintf("-X main.commit=%s", gitCommit),
+		fmt.Sprintf("-X main.date=%s", buildDate),
+	}
+
+	var (
+		keygenVerifyKey = os.Getenv("KEYGEN_VERIFY_KEY")
+		keygenAccountID = os.Getenv("KEYGEN_ACCOUNT_ID")
+		keygenProductID = os.Getenv("KEYGEN_PRODUCT_ID")
+	)
+
+	if keygenVerifyKey != "" {
+		ldFlags = append(ldFlags, fmt.Sprintf("-X main.keygenVerifyKey=%s", keygenVerifyKey))
+	}
+	if keygenAccountID != "" {
+		ldFlags = append(ldFlags, fmt.Sprintf("-X main.keygenAccountID=%s", keygenAccountID))
+	}
+	if keygenProductID != "" {
+		ldFlags = append(ldFlags, fmt.Sprintf("-X main.keygenProductID=%s", keygenProductID))
+	}
+
+	buildArgs = append([]string{"build", "-trimpath", "-ldflags", strings.Join(ldFlags, " ")}, buildArgs...)
 	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
 
 	return sh.RunV("go", buildArgs...)

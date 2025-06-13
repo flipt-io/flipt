@@ -167,7 +167,7 @@ func Test_Environment_ProposeNotImplemented(t *testing.T) {
 
 	_, err := env.Propose(ctx, nil, environments.ProposalOptions{})
 	require.Error(t, err)
-	assert.ErrorIs(t, err, errors.ErrNotImplemented("Propose not implemented in non-enterprise version"))
+	assert.ErrorIs(t, err, errors.ErrNotImplemented("Propose not implemented in non-commercial version"))
 }
 
 func Test_Environment_ListBranchedChangesNotImplemented(t *testing.T) {
@@ -176,7 +176,7 @@ func Test_Environment_ListBranchedChangesNotImplemented(t *testing.T) {
 
 	_, err := env.ListBranchedChanges(ctx, nil)
 	require.Error(t, err)
-	assert.ErrorIs(t, err, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-enterprise version"))
+	assert.ErrorIs(t, err, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-commercial version"))
 }
 
 func Test_Environment_RefreshEnvironment(t *testing.T) {

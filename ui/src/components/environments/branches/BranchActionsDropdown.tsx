@@ -22,10 +22,12 @@ import {
 
 import { IEnvironment, ProposalState, SCM } from '~/types/Environment';
 
+import { useAppSelector } from '~/data/hooks/store';
 import { getRepoUrlFromConfig } from '~/utils/helpers';
 
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
 import DeleteBranchModal from './DeleteBranchModal';
+import { Product } from '~/types/Meta';
 
 export default function BranchActionsDropdown({
   environment
@@ -39,6 +41,7 @@ export default function BranchActionsDropdown({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
+  const { info } = useAppSelector((state) => state.meta);
   const { data: baseBranches } = useListBranchEnvironmentsQuery({
     environmentKey: environment.configuration?.base ?? ''
   });
@@ -79,24 +82,28 @@ export default function BranchActionsDropdown({
                 <ProviderIcon className="w-4 h-4 mr-2" />
                 View remote
               </DropdownMenuItem>
-              {proposal?.state !== ProposalState.OPEN ? (
-                <DropdownMenuItem
-                  onClick={() => setMergeModalOpen(true)}
-                  className="flex items-center gap-1"
-                >
-                  <GitPullRequestCreate className="w-4 h-4 mr-2" />
-                  Propose changes
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => window.open(proposal?.url ?? '', '_blank')}
-                  className="flex items-center gap-1"
-                >
-                  <GitPullRequestArrow className="w-4 h-4 mr-2" />
-                  <div className="flex items-center gap-1">
-                    <span>View open merge proposal</span>
-                  </div>
-                </DropdownMenuItem>
+              {info.product === Product.PRO && (
+                <>
+                  {proposal?.state !== ProposalState.OPEN ? (
+                    <DropdownMenuItem
+                      onClick={() => setMergeModalOpen(true)}
+                      className="flex items-center gap-1"
+                    >
+                      <GitPullRequestCreate className="w-4 h-4 mr-2" />
+                      Propose changes
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => window.open(proposal?.url ?? '', '_blank')}
+                      className="flex items-center gap-1"
+                    >
+                      <GitPullRequestArrow className="w-4 h-4 mr-2" />
+                      <div className="flex items-center gap-1">
+                        <span>View open merge proposal</span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                </>
               )}
               <DropdownMenuSeparator />
             </>

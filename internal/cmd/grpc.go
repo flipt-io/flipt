@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/metrics"
 	tracing "go.flipt.io/flipt/internal/otel/traces"
+	"go.flipt.io/flipt/internal/product"
 	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
@@ -86,6 +87,7 @@ func NewGRPCServer(
 	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
+	licenseManager interface{ Product() product.Product },
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
@@ -108,7 +110,7 @@ func NewGRPCServer(
 	})
 
 	// configure a declarative backend store
-	environmentStore, err := environments.NewStore(ctx, logger, cfg)
+	environmentStore, err := environments.NewStore(ctx, logger, cfg, licenseManager)
 	if err != nil {
 		return nil, err
 	}

@@ -22,9 +22,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/logs"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
@@ -48,6 +50,9 @@ var (
 	analyticsKey       string
 	analyticsEndpoint  string
 	banner             string
+	keygenVerifyKey    string
+	keygenAccountID    string
+	keygenProductID    string
 )
 
 var (
@@ -270,6 +275,9 @@ func isSet(env string) bool {
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
 
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
 	if os.Getenv("OTEL_LOGS_EXPORTER") != "" {
 		otelResource, err := otel.NewResource(ctx, v)
 		if err != nil {
@@ -282,12 +290,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		}
 
 		defer func() {
-			_ = logsExpShutdown(ctx)
+			_ = logsExpShutdown(shutdownCtx)
 		}()
 
 		logProcessor := log.NewBatchProcessor(logsExp)
 		defer func() {
-			_ = logProcessor.Shutdown(ctx)
+			_ = logProcessor.Shutdown(shutdownCtx)
 		}()
 
 		loggerProvider := log.NewLoggerProvider(
@@ -296,7 +304,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		)
 
 		defer func() {
-			_ = loggerProvider.Shutdown(ctx)
+			_ = loggerProvider.Shutdown(shutdownCtx)
 		}()
 
 		global.SetLoggerProvider(loggerProvider)
@@ -367,10 +375,31 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
+	licenseManagerOpts := []license.LicenseManagerOption{}
+
+	// Enable pro features in development mode
+	if !isRelease {
+		licenseManagerOpts = append(licenseManagerOpts, license.WithProduct(product.Pro))
+	}
+
+	if keygenVerifyKey != "" {
+		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
+	}
+
+	licenseManager, licenseManagerShutdown, err := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = licenseManagerShutdown(shutdownCtx)
+	}()
+
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, v, isRelease),
 		info.WithLatestRelease(releaseInfo),
 		info.WithConfig(cfg),
+		info.WithLicenseManager(licenseManager),
 	)
 
 	if cfg.Meta.TelemetryEnabled {
@@ -399,7 +428,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		otelgrpc.UnaryServerInterceptor(),
 	))
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate)
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate, licenseManager)
 	if err != nil {
 		return err
 	}
@@ -420,9 +449,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	<-ctx.Done()
 
 	logger.Info("shutting down...")
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
 
 	_ = httpServer.Shutdown(shutdownCtx)
 	_ = grpcServer.Shutdown(shutdownCtx)

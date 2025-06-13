@@ -124,12 +124,9 @@ func WithCleanupGracePeriod(t time.Duration) Option {
 
 func (s *Store) startCleanup(ctx context.Context) {
 	s.errGroup.Go(func() error {
-		ticker := time.NewTicker(s.cleanupInterval)
-		defer ticker.Stop()
-
 		for {
 			select {
-			case <-ticker.C:
+			case <-time.After(s.cleanupInterval):
 				expiredBefore := time.Now().UTC().Add(-s.cleanupGracePeriod)
 				s.logger.Debug("cleanup process deleting authentications", zap.Time("expired_before", expiredBefore))
 				if err := s.DeleteAuthentications(ctx, authn.Delete(

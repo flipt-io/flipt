@@ -1,8 +1,4 @@
-import {
-  faDiscord,
-  faGithub,
-  faXTwitter
-} from '@fortawesome/free-brands-svg-icons';
+import { faDiscord, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
 
@@ -18,7 +14,7 @@ export default function Footer() {
     if (info?.build?.commit) {
       return info.build.commit.substring(0, 7);
     }
-    return '';
+    return 'Development';
   };
 
   const refURL = () => {
@@ -32,11 +28,6 @@ export default function Footer() {
   };
 
   const social = [
-    {
-      name: 'Twitter',
-      href: 'https://www.twitter.com/flipt_io',
-      icon: faXTwitter
-    },
     {
       name: 'GitHub',
       href: 'https://www.github.com/flipt-io/flipt',
@@ -70,18 +61,6 @@ export default function Footer() {
             <span className="block sm:inline">
               &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
               reserved.
-            </span>
-          </p>
-          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 sm:mt-0">
-            <span className="hidden sm:inline">
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="https://docs.flipt.io/changelog/overview"
-                className="text-violet-500 dark:text-violet-400"
-              >
-                Changelog
-              </a>
             </span>
           </p>
         </div>

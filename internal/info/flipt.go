@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 )
 
@@ -50,6 +51,12 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
+func WithLicenseManager(licenseManager interface{ Product() product.Product }) Option {
+	return func(f *Flipt) {
+		f.licenseManager = licenseManager
+	}
+}
+
 type Option func(f *Flipt)
 
 type Build struct {
@@ -77,6 +84,7 @@ type UI struct {
 }
 
 type Flipt struct {
+	licenseManager interface{ Product() product.Product }
 	Build          *Build          `json:"build,omitempty"`
 	Authentication *Authentication `json:"authentication,omitempty"`
 	Analytics      *Analytics      `json:"analytics,omitempty"`
@@ -85,6 +93,10 @@ type Flipt struct {
 
 func (f Flipt) IsDevelopment() bool {
 	return f.Build.Version == "dev"
+}
+
+func (f Flipt) Product() product.Product {
+	return f.licenseManager.Product()
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -108,4 +120,17 @@ func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// MarshalJSON implements custom JSON marshaling for Flipt to include the dynamic product field.
+func (f Flipt) MarshalJSON() ([]byte, error) {
+	type Alias Flipt // Prevent recursion
+	aux := struct {
+		Alias
+		Product product.Product `json:"product"`
+	}{
+		Alias:   (Alias)(f),
+		Product: f.Product(),
+	}
+	return json.Marshal(aux)
 }

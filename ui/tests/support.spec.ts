@@ -16,10 +16,20 @@ test.describe('Onboarding', () => {
         page.getByRole('heading', { name: 'Integrate Your Application' })
       ).toBeVisible();
       await expect(
-        page.getByRole('heading', { name: 'Join the Community' })
+        page.getByRole('heading', { name: 'Changelog' })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Chat With Us' })
       ).toBeVisible();
       await expect(
         page.getByRole('heading', { name: 'Support Us' })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Join the Community' })
+      ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Email' })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Report an issue' })
       ).toBeVisible();
       await expect(
         page.getByRole('button', { name: 'Continue to Dashboard' })
@@ -43,19 +53,29 @@ test.describe('Onboarding', () => {
     test('has expected content', async ({ page }) => {
       await expect(page.locator('h1')).toContainText('Support');
       await expect(
-        page.getByText('Quick Start', { exact: true })
+        page.getByRole('heading', { name: 'Quick Start' })
       ).toBeVisible();
       await expect(
-        page.getByText('Checkout a Guide', { exact: true })
+        page.getByRole('heading', { name: 'Checkout a Guide' })
       ).toBeVisible();
       await expect(
-        page.getByText('Integrate Your Application', { exact: true })
+        page.getByRole('heading', { name: 'Integrate Your Application' })
       ).toBeVisible();
       await expect(
-        page.getByText('Chat With Us', { exact: true })
+        page.getByRole('heading', { name: 'Changelog' })
       ).toBeVisible();
       await expect(
-        page.getByText('Join the Community', { exact: true })
+        page.getByRole('heading', { name: 'Chat With Us' })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Support Us' })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Join the Community' })
+      ).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Email' })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Report an issue' })
       ).toBeVisible();
       await expect(
         page.getByRole('button', { name: 'Continue to Dashboard' })

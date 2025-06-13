@@ -1,6 +1,6 @@
-// Flipt Enterprise-Only Feature
+// Flipt Commercial Open Source Feature
 // This file contains functionality that is licensed under the Flipt Fair Core License (FCL).
-// You may NOT use, modify, or distribute this file or its contents without a valid Enterprise license.
+// You may NOT use, modify, or distribute this file or its contents without a valid paid license.
 // For details: https://github.com/flipt-io/flipt/blob/v2/LICENSE
 
 package gitea
@@ -17,8 +17,8 @@ import (
 
 	"code.gitea.io/sdk/gitea"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/credentials"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"
@@ -123,19 +123,19 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
-	comparision, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
+	comparison, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	s.logger.Info("changes compared", zap.Int("commits", len(comparision.Commits)))
+	s.logger.Info("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
 		limit   = req.Limit
 	)
 
-	for _, commit := range comparision.Commits {
+	for _, commit := range comparison.Commits {
 		if limit > 0 && int32(len(changes)) >= limit {
 			break
 		}

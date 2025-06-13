@@ -4,6 +4,7 @@ export interface IInfo {
   build: IBuild;
   analytics?: IAnalytics;
   ui?: IUI;
+  product?: Product;
 }
 
 export interface IBuild {
@@ -30,4 +31,9 @@ export enum LoadingStatus {
   LOADING = 'loading',
   SUCCEEDED = 'succeeded',
   FAILED = 'failed'
+}
+
+export enum Product {
+  OSS = 'oss',
+  PRO = 'pro'
 }

@@ -12,11 +12,12 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	cossgit "go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitea"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/github"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab"
 	"go.flipt.io/flipt/internal/credentials"
-	enterprisegit "go.flipt.io/flipt/internal/enterprise/storage/environments/git"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/github"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab"
+	"go.flipt.io/flipt/internal/product"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -121,18 +122,20 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 
 // EnvironmentFactory creates environments and wraps them as needed.
 type EnvironmentFactory struct {
-	logger      *zap.Logger
-	cfg         *config.Config
-	credentials *credentials.CredentialSource
-	repoManager *RepositoryManager
+	logger         *zap.Logger
+	cfg            *config.Config
+	credentials    *credentials.CredentialSource
+	repoManager    *RepositoryManager
+	licenseManager interface{ Product() product.Product } // Accepts LicenseManager or a mock for tests
 }
 
-func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager) *EnvironmentFactory {
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager interface{ Product() product.Product }) *EnvironmentFactory {
 	return &EnvironmentFactory{
-		logger:      logger,
-		cfg:         cfg,
-		credentials: credentials,
-		repoManager: repoManager,
+		logger:         logger,
+		cfg:            cfg,
+		credentials:    credentials,
+		repoManager:    repoManager,
+		licenseManager: licenseManager,
 	}
 }
 
@@ -170,11 +173,17 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	}
 
 	// wrap the environment with an SCM if configured
-	// TODO: check for enterprise license
 	if envConf.SCM != nil {
-		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
+		// License check: only allow SCM if pro is enabled
+		if f.licenseManager == nil || f.licenseManager.Product() != product.Pro {
+			f.logger.Warn("paid license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
+			wrapped := cossgit.NewEnvironment(f.logger, env, &cossgit.SCMNotImplemented{})
+			return wrapped, nil
+		}
 
-		repoURL, err := enterprisegit.ParseGitURL(repo.GetRemote())
+		var scm cossgit.SCM = &cossgit.SCMNotImplemented{}
+
+		repoURL, err := cossgit.ParseGitURL(repo.GetRemote())
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse git url: %w", err)
 		}
@@ -254,7 +263,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			}
 		}
 
-		wrapped := enterprisegit.NewEnvironment(f.logger, env, scm)
+		wrapped := cossgit.NewEnvironment(f.logger, env, scm)
 		return wrapped, nil
 	}
 
@@ -287,7 +296,7 @@ type repoEnv interface {
 
 // NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licenseManager interface{ Product() product.Product }) (
 	_ *serverconfig.EnvironmentStore,
 	err error,
 ) {
@@ -298,7 +307,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config) (
 	var (
 		credentials = credentials.New(logger, cfg.Credentials)
 		repoManager = NewRepositoryManager(logger, cfg)
-		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager)
+		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager)
 	)
 
 	var envs []serverconfig.Environment

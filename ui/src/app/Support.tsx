@@ -3,6 +3,7 @@ import {
   CircleAlertIcon,
   ExternalLinkIcon,
   GraduationCapIcon,
+  LogsIcon,
   MailIcon,
   MessageCircle,
   PuzzleIcon,
@@ -43,6 +44,13 @@ const gettingStartedTiles = [
 ];
 
 const moreTiles = [
+  {
+    icon: LogsIcon,
+    name: 'Changelog',
+    description: 'View the latest changes to Flipt',
+    cta: 'View Changelog',
+    href: 'https://docs.flipt.io/v2/changelog'
+  },
   {
     icon: MessageCircle,
     name: 'Chat With Us',
