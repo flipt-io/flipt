@@ -22,10 +22,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/enterprise/license"
+	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/logs"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
@@ -376,16 +377,16 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
-	// Enable enterprise features in development mode
+	// Enable pro features in development mode
 	if !isRelease {
-		licenseManagerOpts = append(licenseManagerOpts, license.WithForceEnterprise())
+		licenseManagerOpts = append(licenseManagerOpts, license.WithProduct(product.Pro))
 	}
 
 	if keygenVerifyKey != "" {
 		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
 	}
 
-	licenseManager, licenseManagerShutdown, err := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.Enterprise.LicenseKey, licenseManagerOpts...)
+	licenseManager, licenseManagerShutdown, err := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
 	if err != nil {
 		return err
 	}

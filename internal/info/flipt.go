@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 )
 
@@ -50,7 +51,7 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
-func WithLicenseManager(licenseManager interface{ IsEnterprise() bool }) Option {
+func WithLicenseManager(licenseManager interface{ Product() product.Product }) Option {
 	return func(f *Flipt) {
 		f.licenseManager = licenseManager
 	}
@@ -77,20 +78,13 @@ type Analytics struct {
 	Enabled bool `json:"enabled,omitempty"`
 }
 
-type Product string
-
-var (
-	ProductOSS        = Product("oss")
-	ProductEnterprise = Product("enterprise")
-)
-
 type UI struct {
 	Theme       config.UITheme `json:"theme,omitempty"`
 	TopbarColor string         `json:"topbarColor,omitempty"`
 }
 
 type Flipt struct {
-	licenseManager interface{ IsEnterprise() bool }
+	licenseManager interface{ Product() product.Product }
 	Build          *Build          `json:"build,omitempty"`
 	Authentication *Authentication `json:"authentication,omitempty"`
 	Analytics      *Analytics      `json:"analytics,omitempty"`
@@ -101,8 +95,8 @@ func (f Flipt) IsDevelopment() bool {
 	return f.Build.Version == "dev"
 }
 
-func (f Flipt) IsEnterprise() bool {
-	return f.licenseManager.IsEnterprise()
+func (f Flipt) Product() product.Product {
+	return f.licenseManager.Product()
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -133,13 +127,10 @@ func (f Flipt) MarshalJSON() ([]byte, error) {
 	type Alias Flipt // Prevent recursion
 	aux := struct {
 		Alias
-		Product Product `json:"product"`
+		Product product.Product `json:"product"`
 	}{
 		Alias:   (Alias)(f),
-		Product: ProductOSS,
-	}
-	if f.IsEnterprise() {
-		aux.Product = ProductEnterprise
+		Product: f.Product(),
 	}
 	return json.Marshal(aux)
 }

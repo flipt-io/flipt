@@ -287,11 +287,11 @@ func (e *branchEnvIterator) Err() error {
 }
 
 func (e *Environment) Propose(ctx context.Context, base serverenvs.Environment, opts serverenvs.ProposalOptions) (*rpcenvironments.EnvironmentProposalDetails, error) {
-	return nil, errors.ErrNotImplemented("Propose not implemented in non-enterprise version")
+	return nil, errors.ErrNotImplemented("Propose not implemented in non-commercial version")
 }
 
 func (e *Environment) ListBranchedChanges(ctx context.Context, base serverenvs.Environment) (*rpcenvironments.ListBranchedEnvironmentChangesResponse, error) {
-	return nil, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-enterprise version")
+	return nil, errors.ErrNotImplemented("ListBranchedChanges not implemented in non-commercial version")
 }
 
 func (e *Environment) GetNamespace(ctx context.Context, key string) (resp *rpcenvironments.NamespaceResponse, err error) {

@@ -6,13 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 )
 
 // mockLicenseManager is a test double for the license manager interface
-type mockLicenseManager struct{ val bool }
+type mockLicenseManager struct{ val product.Product }
 
-func (m mockLicenseManager) IsEnterprise() bool { return m.val }
+func (m mockLicenseManager) Product() product.Product { return m.val }
 
 func TestNew(t *testing.T) {
 	f := New(
@@ -35,12 +36,12 @@ func TestNew(t *testing.T) {
 
 func TestFlipt_ProductField_Marshaling(t *testing.T) {
 	tests := []struct {
-		name         string
-		isEnterprise bool
-		expect       Product
+		name    string
+		product product.Product
+		expect  product.Product
 	}{
-		{"oss", false, ProductOSS},
-		{"enterprise", true, ProductEnterprise},
+		{"oss", product.OSS, product.OSS},
+		{"pro", product.Pro, product.Pro},
 	}
 
 	for _, tt := range tests {
@@ -49,7 +50,7 @@ func TestFlipt_ProductField_Marshaling(t *testing.T) {
 				WithBuild("commit", "date", "goVersion", "version", true),
 				WithLatestRelease(release.Info{LatestVersion: "latestVersion", LatestVersionURL: "latestVersionURL", UpdateAvailable: true}),
 				WithConfig(config.Default()),
-				WithLicenseManager(mockLicenseManager{tt.isEnterprise}),
+				WithLicenseManager(mockLicenseManager{tt.product}),
 			)
 			data, err := json.Marshal(f)
 			assert.NoError(t, err)

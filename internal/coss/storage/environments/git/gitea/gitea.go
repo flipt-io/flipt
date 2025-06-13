@@ -1,6 +1,6 @@
-// Flipt Enterprise-Only Feature
+// Flipt Commercial Open Source Feature
 // This file contains functionality that is licensed under the Flipt Fair Core License (FCL).
-// You may NOT use, modify, or distribute this file or its contents without a valid Enterprise license.
+// You may NOT use, modify, or distribute this file or its contents without a valid paid license.
 // For details: https://github.com/flipt-io/flipt/blob/v2/LICENSE
 
 package gitea
@@ -17,8 +17,8 @@ import (
 
 	"code.gitea.io/sdk/gitea"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/credentials"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"

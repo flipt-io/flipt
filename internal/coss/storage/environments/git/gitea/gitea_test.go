@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git"
 	serverenvsmock "go.flipt.io/flipt/internal/server/environments"
 	rpcenv "go.flipt.io/flipt/rpc/v2/environments"
 	"go.uber.org/zap"

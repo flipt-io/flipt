@@ -35,5 +35,5 @@ export enum LoadingStatus {
 
 export enum Product {
   OSS = 'oss',
-  ENTERPRISE = 'enterprise'
+  PRO = 'pro'
 }

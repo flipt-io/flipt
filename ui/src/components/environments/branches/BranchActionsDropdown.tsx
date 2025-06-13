@@ -10,7 +10,6 @@ import {
 import { useState } from 'react';
 
 import { useListBranchEnvironmentsQuery } from '~/app/environments/environmentsApi';
-import { isEnterprise } from '~/app/meta/metaSlice';
 
 import { Badge } from '~/components/Badge';
 import {
@@ -28,6 +27,7 @@ import { getRepoUrlFromConfig } from '~/utils/helpers';
 
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
 import DeleteBranchModal from './DeleteBranchModal';
+import { Product } from '~/types/Meta';
 
 export default function BranchActionsDropdown({
   environment
@@ -38,11 +38,10 @@ export default function BranchActionsDropdown({
   const hasRemote = environment.configuration?.remote !== undefined;
   const repoUrl = getRepoUrlFromConfig(environment.configuration!);
 
-  const enterprise = useAppSelector(isEnterprise);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
 
+  const { info } = useAppSelector((state) => state.meta);
   const { data: baseBranches } = useListBranchEnvironmentsQuery({
     environmentKey: environment.configuration?.base ?? ''
   });
@@ -83,7 +82,7 @@ export default function BranchActionsDropdown({
                 <ProviderIcon className="w-4 h-4 mr-2" />
                 View remote
               </DropdownMenuItem>
-              {enterprise && (
+              {info.product === Product.PRO && (
                 <>
                   {proposal?.state !== ProposalState.OPEN ? (
                     <DropdownMenuItem

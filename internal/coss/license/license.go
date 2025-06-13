@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/keygen-sh/keygen-go/v3"
 	"github.com/keygen-sh/machineid"
+	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
 
@@ -20,21 +21,21 @@ var (
 	managerErr  error
 )
 
-// Manager handles enterprise license validation and periodic revalidation.
+// Manager handles commercial license validation and periodic revalidation.
 type Manager struct {
-	logger          *zap.Logger
-	accountID       string
-	productID       string
-	licenseKey      string
-	fingerprint     string
-	verifyKey       string // base64 encoded for validation
-	license         *keygen.License
-	isEnterprise    bool
-	mu              sync.RWMutex
-	done            chan struct{}
-	doneOnce        sync.Once
-	cancel          context.CancelFunc
-	forceEnterprise bool
+	logger      *zap.Logger
+	accountID   string
+	productID   string
+	licenseKey  string
+	fingerprint string
+	verifyKey   string // base64 encoded for validation
+	license     *keygen.License
+	product     product.Product
+	mu          sync.RWMutex
+	done        chan struct{}
+	doneOnce    sync.Once
+	cancel      context.CancelFunc
+	force       bool
 }
 
 const (
@@ -43,10 +44,10 @@ const (
 
 type LicenseManagerOption func(*Manager)
 
-func WithForceEnterprise() LicenseManagerOption {
+func WithProduct(product product.Product) LicenseManagerOption {
 	return func(lm *Manager) {
-		lm.forceEnterprise = true
-		lm.isEnterprise = true
+		lm.force = true
+		lm.product = product
 	}
 }
 
@@ -61,13 +62,13 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 	managerOnce.Do(func() {
 		ctx, cancel := context.WithCancel(ctx)
 		lm := &Manager{
-			logger:          logger,
-			accountID:       accountID,
-			productID:       productID,
-			licenseKey:      licenseKey,
-			cancel:          cancel,
-			forceEnterprise: false,
-			done:            make(chan struct{}),
+			logger:     logger,
+			accountID:  accountID,
+			productID:  productID,
+			licenseKey: licenseKey,
+			cancel:     cancel,
+			force:      false,
+			done:       make(chan struct{}),
 		}
 
 		logger.Debug("creating license manager")
@@ -76,8 +77,8 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 			opt(lm)
 		}
 
-		if lm.forceEnterprise {
-			lm.logger.Warn("enterprise features are enabled for Flipt development purposes only. It is in violation of the Flipt Fair Core License (FCL) if you are using this software in any other context.", zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
+		if lm.force {
+			lm.logger.Warn(string(lm.product)+" features are enabled for Flipt development purposes only. It is in violation of the Flipt Fair Core License (FCL) if you are using this software in any other context.", zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
 		} else {
 			c := retryablehttp.NewClient()
 			c.Backoff = retryablehttp.LinearJitterBackoff
@@ -95,7 +96,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 
 			fingerprint, err := machineid.ProtectedID(keygen.Product)
 			if err != nil {
-				managerErr = fmt.Errorf("failed to get machine fingerprint; enterprise features are disabled.: %w", err)
+				managerErr = fmt.Errorf("failed to get machine fingerprint; additional features are disabled.: %w", err)
 				return
 			}
 
@@ -113,11 +114,11 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 	return manager, managerFunc, managerErr
 }
 
-// IsEnterprise returns true if the license is valid for enterprise features.
-func (lm *Manager) IsEnterprise() bool {
+// Product returns the product that the license is valid for.
+func (lm *Manager) Product() product.Product {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
-	return lm.isEnterprise
+	return lm.product
 }
 
 // Close stops the background revalidation goroutine.
@@ -149,9 +150,9 @@ func (lm *Manager) periodicRevalidate(ctx context.Context) {
 func (lm *Manager) validateAndSet(ctx context.Context) {
 	if lm.licenseKey == "" {
 		lm.mu.Lock()
-		lm.isEnterprise = false
+		lm.product = product.OSS
 		lm.mu.Unlock()
-		lm.logger.Warn("no enterprise license key provided; enterprise features are disabled.")
+		lm.logger.Warn("no license key provided; additional features are disabled.")
 		return
 	}
 
@@ -163,37 +164,37 @@ func (lm *Manager) validateAndSet(ctx context.Context) {
 			_, err := license.Activate(ctx, lm.fingerprint)
 			if err != nil {
 				if errors.Is(err, keygen.ErrMachineLimitExceeded) {
-					lm.logger.Warn("machine limit has been exceeded; enterprise features are disabled.")
+					lm.logger.Warn("machine limit has been exceeded; additional features are disabled.")
 					return
 				}
-				lm.logger.Warn("machine activation failed; enterprise features are disabled.")
+				lm.logger.Warn("machine activation failed; additional features are disabled.")
 				return
 			}
 		case errors.Is(err, keygen.ErrLicenseExpired):
-			lm.logger.Warn("license is expired; enterprise features are disabled.")
+			lm.logger.Warn("license is expired; additional features are disabled.")
 			return
 		default:
-			lm.logger.Warn("license is invalid; enterprise features are disabled.", zap.Error(err))
+			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
 		}
 	}
 
 	if license == nil {
-		lm.logger.Error("license is nil; enterprise features are disabled.")
+		lm.logger.Error("license is nil; additional features are disabled.")
 		return
 	}
 
 	if license.Expiry == nil {
-		lm.logger.Error("license has no expiry date; enterprise features are disabled.")
+		lm.logger.Error("license has no expiry date; additional features are disabled.")
 		return
 	}
 
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
-	lm.isEnterprise = true
+	lm.product = product.Pro
 	lm.license = license
 
-	lm.logger.Info("enterprise license validated; enterprise features enabled.",
+	lm.logger.Info("license validated; additional features enabled.",
 		zap.Time("expires_at", *license.Expiry))
 
 }

@@ -1125,6 +1125,19 @@
           }
         }
       }
+    },
+    "license": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "title": "License",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
     }
   }
 }

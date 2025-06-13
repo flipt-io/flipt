@@ -42,8 +42,6 @@ export const metaSlice = createSlice({
 });
 
 export const selectInfo = (state: { meta: IMetaSlice }) => state.meta.info;
-export const isEnterprise = (state: { meta: IMetaSlice }) =>
-  state.meta.info.product === Product.ENTERPRISE;
 
 export const fetchInfoAsync = createAsyncThunk('meta/fetchInfo', async () => {
   const response = await getMeta();

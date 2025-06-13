@@ -26,6 +26,7 @@ import "list"
 	metrics?:        #metrics
 	tracing?:        #tracing
 	ui?:             #ui
+	license?:        #license
 
 	#authentication: {
 		required?: bool | *false
@@ -274,6 +275,10 @@ import "list"
 			color?: string
 			label?: string
 		}
+	}
+
+	#license: {
+		key?:     string
 	}
 
 	#analytics: {

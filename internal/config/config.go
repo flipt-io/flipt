@@ -69,7 +69,7 @@ type Config struct {
 	Metrics        MetricsConfig        `json:"metrics,omitempty" mapstructure:"metrics" yaml:"metrics,omitempty"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
-	Enterprise     EnterpriseConfig     `json:"enterprise,omitempty" mapstructure:"enterprise" yaml:"enterprise,omitempty"`
+	License        LicenseConfig        `json:"license,omitempty" mapstructure:"license" yaml:"license,omitempty"`
 }
 
 type Result struct {
@@ -642,13 +642,13 @@ func Default() *Config {
 			},
 		},
 
-		Enterprise: EnterpriseConfig{
-			LicenseKey: "",
+		License: LicenseConfig{
+			Key: "",
 		},
 	}
 }
 
-// EnterpriseConfig holds enterprise-related configuration, such as the license key.
-type EnterpriseConfig struct {
-	LicenseKey string `json:"license_key,omitempty" mapstructure:"license_key" yaml:"license_key,omitempty"`
+// LicenseConfig holds license-related configuration, such as the license key.
+type LicenseConfig struct {
+	Key string `json:"key,omitempty" mapstructure:"key" yaml:"key,omitempty"`
 }

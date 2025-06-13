@@ -12,11 +12,12 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	cossgit "go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitea"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/github"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab"
 	"go.flipt.io/flipt/internal/credentials"
-	enterprisegit "go.flipt.io/flipt/internal/enterprise/storage/environments/git"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/github"
-	"go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab"
+	"go.flipt.io/flipt/internal/product"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -125,10 +126,10 @@ type EnvironmentFactory struct {
 	cfg            *config.Config
 	credentials    *credentials.CredentialSource
 	repoManager    *RepositoryManager
-	licenseManager interface{ IsEnterprise() bool } // Accepts LicenseManager or a mock for tests
+	licenseManager interface{ Product() product.Product } // Accepts LicenseManager or a mock for tests
 }
 
-func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager interface{ IsEnterprise() bool }) *EnvironmentFactory {
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager interface{ Product() product.Product }) *EnvironmentFactory {
 	return &EnvironmentFactory{
 		logger:         logger,
 		cfg:            cfg,
@@ -173,16 +174,16 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 
 	// wrap the environment with an SCM if configured
 	if envConf.SCM != nil {
-		// License check: only allow SCM if enterprise is enabled
-		if f.licenseManager == nil || !f.licenseManager.IsEnterprise() {
-			f.logger.Warn("enterprise license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
-			wrapped := enterprisegit.NewEnvironment(f.logger, env, &enterprisegit.SCMNotImplemented{})
+		// License check: only allow SCM if pro is enabled
+		if f.licenseManager == nil || f.licenseManager.Product() != product.Pro {
+			f.logger.Warn("paid license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
+			wrapped := cossgit.NewEnvironment(f.logger, env, &cossgit.SCMNotImplemented{})
 			return wrapped, nil
 		}
 
-		var scm enterprisegit.SCM = &enterprisegit.SCMNotImplemented{}
+		var scm cossgit.SCM = &cossgit.SCMNotImplemented{}
 
-		repoURL, err := enterprisegit.ParseGitURL(repo.GetRemote())
+		repoURL, err := cossgit.ParseGitURL(repo.GetRemote())
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse git url: %w", err)
 		}
@@ -262,7 +263,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			}
 		}
 
-		wrapped := enterprisegit.NewEnvironment(f.logger, env, scm)
+		wrapped := cossgit.NewEnvironment(f.logger, env, scm)
 		return wrapped, nil
 	}
 
@@ -295,7 +296,7 @@ type repoEnv interface {
 
 // NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licenseManager interface{ IsEnterprise() bool }) (
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licenseManager interface{ Product() product.Product }) (
 	_ *serverconfig.EnvironmentStore,
 	err error,
 ) {
