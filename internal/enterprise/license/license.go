@@ -32,6 +32,7 @@ type Manager struct {
 	isEnterprise    bool
 	mu              sync.RWMutex
 	done            chan struct{}
+	doneOnce        sync.Once
 	cancel          context.CancelFunc
 	forceEnterprise bool
 }
@@ -122,6 +123,7 @@ func (lm *Manager) IsEnterprise() bool {
 // Close stops the background revalidation goroutine.
 func (lm *Manager) Shutdown(ctx context.Context) error {
 	lm.cancel()
+	lm.doneOnce.Do(func() { close(lm.done) })
 	<-lm.done
 	if lm.license != nil {
 		// deactivate the license for this machine so it can be used on another machine
@@ -133,14 +135,12 @@ func (lm *Manager) Shutdown(ctx context.Context) error {
 }
 
 func (lm *Manager) periodicRevalidate(ctx context.Context) {
-	ticker := time.NewTicker(revalidateInterval)
-	defer ticker.Stop()
 	for {
 		select {
-		case <-ticker.C:
+		case <-time.After(revalidateInterval):
 			lm.validateAndSet(ctx)
 		case <-ctx.Done():
-			close(lm.done)
+			lm.doneOnce.Do(func() { close(lm.done) })
 			return
 		}
 	}

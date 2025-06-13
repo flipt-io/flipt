@@ -84,7 +84,6 @@ func authenticationGRPC(
 
 	if !authCfg.Enabled() {
 		rpcauth.RegisterPublicAuthenticationServiceServer(handlers, public.NewServer(logger, authCfg))
-		rpcauth.RegisterAuthenticationServiceServer(handlers, authn.NewServer(logger, storageauthmemory.NewStore(logger)))
 		return nil, nil, shutdown, nil
 	}
 
