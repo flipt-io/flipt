@@ -77,7 +77,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 		}
 
 		if lm.forceEnterprise {
-			lm.logger.Warn("enterprise features are enabled for development purposes only. It is in violation of the Flipt Fair Core License (FCL) if you are using this in production.", zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
+			lm.logger.Warn("enterprise features are enabled for Flipt development purposes only. It is in violation of the Flipt Fair Core License (FCL) if you are using this software in any other context.", zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
 		} else {
 			c := retryablehttp.NewClient()
 			c.Backoff = retryablehttp.LinearJitterBackoff

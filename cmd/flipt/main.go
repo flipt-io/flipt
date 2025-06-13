@@ -378,9 +378,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	// Enable enterprise features in development mode
 	if !isRelease {
-		logger.Warn("enterprise features enabled for development mode",
-			zap.String("warning", "this is for development only and violates the Flipt Fair Core License (FCL) in production"),
-			zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
 		licenseManagerOpts = append(licenseManagerOpts, license.WithForceEnterprise())
 	}
 
