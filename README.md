@@ -4,7 +4,7 @@
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
-<p align="center">An enterprise-ready, GitOps and CloudNative, feature management solution</p>
+<p align="center">The Git-native, enterprise-ready feature management platform that developers love</p>
 
 <hr />
 
@@ -15,15 +15,9 @@
 <br clear="both"/>
 
 <div align="center">
-    <a href="https://github.com/flipt-io/flipt/releases">
+    <!-- <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
-    </a>
-    <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
-    </a>
-    <a href="https://codecov.io/gh/flipt-io/flipt">
-        <img src="https://codecov.io/gh/flipt-io/flipt/branch/main/graph/badge.svg" alt="Coverage" />
-    </a>
+    </a> -->
     <a href="https://goreportcard.com/report/github.com/flipt-io/flipt">
         <img src="https://goreportcard.com/badge/github.com/flipt-io/flipt" alt="Go Report Card" />
     </a>
@@ -37,66 +31,207 @@
 
 <div align="center">
     <h4>
-        <a href="https://www.flipt.io/docs/introduction">Docs</a> •
+        <a href="https://docs.flipt.io/v2/introduction">Docs</a> •
         <a href="http://www.flipt.io">Website</a> •
         <a href="http://blog.flipt.io">Blog</a> •
-        <a href="https://community.flipt.io/">Feedback</a> •
         <a href="#contributing">Contributing</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
 </div>
 
 > [!IMPORTANT]  
-> This branch is a work in progress for a v2 version of Flipt. This is not a stable release and should not be used in production. The v2 branch is a major refactor of the codebase with the goal of support Git and object storage as the primary storage backends. See [PLAN.md](PLAN.md) for more information.
+> V2 of Flipt is currently in beta release status. We may make breaking changes to the UI and API until we reach a stable release.
 
 <br clear="both"/>
 
-[Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
+## Why Flipt v2?
 
-Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
+**Finally, feature flags that work with your existing Git workflow.**
 
-With our [GitOps-friendly functionality](https://www.flipt.io/docs/guides/get-going-with-gitops), you can easily integrate Flipt into your CI/CD workflows to enable continuous configuration and deployment with confidence.
+Flipt v2 is the first truly Git-native feature management platform that treats your feature flags as code. Store your flags in your own Git repositories, use your existing branching strategy, and deploy flags alongside your code using the tools you already know and trust.
+
+### 🚀 **Git-Native by Design**
+
+- **Own your data**: Store feature flags directly in your Git repositories
+- **Version control**: Full history and blame for every flag change
+- **Branch and merge**: Test flag changes in branches before merging to production
+- **Deploy together**: Feature flags deploy with your code using existing CI/CD pipelines
+
+### 🌍 **Multi-Environment with Git Flexibility**
+
+- **Environment per branch**: Map environments to Git branches for seamless workflows  
+- **Environment per directory**: Organize flags by microservice or team within a single repo
+- **Environment per repository**: Separate repos for different products or security domains
+- **Complete isolation**: Each environment has its own namespaces, flags, and configurations
+
+### ⚡ **Developer Experience First**
+
+- **Zero infrastructure**: No databases, no external dependencies by default
+- **GitOps ready**: Works with existing Git-based deployment workflows
+- **Real-time updates**: Streaming API for instant flag propagation
+- **Modern UI**: Intuitive interface with full Git integration and dark mode support
+
+### 🔒 **Enterprise Security & Control**
+
+- **Self-hosted**: Keep sensitive flag data within your infrastructure
+- **Merge proposals**: Code review workflow for flag changes (commercial feature)
+- **Audit trails**: Complete history of who changed what and when
+- **OIDC/JWT/OAuth**: Enterprise authentication methods supported
 
 <br clear="both"/>
 
-<p align="center">
-    <a href="https://www.producthunt.com/posts/flipt-cloud?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt&#0045;cloud" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=498373&theme=light" alt="Flipt&#0032;Cloud - Feature&#0032;flags&#0046;&#0032;Powered&#0032;by&#0032;Git | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-    <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
-    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
-</p>
+## Flipt v1 vs v2: What's New?
 
-## Use cases
+| Feature | Flipt v1 | Flipt v2 |
+|---------|----------|----------|
+| **Storage** | Database-centric (MySQL, PostgreSQL, SQLite) | Git-native with optional SCM sync (GitHub, GitLab, Gitea, etc.) |
+| **Environments** | Single namespace model | Multi-environment with Git flexibility |
+| **Branching** | Not supported | Full Git branching with environment branches |
+| **Data Ownership** | Stored in a database (MySQL, PostgreSQL, SQLite) | Stored in your Git repositories alongside your code |
+| **GitOps** | Read-only Git integration | Full read/write Git integration |
+| **Deployment** | Requires database setup | Zero dependencies - single binary |
+| **Version Control** | Basic audit logs | Full Git history and blame |
+| **Merge Process** | Direct flag changes | Merge proposals with code review |
+| **Real-time Updates** | Polling required | Streaming API for instant updates |
+| **Multi-tenancy** | Manual namespace management | Environment-based isolation |
 
-Flipt supports use cases such as:
-
-- Enabling [trunk-based development](https://trunkbaseddevelopment.com/) workflows
-- Testing new features internally during development before releasing them fully in production
-- Ensuring overall system safety by guarding new releases with an emergency kill switch
-- Gating certain features for different permission levels allows you to control who sees what
-- Enabling continuous configuration by changing values during runtime without additional deployments
-
-<br clear="both"/>
-
-## Values
-
-- 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box.
-- 🎛️ **Control** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-- 🚀 **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
-- ✅ **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- 👍 **Compatibility** - GRPC, REST, MySQL, Postgres, SQLite, Redis, ClickHouse, Prometheus, OpenTelemetry, and more.
+<!-- 
+TODO: uncomment once we have a migration guide
+**Migration path**: Flipt v2 maintains backwards compatibility with v1 APIs, making migration straightforward. Read our [migration guide](https://docs.flipt.io/v2/guides/migration) for details. -->
 
 <br clear="both"/>
 
-## Features
+## Use Cases
 
-- Stand-alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
-- Ability to create advanced distribution rules to target segments of users
-- Modern UI and debug console with dark mode 🌙
-- Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- CloudNative [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
-- Audit logging with Webhook support to track changes to your data
+Perfect for engineering teams that want to:
+
+- **Ship faster with confidence**: Deploy flags with your code using existing Git workflows
+- **Enable trunk-based development**: Merge incomplete features behind flags without risk
+- **Implement proper GitOps**: Treat infrastructure and feature flags as code
+- **Maintain security compliance**: Keep sensitive flag data within your infrastructure  
+- **Scale with multiple environments**: Manage flags across dev, staging, and production seamlessly
+- **Enable team collaboration**: Use familiar Git workflows for flag reviews and approvals
+
+<br clear="both"/>
+
+## Quick Start
+
+### Get Started in Seconds
+
+<!-- 
+TODO: uncomment when we have a stable release and install script
+
+```bash
+# Install Flipt
+curl -fsSL https://get.flipt.io/install/v2 | sh
+
+# Run with Git-backed storage (default)
+flipt server
+
+# Or with your existing Git repository
+flipt server --config my-config.yml
+```
+
+### Docker -->
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2-beta
+```
+
+Flipt UI will be available at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
+
+### Configuration Example
+
+```yaml
+# config.yml - Git-native setup
+storage:
+  type: git
+  git:
+    repository: "https://github.com/your-org/feature-flags.git"
+    ref: "main"
+    poll_interval: "30s"
+
+environments:
+  default:
+    storage: git
+  staging:
+    storage: git
+    directory: "staging"
+```
+
+For more setup options, see our [configuration documentation](https://docs.flipt.io/v2/configuration/overview).
+
+<br clear="both"/>
+
+## Core Values
+
+- 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box
+- 🎛️ **Control** - Your data stays in your Git repositories within your infrastructure  
+- 🚀 **Speed** - Co-located with your services, no external API calls required
+- ✅ **Simplicity** - Single binary with no external dependencies by default
+- 🔄 **GitOps Ready** - Native Git integration that works with your existing workflows
+- 👍 **Compatibility** - GRPC, REST, Redis, Prometheus, ClickHouse, OpenTelemetry, and more
+
+<br clear="both"/>
+
+## Key Features
+
+### Git-Native Storage
+
+- Store flags directly in Git repositories alongside your code
+- Full version control with Git history, blame, and diff support  
+- Integrates with your SCM (GitHub, GitLab, Gitea, etc.)
+
+### Multi-Environment Management  
+
+- Environment per Git branch, directory, or repository
+- Complete environment isolation with independent configurations
+- Seamless environment promotion workflows
+
+### Advanced Flag Management
+
+- Complex targeting rules and user segmentation
+- Percentage-based rollouts
+- Real-time flag evaluation with streaming updates
+
+### Developer Experience
+
+- Modern UI with Git integration and dark mode 🌙
+- Declarative flag configuration with JSON/YAML schemas
+- Comprehensive REST and gRPC APIs
+
+### Enterprise Features
+
+- Merge proposals for flag changes (commercial feature)
+- Authentication via OIDC, JWT, OAuth, and more
+- OpenTelemetry and Prometheus integration 🔋
+
+<br clear="both"/>
+
+> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, premium support, and priority bug fixes.  
+>
+> **[Start Free Trial →](https://buy.stripe.com/cNi8wPfoxfTh13J0u41B600)**
 
 Are we missing a feature that you'd like to see? [Let us know by opening an issue!](https://github.com/flipt-io/flipt/issues)
+
+<br clear="both"/>
+
+## Integration & SDKs
+
+Check out our [integration documentation](https://docs.flipt.io/v2/integration/overview) for comprehensive guides.
+
+### Server-Side Evaluation
+
+- **REST API** - Full HTTP API for any language
+- **gRPC API** - High-performance binary protocol
+
+### Client-Side Evaluation  
+
+- **Local evaluation** - Reduce latency with client-side flag evaluation, evaluate flags within your application for extreme speed and reliability.
+
+### OpenFeature Integration
+
+Flipt supports the [OpenFeature](https://openfeature.dev/) standard for vendor-neutral feature flag evaluation.
 
 <br clear="both"/>
 
@@ -108,15 +243,37 @@ No contribution is too small, whether it be bug reports/fixes, feature requests,
 
 Not sure how to get started? You can:
 
-- [Book a pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
-
 - Dive into any of the open issues, here are some examples:
   - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
   - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
   - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
 
-Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
+Review the [Development](DEVELOPMENT.md) documentation for more information on how to contribute to Flipt.
+
+<br clear="both"/>
+
+## Flipt v2 Pro
+
+Ready to unlock the full potential of Git-native feature management? Flipt v2 Pro adds enterprise-grade features on top of our solid open-source foundation.
+
+### What's Included in Pro
+
+- **🔀 Merge Proposals** - Code review workflow for feature flag changes, just like GitHub PRs
+- **🏢 Premium Support** - Shared Slack channel with same-day response times
+- **⚡ Priority Development** - Your bug reports and feature requests get prioritized
+- **🔧 Enterprise Auth** - Advanced authentication providers (coming soon)
+- **📊 Advanced Analytics** - Enhanced reporting and insights (coming soon)
+
+### Pricing & Trial
+
+- **Free 14-day trial** - No credit card required to start
+- **No instance limits** on paid plans - run Flipt v2 Pro on as many servers as you need
+- **Cancel anytime** - Prorated billing through our Stripe customer portal
+
+**[Start Your Free 14-Day Trial →](https://buy.stripe.com/cNi8wPfoxfTh13J0u41B600)**
+
+*Trial includes up to 5 instances. Upgrade seamlessly to unlimited instances with a paid subscription.*
 
 <br clear="both"/>
 
@@ -126,121 +283,11 @@ For help and discussion around Flipt, feature flag best practices, and more, joi
 
 <br clear="both"/>
 
-<!--## Try It
-
-Get started in seconds. Try the latest version of Flipt for yourself.
-
-### Local
-
-```shell
-curl -fsSL https://get.flipt.io/install | sh
-```
-
-### Deploy 
-
-<div>
-    <a href="https://marketplace.digitalocean.com/apps/flipt" alt="Deploy to DigitalOcean">
-        <img width="200" alt="Deploy to DigitalOcean" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-    </a>&nbsp;
-    <a href="https://render.com/deploy" alt="Deploy to Render">
-        <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
-    </a>&nbsp;
-    <a href="https://railway.app/template/dz-JCO" alt="Deploy to Railway">
-      <img width="150" alt="Deploy to Railway" src="https://railway.app/button.svg" />
-    </a>
-    <a href="https://app.koyeb.com/deploy?type=docker&image=docker.flipt.io/flipt/flipt&ports=8080;http;/&name=flipt-demo" alt="Deploy to Koyeb">
-      <img width="150" alt="Deploy to Koyeb" src="https://www.koyeb.com/static/images/deploy/button.svg" />
-    </a>
-</div>
-
-### Sandbox
-
-[Try Flipt](https://try.flipt.io) in a deployed environment!
-
-**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
-
-### Homebrew :beer:
-
-```bash
-brew install flipt-io/brew/flipt
-brew services start flipt
-
-# or run in the foreground
-flipt
-```
-
-Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
-
-### Docker :whale:
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:latest
-```
-
-Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
-
-For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
-
-### Nightly Build
-
-Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
-``` 
--->
-
-<br clear="both"/>
-
-## Supports
-
 <p align="center">
-    <img src="./logos/redis.svg" alt="Redis" height=75 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" height=75 />
-    <img src="./logos/openid.svg" alt="OpenID" height=75 />
-    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" height=75 />
-    <img src="./logos/git.svg" alt="Git" height=50 />
+    <a href="https://www.producthunt.com/posts/flipt-cloud?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt&#0045;cloud" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=498373&theme=light" alt="Flipt&#0032;Cloud - Feature&#0032;flags&#0046;&#0032;Powered&#0032;by&#0032;Git | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
-
-<br clear="both"/>
-
-## Integration
-
-Check out our [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
-
-There are two ways to evaluate feature flags with Flipt:
-
-- [Server Side](#server-side-evaluation)
-- [Client Side](#client-side-evaluation)
-
-### Server Side Evaluation
-
-Server-side evaluation is the most common way to evaluate feature flags. This is where your application makes a request to Flipt to evaluate a feature flag and Flipt responds with the result of the evaluation.
-
-Flipt exposes two different APIs for performing server-side evaluation:
-
-- [GRPC](#grpc)
-- [REST](#rest)
-
-#### GRPC
-
-Flipt is equipped with a fully functional GRPC API. GRPC is a high-performance, low-latency, binary protocol that is used by many large-scale companies such as Google, Netflix, and more.
-
-See our [GRPC Server SDK documentation](https://www.flipt.io/docs/integration/server/grpc) for the latest information.
-
-#### REST
-
-Flipt is equipped with a fully functional REST API. The Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
-
-The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
-
-See our [REST Server SDK documentation](https://www.flipt.io/docs/integration/server/rest) for the latest information.
-
-### Client Side Evaluation
-
-Client-side evaluation is a great way to reduce the number of requests that your application needs to make to Flipt. This is done by retrieving all of the feature flags that your application needs to evaluate and then evaluating them locally.
-
-See our [Client SDK documentation](https://www.flipt.io/docs/integration/client) for the latest information.
 
 <br clear="both"/>
 
@@ -261,17 +308,11 @@ We welcome contributions of any kind, including but not limited to bug fixes, fe
 
 <br clear="both"/>
 
-[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/flipt-io/flipt)
-
-<br clear="both"/>
-
 ## Licensing
 
 There are currently two types of licenses in place for Flipt:
 
-1. Client License
+1. Client License  
 2. Server License
 
 ### Client License
@@ -284,6 +325,6 @@ The client code is the code that you would integrate into your applications, whi
 
 ### Server License
 
-The server code is licensed under the [Fair Core License, Version 1.0, MIT Future License](https://github.com/flipt-io/flipt/blob/main/LICENSE).
+The server code is licensed under the [Fair Core License, Version 1.0, MIT Future License](https://github.com/flipt-io/flipt/blob/v2/LICENSE).
 
-See [fcl.dev](https://fcl.dev) for more information.
+See our [licensing docs](https://docs.flipt.io/v2/licensing) and [fcl.dev](https://fcl.dev) for more information.
