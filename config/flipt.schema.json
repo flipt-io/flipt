@@ -170,6 +170,10 @@
                 },
                 "secure": {
                   "type": "boolean"
+                },
+                "trusted_origins": {
+                  "type": ["array", "null"],
+                  "default": []
                 }
               }
             },
