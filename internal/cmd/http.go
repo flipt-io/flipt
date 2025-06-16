@@ -199,7 +199,7 @@ func NewHTTPServer(
 					handler.ServeHTTP(w, r)
 				})
 			})
-			r.Use(csrf.Protect([]byte(key), csrf.Path("/"), csrf.Secure(cfg.Authentication.Session.CSRF.Secure)))
+			r.Use(csrf.Protect([]byte(key), csrf.Path("/"), csrf.Secure(cfg.Authentication.Session.CSRF.Secure), csrf.TrustedOrigins(cfg.Authentication.Session.CSRF.TrustedOrigins)))
 		}
 
 		r.Mount("/api/v1", api)

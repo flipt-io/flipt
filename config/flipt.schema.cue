@@ -45,6 +45,7 @@ import "list"
 			csrf?: {
 				key:    string
 				secure: bool
+				trusted_origins?: [...] | string | *[]
 			}
 			storage?: {
 				type: *"memory" | "redis"
