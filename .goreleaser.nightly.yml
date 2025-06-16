@@ -9,12 +9,12 @@ changelog:
   disable: true
 
 docker_manifests:
-  - name_template: "flipt/flipt:v2-alpha"
+  - name_template: "flipt/flipt:v2-beta"
     image_templates:
-      - "flipt/flipt:v2-alpha-amd64"
-      - "flipt/flipt:v2-alpha-arm64"
+      - "flipt/flipt:v2-beta-amd64"
+      - "flipt/flipt:v2-beta-arm64"
 
-  - name_template: "ghcr.io/flipt-io/flipt:v2-alpha"
+  - name_template: "ghcr.io/flipt-io/flipt:v2-beta"
     image_templates:
-      - "ghcr.io/flipt-io/flipt:v2-alpha-amd64"
-      - "ghcr.io/flipt-io/flipt:v2-alpha-arm64"
+      - "ghcr.io/flipt-io/flipt:v2-beta-amd64"
+      - "ghcr.io/flipt-io/flipt:v2-beta-arm64"

@@ -39,10 +39,18 @@ func (c *githubReleaseCheckerImpl) getLatestRelease(ctx context.Context) (*githu
 
 var (
 	alphaVersionRegex            = regexp.MustCompile(`alpha$`)
+	betaVersionRegex             = regexp.MustCompile(`beta$`)
 	devVersionRegex              = regexp.MustCompile(`dev$`)
 	snapshotVersionRegex         = regexp.MustCompile(`snapshot$`)
 	releaseCandidateVersionRegex = regexp.MustCompile(`rc.*$`)
 
+	nonReleaseRegexes = []*regexp.Regexp{
+		alphaVersionRegex,
+		betaVersionRegex,
+		devVersionRegex,
+		snapshotVersionRegex,
+		releaseCandidateVersionRegex,
+	}
 	// defaultReleaseChecker checks for the latest release
 	// can be overridden for testing
 	defaultReleaseChecker githubReleaseChecker = &githubReleaseCheckerImpl{
@@ -93,5 +101,11 @@ func check(ctx context.Context, rc githubReleaseChecker, version string) (Info, 
 }
 
 func Is(version string) bool {
-	return !alphaVersionRegex.MatchString(version) && !devVersionRegex.MatchString(version) && !snapshotVersionRegex.MatchString(version) && !releaseCandidateVersionRegex.MatchString(version)
+	for _, re := range nonReleaseRegexes {
+		if re.MatchString(version) {
+			return false
+		}
+	}
+
+	return true
 }
