@@ -21,13 +21,13 @@ import {
 } from '~/components/ui/dropdown-menu';
 
 import { IEnvironment, ProposalState, SCM } from '~/types/Environment';
+import { Product } from '~/types/Meta';
 
 import { useAppSelector } from '~/data/hooks/store';
 import { getRepoUrlFromConfig } from '~/utils/helpers';
 
 import { CreateMergeProposalModal } from './CreateMergeProposalModal';
 import DeleteBranchModal from './DeleteBranchModal';
-import { Product } from '~/types/Meta';
 
 export default function BranchActionsDropdown({
   environment

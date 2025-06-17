@@ -28,13 +28,13 @@ func (p provider) String() string {
 	return string(p)
 }
 
-type quickstart struct {
+type quickstartCmd struct {
 	configFile         string
 	cfg                *config.Config
 	pendingCredentials map[string]map[string]any
 }
 
-func (c *quickstart) run(cmd *cobra.Command, args []string) error {
+func (c *quickstartCmd) run(cmd *cobra.Command, args []string) error {
 	defaultFile := providedConfigFile
 
 	if defaultFile == "" {
@@ -63,7 +63,7 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 	return c.runGitSetup()
 }
 
-func (c *quickstart) runGitSetup() error {
+func (c *quickstartCmd) runGitSetup() error {
 	c.cfg = config.Default()
 
 	// Ask for repository URL
@@ -176,7 +176,7 @@ func (c *quickstart) runGitSetup() error {
 	return c.writeConfig()
 }
 
-func (c *quickstart) setupSCMCredentials(provider provider, promptToOpenBrowser bool) (string, error) {
+func (c *quickstartCmd) setupSCMCredentials(provider provider, promptToOpenBrowser bool) (string, error) {
 	credentialsName := fmt.Sprintf("%s-api", strings.ToLower(string(provider)))
 
 	if promptToOpenBrowser {
@@ -219,9 +219,7 @@ func (c *quickstart) setupSCMCredentials(provider provider, promptToOpenBrowser 
 	return credentialsName, nil
 }
 
-func (c *quickstart) convertConfigToYAML() map[string]any {
-	// This is a simplified conversion - in practice you'd want to use
-	// proper struct-to-map conversion or mapstructure
+func (c *quickstartCmd) convertConfigToYAML() map[string]any {
 	result := make(map[string]any)
 
 	if c.cfg.Storage != nil && len(c.cfg.Storage) > 0 {
@@ -279,7 +277,7 @@ func (c *quickstart) convertConfigToYAML() map[string]any {
 	return result
 }
 
-func (c *quickstart) writeConfig() error {
+func (c *quickstartCmd) writeConfig() error {
 	configFile := c.configFile
 	if configFile == "" {
 		configFile = userConfigFile
@@ -390,7 +388,7 @@ func printSCMPermissions(provider provider) {
 }
 
 func newQuickstartCommand() *cobra.Command {
-	quickstartCmd := &quickstart{}
+	quickstartCmd := &quickstartCmd{}
 
 	cmd := &cobra.Command{
 		Use:   "quickstart ",
