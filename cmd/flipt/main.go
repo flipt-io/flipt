@@ -92,12 +92,12 @@ func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
 }
 
 func main() {
-	if err := exec(); err != nil {
+	if err := execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-func exec() error {
+func execute() error {
 	var rootCmd = &cobra.Command{
 		Use:   "flipt <command> <subcommand> [flags]",
 		Short: "Flipt is a cloud-native, self-hosted, feature flag solution that manages feature flags in your Git repositories",
@@ -161,6 +161,7 @@ func exec() error {
 	rootCmd.AddCommand(newConfigCommand())
 	rootCmd.AddCommand(newCompletionCommand())
 	rootCmd.AddCommand(newDocCommand())
+	rootCmd.AddCommand(newQuickstartCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
