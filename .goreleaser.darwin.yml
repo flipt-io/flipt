@@ -16,6 +16,7 @@ builds:
   - main: ./cmd/flipt/.
     ldflags:
       - -s -w
+      - -X main.version=v2.0.0-beta # TODO: replace with .PrefixedTag before release
       - -X main.commit={{ .Commit }}
       - -X main.date={{ .Date }}
       - -X main.analyticsKey={{ .Env.ANALYTICS_WRITE_KEY }}

@@ -39,14 +39,12 @@ func (c *githubReleaseCheckerImpl) getLatestRelease(ctx context.Context) (*githu
 
 var (
 	alphaVersionRegex            = regexp.MustCompile(`alpha$`)
-	betaVersionRegex             = regexp.MustCompile(`beta$`)
 	devVersionRegex              = regexp.MustCompile(`dev$`)
 	snapshotVersionRegex         = regexp.MustCompile(`snapshot$`)
 	releaseCandidateVersionRegex = regexp.MustCompile(`rc.*$`)
 
 	nonReleaseRegexes = []*regexp.Regexp{
 		alphaVersionRegex,
-		betaVersionRegex,
 		devVersionRegex,
 		snapshotVersionRegex,
 		releaseCandidateVersionRegex,
