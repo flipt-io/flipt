@@ -18,6 +18,7 @@
     <!-- <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a> -->
+    <img src="https://img.shields.io/badge/status-beta-blue" alt="Flipt v2 Beta" />
     <a href="https://goreportcard.com/report/github.com/flipt-io/flipt">
         <img src="https://goreportcard.com/badge/github.com/flipt-io/flipt" alt="Go Report Card" />
     </a>
@@ -39,10 +40,8 @@
     </h4>
 </div>
 
-> [!IMPORTANT]  
-> V2 of Flipt is currently in beta release status. We may make breaking changes to the UI and API until we reach a stable release.
-
-<br clear="both"/>
+> [!NOTE]  
+> **Looking for Flipt v1?** You can find the v1 code on the [`main` branch](https://github.com/flipt-io/flipt/tree/main) and documentation at [docs.flipt.io](https://docs.flipt.io/).
 
 ## Why Flipt v2?
 
@@ -79,6 +78,9 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 - **OIDC/JWT/OAuth**: Enterprise authentication methods supported
 
 <br clear="both"/>
+
+> [!IMPORTANT]  
+> V2 of Flipt is currently in beta release status. We may make breaking changes to the UI and API until we reach a stable release.
 
 ## Flipt v1 vs v2: What's New?
 
