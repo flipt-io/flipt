@@ -400,7 +400,6 @@ func newQuickstartCommand() *cobra.Command {
 The wizard will guide you through:
   • Configuring Git repository storage with SCM integration
   • Setting up authentication (Personal Access Token)
-  • Optionally enabling Flipt v2 Pro features (14-day free trial available)
 
 Examples:
   flipt quickstart              # Interactive setup wizard
