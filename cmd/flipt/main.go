@@ -41,7 +41,7 @@ import (
 var (
 	providedConfigFile string
 	forceMigrate       bool
-	v                  = "v2.0.0-alpha"
+	v                  = "v2.0.0"
 	commit             string
 	date               string
 	goVersion          = runtime.Version()
