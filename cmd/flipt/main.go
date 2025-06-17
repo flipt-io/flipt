@@ -386,10 +386,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
 	}
 
-	licenseManager, licenseManagerShutdown, err := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
-	if err != nil {
-		return err
-	}
+	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
 
 	defer func() {
 		_ = licenseManagerShutdown(shutdownCtx)
