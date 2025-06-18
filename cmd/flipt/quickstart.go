@@ -72,28 +72,31 @@ func (c *quickstart) runGitSetup() error {
 		return err
 	}
 
-	// Parse repository URL to detect provider
-	provider, repoOwner, repoName, err := parseRepositoryURL(repoURL)
+	// Parse repository URL to detect prvder
+	prvder, repoOwner, repoName, err := parseRepositoryURL(repoURL)
 	if err != nil {
 		return fmt.Errorf("parsing repository URL: %w", err)
 	}
 
 	// prompt them if the provider is correct, if not allow them to choose a different provider
-	correctProvider, err := util.PromptConfirm(fmt.Sprintf("Is %s the correct provider?", provider), true)
+	correctProvider, err := util.PromptConfirm(fmt.Sprintf("Is %s the correct provider?", prvder), true)
 	if err != nil {
 		return err
 	}
 
+	var providerString string
 	if !correctProvider {
 		if err := survey.AskOne(&survey.Select{
 			Message: "Which SCM provider would you like to integrate with?",
 			Options: []string{"GitHub", "GitLab", "Gitea"},
-		}, &provider); err != nil {
+		}, &providerString); err != nil {
 			return err
 		}
+
+		prvder = provider(strings.ToLower(providerString))
 	}
 
-	fmt.Printf("✅ Using %s repository: %s/%s\n\n", provider, repoOwner, repoName)
+	fmt.Printf("✅ Using %s repository: %s/%s\n\n", prvder, repoOwner, repoName)
 
 	// Configure environment with directory
 	if c.cfg.Environments == nil {
@@ -106,7 +109,7 @@ func (c *quickstart) runGitSetup() error {
 			Storage: "default",
 			Default: true,
 			SCM: &config.SCMConfig{
-				Type: config.SCMType(strings.ToLower(string(provider))),
+				Type: config.SCMType(strings.ToLower(string(prvder))),
 			},
 		}
 	}
@@ -127,18 +130,18 @@ func (c *quickstart) runGitSetup() error {
 	}
 
 	var promptToOpenBrowser = true
-	if provider != ProviderGit {
+	if prvder != ProviderGit {
 		c.cfg.Environments["default"].SCM = &config.SCMConfig{
-			Type: config.SCMType(strings.ToLower(string(provider))),
+			Type: config.SCMType(strings.ToLower(string(prvder))),
 		}
 
-		customAPI, err := util.PromptConfirm(fmt.Sprintf("Are you using a self-hosted/enterprise %s instance?", string(provider)), false)
+		customAPI, err := util.PromptConfirm(fmt.Sprintf("Are you using a self-hosted/enterprise %s instance?", string(prvder)), false)
 		if err != nil {
 			return err
 		}
 
 		if customAPI {
-			apiURL, err := util.PromptPlaintext(fmt.Sprintf("%s API URL:", provider), "")
+			apiURL, err := util.PromptPlaintext(fmt.Sprintf("%s API URL:", prvder), "")
 			if err != nil {
 				return err
 			}
@@ -148,7 +151,7 @@ func (c *quickstart) runGitSetup() error {
 	}
 
 	// Setup credentials for SCM API access
-	credentialsName, err := c.setupSCMCredentials(provider, promptToOpenBrowser)
+	credentialsName, err := c.setupSCMCredentials(prvder, promptToOpenBrowser)
 	if err != nil {
 		return err
 	}
@@ -168,7 +171,7 @@ func (c *quickstart) runGitSetup() error {
 	if credentialsName != "" {
 		c.cfg.Storage["default"].Credentials = credentialsName
 
-		if provider != ProviderGit {
+		if prvder != ProviderGit {
 			c.cfg.Environments["default"].SCM.Credentials = &credentialsName
 		}
 	}
@@ -220,8 +223,6 @@ func (c *quickstart) setupSCMCredentials(provider provider, promptToOpenBrowser 
 }
 
 func (c *quickstart) convertConfigToYAML() map[string]any {
-	// This is a simplified conversion - in practice you'd want to use
-	// proper struct-to-map conversion or mapstructure
 	result := make(map[string]any)
 
 	if c.cfg.Storage != nil && len(c.cfg.Storage) > 0 {
