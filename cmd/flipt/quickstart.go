@@ -51,7 +51,7 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 	fmt.Println("This wizard will help you configure Git storage syncing with a remote repository.")
 	fmt.Println()
 
-	fmt.Println("This will overwrite your existing config file if it exists.")
+	fmt.Println("⚠️ This will overwrite your existing config file if it exists.")
 	fmt.Println()
 
 	// prompt if they want to continue, if not return
