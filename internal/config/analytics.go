@@ -60,9 +60,10 @@ func (c *ClickhouseConfig) Options() (*clickhouse.Options, error) {
 
 // PrometheusConfig defines the connection details for connecting Flipt to Prometheus.
 type PrometheusConfig struct {
-	Enabled bool              `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
-	URL     string            `json:"-" mapstructure:"url" yaml:"-"`
-	Headers map[string]string `json:"-" mapstructure:"headers" yaml:"-"`
+	Enabled               bool              `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	ScrapeIntervalSeconds int               `json:"scrapeIntervalSeconds,omitempty" mapstructure:"scrapeIntervalSeconds" yaml:"scrapeIntervalSeconds,omitempty"`
+	URL                   string            `json:"-" mapstructure:"url" yaml:"-"`
+	Headers               map[string]string `json:"-" mapstructure:"headers" yaml:"-"`
 }
 
 //nolint:unparam
@@ -74,8 +75,9 @@ func (a *AnalyticsConfig) setDefaults(v *viper.Viper) error {
 				"url":     "",
 			},
 			"prometheus": map[string]any{
-				"enabled": "false",
-				"url":     "",
+				"enabled":               "false",
+				"scrapeIntervalSeconds": "15",
+				"url":                   "",
 			},
 		},
 		"buffer": map[string]any{
