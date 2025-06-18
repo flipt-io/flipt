@@ -28,6 +28,10 @@ func (p provider) String() string {
 	return string(p)
 }
 
+func (p provider) Hosted() bool {
+	return p != ProviderGit && p != ProviderGitea
+}
+
 type quickstart struct {
 	configFile         string
 	cfg                *config.Config
@@ -93,7 +97,7 @@ func (c *quickstart) runGitSetup() error {
 			return err
 		}
 
-		prvder = provider(strings.ToLower(providerString))
+		prvder = provider(providerString)
 	}
 
 	fmt.Printf("✅ Using %s repository: %s/%s\n\n", prvder, repoOwner, repoName)
@@ -129,8 +133,11 @@ func (c *quickstart) runGitSetup() error {
 		c.cfg.Environments["default"].Directory = directory
 	}
 
-	var promptToOpenBrowser = true
-	if prvder != ProviderGit {
+	var credentialsName string
+
+	switch prvder {
+	case ProviderGitHub, ProviderGitLab:
+		promptToOpenBrowser := true
 		c.cfg.Environments["default"].SCM = &config.SCMConfig{
 			Type: config.SCMType(strings.ToLower(string(prvder))),
 		}
@@ -148,12 +155,27 @@ func (c *quickstart) runGitSetup() error {
 			c.cfg.Environments["default"].SCM.ApiURL = apiURL
 			promptToOpenBrowser = false
 		}
-	}
+		// Setup credentials for SCM API access
+		credentialsName, err = c.setupSCMCredentials(prvder, promptToOpenBrowser)
+		if err != nil {
+			return err
+		}
+	case ProviderGitea:
+		c.cfg.Environments["default"].SCM = &config.SCMConfig{
+			Type: config.SCMType(strings.ToLower(string(prvder))),
+		}
 
-	// Setup credentials for SCM API access
-	credentialsName, err := c.setupSCMCredentials(prvder, promptToOpenBrowser)
-	if err != nil {
-		return err
+		apiURL, err := util.PromptPlaintext(fmt.Sprintf("%s API URL:", prvder), "")
+		if err != nil {
+			return err
+		}
+		c.cfg.Environments["default"].SCM.ApiURL = apiURL
+
+		// Setup credentials for SCM API access
+		credentialsName, err = c.setupSCMCredentials(prvder, false)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Configure storage
