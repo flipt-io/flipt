@@ -1,6 +1,8 @@
-name: Release (Beta)
+name: Release (Nightly)
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "30 22 * * *" # nightly @ 10:30 PM UTC. Note: this only works on the default branch.
 
 permissions:
   contents: write
@@ -135,10 +137,6 @@ jobs:
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
-      # - name: Git Tag
-      #   run: |
-      #     echo "GORELEASER_CURRENT_TAG=$(git describe --tags --match='v[0-9]*' `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
 
       - name: GoReleaser (Nightly) Release
         uses: goreleaser/goreleaser-action@v6

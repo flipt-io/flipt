@@ -58,13 +58,6 @@ release:
     - [Github Issues](https://github.com/flipt-io/flipt/issues)
     - [Website](https://flipt.io)
 
-snapshot:
-  version_template: "v2-{{ .ShortCommit }}-snapshot"
-
-nightly:
-  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  version_template: "{{ incpatch .Version }}-nightly"
-
 changelog:
   disable: true
   use: github
