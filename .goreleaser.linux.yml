@@ -21,6 +21,9 @@ builds:
       - -X main.date={{ .Date }}
       - -X main.analyticsKey={{ .Env.ANALYTICS_WRITE_KEY }}
       - -X main.analyticsEndpoint={{ .Env.ANALYTICS_WRITE_ENDPOINT }}
+      - -X main.keygenVerifyKey={{ .Env.KEYGEN_VERIFY_KEY }}
+      - -X main.keygenAccountID={{ .Env.KEYGEN_ACCOUNT_ID }}
+      - -X main.keygenProductID={{ .Env.KEYGEN_PRODUCT_ID }}
       - -linkmode external -extldflags "-static"
     goos:
       - linux

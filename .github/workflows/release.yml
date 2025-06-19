@@ -85,6 +85,9 @@ jobs:
           ANALYTICS_WRITE_ENDPOINT: ${{ secrets.ANALYTICS_WRITE_ENDPOINT }}
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
           QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
+          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
+          KEYGEN_PRODUCT_ID: ${{ secrets.KEYGEN_PRODUCT_ID }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -167,8 +170,6 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-          ANALYTICS_WRITE_KEY: ${{ secrets.ANALYTICS_WRITE_KEY }}
-          ANALYTICS_WRITE_ENDPOINT: ${{ secrets.ANALYTICS_WRITE_ENDPOINT }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
