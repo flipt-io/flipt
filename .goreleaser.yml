@@ -44,10 +44,6 @@ release:
   target_commitish: "{{ .Commit }}"
   footer: |
     ## Installation
-    ### Homebrew :beer:
-    ```bash
-      brew install flipt-io/brew/flipt@2
-    ```
     ### Docker Images :whale:
     ```bash
       docker pull docker.flipt.io/flipt/flipt:v{{ .Tag }}
@@ -61,13 +57,6 @@ release:
     - [Github Discussions](https://github.com/flipt-io/flipt/discussions)
     - [Github Issues](https://github.com/flipt-io/flipt/issues)
     - [Website](https://flipt.io)
-
-snapshot:
-  version_template: "v2-{{ .ShortCommit }}-snapshot"
-
-nightly:
-  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  version_template: "{{ incmajor .Version }}-alpha"
 
 changelog:
   disable: true
@@ -93,10 +82,10 @@ dockers:
     goos: linux
     goarch: amd64
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-amd64{{ else }}flipt/flipt:v{{ .Major }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64{{ end }}"
+      - "flipt/flipt:v{{ .Tag }}-amd64"
+      - "flipt/flipt:v{{ .Major }}-beta-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-beta-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -108,10 +97,10 @@ dockers:
     goos: linux
     goarch: arm64
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-arm64{{ else }}flipt/flipt:v{{ .Major }}-arm64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64{{ end }}"
+      - "flipt/flipt:v{{ .Tag }}-arm64"
+      - "flipt/flipt:v{{ .Major }}-beta-arm64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-beta-arm64"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -119,58 +108,58 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
 
 docker_manifests:
-  - name_template: "{{ if .IsNightly }}flipt/flipt:v2-beta{{ else }}flipt/flipt:v{{ .Tag }}{{ end }}"
+  - name_template: "flipt/flipt:v{{ .Tag }}"
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "flipt/flipt:v{{ .Tag }}-amd64"
+      - "flipt/flipt:v{{ .Tag }}-arm64"
 
-  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}{{ end }}"
+  - name_template: "ghcr.io/flipt-io/flipt:v{{ .Tag }}"
     image_templates:
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64{{ end }}"
+      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
 
-  - name_template: "{{ if .IsNightly }}flipt/flipt:v2-beta{{ else }}flipt/flipt:v{{ .Major }}{{ end }}"
+  - name_template: "flipt/flipt:v{{ .Major }}-beta"
     image_templates:
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-amd64{{ else }}flipt/flipt:v{{ .Major }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}flipt/flipt:v2-beta-arm64{{ else }}flipt/flipt:v{{ .Major }}-arm64{{ end }}"
+      - "flipt/flipt:v{{ .Major }}-beta-amd64"
+      - "flipt/flipt:v{{ .Major }}-beta-arm64"
 
-  - name_template: "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}{{ end }}"
+  - name_template: "ghcr.io/flipt-io/flipt:v{{ .Major }}-beta"
     image_templates:
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-amd64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64{{ end }}"
-      - "{{ if .IsNightly }}ghcr.io/flipt-io/flipt:v2-beta-arm64{{ else }}ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64{{ end }}"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-beta-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-beta-arm64"
 
 announce:
   discord:
-    enabled: true
+    enabled: false
   slack:
     enabled: true
     channel: "#releases"
 
-brews:
-  - name: flipt@2
-    homepage: https://flipt.io
-    description: A Git-first, CloudNative feature management solution
-    license: FCL-1.0-MIT
-    directory: Formula
-    skip_upload: auto
-    install: |
-      bin.install "flipt"
-      output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
-      (bash_completion/"flipt").write output
-      output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
-      (zsh_completion/"_flipt").write output
+# brews:
+#   - name: flipt@2
+#     homepage: https://flipt.io
+#     description: A Git-first, CloudNative feature management solution
+#     license: FCL-1.0-MIT
+#     directory: Formula
+#     skip_upload: auto
+#     install: |
+#       bin.install "flipt"
+#       output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
+#       (bash_completion/"flipt").write output
+#       output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
+#       (zsh_completion/"_flipt").write output
 
-    post_install: |
-      (var/"log/flipt").mkpath
+#     post_install: |
+#       (var/"log/flipt").mkpath
 
-    service: |
-      run [opt_bin/"flipt", "server"]
-      environment_variables PATH: std_service_path_env
-      keep_alive true
-      error_log_path "#{var}/log/flipt/server-stderr.log"
-      log_path "#{var}/log/flipt/server-stdout.log"
+#     service: |
+#       run [opt_bin/"flipt", "server"]
+#       environment_variables PATH: std_service_path_env
+#       keep_alive true
+#       error_log_path "#{var}/log/flipt/server-stderr.log"
+#       log_path "#{var}/log/flipt/server-stdout.log"
 
-    repository:
-      owner: flipt-io
-      name: homebrew-brew
-      branch: main
+#     repository:
+#       owner: flipt-io
+#       name: homebrew-brew
+#       branch: main

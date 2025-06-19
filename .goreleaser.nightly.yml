@@ -1,20 +1,101 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 version: 2
 
-includes:
-  - from_file:
-      path: .goreleaser.yml
+project_name: flipt
+
+git:
+  tag_sort: semver
+
+monorepo:
+  tag_prefix: v
+
+builds:
+  - builder: prebuilt
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    goamd64:
+      - v1
+    prebuilt:
+      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}{{ with .Arm64 }}_{{ . }}{{ end }}/flipt
+    binary: flipt
+
+sboms:
+  - artifacts: archive
+
+archives:
+  - id: main
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- tolower .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
+  target_commitish: "{{ .Commit }}"
+
+nightly:
+  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
+  version_template: "v2.0.0-beta-nightly"
 
 changelog:
   disable: true
 
-docker_manifests:
-  - name_template: "flipt/flipt:v2-beta"
+dockers:
+  - dockerfile: ./build/Dockerfile
+    use: buildx
+    goos: linux
+    goarch: amd64
     image_templates:
-      - "flipt/flipt:v2-beta-amd64"
-      - "flipt/flipt:v2-beta-arm64"
+      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
+      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
 
-  - name_template: "ghcr.io/flipt-io/flipt:v2-beta"
+  - dockerfile: ./build/Dockerfile
+    use: buildx
+    goos: linux
+    goarch: arm64
     image_templates:
-      - "ghcr.io/flipt-io/flipt:v2-beta-amd64"
-      - "ghcr.io/flipt-io/flipt:v2-beta-arm64"
+      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+
+docker_manifests:
+  - name_template: "flipt/flipt:v2.0.0-beta-nightly"
+    image_templates:
+      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
+      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
+
+  - name_template: "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly"
+    image_templates:
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
+
+  - name_template: "flipt/flipt:v2.0.0-beta-nightly"
+    image_templates:
+      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
+      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
+
+  - name_template: "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly"
+    image_templates:
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
+      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
