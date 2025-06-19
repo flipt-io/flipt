@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/v2/config/flipt.schema.json
+
+# version: "1.0"
+log:
+  level: DEBUG
+
+storage:
+  default:
+    name: "local" 
+  staging:
+    name: "staging"
+    remote: "https://github.com/flipt-io/flipt-features"
+    branch: "main"
+    credentials: "github"
+
+environments:
+  local:
+    name: "local"
+    default: true
+
+  staging:
+    name: "staging"
+    storage: "staging"
+    directory: "features"
+    scm:
+      type: github
+      credentials: github
+
+
+credentials:
+  github:
+    type: "access_token"
+    access_token: ${FLIPT_GITHUB_TOKEN}
+
+cors:
+  enabled: true
+  allowed_origins: ["*"]
+
+license:
+  key: "foo"
+
+# server:
+#   protocol: http
+#   host: 0.0.0.0
+#   https_port: 443
+#   http_port: 8080
+#   grpc_port: 9000
