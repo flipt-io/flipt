@@ -18,24 +18,6 @@ updates:
       # kodiak `merge.automerge_label`
       - "automerge"
 
-  - package-ecosystem: gomod
-    directory: "/_tools"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-      - dependency-name: github.com/golangci/golangci-lint
-        versions:
-          - "> 1.26.0"
-    labels:
-      - "dependencies"
-      - "go"
-      # kodiak `merge.automerge_label`
-      - "automerge"
-
   - package-ecosystem: npm
     directory: "/ui"
     schedule:

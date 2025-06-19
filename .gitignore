@@ -61,4 +61,5 @@ build/mage_output_file.go
 
 release-notes.md
 config/*.*.bk
-config/dev.yml_tools
+config/dev.yml
+_tools

@@ -34,13 +34,6 @@ jobs:
           check-latest: true
           cache: true
 
-      - uses: actions/cache@v4
-        with:
-          path: _tools/
-          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-tools-
-
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
