@@ -2,7 +2,7 @@ name: Proto
 on:
   push:
     branches:
-      - main
+      - v2
     paths:
       - "sdk/**"
       - "rpc/**"

@@ -2,7 +2,7 @@ name: Proto Push
 on:
   push:
     tags:
-      - "v*"
+      - "v2*"
 
 jobs:
   proto-push:
