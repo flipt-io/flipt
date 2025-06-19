@@ -26,7 +26,7 @@ get_latest_version() {
         # Use jq to parse JSON and get the latest v2.x.x release
         # This approach properly handles semver sorting
         res=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases" | 
-              jq -r '[.[] | select(.tag_name | startswith("v2.")) | .tag_name] | sort_by(sub("^v"; "") | split(".") | map(tonumber)) | reverse | .[0]')
+              jq -r '[.[] | select(.tag_name | startswith("v2.")) | .tag_name] | .[0]') # | sort_by(sub("^v"; "") | split(".") | map(tonumber)) | reverse | .[0]')
     else
         # Fallback method if jq is not available
         # Gets all v2.x.x releases and uses sort -V for version sorting (if available)
