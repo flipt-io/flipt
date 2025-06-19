@@ -118,23 +118,22 @@ Perfect for engineering teams that want to:
 
 ## Quick Start
 
-### Get Started in Seconds
+See our [quickstart guide](https://docs.flipt.io/v2/quickstart) for more details.
 
-<!-- 
-TODO: uncomment when we have a stable release and install script
+### Local
 
 ```bash
 # Install Flipt
-curl -fsSL https://get.flipt.io/install/v2 | sh
+curl -fsSL https://get.flipt.io/v2 | sh
 
-# Run with Git-backed storage (default)
+# Wizard-driven setup to get you started quickly
+flipt quickstart
+
+# Run Flipt server
 flipt server
-
-# Or with your existing Git repository
-flipt server --config my-config.yml
 ```
 
-### Docker -->
+### Docker
 
 ```bash
 docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2-beta
@@ -212,7 +211,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 > **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, premium support, and priority bug fixes.  
 >
-> **[Start Free Trial →](https://buy.stripe.com/cNi8wPfoxfTh13J0u41B600)**
+> **[Start Free Trial →](https://getflipt.co/pro)**
 
 Are we missing a feature that you'd like to see? [Let us know by opening an issue!](https://github.com/flipt-io/flipt/issues)
 
@@ -273,7 +272,7 @@ Ready to unlock the full potential of Git-native feature management? Flipt v2 Pr
 - **No instance limits** on paid plans - run Flipt v2 Pro on as many servers as you need
 - **Cancel anytime** - Prorated billing through our Stripe customer portal
 
-**[Start Your Free 14-Day Trial →](https://buy.stripe.com/cNi8wPfoxfTh13J0u41B600)**
+**[Start Your Free 14-Day Trial →](https://getflipt.co/pro)**
 
 *Trial includes up to 5 instances. Upgrade seamlessly to unlimited instances with a paid subscription.*
 
