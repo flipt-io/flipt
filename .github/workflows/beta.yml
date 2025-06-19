@@ -1,8 +1,5 @@
 name: Release (Beta)
 on:
-  push:
-    branches:
-      - v2
   workflow_dispatch:
 
 permissions:
