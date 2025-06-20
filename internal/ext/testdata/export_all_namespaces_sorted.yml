@@ -4,90 +4,96 @@ namespace:
   name: bar
   description: bar namespace
 flags:
-  - key: FLag2
-    name: FLag2
-    type: "BOOLEAN_FLAG_TYPE"
-    description: a boolean flag
-    enabled: false
-    rollouts:
-      - description: enabled for external users
-        segment:
-          key: external_users
-          value: true
-      - description: enabled for 60%
-        threshold:
-          percentage: 60
-          value: true
-    metadata:
-      label: bool
-      area: 12
-  - key: flag1
-    name: flag1
-    type: "VARIANT_FLAG_TYPE"
-    description: description
-    enabled: true
-    variants:
-      - key: foo
-      - key: variant1
-        name: variant1
-        attachment:
-          pi: 3.141
-          happy: true
-          name: Niels
-          nothing:
-          answer:
-            everything: 42
-          list:
-            - 1
-            - 0
-            - 2
-          object:
-            currency: USD
-            value: 42.99
-    rules:
-      - segment: segment1
-        distributions:
-          - variant: variant1
-            rollout: 100
-      - segment:
-          keys:
-            - segment1
-            - segment2
-          operator: AND_SEGMENT_OPERATOR
-  - key: flag2
-    name: flag2
-    type: "BOOLEAN_FLAG_TYPE"
-    description: a boolean flag
-    enabled: false
-    rollouts:
-      - description: enabled for internal users
-        segment:
-          key: internal_users
-          value: true
-      - description: enabled for 50%
-        threshold:
-          percentage: 50
-          value: true
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+  metadata:
+    area: 12
+    label: bool
+  rollouts:
+  - id: "3"
+    description: enabled for external users
+    segment:
+      key: external_users
+      value: true
+  - id: "4"
+    description: enabled for 60%
+    threshold:
+      percentage: 60
+      value: true
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+    attachment:
+      answer:
+        everything: 42
+      happy: true
+      list:
+      - 1
+      - 0
+      - 2
+      name: Niels
+      nothing: null
+      object:
+        currency: USD
+        value: 42.99
+      pi: 3.141
+  rules:
+  - segment: segment1
+    distributions:
+    - variant: variant1
+      rollout: 100
+  - segment:
+      keys:
+      - segment1
+      - segment2
+      operator: AND_SEGMENT_OPERATOR
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+  rollouts:
+  - id: "1"
+    description: enabled for internal users
+    segment:
+      key: internal_users
+      value: true
+  - id: "2"
+    description: enabled for 50%
+    threshold:
+      percentage: 50
+      value: true
 segments:
-  - key: segment1
-    name: segment1
-    match_type: "ANY_MATCH_TYPE"
-    description: description
-    constraints:
-      - type: STRING_COMPARISON_TYPE
-        property: foo
-        operator: eq
-        value: baz
-        description: desc
-      - type: STRING_COMPARISON_TYPE
-        property: fizz
-        operator: neq
-        value: buzz
-        description: desc
-  - key: segment2
-    name: segment2
-    match_type: "ANY_MATCH_TYPE"
-    description: description
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - id: "1"
+    type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+    description: desc
+  - id: "2"
+    type: STRING_COMPARISON_TYPE
+    property: fizz
+    operator: neq
+    value: buzz
+    description: desc
+  match_type: ANY_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
 ---
 namespace:
   key: default
@@ -99,87 +105,93 @@ namespace:
   name: foo
   description: foo namespace
 flags:
-  - key: FLag2
-    name: FLag2
-    type: "BOOLEAN_FLAG_TYPE"
-    description: a boolean flag
-    enabled: false
-    rollouts:
-      - description: enabled for external users
-        segment:
-          key: external_users
-          value: true
-      - description: enabled for 60%
-        threshold:
-          percentage: 60
-          value: true
-    metadata:
-      label: bool
-      area: 12
-  - key: flag1
-    name: flag1
-    type: "VARIANT_FLAG_TYPE"
-    description: description
-    enabled: true
-    variants:
-      - key: foo
-      - key: variant1
-        name: variant1
-        attachment:
-          pi: 3.141
-          happy: true
-          name: Niels
-          nothing:
-          answer:
-            everything: 42
-          list:
-            - 1
-            - 0
-            - 2
-          object:
-            currency: USD
-            value: 42.99
-    rules:
-      - segment: segment1
-        distributions:
-          - variant: variant1
-            rollout: 100
-      - segment:
-          keys:
-            - segment1
-            - segment2
-          operator: AND_SEGMENT_OPERATOR
-  - key: flag2
-    name: flag2
-    type: "BOOLEAN_FLAG_TYPE"
-    description: a boolean flag
-    enabled: false
-    rollouts:
-      - description: enabled for internal users
-        segment:
-          key: internal_users
-          value: true
-      - description: enabled for 50%
-        threshold:
-          percentage: 50
-          value: true
+- key: FLag2
+  name: FLag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+  metadata:
+    area: 12
+    label: bool
+  rollouts:
+  - id: "3"
+    description: enabled for external users
+    segment:
+      key: external_users
+      value: true
+  - id: "4"
+    description: enabled for 60%
+    threshold:
+      percentage: 60
+      value: true
+- key: flag1
+  name: flag1
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: foo
+  - key: variant1
+    name: variant1
+    attachment:
+      answer:
+        everything: 42
+      happy: true
+      list:
+      - 1
+      - 0
+      - 2
+      name: Niels
+      nothing: null
+      object:
+        currency: USD
+        value: 42.99
+      pi: 3.141
+  rules:
+  - segment: segment1
+    distributions:
+    - variant: variant1
+      rollout: 100
+  - segment:
+      keys:
+      - segment1
+      - segment2
+      operator: AND_SEGMENT_OPERATOR
+- key: flag2
+  name: flag2
+  type: BOOLEAN_FLAG_TYPE
+  description: a boolean flag
+  enabled: false
+  rollouts:
+  - id: "1"
+    description: enabled for internal users
+    segment:
+      key: internal_users
+      value: true
+  - id: "2"
+    description: enabled for 50%
+    threshold:
+      percentage: 50
+      value: true
 segments:
-  - key: segment1
-    name: segment1
-    match_type: "ANY_MATCH_TYPE"
-    description: description
-    constraints:
-      - type: STRING_COMPARISON_TYPE
-        property: foo
-        operator: eq
-        value: baz
-        description: desc
-      - type: STRING_COMPARISON_TYPE
-        property: fizz
-        operator: neq
-        value: buzz
-        description: desc
-  - key: segment2
-    name: segment2
-    match_type: "ANY_MATCH_TYPE"
-    description: description
+- key: segment1
+  name: segment1
+  description: description
+  constraints:
+  - id: "1"
+    type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+    description: desc
+  - id: "2"
+    type: STRING_COMPARISON_TYPE
+    property: fizz
+    operator: neq
+    value: buzz
+    description: desc
+  match_type: ANY_MATCH_TYPE
+- key: segment2
+  name: segment2
+  description: description
+  match_type: ANY_MATCH_TYPE
