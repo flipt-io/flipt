@@ -68,7 +68,7 @@ require (
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 	github.com/twmb/franz-go v1.18.1
 	github.com/twmb/franz-go/pkg/kadm v1.16.0
-	github.com/twmb/franz-go/pkg/sr v1.3.0
+	github.com/twmb/franz-go/pkg/sr v1.4.0
 	github.com/twmb/franz-go/plugin/kzap v1.1.2
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xo/dburl v0.23.8
