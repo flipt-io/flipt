@@ -21,10 +21,10 @@ cloud.google.com/go/storage v1.55.0 h1:NESjdAToN9u1tmhVqhXCaCwYBuvEhZLLv0gBr+2zn
 cloud.google.com/go/storage v1.55.0/go.mod h1:ztSmTTwzsdXe5syLVS0YsbFxXuvEmEyZj7v7zChEmuY=
 cloud.google.com/go/trace v1.11.6 h1:2O2zjPzqPYAHrn3OKl029qlqG6W8ZdYaOWRyr8NgMT4=
 cloud.google.com/go/trace v1.11.6/go.mod h1:GA855OeDEBiBMzcckLPE2kDunIpC72N+Pq8WFieFjnI=
-cuelabs.dev/go/oci/ociregistry v0.0.0-20241125120445-2c00c104c6e1 h1:mRwydyTyhtRX2wXS3mqYWzR2qlv6KsmoKXmlz5vInjg=
-cuelabs.dev/go/oci/ociregistry v0.0.0-20241125120445-2c00c104c6e1/go.mod h1:5A4xfTzHTXfeVJBU6RAUf+QrlfTCW+017q/QiW+sMLg=
-cuelang.org/go v0.12.1 h1:5I+zxmXim9MmiN2tqRapIqowQxABv2NKTgbOspud1Eo=
-cuelang.org/go v0.12.1/go.mod h1:B4+kjvGGQnbkz+GuAv1dq/R308gTkp0sO28FdMrJ2Kw=
+cuelabs.dev/go/oci/ociregistry v0.0.0-20250304105642-27e071d2c9b1 h1:Dmbd5Q+ENb2C6carvwrMsrOUwJ9X9qfL5JdW32gYAHo=
+cuelabs.dev/go/oci/ociregistry v0.0.0-20250304105642-27e071d2c9b1/go.mod h1:dqrnoZx62xbOZr11giMPrWbhlaV8euHwciXZEy3baT8=
+cuelang.org/go v0.13.1 h1:gG01N9B7P95MsQh0EBmr63mVOz7seTP3KH/zg6oAvSs=
+cuelang.org/go v0.13.1/go.mod h1:8MoQXu+RcXsa2s9mebJN1HJ1orVDc9aI9/yKi6Dzsi4=
 dario.cat/mergo v1.0.1 h1:Ra4+bf83h2ztPIQYNP99R6m+Y7KfnARDfID+a+vLl4s=
 dario.cat/mergo v1.0.1/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -253,8 +253,8 @@ github.com/ebitengine/purego v0.8.2 h1:jPPGWs2sZ1UgOSgD2bClL0MJIqu58nOmIcBuXr62z
 github.com/ebitengine/purego v0.8.2/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
 github.com/elazarl/goproxy v1.7.2/go.mod h1:82vkLNir0ALaW14Rc399OTTjyNREgmdL2cVoIbS6XaE=
-github.com/emicklei/proto v1.13.4 h1:myn1fyf8t7tAqIzV91Tj9qXpvyXXGXk8OS2H6IBSc9g=
-github.com/emicklei/proto v1.13.4/go.mod h1:rn1FgRS/FANiZdD2djyH7TMA9jdRDcYQ9IEN9yvjX0A=
+github.com/emicklei/proto v1.14.0 h1:WYxC0OrBuuC+FUCTZvb8+fzEHdZMwLEF+OnVfZA3LXU=
+github.com/emicklei/proto v1.14.0/go.mod h1:rn1FgRS/FANiZdD2djyH7TMA9jdRDcYQ9IEN9yvjX0A=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -697,8 +697,8 @@ github.com/prometheus/common v0.65.0 h1:QDwzd+G1twt//Kwj/Ww6E9FQq1iVMmODnILtW1t2
 github.com/prometheus/common v0.65.0/go.mod h1:0gZns+BLRQ3V6NdaerOhMbwwRbNh9hkGINtQAsP5GS8=
 github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
-github.com/protocolbuffers/txtpbfmt v0.0.0-20241112170944-20d2c9ebc01d h1:HWfigq7lB31IeJL8iy7jkUmU/PG1Sr8jVGhS749dbUA=
-github.com/protocolbuffers/txtpbfmt v0.0.0-20241112170944-20d2c9ebc01d/go.mod h1:jgxiZysxFPM+iWKwQwPR+y+Jvo54ARd4EisXxKYpB5c=
+github.com/protocolbuffers/txtpbfmt v0.0.0-20250129171521-feedd8250727 h1:A8EM8fVuYc0qbVMw9D6EiKdKTIm1SmLvAWcCc2mipGY=
+github.com/protocolbuffers/txtpbfmt v0.0.0-20250129171521-feedd8250727/go.mod h1:VmWrOlMnBZNtToCWzRlZlIXcJqjo0hS5dwQbRD62gL8=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5XpJzTSTfLsJV/mx9Q9g7kxmchpfZyxgzM=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/redis/go-redis/extra/rediscmd/v9 v9.8.0 h1:/A+PnpT6ufTUt/6YPXiZlCRoyyfEnDag5WGrEK8Gq0I=

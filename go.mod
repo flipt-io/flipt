@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	cloud.google.com/go/storage v1.55.0
-	cuelang.org/go v0.12.1
+	cuelang.org/go v0.13.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.1
 	github.com/ClickHouse/clickhouse-go/v2 v2.37.1
@@ -299,7 +299,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.6.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
