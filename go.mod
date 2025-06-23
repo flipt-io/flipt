@@ -76,7 +76,7 @@ require (
 	go.flipt.io/flipt/errors v1.45.0
 	go.flipt.io/flipt/rpc/flipt v1.54.0
 	go.flipt.io/flipt/sdk/go v0.11.0
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.60.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.60.0
