@@ -98,7 +98,7 @@
     "package-changed": "^3.0.0",
     "playwright": "^1.51.0",
     "postcss": "^8.5.4",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.1",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "tailwindcss": "^4.1.10",
