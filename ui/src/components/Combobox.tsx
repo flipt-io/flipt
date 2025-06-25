@@ -67,7 +67,7 @@ export default function Combobox<T extends IFilterable>(
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setQuery(e.target.value);
               }}
-              displayValue={(v: T) => v?.key}
+              displayValue={(v: T) => v?.displayValue}
               placeholder={placeholder}
               name={name}
               id={`${id}-select-input`}
@@ -122,13 +122,6 @@ export default function Combobox<T extends IFilterable>(
                           <span
                             className={cls('truncate text-gray-700', {
                               'font-semibold': selected,
-                              'text-gray-100': active
-                            })}
-                          >
-                            {v?.filterValue}
-                          </span>
-                          <span
-                            className={cls('ml-2 truncate text-gray-500', {
                               'text-gray-100': active
                             })}
                           >
