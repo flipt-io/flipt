@@ -32,7 +32,7 @@ export default function SingleDistributionFormInput(
             variants?.map((v) => ({
               ...v,
               filterValue: v.key,
-              displayValue: v.name
+              displayValue: v.key
             })) || []
           }
           selected={selectedVariant}
