@@ -45,7 +45,7 @@
     "cmdk": "^0.2.1",
     "date-fns": "^3.6.0",
     "formik": "^2.4.6",
-    "lucide-react": "^0.513.0",
+    "lucide-react": "^0.523.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
@@ -103,7 +103,7 @@
     "prettier-plugin-tailwindcss": "^0.6.12",
     "tailwindcss": "^4.1.10",
     "tailwindcss-bg-patterns": "^0.3.0",
-    "ts-jest": "^29.3.4",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5",
     "vite": "^6.3.5"
