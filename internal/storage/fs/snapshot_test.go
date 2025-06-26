@@ -17,6 +17,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 //go:embed all:testdata
@@ -158,6 +159,12 @@ func (fis *FSIndexSuite) TestGetFlag() {
 						NamespaceKey: "production",
 					},
 				},
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo":    {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+						"number": {Kind: &structpb.Value_NumberValue{NumberValue: 42}},
+					},
+				},
 			},
 		},
 		{
@@ -194,6 +201,7 @@ func (fis *FSIndexSuite) TestGetFlag() {
 			assert.Equal(t, tc.flag.NamespaceKey, flag.NamespaceKey)
 			assert.Equal(t, tc.flag.Name, flag.Name)
 			assert.Equal(t, tc.flag.Description, flag.Description)
+			assert.Equal(t, tc.flag.Metadata, flag.Metadata)
 
 			for i := 0; i < len(flag.Variants); i++ {
 				v := tc.flag.Variants[i]
