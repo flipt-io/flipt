@@ -20,6 +20,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v3"
 )
@@ -376,6 +377,14 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 			Type:         flipt.FlagType(flagType),
 			CreatedAt:    ss.now,
 			UpdatedAt:    ss.now,
+		}
+
+		if f.Metadata != nil {
+			metadata, err := structpb.NewStruct(f.Metadata)
+			if err != nil {
+				return err
+			}
+			flag.Metadata = metadata
 		}
 
 		for _, v := range f.Variants {
