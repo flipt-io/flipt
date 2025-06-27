@@ -85,6 +85,12 @@ func TestSnapshot_GetFlag(t *testing.T) {
 						},
 					},
 				},
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo":    {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+						"number": {Kind: &structpb.Value_NumberValue{NumberValue: 42}},
+					},
+				},
 				Type: core.FlagType_VARIANT_FLAG_TYPE,
 			},
 		},
@@ -242,6 +248,12 @@ func TestSnapshot_ListFlags(t *testing.T) {
 									Rollout: 100,
 								},
 							},
+						},
+					},
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo":    {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+							"number": {Kind: &structpb.Value_NumberValue{NumberValue: 42}},
 						},
 					},
 					Type: core.FlagType_VARIANT_FLAG_TYPE,
