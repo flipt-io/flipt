@@ -315,7 +315,7 @@ func versionTags(repo *git.Repository, prefix string, includePre bool) (v []stri
 	if err := iter.ForEach(func(ref *plumbing.Reference) error {
 		name := strings.TrimPrefix(string(ref.Name()), "refs/tags/")
 		if prefix == "" {
-			if strings.HasPrefix(name, "v") {
+			if strings.HasPrefix(name, "v1") {
 				v = append(v, fix(name))
 			}
 
