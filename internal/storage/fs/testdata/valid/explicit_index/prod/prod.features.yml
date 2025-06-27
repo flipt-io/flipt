@@ -4,6 +4,9 @@ flags:
   name: Prod Flag
   description: description
   enabled: true
+  metadata:
+    foo: bar
+    number: 42
   variants:
     - key: prod-variant
       name: Prod Variant
