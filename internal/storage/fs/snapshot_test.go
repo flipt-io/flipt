@@ -85,6 +85,12 @@ func TestSnapshot_GetFlag(t *testing.T) {
 						},
 					},
 				},
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo":    {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+						"number": {Kind: &structpb.Value_NumberValue{NumberValue: 42}},
+					},
+				},
 				Type: core.FlagType_VARIANT_FLAG_TYPE,
 			},
 		},
@@ -242,6 +248,12 @@ func TestSnapshot_ListFlags(t *testing.T) {
 									Rollout: 100,
 								},
 							},
+						},
+					},
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo":    {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+							"number": {Kind: &structpb.Value_NumberValue{NumberValue: 42}},
 						},
 					},
 					Type: core.FlagType_VARIANT_FLAG_TYPE,
@@ -665,7 +677,7 @@ func TestSnapshot_EvaluationNamespaceSnapshot(t *testing.T) {
 			name:      "production namespace",
 			namespace: "production",
 			wantSnap: &evaluation.EvaluationNamespaceSnapshot{
-				Digest: "09da9bff218a2826e61325bcc9b72f20def6b096",
+				Digest: "bded6c9639f13a23342ea3db9a284bccfb73459c",
 				Namespace: &evaluation.EvaluationNamespace{
 					Key: "production",
 				},

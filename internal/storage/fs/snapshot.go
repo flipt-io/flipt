@@ -339,6 +339,14 @@ func (s *Snapshot) addDoc(doc *ext.Document) error {
 			}
 		)
 
+		if f.Metadata != nil {
+			metadata, err := structpb.NewStruct(f.Metadata)
+			if err != nil {
+				return err
+			}
+			flag.Metadata = metadata
+		}
+
 		for _, v := range f.Variants {
 			attachment, err := structpb.NewValue(v.Attachment)
 			if err != nil {
