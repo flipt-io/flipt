@@ -63,3 +63,11 @@ release-notes.md
 config/*.*.bk
 config/dev.yml
 _tools
+
+.scratch
+
+# AI generated files
+.claude
+.cursor
+.cursor*
+CLAUDE.md
