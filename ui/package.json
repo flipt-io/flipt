@@ -100,7 +100,7 @@
     "postcss": "^8.5.6",
     "prettier": "^3.6.1",
     "prettier-plugin-organize-imports": "^3.2.4",
-    "prettier-plugin-tailwindcss": "^0.6.12",
+    "prettier-plugin-tailwindcss": "^0.6.13",
     "tailwindcss": "^4.1.10",
     "tailwindcss-bg-patterns": "^0.3.0",
     "ts-jest": "^29.4.0",
