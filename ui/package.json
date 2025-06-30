@@ -35,7 +35,7 @@
     "@radix-ui/react-switch": "^1.2.2",
     "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-table": "^8.21.3",
-    "@uiw/codemirror-theme-tokyo-night": "^4.23.12",
+    "@uiw/codemirror-theme-tokyo-night": "^4.23.14",
     "@uiw/react-codemirror": "^4.23.12",
     "buffer": "^6.0.3",
     "chart.js": "^4.5.0",
