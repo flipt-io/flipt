@@ -28,14 +28,17 @@ export function copyTextToClipboard(text: string) {
 }
 
 export function upperFirst(word: string) {
+  if (!word) return '';
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
 export function titleCase(str: string) {
+  if (!str) return '';
   return str.toLowerCase().split(' ').map(upperFirst).join(' ');
 }
 
 export function stringAsKey(str: string) {
+  if (!str) return '';
   return str.toLowerCase().split(/\s+/).join('-');
 }
 
