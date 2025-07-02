@@ -130,7 +130,7 @@ docker_manifests:
 
 announce:
   discord:
-    enabled: false
+    enabled: true
   slack:
     enabled: true
     channel: "#releases"
