@@ -48,7 +48,9 @@ test.describe('Branches', () => {
       .click();
     await page.getByTestId('create-branch-button').click();
     await page.getByRole('textbox', { name: 'New branch name' }).click();
-    await page.getByRole('textbox', { name: 'New branch name' }).fill('foo');
+    await page
+      .getByRole('textbox', { name: 'New branch name' })
+      .fill('foo bar');
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Branch created successfully')).toBeVisible();
     await page
@@ -57,7 +59,7 @@ test.describe('Branches', () => {
       .click();
     await page
       .getByTestId('environment-listbox')
-      .getByRole('button', { name: 'foo' })
+      .getByRole('button', { name: 'foo-bar' })
       .click();
     await page
       .getByTestId('namespace-listbox')
@@ -72,7 +74,7 @@ test.describe('Branches', () => {
       .click();
     await page
       .getByTestId('environment-listbox')
-      .getByRole('button', { name: 'foo' })
+      .getByRole('button', { name: 'foo-bar' })
       .click();
     await page
       .getByTestId('namespace-listbox')
@@ -80,7 +82,7 @@ test.describe('Branches', () => {
       .click();
     await page.getByText('Branched from: default').click();
     await page.getByRole('menuitem', { name: 'Delete branch' }).click();
-    await page.getByRole('textbox', { name: 'foo' }).fill('bar');
+    await page.getByRole('textbox', { name: 'foo-bar' }).fill('bar');
     await expect(
       page.getByRole('button', { name: 'Delete branch' })
     ).toBeDisabled();
@@ -93,7 +95,7 @@ test.describe('Branches', () => {
       .click();
     await page
       .getByTestId('environment-listbox')
-      .getByRole('button', { name: 'foo' })
+      .getByRole('button', { name: 'foo-bar' })
       .click();
     await page
       .getByTestId('namespace-listbox')
@@ -101,7 +103,7 @@ test.describe('Branches', () => {
       .click();
     await page.getByText('Branched from: default').click();
     await page.getByRole('menuitem', { name: 'Delete branch' }).click();
-    await page.getByRole('textbox', { name: 'foo' }).fill('foo');
+    await page.getByRole('textbox', { name: 'foo-bar' }).fill('foo-bar');
     await page.getByRole('button', { name: 'Delete branch' }).click();
     await expect(page.getByText('Branch deleted successfully')).toBeVisible();
   });

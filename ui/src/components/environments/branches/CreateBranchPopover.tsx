@@ -28,6 +28,7 @@ import { useError } from '~/data/hooks/error';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
+import { stringAsKey } from '~/utils/helpers';
 
 export function CreateBranchPopover({
   open,
@@ -120,7 +121,7 @@ export function CreateBranchPopover({
           type="text"
           placeholder="New branch name"
           value={branchInput}
-          onChange={(e) => setBranchInput(e.target.value)}
+          onChange={(e) => setBranchInput(stringAsKey(e.target.value))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleCreateBranch();
             if (e.key === 'Escape') handleOpenChange(false);
