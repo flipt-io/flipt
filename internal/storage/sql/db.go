@@ -18,7 +18,7 @@ import (
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 func init() {
@@ -122,19 +122,19 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	switch d {
 	case SQLite:
 		dr = &sqlite3.SQLiteDriver{}
-		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
+		attrs = []attribute.KeyValue{semconv.DBSystemNameSQLite}
 	case LibSQL:
 		dr = &libsql.Driver{}
-		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
+		attrs = []attribute.KeyValue{semconv.DBSystemNameSQLite}
 	case Postgres:
 		dr = newAdaptedPostgresDriver(d)
-		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
+		attrs = []attribute.KeyValue{semconv.DBSystemNamePostgreSQL}
 	case CockroachDB:
 		dr = newAdaptedPostgresDriver(d)
-		attrs = []attribute.KeyValue{semconv.DBSystemCockroachdb}
+		attrs = []attribute.KeyValue{semconv.DBSystemNameKey.String("cockroachdb")}
 	case MySQL:
 		dr = &mysql.MySQLDriver{}
-		attrs = []attribute.KeyValue{semconv.DBSystemMySQL}
+		attrs = []attribute.KeyValue{semconv.DBSystemNameMySQL}
 	}
 
 	registered := false
