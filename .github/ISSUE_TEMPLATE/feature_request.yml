@@ -24,7 +24,7 @@ body:
       description: Please select the major version of Flipt that you are experiencing the feature request with.
       options:
         - v1
-        - v2 (Alpha)
+        - v2
 
   - type: textarea
     id: ideal-solution
@@ -32,8 +32,6 @@ body:
       label: Ideal Solution
       description: What would you like to happen?
       placeholder: Describe the solution you'd like...
-    validations:
-      required: true
 
   - type: checkboxes
     id: search
