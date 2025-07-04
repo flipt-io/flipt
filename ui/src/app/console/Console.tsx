@@ -164,8 +164,13 @@ export default function Console() {
         ...contextOptions
       ]
     });
-    copyTextToClipboard(command);
-    setSuccess('Command copied to clipboard');
+    copyTextToClipboard(command)
+      .then(() => {
+        setSuccess('Command copied to clipboard');
+      })
+      .catch((err: unknown) => {
+        setError((err as Error).message);
+      });
   };
 
   const handleCopyAsCurl = (values: ConsoleFormValues) => {
@@ -202,9 +207,13 @@ export default function Console() {
       uri
     });
 
-    copyTextToClipboard(command);
-
-    setSuccess('Command copied to clipboard');
+    copyTextToClipboard(command)
+      .then(() => {
+        setSuccess('Command copied to clipboard');
+      })
+      .catch((err: unknown) => {
+        setError((err as Error).message);
+      });
   };
 
   const initialvalues: ConsoleFormValues = {
