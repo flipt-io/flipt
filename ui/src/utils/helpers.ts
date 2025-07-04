@@ -19,11 +19,34 @@ export function getRevision(): string {
   return revision;
 }
 
-export function copyTextToClipboard(text: string) {
-  if ('clipboard' in navigator) {
-    navigator.clipboard.writeText(text);
-  } else {
-    document.execCommand('copy', true, text);
+export async function copyTextToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  // Fallback: create a hidden <textarea>, select its contents, and
+  // use the execCommand('copy').
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+
+  // Avoid scrolling to the bottom
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '0';
+  textarea.style.opacity = '0';
+  textarea.setAttribute('readonly', '');
+
+  document.body.appendChild(textarea);
+
+  textarea.select();
+  textarea.setSelectionRange(0, text.length); // for iOS
+
+  const successful = document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  if (!successful) {
+    throw new Error('Fallback clipboard copy failed');
   }
 }
 
