@@ -150,6 +150,9 @@ export default function Console() {
       return;
     }
 
+    const whenNotDefault = (flag: string, value: string) =>
+      value !== 'default' ? [{ key: flag, value: value }] : [];
+
     const contextOptions = Object.entries(parsed).map(([key, value]) => ({
       key: '--context',
       value: `${key}=${value}`
@@ -160,7 +163,8 @@ export default function Console() {
       arguments: [values.flagKey],
       options: [
         { key: '--entity-id', value: values.entityId },
-        { key: '--namespace', value: namespace.key },
+        ...whenNotDefault('--namespace', namespace.key),
+        ...whenNotDefault('--environment', environment.key),
         ...contextOptions
       ]
     });
@@ -201,7 +205,8 @@ export default function Console() {
       body: {
         ...values,
         context: parsed,
-        namespaceKey: namespace.key
+        namespaceKey: namespace.key,
+        environmentKey: environment.key
       },
       headers,
       uri

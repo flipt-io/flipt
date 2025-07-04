@@ -98,7 +98,7 @@ func main() {
 }
 
 func execute() error {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "flipt <command> <subcommand> [flags]",
 		Short: "Flipt is a cloud-native, self-hosted, feature flag solution that manages feature flags in your Git repositories",
 		Example: heredoc.Doc(`
@@ -162,6 +162,7 @@ func execute() error {
 	rootCmd.AddCommand(newCompletionCommand())
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newQuickstartCommand())
+	rootCmd.AddCommand(newEvaluateCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -420,7 +421,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	}
 
 	// in-process client connection for grpc services
-	var ipch = &inprocgrpc.Channel{}
+	ipch := &inprocgrpc.Channel{}
 	ipch = ipch.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(
 		//nolint:staticcheck // Deprecated but inprocgrpc does not support stats handlers
 		otelgrpc.UnaryServerInterceptor(),

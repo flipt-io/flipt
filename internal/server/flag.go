@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -11,6 +12,9 @@ import (
 // ListFlags lists all flags
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
+
+	ctx = common.WithFliptEnvironment(ctx, r.EnvironmentKey)
+	ctx = common.WithFliptNamespace(ctx, r.NamespaceKey)
 
 	store, err := s.getStore(ctx)
 	if err != nil {
