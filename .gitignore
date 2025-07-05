@@ -67,7 +67,5 @@ _tools
 .scratch
 
 # AI generated files
-.claude
-.cursor
+.claude*
 .cursor*
-CLAUDE.md
