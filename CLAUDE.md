@@ -52,12 +52,12 @@ All of our documentation is at <https://docs.flipt.io/llms-full.txt>. Weigh the 
 Flipt v2 is a Git-native feature management platform with a monorepo structure:
 
 - `cmd/flipt/` - Main application entry point
+- `core/` - Core validation and business logic
+- `errors/` - Shared error definitions
 - `internal/` - Core application logic (not importable)
-  - `server/` - gRPC and HTTP server implementations
-  - `config/` - Configuration management
-  - `storage/` - Storage abstractions and implementations
   - `cmd/` - Internal command utilities and code generation tools
   - `common/` - Shared types and utilities across internal packages
+  - `config/` - Configuration management
   - `containers/` - Container test utilities
   - `coss/` - Commercial open source features (license management, enterprise storage)
   - `credentials/` - Credential management for cloud storage and Git authentication
@@ -68,30 +68,25 @@ Flipt v2 is a Git-native feature management platform with a monorepo structure:
   - `otel/` - OpenTelemetry integration (logs, metrics, traces)
   - `product/` - Product metadata and feature flags
   - `release/` - Release version checking
+  - `server/` - gRPC and HTTP server implementations
+    - `analytics/` - Analytics collection server (Prometheus, ClickHouse)
+    - `authn/` - Authentication server and middleware
+    - `authz/` - Authorization server with Rego engine
+    - `environments/` - Environment management server
+    - `evaluation/` - Flag evaluation server with OFREP support
+    - `metadata/` - Metadata API server
+  - `storage/` - Storage abstractions and implementations
+    - `analytics/` - Analytics data storage
+    - `authn/` - Authentication storage (Redis, memory, static)
+    - `environments/` - Environment-aware storage with Git support
+    - `fs/` - File system abstraction layer
+    - `git/` - Git repository management
   - `telemetry/` - Usage telemetry collection
-
-#### Key Subdirectories in internal/
-
-- `internal/server/` - Server implementations
-  - `authn/` - Authentication server and middleware
-  - `authz/` - Authorization server with Rego engine
-  - `analytics/` - Analytics collection server (Prometheus, ClickHouse)
-  - `evaluation/` - Flag evaluation server with OFREP support
-  - `environments/` - Environment management server
-  - `metadata/` - Metadata API server
-- `internal/storage/` - Storage layer implementations
-  - `authn/` - Authentication storage (Redis, memory, static)
-  - `analytics/` - Analytics data storage
-  - `environments/` - Environment-aware storage with Git support
-  - `fs/` - File system abstraction layer
-  - `git/` - Git repository management
 - `rpc/` - Protocol buffer definitions and generated code
   - `flipt/` - Main Flipt API (v1)
   - `v2/` - V2 APIs (environments, analytics, evaluation)
-- `ui/` - React/TypeScript frontend
 - `sdk/` - Client SDKs (Go SDK included)
-- `core/` - Core validation and business logic
-- `errors/` - Shared error definitions
+- `ui/` - React/TypeScript frontend
 
 ### Key Components
 
