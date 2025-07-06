@@ -285,7 +285,7 @@ func authenticateKubernetes(client *vault.Client, role string) error {
 }
 
 // authenticateAppRole performs AppRole authentication.
-func authenticateAppRole(client *vault.Client, role string) error {
+func authenticateAppRole(client *vault.Client, _ string) error {
 	// Read role ID and secret ID from environment
 	roleID := os.Getenv("VAULT_ROLE_ID")
 	secretID := os.Getenv("VAULT_SECRET_ID")

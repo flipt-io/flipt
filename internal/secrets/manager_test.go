@@ -9,75 +9,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
-
-// MockProvider is a mock implementation of the Provider interface
-type MockProvider struct {
-	mock.Mock
-}
-
-func (m *MockProvider) GetSecret(ctx context.Context, path string) (*Secret, error) {
-	args := m.Called(ctx, path)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*Secret), args.Error(1)
-}
-
-func (m *MockProvider) PutSecret(ctx context.Context, path string, secret *Secret) error {
-	args := m.Called(ctx, path, secret)
-	return args.Error(0)
-}
-
-func (m *MockProvider) DeleteSecret(ctx context.Context, path string) error {
-	args := m.Called(ctx, path)
-	return args.Error(0)
-}
-
-func (m *MockProvider) ListSecrets(ctx context.Context, pathPrefix string) ([]string, error) {
-	args := m.Called(ctx, pathPrefix)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]string), args.Error(1)
-}
-
-// MockLicenseManager is a mock implementation of the license.Manager interface
-type MockLicenseManager struct {
-	mock.Mock
-}
-
-func (m *MockLicenseManager) Product() product.Product {
-	args := m.Called()
-	return args.Get(0).(product.Product)
-}
-
-func (m *MockLicenseManager) IsOSS() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockLicenseManager) IsPro() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockLicenseManager) IsEnterprise() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockLicenseManager) Valid() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockLicenseManager) Shutdown(ctx context.Context) error {
-	args := m.Called(ctx)
-	return args.Error(0)
-}
 
 func TestRegisterProviderFactory(t *testing.T) {
 	// Clear the global registry before testing
@@ -153,7 +88,7 @@ func TestNewManager(t *testing.T) {
 			factoryMu.Unlock()
 		}()
 
-		mockLicense := &MockLicenseManager{}
+		mockLicense := license.NewMockManager(t)
 		// Product() is not called when only file provider is enabled with OSS
 
 		cfg := &config.Config{
@@ -201,7 +136,7 @@ func TestNewManager(t *testing.T) {
 			factoryMu.Unlock()
 		}()
 
-		mockLicense := &MockLicenseManager{}
+		mockLicense := license.NewMockManager(t)
 		mockLicense.On("Product").Return(product.Pro)
 
 		cfg := &config.Config{
@@ -254,7 +189,7 @@ func TestNewManager(t *testing.T) {
 			factoryMu.Unlock()
 		}()
 
-		mockLicense := &MockLicenseManager{}
+		mockLicense := license.NewMockManager(t)
 		mockLicense.On("Product").Return(product.OSS)
 
 		cfg := &config.Config{
@@ -297,7 +232,7 @@ func TestNewManager(t *testing.T) {
 			factoryMu.Unlock()
 		}()
 
-		mockLicense := &MockLicenseManager{}
+		mockLicense := license.NewMockManager(t)
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -330,7 +265,7 @@ func TestNewManager(t *testing.T) {
 			factoryMu.Unlock()
 		}()
 
-		mockLicense := &MockLicenseManager{}
+		mockLicense := license.NewMockManager(t)
 		mockLicense.On("Product").Return(product.Pro)
 
 		cfg := &config.Config{

@@ -1,9 +1,8 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	
+
 	"github.com/spf13/viper"
 )
 
@@ -42,9 +41,7 @@ type SecretReference struct {
 	Key      string `json:"key" mapstructure:"key" yaml:"key"`
 }
 
-func (s *SecretsConfig) setDefaults(v *viper.Viper) []string {
-	var warnings []string
-
+func (s *SecretsConfig) setDefaults(v *viper.Viper) { //nolint:unused // used by config system via reflection
 	// File provider defaults
 	v.SetDefault("secrets.providers.file.enabled", false)
 	v.SetDefault("secrets.providers.file.base_path", "/etc/flipt/secrets")
@@ -53,39 +50,37 @@ func (s *SecretsConfig) setDefaults(v *viper.Viper) []string {
 	v.SetDefault("secrets.providers.vault.enabled", false)
 	v.SetDefault("secrets.providers.vault.mount", "secret")
 	v.SetDefault("secrets.providers.vault.auth_method", "token")
-
-	return warnings
 }
 
 func (s *SecretsConfig) validate() error {
 	// Validate file provider
 	if s.Providers.File != nil && s.Providers.File.Enabled {
 		if s.Providers.File.BasePath == "" {
-			return errors.New("secrets.providers.file.base_path is required when file provider is enabled")
+			return errFieldRequired("secrets.providers.file", "base_path")
 		}
 	}
 
 	// Validate vault provider
 	if s.Providers.Vault != nil && s.Providers.Vault.Enabled {
 		if s.Providers.Vault.Address == "" {
-			return errors.New("secrets.providers.vault.address is required when vault provider is enabled")
+			return errFieldRequired("secrets.providers.vault", "address")
 		}
 
 		switch s.Providers.Vault.AuthMethod {
 		case "token":
 			if s.Providers.Vault.Token == "" {
-				return errors.New("secrets.providers.vault.token is required when using token auth method")
+				return errFieldRequired("secrets.providers.vault", "token")
 			}
 		case "kubernetes":
 			if s.Providers.Vault.Role == "" {
-				return errors.New("secrets.providers.vault.role is required when using kubernetes auth method")
+				return errFieldRequired("secrets.providers.vault", "role")
 			}
 		case "approle":
 			if s.Providers.Vault.Role == "" {
-				return errors.New("secrets.providers.vault.role is required when using approle auth method")
+				return errFieldRequired("secrets.providers.vault", "role")
 			}
 		default:
-			return fmt.Errorf("unsupported vault auth method: %s", s.Providers.Vault.AuthMethod)
+			return errFieldWrap("secrets.providers.vault", "auth_method", fmt.Errorf("unsupported auth method: %s", s.Providers.Vault.AuthMethod))
 		}
 	}
 
@@ -95,28 +90,28 @@ func (s *SecretsConfig) validate() error {
 // EnabledProviders returns a list of enabled provider names.
 func (s *SecretsConfig) EnabledProviders() []string {
 	var providers []string
-	
+
 	if s.Providers.File != nil && s.Providers.File.Enabled {
 		providers = append(providers, "file")
 	}
-	
+
 	if s.Providers.Vault != nil && s.Providers.Vault.Enabled {
 		providers = append(providers, "vault")
 	}
-	
+
 	return providers
 }
 
 // Validate checks if a secret reference is valid.
 func (r SecretReference) Validate() error {
 	if r.Provider == "" {
-		return errors.New("provider is required")
+		return errFieldRequired("secret_reference", "provider")
 	}
 	if r.Path == "" {
-		return errors.New("path is required")
+		return errFieldRequired("secret_reference", "path")
 	}
 	if r.Key == "" {
-		return errors.New("key is required")
+		return errFieldRequired("secret_reference", "key")
 	}
 	return nil
 }

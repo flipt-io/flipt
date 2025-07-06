@@ -21,10 +21,10 @@ import (
 	"go.flipt.io/flipt/internal/otel/metrics"
 	tracing "go.flipt.io/flipt/internal/otel/traces"
 	"go.flipt.io/flipt/internal/secrets"
-	
+
 	// Import providers to trigger their init functions
-	_ "go.flipt.io/flipt/internal/secrets/file"
 	_ "go.flipt.io/flipt/internal/coss/secrets/vault"
+	_ "go.flipt.io/flipt/internal/secrets/file"
 	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"

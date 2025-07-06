@@ -9,13 +9,13 @@ import (
 type Provider interface {
 	// GetSecret retrieves a secret by path.
 	GetSecret(ctx context.Context, path string) (*Secret, error)
-	
+
 	// PutSecret stores a secret at the given path.
 	PutSecret(ctx context.Context, path string, secret *Secret) error
-	
+
 	// DeleteSecret removes a secret at the given path.
 	DeleteSecret(ctx context.Context, path string) error
-	
+
 	// ListSecrets returns all secret paths matching the prefix.
 	ListSecrets(ctx context.Context, pathPrefix string) ([]string, error)
 }
@@ -24,13 +24,13 @@ type Provider interface {
 type Secret struct {
 	// Path is the secret's location in the provider.
 	Path string
-	
+
 	// Data contains the actual secret values as key-value pairs.
 	Data map[string][]byte
-	
+
 	// Metadata contains additional information about the secret.
 	Metadata map[string]string
-	
+
 	// Version identifies this specific version of the secret.
 	Version string
 }
@@ -39,10 +39,10 @@ type Secret struct {
 type Reference struct {
 	// Provider is the name of the registered provider to use.
 	Provider string `json:"provider" yaml:"provider"`
-	
+
 	// Path is the secret path within the provider.
 	Path string `json:"path" yaml:"path"`
-	
+
 	// Key is the specific data key within the secret.
 	Key string `json:"key" yaml:"key"`
 }
