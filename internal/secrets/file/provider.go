@@ -45,7 +45,7 @@ func NewProvider(basePath string, logger *zap.Logger) (*Provider, error) {
 // GetSecret retrieves a secret from the file system.
 func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret, error) {
 	fullPath := p.secretPath(path)
-	
+
 	p.logger.Debug("reading secret from file",
 		zap.String("path", path),
 		zap.String("file", fullPath))
@@ -80,7 +80,7 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 // PutSecret stores a secret in the file system.
 func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.Secret) error {
 	fullPath := p.secretPath(path)
-	
+
 	// Ensure directory exists
 	dir := filepath.Dir(fullPath)
 	if err := os.MkdirAll(dir, 0700); err != nil {
@@ -119,7 +119,7 @@ func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.S
 // DeleteSecret removes a secret from the file system.
 func (p *Provider) DeleteSecret(ctx context.Context, path string) error {
 	fullPath := p.secretPath(path)
-	
+
 	p.logger.Debug("deleting secret file",
 		zap.String("path", path),
 		zap.String("file", fullPath))
@@ -141,18 +141,18 @@ func (p *Provider) DeleteSecret(ctx context.Context, path string) error {
 		dir = filepath.Dir(dir)
 	}
 
-	return nil
+	return nil //nolint:nilerr // cleanup errors are not critical
 }
 
 // ListSecrets returns all secret paths matching the prefix.
 func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string, error) {
 	var paths []string
-	
+
 	searchPath := filepath.Join(p.basePath, pathPrefix)
-	
+
 	err := filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return nil // Skip inaccessible paths
+			return nil //nolint:nilerr // skip inaccessible paths in walk
 		}
 
 		if info.IsDir() || !strings.HasSuffix(path, ".json") {
@@ -162,7 +162,7 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 		// Convert file path back to secret path
 		relPath, err := filepath.Rel(p.basePath, path)
 		if err != nil {
-			return nil
+			return nil //nolint:nilerr // skip invalid paths in walk
 		}
 
 		// Remove .json extension
@@ -188,7 +188,7 @@ func (p *Provider) secretPath(path string) string {
 	// Sanitize path to prevent directory traversal
 	path = filepath.Clean(path)
 	path = strings.TrimPrefix(path, "/")
-	
+
 	return filepath.Join(p.basePath, path+".json")
 }
 

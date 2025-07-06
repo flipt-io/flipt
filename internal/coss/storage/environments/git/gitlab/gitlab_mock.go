@@ -6,7 +6,7 @@ package gitlab
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"gitlab.com/gitlab-org/api/client-go"
 )
 
 // NewMockMergeRequestsService creates a new instance of MockMergeRequestsService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

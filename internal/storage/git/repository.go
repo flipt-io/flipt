@@ -670,11 +670,11 @@ func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error
 		withSignature(r.sigName, r.sigEmail),
 		withBaseCommit(hash),
 	}
-	
+
 	if r.signer != nil {
 		opts = append(opts, withSigner(r.signer))
 	}
-	
+
 	return newFilesystem(
 		r.logger,
 		r.Storer,

@@ -85,7 +85,7 @@ type UI struct {
 }
 
 type Flipt struct {
-	licenseManager interface{ Product() product.Product }
+	licenseManager license.Manager
 	Build          *Build          `json:"build,omitempty"`
 	Authentication *Authentication `json:"authentication,omitempty"`
 	Analytics      *Analytics      `json:"analytics,omitempty"`

@@ -244,18 +244,16 @@ func TestProvider_ListProcessing(t *testing.T) {
 		// Mimic the list processing logic from ListSecrets
 		var paths []string
 
-		if vaultResponse != nil {
-			if data, ok := vaultResponse["data"].(map[string]any); ok {
-				if keys, ok := data["keys"].([]any); ok {
-					for _, key := range keys {
-						if strKey, ok := key.(string); ok {
-							// Remove trailing slash for directories
-							strKey = strings.TrimSuffix(strKey, "/")
-							if pathPrefix != "" {
-								paths = append(paths, pathPrefix+"/"+strKey)
-							} else {
-								paths = append(paths, strKey)
-							}
+		if data, ok := vaultResponse["data"].(map[string]any); ok {
+			if keys, ok := data["keys"].([]any); ok {
+				for _, key := range keys {
+					if strKey, ok := key.(string); ok {
+						// Remove trailing slash for directories
+						strKey = strings.TrimSuffix(strKey, "/")
+						if pathPrefix != "" {
+							paths = append(paths, pathPrefix+"/"+strKey)
+						} else {
+							paths = append(paths, strKey)
 						}
 					}
 				}

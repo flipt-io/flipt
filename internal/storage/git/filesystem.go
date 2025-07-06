@@ -674,7 +674,7 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 			return nil, fmt.Errorf("signing commit: %w", err)
 		}
 		commit.PGPSignature = pgpSig
-		
+
 		f.logger.Debug("signed commit",
 			zap.String("tree_hash", commit.TreeHash.String()),
 			zap.String("message", commit.Message))
