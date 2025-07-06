@@ -548,6 +548,7 @@ Any other context, screenshots, or related issues.
 - **Run quality checks**: Format and lint before creating PR
 - **Reference issues**: Use "Fixes #123" to auto-close issues
 - **Review your own PR**: Look through the diff before requesting review
+- **Base PRs on the correct branch**: Base PRs on the correct branch (e.g. `v2` for v2 changes, `main` for v1 changes)
 
 #### Quality Checklist
 
