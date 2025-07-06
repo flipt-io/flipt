@@ -132,7 +132,11 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 	envStore.On("GetFromContext", mock.Anything).Return(environment)
 	environment.On("EvaluationStore").Return(store, nil)
 
-	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
+	// The key assertion: verify that the context passed to ListFlags contains the header environment
+	store.On("ListFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == headerEnvironment // This should be the header environment, not the request environment
+	}), storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
 		storage.ResultSet[*core.Flag]{
 			Results: []*core.Flag{
 				{
@@ -143,7 +147,10 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 			},
 		}, nil)
 
-	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == headerEnvironment // This should be the header environment, not the request environment
+	}), mock.Anything).Return(uint64(1), nil)
 
 	// Create request with different environment
 	req := &flipt.ListFlagRequest{
@@ -162,6 +169,68 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 	assert.Equal(t, int32(1), result.TotalCount)
 
 	// Verify that the context was set with the header environment
-	// This is implicitly tested by the mock expectation
+	store.AssertExpectations(t)
+}
+
+func TestListFlags_WithoutXEnvironmentHeader(t *testing.T) {
+	var (
+		store       = &common.StoreMock{}
+		environment = &environments.MockEnvironment{}
+		envStore    = &evaluation.MockEnvironmentStore{}
+		logger      = zaptest.NewLogger(t)
+		s           = &Server{
+			logger: logger,
+			store:  envStore,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	// Test when X-Environment header is NOT present, it should use the request environment
+	requestEnvironment := "request-environment"
+	namespaceKey := "test-namespace"
+
+	// Context without X-Environment header
+	ctx := context.Background()
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	// Verify that the context passed to ListFlags contains the request environment
+	store.On("ListFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment // This should be the request environment
+	}), storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
+		storage.ResultSet[*core.Flag]{
+			Results: []*core.Flag{
+				{
+					Key:         "test-flag-2",
+					Name:        "Test Flag 2",
+					Description: "Test flag description 2",
+				},
+			},
+		}, nil)
+
+	store.On("CountFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment // This should be the request environment
+	}), mock.Anything).Return(uint64(1), nil)
+
+	// Create request
+	req := &flipt.ListFlagRequest{
+		EnvironmentKey: requestEnvironment,
+		NamespaceKey:   namespaceKey,
+	}
+
+	// Call ListFlags
+	result, err := s.ListFlags(ctx, req)
+	require.NoError(t, err)
+
+	// Verify the result
+	assert.Len(t, result.Flags, 1)
+	assert.Equal(t, "test-flag-2", result.Flags[0].Key)
+	assert.Equal(t, "Test Flag 2", result.Flags[0].Name)
+	assert.Equal(t, int32(1), result.TotalCount)
+
 	store.AssertExpectations(t)
 }
