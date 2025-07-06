@@ -13,7 +13,13 @@ import (
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
-	ctx = common.WithFliptEnvironment(ctx, r.EnvironmentKey)
+	// Check for X-Environment header for backward compatibility
+	environmentKey := r.EnvironmentKey
+	if headerEnv, ok := common.FliptEnvironmentFromContext(ctx); ok && headerEnv != "" {
+		environmentKey = headerEnv
+	}
+
+	ctx = common.WithFliptEnvironment(ctx, environmentKey)
 	ctx = common.WithFliptNamespace(ctx, r.NamespaceKey)
 
 	store, err := s.getStore(ctx)
