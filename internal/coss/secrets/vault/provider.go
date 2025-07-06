@@ -18,7 +18,7 @@ func init() {
 		if cfg.Secrets.Providers.Vault == nil {
 			return nil, fmt.Errorf("vault provider configuration not found")
 		}
-		
+
 		vaultConfig := Config{
 			Address:    cfg.Secrets.Providers.Vault.Address,
 			AuthMethod: cfg.Secrets.Providers.Vault.AuthMethod,
@@ -27,7 +27,7 @@ func init() {
 			Token:      cfg.Secrets.Providers.Vault.Token,
 			Namespace:  cfg.Secrets.Providers.Vault.Namespace,
 		}
-		
+
 		return NewProvider(vaultConfig, logger)
 	})
 }
@@ -53,7 +53,7 @@ type Config struct {
 func NewProvider(cfg Config, logger *zap.Logger) (*Provider, error) {
 	config := vault.DefaultConfig()
 	config.Address = cfg.Address
-	
+
 	client, err := vault.NewClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("creating vault client: %w", err)
@@ -79,7 +79,7 @@ func NewProvider(cfg Config, logger *zap.Logger) (*Provider, error) {
 // GetSecret retrieves a secret from Vault.
 func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret, error) {
 	secretPath := fmt.Sprintf("%s/data/%s", p.mount, path)
-	
+
 	p.logger.Debug("reading secret from vault",
 		zap.String("path", path),
 		zap.String("mount", p.mount))
@@ -99,7 +99,7 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 	version := ""
 
 	// Vault KV v2 wraps the actual data
-	if secretData, ok := secret.Data["data"].(map[string]interface{}); ok {
+	if secretData, ok := secret.Data["data"].(map[string]any); ok {
 		for k, v := range secretData {
 			switch val := v.(type) {
 			case string:
@@ -116,7 +116,7 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 	}
 
 	// Extract metadata
-	if meta, ok := secret.Data["metadata"].(map[string]interface{}); ok {
+	if meta, ok := secret.Data["metadata"].(map[string]any); ok {
 		for k, v := range meta {
 			if strVal, ok := v.(string); ok {
 				metadata[k] = strVal
@@ -138,21 +138,21 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 // PutSecret stores a secret in Vault.
 func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.Secret) error {
 	secretPath := fmt.Sprintf("%s/data/%s", p.mount, path)
-	
+
 	// Convert byte data to strings for Vault
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	for k, v := range secret.Data {
 		data[k] = string(v)
 	}
 
 	// Wrap data for KV v2
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"data": data,
 	}
 
 	// Add metadata if present
 	if len(secret.Metadata) > 0 {
-		options := make(map[string]interface{})
+		options := make(map[string]any)
 		for k, v := range secret.Metadata {
 			options[k] = v
 		}
@@ -175,7 +175,7 @@ func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.S
 func (p *Provider) DeleteSecret(ctx context.Context, path string) error {
 	// For KV v2, we need to use the metadata path for deletion
 	deletePath := fmt.Sprintf("%s/metadata/%s", p.mount, path)
-	
+
 	p.logger.Debug("deleting secret from vault",
 		zap.String("path", path),
 		zap.String("mount", p.mount))
@@ -191,7 +191,7 @@ func (p *Provider) DeleteSecret(ctx context.Context, path string) error {
 // ListSecrets returns all secret paths matching the prefix.
 func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string, error) {
 	listPath := fmt.Sprintf("%s/metadata/%s", p.mount, pathPrefix)
-	
+
 	p.logger.Debug("listing secrets from vault",
 		zap.String("prefix", pathPrefix),
 		zap.String("mount", p.mount))
@@ -209,7 +209,7 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 		return []string{}, nil
 	}
 
-	keys, ok := secret.Data["keys"].([]interface{})
+	keys, ok := secret.Data["keys"].([]any)
 	if !ok {
 		return []string{}, nil
 	}
@@ -265,7 +265,7 @@ func authenticateKubernetes(client *vault.Client, role string) error {
 	}
 
 	// Login with Kubernetes auth
-	data := map[string]interface{}{
+	data := map[string]any{
 		"role": role,
 		"jwt":  string(tokenBytes),
 	}
@@ -294,7 +294,7 @@ func authenticateAppRole(client *vault.Client, role string) error {
 		return fmt.Errorf("VAULT_ROLE_ID and VAULT_SECRET_ID must be set for approle auth")
 	}
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"role_id":   roleID,
 		"secret_id": secretID,
 	}
