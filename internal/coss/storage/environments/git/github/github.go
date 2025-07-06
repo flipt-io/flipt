@@ -105,7 +105,7 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 			client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 				&oauth2.Token{
 					TokenType:   "Basic",
-					AccessToken: base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", apiAuth.Username, apiAuth.Password))),
+					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", apiAuth.Username, apiAuth.Password)),
 				}),
 			))
 		default:

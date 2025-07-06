@@ -121,10 +121,7 @@ func (p *Publisher) Publish(snap *storagefs.Snapshot) error {
 	)
 
 	for ns, subs := range p.subs {
-		ns := ns
-		subs := subs
 		for _, sub := range subs {
-			sub := sub
 			if sub == nil {
 				continue
 			}

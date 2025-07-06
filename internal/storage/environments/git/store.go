@@ -262,7 +262,7 @@ func (e *branchEnvIterator) All() iter.Seq[*branchEnvConfig] {
 			branch := strings.TrimPrefix(r.Name().String(), "refs/remotes/origin/")
 
 			// if one of our branches that we created
-			if candidate := strings.TrimPrefix(branch, fmt.Sprintf("flipt/%s/", e.env.cfg.Name)); candidate != branch {
+			if candidate, ok := strings.CutPrefix(branch, fmt.Sprintf("flipt/%s/", e.env.cfg.Name)); ok {
 				// get the name of the environment from the branch name
 				// e.g. flipt/my-env/my-branch -> my-env
 				name, _, _ := strings.Cut(candidate, "/")

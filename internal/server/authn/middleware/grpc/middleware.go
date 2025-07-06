@@ -490,7 +490,7 @@ func jwtFromMetadata(md metadata.MD) (string, error) {
 // and returns the token.
 func fromAuthorization(auth string, scheme authenticationScheme) (string, error) {
 	// Ensure auth is prefixed with the scheme
-	if a := strings.TrimPrefix(auth, scheme.String()+" "); auth != a {
+	if a, ok := strings.CutPrefix(auth, scheme.String()+" "); ok {
 		return a, nil
 	}
 
