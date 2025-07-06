@@ -67,7 +67,8 @@ func NewHTTPServer(
 		}
 
 		r   = chi.NewRouter()
-		api = gateway.NewGatewayServeMux(logger)
+		api = gateway.NewGatewayServeMux(logger,
+			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
 
 		evaluateAPI = gateway.NewGatewayServeMux(logger,
 			runtime.WithMetadata(grpc_middleware.ForwardFliptEnvironment))
