@@ -12,12 +12,15 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/coss/license"
+	cosssigning "go.flipt.io/flipt/internal/coss/signing"
 	cossgit "go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitea"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/github"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab"
 	"go.flipt.io/flipt/internal/credentials"
 	"go.flipt.io/flipt/internal/product"
+	"go.flipt.io/flipt/internal/secrets"
 	serverconfig "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
@@ -29,16 +32,20 @@ import (
 
 // RepositoryManager manages git repositories.
 type RepositoryManager struct {
-	logger *zap.Logger
-	cfg    *config.Config
-	repos  map[string]*storagegit.Repository
+	logger         *zap.Logger
+	cfg            *config.Config
+	repos          map[string]*storagegit.Repository
+	secretsManager secrets.Manager
+	licenseManager license.Manager
 }
 
-func NewRepositoryManager(logger *zap.Logger, cfg *config.Config) *RepositoryManager {
+func NewRepositoryManager(logger *zap.Logger, cfg *config.Config, secretsManager secrets.Manager, licenseManager license.Manager) *RepositoryManager {
 	return &RepositoryManager{
-		logger: logger,
-		cfg:    cfg,
-		repos:  map[string]*storagegit.Repository{},
+		logger:         logger,
+		cfg:            cfg,
+		repos:          map[string]*storagegit.Repository{},
+		secretsManager: secretsManager,
+		licenseManager: licenseManager,
 	}
 }
 
@@ -109,6 +116,35 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 			opts = append(opts, storagegit.WithAuth(auth))
 		}
 
+		// Configure commit signing if enabled
+		if storage.Signature.SigningEnabled {
+			// Check license for commit signing (COSS feature)
+			if rm.licenseManager.Product() == product.OSS {
+				logger.Warn("commit signing requires a paid license")
+			} else {
+
+				if storage.Signature.SigningKeyRef == nil {
+					return nil, errors.New("signing key reference is required when commit signing is enabled")
+				}
+
+				// Create GPG signer
+				signer, err := cosssigning.NewGPGSigner(
+					*storage.Signature.SigningKeyRef,
+					storage.Signature.SigningKeyID,
+					rm.secretsManager,
+					logger.With(zap.String("component", "gpg-signer")),
+				)
+				if err != nil {
+					return nil, fmt.Errorf("creating GPG signer: %w", err)
+				}
+
+				opts = append(opts, storagegit.WithSigner(signer))
+				logger.Info("commit signing enabled",
+					zap.String("provider", storage.Signature.SigningKeyRef.Provider),
+					zap.String("key_id", storage.Signature.SigningKeyID))
+			}
+		}
+
 		newRepo, err := storagegit.NewRepository(ctx, logger, opts...)
 		if err != nil {
 			return nil, err
@@ -129,7 +165,7 @@ type EnvironmentFactory struct {
 	licenseManager interface{ Product() product.Product } // Accepts LicenseManager or a mock for tests
 }
 
-func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager interface{ Product() product.Product }) *EnvironmentFactory {
+func NewEnvironmentFactory(logger *zap.Logger, cfg *config.Config, credentials *credentials.CredentialSource, repoManager *RepositoryManager, licenseManager license.Manager) *EnvironmentFactory {
 	return &EnvironmentFactory{
 		logger:         logger,
 		cfg:            cfg,
@@ -296,7 +332,7 @@ type repoEnv interface {
 
 // NewStore is a constructor that handles all the environment storage types
 // Given the provided storage type is know, the relevant backend is configured and returned
-func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licenseManager interface{ Product() product.Product }) (
+func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secretsManager secrets.Manager, licenseManager license.Manager) (
 	_ *serverconfig.EnvironmentStore,
 	err error,
 ) {
@@ -306,7 +342,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, licen
 
 	var (
 		credentials = credentials.New(logger, cfg.Credentials)
-		repoManager = NewRepositoryManager(logger, cfg)
+		repoManager = NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
 		factory     = NewEnvironmentFactory(logger, cfg, credentials, repoManager, licenseManager)
 	)
 
