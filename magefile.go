@@ -204,6 +204,12 @@ func (g Go) Fmt() error {
 	return sh.RunV("go", args...)
 }
 
+// Runs the Go modernize tool to fix linting errors
+func (g Go) Modernize() error {
+	fmt.Println(" > Running modernize...")
+	return sh.RunV("go", "run", "golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest", "-category=-omitzero", "-fix", "-test", "./...")
+}
+
 // Runs the Go linters
 func (g Go) Lint() error {
 	fmt.Println(" > Linting...")

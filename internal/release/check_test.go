@@ -51,7 +51,6 @@ func TestGetLatestRelease(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 
 			srv := &mockGithubReleaseService{
@@ -129,7 +128,6 @@ func TestCheck(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			rc := &mockReleaseChecker{
 				tagName: tt.tagName,
@@ -178,7 +176,6 @@ func TestIs(t *testing.T) {
 	)
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.version, func(t *testing.T) {
 			assert.Equal(t, tt.want, Is(tt.version))
 		})

@@ -126,7 +126,6 @@ func (f *filesystem) ReadDir(path string) (infos []os.FileInfo, err error) {
 	}
 
 	for _, entry := range subtree.Entries {
-		entry := entry
 		info, err := f.entryToFileInfo(&entry)
 		if err != nil {
 			return nil, err

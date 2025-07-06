@@ -83,7 +83,6 @@ func TestAuthenticationRequiredUnaryInterceptor(t *testing.T) {
 			expectCalled: true,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			called := false
 			handler := func(ctx context.Context, req any) (any, error) {
@@ -131,7 +130,6 @@ func TestAuthenticationRequiredStreamInterceptor(t *testing.T) {
 			expectCalled: true,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			called := false
 			handler := func(srv any, stream grpc.ServerStream) error {
@@ -341,7 +339,6 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 
 		t.Run(fmt.Sprintf("%s/static", tt.name), func(t *testing.T) {
 			ks, err := jwt.NewStaticKeySet(pub)
@@ -505,7 +502,6 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 			server: &mockServer{skipsAuthn: true},
 		},
 	} {
-		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
 			ks, err := jwt.NewStaticKeySet(pub)
@@ -648,7 +644,6 @@ func TestClientTokenAuthenticationUnaryInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				logger = zaptest.NewLogger(t)
@@ -774,7 +769,6 @@ func TestClientTokenAuthenticationStreamInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
 
@@ -937,7 +931,6 @@ func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 			expectedErr: errUnauthenticated,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				ctx     = ContextWithAuthentication(context.Background(), tt.auth)

@@ -337,6 +337,9 @@ mage go:fmt
 
 # Lint Go code
 mage go:lint
+
+# Run modernize to update code to 1.24+ style
+mage go:modernize
 ```
 
 ### UI/React/TypeScript Code Style
