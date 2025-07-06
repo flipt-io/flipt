@@ -27,6 +27,7 @@ import "list"
 	tracing?:        #tracing
 	ui?:             #ui
 	license?:        #license
+	secrets?:        #secrets
 
 	#authentication: {
 		required?: bool | *false
@@ -199,6 +200,18 @@ import "list"
 		ca_cert_bytes?:     string
 		insecure_skip_tls?: bool | *false
 		credentials?:       string
+		signature?: {
+			name?:             string | *"flipt"
+			email?:            string | *"dev@flipt.io"
+			signing_enabled?:  bool | *false
+			signing_type?:     string | *"gpg"
+			signing_key_ref?: {
+				provider: string
+				path:     string
+				key:      string
+			}
+			signing_key_id?: string
+		}
 	}
 
 	#credentials: [string]: {
@@ -280,6 +293,24 @@ import "list"
 
 	#license: {
 		key?:     string
+	}
+
+	#secrets: {
+		providers?: {
+			file?: {
+				enabled?:   bool | *false
+				base_path?: string | *"/etc/flipt/secrets"
+			} | null
+			vault?: {
+				enabled?:     bool | *false
+				address?:     string
+				auth_method?: string | *"token"
+				role?:        string
+				mount?:       string | *"secret"
+				token?:       string
+				namespace?:   string
+			} | null
+		}
 	}
 
 	#analytics: {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 )
@@ -51,7 +52,7 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
-func WithLicenseManager(licenseManager interface{ Product() product.Product }) Option {
+func WithLicenseManager(licenseManager license.Manager) Option {
 	return func(f *Flipt) {
 		f.licenseManager = licenseManager
 	}

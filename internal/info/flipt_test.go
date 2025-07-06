@@ -1,6 +1,7 @@
 package info
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -13,7 +14,8 @@ import (
 // mockLicenseManager is a test double for the license manager interface
 type mockLicenseManager struct{ val product.Product }
 
-func (m mockLicenseManager) Product() product.Product { return m.val }
+func (m mockLicenseManager) Product() product.Product       { return m.val }
+func (m mockLicenseManager) Shutdown(context.Context) error { return nil }
 
 func TestNew(t *testing.T) {
 	f := New(

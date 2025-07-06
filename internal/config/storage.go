@@ -104,11 +104,35 @@ func (c *StorageConfig) validate() error {
 		return errFieldRequired("storage", "local path")
 	}
 
+	// Validate signature config
+	if c.Signature.SigningEnabled {
+		if c.Signature.SigningType == "" {
+			return errFieldWrap("storage.signature", "signing_type", fmt.Errorf("signing type is required when signing is enabled"))
+		}
+		
+		if c.Signature.SigningType != "gpg" {
+			return errFieldWrap("storage.signature", "signing_type", fmt.Errorf("unsupported signing type: %s (only 'gpg' is supported)", c.Signature.SigningType))
+		}
+		
+		if c.Signature.SigningKeyRef == nil {
+			return errFieldWrap("storage.signature", "signing_key_ref", fmt.Errorf("signing key reference is required when signing is enabled"))
+		}
+		
+		if err := c.Signature.SigningKeyRef.Validate(); err != nil {
+			return errFieldWrap("storage.signature", "signing_key_ref", err)
+		}
+	}
+
 	return nil
 }
 
-// SignatureConfig contains details for producing git author and committer metadata.
+// SignatureConfig contains details for producing git author and committer metadata,
+// as well as optional commit signing configuration.
 type SignatureConfig struct {
-	Name  string `json:"name" mapstructure:"name" yaml:"name"`
-	Email string `json:"email" mapstructure:"email" yaml:"email"`
+	Name         string           `json:"name" mapstructure:"name" yaml:"name"`
+	Email        string           `json:"email" mapstructure:"email" yaml:"email"`
+	SigningEnabled bool           `json:"signing_enabled,omitempty" mapstructure:"signing_enabled" yaml:"signing_enabled,omitempty"`
+	SigningType    string         `json:"signing_type,omitempty" mapstructure:"signing_type" yaml:"signing_type,omitempty"`
+	SigningKeyRef  *SecretReference `json:"signing_key_ref,omitempty" mapstructure:"signing_key_ref" yaml:"signing_key_ref,omitempty"`
+	SigningKeyID   string         `json:"signing_key_id,omitempty" mapstructure:"signing_key_id" yaml:"signing_key_id,omitempty"`
 }
