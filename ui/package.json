@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.27.1",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.53.2",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/jest": "^29.5.14",
