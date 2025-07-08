@@ -65,7 +65,7 @@ func NewEnvironmentFromRepo(
 	storage environmentsfs.Storage,
 	publisher evaluation.SnapshotPublisher,
 ) (_ *Environment, err error) {
-	return &Environment{
+	env := &Environment{
 		logger:        logger,
 		cfg:           cfg,
 		repo:          repo,
@@ -75,7 +75,17 @@ func NewEnvironmentFromRepo(
 		publisher:     publisher,
 		currentBranch: repo.GetDefaultBranch(),
 		branches:      map[string]*Environment{},
-	}, nil
+	}
+
+	// Build initial snapshot if repository has existing data
+	// This ensures that existing data is loaded into the snapshot on restart
+	if err := env.updateSnapshot(ctx); err != nil {
+		// If snapshot building fails, log the error but don't fail environment creation
+		// This maintains backward compatibility for empty repositories
+		logger.Debug("failed to build initial snapshot", zap.Error(err))
+	}
+
+	return env, nil
 }
 
 func (e *Environment) Branches() []string {
