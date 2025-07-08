@@ -130,7 +130,8 @@ mage bootstrap
 
 ### Testing Commands
 
-- `mage go:test` - Run Go unit tests
+- `mage go:test` - Run all Go unit tests
+- `go test -v {path} -run {test}` - Run a specific Go test
 - `mage go:bench` - Run Go benchmarking tests
 - `mage go:cover` - Run tests and generate coverage report
 - `cd ui && npm run test` - Run UI unit tests (Jest)

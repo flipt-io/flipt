@@ -400,3 +400,40 @@ func Test_store_ListResources(t *testing.T) {
 	assert.Equal(t, "deadbeef00000000000000000000000000000000", resp.Revision)
 	assert.True(t, rs.listCalled)
 }
+
+func Test_NewEnvironmentFromRepo_InitialSnapshot(t *testing.T) {
+	ctx := context.Background()
+	logger := zaptest.NewLogger(t)
+
+	// Create a test repository
+	repo, err := storagegit.NewRepository(ctx, logger)
+	require.NoError(t, err)
+
+	// Create environment configuration
+	cfg := &config.EnvironmentConfig{
+		Name:    "test",
+		Storage: "local",
+	}
+
+	// Create environment storage
+	storage := fs.NewStorage(logger)
+
+	// Create publisher
+	publisher := evaluation.NoopPublisher
+
+	// Create environment from repository
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher)
+	require.NoError(t, err)
+
+	// Verify that the snapshot was built (not nil) - this is the key issue
+	// Even for an empty repository, the snapshot should be initialized
+	evaluationStore, err := env.EvaluationStore()
+	require.NoError(t, err)
+	require.NotNil(t, evaluationStore)
+
+	// The snapshot should be accessible even if empty
+	// This verifies the fix - that updateSnapshot() was called during initialization
+	snapshot, ok := evaluationStore.(*storagefs.Snapshot)
+	require.True(t, ok, "EvaluationStore should return a Snapshot")
+	require.NotNil(t, snapshot)
+}
