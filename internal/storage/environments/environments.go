@@ -123,14 +123,14 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 				logger.Warn("commit signing requires a paid license")
 			} else {
 
-				if storage.Signature.SigningKeyRef == nil {
+				if storage.Signature.KeyRef == nil {
 					return nil, errors.New("signing key reference is required when commit signing is enabled")
 				}
 
 				// Create GPG signer
 				signer, err := cosssigning.NewGPGSigner(
-					*storage.Signature.SigningKeyRef,
-					storage.Signature.SigningKeyID,
+					*storage.Signature.KeyRef,
+					storage.Signature.KeyID,
 					rm.secretsManager,
 					logger.With(zap.String("component", "gpg-signer")),
 				)
@@ -140,8 +140,8 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 
 				opts = append(opts, storagegit.WithSigner(signer))
 				logger.Info("commit signing enabled",
-					zap.String("provider", storage.Signature.SigningKeyRef.Provider),
-					zap.String("key_id", storage.Signature.SigningKeyID))
+					zap.String("provider", storage.Signature.KeyRef.Provider),
+					zap.String("key_id", storage.Signature.KeyID))
 			}
 		}
 
