@@ -172,7 +172,10 @@
                   "type": "boolean"
                 },
                 "trusted_origins": {
-                  "type": ["array", "null"],
+                  "type": [
+                    "array",
+                    "null"
+                  ],
                   "default": []
                 }
               }
@@ -789,15 +792,15 @@
                   "type": "string",
                   "default": "dev@flipt.io"
                 },
-                "signing_enabled": {
+                "enabled": {
                   "type": "boolean",
                   "default": false
                 },
-                "signing_type": {
+                "type": {
                   "type": "string",
                   "default": "gpg"
                 },
-                "signing_key_ref": {
+                "key_ref": {
                   "type": [
                     "object",
                     "null"
@@ -820,7 +823,7 @@
                     }
                   }
                 },
-                "signing_key_id": {
+                "key_id": {
                   "type": "string"
                 }
               }

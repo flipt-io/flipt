@@ -203,14 +203,14 @@ import "list"
 		signature?: {
 			name?:             string | *"flipt"
 			email?:            string | *"dev@flipt.io"
-			signing_enabled?:  bool | *false
-			signing_type?:     string | *"gpg"
-			signing_key_ref?: {
+			enabled?:  bool | *false
+			type?:     string | *"gpg"
+			key_ref?: {
 				provider: string
 				path:     string
 				key:      string
 			}
-			signing_key_id?: string
+			key_id?: string
 		}
 	}
 
