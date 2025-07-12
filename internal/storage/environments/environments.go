@@ -117,7 +117,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 		}
 
 		// Configure commit signing if enabled
-		if storage.Signature.SigningEnabled {
+		if storage.Signature.Enabled {
 			// Check license for commit signing (COSS feature)
 			if rm.licenseManager.Product() == product.OSS {
 				logger.Warn("commit signing requires a paid license")

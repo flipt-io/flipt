@@ -905,16 +905,16 @@ func TestLoad(t *testing.T) {
 						Branch:       "main",
 						PollInterval: 30 * time.Second,
 						Signature: SignatureConfig{
-							Name:           "Flipt Bot",
-							Email:          "bot@flipt.io",
-							SigningEnabled: true,
-							SigningType:    "gpg",
-							SigningKeyRef: &SecretReference{
+							Name:    "Flipt Bot",
+							Email:   "bot@flipt.io",
+							Enabled: true,
+							Type:    "gpg",
+							KeyRef: &SecretReference{
 								Provider: "vault",
 								Path:     "secret/data/gpg",
 								Key:      "private_key",
 							},
-							SigningKeyID: "1234567890ABCDEF",
+							KeyID: "1234567890ABCDEF",
 						},
 					},
 				}
@@ -924,32 +924,32 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "git signing missing signing type",
 			path:    "./testdata/storage/git_signing_missing_type.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_type signing type is required when signing is enabled"),
+			wantErr: errors.New("storage: default storage: signature type non-empty value is required"),
 		},
 		{
 			name:    "git signing unsupported signing type",
 			path:    "./testdata/storage/git_signing_unsupported_type.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_type unsupported signing type: x509 (only 'gpg' is supported)"),
+			wantErr: errors.New("storage: default storage: signature type: unsupported signing type: x509 (only 'gpg' is supported)"),
 		},
 		{
 			name:    "git signing missing key reference",
 			path:    "./testdata/storage/git_signing_missing_key_ref.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_key_ref signing key reference is required when signing is enabled"),
+			wantErr: errors.New("storage: default storage: signature key_ref non-empty value is required"),
 		},
 		{
 			name:    "git signing invalid key reference missing provider",
 			path:    "./testdata/storage/git_signing_invalid_key_ref_provider.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_key_ref secret_reference: provider non-empty value is required"),
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: provider non-empty value is required"),
 		},
 		{
 			name:    "git signing invalid key reference missing path",
 			path:    "./testdata/storage/git_signing_invalid_key_ref_path.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_key_ref secret_reference: path non-empty value is required"),
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: path non-empty value is required"),
 		},
 		{
 			name:    "git signing invalid key reference missing key",
 			path:    "./testdata/storage/git_signing_invalid_key_ref_key.yml",
-			wantErr: errors.New("storage: default storage.signature: signing_key_ref secret_reference: key non-empty value is required"),
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: key non-empty value is required"),
 		},
 	}
 

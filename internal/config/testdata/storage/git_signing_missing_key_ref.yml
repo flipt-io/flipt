@@ -8,5 +8,5 @@ storage:
     signature:
       name: "Flipt Bot"
       email: "bot@flipt.io"
-      signing_enabled: true
-      signing_type: "gpg"
+      enabled: true
+      type: "gpg"
