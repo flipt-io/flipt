@@ -1,0 +1,16 @@
+storage:
+  default:
+    backend:
+      type: "memory"
+    remote: "git@github.com:foo/bar.git"
+    branch: "main"
+    poll_interval: "30s"
+    signature:
+      name: "Flipt Bot"
+      email: "bot@flipt.io"
+      enabled: true
+      type: "x509"
+      key_ref:
+        provider: "vault"
+        path: "secret/data/gpg"
+        key: "private_key"

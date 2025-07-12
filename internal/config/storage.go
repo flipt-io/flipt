@@ -104,11 +104,49 @@ func (c *StorageConfig) validate() error {
 		return errFieldRequired("storage", "local path")
 	}
 
+	// Validate signature config
+	if c.Signature.Enabled {
+		if err := c.Signature.validate(); err != nil {
+			return errFieldWrap("storage", "signature", err)
+		}
+	}
+
 	return nil
 }
 
-// SignatureConfig contains details for producing git author and committer metadata.
+type SignatureType string
+
+const (
+	GPGSignatureType = SignatureType("gpg")
+)
+
+// SignatureConfig contains details for producing git author and committer metadata,
+// as well as optional commit signing configuration.
 type SignatureConfig struct {
-	Name  string `json:"name" mapstructure:"name" yaml:"name"`
-	Email string `json:"email" mapstructure:"email" yaml:"email"`
+	Name    string           `json:"name" mapstructure:"name" yaml:"name"`
+	Email   string           `json:"email" mapstructure:"email" yaml:"email"`
+	Enabled bool             `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Type    SignatureType    `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	KeyRef  *SecretReference `json:"key_ref,omitempty" mapstructure:"key_ref" yaml:"key_ref,omitempty"`
+	KeyID   string           `json:"key_id,omitempty" mapstructure:"key_id" yaml:"key_id,omitempty"`
+}
+
+func (c *SignatureConfig) validate() error {
+	if c.Type == "" {
+		return errFieldRequired("", "type")
+	}
+
+	if c.Type != GPGSignatureType {
+		return errFieldWrap("", "type", fmt.Errorf("unsupported signing type: %s (only 'gpg' is supported)", c.Type))
+	}
+
+	if c.KeyRef == nil {
+		return errFieldRequired("", "key_ref")
+	}
+
+	if err := c.KeyRef.Validate(); err != nil {
+		return errFieldWrap("", "key_ref", err)
+	}
+
+	return nil
 }

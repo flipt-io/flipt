@@ -70,6 +70,7 @@ type Config struct {
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
 	License        LicenseConfig        `json:"license,omitempty" mapstructure:"license" yaml:"license,omitempty"`
+	Secrets        SecretsConfig        `json:"secrets,omitempty" mapstructure:"secrets" yaml:"secrets,omitempty"`
 }
 
 type Result struct {

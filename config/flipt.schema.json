@@ -172,7 +172,10 @@
                   "type": "boolean"
                 },
                 "trusted_origins": {
-                  "type": ["array", "null"],
+                  "type": [
+                    "array",
+                    "null"
+                  ],
                   "default": []
                 }
               }
@@ -782,9 +785,45 @@
                   "type": "string"
                 },
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "default": "flipt"
                 },
                 "email": {
+                  "type": "string",
+                  "default": "dev@flipt.io"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "type": {
+                  "type": "string",
+                  "default": "gpg"
+                },
+                "key_ref": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "required": [
+                    "provider",
+                    "path",
+                    "key"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "key_id": {
                   "type": "string"
                 }
               }
@@ -1140,6 +1179,75 @@
       "properties": {
         "key": {
           "type": "string"
+        }
+      }
+    },
+    "secrets": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "title": "Secrets",
+      "additionalProperties": false,
+      "properties": {
+        "providers": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "base_path": {
+                  "type": "string",
+                  "default": "/etc/flipt/secrets"
+                }
+              }
+            },
+            "vault": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "address": {
+                  "type": "string"
+                },
+                "auth_method": {
+                  "type": "string",
+                  "default": "token"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "mount": {
+                  "type": "string",
+                  "default": "secret"
+                },
+                "token": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }

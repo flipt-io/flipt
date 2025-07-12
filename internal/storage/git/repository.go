@@ -23,6 +23,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	"go.flipt.io/flipt/internal/storage/git/signing"
 	"go.uber.org/zap"
 )
 
@@ -41,6 +42,7 @@ type Repository struct {
 	readme             []byte
 	sigName            string
 	sigEmail           string
+	signer             signing.Signer
 	maxOpenDescriptors int
 
 	subs []Subscriber
@@ -664,11 +666,19 @@ func (r *Repository) DeleteBranch(ctx context.Context, branch string) (err error
 }
 
 func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error) {
+	opts := []containers.Option[filesystemOption]{
+		withSignature(r.sigName, r.sigEmail),
+		withBaseCommit(hash),
+	}
+
+	if r.signer != nil {
+		opts = append(opts, withSigner(r.signer))
+	}
+
 	return newFilesystem(
 		r.logger,
 		r.Storer,
-		withSignature(r.sigName, r.sigEmail),
-		withBaseCommit(hash),
+		opts...,
 	)
 }
 
@@ -731,6 +741,13 @@ func WithSignature(name, email string) containers.Option[Repository] {
 	return func(r *Repository) {
 		r.sigName = name
 		r.sigEmail = email
+	}
+}
+
+// WithSigner sets the commit signer for signing Git commits.
+func WithSigner(signer signing.Signer) containers.Option[Repository] {
+	return func(r *Repository) {
+		r.signer = signer
 	}
 }
 

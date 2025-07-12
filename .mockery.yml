@@ -19,14 +19,21 @@ packages:
   go.flipt.io/flipt/internal/server/analytics:
     interfaces:
       Client: {}
-  go.flipt.io/flipt/internal/enterprise/storage/environments/git/github:
+  go.flipt.io/flipt/internal/coss/storage/environments/git/github:
     interfaces:
       PullRequestsService: {}
       RepositoriesService: {}
-  go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitea:
+  go.flipt.io/flipt/internal/coss/storage/environments/git/gitea:
     interfaces:
       Client: {}
-  go.flipt.io/flipt/internal/enterprise/storage/environments/git/gitlab:
+  go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab:
     interfaces:
       MergeRequestsService: {}
       RepositoriesService: {}
+  go.flipt.io/flipt/internal/coss/license:
+    interfaces:
+      Manager: {}
+  go.flipt.io/flipt/internal/secrets:
+    interfaces:
+      Provider: {}
+      Manager: {}
