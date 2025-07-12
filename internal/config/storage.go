@@ -105,34 +105,48 @@ func (c *StorageConfig) validate() error {
 	}
 
 	// Validate signature config
-	if c.Signature.SigningEnabled {
-		if c.Signature.SigningType == "" {
-			return errFieldWrap("storage.signature", "signing_type", fmt.Errorf("signing type is required when signing is enabled"))
-		}
-
-		if c.Signature.SigningType != "gpg" {
-			return errFieldWrap("storage.signature", "signing_type", fmt.Errorf("unsupported signing type: %s (only 'gpg' is supported)", c.Signature.SigningType))
-		}
-
-		if c.Signature.SigningKeyRef == nil {
-			return errFieldWrap("storage.signature", "signing_key_ref", fmt.Errorf("signing key reference is required when signing is enabled"))
-		}
-
-		if err := c.Signature.SigningKeyRef.Validate(); err != nil {
-			return errFieldWrap("storage.signature", "signing_key_ref", err)
+	if c.Signature.Enabled {
+		if err := c.Signature.validate(); err != nil {
+			return errFieldWrap("storage", "signature", err)
 		}
 	}
 
 	return nil
 }
 
+type SignatureType string
+
+const (
+	GPGSignatureType = SignatureType("gpg")
+)
+
 // SignatureConfig contains details for producing git author and committer metadata,
 // as well as optional commit signing configuration.
 type SignatureConfig struct {
-	Name           string           `json:"name" mapstructure:"name" yaml:"name"`
-	Email          string           `json:"email" mapstructure:"email" yaml:"email"`
-	SigningEnabled bool             `json:"signing_enabled,omitempty" mapstructure:"signing_enabled" yaml:"signing_enabled,omitempty"`
-	SigningType    string           `json:"signing_type,omitempty" mapstructure:"signing_type" yaml:"signing_type,omitempty"`
-	SigningKeyRef  *SecretReference `json:"signing_key_ref,omitempty" mapstructure:"signing_key_ref" yaml:"signing_key_ref,omitempty"`
-	SigningKeyID   string           `json:"signing_key_id,omitempty" mapstructure:"signing_key_id" yaml:"signing_key_id,omitempty"`
+	Name    string           `json:"name" mapstructure:"name" yaml:"name"`
+	Email   string           `json:"email" mapstructure:"email" yaml:"email"`
+	Enabled bool             `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Type    SignatureType    `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	KeyRef  *SecretReference `json:"key_ref,omitempty" mapstructure:"key_ref" yaml:"key_ref,omitempty"`
+	KeyID   string           `json:"key_id,omitempty" mapstructure:"key_id" yaml:"key_id,omitempty"`
+}
+
+func (c *SignatureConfig) validate() error {
+	if c.Type == "" {
+		return errFieldRequired("", "type")
+	}
+
+	if c.Type != GPGSignatureType {
+		return errFieldWrap("", "type", fmt.Errorf("unsupported signing type: %s (only 'gpg' is supported)", c.Type))
+	}
+
+	if c.KeyRef == nil {
+		return errFieldRequired("", "key_ref")
+	}
+
+	if err := c.KeyRef.Validate(); err != nil {
+		return errFieldWrap("", "key_ref", err)
+	}
+
+	return nil
 }
