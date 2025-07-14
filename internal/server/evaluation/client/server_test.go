@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -222,7 +221,8 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 
 	mockEnv.On("Key").Return("env-key")
 	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
-
+	wait := make(chan struct{})
+	t.Cleanup(func() { close(wait) })
 	mockEnv.On("EvaluationNamespaceSnapshotSubscribe", mock.Anything, "ns-key", mock.Anything).Return(
 		&fakeCloser{}, nil,
 	).Run(func(args mock.Arguments) {
@@ -230,24 +230,24 @@ func TestServer_EvaluationSnapshotNamespaceStream_ContextCancel(t *testing.T) {
 		go func() {
 			ch <- &rpcevaluation.EvaluationNamespaceSnapshot{Digest: "d1"}
 			// simulate context cancel before next send
-			time.Sleep(10 * time.Millisecond)
+			wait <- struct{}{}
 			close(ch)
 		}()
 	})
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	stream := &mockStream{ctx: ctx}
 	stream.On("Send", mock.Anything).Return(nil)
 	s := NewServer(logger, envStore)
 	req := &rpcevaluation.EvaluationNamespaceSnapshotStreamRequest{Key: "ns-key"}
 
 	go func() {
-		time.Sleep(5 * time.Millisecond)
+		<-wait
 		cancel()
 	}()
 
 	err := s.EvaluationSnapshotNamespaceStream(req, stream)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(stream.sent), 1)
+	require.GreaterOrEqual(t, len(stream.sent), 1)
 	assert.Equal(t, "d1", stream.sent[0].Digest)
 }
