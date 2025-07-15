@@ -8,26 +8,25 @@ These tests verify that:
 1. Flipt can successfully connect to Vault and retrieve GPG private keys
 2. Git commits are properly signed when commit signing is enabled
 3. The signing configuration works end-to-end in a containerized environment
-4. Error conditions are handled gracefully
 
 ## Test Architecture
 
 ### Components
 
 - **Vault Container**: HashiCorp Vault running in dev mode with test secrets
-- **Flipt Container**: Flipt server configured with commit signing enabled
-- **Gitea Container**: Git repository server for storing feature flag configurations
-- **Test GPG Keys**: Generated test key pairs for signing operations
+- **Flipt Container**: Flipt server configured with local storage and commit signing enabled
+- **Test GPG Keys**: Pre-generated test key pairs for signing operations
 
 ### Test Flow
 
 ```
 1. Start Vault container with dev token
 2. Store test GPG private key in Vault KV store
-3. Start Flipt with Vault secrets provider configured
-4. Start Gitea with test repositories
-5. Perform flag operations that trigger commits
-6. Verify commits are signed and operations succeed
+3. Start Flipt with Vault secrets provider and local storage configured
+4. Perform flag operations that trigger commits
+5. Verify operations succeed without signing errors
+6. Execute git commands inside container to verify commit signatures
+7. Verify signatures are from expected GPG key and contain PGP blocks
 ```
 
 ## Running the Tests
@@ -42,33 +41,25 @@ These tests verify that:
 
 ```bash
 # From project root
-go run ./build/main.go test integration
+dagger call test integration
 ```
 
 ### Run Only Signing Tests
 
 ```bash
 # From project root  
-go run ./build/main.go test integration --cases signing
-```
-
-### Run Tests with Verbose Output
-
-```bash
-# From project root
-go run ./build/main.go test integration --cases signing --verbose
+dagger call test integration --cases signing
 ```
 
 ## Test Configuration
 
 ### Storage Configuration
 
-The tests use **local storage** instead of remote git repositories for easier signature verification:
+The tests use **local storage** for easier signature verification:
 
 - **Backend Type**: `local`
 - **Repository Path**: `/tmp/flipt-repo` (inside container)
 - **Branch**: `main`
-- **Mounted Volume**: Dagger cache volume for persistence
 
 ### Vault Configuration
 
@@ -126,10 +117,7 @@ The private key is stored in Vault and used by Flipt for commit signing.
 ```
 signing/
 ├── README.md                    # This file
-├── signing_test.go             # Main integration tests
-├── verification.go             # Git signature verification utilities  
-├── helpers.go                  # Test helper functions
-├── gpg_test_key.go            # GPG key generation utilities
+├── signing_test.go             # Main integration test
 └── testdata/
     └── test-gpg-key.asc       # Test GPG key data
 ```
@@ -143,41 +131,18 @@ signing/
 **Steps**:
 1. Setup Vault with test GPG private key
 2. Configure Flipt with local storage and commit signing
-3. Create a test feature flag to trigger a Git commit
-4. Verify the server operates without signing-related errors
-5. Check that the signing configuration was loaded successfully
+3. Create test feature flags to trigger Git commits
+4. Verify flag operations complete without signing-related errors
+5. Execute git commands inside container to verify commit signatures
+6. Verify signatures are from the expected GPG key (test-bot@flipt.io)
+7. Check that commits contain PGP signature blocks
 
-**Current Verification**: 
-- Server health check confirms signing configuration loaded
-- Operations complete without errors
-- No signature verification failures in logs
-
-### TestCommitSigningWithVerification
-
-**Purpose**: Enhanced test with actual Git signature verification
-
-**Status**: Planned implementation using Dagger container exec
-
-**Planned Steps**:
-1. All steps from TestCommitSigning
-2. Execute git commands inside the container to verify signatures
-3. Check for PGP signature blocks in commit objects
-4. Validate signature status using `git show --show-signature`
-
-### TestCommitSigningDisabled
-
-**Purpose**: Verify behavior when signing is disabled (placeholder)
-
-**Note**: Currently skipped as it requires a separate Flipt instance configuration
-
-### TestGPGKeyGeneration
-
-**Purpose**: Test the GPG key generation utility functions
-
-**Steps**:
-1. Generate a test GPG key pair
-2. Verify the key format and structure
-3. Ensure keys can be parsed by the OpenPGP library
+**Verification**: 
+- Server starts successfully with signing configuration
+- Flag operations complete without errors
+- Commits are verified to contain valid GPG signatures
+- Signatures are verified to be from the expected test key
+- Repository is verified inside container using git commands
 
 ## Debugging
 
@@ -198,6 +163,11 @@ signing/
    - Verify key permissions and passphrase (if any)
    - Review Flipt logs for signing errors
 
+4. **Signature Verification Failed**
+   - Verify git commands can access the repository in the container
+   - Check that commits contain expected signature format
+   - Ensure test GPG key is properly configured in Vault
+
 ### Log Analysis
 
 Enable debug logging for detailed information:
@@ -211,16 +181,7 @@ Look for log entries related to:
 - Secrets manager initialization
 - GPG signer creation and key loading
 - Git commit operations and signing
-
-## Contributing
-
-When adding new signing integration tests:
-
-1. Follow the existing test patterns and naming conventions
-2. Use the provided helper functions for Vault and GPG setup
-3. Include proper error handling and cleanup
-4. Add documentation for new test scenarios
-5. Ensure tests are deterministic and don't rely on external state
+- Signature verification results from git commands
 
 ## Security Notes
 
@@ -232,20 +193,13 @@ The test keys are:
 - Safe to include in version control
 - Should be rotated periodically for security best practices
 
-## Performance Considerations
+## Implementation Details
 
-- Tests use lightweight containers and minimal configurations
-- GPG operations may add latency to commit operations
-- Vault connections are reused where possible
-- Test keys use smaller key sizes (2048-bit) for faster generation
+The integration test uses Dagger containers to orchestrate the test environment:
 
-## Future Enhancements
+- **Vault Setup**: The `withVault` function creates a Vault container and stores the test GPG key
+- **Flipt Configuration**: Environment variables configure Flipt to use Vault for secrets and local storage for commits
+- **Test Execution**: The `signingTestSuite` function runs the test and then verifies signatures using git commands inside the Flipt container
+- **Verification**: Git commands (`git log --show-signature` and `git cat-file commit HEAD`) verify that commits are properly signed
 
-Potential improvements for the integration tests:
-
-1. **Multi-Key Scenarios**: Test with multiple GPG keys and key rotation
-2. **Different Auth Methods**: Test Vault with Kubernetes and AppRole auth
-3. **Error Injection**: Test various failure modes and recovery
-4. **Performance Testing**: Measure impact of signing on commit latency
-5. **Real Git Verification**: Extract and verify actual GPG signatures from commits
-6. **Cross-Platform Testing**: Ensure compatibility across different container platforms
+The test validates both that Flipt can successfully sign commits and that the signatures are cryptographically valid.

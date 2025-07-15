@@ -18,7 +18,7 @@ import (
 // 2. Secrets are retrieved from Vault without errors
 // 3. GPG signer is initialized correctly
 // 4. Flag operations complete successfully (triggering signed commits)
-// 5. No signing-related errors occur during operation
+// 5. Commits are properly signed with GPG
 func TestCommitSigning(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, opts integration.TestOpts) {
 		ctx := context.Background()
@@ -50,5 +50,33 @@ func TestCommitSigning(t *testing.T) {
 		time.Sleep(3 * time.Second)
 
 		t.Log("Verifying operation completed without signing errors")
+		
+		// Create a second flag to ensure multiple commits are signed
+		flagPayload2 := &core.Flag{
+			Key:         "signing-test-2",
+			Name:        "Signing Test 2",
+			Description: "Second flag to test commit signing",
+			Enabled:     false,
+		}
+
+		flag2, err := anypb.New(flagPayload2)
+		require.NoError(t, err)
+
+		created2, err := envClient.CreateResource(ctx, &environments.UpdateResourceRequest{
+			EnvironmentKey: integration.DefaultEnvironment,
+			NamespaceKey:   integration.DefaultNamespace,
+			Key:            "signing-test-2",
+			Payload:        flag2,
+			Revision:       created.Revision,
+		})
+		require.NoError(t, err, "Second flag creation should succeed with signing enabled")
+		require.NotNil(t, created2)
+
+		t.Log("Waiting for second commit to be processed")
+		time.Sleep(2 * time.Second)
+
+		t.Log("Both flag operations completed successfully")
+		// Actual signature verification is performed by the signingTestSuite function
+		// after this test completes using git commands inside the flipt container
 	})
 }

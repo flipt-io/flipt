@@ -52,6 +52,7 @@ var (
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
 		"ofrep":         ofrepAPI(),
+		"signing":       signingAPI(),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -182,6 +183,77 @@ func envsAPI(directory string) testCaseFn {
 
 		return suite(ctx, "environments", base, flipt, conf)
 	}, environmentsTestdataDir)
+}
+
+func signingAPI() testCaseFn {
+	return withVault(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		flipt = flipt.
+			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BACKEND_TYPE", "local").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BACKEND_PATH", "/tmp/flipt-repo").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_ENABLED", "true").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_TYPE", "gpg").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "vault").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt/signing-key").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "private_key").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_NAME", "Flipt Test Bot").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_EMAIL", "test-bot@flipt.io").
+			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_ID", "test-bot@flipt.io").
+			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ENABLED", "true").
+			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ADDRESS", "http://vault:8200").
+			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
+			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
+			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret").
+			WithEnvVariable("UNIQUE", uuid.New().String())
+
+		return signingTestSuite(ctx, "signing", base, flipt, conf)
+	})
+}
+
+func signingTestSuite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func() (err error) {
+		// First run the normal test suite
+		err = suite(ctx, dir, base, flipt, conf)()
+		if err != nil {
+			return err
+		}
+
+		// After the test completes, verify signatures using git commands inside the flipt container
+		// Check that commits are signed with the expected GPG key
+		result, err := flipt.
+			WithExec([]string{"git", "-C", "/tmp/flipt-repo", "log", "--show-signature", "-1", "--pretty=format:%H %s"}).
+			Stdout(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get commit log: %w", err)
+		}
+
+		// Check for signature verification
+		if !strings.Contains(result, "gpg: Good signature from") && !strings.Contains(result, "Signature made") {
+			return fmt.Errorf("commit signature verification failed - no valid signature found in: %s", result)
+		}
+
+		// Verify the signature is from the expected key
+		if !strings.Contains(result, "test-bot@flipt.io") {
+			return fmt.Errorf("commit signature not from expected key - got: %s", result)
+		}
+
+		// Check that the commit contains PGP signature block
+		rawCommit, err := flipt.
+			WithExec([]string{"git", "-C", "/tmp/flipt-repo", "cat-file", "commit", "HEAD"}).
+			Stdout(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get raw commit: %w", err)
+		}
+
+		if !strings.Contains(rawCommit, "-----BEGIN PGP SIGNATURE-----") {
+			return fmt.Errorf("commit does not contain PGP signature block")
+		}
+
+		fmt.Printf("✓ Commit signature verification successful\n")
+		fmt.Printf("✓ Repository verified inside container at: /tmp/flipt-repo\n")
+		return nil
+	}
 }
 
 func authn(method string) testCaseFn {
@@ -567,6 +639,74 @@ permit_slice(allowed, requested) if {
 			WithNewFile(policyPath, string(policy)).
 			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
 			WithNewFile(policyData, string(data)),
+			conf,
+		)
+	}
+}
+
+func withVault(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Create Vault container in dev mode
+		vault := client.Container().
+			From("hashicorp/vault:1.17.5").
+			WithEnvVariable("VAULT_DEV_ROOT_TOKEN_ID", "test-root-token").
+			WithEnvVariable("VAULT_DEV_LISTEN_ADDRESS", "0.0.0.0:8200").
+			WithEnvVariable("VAULT_LOG_LEVEL", "debug").
+			WithExposedPort(8200).
+			WithExec([]string{"vault", "server", "-dev"}).
+			AsService()
+
+		// Setup container to configure Vault with KV v2 engine and store GPG key
+		testGPGKey := `-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQVYBGb4xm0BDADSpbQS8YJCjHklcDLxQF+PvFZJJ7S6s7OvEJWbC4wDQOVPQ8Zk
+VFxfXJa8wOqKVzz5vKpN2I9Nf8r8b5c5H6lGJyA+2O5s3H1v5m8X6R2VH9bP0w
+5V7X3l8C4J6N8F9Z1K2M3x4Q0S7W6Y1T9E7k5V8b2P4z1L3o6U5s9A7R4V1Y2I
+8M6o3V7K5H9J1t4S6P0z8b2V9N7E1x4Q3W5Y8T0k7V1L2o9A4R6V5s3H8M0o6U
+1x5Q4S7W2Y1T8E9k0V7b3P6z4L1o5U9s2A8R7V0Y3I5M9o6U4x2Q7S0W6Y5T1E
+8k4V0b7P9z1L3o2U8s5A4R9V7Y6I2M8o3U1x4Q0S5W9Y4T7E2k1V5b0P8z6L4o
+9U2s8A1R4V0Y7I5M2o6U9x1Q8S4W0Y7T2E5k8V4b1P3z9L6o2U5s1A7R0V9Y4I
+8M5o3U6x2Q1S7W4Y0T5E9k1V8b4P6z2L0o5U8s4A3R7V1Y9I6M2o0U3x5Q4S8W
+1Y7T4E0k2V5b9P1z8L3o6U0s7A4R1V4Y2I9M8o5U1x6Q7S3W0Y4T8E5k9V1b2P
+4z0L6o8U3s1A5R7V9Y1I4M2o6U8x3Q0S5W1Y9T6E2k0V4b7P1z5L8o3U6s2A9R
+wAEQAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ
+AAAAAAEAAAGfQFliVGVzdCBGbGlwdCBCb3QgPHRlc3QtYm90QGZsaXB0LmlvPsLA
+xgQQAQgAOgWCZvjGbQKbAwUJCWYBgAULCQgHAgYVCAkKCwIEFgIDAQIeAQIXgAAK
+CRDUBYQWYVMexAAGnwwAwgWV7oQ8B5L2VQOhBfj9Zj8hRYVQ7VEfKq4Q8U1AWEFM
+EvHsQ8hRYVQ7VEfKq4Q8U1AWEFmEvHsRYVQ7VEfKq4Q8U1AWEFmEvHsD5fzKKxaI
+7PtxAAAAFEZmxpcHQtdGVzdC1ib3RAZmxpcHQuaW8=
+=P5uD
+-----END PGP PRIVATE KEY BLOCK-----`
+
+		// Configure Vault with KV v2 engine and store GPG key
+		setupContainer := client.Container().
+			From("hashicorp/vault:1.17.5").
+			WithEnvVariable("VAULT_ADDR", "http://vault:8200").
+			WithEnvVariable("VAULT_TOKEN", "test-root-token").
+			WithServiceBinding("vault", vault).
+			WithNewFile("/tmp/secret.json", fmt.Sprintf(`{"private_key": %q}`, testGPGKey))
+
+		// Enable KV v2 engine
+		_, err := setupContainer.
+			WithExec([]string{"vault", "secrets", "enable", "-version=2", "kv"}).
+			Sync(ctx)
+		if err != nil {
+			return func() error { return fmt.Errorf("failed to enable KV v2 engine: %w", err) }
+		}
+
+		// Store GPG key in Vault
+		_, err = setupContainer.
+			WithExec([]string{"vault", "kv", "put", "secret/flipt/signing-key", "@/tmp/secret.json"}).
+			Sync(ctx)
+		if err != nil {
+			return func() error { return fmt.Errorf("failed to store GPG key in Vault: %w", err) }
+		}
+
+		return fn(
+			ctx,
+			client,
+			base,
+			flipt.WithServiceBinding("vault", vault),
 			conf,
 		)
 	}
