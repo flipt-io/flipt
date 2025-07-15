@@ -121,6 +121,28 @@ func Load(ctx context.Context, path string) (*Result, error) {
 		if err := v.ReadConfig(file); err != nil {
 			return nil, err
 		}
+
+		// This is a fix for issue #4428. By default, Viper uses lowercase keys and the allowed_teams with case-sensitive keys
+		// will be converted to lowercase. This will cause issues when matching against allowed_organizations. This workaround
+		// tries to restore the original case of the keys in allowed_teams if they match any of the allowed_organizations.
+		if v.IsSet("authentication.methods.github.allowed_teams") && v.IsSet("authentication.methods.github.allowed_organizations") {
+			allowedTeams := v.GetStringMapStringSlice("authentication.methods.github.allowed_teams")
+			orgs := (v.GetStringSlice("authentication.methods.github.allowed_organizations"))
+			for org, teams := range allowedTeams {
+				if slices.Contains(orgs, org) {
+					continue
+				}
+
+				if i := slices.IndexFunc(orgs, func(o string) bool {
+					return org == strings.ToLower(o)
+				}); i != -1 {
+					delete(allowedTeams, org)
+					allowedTeams[orgs[i]] = teams
+				}
+
+			}
+			v.Set("authentication.methods.github.allowed_teams", allowedTeams)
+		}
 	}
 
 	var (
