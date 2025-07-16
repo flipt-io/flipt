@@ -120,7 +120,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 		if storage.Signature.Enabled {
 			// Check license for commit signing (COSS feature)
 			if rm.licenseManager.Product() == product.OSS {
-				logger.Warn("commit signing requires a paid license")
+				logger.Warn("commit signing requires a paid license; using noop signer.", zap.String("environment", envConf.Name))
 			} else {
 
 				if storage.Signature.KeyRef == nil {
@@ -212,7 +212,7 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	if envConf.SCM != nil {
 		// License check: only allow SCM if pro is enabled
 		if f.licenseManager == nil || f.licenseManager.Product() != product.Pro {
-			f.logger.Warn("paid license required for SCM integration; using noop SCM.", zap.String("environment", envConf.Name))
+			f.logger.Warn("scm integration requires a paid license; using noop SCM.", zap.String("environment", envConf.Name))
 			wrapped := cossgit.NewEnvironment(f.logger, env, &cossgit.SCMNotImplemented{})
 			return wrapped, nil
 		}

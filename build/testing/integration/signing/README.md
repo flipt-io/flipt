@@ -103,23 +103,22 @@ FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_ID=test-bot@flipt.io
 
 ### GPG Test Key
 
-The tests use a pre-generated GPG key pair for consistent testing:
+The tests dynamically generate a GPG key pair during setup:
 
 - **Name**: Flipt Test Bot
 - **Email**: test-bot@flipt.io
 - **Key Type**: RSA 2048-bit
 - **Purpose**: Signing only (test key)
+- **Generation**: Created fresh for each test run using GPG batch mode
 
-The private key is stored in Vault and used by Flipt for commit signing.
+The private key is generated inside the test container and stored in Vault for Flipt to use for commit signing.
 
 ## File Structure
 
 ```
 signing/
 ├── README.md                    # This file
-├── signing_test.go             # Main integration test
-└── testdata/
-    └── test-gpg-key.asc       # Test GPG key data
+└── signing_test.go             # Main integration test
 ```
 
 ## Test Cases
@@ -129,13 +128,15 @@ signing/
 **Purpose**: Verify that commits are properly signed when signing is enabled
 
 **Steps**:
-1. Setup Vault with test GPG private key
-2. Configure Flipt with local storage and commit signing
-3. Create test feature flags to trigger Git commits
-4. Verify flag operations complete without signing-related errors
-5. Execute git commands inside container to verify commit signatures
-6. Verify signatures are from the expected GPG key (test-bot@flipt.io)
-7. Check that commits contain PGP signature blocks
+1. Setup Vault container as a background service
+2. Generate test GPG key pair inside container using GPG batch mode
+3. Store GPG private key in Vault KV store
+4. Configure Flipt with local storage and commit signing
+5. Create test feature flags to trigger Git commits
+6. Verify flag operations complete without signing-related errors
+7. Execute git commands inside container to verify commit signatures
+8. Verify signatures are from the expected GPG key (test-bot@flipt.io)
+9. Check that commits contain PGP signature blocks
 
 **Verification**: 
 - Server starts successfully with signing configuration
