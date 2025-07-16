@@ -157,12 +157,6 @@ curl -fsSL https://get.flipt.io/install | sh
     </a>
 </div>
 
-### Sandbox
-
-[Try Flipt](https://try.flipt.io) in a deployed environment!
-
-**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
-
 ### Homebrew :beer:
 
 ```bash
