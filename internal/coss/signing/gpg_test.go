@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// MockSecretsManager is a mock implementation of the secrets.Manager interface
+// MockSecretsManager implements the secrets.Manager interface for testing.
 type MockSecretsManager struct {
 	mock.Mock
 }

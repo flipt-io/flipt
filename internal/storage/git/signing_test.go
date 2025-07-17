@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// MockSigner is a mock implementation of the signing.Signer interface
+// MockSigner implements the signing.Signer interface for testing.
 type MockSigner struct {
 	mock.Mock
 }

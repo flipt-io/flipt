@@ -469,8 +469,3 @@ func TestHelper_StringOperations(t *testing.T) {
 	})
 }
 
-// Add missing strings import by adding this at the top of the file
-// This test ensures the strings package is imported
-func init() {
-	_ = strings.TrimSuffix("test/", "/")
-}
