@@ -1,8 +1,6 @@
 name: Release (Nightly)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "30 22 * * *" # nightly @ 10:30 PM UTC
 
 permissions:
   contents: write
@@ -149,4 +147,3 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
