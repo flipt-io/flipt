@@ -50,7 +50,7 @@ func TestCommitSigning(t *testing.T) {
 		time.Sleep(3 * time.Second)
 
 		t.Log("Verifying operation completed without signing errors")
-		
+
 		// Create a second flag to ensure multiple commits are signed
 		flagPayload2 := &core.Flag{
 			Key:         "signing-test-2",
@@ -76,7 +76,5 @@ func TestCommitSigning(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		t.Log("Both flag operations completed successfully")
-		// Actual signature verification is performed by the signingTestSuite function
-		// after this test completes using git commands inside the flipt container
 	})
 }

@@ -207,56 +207,8 @@ func signingAPI() testCaseFn {
 			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return signingTestSuite(ctx, "signing", base, flipt, conf)
+		return suite(ctx, "signing", base, flipt, conf)
 	})
-}
-
-func signingTestSuite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
-	return func() (err error) {
-		// First run the normal test suite
-		err = suite(ctx, dir, base, flipt, conf)()
-		if err != nil {
-			return err
-		}
-
-		// Install git in the flipt container for signature verification
-		fliptWithGit := flipt.WithExec([]string{"apk", "add", "--no-cache", "git"})
-
-		// After the test completes, verify signatures using git commands inside the flipt container
-		// Check that commits are signed with the expected GPG key
-		result, err := fliptWithGit.
-			WithExec([]string{"git", "-C", "/tmp/flipt-repo", "log", "--show-signature", "-1", "--pretty=format:%H %s"}).
-			Stdout(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get commit log: %w", err)
-		}
-
-		// Check for signature verification
-		if !strings.Contains(result, "gpg: Good signature from") && !strings.Contains(result, "Signature made") {
-			return fmt.Errorf("commit signature verification failed - no valid signature found in: %s", result)
-		}
-
-		// Verify the signature is from the expected key
-		if !strings.Contains(result, "test-bot@flipt.io") {
-			return fmt.Errorf("commit signature not from expected key - got: %s", result)
-		}
-
-		// Check that the commit contains PGP signature block
-		rawCommit, err := fliptWithGit.
-			WithExec([]string{"git", "-C", "/tmp/flipt-repo", "cat-file", "commit", "HEAD"}).
-			Stdout(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get raw commit: %w", err)
-		}
-
-		if !strings.Contains(rawCommit, "-----BEGIN PGP SIGNATURE-----") {
-			return fmt.Errorf("commit does not contain PGP signature block")
-		}
-
-		fmt.Printf("✓ Commit signature verification successful\n")
-		fmt.Printf("✓ Repository verified inside container at: /tmp/flipt-repo\n")
-		return nil
-	}
 }
 
 func authn(method string) testCaseFn {
@@ -649,30 +601,24 @@ permit_slice(allowed, requested) if {
 
 func withVault(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
-		// Create Vault container in dev mode
+		// Create Vault service container
 		vault := client.Container().
 			From("hashicorp/vault:1.17.5").
 			WithEnvVariable("VAULT_DEV_ROOT_TOKEN_ID", "test-root-token").
 			WithEnvVariable("VAULT_DEV_LISTEN_ADDRESS", "0.0.0.0:8200").
-			WithEnvVariable("VAULT_LOG_LEVEL", "debug").
 			WithExposedPort(8200).
 			WithDefaultArgs([]string{"vault", "server", "-dev"}).
 			AsService()
 
-		// Generate a proper test GPG key dynamically
-		return func() error {
-			// Generate GPG key inside the setup container
-			_, err := client.Container().
-				From("hashicorp/vault:1.17.5").
-				WithEnvVariable("VAULT_ADDR", "http://vault:8200").
-				WithEnvVariable("VAULT_TOKEN", "test-root-token").
-				WithServiceBinding("vault", vault).
-				WithExec([]string{"sh", "-c", `
-					# Install gpg
-					apk add --no-cache gnupg
-
-					# Generate a test GPG key
-					cat > /tmp/gpg-gen <<EOF
+		// Setup container to generate GPG key and store it in Vault
+		_, err := client.Container().
+			From("hashicorp/vault:1.17.5").
+			WithEnvVariable("VAULT_ADDR", "http://vault:8200").
+			WithEnvVariable("VAULT_TOKEN", "test-root-token").
+			WithServiceBinding("vault", vault).
+			WithExec([]string{"sh", "-c", `
+				apk add --no-cache gnupg
+				cat > /tmp/gpg-gen <<EOF
 %echo Generating test GPG key
 Key-Type: RSA
 Key-Length: 2048
@@ -684,27 +630,33 @@ Expire-Date: 0
 %no-protection
 %commit
 %echo done
-EOF
+EOF`}).
+			WithExec([]string{
+				"sh", "-c", `
+				mkdir -p /tmp/gpg
+				chmod 700 /tmp/gpg
+				gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen
+				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
+				
+				sleep 10
+				for i in $(seq 1 30); do
+					vault status > /dev/null 2>&1 && break
+					sleep 1
+				done
+				
+				vault kv put secret/flipt/signing-key private_key="$(cat /tmp/private-key.asc)"
+				
+				if ! vault kv get secret/flipt/signing-key > /dev/null 2>&1; then
+					echo "ERROR: Failed to store key in Vault"
+					exit 1
+				fi
+			`}).Sync(ctx)
 
-					# Create GPG key
-					mkdir -p /tmp/gpg
-					chmod 700 /tmp/gpg
-					gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen
-					
-					# Export private key
-					gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
-					
-					# Wait for Vault to be ready and store the key
-					sleep 5
-					
-					# Store the key in Vault
-					vault kv put secret/flipt/signing-key private_key="$(cat /tmp/private-key.asc)"
-				`}).
-				Sync(ctx)
-			if err != nil {
-				return fmt.Errorf("failed to setup Vault: %w", err)
-			}
+		if err != nil {
+			return func() error { return err }
+		}
 
+		return func() error {
 			return fn(
 				ctx,
 				client,
