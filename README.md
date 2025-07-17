@@ -86,7 +86,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 
 ## Flipt v1 vs v2: What's New?
 
-| Feature | Flipt v1 | Flipt v2 |
+| Feature | Flipt v1 | ✨ Flipt v2 |
 |---------|----------|----------|
 | **Storage** | Database-centric (MySQL, PostgreSQL, SQLite) | Git-native with optional SCM sync (GitHub, GitLab, Gitea, etc.) |
 | **Environments** | Single namespace model | Multi-environment with Git flexibility |
@@ -98,6 +98,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 | **Merge Process** | Direct flag changes | Merge proposals with code review |
 | **Real-time Updates** | Polling required | Streaming API for instant updates |
 | **Multi-tenancy** | Manual namespace management | Environment-based isolation |
+| **Secrets Management** | None | HashiCorp Vault and file-based providers available in OSS |
 
 <!-- 
 TODO: uncomment once we have a migration guide
@@ -240,7 +241,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 <br clear="both"/>
 
-> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, premium support, and priority bug fixes.  
+> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, GPG commit signing, premium support, and priority bug fixes.  
 >
 > **[Start Free Trial →](https://getflipt.co/pro)**
 
