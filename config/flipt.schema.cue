@@ -174,7 +174,7 @@ import "list"
 	}
 
 	#scm: {
-		type:        *"github" | "gitea" | "gitlab"
+		type:        *"github" | "gitea" | "gitlab" | "azure"
 		credentials: string
 		api_url?:    string
 	}
