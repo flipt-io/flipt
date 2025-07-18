@@ -73,6 +73,7 @@ func NewSCM(logger *zap.Logger, project, repoName string, opts ...ClientOption) 
 		client:   client,
 		project:  project,
 		repoName: repoName,
+		baseURL:  options.apiURL.String(),
 	}, nil
 }
 
@@ -81,6 +82,7 @@ type SCM struct {
 	client   Client
 	project  string
 	repoName string
+	baseURL  string
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
@@ -167,8 +169,14 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 			state = environments.ProposalState_PROPOSAL_STATE_MERGED
 		}
 
+		webURL := fmt.Sprintf("%s/%s/_git/%s/pullrequest/%d",
+			s.baseURL,
+			s.project,
+			s.repoName,
+			*pr.PullRequestId,
+		)
 		details[branch] = &environments.EnvironmentProposalDetails{
-			Url:   *pr.Url,
+			Url:   webURL,
 			State: state,
 		}
 	}
