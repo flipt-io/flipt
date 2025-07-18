@@ -81,53 +81,6 @@ func (_c *MockManager_Close_Call) RunAndReturn(run func() error) *MockManager_Cl
 	return _c
 }
 
-// DeleteSecret provides a mock function for the type MockManager
-func (_mock *MockManager) DeleteSecret(ctx context.Context, providerName string, path string) error {
-	ret := _mock.Called(ctx, providerName, path)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteSecret")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, providerName, path)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockManager_DeleteSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSecret'
-type MockManager_DeleteSecret_Call struct {
-	*mock.Call
-}
-
-// DeleteSecret is a helper method to define mock.On call
-//   - ctx
-//   - providerName
-//   - path
-func (_e *MockManager_Expecter) DeleteSecret(ctx interface{}, providerName interface{}, path interface{}) *MockManager_DeleteSecret_Call {
-	return &MockManager_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret", ctx, providerName, path)}
-}
-
-func (_c *MockManager_DeleteSecret_Call) Run(run func(ctx context.Context, providerName string, path string)) *MockManager_DeleteSecret_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *MockManager_DeleteSecret_Call) Return(err error) *MockManager_DeleteSecret_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockManager_DeleteSecret_Call) RunAndReturn(run func(ctx context.Context, providerName string, path string) error) *MockManager_DeleteSecret_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetProvider provides a mock function for the type MockManager
 func (_mock *MockManager) GetProvider(name string) (Provider, error) {
 	ret := _mock.Called(name)
@@ -403,54 +356,6 @@ func (_c *MockManager_ListSecrets_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
-// PutSecret provides a mock function for the type MockManager
-func (_mock *MockManager) PutSecret(ctx context.Context, providerName string, path string, secret *Secret) error {
-	ret := _mock.Called(ctx, providerName, path, secret)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PutSecret")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *Secret) error); ok {
-		r0 = returnFunc(ctx, providerName, path, secret)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockManager_PutSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutSecret'
-type MockManager_PutSecret_Call struct {
-	*mock.Call
-}
-
-// PutSecret is a helper method to define mock.On call
-//   - ctx
-//   - providerName
-//   - path
-//   - secret
-func (_e *MockManager_Expecter) PutSecret(ctx interface{}, providerName interface{}, path interface{}, secret interface{}) *MockManager_PutSecret_Call {
-	return &MockManager_PutSecret_Call{Call: _e.mock.On("PutSecret", ctx, providerName, path, secret)}
-}
-
-func (_c *MockManager_PutSecret_Call) Run(run func(ctx context.Context, providerName string, path string, secret *Secret)) *MockManager_PutSecret_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*Secret))
-	})
-	return _c
-}
-
-func (_c *MockManager_PutSecret_Call) Return(err error) *MockManager_PutSecret_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockManager_PutSecret_Call) RunAndReturn(run func(ctx context.Context, providerName string, path string, secret *Secret) error) *MockManager_PutSecret_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RegisterProvider provides a mock function for the type MockManager
 func (_mock *MockManager) RegisterProvider(name string, provider Provider) error {
 	ret := _mock.Called(name, provider)
@@ -522,52 +427,6 @@ type MockProvider_Expecter struct {
 
 func (_m *MockProvider) EXPECT() *MockProvider_Expecter {
 	return &MockProvider_Expecter{mock: &_m.Mock}
-}
-
-// DeleteSecret provides a mock function for the type MockProvider
-func (_mock *MockProvider) DeleteSecret(ctx context.Context, path string) error {
-	ret := _mock.Called(ctx, path)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteSecret")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, path)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockProvider_DeleteSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSecret'
-type MockProvider_DeleteSecret_Call struct {
-	*mock.Call
-}
-
-// DeleteSecret is a helper method to define mock.On call
-//   - ctx
-//   - path
-func (_e *MockProvider_Expecter) DeleteSecret(ctx interface{}, path interface{}) *MockProvider_DeleteSecret_Call {
-	return &MockProvider_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret", ctx, path)}
-}
-
-func (_c *MockProvider_DeleteSecret_Call) Run(run func(ctx context.Context, path string)) *MockProvider_DeleteSecret_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockProvider_DeleteSecret_Call) Return(err error) *MockProvider_DeleteSecret_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockProvider_DeleteSecret_Call) RunAndReturn(run func(ctx context.Context, path string) error) *MockProvider_DeleteSecret_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetSecret provides a mock function for the type MockProvider
@@ -680,53 +539,6 @@ func (_c *MockProvider_ListSecrets_Call) Return(strings []string, err error) *Mo
 }
 
 func (_c *MockProvider_ListSecrets_Call) RunAndReturn(run func(ctx context.Context, pathPrefix string) ([]string, error)) *MockProvider_ListSecrets_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// PutSecret provides a mock function for the type MockProvider
-func (_mock *MockProvider) PutSecret(ctx context.Context, path string, secret *Secret) error {
-	ret := _mock.Called(ctx, path, secret)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PutSecret")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *Secret) error); ok {
-		r0 = returnFunc(ctx, path, secret)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockProvider_PutSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutSecret'
-type MockProvider_PutSecret_Call struct {
-	*mock.Call
-}
-
-// PutSecret is a helper method to define mock.On call
-//   - ctx
-//   - path
-//   - secret
-func (_e *MockProvider_Expecter) PutSecret(ctx interface{}, path interface{}, secret interface{}) *MockProvider_PutSecret_Call {
-	return &MockProvider_PutSecret_Call{Call: _e.mock.On("PutSecret", ctx, path, secret)}
-}
-
-func (_c *MockProvider_PutSecret_Call) Run(run func(ctx context.Context, path string, secret *Secret)) *MockProvider_PutSecret_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*Secret))
-	})
-	return _c
-}
-
-func (_c *MockProvider_PutSecret_Call) Return(err error) *MockProvider_PutSecret_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockProvider_PutSecret_Call) RunAndReturn(run func(ctx context.Context, path string, secret *Secret) error) *MockProvider_PutSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }

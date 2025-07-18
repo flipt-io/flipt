@@ -14,41 +14,34 @@ import (
 )
 
 func TestNewProvider(t *testing.T) {
-	t.Run("creates base directory", func(t *testing.T) {
+	t.Run("checks base directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
-		basePath := filepath.Join(tmpDir, "secrets")
+		t.Cleanup(func() {
+			os.RemoveAll(tmpDir)
+		})
 
-		provider, err := NewProvider(basePath, zap.NewNop())
+		provider, err := NewProvider(tmpDir, zap.NewNop())
 
 		require.NoError(t, err)
-		assert.Equal(t, basePath, provider.basePath)
-
-		// Verify directory was created
-		stat, err := os.Stat(basePath)
-		require.NoError(t, err)
-		assert.True(t, stat.IsDir())
-
-		// Verify permissions are 0700
-		assert.Equal(t, os.FileMode(0700), stat.Mode().Perm())
+		assert.Equal(t, tmpDir, provider.basePath)
 	})
 
-	t.Run("fails when base directory cannot be created", func(t *testing.T) {
-		// Use a path that cannot be created (on read-only filesystem)
-		if os.Getuid() == 0 {
-			t.Skip("skipping test when running as root")
-		}
-
+	t.Run("fails when base directory does not exist", func(t *testing.T) {
 		basePath := "/root/invalid/path"
 
 		_, err := NewProvider(basePath, zap.NewNop())
 
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "creating base path")
+		assert.Contains(t, err.Error(), "checking base path")
 	})
 }
 
 func TestProvider_GetSecret(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
@@ -108,6 +101,10 @@ func TestProvider_GetSecret(t *testing.T) {
 
 func TestProvider_PutSecret(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
@@ -202,6 +199,10 @@ func TestProvider_PutSecret(t *testing.T) {
 
 func TestProvider_DeleteSecret(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
@@ -309,6 +310,10 @@ func TestProvider_DeleteSecret(t *testing.T) {
 
 func TestProvider_ListSecrets(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
@@ -385,6 +390,10 @@ func TestProvider_ListSecrets(t *testing.T) {
 
 func TestProvider_secretPath(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 
@@ -433,6 +442,10 @@ func TestProvider_secretPath(t *testing.T) {
 
 func TestProvider_Integration(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Cleanup(func() {
+		os.RemoveAll(tmpDir)
+	})
+
 	provider, err := NewProvider(tmpDir, zap.NewNop())
 	require.NoError(t, err)
 

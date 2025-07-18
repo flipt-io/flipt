@@ -10,12 +10,6 @@ type Provider interface {
 	// GetSecret retrieves a secret by path.
 	GetSecret(ctx context.Context, path string) (*Secret, error)
 
-	// PutSecret stores a secret at the given path.
-	PutSecret(ctx context.Context, path string, secret *Secret) error
-
-	// DeleteSecret removes a secret at the given path.
-	DeleteSecret(ctx context.Context, path string) error
-
 	// ListSecrets returns all secret paths matching the prefix.
 	ListSecrets(ctx context.Context, pathPrefix string) ([]string, error)
 }

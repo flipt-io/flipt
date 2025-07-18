@@ -32,8 +32,9 @@ type Provider struct {
 // NewProvider creates a new file-based secret provider.
 func NewProvider(basePath string, logger *zap.Logger) (*Provider, error) {
 	// Ensure base path exists
-	if err := os.MkdirAll(basePath, 0700); err != nil {
-		return nil, fmt.Errorf("creating base path: %w", err)
+	_, err := os.Stat(basePath)
+	if err != nil {
+		return nil, fmt.Errorf("checking base path: %w", err)
 	}
 
 	return &Provider{

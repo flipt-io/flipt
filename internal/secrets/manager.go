@@ -26,12 +26,6 @@ type Manager interface {
 	// GetSecret retrieves a full secret from a provider.
 	GetSecret(ctx context.Context, providerName, path string) (*Secret, error)
 
-	// PutSecret stores a secret in a provider.
-	PutSecret(ctx context.Context, providerName, path string, secret *Secret) error
-
-	// DeleteSecret removes a secret from a provider.
-	DeleteSecret(ctx context.Context, providerName, path string) error
-
 	// ListSecrets lists secrets from a provider.
 	ListSecrets(ctx context.Context, providerName, pathPrefix string) ([]string, error)
 
@@ -199,34 +193,6 @@ func (m *ManagerImpl) GetSecret(ctx context.Context, providerName, path string) 
 	}
 
 	return provider.GetSecret(ctx, path)
-}
-
-// PutSecret stores a secret in a provider.
-func (m *ManagerImpl) PutSecret(ctx context.Context, providerName, path string, secret *Secret) error {
-	provider, err := m.GetProvider(providerName)
-	if err != nil {
-		return err
-	}
-
-	m.logger.Debug("storing secret",
-		zap.String("provider", providerName),
-		zap.String("path", path))
-
-	return provider.PutSecret(ctx, path, secret)
-}
-
-// DeleteSecret removes a secret from a provider.
-func (m *ManagerImpl) DeleteSecret(ctx context.Context, providerName, path string) error {
-	provider, err := m.GetProvider(providerName)
-	if err != nil {
-		return err
-	}
-
-	m.logger.Debug("deleting secret",
-		zap.String("provider", providerName),
-		zap.String("path", path))
-
-	return provider.DeleteSecret(ctx, path)
 }
 
 // ListSecrets lists secrets from a provider.
