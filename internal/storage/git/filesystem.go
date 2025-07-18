@@ -667,7 +667,9 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 		ParentHashes: hashes,
 	}
 
-	// Sign commit if signer is available
+	// Attempt to sign the commit if a signer is available.
+	// If no signer is available, the commit will not be signed.
+	// If signing fails, an error will be returned.
 	if f.signer != nil {
 		pgpSig, err := f.signer.SignCommit(ctx, commit)
 		if err != nil {
