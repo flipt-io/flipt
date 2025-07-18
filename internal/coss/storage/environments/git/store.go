@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v6/plumbing"
 	"go.flipt.io/flipt/errors"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	environmentsfs "go.flipt.io/flipt/internal/storage/environments/fs"

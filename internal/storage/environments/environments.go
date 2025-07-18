@@ -7,14 +7,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing/transport"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/coss/license"
 	cosssigning "go.flipt.io/flipt/internal/coss/signing"
 	cossgit "go.flipt.io/flipt/internal/coss/storage/environments/git"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/azure"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitea"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/github"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab"
@@ -281,6 +282,31 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			if err != nil {
 				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
 			}
+		case config.AzureSCMType:
+			opts := []azure.ClientOption{}
+
+			// To support GitLab Enterprise
+			if envConf.SCM.ApiURL != "" {
+				apiURL, err := url.Parse(envConf.SCM.ApiURL)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse api url: %w", err)
+				}
+				opts = append(opts, azure.WithApiURL(apiURL))
+			}
+
+			if envConf.SCM.Credentials != nil {
+				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
+				if err != nil {
+					return nil, err
+				}
+
+				opts = append(opts, azure.WithApiAuth(creds.APIAuthentication()))
+			}
+
+			scm, err = azure.NewSCM(f.logger, "demo", repoName, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
+			}
 		case config.GiteaSCMType:
 			opts := []gitea.ClientOption{}
 
@@ -393,8 +419,7 @@ func NewStore(ctx context.Context, logger *zap.Logger, cfg *config.Config, secre
 	// branched environments have been added
 	for _, repo := range repoManager.repos {
 		if err := repo.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
-				!errors.Is(err, git.NoMatchingRefSpecError{}) {
+			if !errors.Is(err, transport.ErrEmptyRemoteRepository) && !errors.Is(err, git.ErrRemoteRefNotFound) {
 				return nil, err
 			}
 		}

@@ -13,9 +13,9 @@ import (
 	"go.flipt.io/flipt/errors"
 
 	"github.com/docker/docker/pkg/namesgenerator"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/storer"
 	"go.flipt.io/flipt/internal/config"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"

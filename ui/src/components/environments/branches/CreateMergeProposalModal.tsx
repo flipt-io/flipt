@@ -50,7 +50,7 @@ export function CreateMergeProposalModal({
       environmentKey: environment.configuration?.base ?? '',
       key: environment.key
     },
-    { skip: !open }
+    { skip: !open, refetchOnMountOrArgChange: true }
   );
 
   const { setError, clearError } = useError();

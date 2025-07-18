@@ -10,16 +10,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-git/go-billy/v5/osfs"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/cache"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/storage"
-	gitfilesystem "github.com/go-git/go-git/v5/storage/filesystem"
-	"github.com/go-git/go-git/v5/storage/memory"
+	"github.com/go-git/go-billy/v6/osfs"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/config"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/cache"
+	"github.com/go-git/go-git/v6/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing/transport"
+	"github.com/go-git/go-git/v6/storage"
+	gitfilesystem "github.com/go-git/go-git/v6/storage/filesystem"
+	"github.com/go-git/go-git/v6/storage/memory"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
@@ -115,9 +115,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	// with an in-memory blank slate
 	empty = true
 	storage := (storage.Storer)(memory.NewStorage())
-	r.Repository, err = git.InitWithOptions(storage, nil, git.InitOptions{
-		DefaultBranch: plumbing.NewBranchReferenceName(r.defaultBranch),
-	})
+	r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
 	if err != nil {
 		return nil, empty, err
 	}
@@ -134,9 +132,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				return nil, empty, err
 			}
 
-			r.Repository, err = git.InitWithOptions(storage, nil, git.InitOptions{
-				DefaultBranch: plumbing.NewBranchReferenceName(r.defaultBranch),
-			})
+			r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
 			if err != nil {
 				return nil, empty, err
 			}
@@ -168,8 +164,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 		// do an initial fetch to setup remote tracking branches
 		if err := r.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) &&
-				!errors.Is(err, git.NoMatchingRefSpecError{}) {
+			if !errors.Is(err, transport.ErrEmptyRemoteRepository) && !errors.Is(err, git.ErrRemoteRefNotFound) {
 				return nil, empty, fmt.Errorf("performing initial fetch: %w", err)
 			}
 
@@ -288,7 +283,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		heads = r.fetchHeads()
 	}
 
-	var refSpecs = []config.RefSpec{}
+	refSpecs := []config.RefSpec{}
 
 	for _, head := range heads {
 		refSpec := config.RefSpec(

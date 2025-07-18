@@ -3,8 +3,8 @@ package credentials
 import (
 	"testing"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v6/plumbing/transport"
+	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
