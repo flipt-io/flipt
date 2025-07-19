@@ -73,7 +73,9 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 ### 🔒 **Enterprise Security & Control**
 
 - **Self-hosted**: Keep sensitive flag data within your infrastructure
-- **Merge proposals**: Code review workflow for flag changes (commercial feature)
+- **Secrets management**: Secure storage and retrieval of sensitive configuration data (OSS)
+- **GPG commit signing**: Cryptographically sign all flag changes for enhanced security (Pro feature)
+- **Merge proposals**: Code review workflow for flag changes (Pro feature)
 - **Audit trails**: Complete history of who changed what and when
 - **OIDC/JWT/OAuth**: Enterprise authentication methods supported
 
@@ -84,7 +86,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 
 ## Flipt v1 vs v2: What's New?
 
-| Feature | Flipt v1 | Flipt v2 |
+| Feature | Flipt v1 | ✨ Flipt v2 |
 |---------|----------|----------|
 | **Storage** | Database-centric (MySQL, PostgreSQL, SQLite) | Git-native with optional SCM sync (GitHub, GitLab, Gitea, etc.) |
 | **Environments** | Single namespace model | Multi-environment with Git flexibility |
@@ -96,6 +98,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 | **Merge Process** | Direct flag changes | Merge proposals with code review |
 | **Real-time Updates** | Polling required | Streaming API for instant updates |
 | **Multi-tenancy** | Manual namespace management | Environment-based isolation |
+| **Secrets Management** | None | HashiCorp Vault and file-based providers available in OSS |
 
 <!-- 
 TODO: uncomment once we have a migration guide
@@ -144,13 +147,31 @@ Flipt UI will be available at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 ### Configuration Example
 
 ```yaml
-# config.yml - Git-native setup
+# config.yml - Git-native setup with secrets management
+secrets:
+  providers:
+    vault:
+      enabled: true
+      address: "https://vault.example.com"
+      auth_method: "token"
+      token: "hvs.your_token"
+      mount: "secret"
+
 storage:
   type: git
   git:
     repository: "https://github.com/your-org/feature-flags.git"
     ref: "main"
     poll_interval: "30s"
+    signature:
+      enabled: true
+      type: "gpg"
+      key_ref:
+        provider: "vault"
+        path: "flipt/signing-key"
+        key: "private_key"
+      name: "Flipt Bot"
+      email: "bot@example.com"
 
 environments:
   default:
@@ -167,6 +188,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 ## Core Values
 
 - 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box
+- 🗝️ **Secrets Management** - Secure storage and retrieval of sensitive data with HashiCorp Vault and file-based providers
 - 🎛️ **Control** - Your data stays in your Git repositories within your infrastructure  
 - 🚀 **Speed** - Co-located with your services, no external API calls required
 - ✅ **Simplicity** - Single binary with no external dependencies by default
@@ -182,12 +204,20 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 - Store flags directly in Git repositories alongside your code
 - Full version control with Git history, blame, and diff support  
 - Integrates with your SCM (GitHub, GitLab, Gitea, etc.)
+- GPG commit signing for cryptographic verification of changes
 
 ### Multi-Environment Management  
 
 - Environment per Git branch, directory, or repository
 - Complete environment isolation with independent configurations
 - Seamless environment promotion workflows
+
+### Secrets Management & Security
+
+- **Multi-provider secrets management**: File-based and HashiCorp Vault providers available in OSS
+- **GPG commit signing**: Cryptographically sign all flag changes with keys from secret providers (Pro feature)
+- **Secure key storage**: Private keys and sensitive data stored securely in Vault or local files
+- **Multiple auth methods**: Token, Kubernetes, and AppRole authentication for Vault
 
 ### Advanced Flag Management
 
@@ -203,13 +233,15 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 ### Enterprise Features
 
-- Merge proposals for flag changes (commercial feature)
-- Authentication via OIDC, JWT, OAuth, and more
-- OpenTelemetry and Prometheus integration 🔋
+- **Secrets Management**: Secure storage with HashiCorp Vault and file-based providers (OSS)
+- **GPG Commit Signing**: Cryptographically sign all flag changes for enhanced security (Pro feature)
+- **Merge proposals**: Code review workflow for flag changes (Pro feature)
+- **Authentication**: OIDC, JWT, OAuth, and more authentication methods
+- **Observability**: OpenTelemetry and Prometheus integration 🔋
 
 <br clear="both"/>
 
-> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, premium support, and priority bug fixes.  
+> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, GPG commit signing, premium support, and priority bug fixes.  
 >
 > **[Start Free Trial →](https://getflipt.co/pro)**
 
@@ -261,6 +293,7 @@ Ready to unlock the full potential of Git-native feature management? Flipt v2 Pr
 ### What's Included in Pro
 
 - **🔀 Merge Proposals** - Code review workflow for feature flag changes, just like GitHub PRs
+- **✍️ GPG Commit Signing** - Cryptographically sign all changes using keys from secret providers for enhanced security and auditability
 - **🏢 Premium Support** - Shared Slack channel with same-day response times
 - **⚡ Priority Development** - Your bug reports and feature requests get prioritized
 - **🔧 Enterprise Auth** - Advanced authentication providers (coming soon)

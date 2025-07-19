@@ -803,6 +803,154 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name: "secrets config with file provider",
+			path: "./testdata/secrets/file_provider.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						File: &FileProviderConfig{
+							Enabled:  true,
+							BasePath: "/etc/flipt/secrets",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "secrets config with vault provider",
+			path: "./testdata/secrets/vault_provider.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						Vault: &VaultProviderConfig{
+							Enabled:    true,
+							Address:    "https://vault.example.com",
+							AuthMethod: "token",
+							Token:      "hvs.test_token",
+							Mount:      "secret",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "secrets config with multiple providers",
+			path: "./testdata/secrets/multiple_providers.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Secrets = SecretsConfig{
+					Providers: ProvidersConfig{
+						File: &FileProviderConfig{
+							Enabled:  true,
+							BasePath: "/etc/flipt/secrets",
+						},
+						Vault: &VaultProviderConfig{
+							Enabled:    true,
+							Address:    "https://vault.example.com",
+							AuthMethod: "kubernetes",
+							Role:       "flipt-role",
+							Mount:      "secret",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "secrets config file provider missing base path",
+			path:    "./testdata/secrets/file_provider_missing_base_path.yml",
+			wantErr: errors.New("secrets.providers.file: base_path non-empty value is required"),
+		},
+		{
+			name:    "secrets config vault provider missing address",
+			path:    "./testdata/secrets/vault_provider_missing_address.yml",
+			wantErr: errors.New("secrets.providers.vault: address non-empty value is required"),
+		},
+		{
+			name:    "secrets config vault provider missing token for token auth",
+			path:    "./testdata/secrets/vault_provider_missing_token.yml",
+			wantErr: errors.New("secrets.providers.vault: token non-empty value is required"),
+		},
+		{
+			name:    "secrets config vault provider missing role for kubernetes auth",
+			path:    "./testdata/secrets/vault_provider_missing_role_kubernetes.yml",
+			wantErr: errors.New("secrets.providers.vault: role non-empty value is required"),
+		},
+		{
+			name:    "secrets config vault provider missing role for approle auth",
+			path:    "./testdata/secrets/vault_provider_missing_role_approle.yml",
+			wantErr: errors.New("secrets.providers.vault: role non-empty value is required"),
+		},
+		{
+			name:    "secrets config vault provider unsupported auth method",
+			path:    "./testdata/secrets/vault_provider_unsupported_auth.yml",
+			wantErr: errors.New("secrets.providers.vault: auth_method unsupported auth method: ldap"),
+		},
+		{
+			name: "git signing config enabled",
+			path: "./testdata/storage/git_signing_enabled.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StoragesConfig{
+					"default": {
+						Backend: StorageBackendConfig{
+							Type: MemoryStorageBackendType,
+						},
+						Remote:       "git@github.com:foo/bar.git",
+						Branch:       "main",
+						PollInterval: 30 * time.Second,
+						Signature: SignatureConfig{
+							Name:    "Flipt Bot",
+							Email:   "bot@flipt.io",
+							Enabled: true,
+							Type:    "gpg",
+							KeyRef: &SecretReference{
+								Provider: "vault",
+								Path:     "secret/data/gpg",
+								Key:      "private_key",
+							},
+							KeyID: "1234567890ABCDEF",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "git signing missing signing type",
+			path:    "./testdata/storage/git_signing_missing_type.yml",
+			wantErr: errors.New("storage: default storage: signature type non-empty value is required"),
+		},
+		{
+			name:    "git signing unsupported signing type",
+			path:    "./testdata/storage/git_signing_unsupported_type.yml",
+			wantErr: errors.New("storage: default storage: signature type: unsupported signing type: x509 (only 'gpg' is supported)"),
+		},
+		{
+			name:    "git signing missing key reference",
+			path:    "./testdata/storage/git_signing_missing_key_ref.yml",
+			wantErr: errors.New("storage: default storage: signature key_ref non-empty value is required"),
+		},
+		{
+			name:    "git signing invalid key reference missing provider",
+			path:    "./testdata/storage/git_signing_invalid_key_ref_provider.yml",
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: provider non-empty value is required"),
+		},
+		{
+			name:    "git signing invalid key reference missing path",
+			path:    "./testdata/storage/git_signing_invalid_key_ref_path.yml",
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: path non-empty value is required"),
+		},
+		{
+			name:    "git signing invalid key reference missing key",
+			path:    "./testdata/storage/git_signing_invalid_key_ref_key.yml",
+			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: key non-empty value is required"),
+		},
 	}
 
 	for _, tt := range tests {

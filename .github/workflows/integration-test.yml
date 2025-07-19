@@ -32,6 +32,7 @@ jobs:
             "authz",
             "ofrep",
             "snapshot",
+            "signing"
           ]
     steps:
       - uses: actions/checkout@v4

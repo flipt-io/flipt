@@ -15,7 +15,7 @@ import (
 
 var (
 	managerOnce sync.Once
-	manager     *Manager
+	manager     *ManagerImpl
 	managerFunc func(context.Context) error = func(context.Context) error { return nil }
 )
 
@@ -65,8 +65,15 @@ func keygenValidator(ctx context.Context, fingerprints ...string) (License, erro
 
 var licenseValidator validator = keygenValidator
 
-// Manager handles commercial license validation and periodic revalidation.
-type Manager struct {
+type Manager interface {
+	Product() product.Product
+	Shutdown(ctx context.Context) error
+}
+
+var _ Manager = (*ManagerImpl)(nil)
+
+// ManagerImpl handles commercial license validation and periodic revalidation.
+type ManagerImpl struct {
 	logger        *zap.Logger
 	accountID     string
 	productID     string
@@ -84,26 +91,26 @@ type Manager struct {
 
 const revalidateInterval = 12 * time.Hour
 
-type LicenseManagerOption func(*Manager)
+type LicenseManagerOption func(*ManagerImpl)
 
 func WithProduct(product product.Product) LicenseManagerOption {
-	return func(lm *Manager) {
+	return func(lm *ManagerImpl) {
 		lm.force = true
 		lm.product = product
 	}
 }
 
 func WithVerificationKey(verifyKey string) LicenseManagerOption {
-	return func(lm *Manager) {
+	return func(lm *ManagerImpl) {
 		lm.verifyKey = verifyKey
 	}
 }
 
 // NewManager creates a new Manager and starts periodic revalidation.
-func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, licenseKey string, opts ...LicenseManagerOption) (*Manager, func(context.Context) error) {
+func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, licenseKey string, opts ...LicenseManagerOption) (*ManagerImpl, func(context.Context) error) {
 	managerOnce.Do(func() {
 		ctx, cancel := context.WithCancel(ctx)
-		lm := &Manager{
+		lm := &ManagerImpl{
 			logger:        logger,
 			accountID:     accountID,
 			productID:     productID,
@@ -151,14 +158,14 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 }
 
 // Product returns the product that the license is valid for.
-func (lm *Manager) Product() product.Product {
+func (lm *ManagerImpl) Product() product.Product {
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 	return lm.product
 }
 
 // Close stops the background revalidation goroutine.
-func (lm *Manager) Shutdown(ctx context.Context) error {
+func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 	lm.cancel()
 	lm.doneOnce.Do(func() { close(lm.done) })
 	<-lm.done
@@ -176,7 +183,7 @@ func (lm *Manager) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (lm *Manager) periodicRevalidate(ctx context.Context) {
+func (lm *ManagerImpl) periodicRevalidate(ctx context.Context) {
 	for {
 		select {
 		case <-time.After(revalidateInterval):
@@ -188,7 +195,7 @@ func (lm *Manager) periodicRevalidate(ctx context.Context) {
 	}
 }
 
-func (lm *Manager) validateAndSet(ctx context.Context) {
+func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	if lm.licenseKey == "" {
 		lm.mu.Lock()
 		lm.product = product.OSS

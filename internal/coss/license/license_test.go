@@ -55,7 +55,7 @@ func TestManager_validateAndSet_WithValidLicense(t *testing.T) {
 		return mockLic, nil
 	}
 
-	manager := &Manager{
+	manager := &ManagerImpl{
 		logger:        logger,
 		licenseKey:    "test-key",
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
@@ -81,7 +81,7 @@ func TestManager_validateAndSet_WithInvalidLicense(t *testing.T) {
 		return nil, errors.New("invalid license")
 	}
 
-	manager := &Manager{
+	manager := &ManagerImpl{
 		logger:        logger,
 		licenseKey:    "test-key",
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
@@ -112,7 +112,7 @@ func TestManager_validateAndSet_WithNilExpiry(t *testing.T) {
 		return mockLic, nil
 	}
 
-	manager := &Manager{
+	manager := &ManagerImpl{
 		logger:        logger,
 		licenseKey:    "test-key",
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
@@ -132,7 +132,7 @@ func TestManager_Shutdown_CallsDeactivate(t *testing.T) {
 
 	mockLic := &mockLicense{}
 
-	manager := &Manager{
+	manager := &ManagerImpl{
 		logger:        logger,
 		license:       mockLic,
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
