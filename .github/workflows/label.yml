@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [labeled]
     branches:
-      - main
+      - v2
 
 jobs:
   create-docs-issue:
