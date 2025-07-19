@@ -15,11 +15,16 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/coss/license"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/metrics"
 	tracing "go.flipt.io/flipt/internal/otel/traces"
-	"go.flipt.io/flipt/internal/product"
+	"go.flipt.io/flipt/internal/secrets"
+
+	// Import providers to trigger their init functions
+	_ "go.flipt.io/flipt/internal/secrets/file"
+	_ "go.flipt.io/flipt/internal/secrets/vault"
 	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"
@@ -87,7 +92,7 @@ func NewGRPCServer(
 	ipch *inprocgrpc.Channel,
 	info info.Flipt,
 	forceMigrate bool,
-	licenseManager interface{ Product() product.Product },
+	licenseManager license.Manager,
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
@@ -109,10 +114,16 @@ func NewGRPCServer(
 		return server.ln.Close()
 	})
 
-	// configure a declarative backend store
-	environmentStore, err := environments.NewStore(ctx, logger, cfg, licenseManager)
+	// initialize secrets manager with configured providers
+	secretsManager, err := secrets.NewManager(logger, cfg, licenseManager)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing secrets manager: %w", err)
+	}
+
+	// configure a declarative backend store
+	environmentStore, err := environments.NewStore(ctx, logger, cfg, secretsManager, licenseManager)
+	if err != nil {
+		return nil, fmt.Errorf("initializing environment store: %w", err)
 	}
 
 	otelResource, err := otel.NewResource(ctx, info.Build.Version)

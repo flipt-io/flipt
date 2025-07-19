@@ -20,6 +20,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/authn"
 	envfs "go.flipt.io/flipt/internal/storage/environments/fs"
+	"go.flipt.io/flipt/internal/storage/git/signing"
 	"go.uber.org/zap"
 )
 
@@ -34,11 +35,13 @@ type filesystem struct {
 
 	sigName  string
 	sigEmail string
+	signer   signing.Signer
 }
 
 type filesystemOption struct {
 	hash              plumbing.Hash
 	sigName, sigEmail string
+	signer            signing.Signer
 }
 
 func withBaseCommit(hash plumbing.Hash) containers.Option[filesystemOption] {
@@ -51,6 +54,12 @@ func withSignature(name, email string) containers.Option[filesystemOption] {
 	return func(o *filesystemOption) {
 		o.sigName = name
 		o.sigEmail = email
+	}
+}
+
+func withSigner(signer signing.Signer) containers.Option[filesystemOption] {
+	return func(o *filesystemOption) {
+		o.signer = signer
 	}
 }
 
@@ -109,6 +118,7 @@ func newFilesystem(logger *zap.Logger, storer gitstorage.Storer, opts ...contain
 		storage:  storer,
 		sigName:  fopts.sigName,
 		sigEmail: fopts.sigEmail,
+		signer:   fopts.signer,
 	}, nil
 }
 
@@ -655,6 +665,21 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 		Message:      msg,
 		TreeHash:     f.tree.Hash,
 		ParentHashes: hashes,
+	}
+
+	// Attempt to sign the commit if a signer is available.
+	// If no signer is available, the commit will not be signed.
+	// If signing fails, an error will be returned.
+	if f.signer != nil {
+		pgpSig, err := f.signer.SignCommit(ctx, commit)
+		if err != nil {
+			return nil, fmt.Errorf("signing commit: %w", err)
+		}
+		commit.PGPSignature = pgpSig
+
+		f.logger.Debug("signed commit",
+			zap.String("tree_hash", commit.TreeHash.String()),
+			zap.String("message", commit.Message))
 	}
 
 	obj := f.storage.NewEncodedObject()
