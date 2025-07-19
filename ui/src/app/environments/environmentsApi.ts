@@ -174,7 +174,8 @@ export const environmentsApi = createApi({
         url: `${environmentKey}/branches/${key}`,
         method: 'POST',
         body: { title, body, draft }
-      })
+      }),
+      invalidatesTags: () => [{ type: 'BranchEnvironment' }]
     })
   })
 });
