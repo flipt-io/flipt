@@ -2,7 +2,9 @@ package vault
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -198,8 +200,9 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 
 	secret, err := p.client.Logical().ListWithContext(ctx, listPath)
 	if err != nil {
-		// Vault returns 404 for empty directories
-		if strings.Contains(err.Error(), "404") {
+		var vaultErr *vault.ResponseError
+		if errors.As(err, &vaultErr) && vaultErr.StatusCode == http.StatusNotFound {
+			// Vault returns 404 for empty directories
 			return []string{}, nil
 		}
 		return nil, fmt.Errorf("listing from vault: %w", err)

@@ -468,4 +468,3 @@ func TestHelper_StringOperations(t *testing.T) {
 		}
 	})
 }
-
