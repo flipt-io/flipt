@@ -1,0 +1,44 @@
+name: Label PRs
+
+on:
+  pull_request:
+    types: [labeled]
+    branches:
+      - main
+
+jobs:
+  create-docs-issue:
+    if: github.event.label.name == 'needs docs'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Check for existing issues
+        id: check-issues
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          pr_title=$(jq -r .pull_request.title < $GITHUB_EVENT_PATH)
+          issue_title="Document: $pr_title"
+          existing_issue=$(gh issue list --repo ${{ github.repository_owner }}/docs --search "$issue_title" --json title --jq '.[0].title')
+          echo "::set-output name=issue_exists::$existing_issue"
+
+      - name: Create documentation issue
+        if: steps.check-issues.outputs.issue_exists == ''
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          pr_title=$(jq -r .pull_request.title < $GITHUB_EVENT_PATH)
+          pr_url=$(jq -r .pull_request.html_url < $GITHUB_EVENT_PATH)
+          issue_title="Document: $pr_title"
+          issue_body="This issue was created to document the following pull request: $pr_url"
+          gh issue create --title "$issue_title" --body "$issue_body" --repo ${{ github.repository_owner }}/docs --label "v2"
