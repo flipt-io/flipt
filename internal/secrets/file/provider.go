@@ -136,13 +136,16 @@ func (p *Provider) DeleteSecret(ctx context.Context, path string) error {
 	dir := filepath.Dir(fullPath)
 	for dir != p.basePath {
 		if err := os.Remove(dir); err != nil {
-			// Directory not empty, stop cleanup
+			// Log cleanup error at debug level and stop cleanup
+			p.logger.Debug("failed to remove directory during cleanup",
+				zap.String("directory", dir),
+				zap.Error(err))
 			break
 		}
 		dir = filepath.Dir(dir)
 	}
 
-	return nil //nolint:nilerr // cleanup errors are not critical
+	return nil
 }
 
 // ListSecrets returns all secret paths matching the prefix.
@@ -153,6 +156,9 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 
 	err := filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			p.logger.Debug("skipping inaccessible path during walk",
+				zap.String("path", path),
+				zap.Error(err))
 			return nil //nolint:nilerr // skip inaccessible paths in walk
 		}
 
@@ -163,7 +169,10 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 		// Convert file path back to secret path
 		relPath, err := filepath.Rel(p.basePath, path)
 		if err != nil {
-			return nil //nolint:nilerr // skip invalid paths in walk
+			p.logger.Debug("skipping invalid path",
+				zap.String("path", path),
+				zap.Error(err))
+			return nil // skip invalid paths in walk
 		}
 
 		// Remove .json extension
