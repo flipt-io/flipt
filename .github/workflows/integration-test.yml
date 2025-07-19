@@ -22,7 +22,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ["envs", "envs_with_dir", "authn/token", "authn/k8s", "authn/jwt", "authz", "ofrep", "snapshot"]
+        test:
+          [
+            "envs",
+            "envs_with_dir",
+            "authn/token",
+            "authn/k8s",
+            "authn/jwt",
+            "authz",
+            "ofrep",
+            "snapshot",
+          ]
     steps:
       - uses: actions/checkout@v4
 
