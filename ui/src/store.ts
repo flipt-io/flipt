@@ -101,6 +101,18 @@ listenerMiddleware.startListening({
   }
 });
 
+/*
+ * Each time the proposal is created the branch inforantion should be refreshed.
+ */
+listenerMiddleware.startListening({
+  matcher: environmentsApi.endpoints.proposeEnvironment.matchFulfilled,
+  effect: (_action, api) => {
+    api.dispatch(
+      environmentsApi.util.invalidateTags([{ type: 'BranchEnvironment' }])
+    );
+  }
+});
+
 const userState = JSON.parse(localStorage.getItem(eventKey) || '{}');
 
 const preferencesState = JSON.parse(
