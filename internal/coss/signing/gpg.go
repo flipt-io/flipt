@@ -8,6 +8,7 @@ import (
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/secrets"
@@ -51,13 +52,22 @@ func (g *GPGSigner) SignCommit(ctx context.Context, commit *object.Commit) (stri
 	}
 
 	// Get the commit data in the format Git expects for signing
-	commitData := g.formatCommitForSigning(commit)
+	encoded := &plumbing.MemoryObject{}
+	if err := commit.EncodeWithoutSignature(encoded); err != nil {
+		return "", fmt.Errorf("encoding commit for signing: %w", err)
+	}
+
+	reader, err := encoded.Reader()
+	if err != nil {
+		return "", fmt.Errorf("creating commit reader: %w", err)
+	}
+	defer reader.Close()
 
 	// Create signature
 	var signatureBuf bytes.Buffer
 
 	// Sign the commit data
-	err := openpgp.DetachSign(&signatureBuf, g.entity, bytes.NewReader(commitData), nil)
+	err = openpgp.DetachSign(&signatureBuf, g.entity, reader, nil)
 	if err != nil {
 		return "", fmt.Errorf("signing commit: %w", err)
 	}
@@ -84,38 +94,6 @@ func (g *GPGSigner) SignCommit(ctx context.Context, commit *object.Commit) (stri
 		zap.String("commit_hash", commit.Hash.String()))
 
 	return signature, nil
-}
-
-// formatCommitForSigning formats the commit object in the way Git expects for signing.
-func (g *GPGSigner) formatCommitForSigning(commit *object.Commit) []byte {
-	var buf bytes.Buffer
-
-	// Write tree
-	fmt.Fprintf(&buf, "tree %s\n", commit.TreeHash.String())
-
-	// Write parents
-	for _, parent := range commit.ParentHashes {
-		fmt.Fprintf(&buf, "parent %s\n", parent.String())
-	}
-
-	// Write author
-	fmt.Fprintf(&buf, "author %s <%s> %d %s\n",
-		commit.Author.Name,
-		commit.Author.Email,
-		commit.Author.When.Unix(),
-		commit.Author.When.Format("-0700"))
-
-	// Write committer
-	fmt.Fprintf(&buf, "committer %s <%s> %d %s\n",
-		commit.Committer.Name,
-		commit.Committer.Email,
-		commit.Committer.When.Unix(),
-		commit.Committer.When.Format("-0700"))
-
-	// Write message
-	fmt.Fprintf(&buf, "\n%s", commit.Message)
-
-	return buf.Bytes()
 }
 
 // GetPublicKey returns the public key in ASCII-armored format.

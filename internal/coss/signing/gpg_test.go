@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
@@ -114,113 +113,6 @@ func TestNewGPGSigner(t *testing.T) {
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid secret reference")
-	})
-}
-
-func TestGPGSigner_FormatCommitForSigning(t *testing.T) {
-	// Create a mock signer to test the formatting logic
-	signer := &GPGSigner{
-		logger: zap.NewNop(),
-	}
-
-	t.Run("formats commit correctly", func(t *testing.T) {
-		// Create a test commit
-		when := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-		commit := &object.Commit{
-			Hash:     plumbing.NewHash("1234567890abcdef1234567890abcdef12345678"),
-			Message:  "Initial commit",
-			TreeHash: plumbing.NewHash("abcdef1234567890abcdef1234567890abcdef12"),
-			ParentHashes: []plumbing.Hash{
-				plumbing.NewHash("fedcba0987654321fedcba0987654321fedcba09"),
-			},
-			Author: object.Signature{
-				Name:  "Test Author",
-				Email: "author@example.com",
-				When:  when,
-			},
-			Committer: object.Signature{
-				Name:  "Test Committer",
-				Email: "committer@example.com",
-				When:  when,
-			},
-		}
-
-		result := signer.formatCommitForSigning(commit)
-		resultStr := string(result)
-
-		// Verify the formatted commit contains expected components
-		assert.Contains(t, resultStr, "tree abcdef1234567890abcdef1234567890abcdef12")
-		assert.Contains(t, resultStr, "parent fedcba0987654321fedcba0987654321fedcba09")
-		assert.Contains(t, resultStr, "author Test Author <author@example.com> 1672574400 +0000")
-		assert.Contains(t, resultStr, "committer Test Committer <committer@example.com> 1672574400 +0000")
-		assert.Contains(t, resultStr, "\nInitial commit")
-
-		// Verify the order of components
-		lines := strings.Split(resultStr, "\n")
-		assert.True(t, strings.HasPrefix(lines[0], "tree "))
-		assert.True(t, strings.HasPrefix(lines[1], "parent "))
-		assert.True(t, strings.HasPrefix(lines[2], "author "))
-		assert.True(t, strings.HasPrefix(lines[3], "committer "))
-		assert.Empty(t, lines[4]) // Empty line before message
-		assert.Equal(t, "Initial commit", lines[5])
-	})
-
-	t.Run("handles commit without parents", func(t *testing.T) {
-		when := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-		commit := &object.Commit{
-			Hash:         plumbing.NewHash("1234567890abcdef1234567890abcdef12345678"),
-			Message:      "Initial commit",
-			TreeHash:     plumbing.NewHash("abcdef1234567890abcdef1234567890abcdef12"),
-			ParentHashes: []plumbing.Hash{}, // No parents
-			Author: object.Signature{
-				Name:  "Test Author",
-				Email: "author@example.com",
-				When:  when,
-			},
-			Committer: object.Signature{
-				Name:  "Test Committer",
-				Email: "committer@example.com",
-				When:  when,
-			},
-		}
-
-		result := signer.formatCommitForSigning(commit)
-		resultStr := string(result)
-
-		// Should not contain parent line
-		assert.NotContains(t, resultStr, "parent ")
-		assert.Contains(t, resultStr, "tree abcdef1234567890abcdef1234567890abcdef12")
-		assert.Contains(t, resultStr, "author Test Author <author@example.com> 1672574400 +0000")
-	})
-
-	t.Run("handles multiple parents", func(t *testing.T) {
-		when := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-		commit := &object.Commit{
-			Hash:     plumbing.NewHash("1234567890abcdef1234567890abcdef12345678"),
-			Message:  "Merge commit",
-			TreeHash: plumbing.NewHash("abcdef1234567890abcdef1234567890abcdef12"),
-			ParentHashes: []plumbing.Hash{
-				plumbing.NewHash("fedcba0987654321fedcba0987654321fedcba09"),
-				plumbing.NewHash("123456789012345678901234567890123456789a"),
-			},
-			Author: object.Signature{
-				Name:  "Test Author",
-				Email: "author@example.com",
-				When:  when,
-			},
-			Committer: object.Signature{
-				Name:  "Test Committer",
-				Email: "committer@example.com",
-				When:  when,
-			},
-		}
-
-		result := signer.formatCommitForSigning(commit)
-		resultStr := string(result)
-
-		// Should contain both parent lines
-		assert.Contains(t, resultStr, "parent fedcba0987654321fedcba0987654321fedcba09")
-		assert.Contains(t, resultStr, "parent 123456789012345678901234567890123456789a")
 	})
 }
 
