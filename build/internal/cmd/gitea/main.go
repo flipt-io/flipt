@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	giteaURL := flag.String("gitea-url", "", "Address for target gitea service")
+	var giteaURL = flag.String("gitea-url", "", "Address for target gitea service")
 	testdataDir := flag.String("testdata-dir", "", "Directory path to testdata")
 	flag.Parse()
 
