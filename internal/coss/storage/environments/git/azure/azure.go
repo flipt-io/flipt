@@ -32,16 +32,19 @@ type Client interface {
 type azureOptions struct {
 	apiURL              *url.URL
 	personalAccessToken string
+	logger              *zap.Logger
 }
 
 type ClientOption func(*azureOptions)
 
+// WithApiURL sets the API URL for the Azure DevOps client.
 func WithApiURL(apiURL *url.URL) ClientOption {
 	return func(c *azureOptions) {
 		c.apiURL = apiURL
 	}
 }
 
+// WithApiAuth sets the API authentication credentials for the Azure DevOps client.
 func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	return func(c *azureOptions) {
 		if apiAuth == nil {
@@ -56,33 +59,47 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	}
 }
 
-func NewSCM(logger *zap.Logger, project, repoName string, opts ...ClientOption) (*SCM, error) {
-	options := &azureOptions{}
+// WithLogger sets the logger for the SCM client.
+func WithLogger(logger *zap.Logger) ClientOption {
+	return func(c *azureOptions) {
+		if logger != nil {
+			c.logger = logger
+		}
+	}
+}
+
+// NewSCM creates a new SCM instance for Azure DevOps Git.
+func NewSCM(ctx context.Context, repoOwner, repoProject, repoName string, opts ...ClientOption) (*SCM, error) {
+	options := &azureOptions{
+		logger: zap.NewNop(),
+	}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	connection := azuredevops.NewPatConnection(options.apiURL.String(), options.personalAccessToken)
-	client, err := azuregit.NewClient(context.TODO(), connection)
+	connection := azuredevops.NewPatConnection(fmt.Sprintf("%s/%s", options.apiURL.String(), repoOwner), options.personalAccessToken)
+	client, err := azuregit.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create azure git client: %w", err)
 	}
 
 	return &SCM{
-		logger:   logger.With(zap.String("repository", fmt.Sprintf("%s/%s", project, repoName)), zap.String("scm", "azure git")),
-		client:   client,
-		project:  project,
-		repoName: repoName,
-		baseURL:  options.apiURL.String(),
+		logger:      options.logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoProject, repoName)), zap.String("scm", "azure git")),
+		client:      client,
+		repoOwner:   repoOwner,
+		repoProject: repoProject,
+		repoName:    repoName,
+		baseURL:     options.apiURL.String(),
 	}, nil
 }
 
 type SCM struct {
-	logger   *zap.Logger
-	client   Client
-	project  string
-	repoName string
-	baseURL  string
+	logger      *zap.Logger
+	client      Client
+	repoOwner   string
+	repoProject string
+	repoName    string
+	baseURL     string
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
@@ -90,7 +107,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	includeLinks := true
 	commits, err := s.client.GetCommits(ctx, azuregit.GetCommitsArgs{
 		RepositoryId: &s.repoName,
-		Project:      &s.project,
+		Project:      &s.repoProject,
 		SearchCriteria: &azuregit.GitQueryCommitsCriteria{
 			IncludeLinks: &includeLinks,
 			ItemVersion: &azuregit.GitVersionDescriptor{
@@ -133,7 +150,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 			TargetRefName: &targetRefName,
 		},
 		RepositoryId: &s.repoName,
-		Project:      &s.project,
+		Project:      &s.repoProject,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
@@ -151,7 +168,7 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 	includeLinks := true
 	prs, err := s.client.GetPullRequests(ctx, azuregit.GetPullRequestsArgs{
 		RepositoryId: &s.repoName,
-		Project:      &s.project,
+		Project:      &s.repoProject,
 		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{
 			TargetRefName: &targetRefName,
 			IncludeLinks:  &includeLinks,
@@ -169,9 +186,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 			state = environments.ProposalState_PROPOSAL_STATE_MERGED
 		}
 
-		webURL := fmt.Sprintf("%s/%s/_git/%s/pullrequest/%d",
+		webURL := fmt.Sprintf("%s/%s/%s/_git/%s/pullrequest/%d",
 			s.baseURL,
-			s.project,
+			s.repoOwner,
+			s.repoProject,
 			s.repoName,
 			*pr.PullRequestId,
 		)

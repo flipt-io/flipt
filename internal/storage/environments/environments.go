@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport"
+	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -282,10 +283,18 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			if err != nil {
 				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
 			}
-		case config.AzureSCMType:
-			opts := []azure.ClientOption{}
 
-			// To support GitLab Enterprise
+		case config.AzureSCMType:
+			repoURL, err := azureparserv1.NewAzureParserWithURL(repo.GetRemote())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse azure git url: %w", err)
+			}
+			opts := []azure.ClientOption{
+				// set default api url based on the parsed URL
+				azure.WithApiURL(&url.URL{Scheme: "https", Host: repoURL.GetHostName()}),
+				azure.WithLogger(f.logger),
+			}
+			// To support Azure Enterprise
 			if envConf.SCM.ApiURL != "" {
 				apiURL, err := url.Parse(envConf.SCM.ApiURL)
 				if err != nil {
@@ -302,10 +311,9 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 
 				opts = append(opts, azure.WithApiAuth(creds.APIAuthentication()))
 			}
-
-			scm, err = azure.NewSCM(f.logger, "demo", repoName, opts...)
+			scm, err = azure.NewSCM(ctx, repoOwner, repoURL.GetProjectName(), repoName, opts...)
 			if err != nil {
-				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
+				return nil, fmt.Errorf("failed to setup azure scm: %w", err)
 			}
 		case config.GiteaSCMType:
 			opts := []gitea.ClientOption{}

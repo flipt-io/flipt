@@ -491,6 +491,7 @@ components:
                         - SCM_GITHUB
                         - SCM_GITEA
                         - SCM_GITLAB
+                        - SCM_AZURE
                     type: string
                     format: enum
         EnvironmentProposalDetails:

@@ -132,6 +132,8 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 			scm = ptr(rpcenvironments.SCM_SCM_GITLAB)
 		case config.GiteaSCMType:
 			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
+		case config.AzureSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_AZURE)
 		}
 	}
 
@@ -177,7 +179,6 @@ func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Env
 		e.storage,
 		evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -614,7 +615,6 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				e.storage,
 				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 			)
-
 			if err != nil {
 				return nil, err
 			}
