@@ -68,12 +68,12 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 	// Convert string data to bytes, with base64 fallback for individual values
 	secretData := make(map[string][]byte)
 	for k, v := range fileData.Data {
-		// First try to use the value as-is (JSON string literal)
-		secretData[k] = []byte(v)
-
-		// If the value can be base64 decoded, use the decoded value instead
+		// Attempt to decode the value as base64
 		if decoded, err := base64.StdEncoding.DecodeString(v); err == nil {
 			secretData[k] = decoded
+		} else {
+			// If decoding fails, use the original value as bytes
+			secretData[k] = []byte(v)
 		}
 	}
 
