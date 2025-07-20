@@ -102,6 +102,7 @@ func TestProvider_GetSecret(t *testing.T) {
 
 	t.Run("handles GPG key with escaped newlines in JSON", func(t *testing.T) {
 		// Create a GPG key with properly escaped newlines in JSON
+		//nolint:gosec // this is a test
 		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
 
 		// Create JSON manually with properly escaped string
@@ -127,6 +128,7 @@ func TestProvider_GetSecret(t *testing.T) {
 
 	t.Run("handles base64 encoded values in JSON", func(t *testing.T) {
 		// Create a secret file with base64 encoded values
+		//nolint:gosec // this is a test
 		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
 		base64EncodedKey := base64.StdEncoding.EncodeToString([]byte(gpgKey))
 
