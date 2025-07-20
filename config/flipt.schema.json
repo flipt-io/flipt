@@ -8,26 +8,40 @@
   "properties": {
     "version": {
       "type": "string",
-      "enum": ["2.0"],
+      "enum": [
+        "2.0"
+      ],
       "default": "2.0"
     },
     "experimental": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Experimental",
       "additionalProperties": false,
       "properties": {}
     },
     "analytics": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Analytics",
       "additionalProperties": false,
       "properties": {
         "storage": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
           "properties": {
             "clickhouse": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -41,7 +55,10 @@
               }
             },
             "prometheus": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -53,7 +70,10 @@
                   "default": ""
                 },
                 "headers": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": {
                     "type": "string"
                   }
@@ -63,7 +83,10 @@
           }
         },
         "buffer": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
           "properties": {
             "capacity": {
@@ -79,7 +102,10 @@
       }
     },
     "authentication": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Authentication",
       "additionalProperties": false,
       "properties": {
@@ -110,7 +136,10 @@
           }
         },
         "session": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
           "properties": {
             "domain": {
@@ -130,7 +159,10 @@
               "default": "10m"
             },
             "csrf": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "key": {
@@ -149,16 +181,25 @@
               }
             },
             "storage": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["memory", "redis"],
+                  "enum": [
+                    "memory",
+                    "redis"
+                  ],
                   "default": "memory"
                 },
                 "cleanup": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "grace_period": {
@@ -169,7 +210,10 @@
                   }
                 },
                 "redis": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "host": {
@@ -224,7 +268,11 @@
                     },
                     "mode": {
                       "type": "string",
-                      "enum": ["single", "cluster", ""],
+                      "enum": [
+                        "single",
+                        "cluster",
+                        ""
+                      ],
                       "default": ""
                     },
                     "prefix": {
@@ -238,11 +286,17 @@
           }
         },
         "methods": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
           "properties": {
             "token": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -250,24 +304,38 @@
                   "default": false
                 },
                 "storage": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "type": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "default": "static"
                     },
                     "tokens": {
-                      "type": ["object", "null"],
+                      "type": [
+                        "object",
+                        "null"
+                      ],
                       "additionalProperties": {
                         "type": "object",
-                        "required": ["credential"],
+                        "required": [
+                          "credential"
+                        ],
                         "properties": {
                           "credential": {
                             "type": "string"
                           },
                           "metadata": {
-                            "type": ["object", "null"],
+                            "type": [
+                              "object",
+                              "null"
+                            ],
                             "additionalProperties": {
                               "type": "string"
                             }
@@ -280,7 +348,10 @@
               }
             },
             "oidc": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -304,7 +375,10 @@
                   ]
                 },
                 "providers": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": false,
                   "patternProperties": {
                     "^.*$": {
@@ -327,7 +401,10 @@
                           "type": "string"
                         },
                         "scopes": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "string"
                           }
@@ -343,7 +420,10 @@
               }
             },
             "kubernetes": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -362,7 +442,10 @@
               }
             },
             "github": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -385,19 +468,28 @@
                   "type": "string"
                 },
                 "scopes": {
-                  "type": ["array", "null"],
+                  "type": [
+                    "array",
+                    "null"
+                  ],
                   "items": {
                     "type": "string"
                   }
                 },
                 "allowed_organizations": {
-                  "type": ["array", "null"],
+                  "type": [
+                    "array",
+                    "null"
+                  ],
                   "items": {
                     "type": "string"
                   }
                 },
                 "allowed_teams": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": {
                     "type": "array",
                     "items": {
@@ -408,7 +500,10 @@
               }
             },
             "jwt": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "enabled": {
@@ -416,7 +511,10 @@
                   "default": false
                 },
                 "validate_claims": {
-                  "type": ["object", "null"],
+                  "type": [
+                    "object",
+                    "null"
+                  ],
                   "additionalProperties": false,
                   "properties": {
                     "issuer": {
@@ -426,7 +524,10 @@
                       "type": "string"
                     },
                     "audiences": {
-                      "type": ["array", "null"],
+                      "type": [
+                        "array",
+                        "null"
+                      ],
                       "items": {
                         "type": "string"
                       }
@@ -446,7 +547,10 @@
       }
     },
     "authorization": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Authorization",
       "additionalProperties": false,
       "properties": {
@@ -456,14 +560,24 @@
         },
         "backend": {
           "type": "string",
-          "enum": ["", "local", "bundle"],
+          "enum": [
+            "",
+            "local",
+            "bundle"
+          ],
           "default": ""
         },
         "local": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "properties": {
             "policy": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "properties": {
                 "poll_interval": {
                   "type": "string",
@@ -476,7 +590,10 @@
               }
             },
             "data": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "properties": {
                 "poll_interval": {
                   "type": "string",
@@ -491,7 +608,10 @@
           }
         },
         "bundle": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "properties": {
             "configuration": {
               "type": "string"
@@ -501,7 +621,10 @@
       }
     },
     "cors": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "CORS",
       "additionalProperties": false,
       "properties": {
@@ -510,14 +633,22 @@
           "default": false
         },
         "allowed_origins": {
-          "type": ["array", "null"],
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "type": "string"
           },
-          "default": ["*"]
+          "default": [
+            "*"
+          ]
         },
         "allowed_headers": {
-          "type": ["array", "null"],
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "type": "string"
           },
@@ -550,12 +681,17 @@
       }
     },
     "environments": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
           "type": "object",
-          "required": ["storage"],
+          "required": [
+            "storage"
+          ],
           "properties": {
             "name": {
               "type": "string"
@@ -574,11 +710,19 @@
             "scm": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["type", "credentials"],
+              "required": [
+                "type",
+                "credentials"
+              ],
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["github", "gitea", "gitlab", "azure"],
+                  "enum": [
+                    "github",
+                    "gitea",
+                    "gitlab",
+                    "azure"
+                  ],
                   "default": "github"
                 },
                 "credentials": {
@@ -594,7 +738,10 @@
       }
     },
     "storage": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "additionalProperties": false,
       "patternProperties": {
         "^.*$": {
@@ -605,12 +752,18 @@
               "type": "string"
             },
             "backend": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["memory", "local"],
+                  "enum": [
+                    "memory",
+                    "local"
+                  ],
                   "default": "memory"
                 },
                 "path": {
@@ -623,7 +776,10 @@
               "default": "main"
             },
             "signature": {
-              "type": ["object", "null"],
+              "type": [
+                "object",
+                "null"
+              ],
               "additionalProperties": false,
               "properties": {
                 "key": {
@@ -696,7 +852,10 @@
       }
     },
     "credentials": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "patternProperties": {
         "^.*$": {
           "oneOf": [
@@ -713,7 +872,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["username", "password"]
+                  "required": [
+                    "username",
+                    "password"
+                  ]
                 }
               }
             },
@@ -727,7 +889,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["access_token"]
+                  "required": [
+                    "access_token"
+                  ]
                 }
               }
             },
@@ -748,7 +912,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["password", "private_key_path"]
+                  "required": [
+                    "password",
+                    "private_key_path"
+                  ]
                 }
               }
             },
@@ -769,7 +936,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["password", "private_key_bytes"]
+                  "required": [
+                    "password",
+                    "private_key_bytes"
+                  ]
                 }
               }
             }
@@ -778,7 +948,10 @@
       }
     },
     "log": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Log",
       "additionalProperties": false,
       "properties": {
@@ -787,7 +960,10 @@
         },
         "encoding": {
           "type": "string",
-          "enum": ["console", "json"],
+          "enum": [
+            "console",
+            "json"
+          ],
           "default": "console"
         },
         "level": {
@@ -825,7 +1001,10 @@
           ]
         },
         "keys": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "properties": {
             "time": {
               "type": "string",
@@ -844,7 +1023,10 @@
       }
     },
     "meta": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Meta",
       "additionalProperties": false,
       "properties": {
@@ -863,13 +1045,19 @@
       }
     },
     "server": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Server",
       "additionalProperties": false,
       "properties": {
         "protocol": {
           "type": "string",
-          "enum": ["http", "https"],
+          "enum": [
+            "http",
+            "https"
+          ],
           "default": "http"
         },
         "host": {
@@ -909,7 +1097,10 @@
       }
     },
     "metrics": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Metrics",
       "additionalProperties": false,
       "properties": {
@@ -919,13 +1110,19 @@
         },
         "exporter": {
           "type": "string",
-          "enum": ["prometheus", "otlp"],
+          "enum": [
+            "prometheus",
+            "otlp"
+          ],
           "default": "prometheus"
         }
       }
     },
     "tracing": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "Tracing",
       "additionalProperties": false,
       "properties": {
@@ -936,7 +1133,10 @@
       }
     },
     "ui": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "UI",
       "additionalProperties": false,
       "properties": {
@@ -946,11 +1146,18 @@
         },
         "default_theme": {
           "type": "string",
-          "enum": ["light", "dark", "system"],
+          "enum": [
+            "light",
+            "dark",
+            "system"
+          ],
           "default": "system"
         },
         "topbar": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
           "properties": {
             "color": {
@@ -964,7 +1171,10 @@
       }
     },
     "license": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "title": "License",
       "additionalProperties": false,
       "properties": {
