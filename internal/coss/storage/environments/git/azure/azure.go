@@ -7,6 +7,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"iter"
 	"net/url"
 	"strings"
 	"time"
@@ -125,12 +126,19 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	}
 
 	for _, commit := range *commits {
-		changes = append(changes, &environments.Change{
-			Revision:  *commit.CommitId,
-			Message:   *commit.Comment,
-			ScmUrl:    commit.RemoteUrl,
-			Timestamp: commit.Author.Date.Time.Format(time.RFC3339),
-		})
+		change := &environments.Change{
+			Revision: *commit.CommitId,
+			Message:  *commit.Comment,
+			ScmUrl:   commit.RemoteUrl,
+		}
+		if commit.Author != nil {
+			if commit.Author.Date != nil {
+				change.Timestamp = commit.Author.Date.Time.Format(time.RFC3339)
+			}
+			change.AuthorName = commit.Author.Name
+			change.AuthorEmail = commit.Author.Email
+		}
+		changes = append(changes, change)
 	}
 	return &environments.ListBranchedEnvironmentChangesResponse{
 		Changes: changes,
@@ -163,21 +171,12 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 }
 
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
-	details := map[string]*environments.EnvironmentProposalDetails{}
-	targetRefName := fmt.Sprintf("refs/heads/%s", env.Configuration().Ref)
-	includeLinks := true
-	prs, err := s.client.GetPullRequests(ctx, azuregit.GetPullRequestsArgs{
-		RepositoryId: &s.repoName,
-		Project:      &s.repoProject,
-		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{
-			TargetRefName: &targetRefName,
-			IncludeLinks:  &includeLinks,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	for _, pr := range *prs {
+	var (
+		details = map[string]*environments.EnvironmentProposalDetails{}
+		prs     = &prs{ctx: ctx, client: s.client, repoProject: s.repoProject, repoName: s.repoName, base: env.Configuration().Ref}
+	)
+
+	for pr := range prs.All() {
 		branch := strings.TrimPrefix(*pr.SourceRefName, "refs/heads/")
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
 		if pr.Status == &azuregit.PullRequestStatusValues.Abandoned {
@@ -198,5 +197,56 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 			State: state,
 		}
 	}
-	return details, nil
+
+	return details, prs.Err()
+}
+
+type prs struct {
+	ctx         context.Context
+	client      Client
+	repoProject string
+	repoName    string
+	base        string
+
+	err error
+}
+
+func (p *prs) Err() error {
+	return p.err
+}
+
+func (p *prs) All() iter.Seq[*azuregit.GitPullRequest] {
+	return iter.Seq[*azuregit.GitPullRequest](func(yield func(*azuregit.GitPullRequest) bool) {
+		targetRefName := fmt.Sprintf("refs/heads/%s", p.base)
+		includeLinks := true
+		top := 100
+		skip := 0
+		criteria := &azuregit.GitPullRequestSearchCriteria{
+			TargetRefName: &targetRefName,
+			IncludeLinks:  &includeLinks,
+		}
+
+		for {
+			prs, err := p.client.GetPullRequests(p.ctx, azuregit.GetPullRequestsArgs{
+				RepositoryId:   &p.repoName,
+				Project:        &p.repoProject,
+				SearchCriteria: criteria,
+				Top:            &top,
+				Skip:           &skip,
+			})
+			if err != nil {
+				p.err = err
+				return
+			}
+			if prs == nil || len(*prs) == 0 {
+				return
+			}
+			for _, pr := range *prs {
+				if !yield(&pr) {
+					return
+				}
+			}
+			skip += top
+		}
+	})
 }
