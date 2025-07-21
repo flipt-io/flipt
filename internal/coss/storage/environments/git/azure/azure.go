@@ -187,12 +187,26 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	var (
+		baseCfg = env.Configuration()
 		details = map[string]*environments.EnvironmentProposalDetails{}
-		prs     = s.listPRs(ctx, env.Configuration().Ref)
+		prs     = s.listPRs(ctx, baseCfg.Ref)
 	)
 
 	for pr := range prs.All() {
 		branch := strings.TrimPrefix(*pr.SourceRefName, "refs/heads/")
+
+		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
+			continue
+		}
+
+		if _, ok := details[branch]; ok {
+			// we let existing PRs get replaced by other PRs for the same branch
+			// if the existing PR is not in an open state
+			if pr.Status != &azuregit.PullRequestStatusValues.Active {
+				continue
+			}
+		}
+
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
 		if pr.Status == &azuregit.PullRequestStatusValues.Abandoned {
 			state = environments.ProposalState_PROPOSAL_STATE_CLOSED

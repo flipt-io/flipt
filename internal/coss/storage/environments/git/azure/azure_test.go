@@ -153,7 +153,8 @@ func TestSCM_ListProposals(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
-	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "testenv"})
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
+	mockEnv.EXPECT().Key().Return("testenv")
 
 	branchOpen := "flipt/testenv/feature-open"
 	branchClosed := "flipt/testenv/feature-closed"
@@ -167,7 +168,13 @@ func TestSCM_ListProposals(t *testing.T) {
 		PullRequestId: toPtr(t, 124),
 		Status:        &azuregit.PullRequestStatusValues.Completed,
 	}
-	prs := []azuregit.GitPullRequest{prOpen, prClosed}
+
+	prOther := azuregit.GitPullRequest{
+		SourceRefName: toPtr(t, "refs/heads/other-feature"),
+		PullRequestId: toPtr(t, 125),
+		Status:        &azuregit.PullRequestStatusValues.Completed,
+	}
+	prs := []azuregit.GitPullRequest{prOpen, prClosed, prOther}
 
 	mockClient.EXPECT().GetPullRequests(mock.Anything, azuregit.GetPullRequestsArgs{
 		RepositoryId: &scm.repoName,
@@ -175,7 +182,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		Top:          toPtr(t, 100),
 		Skip:         toPtr(t, 0),
 		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{
-			TargetRefName: toPtr(t, "refs/heads/testenv"),
+			TargetRefName: toPtr(t, "refs/heads/main"),
 			IncludeLinks:  toPtr(t, true),
 		},
 	}).Return(&prs, nil)
@@ -187,7 +194,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		Top:          toPtr(t, 100),
 		Skip:         toPtr(t, 100),
 		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{
-			TargetRefName: toPtr(t, "refs/heads/testenv"),
+			TargetRefName: toPtr(t, "refs/heads/main"),
 			IncludeLinks:  toPtr(t, true),
 		},
 	}).Return(&prsEmpty, nil)
