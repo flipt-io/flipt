@@ -113,6 +113,7 @@ const (
 	GitHubSCMType = SCMType("github")
 	GiteaSCMType  = SCMType("gitea")
 	GitLabSCMType = SCMType("gitlab")
+	AzureSCMType  = SCMType("azure")
 )
 
 var _ validator = (*SCMConfig)(nil)
@@ -125,7 +126,7 @@ type SCMConfig struct {
 
 func (s SCMConfig) validate() error {
 	switch s.Type {
-	case GitHubSCMType, GiteaSCMType, GitLabSCMType:
+	case GitHubSCMType, GiteaSCMType, GitLabSCMType, AzureSCMType:
 		break
 	default:
 		return errFieldWrap("environments", "scm", fmt.Errorf("unexpected SCM type: %q", s.Type))

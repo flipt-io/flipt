@@ -13,9 +13,9 @@ import (
 	"go.flipt.io/flipt/errors"
 
 	"github.com/docker/docker/pkg/namesgenerator"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/storer"
 	"go.flipt.io/flipt/internal/config"
 	serverenvs "go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage"
@@ -132,6 +132,8 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 			scm = ptr(rpcenvironments.SCM_SCM_GITLAB)
 		case config.GiteaSCMType:
 			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
+		case config.AzureSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_AZURE)
 		}
 	}
 
@@ -177,7 +179,6 @@ func (e *Environment) Branch(ctx context.Context, branch string) (serverenvs.Env
 		e.storage,
 		evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -614,7 +615,6 @@ func (e *Environment) RefreshEnvironment(ctx context.Context, refs map[string]st
 				e.storage,
 				evaluation.NoopPublisher, // TODO: we dont currently publish evaluation snapshots for branches
 			)
-
 			if err != nil {
 				return nil, err
 			}

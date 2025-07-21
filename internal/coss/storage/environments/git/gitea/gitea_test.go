@@ -133,12 +133,13 @@ func TestSCM_ListProposals(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
 	pr := &gitea.PullRequest{
 		Head:    &gitea.PRBranchInfo{Ref: branch},
-		Base:    &gitea.PRBranchInfo{Name: "testenv"},
+		Base:    &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL: "http://example.com/pr",
 		State:   "open",
 	}
@@ -165,11 +166,12 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	pr := &gitea.PullRequest{
 		Head:    &gitea.PRBranchInfo{Ref: "otherprefix/testenv/feature"},
-		Base:    &gitea.PRBranchInfo{Name: "testenv"},
+		Base:    &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL: "http://example.com/pr",
 		State:   gitea.StateOpen,
 	}
@@ -193,18 +195,19 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
 	prOpen := &gitea.PullRequest{
 		Head:    &gitea.PRBranchInfo{Ref: branch},
-		Base:    &gitea.PRBranchInfo{Name: "testenv"},
+		Base:    &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL: "http://example.com/pr-open",
 		State:   gitea.StateOpen,
 	}
 	prClosed := &gitea.PullRequest{
 		Head:    &gitea.PRBranchInfo{Ref: branch},
-		Base:    &gitea.PRBranchInfo{Name: "testenv"},
+		Base:    &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL: "http://example.com/pr-closed",
 		State:   gitea.StateClosed,
 	}
@@ -230,13 +233,14 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
 	mergeCommitSha := "sha123"
 	prClosedMerged := &gitea.PullRequest{
 		Head:           &gitea.PRBranchInfo{Ref: branch},
-		Base:           &gitea.PRBranchInfo{Name: "testenv"},
+		Base:           &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL:        "http://example.com/pr-merged",
 		State:          "closed",
 		HasMerged:      true,
@@ -264,12 +268,13 @@ func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
+	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
 	mockEnv.EXPECT().Key().Return("testenv")
 
 	branch := "flipt/testenv/feature"
 	prClosed := &gitea.PullRequest{
 		Head:      &gitea.PRBranchInfo{Ref: branch},
-		Base:      &gitea.PRBranchInfo{Name: "testenv"},
+		Base:      &gitea.PRBranchInfo{Name: "main"},
 		HTMLURL:   "http://example.com/pr-closed",
 		State:     "closed",
 		HasMerged: false,

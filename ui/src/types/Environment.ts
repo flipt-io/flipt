@@ -24,7 +24,8 @@ export enum SCM {
   UNKNOWN = 'SCM_UNKNOWN',
   GITHUB = 'SCM_GITHUB',
   GITLAB = 'SCM_GITLAB',
-  GITEA = 'SCM_GITEA'
+  GITEA = 'SCM_GITEA',
+  AZURE = 'SCM_AZURE'
 }
 
 export enum ProposalState {

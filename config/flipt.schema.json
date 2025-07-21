@@ -720,7 +720,8 @@
                   "enum": [
                     "github",
                     "gitea",
-                    "gitlab"
+                    "gitlab",
+                    "azure"
                   ],
                   "default": "github"
                 },

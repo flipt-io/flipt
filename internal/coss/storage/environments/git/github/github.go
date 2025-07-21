@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/v66/github"
 	"go.flipt.io/flipt/internal/config"
@@ -78,7 +79,7 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new GitHub SCM instance.
-func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
 	githubOpts := &gitHubOptions{
 		httpClient: http.DefaultClient,
 	}
@@ -102,7 +103,7 @@ func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption
 			client = client.WithAuthToken(apiAuth.Token)
 		case config.CredentialTypeBasic:
 			// Use basic auth for API operations - convert to OAuth2 token format
-			client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
+			client = github.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(
 				&oauth2.Token{
 					TokenType:   "Basic",
 					AccessToken: base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", apiAuth.Username, apiAuth.Password)),
@@ -153,7 +154,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	s.logger.Info("changes compared", zap.Int("commits", len(comparison.Commits)))
+	s.logger.Debug("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
@@ -165,7 +166,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 			continue
 		}
 
-		if limit > 0 && int32(len(changes)) >= limit {
+		if limit > 0 && len(changes) >= int(limit) {
 			break
 		}
 
@@ -178,7 +179,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		if commit.GetCommit().GetAuthor() != nil {
 			change.AuthorName = github.String(commit.GetCommit().GetAuthor().GetName())
 			change.AuthorEmail = github.String(commit.GetCommit().GetAuthor().GetEmail())
-			change.Timestamp = commit.GetCommit().GetAuthor().GetDate().Format("2006-01-02T15:04:05Z07:00")
+			change.Timestamp = commit.GetCommit().GetAuthor().GetDate().Format(time.RFC3339)
 		}
 
 		changes = append(changes, change)

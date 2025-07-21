@@ -8,8 +8,8 @@ import (
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/object"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/secrets"
 	"go.flipt.io/flipt/internal/storage/git/signing"
