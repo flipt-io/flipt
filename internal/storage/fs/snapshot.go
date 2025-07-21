@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"math"
 	"path"
 	"path/filepath"
 	"sort"
@@ -750,7 +751,9 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 		return storage.ResultSet[T]{}, errs.ErrInvalidf("pageToken is not valid: %q", params.PageToken)
 	}
 
-	offset = int(v)
+	if v >= 0 && v <= int64(math.MaxInt32) {
+		offset = int(v)
+	}
 
 	if offset >= len(set.Results) {
 		return storage.ResultSet[T]{}, errs.ErrInvalidf("invalid offset: %d", offset)
