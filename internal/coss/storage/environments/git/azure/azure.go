@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"iter"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -33,7 +34,6 @@ type Client interface {
 type azureOptions struct {
 	apiURL              *url.URL
 	personalAccessToken string
-	logger              *zap.Logger
 }
 
 type ClientOption func(*azureOptions)
@@ -93,8 +93,14 @@ type SCM struct {
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	changes := []*environments.Change{}
-	includeLinks := true
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
+
+	var (
+		changes      = []*environments.Change{}
+		includeLinks = true
+		limit        = req.Limit
+	)
+
 	commits, err := s.client.GetCommits(ctx, azuregit.GetCommitsArgs{
 		RepositoryId: &s.repoName,
 		Project:      &s.repoProject,
@@ -114,7 +120,13 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
+	s.logger.Debug("changes compared", zap.Int("commits", len(*commits)))
+
 	for _, commit := range *commits {
+		if limit > 0 && int32(len(changes)) >= limit {
+			break
+		}
+
 		change := &environments.Change{
 			Revision: *commit.CommitId,
 			Message:  *commit.Comment,
@@ -129,6 +141,14 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		}
 		changes = append(changes, change)
 	}
+
+	// sort changes by timestamp descending if not empty
+	if len(changes) > 0 {
+		sort.Slice(changes, func(i, j int) bool {
+			return changes[i].Timestamp > changes[j].Timestamp
+		})
+	}
+
 	return &environments.ListBranchedEnvironmentChangesResponse{
 		Changes: changes,
 	}, nil

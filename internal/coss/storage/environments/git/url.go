@@ -15,10 +15,6 @@ type URL interface {
 	GetHostName() string
 }
 
-type gitURL struct {
-	giturl.IGitURL
-}
-
 var _ URL = &sshURL{}
 
 type sshURL struct {
