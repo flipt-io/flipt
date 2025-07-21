@@ -235,6 +235,8 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 	return env, nil
 }
 
+type scmCreator func(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error)
+
 // createSCM creates the appropriate SCM client based on configuration
 func (f *EnvironmentFactory) createSCM(ctx context.Context, scmConfig *config.SCMConfig, repo *storagegit.Repository) (cossgit.SCM, error) {
 	repoURL, err := cossgit.ParseGitURL(repo.GetRemote())
@@ -243,19 +245,11 @@ func (f *EnvironmentFactory) createSCM(ctx context.Context, scmConfig *config.SC
 	}
 
 	// Create SCM using factory pattern
-	scmCreators := map[config.SCMType]func() (cossgit.SCM, error){
-		config.GitHubSCMType: func() (cossgit.SCM, error) {
-			return f.createGitHubSCM(ctx, scmConfig, repoURL)
-		},
-		config.GitLabSCMType: func() (cossgit.SCM, error) {
-			return f.createGitLabSCM(ctx, scmConfig, repoURL)
-		},
-		config.AzureSCMType: func() (cossgit.SCM, error) {
-			return f.createAzureSCM(ctx, scmConfig, repoURL)
-		},
-		config.GiteaSCMType: func() (cossgit.SCM, error) {
-			return f.createGiteaSCM(ctx, scmConfig, repoURL)
-		},
+	scmCreators := map[config.SCMType]scmCreator{
+		config.GitHubSCMType: f.createGitHubSCM,
+		config.GitLabSCMType: f.createGitLabSCM,
+		config.AzureSCMType:  f.createAzureSCM,
+		config.GiteaSCMType:  f.createGiteaSCM,
 	}
 
 	creator, exists := scmCreators[scmConfig.Type]
@@ -263,7 +257,7 @@ func (f *EnvironmentFactory) createSCM(ctx context.Context, scmConfig *config.SC
 		return &cossgit.SCMNotImplemented{}, nil
 	}
 
-	return creator()
+	return creator(ctx, scmConfig, repoURL)
 }
 
 // createGitHubSCM creates a GitHub SCM client
