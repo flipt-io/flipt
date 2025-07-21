@@ -6,7 +6,7 @@ toolchain go1.24.3
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
-	cuelang.org/go v0.11.1
+	cuelang.org/go v0.13.2
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/ClickHouse/clickhouse-go/v2 v2.35.0
 	github.com/MakeNowJust/heredoc v1.0.0
