@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.24"
-  DAGGER_VERSION: "0.18.8"
+  DAGGER_VERSION: "0.18.12"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -32,7 +32,7 @@ jobs:
             "authz",
             "ofrep",
             "snapshot",
-            "signing"
+            "signing",
           ]
     steps:
       - uses: actions/checkout@v4
