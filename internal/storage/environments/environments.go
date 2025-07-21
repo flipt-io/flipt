@@ -342,7 +342,7 @@ func (f *EnvironmentFactory) createAzureSCM(ctx context.Context, scmConfig *conf
 		return nil, fmt.Errorf("failed to parse azure git url")
 	}
 
-	opts = append(opts, azure.WithApiURL(azureURL.GetURL()))
+	opts = append(opts, azure.WithApiURL(&url.URL{Scheme: "https", Host: repoURL.GetHostName()}))
 
 	// To support Azure Enterprise
 	if scmConfig.ApiURL != "" {
