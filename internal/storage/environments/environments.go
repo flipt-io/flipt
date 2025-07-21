@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport"
-	azureparserv1 "github.com/kubescape/go-git-url/azureparser/v1"
+	v1 "github.com/kubescape/go-git-url/azureparser/v1"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -86,7 +86,7 @@ func (rm *RepositoryManager) GetOrCreate(ctx context.Context, envConf *config.En
 				var err error
 				path, err = os.MkdirTemp(os.TempDir(), "flipt-git-*")
 				if err != nil {
-					return nil, fmt.Errorf("making tempory directory for git storage: %w", err)
+					return nil, fmt.Errorf("making temporary directory for git storage: %w", err)
 				}
 			}
 			opts = append(opts, storagegit.WithFilesystemStorage(path))
@@ -219,118 +219,9 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 			return wrapped, nil
 		}
 
-		var scm cossgit.SCM = &cossgit.SCMNotImplemented{}
-
-		repoURL, err := cossgit.ParseGitURL(repo.GetRemote())
+		scm, err := f.createSCM(ctx, envConf.SCM, repo)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse git url: %w", err)
-		}
-
-		var (
-			repoOwner = repoURL.Owner
-			repoName  = repoURL.Repo
-		)
-
-		//nolint
-		switch envConf.SCM.Type {
-		case config.GitHubSCMType:
-			opts := []github.ClientOption{}
-
-			// To support GitHub Enterprise
-			if envConf.SCM.ApiURL != "" {
-				apiURL, err := url.Parse(envConf.SCM.ApiURL)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse api url: %w", err)
-				}
-				opts = append(opts, github.WithApiURL(apiURL))
-			}
-
-			if envConf.SCM.Credentials != nil {
-				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
-				if err != nil {
-					return nil, err
-				}
-
-				opts = append(opts, github.WithApiAuth(creds.APIAuthentication()))
-			}
-
-			scm, err = github.NewSCM(f.logger, repoOwner, repoName, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to setup github scm: %w", err)
-			}
-		case config.GitLabSCMType:
-			opts := []gitlab.ClientOption{}
-
-			// To support GitLab Enterprise
-			if envConf.SCM.ApiURL != "" {
-				apiURL, err := url.Parse(envConf.SCM.ApiURL)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse api url: %w", err)
-				}
-				opts = append(opts, gitlab.WithApiURL(apiURL))
-			}
-
-			if envConf.SCM.Credentials != nil {
-				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
-				if err != nil {
-					return nil, err
-				}
-
-				opts = append(opts, gitlab.WithApiAuth(creds.APIAuthentication()))
-			}
-
-			scm, err = gitlab.NewSCM(f.logger, repoOwner, repoName, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
-			}
-
-		case config.AzureSCMType:
-			repoURL, err := azureparserv1.NewAzureParserWithURL(repo.GetRemote())
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse azure git url: %w", err)
-			}
-			opts := []azure.ClientOption{
-				// set default api url based on the parsed URL
-				azure.WithApiURL(&url.URL{Scheme: "https", Host: repoURL.GetHostName()}),
-				azure.WithLogger(f.logger),
-			}
-			// To support Azure Enterprise
-			if envConf.SCM.ApiURL != "" {
-				apiURL, err := url.Parse(envConf.SCM.ApiURL)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse api url: %w", err)
-				}
-				opts = append(opts, azure.WithApiURL(apiURL))
-			}
-
-			if envConf.SCM.Credentials != nil {
-				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
-				if err != nil {
-					return nil, err
-				}
-
-				opts = append(opts, azure.WithApiAuth(creds.APIAuthentication()))
-			}
-			scm, err = azure.NewSCM(ctx, repoOwner, repoURL.GetProjectName(), repoName, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to setup azure scm: %w", err)
-			}
-		case config.GiteaSCMType:
-			opts := []gitea.ClientOption{}
-
-			if envConf.SCM.Credentials != nil {
-				creds, err := f.credentials.Get(*envConf.SCM.Credentials)
-				if err != nil {
-					return nil, err
-				}
-
-				opts = append(opts, gitea.WithApiAuth(creds.APIAuthentication()))
-			}
-
-			scm, err = gitea.NewSCM(f.logger, envConf.SCM.ApiURL, repoOwner, repoName, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to setup gitea scm: %w", err)
-			}
+			return nil, err
 		}
 
 		wrapped := cossgit.NewEnvironment(f.logger, env, scm)
@@ -342,6 +233,165 @@ func (f *EnvironmentFactory) Create(ctx context.Context, name string, envConf *c
 		zap.String("storage", envConf.Storage))
 
 	return env, nil
+}
+
+type scmCreator func(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error)
+
+// createSCM creates the appropriate SCM client based on configuration
+func (f *EnvironmentFactory) createSCM(ctx context.Context, scmConfig *config.SCMConfig, repo *storagegit.Repository) (cossgit.SCM, error) {
+	repoURL, err := cossgit.ParseGitURL(repo.GetRemote())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse git url: %w", err)
+	}
+
+	// Create SCM using factory pattern
+	scmCreators := map[config.SCMType]scmCreator{
+		config.GitHubSCMType: f.createGitHubSCM,
+		config.GitLabSCMType: f.createGitLabSCM,
+		config.AzureSCMType:  f.createAzureSCM,
+		config.GiteaSCMType:  f.createGiteaSCM,
+	}
+
+	creator, exists := scmCreators[scmConfig.Type]
+	if !exists {
+		return &cossgit.SCMNotImplemented{}, nil
+	}
+
+	return creator(ctx, scmConfig, repoURL)
+}
+
+// createGitHubSCM creates a GitHub SCM client
+func (f *EnvironmentFactory) createGitHubSCM(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error) {
+	var (
+		repoOwner = repoURL.GetOwnerName()
+		repoName  = repoURL.GetRepoName()
+
+		opts = []github.ClientOption{}
+	)
+
+	// To support GitHub Enterprise
+	if scmConfig.ApiURL != "" {
+		apiURL, err := url.Parse(scmConfig.ApiURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse api url: %w", err)
+		}
+		opts = append(opts, github.WithApiURL(apiURL))
+	}
+
+	if scmConfig.Credentials != nil {
+		creds, err := f.credentials.Get(*scmConfig.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, github.WithApiAuth(creds.APIAuthentication()))
+	}
+
+	scm, err := github.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup github scm: %w", err)
+	}
+
+	return scm, nil
+}
+
+// createGitLabSCM creates a GitLab SCM client
+func (f *EnvironmentFactory) createGitLabSCM(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error) {
+	var (
+		repoOwner = repoURL.GetOwnerName()
+		repoName  = repoURL.GetRepoName()
+
+		opts = []gitlab.ClientOption{}
+	)
+
+	// To support GitLab Enterprise
+	if scmConfig.ApiURL != "" {
+		apiURL, err := url.Parse(scmConfig.ApiURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse api url: %w", err)
+		}
+		opts = append(opts, gitlab.WithApiURL(apiURL))
+	}
+
+	if scmConfig.Credentials != nil {
+		creds, err := f.credentials.Get(*scmConfig.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, gitlab.WithApiAuth(creds.APIAuthentication()))
+	}
+
+	scm, err := gitlab.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup gitlab scm: %w", err)
+	}
+
+	return scm, nil
+}
+
+// createAzureSCM creates an Azure SCM client
+func (f *EnvironmentFactory) createAzureSCM(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error) {
+	var (
+		repoOwner = repoURL.GetOwnerName()
+		repoName  = repoURL.GetRepoName()
+
+		opts = []azure.ClientOption{}
+	)
+
+	azureURL, ok := repoURL.(*v1.AzureURL)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse azure git url")
+	}
+
+	opts = append(opts, azure.WithApiURL(azureURL.GetURL()))
+
+	// To support Azure Enterprise
+	if scmConfig.ApiURL != "" {
+		apiURL, err := url.Parse(scmConfig.ApiURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse api url: %w", err)
+		}
+		opts = append(opts, azure.WithApiURL(apiURL))
+	}
+
+	if scmConfig.Credentials != nil {
+		creds, err := f.credentials.Get(*scmConfig.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, azure.WithApiAuth(creds.APIAuthentication()))
+	}
+
+	scm, err := azure.NewSCM(ctx, f.logger, repoOwner, azureURL.GetProjectName(), repoName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup azure scm: %w", err)
+	}
+
+	return scm, nil
+}
+
+// createGiteaSCM creates a Gitea SCM client
+func (f *EnvironmentFactory) createGiteaSCM(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error) {
+	var (
+		repoOwner = repoURL.GetOwnerName()
+		repoName  = repoURL.GetRepoName()
+
+		opts = []gitea.ClientOption{}
+	)
+
+	if scmConfig.Credentials != nil {
+		creds, err := f.credentials.Get(*scmConfig.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, gitea.WithApiAuth(creds.APIAuthentication()))
+	}
+
+	scm, err := gitea.NewSCM(ctx, f.logger, scmConfig.ApiURL, repoOwner, repoName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup gitea scm: %w", err)
+	}
+
+	return scm, nil
 }
 
 // environmentSubscriber is a subscriber for storagegit.Repository

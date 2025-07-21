@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"go.flipt.io/flipt/internal/config"
@@ -65,7 +66,7 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new GitLab SCM instance.
-func NewSCM(logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
 	gitlabOpts := &gitLabOptions{
 		httpClient: http.DefaultClient,
 	}
@@ -160,7 +161,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	s.logger.Info("changes compareddd", zap.Int("commits", len(comparison.Commits)))
+	s.logger.Debug("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
@@ -168,7 +169,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	)
 
 	for _, commit := range comparison.Commits {
-		if limit > 0 && int32(len(changes)) >= limit {
+		if limit > 0 && len(changes) >= int(limit) {
 			break
 		}
 
@@ -185,7 +186,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 			change.AuthorEmail = &commit.AuthorEmail
 		}
 		if commit.CreatedAt != nil {
-			change.Timestamp = commit.CreatedAt.Format("2006-01-02T15:04:05Z07:00")
+			change.Timestamp = commit.CreatedAt.Format(time.RFC3339)
 		}
 
 		changes = append(changes, change)

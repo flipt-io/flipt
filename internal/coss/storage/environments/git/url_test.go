@@ -20,8 +20,8 @@ func TestParseGitURL(t *testing.T) {
 			t.Run(fmt.Sprint(i), func(t *testing.T) {
 				gitURL, err := ParseGitURL(ex)
 				require.NoError(t, err)
-				assert.Equal(t, "flipt-io", gitURL.Owner)
-				assert.Equal(t, "flipt", gitURL.Repo)
+				assert.Equal(t, "flipt-io", gitURL.GetOwnerName())
+				assert.Equal(t, "flipt", gitURL.GetRepoName())
 			})
 		}
 	})
@@ -37,8 +37,8 @@ func TestParseGitURL(t *testing.T) {
 			t.Run(fmt.Sprint(i), func(t *testing.T) {
 				gitURL, err := ParseGitURL(ex)
 				require.NoError(t, err)
-				assert.Equal(t, "flipt-io", gitURL.Owner)
-				assert.Equal(t, "flipt", gitURL.Repo)
+				assert.Equal(t, "flipt-io", gitURL.GetOwnerName())
+				assert.Equal(t, "flipt", gitURL.GetRepoName())
 			})
 		}
 	})
@@ -54,8 +54,8 @@ func TestParseGitURL(t *testing.T) {
 			t.Run(fmt.Sprint(i), func(t *testing.T) {
 				gitURL, err := ParseGitURL(ex)
 				require.NoError(t, err)
-				assert.Equal(t, "flipt-io", gitURL.Owner)
-				assert.Equal(t, "flipt", gitURL.Repo)
+				assert.Equal(t, "flipt-io", gitURL.GetOwnerName())
+				assert.Equal(t, "flipt", gitURL.GetRepoName())
 			})
 		}
 	})

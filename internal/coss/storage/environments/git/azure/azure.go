@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"iter"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -33,7 +34,6 @@ type Client interface {
 type azureOptions struct {
 	apiURL              *url.URL
 	personalAccessToken string
-	logger              *zap.Logger
 }
 
 type ClientOption func(*azureOptions)
@@ -60,20 +60,9 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	}
 }
 
-// WithLogger sets the logger for the SCM client.
-func WithLogger(logger *zap.Logger) ClientOption {
-	return func(c *azureOptions) {
-		if logger != nil {
-			c.logger = logger
-		}
-	}
-}
-
 // NewSCM creates a new SCM instance for Azure DevOps Git.
-func NewSCM(ctx context.Context, repoOwner, repoProject, repoName string, opts ...ClientOption) (*SCM, error) {
-	options := &azureOptions{
-		logger: zap.NewNop(),
-	}
+func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoProject, repoName string, opts ...ClientOption) (*SCM, error) {
+	options := &azureOptions{}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -85,7 +74,7 @@ func NewSCM(ctx context.Context, repoOwner, repoProject, repoName string, opts .
 	}
 
 	return &SCM{
-		logger:      options.logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoProject, repoName)), zap.String("scm", "azure git")),
+		logger:      logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoProject, repoName)), zap.String("scm", "azure")),
 		client:      client,
 		repoOwner:   repoOwner,
 		repoProject: repoProject,
@@ -104,8 +93,14 @@ type SCM struct {
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
-	changes := []*environments.Change{}
-	includeLinks := true
+	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
+
+	var (
+		changes      = []*environments.Change{}
+		includeLinks = true
+		limit        = req.Limit
+	)
+
 	commits, err := s.client.GetCommits(ctx, azuregit.GetCommitsArgs{
 		RepositoryId: &s.repoName,
 		Project:      &s.repoProject,
@@ -125,7 +120,13 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
+	s.logger.Debug("changes compared", zap.Int("commits", len(*commits)))
+
 	for _, commit := range *commits {
+		if limit > 0 && len(changes) >= int(limit) {
+			break
+		}
+
 		change := &environments.Change{
 			Revision: *commit.CommitId,
 			Message:  *commit.Comment,
@@ -140,6 +141,14 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		}
 		changes = append(changes, change)
 	}
+
+	// sort changes by timestamp descending if not empty
+	if len(changes) > 0 {
+		sort.Slice(changes, func(i, j int) bool {
+			return changes[i].Timestamp > changes[j].Timestamp
+		})
+	}
+
 	return &environments.ListBranchedEnvironmentChangesResponse{
 		Changes: changes,
 	}, nil
@@ -147,8 +156,12 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
-	sourceRefName := fmt.Sprintf("refs/heads/%s", req.Head)
-	targetRefName := fmt.Sprintf("refs/heads/%s", req.Base)
+
+	var (
+		sourceRefName = fmt.Sprintf("refs/heads/%s", req.Head)
+		targetRefName = fmt.Sprintf("refs/heads/%s", req.Base)
+	)
+
 	pr, err := s.client.CreatePullRequest(ctx, azuregit.CreatePullRequestArgs{
 		GitPullRequestToCreate: &azuregit.GitPullRequest{
 			Title:         &req.Title,
@@ -163,7 +176,9 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
+
 	s.logger.Info("pull request created", zap.String("pr", *pr.Url), zap.String("state", string(*pr.Status)))
+
 	return &environments.EnvironmentProposalDetails{
 		Url:   *pr.Url,
 		State: environments.ProposalState_PROPOSAL_STATE_OPEN,
@@ -173,7 +188,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	var (
 		details = map[string]*environments.EnvironmentProposalDetails{}
-		prs     = &prs{ctx: ctx, client: s.client, repoProject: s.repoProject, repoName: s.repoName, base: env.Configuration().Ref}
+		prs     = s.listPRs(ctx, env.Configuration().Ref)
 	)
 
 	for pr := range prs.All() {
@@ -211,20 +226,26 @@ type prs struct {
 	err error
 }
 
+func (s *SCM) listPRs(ctx context.Context, base string) *prs {
+	return &prs{ctx: ctx, client: s.client, repoProject: s.repoProject, repoName: s.repoName, base: base, err: nil}
+}
+
 func (p *prs) Err() error {
 	return p.err
 }
 
 func (p *prs) All() iter.Seq[*azuregit.GitPullRequest] {
 	return iter.Seq[*azuregit.GitPullRequest](func(yield func(*azuregit.GitPullRequest) bool) {
-		targetRefName := fmt.Sprintf("refs/heads/%s", p.base)
-		includeLinks := true
-		top := 100
-		skip := 0
-		criteria := &azuregit.GitPullRequestSearchCriteria{
-			TargetRefName: &targetRefName,
-			IncludeLinks:  &includeLinks,
-		}
+		var (
+			targetRefName = fmt.Sprintf("refs/heads/%s", p.base)
+			includeLinks  = true
+			top           = 100
+			skip          = 0
+			criteria      = &azuregit.GitPullRequestSearchCriteria{
+				TargetRefName: &targetRefName,
+				IncludeLinks:  &includeLinks,
+			}
+		)
 
 		for {
 			prs, err := p.client.GetPullRequests(p.ctx, azuregit.GetPullRequestsArgs{
