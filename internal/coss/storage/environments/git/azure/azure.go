@@ -123,7 +123,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	s.logger.Debug("changes compared", zap.Int("commits", len(*commits)))
 
 	for _, commit := range *commits {
-		if limit > 0 && int32(len(changes)) >= limit {
+		if limit > 0 && len(changes) >= int(limit) {
 			break
 		}
 
