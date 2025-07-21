@@ -201,10 +201,10 @@ import "list"
 		insecure_skip_tls?: bool | *false
 		credentials?:       string
 		signature?: {
-			name?:             string | *"flipt"
-			email?:            string | *"dev@flipt.io"
-			enabled?:  bool | *false
-			type?:     string | *"gpg"
+			name?:    string
+			email?:   string
+			enabled?: bool | *false
+			type?:    string | *"gpg"
 			key_ref?: {
 				provider: string
 				path:     string
@@ -292,7 +292,7 @@ import "list"
 	}
 
 	#license: {
-		key?:     string
+		key?: string
 	}
 
 	#secrets: {

@@ -2,6 +2,8 @@ package file
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,6 +98,62 @@ func TestProvider_GetSecret(t *testing.T) {
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "parsing secret file")
+	})
+
+	t.Run("handles GPG key with escaped newlines in JSON", func(t *testing.T) {
+		// Create a GPG key with properly escaped newlines in JSON
+		//nolint:gosec // this is a test
+		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
+
+		// Create JSON manually with properly escaped string
+		secretFile := secretFile{
+			Data: map[string]string{
+				"gpg-key": gpgKey,
+			},
+		}
+
+		jsonData, err := json.Marshal(secretFile)
+		require.NoError(t, err)
+
+		secretPath := filepath.Join(tmpDir, "gpg-test.json")
+		err = os.WriteFile(secretPath, jsonData, 0600)
+		require.NoError(t, err)
+
+		// Retrieve the secret
+		retrieved, err := provider.GetSecret(ctx, "gpg-test")
+
+		require.NoError(t, err)
+		assert.Equal(t, []byte(gpgKey), retrieved.Data["gpg-key"])
+	})
+
+	t.Run("handles base64 encoded values in JSON", func(t *testing.T) {
+		// Create a secret file with base64 encoded values
+		//nolint:gosec // this is a test
+		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
+		base64EncodedKey := base64.StdEncoding.EncodeToString([]byte(gpgKey))
+
+		secretFile := secretFile{
+			Data: map[string]string{
+				"gpg-key":   base64EncodedKey,
+				"plaintext": "not-base64-value",
+			},
+		}
+
+		jsonData, err := json.Marshal(secretFile)
+		require.NoError(t, err)
+
+		secretPath := filepath.Join(tmpDir, "base64-values-test.json")
+		err = os.WriteFile(secretPath, jsonData, 0600)
+		require.NoError(t, err)
+
+		// Retrieve the secret
+		retrieved, err := provider.GetSecret(ctx, "base64-values-test")
+
+		require.NoError(t, err)
+		// Base64 encoded value should be decoded
+		assert.Equal(t, []byte(gpgKey), retrieved.Data["gpg-key"])
+		// Plain text value should remain as-is
+		assert.Equal(t, []byte("not-base64-value"), retrieved.Data["plaintext"])
 	})
 }
 

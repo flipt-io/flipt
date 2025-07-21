@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -64,10 +65,16 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 		return nil, fmt.Errorf("parsing secret file: %w", err)
 	}
 
-	// Convert string data to bytes
+	// Convert string data to bytes, with base64 fallback for individual values
 	secretData := make(map[string][]byte)
 	for k, v := range fileData.Data {
-		secretData[k] = []byte(v)
+		// Attempt to decode the value as base64
+		if decoded, err := base64.StdEncoding.DecodeString(v); err == nil {
+			secretData[k] = decoded
+		} else {
+			// If decoding fails, use the original value as bytes
+			secretData[k] = []byte(v)
+		}
 	}
 
 	return &secrets.Secret{

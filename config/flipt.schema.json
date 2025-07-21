@@ -786,12 +786,10 @@
                   "type": "string"
                 },
                 "name": {
-                  "type": "string",
-                  "default": "flipt"
+                  "type": "string"
                 },
                 "email": {
-                  "type": "string",
-                  "default": "dev@flipt.io"
+                  "type": "string"
                 },
                 "enabled": {
                   "type": "boolean",
