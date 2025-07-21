@@ -9,53 +9,74 @@ import (
 	giturl "github.com/kubescape/go-git-url"
 )
 
-type URL struct {
-	Owner string
-	Repo  string
+type URL interface {
+	GetOwnerName() string
+	GetRepoName() string
+	GetHostName() string
 }
 
-func ParseGitURL(rawURL string) (*URL, error) {
+var _ URL = &sshURL{}
+
+type sshURL struct {
+	Owner string
+	Repo  string
+	Host  string
+}
+
+func (u *sshURL) GetOwnerName() string {
+	return u.Owner
+}
+
+func (u *sshURL) GetRepoName() string {
+	return u.Repo
+}
+
+func (u *sshURL) GetHostName() string {
+	return u.Host
+}
+
+func ParseGitURL(rawURL string) (URL, error) {
 	gitURL, err := giturl.NewGitURL(rawURL)
 	if err != nil {
 		// fall back to ssh parsing
-		owner, repo, err := parseSSHRepo(rawURL)
+		sshURL, err := parseSSHRepo(rawURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse git url: %w", err)
 		}
-		return &URL{Owner: owner, Repo: repo}, nil
+		return sshURL, nil
 	}
 
-	return &URL{Owner: gitURL.GetOwnerName(), Repo: gitURL.GetRepoName()}, nil
+	return gitURL, nil
 }
 
-func parseSSHRepo(rawURL string) (owner, repo string, err error) {
+func parseSSHRepo(rawURL string) (*sshURL, error) {
 	// Handle SSH-style URL: git@gitea.example.com:owner/repo.git
 	if strings.Contains(rawURL, ":") && strings.Contains(rawURL, "@") && !strings.HasPrefix(rawURL, "http") {
 		// Example: git@gitea.example.com:owner/repo.git
 		parts := strings.SplitN(rawURL, ":", 2)
 		if len(parts) != 2 {
-			return "", "", errors.New("invalid SSH URL format")
+			return nil, errors.New("invalid SSH URL format")
 		}
 		path := strings.TrimSuffix(parts[1], ".git")
 		subParts := strings.SplitN(path, "/", 2)
 		if len(subParts) != 2 {
-			return "", "", errors.New("invalid SSH repo path")
+			return nil, errors.New("invalid SSH repo path")
 		}
-		return subParts[0], subParts[1], nil
+		return &sshURL{Owner: subParts[0], Repo: subParts[1]}, nil
 	}
 
 	// Try parsing as a regular URL
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return "", "", fmt.Errorf("invalid URL: %w", err)
+		return nil, fmt.Errorf("invalid URL: %w", err)
 	}
 
 	path := strings.TrimSuffix(u.Path, ".git")
 	path = strings.TrimPrefix(path, "/")
 	parts := strings.SplitN(path, "/", 2)
 	if len(parts) != 2 {
-		return "", "", errors.New("invalid path structure")
+		return nil, errors.New("invalid path structure")
 	}
 
-	return parts[0], parts[1], nil
+	return &sshURL{Owner: parts[0], Repo: parts[1], Host: u.Host}, nil
 }

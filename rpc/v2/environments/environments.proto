@@ -179,6 +179,7 @@ enum SCM {
   SCM_GITHUB = 1;
   SCM_GITEA = 2;
   SCM_GITLAB = 3;
+  SCM_AZURE = 4;
 }
 
 enum ProposalState {

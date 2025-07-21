@@ -12,17 +12,17 @@ import (
 	"time"
 
 	"code.gitea.io/sdk/gitea"
-	"github.com/go-git/go-billy/v5/memfs"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/go-git/go-git/v5/storage/memory"
+	"github.com/go-git/go-billy/v6/memfs"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/config"
+	"github.com/go-git/go-git/v6/plumbing/object"
+	githttp "github.com/go-git/go-git/v6/plumbing/transport/http"
+	"github.com/go-git/go-git/v6/storage/memory"
 )
 
 func main() {
 	var giteaURL = flag.String("gitea-url", "", "Address for target gitea service")
-	var testdataDir = flag.String("testdata-dir", "", "Directory path to testdata")
+	testdataDir := flag.String("testdata-dir", "", "Directory path to testdata")
 	flag.Parse()
 
 	fatalOnError := func(err error) {
@@ -67,9 +67,7 @@ func main() {
 
 	fmt.Fprintln(os.Stderr, "Creating Repository from", *testdataDir)
 
-	repo, err := git.InitWithOptions(memory.NewStorage(), workdir, git.InitOptions{
-		DefaultBranch: "refs/heads/main",
-	})
+	repo, err := git.Init(memory.NewStorage(), git.WithDefaultBranch("refs/heads/main"), git.WithWorkTree(workdir))
 	fatalOnError(err)
 
 	repo.CreateRemote(&config.RemoteConfig{

@@ -3,7 +3,7 @@ package signing
 import (
 	"context"
 
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 // Signer defines the interface for commit signing implementations.

@@ -6,12 +6,11 @@
 package gitea
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"iter"
 	"net/http"
-	"slices"
+	"sort"
 	"strings"
 	"time"
 
@@ -52,7 +51,7 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	}
 }
 
-func NewSCM(logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
 	giteaOpts := &giteaOptions{
 		httpClient: http.DefaultClient,
 	}
@@ -128,7 +127,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
 
-	s.logger.Info("changes compared", zap.Int("commits", len(comparison.Commits)))
+	s.logger.Debug("changes compared", zap.Int("commits", len(comparison.Commits)))
 
 	var (
 		changes []*environments.Change
@@ -136,7 +135,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	)
 
 	for _, commit := range comparison.Commits {
-		if limit > 0 && int32(len(changes)) >= limit {
+		if limit > 0 && len(changes) >= int(limit) {
 			break
 		}
 
@@ -155,9 +154,12 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 		changes = append(changes, change)
 	}
 
-	slices.SortFunc(changes, func(i, j *environments.Change) int {
-		return cmp.Compare(i.Timestamp, j.Timestamp)
-	})
+	// sort changes by timestamp descending if not empty
+	if len(changes) > 0 {
+		sort.Slice(changes, func(i, j int) bool {
+			return changes[i].Timestamp > changes[j].Timestamp
+		})
+	}
 
 	return &environments.ListBranchedEnvironmentChangesResponse{
 		Changes: changes,
@@ -166,12 +168,25 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 
 func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (map[string]*environments.EnvironmentProposalDetails, error) {
 	var (
+		baseCfg = env.Configuration()
 		details = map[string]*environments.EnvironmentProposalDetails{}
-		prs     = s.listPRs(ctx, env.Key())
+		prs     = s.listPRs(ctx, baseCfg.Ref)
 	)
 
 	for pr := range prs.All() {
 		branch := pr.Head.Ref
+
+		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
+			continue
+		}
+
+		if _, ok := details[branch]; ok {
+			// we let existing PRs get replaced by other PRs for the same branch
+			// if the existing PR is not in an open state
+			if pr.State != gitea.StateOpen {
+				continue
+			}
+		}
 		state := environments.ProposalState_PROPOSAL_STATE_OPEN
 		if pr.State == gitea.StateClosed {
 			state = environments.ProposalState_PROPOSAL_STATE_CLOSED
@@ -215,8 +230,6 @@ func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 
 		opts.PageSize = 100
 
-		prefix := fmt.Sprintf("flipt/%s/", p.base)
-
 		for {
 			prs, resp, err := p.client.ListRepoPullRequests(p.repoOwner, p.repoName, opts)
 			if err != nil {
@@ -225,10 +238,6 @@ func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 			}
 
 			for _, pr := range prs {
-				if !strings.HasPrefix(pr.Head.Ref, prefix) || pr.Base.Name != p.base {
-					continue
-				}
-
 				if !yield(pr) {
 					return
 				}

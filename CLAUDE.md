@@ -276,7 +276,7 @@ import (
     "time"
 
     // Third-party packages
-    "github.com/go-git/go-git/v5"
+    "github.com/go-git/go-git/v6"
     "go.uber.org/zap"
 
     // Local packages

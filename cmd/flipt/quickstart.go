@@ -21,6 +21,7 @@ const (
 	ProviderGitHub provider = "GitHub"
 	ProviderGitLab provider = "GitLab"
 	ProviderGitea  provider = "Gitea"
+	ProviderAzure  provider = "Azure"
 	ProviderGit    provider = "Git"
 )
 
@@ -92,7 +93,7 @@ func (c *quickstart) runGitSetup() error {
 	if !correctProvider {
 		if err := survey.AskOne(&survey.Select{
 			Message: "Which SCM provider would you like to integrate with?",
-			Options: []string{"GitHub", "GitLab", "Gitea"},
+			Options: []string{"GitHub", "GitLab", "Gitea", "Azure"},
 		}, &providerString); err != nil {
 			return err
 		}
