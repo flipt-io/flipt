@@ -142,26 +142,28 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 
 		if lm.force {
 			lm.logger.Warn(string(lm.product)+" features are enabled for Flipt development purposes only. It is in violation of the Flipt Fair Core License (FCL) if you are using this software in any other context.", zap.String("url", "https://github.com/flipt-io/flipt/blob/v2/LICENSE"))
-		} else {
-			c := retryablehttp.NewClient()
-			c.Backoff = retryablehttp.LinearJitterBackoff
-			c.RetryMax = 5
-			c.Logger = log.New(io.Discard, "", log.LstdFlags)
-
-			keygen.HTTPClient = c.StandardClient()
-			keygen.Account = lm.accountID
-			keygen.Product = lm.productID
-			keygen.LicenseKey = lm.licenseKey
-			keygen.Logger = keygen.NewNilLogger()
-
-			if lm.verifyKey != "" {
-				keygen.PublicKey = lm.verifyKey
-			}
-
-			lm.validateAndSet(ctx)
-			go lm.periodicRevalidate(ctx)
+			manager = lm
+			managerFunc = func(ctx context.Context) error { return nil }
+			return
 		}
 
+		c := retryablehttp.NewClient()
+		c.Backoff = retryablehttp.LinearJitterBackoff
+		c.RetryMax = 5
+		c.Logger = log.New(io.Discard, "", log.LstdFlags)
+
+		keygen.HTTPClient = c.StandardClient()
+		keygen.Account = lm.accountID
+		keygen.Product = lm.productID
+		keygen.LicenseKey = lm.licenseKey
+		keygen.Logger = keygen.NewNilLogger()
+
+		if lm.verifyKey != "" {
+			keygen.PublicKey = lm.verifyKey
+		}
+
+		lm.validateAndSet(ctx)
+		go lm.periodicRevalidate(ctx)
 		manager = lm
 		managerFunc = func(ctx context.Context) error {
 			return lm.Shutdown(ctx)
@@ -181,8 +183,11 @@ func (lm *ManagerImpl) Product() product.Product {
 // Close stops the background revalidation goroutine.
 func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 	lm.cancel()
-	lm.doneOnce.Do(func() { close(lm.done) })
+	// wait for existing revalidation goroutine to finish
 	<-lm.done
+
+	lm.mu.Lock()
+	defer lm.mu.Unlock()
 	if lm.license != nil {
 		fingerprint, err := lm.fingerprinter(lm.productID)
 		if err != nil {
