@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"sync"
@@ -237,7 +238,9 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	// parse page token as an offset integer
 	var offset int
 	if v, err := strconv.ParseInt(req.QueryParams.PageToken, 10, 64); err == nil {
-		offset = int(v)
+		if v >= 0 && v <= int64(math.MaxInt32) {
+			offset = int(v)
+		}
 	}
 
 	// ensure end of page does not exceed entire set
