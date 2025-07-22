@@ -86,17 +86,22 @@ func TestManager_Shutdown_CallsDeactivate(t *testing.T) {
 
 	mockLic := &mockLicense{}
 
+	ctx, cancel := context.WithCancel(t.Context())
+
 	manager := &ManagerImpl{
 		logger:        logger,
 		license:       mockLic,
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
 		productID:     "test-product",
 		done:          make(chan struct{}),
-		cancel:        func() {},
+		cancel:        cancel,
 	}
 
-	ctx := context.Background()
-	err := manager.Shutdown(ctx)
+	go func() {
+		manager.periodicRevalidate(ctx)
+	}()
+
+	err := manager.Shutdown(t.Context())
 
 	require.NoError(t, err)
 	assert.True(t, mockLic.deactivateCalled)
@@ -109,17 +114,22 @@ func TestManager_Shutdown_HandlesDeactivateError(t *testing.T) {
 		deactivateErr: errors.New("deactivate error"),
 	}
 
+	ctx, cancel := context.WithCancel(t.Context())
+
 	manager := &ManagerImpl{
 		logger:        logger,
 		license:       mockLic,
 		fingerprinter: func(string) (string, error) { return "test-fingerprint", nil },
 		productID:     "test-product",
 		done:          make(chan struct{}),
-		cancel:        func() {},
+		cancel:        cancel,
 	}
 
-	ctx := context.Background()
-	err := manager.Shutdown(ctx)
+	go func() {
+		manager.periodicRevalidate(ctx)
+	}()
+
+	err := manager.Shutdown(t.Context())
 
 	require.NoError(t, err) // Shutdown should not return error even if deactivate fails
 	assert.True(t, mockLic.deactivateCalled)

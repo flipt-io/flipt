@@ -183,7 +183,9 @@ func (lm *ManagerImpl) Product() product.Product {
 // Close stops the background revalidation goroutine.
 func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 	lm.cancel()
+	// wait for existing revalidation goroutine to finish
 	<-lm.done
+
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 	if lm.license != nil {
