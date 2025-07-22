@@ -3,6 +3,8 @@ package license
 import (
 	"context"
 	"errors"
+	"io"
+	"log"
 	"sync"
 	"time"
 
@@ -55,6 +57,11 @@ type validator func(ctx context.Context, fingerprints ...string) (License, error
 func keygenValidator(ctx context.Context, fingerprints ...string) (License, error) {
 	license, err := keygen.Validate(ctx, fingerprints...)
 	if err != nil {
+		// For ErrLicenseNotActivated, we still need to return the license object
+		// so it can be activated. For other errors, return nil.
+		if errors.Is(err, keygen.ErrLicenseNotActivated) && license != nil {
+			return &keygenLicenseWrapper{License: license}, err
+		}
 		return nil, err
 	}
 	if license == nil {
@@ -133,6 +140,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 			c := retryablehttp.NewClient()
 			c.Backoff = retryablehttp.LinearJitterBackoff
 			c.RetryMax = 5
+			c.Logger = log.New(io.Discard, "", log.LstdFlags)
 
 			keygen.HTTPClient = c.StandardClient()
 			keygen.Account = lm.accountID
@@ -220,6 +228,13 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 				lm.logger.Warn("failed to activate license; additional features are disabled.", zap.Error(err))
 				return
 			}
+			// Re-validate the activated license to ensure it's properly set up
+			license, err = licenseValidator(ctx, fingerprint)
+			if err != nil {
+				lm.logger.Warn("license validation failed after activation; additional features are disabled.", zap.Error(err))
+				return
+			}
+			lm.logger.Debug("license activated successfully", zap.String("fingerprint", fingerprint))
 		case errors.Is(err, keygen.ErrLicenseExpired):
 			lm.logger.Warn("license is expired; additional features are disabled.")
 			return
@@ -230,12 +245,19 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	}
 
 	if license == nil {
-		lm.logger.Error("license is nil; additional features are disabled.")
+		lm.logger.Error("license is nil after validation; additional features are disabled.")
+		lm.mu.Lock()
+		lm.product = product.OSS
+		lm.mu.Unlock()
 		return
 	}
 
-	if license.GetExpiry() == nil {
+	expiry := license.GetExpiry()
+	if expiry == nil {
 		lm.logger.Error("license has no expiry date; additional features are disabled.")
+		lm.mu.Lock()
+		lm.product = product.OSS
+		lm.mu.Unlock()
 		return
 	}
 
@@ -245,6 +267,6 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	lm.license = license
 
 	lm.logger.Info("license validated; additional features enabled.",
-		zap.Time("expires_at", *license.GetExpiry()))
+		zap.Time("expires_at", *expiry))
 
 }
