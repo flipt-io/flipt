@@ -148,8 +148,9 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 		}
 
 		c := retryablehttp.NewClient()
+		c.HTTPClient.Timeout = 10 * time.Second
 		c.Backoff = retryablehttp.LinearJitterBackoff
-		c.RetryMax = 5
+		c.RetryMax = 3
 		c.Logger = log.New(io.Discard, "", log.LstdFlags)
 
 		keygen.HTTPClient = c.StandardClient()
@@ -195,7 +196,10 @@ func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 			return err
 		}
 		// deactivate the license for this machine so it can be used on another machine
-		if err := lm.license.Deactivate(ctx, fingerprint); err != nil {
+		// Use a dedicated timeout context for deactivation to avoid competing with other shutdown operations
+		deactivateCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		if err := lm.license.Deactivate(deactivateCtx, fingerprint); err != nil {
 			lm.logger.Warn("failed to deactivate license", zap.Error(err))
 		}
 	}
