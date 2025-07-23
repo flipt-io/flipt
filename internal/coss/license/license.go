@@ -148,8 +148,9 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 		}
 
 		c := retryablehttp.NewClient()
+		c.HTTPClient.Timeout = 10 * time.Second
 		c.Backoff = retryablehttp.LinearJitterBackoff
-		c.RetryMax = 5
+		c.RetryMax = 3
 		c.Logger = log.New(io.Discard, "", log.LstdFlags)
 
 		keygen.HTTPClient = c.StandardClient()

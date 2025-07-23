@@ -391,7 +391,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
 
 	defer func() {
-		_ = licenseManagerShutdown(shutdownCtx)
+		// Use a dedicated timeout context for deactivation to avoid competing with other shutdown operations
+		deactivateCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		_ = licenseManagerShutdown(deactivateCtx)
+		cancel()
 	}()
 
 	info := info.New(
