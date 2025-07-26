@@ -1,0 +1,2 @@
+license:
+  file: "./testdata/ssl_cert.pem"  # File exists but no key provided

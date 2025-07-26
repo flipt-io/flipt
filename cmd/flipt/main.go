@@ -26,7 +26,6 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/otel"
 	"go.flipt.io/flipt/internal/otel/logs"
-	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
@@ -379,16 +378,16 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
-	// Enable pro features in development mode
-	if !isRelease {
-		licenseManagerOpts = append(licenseManagerOpts, license.WithProduct(product.Pro))
-	}
+	// // Enable pro features in development mode
+	// if !isRelease {
+	// 	licenseManagerOpts = append(licenseManagerOpts, license.WithProduct(product.Pro))
+	// }
 
 	if keygenVerifyKey != "" {
 		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
 	}
 
-	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
+	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, &cfg.License, licenseManagerOpts...)
 
 	defer func() {
 		// Use a dedicated timeout context for deactivation to avoid competing with other shutdown operations

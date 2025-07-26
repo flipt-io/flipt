@@ -292,7 +292,8 @@ import "list"
 	}
 
 	#license: {
-		key?: string
+		key?:  string
+		file?: string
 	}
 
 	#secrets: {
