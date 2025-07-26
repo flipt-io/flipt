@@ -56,8 +56,7 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 }
 
 // validateOffline validates and decrypts the license file and returns the license object
-func (lm *ManagerImpl) validateOffline(ctx context.Context) (*keygen.License, error) {
-	_ = ctx // currently unused but kept for consistency with validateOnline signature
+func (lm *ManagerImpl) validateOffline(_ context.Context) (*keygen.License, error) {
 	cert, err := os.ReadFile(lm.config.File)
 	if err != nil {
 		return nil, err

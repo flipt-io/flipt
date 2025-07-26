@@ -379,7 +379,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
-	// // Enable pro features in development mode
+	// Enable pro features in development mode
 	if !isRelease {
 		licenseManagerOpts = append(licenseManagerOpts, license.WithProduct(product.Pro))
 	}
