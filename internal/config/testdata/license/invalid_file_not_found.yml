@@ -1,0 +1,3 @@
+license:
+  key: "test-license-key-12345"
+  file: "./testdata/nonexistent_license.cert"

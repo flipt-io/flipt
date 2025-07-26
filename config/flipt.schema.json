@@ -1178,6 +1178,9 @@
       "properties": {
         "key": {
           "type": "string"
+        },
+        "file": {
+          "type": "string"
         }
       }
     },

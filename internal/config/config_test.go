@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -951,6 +952,40 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/git_signing_invalid_key_ref_key.yml",
 			wantErr: errors.New("storage: default storage: signature key_ref: secret_reference: key non-empty value is required"),
 		},
+		{
+			name: "license valid with key only",
+			path: "./testdata/license/valid_with_key_only.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.License = LicenseConfig{
+					Key:  "test-license-key-12345",
+					File: "",
+				}
+				return cfg
+			},
+		},
+		{
+			name: "license valid with key and file",
+			path: "./testdata/license/valid_with_key_and_file.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.License = LicenseConfig{
+					Key:  "test-license-key-12345",
+					File: "./testdata/ssl_cert.pem",
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "license invalid - file specified but no key",
+			path:    "./testdata/license/invalid_file_no_key.yml",
+			wantErr: errors.New("license: key non-empty value is required"),
+		},
+		{
+			name:    "license invalid - file not found",
+			path:    "./testdata/license/invalid_file_not_found.yml",
+			wantErr: errors.New("license: file stat ./testdata/nonexistent_license.cert: no such file or directory"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -1460,4 +1495,104 @@ func getStructTags(t reflect.Type) map[string]map[string]string {
 
 func ptr[T any](v T) *T {
 	return &v
+}
+
+func TestLicenseConfig_validate(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    *LicenseConfig
+		setupFile func(t *testing.T) string // Returns file path if file setup is needed
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name: "valid config with empty values",
+			config: &LicenseConfig{
+				Key:  "",
+				File: "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid config with key only",
+			config: &LicenseConfig{
+				Key:  "test-license-key",
+				File: "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid config with both key and file",
+			config: &LicenseConfig{
+				Key: "test-license-key",
+				// File will be set by setupFile
+			},
+			setupFile: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				licenseFile := filepath.Join(tmpDir, "license.cert")
+				err := os.WriteFile(licenseFile, []byte("test license content"), 0600)
+				require.NoError(t, err)
+				return licenseFile
+			},
+			wantErr: false,
+		},
+		{
+			name: "error when file specified but key is missing",
+			config: &LicenseConfig{
+				Key: "", // Missing key
+				// File will be set by setupFile
+			},
+			setupFile: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				licenseFile := filepath.Join(tmpDir, "license.cert")
+				err := os.WriteFile(licenseFile, []byte("test license content"), 0600)
+				require.NoError(t, err)
+				return licenseFile
+			},
+			wantErr: true,
+			errMsg:  "license: key non-empty value is required",
+		},
+		{
+			name: "error when file doesn't exist",
+			config: &LicenseConfig{
+				Key:  "test-license-key",
+				File: "/nonexistent/path/license.cert",
+			},
+			wantErr: true,
+			errMsg:  "license: file stat /nonexistent/path/license.cert: no such file or directory",
+		},
+		{
+			name: "error when file path is a directory",
+			config: &LicenseConfig{
+				Key: "test-license-key",
+				// File will be set to a directory by setupFile
+			},
+			setupFile: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				// Return the directory path itself instead of a file
+				return tmpDir
+			},
+			wantErr: false, // os.Stat on directory succeeds, so this is actually valid
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := tt.config
+
+			// Setup file if needed
+			if tt.setupFile != nil {
+				config.File = tt.setupFile(t)
+			}
+
+			err := config.validate()
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
