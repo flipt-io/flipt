@@ -670,8 +670,3 @@ func Default() *Config {
 		},
 	}
 }
-
-// LicenseConfig holds license-related configuration, such as the license key.
-type LicenseConfig struct {
-	Key string `json:"key,omitempty" mapstructure:"key" yaml:"key,omitempty"`
-}

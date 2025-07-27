@@ -388,7 +388,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		licenseManagerOpts = append(licenseManagerOpts, license.WithVerificationKey(keygenVerifyKey))
 	}
 
-	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, cfg.License.Key, licenseManagerOpts...)
+	licenseManager, licenseManagerShutdown := license.NewManager(ctx, logger, keygenAccountID, keygenProductID, &cfg.License, licenseManagerOpts...)
 
 	defer func() {
 		// Use a dedicated timeout context for deactivation to avoid competing with other shutdown operations

@@ -5,12 +5,14 @@ import (
 	"errors"
 	"io"
 	"log"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/keygen-sh/keygen-go/v3"
 	"github.com/keygen-sh/machineid"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
@@ -23,59 +25,59 @@ var (
 
 type fingerprintFunc func(string) (string, error)
 
-// License represents a license that can be activated, deactivated, and has an expiry date.
-type License interface {
-	Activate(ctx context.Context, fingerprint string) (License, error)
-	Deactivate(ctx context.Context, fingerprint string) error
-	GetExpiry() *time.Time
-}
-
-// keygenLicenseWrapper wraps the keygen.License to implement our License interface.
-type keygenLicenseWrapper struct {
-	*keygen.License
-}
-
-func (w *keygenLicenseWrapper) Activate(ctx context.Context, fingerprint string) (License, error) {
-	if w.License == nil {
-		return nil, errors.New("license is nil")
-	}
-	_, err := w.License.Activate(ctx, fingerprint)
+// validateOnline directly calls the keygen API to validate the license and handles activation
+func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, error) {
+	fingerprint, err := lm.fingerprinter(lm.productID)
 	if err != nil {
 		return nil, err
 	}
-	return w, nil
-}
 
-func (w *keygenLicenseWrapper) Deactivate(ctx context.Context, fingerprint string) error {
-	if w.License == nil {
-		return errors.New("license is nil")
-	}
-	return w.License.Deactivate(ctx, fingerprint)
-}
-
-func (w *keygenLicenseWrapper) GetExpiry() *time.Time {
-	if w.License == nil {
-		return nil
-	}
-	return w.License.Expiry
-}
-
-// validateLicense directly calls keygen.Validate and wraps the result
-func (lm *ManagerImpl) validateLicense(ctx context.Context, fingerprint string) (License, error) {
 	license, err := keygen.Validate(ctx, fingerprint)
 	if err != nil {
 		// For ErrLicenseNotActivated, we still need to return the license object
 		// so it can be activated. The keygen library guarantees license is non-nil
 		// when returning ErrLicenseNotActivated.
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
-			return &keygenLicenseWrapper{License: license}, err
+			// Activate the current fingerprint
+			if _, err := license.Activate(ctx, fingerprint); err != nil {
+				return nil, err
+			}
+			lm.logger.Debug("license activated successfully", zap.String("fingerprint", fingerprint))
+			return license, nil
 		}
 		return nil, err
 	}
+
 	if license == nil {
 		return nil, errors.New("license validation returned nil license without error")
 	}
-	return &keygenLicenseWrapper{License: license}, nil
+
+	return license, nil
+}
+
+// validateOffline validates and decrypts the license file and returns the license object
+func (lm *ManagerImpl) validateOffline(_ context.Context) (*keygen.License, error) {
+	cert, err := os.ReadFile(lm.config.File)
+	if err != nil {
+		return nil, err
+	}
+
+	license := &keygen.LicenseFile{Certificate: string(cert)}
+	if err := license.Verify(); err != nil {
+		return nil, err
+	}
+
+	// Decrypt and validate
+	dataset, err := license.Decrypt(lm.config.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	if dataset == nil {
+		return nil, errors.New("license file is invalid")
+	}
+
+	return &dataset.License, nil
 }
 
 type Manager interface {
@@ -85,15 +87,23 @@ type Manager interface {
 
 var _ Manager = (*ManagerImpl)(nil)
 
+type LicenseType string
+
+const (
+	LicenseTypeOnline  LicenseType = "online"
+	LicenseTypeOffline LicenseType = "offline"
+)
+
 // ManagerImpl handles commercial license validation and periodic revalidation.
 type ManagerImpl struct {
 	logger        *zap.Logger
 	accountID     string
 	productID     string
-	licenseKey    string
+	licenseType   LicenseType
+	config        *config.LicenseConfig
 	fingerprinter fingerprintFunc
 	verifyKey     string // base64 encoded for validation
-	license       License
+	license       *keygen.License
 	product       product.Product
 	mu            sync.RWMutex
 	done          chan struct{}
@@ -120,14 +130,15 @@ func WithVerificationKey(verifyKey string) LicenseManagerOption {
 }
 
 // NewManager creates a new Manager and starts periodic revalidation.
-func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, licenseKey string, opts ...LicenseManagerOption) (*ManagerImpl, func(context.Context) error) {
+func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID string, config *config.LicenseConfig, opts ...LicenseManagerOption) (*ManagerImpl, func(context.Context) error) {
 	managerOnce.Do(func() {
 		ctx, cancel := context.WithCancel(ctx)
 		lm := &ManagerImpl{
 			logger:        logger,
 			accountID:     accountID,
 			productID:     productID,
-			licenseKey:    licenseKey,
+			config:        config,
+			licenseType:   LicenseTypeOnline,
 			fingerprinter: machineid.ProtectedID,
 			cancel:        cancel,
 			force:         false,
@@ -156,11 +167,16 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID, l
 		keygen.HTTPClient = c.StandardClient()
 		keygen.Account = lm.accountID
 		keygen.Product = lm.productID
-		keygen.LicenseKey = lm.licenseKey
+		keygen.LicenseKey = lm.config.Key
 		keygen.Logger = keygen.NewNilLogger()
 
 		if lm.verifyKey != "" {
 			keygen.PublicKey = lm.verifyKey
+		}
+
+		// If a license file is provided, we need to validate it offline
+		if lm.config.File != "" {
+			lm.licenseType = LicenseTypeOffline
 		}
 
 		lm.validateAndSet(ctx)
@@ -189,6 +205,12 @@ func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
+
+	// If the license is offline, we don't need to deactivate it
+	if lm.licenseType == LicenseTypeOffline {
+		return nil
+	}
+
 	if lm.license != nil {
 		fingerprint, err := lm.fingerprinter(lm.productID)
 		if err != nil {
@@ -223,54 +245,37 @@ func (lm *ManagerImpl) setOSSProduct() {
 }
 
 func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
-	if lm.licenseKey == "" {
+	if lm.config.Key == "" {
 		lm.setOSSProduct()
 		lm.logger.Warn("no license key provided; additional features are disabled.")
 		return
 	}
 
-	fingerprint, err := lm.fingerprinter(lm.productID)
-	if err != nil {
-		lm.setOSSProduct()
-		lm.logger.Warn("failed to get machine fingerprint; additional features are disabled.", zap.Error(err))
-		return
-	}
+	var (
+		license *keygen.License
+		err     error
+	)
 
-	license, err := lm.validateLicense(ctx, fingerprint)
-	if err != nil {
-		switch {
-		case errors.Is(err, keygen.ErrLicenseNotActivated):
-			// Activate the current fingerprint
-			activatedLicense, activateErr := license.Activate(ctx, fingerprint)
-			if activateErr != nil {
-				lm.setOSSProduct()
-				lm.logger.Warn("failed to activate license; additional features are disabled.", zap.Error(activateErr))
-				return
-			}
-			// Use the activated license directly, no need to re-validate
-			license = activatedLicense
-			lm.logger.Debug("license activated successfully", zap.String("fingerprint", fingerprint))
-		case errors.Is(err, keygen.ErrLicenseExpired):
+	switch lm.licenseType {
+	case LicenseTypeOnline:
+		license, err = lm.validateOnline(ctx)
+		if err != nil {
 			lm.setOSSProduct()
-			lm.logger.Warn("license is expired; additional features are disabled.")
+			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
-		default:
+		}
+
+	case LicenseTypeOffline:
+		license, err = lm.validateOffline(ctx)
+		if err != nil {
 			lm.setOSSProduct()
 			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
 		}
 	}
 
-	if license == nil {
-		lm.setOSSProduct()
-		lm.logger.Error("license is nil after validation; additional features are disabled.")
-		return
-	}
-
-	expiry := license.GetExpiry()
-	if expiry == nil {
-		lm.setOSSProduct()
-		lm.logger.Error("license has no expiry date; additional features are disabled.")
+	if license.Expiry == nil {
+		lm.logger.Warn("license has no expiry date; additional features are disabled.")
 		return
 	}
 
@@ -280,5 +285,5 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	lm.license = license
 
 	lm.logger.Info("license validated; additional features enabled.",
-		zap.Time("expires_at", *expiry))
+		zap.Time("expires", *license.Expiry))
 }
