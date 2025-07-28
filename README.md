@@ -67,7 +67,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 
 - **Zero infrastructure**: No databases, no external dependencies by default
 - **GitOps ready**: Works with existing Git-based deployment workflows
-- **Real-time updates**: Streaming API for instant flag propagation
+- **Real-time updates**: Server-Sent Events (SSE) streaming API for instant flag propagation to client-side SDKs without polling
 - **Modern UI**: Intuitive interface with full Git integration and dark mode support
 
 ### 🔒 **Enterprise Security & Control**
@@ -88,7 +88,7 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 
 | Feature | Flipt v1 | ✨ Flipt v2 |
 |---------|----------|----------|
-| **Storage** | Database-centric (MySQL, PostgreSQL, SQLite) | Git-native with optional SCM sync (GitHub, GitLab, Gitea, etc.) |
+| **Storage** | Database-centric (MySQL, PostgreSQL, SQLite) | Git-native with optional SCM sync (GitHub, GitLab, Azure DevOps, Gitea, etc.) |
 | **Environments** | Single namespace model | Multi-environment with Git flexibility |
 | **Branching** | Not supported | Full Git branching with environment branches |
 | **Data Ownership** | Stored in a database (MySQL, PostgreSQL, SQLite) | Stored in your Git repositories alongside your code |
@@ -96,9 +96,9 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 | **Deployment** | Requires database setup | Zero dependencies - single binary |
 | **Version Control** | Basic audit logs | Full Git history and blame |
 | **Merge Process** | Direct flag changes | Merge proposals with code review |
-| **Real-time Updates** | Polling required | Streaming API for instant updates |
+| **Real-time Updates** | Polling required | Server-Sent Events (SSE) streaming API for instant updates |
 | **Multi-tenancy** | Manual namespace management | Environment-based isolation |
-| **Secrets Management** | None | HashiCorp Vault and file-based providers available in OSS |
+| **Secrets Management** | None | HashiCorp Vault and file-based providers available in OSS, cloud providers (AWS, GCP, Azure) coming soon |
 
 <!-- 
 TODO: uncomment once we have a migration guide
@@ -188,7 +188,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 ## Core Values
 
 - 🔒 **Security** - HTTPS, OIDC, JWT, OAuth, K8s Service Token, and API Token authentication methods supported out of the box
-- 🗝️ **Secrets Management** - Secure storage and retrieval of sensitive data with HashiCorp Vault and file-based providers
+- 🗝️ **Secrets Management** - Secure storage and retrieval of sensitive data with HashiCorp Vault, file-based providers, and upcoming cloud provider support (AWS, GCP, Azure)
 - 🎛️ **Control** - Your data stays in your Git repositories within your infrastructure  
 - 🚀 **Speed** - Co-located with your services, no external API calls required
 - ✅ **Simplicity** - Single binary with no external dependencies by default
@@ -203,7 +203,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 - Store flags directly in Git repositories alongside your code
 - Full version control with Git history, blame, and diff support  
-- Integrates with your SCM (GitHub, GitLab, Gitea, etc.)
+- Integrates with your SCM (GitHub, GitLab, Azure DevOps, Gitea, etc.)
 - GPG commit signing for cryptographic verification of changes
 
 ### Multi-Environment Management  
@@ -214,7 +214,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 ### Secrets Management & Security
 
-- **Multi-provider secrets management**: File-based and HashiCorp Vault providers available in OSS
+- **Multi-provider secrets management**: File-based and HashiCorp Vault providers available in OSS, with AWS Secrets Manager, GCP Secret Manager, and Azure Key Vault support coming soon
 - **GPG commit signing**: Cryptographically sign all flag changes with keys from secret providers (Pro feature)
 - **Secure key storage**: Private keys and sensitive data stored securely in Vault or local files
 - **Multiple auth methods**: Token, Kubernetes, and AppRole authentication for Vault
@@ -223,7 +223,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 - Complex targeting rules and user segmentation
 - Percentage-based rollouts
-- Real-time flag evaluation with streaming updates
+- Real-time flag evaluation with Server-Sent Events (SSE) streaming updates for instant synchronization
 
 ### Developer Experience
 
@@ -233,7 +233,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 ### Enterprise Features
 
-- **Secrets Management**: Secure storage with HashiCorp Vault and file-based providers (OSS)
+- **Secrets Management**: Secure storage with HashiCorp Vault, file-based providers (OSS), and upcoming cloud provider support (AWS, GCP, Azure)
 - **GPG Commit Signing**: Cryptographically sign all flag changes for enhanced security (Pro feature)
 - **Merge proposals**: Code review workflow for flag changes (Pro feature)
 - **Authentication**: OIDC, JWT, OAuth, and more authentication methods
@@ -241,9 +241,9 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 <br clear="both"/>
 
-> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes merge proposals, GPG commit signing, premium support, and priority bug fixes.  
+> **Want to try Pro features?** Get started with a **free 14-day trial** of Flipt v2 Pro – no credit card required initially. Includes enterprise DevOps integration, merge proposals, GPG commit signing, secrets management, and dedicated support.  
 >
-> **[Start Free Trial →](https://getflipt.co/pro)**
+> **[Start Free Trial →](https://docs.flipt.io/v2/pro#getting-started)**
 
 Are we missing a feature that you'd like to see? [Let us know by opening an issue!](https://github.com/flipt-io/flipt/issues)
 
@@ -264,7 +264,7 @@ Check out our [integration documentation](https://docs.flipt.io/v2/integration/o
 
 ### OpenFeature Integration
 
-Flipt supports the [OpenFeature](https://openfeature.dev/) standard for vendor-neutral feature flag evaluation.
+Flipt supports the [OpenFeature](https://openfeature.dev/) standard for vendor-neutral feature flag evaluation, including the emerging OpenFeature Remote Evaluation Protocol (OFREP) for standardized remote flag evaluation.
 
 <br clear="both"/>
 
@@ -292,20 +292,24 @@ Ready to unlock the full potential of Git-native feature management? Flipt v2 Pr
 
 ### What's Included in Pro
 
-- **🔀 Merge Proposals** - Code review workflow for feature flag changes, just like GitHub PRs
-- **✍️ GPG Commit Signing** - Cryptographically sign all changes using keys from secret providers for enhanced security and auditability
-- **🏢 Premium Support** - Shared Slack channel with same-day response times
+- **🔀 Enterprise DevOps Integration** - Native GitHub, GitLab, and Azure DevOps workflows with merge proposals and automated PR/MR creation
+- **✍️ GPG Commit Signing** - Cryptographically sign all changes for maximum security and auditability with verified commit badges
+- **🔒 Integrated Secrets Management** - Built-in secure storage for GPG keys with HashiCorp Vault integration and upcoming cloud provider support (AWS, GCP, Azure)
+- **🌐 Air-Gapped Environment Support** - Annual licenses work seamlessly in air-gapped environments with offline validation
+- **🏢 Dedicated Support Channel** - Direct access to our engineering team via dedicated Slack channel for faster issue resolution
 - **⚡ Priority Development** - Your bug reports and feature requests get prioritized
 - **🔧 Enterprise Auth** - Advanced authentication providers (coming soon)
 - **📊 Advanced Analytics** - Enhanced reporting and insights (coming soon)
 
 ### Pricing & Trial
 
-- **Free 14-day trial** - No credit card required to start
+- **Free 14-day trial** - No credit card required to start, includes all Pro features
+- **Monthly licenses** - Standard subscription with continuous internet connectivity for validation
+- **Annual licenses** - Supports offline validation using license files for air-gapped environments
 - **No instance limits** on paid plans - run Flipt v2 Pro on as many servers as you need
 - **Cancel anytime** - Prorated billing through our Stripe customer portal
 
-**[Start Your Free 14-Day Trial →](https://getflipt.co/pro)**
+**[Start Your Free 14-Day Trial →](https://docs.flipt.io/v2/pro#getting-started)**
 
 *Trial includes up to 5 instances. Upgrade seamlessly to unlimited instances with a paid subscription.*
 
