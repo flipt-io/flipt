@@ -91,7 +91,7 @@
     "eslint-config-react-app": "^7.0.1",
     "eslint-config-standard-with-typescript": "^26.0.0",
     "eslint-import-resolver-typescript": "^3.7.0",
-    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-no-relative-import-paths": "^1.6.1",
