@@ -20,7 +20,7 @@ export function toFilterableVariant(selected: IVariant | undefined) {
   if (selected) {
     return {
       ...selected,
-      displayValue: selected.name,
+      displayValue: selected.key,
       filterValue: selected.id
     };
   }
