@@ -51,7 +51,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "formik": "^2.4.6",
-    "lucide-react": "^0.473.0",
+    "lucide-react": "^0.534.0",
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0",
