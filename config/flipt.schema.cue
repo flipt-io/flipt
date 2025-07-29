@@ -4,6 +4,8 @@ import "strings"
 
 import "list"
 
+JsonPath: string
+
 #FliptSpec: {
 	// flipt-schema-v2
 	//
@@ -118,6 +120,13 @@ import "list"
 					issuer?:  string
 					subject?: string
 					audiences?: [...string]
+				}
+				claims_mapping?: {
+				    email?: JsonPath
+				    name?: JsonPath
+				    sub?: JsonPath
+				    picture?: JsonPath
+				    role?: JsonPath
 				}
 				jwks_url?:        string
 				public_key_file?: string

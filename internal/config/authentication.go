@@ -668,6 +668,10 @@ type AuthenticationMethodJWTConfig struct {
 	JWKSURL string `json:"-" mapstructure:"jwks_url" yaml:"jwks_url,omitempty"`
 	// PublicKeyFile is the path to the public PEM encoded key file on disk.
 	PublicKeyFile string `json:"-" mapstructure:"public_key_file" yaml:"public_key_file,omitempty"`
+	// ClaimsMapping is a map of user attribute names to JSON Pointer expressions
+	// that specify how to extract those attributes from the JWT payload.
+	// For example: {"email": "/user/email", "name": "/user/name"}
+	ClaimsMapping map[string]string `json:"claimsMapping,omitempty" mapstructure:"claims_mapping" yaml:"claims_mapping,omitempty"`
 }
 
 func (a AuthenticationMethodJWTConfig) setDefaults(map[string]any) {}
@@ -678,6 +682,14 @@ func (a AuthenticationMethodJWTConfig) info(_ context.Context) AuthenticationMet
 		Method:            auth.Method_METHOD_JWT,
 		SessionCompatible: false,
 	}
+}
+
+var validClaimKeys = []string{
+	"email",
+	"sub",
+	"picture",
+	"name",
+	"role",
 }
 
 func (a AuthenticationMethodJWTConfig) validate() error {
@@ -701,6 +713,13 @@ func (a AuthenticationMethodJWTConfig) validate() error {
 		// ensure public key file exists
 		if _, err := os.Stat(a.PublicKeyFile); err != nil {
 			return errFieldWrap("authentication", "public_key_file", err)
+		}
+	}
+
+	// Validate claims_mapping keys - only allow predefined fields
+	for key := range a.ClaimsMapping {
+		if !slices.Contains(validClaimKeys, key) {
+			return errFieldWrap("authentication", "claims_mapping", fmt.Errorf("invalid claim key '%s'", key))
 		}
 	}
 

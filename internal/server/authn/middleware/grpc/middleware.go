@@ -14,6 +14,7 @@ import (
 
 	"slices"
 
+	"github.com/go-openapi/jsonpointer"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
@@ -171,7 +172,7 @@ func JWTInterceptorSelector() selector.Matcher {
 
 // JWTAuthenticationUnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a JWT found
 // within the authorization field on the incoming requests metadata.
-func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTValidator, claimsMapping map[string]string, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -182,7 +183,7 @@ func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTV
 			return handler(ctx, req)
 		}
 
-		ctx, err := authenticateJWT(ctx, logger, validator)
+		ctx, err := authenticateJWT(ctx, logger, claimsMapping, validator)
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +194,7 @@ func JWTAuthenticationUnaryInterceptor(logger *zap.Logger, validator method.JWTV
 
 // JWTAuthenticationStreamInterceptor is a grpc.StreamServerInterceptor which extracts a JWT found
 // within the authorization field on the incoming requests metadata.
-func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWTValidator, o ...containers.Option[InterceptorOptions]) grpc.StreamServerInterceptor {
+func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWTValidator, claimsMapping map[string]string, o ...containers.Option[InterceptorOptions]) grpc.StreamServerInterceptor {
 	var opts InterceptorOptions
 	containers.ApplyAll(&opts, o...)
 
@@ -205,7 +206,7 @@ func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWT
 			return handler(srv, stream)
 		}
 
-		ctx, err := authenticateJWT(ctx, logger, validator)
+		ctx, err := authenticateJWT(ctx, logger, claimsMapping, validator)
 		if err != nil {
 			return err
 		}
@@ -218,8 +219,61 @@ func JWTAuthenticationStreamInterceptor(logger *zap.Logger, validator method.JWT
 	}
 }
 
+func jwtClaimsToMetadata(jwtClaims map[string]interface{}, claimsMapping map[string]string) map[string]string {
+	md := map[string]string{}
+
+	for k, v := range jwtClaims {
+		if strings.HasPrefix(k, "io.flipt.auth") {
+			md[k] = fmt.Sprintf("%v", v)
+			continue
+		}
+
+		if v, ok := v.(string); ok && k == "iss" {
+			md["io.flipt.auth.jwt.issuer"] = v
+			continue
+		}
+	}
+
+	defaultMappings := map[string]string{
+		"email":   "/user/email",
+		"sub":     "/user/sub",
+		"picture": "/user/image",
+		"name":    "/user/name",
+		"role":    "/user/role",
+	}
+
+	effectiveMappings := make(map[string]string)
+	for k, v := range defaultMappings {
+		effectiveMappings[k] = v
+	}
+	for k, v := range claimsMapping {
+		effectiveMappings[k] = v
+	}
+
+	// Extract user attributes using the effective mappings
+	for attribute, jsonPointerExpr := range effectiveMappings {
+		if jsonPointerExpr == "" {
+			continue
+		}
+
+		ptr, err := jsonpointer.New(jsonPointerExpr)
+		if err != nil {
+			continue // Skip invalid JSON pointer expressions
+		}
+
+		value, _, err := ptr.Get(jwtClaims)
+		if err != nil {
+			continue // Skip if the pointer doesn't resolve
+		}
+
+		md[fmt.Sprintf("io.flipt.auth.jwt.%s", attribute)] = fmt.Sprintf("%v", value)
+	}
+
+	return md
+}
+
 // authenticateJWT authenticates a JWT found in the incoming request metadata and returns a new context with the authenticated authentication instance.
-func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.JWTValidator) (context.Context, error) {
+func authenticateJWT(ctx context.Context, logger *zap.Logger, claimsMapping map[string]string, validator method.JWTValidator) (context.Context, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
@@ -254,40 +308,9 @@ func authenticateJWT(ctx context.Context, logger *zap.Logger, validator method.J
 		return ctx, errUnauthenticated
 	}
 
-	metadata := map[string]string{}
-
-	for k, v := range jwtClaims {
-		if strings.HasPrefix(k, "io.flipt.auth") {
-			metadata[k] = fmt.Sprintf("%v", v)
-			continue
-		}
-
-		if v, ok := v.(string); ok && k == "iss" {
-			metadata["io.flipt.auth.jwt.issuer"] = v
-			continue
-		}
-
-		if k == "user" {
-			userClaims, ok := v.(map[string]any)
-			if ok {
-				for _, fields := range [][2]string{
-					{"email", "email"},
-					{"sub", "sub"},
-					{"image", "picture"},
-					{"name", "name"},
-					{"role", "role"},
-				} {
-					if v, ok := userClaims[fields[0]]; ok {
-						metadata[fmt.Sprintf("io.flipt.auth.jwt.%s", fields[1])] = fmt.Sprintf("%v", v)
-					}
-				}
-			}
-		}
-	}
-
 	return ContextWithAuthentication(ctx, &authrpc.Authentication{
 		Method:   authrpc.Method_METHOD_JWT,
-		Metadata: metadata,
+		Metadata: jwtClaimsToMetadata(jwtClaims, claimsMapping),
 	}), nil
 }
 
