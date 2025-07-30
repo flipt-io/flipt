@@ -69,6 +69,21 @@ import (
 	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 )
 
+// GRPCServerOption defines a functional option for configuring GRPCServer
+type GRPCServerOption func(*grpcServerOptions)
+
+// grpcServerOptions holds configuration options for the GRPC server
+type grpcServerOptions struct {
+	forceMigrate bool
+}
+
+// WithForceMigrate configures the GRPC server to force database migrations
+func WithForceMigrate() GRPCServerOption {
+	return func(opts *grpcServerOptions) {
+		opts.forceMigrate = true
+	}
+}
+
 // GRPCServer configures the dependencies associated with the Flipt GRPC Service.
 // It provides an entrypoint to start serving the gRPC stack (Run()).
 // Along with a teardown function (Shutdown(ctx)).
@@ -91,9 +106,16 @@ func NewGRPCServer(
 	cfg *config.Config,
 	ipch *inprocgrpc.Channel,
 	info info.Flipt,
-	forceMigrate bool,
 	licenseManager license.Manager,
+	secretsManager secrets.Manager,
+	opts ...GRPCServerOption,
 ) (*GRPCServer, error) {
+	// Process functional options
+	options := &grpcServerOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
 		logger: logger,
@@ -113,12 +135,6 @@ func NewGRPCServer(
 	server.onShutdown(func(context.Context) error {
 		return server.ln.Close()
 	})
-
-	// initialize secrets manager with configured providers
-	secretsManager, err := secrets.NewManager(logger, cfg, licenseManager)
-	if err != nil {
-		return nil, fmt.Errorf("initializing secrets manager: %w", err)
-	}
 
 	// configure a declarative backend store
 	environmentStore, err := environments.NewStore(ctx, logger, cfg, secretsManager, licenseManager)
@@ -273,7 +289,7 @@ func NewGRPCServer(
 
 	if cfg.Analytics.Enabled() {
 		if cfg.Analytics.Storage.Clickhouse.Enabled {
-			client, err := clickhouse.New(logger, cfg, forceMigrate)
+			client, err := clickhouse.New(logger, cfg, options.forceMigrate)
 			if err != nil {
 				return nil, fmt.Errorf("connecting to clickhouse: %w", err)
 			}

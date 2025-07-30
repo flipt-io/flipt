@@ -28,13 +28,16 @@ const (
 	EnvPrefix = "FLIPT"
 )
 
+// Secret reference marker prefix for unresolved references
+
 var (
-	_        validator = (*Config)(nil)
-	envsubst           = regexp.MustCompile(`^\${([a-zA-Z_]+[a-zA-Z0-9_]*)}$`)
+	_ validator = (*Config)(nil)
+	// Environment reference pattern
+	envReference = regexp.MustCompile(`^\${env:([a-zA-Z_]+[a-zA-Z0-9_]*)}$`)
 )
 
 var DecodeHooks = []mapstructure.DecodeHookFunc{
-	stringToEnvsubstHookFunc(),
+	stringToReferenceHookFunc(),
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
 	stringToEnumHookFunc(stringToAuthMethod),
@@ -515,9 +518,10 @@ func experimentalFieldSkipHookFunc(types ...reflect.Type) mapstructure.DecodeHoo
 	}
 }
 
-// stringToEnvsubstHookFunc returns a DecodeHookFunc that substitutes
-// `${VARIABLE}` strings with their matching environment variables.
-func stringToEnvsubstHookFunc() mapstructure.DecodeHookFunc {
+// stringToReferenceHookFunc returns a DecodeHookFunc that handles:
+// - ${env:VAR} - environment variables
+// - ${secret:key} - secret references (marked as unresolved placeholders)
+func stringToReferenceHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
@@ -526,12 +530,17 @@ func stringToEnvsubstHookFunc() mapstructure.DecodeHookFunc {
 		if f.Kind() != reflect.String || f != reflect.TypeOf("") {
 			return data, nil
 		}
+
 		str := data.(string)
-		if !envsubst.MatchString(str) {
-			return data, nil
+
+		// Handle explicit environment references: ${env:VAR}
+		if envReference.MatchString(str) {
+			key := envReference.ReplaceAllString(str, `$1`)
+			return os.Getenv(key), nil
 		}
-		key := envsubst.ReplaceAllString(str, `$1`)
-		return os.Getenv(key), nil
+
+		// Secret references are left as-is and will be resolved post-load
+		return data, nil
 	}
 }
 

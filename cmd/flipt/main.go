@@ -9,7 +9,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
+	"regexp"
 	"runtime"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -28,6 +31,7 @@ import (
 	"go.flipt.io/flipt/internal/otel/logs"
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
+	"go.flipt.io/flipt/internal/secrets"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -53,6 +57,8 @@ var (
 	keygenVerifyKey    string
 	keygenAccountID    string
 	keygenProductID    string
+	// Secret reference pattern for config resolution
+	secretReference = regexp.MustCompile(`^\${secret:([a-zA-Z0-9_:/-]+)}$`)
 )
 
 var (
@@ -211,8 +217,7 @@ func determineConfig(configFile string) (string, bool) {
 func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
 	path, found := determineConfig(providedConfigFile)
 
-	// read in config if it exists
-	// otherwise, use defaults
+	// Load config normally
 	res, err := config.Load(ctx, path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("loading configuration: %w", err)
@@ -377,6 +382,25 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
 
+	// initialize secrets manager and resolve secrets in config before creating any components
+	secretsManager, err := secrets.NewManager(logger, cfg)
+	if err != nil {
+		return fmt.Errorf("initializing secrets manager: %w", err)
+	}
+
+	defer func() {
+		if secretsManager != nil {
+			_ = secretsManager.Close()
+		}
+	}()
+
+	// resolve secrets in the config if any secret references exist
+	if err := resolveSecretsInConfig(ctx, cfg, secretsManager); err != nil {
+		return fmt.Errorf("resolving secrets in config: %w", err)
+	}
+
+	logger.Debug("secrets manager initialized and config processed")
+
 	licenseManagerOpts := []license.LicenseManagerOption{}
 
 	// Enable pro features in development mode
@@ -396,6 +420,13 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		_ = licenseManagerShutdown(deactivateCtx)
 		cancel()
 	}()
+
+	// Validate license requirements for secrets providers
+	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
+		if licenseManager.Product() == product.OSS {
+			return fmt.Errorf("vault secrets provider requires a paid license")
+		}
+	}
 
 	info := info.New(
 		info.WithBuild(commit, date, goVersion, version, isRelease),
@@ -430,7 +461,12 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		otelgrpc.UnaryServerInterceptor(),
 	))
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, forceMigrate, licenseManager)
+	var grpcOptions []cmd.GRPCServerOption
+	if forceMigrate {
+		grpcOptions = append(grpcOptions, cmd.WithForceMigrate())
+	}
+
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, ipch, info, licenseManager, secretsManager, grpcOptions...)
 	if err != nil {
 		return err
 	}
@@ -486,4 +522,90 @@ func initMetaStateDir(cfg *config.Config) error {
 	}
 
 	return ensureDir(cfg.Meta.StateDirectory)
+}
+
+// resolveSecretsInConfig walks the config structure and resolves any secret references in-place
+func resolveSecretsInConfig(ctx context.Context, cfg *config.Config, secretsManager secrets.Manager) error {
+	return walkConfigForSecrets(ctx, reflect.ValueOf(cfg).Elem(), secretsManager)
+}
+
+// walkConfigForSecrets recursively walks the config struct and resolves secret references
+func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager secrets.Manager) error {
+	switch v.Kind() {
+	case reflect.String:
+		if v.CanSet() {
+			str := v.String()
+			// Check if this is a secret reference using the regex
+			if secretReference.MatchString(str) {
+				// Extract the reference: ${secret:reference} -> reference
+				reference := secretReference.ReplaceAllString(str, `$1`)
+
+				// Parse the reference format: either "key" or "provider:path:key"
+				parts := strings.Split(reference, ":")
+
+				var secretRef secrets.Reference
+				switch {
+				case len(parts) == 1:
+					// Simple format: "key-name"
+					secretRef = secrets.Reference{
+						Provider: "", // Use default provider
+						Path:     "",
+						Key:      parts[0],
+					}
+				case len(parts) >= 3:
+					// Complex format: "provider:path:key" (path may contain colons)
+					secretRef = secrets.Reference{
+						Provider: parts[0],
+						Path:     strings.Join(parts[1:len(parts)-1], ":"),
+						Key:      parts[len(parts)-1],
+					}
+				default:
+					return fmt.Errorf("invalid secret reference format %q, expected 'key' or 'provider:path:key'", reference)
+				}
+
+				// Resolve the secret
+				secretValue, err := secretsManager.GetSecretValue(ctx, secretRef)
+				if err != nil {
+					return fmt.Errorf("resolving secret reference %q: %w", str, err)
+				}
+
+				// Replace the secret reference with the resolved value
+				v.SetString(string(secretValue))
+			}
+		}
+
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			if err := walkConfigForSecrets(ctx, v.Field(i), secretsManager); err != nil {
+				return err
+			}
+		}
+
+	case reflect.Ptr:
+		if !v.IsNil() {
+			if err := walkConfigForSecrets(ctx, v.Elem(), secretsManager); err != nil {
+				return err
+			}
+		}
+
+	case reflect.Slice:
+		for i := 0; i < v.Len(); i++ {
+			if err := walkConfigForSecrets(ctx, v.Index(i), secretsManager); err != nil {
+				return err
+			}
+		}
+
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			value := v.MapIndex(key)
+			if value.Kind() == reflect.Interface && !value.IsNil() {
+				value = value.Elem()
+			}
+			if err := walkConfigForSecrets(ctx, value, secretsManager); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
