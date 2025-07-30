@@ -242,7 +242,7 @@ func FuzzDecodeHooks(f *testing.F) {
 				}
 			}()
 
-			hook := stringToEnvsubstHookFunc()
+			hook := stringToReferenceHookFunc()
 			_, _ = hook.(func(reflect.Type, reflect.Type, any) (any, error))(
 				reflect.TypeOf(""),
 				reflect.TypeOf(""),

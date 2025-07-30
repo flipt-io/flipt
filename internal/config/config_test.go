@@ -112,20 +112,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "environment variable substitution",
-			path: "./testdata/envsubst.yml",
-			envOverrides: map[string]string{
-				"HTTP_PORT":  "18080",
-				"LOG_FORMAT": "json",
-			},
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Log.Encoding = "json"
-				cfg.Server.HTTPPort = 18080
-				return cfg
-			},
-		},
-		{
 			name: "metrics disabled",
 			path: "./testdata/metrics/disabled.yml",
 			expected: func() *Config {
@@ -1595,4 +1581,166 @@ func TestLicenseConfig_validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringToReferenceHookFunc(t *testing.T) {
+	t.Run("with environment variables only", func(t *testing.T) {
+		hook := stringToReferenceHookFunc()
+
+		tests := []struct {
+			name     string
+			input    string
+			envVars  map[string]string
+			expected interface{}
+		}{
+			{
+				name:     "explicit environment reference",
+				input:    "${env:TEST_VAR}",
+				envVars:  map[string]string{"TEST_VAR": "test_value"},
+				expected: "test_value",
+			},
+			{
+				name:     "explicit environment reference - missing var",
+				input:    "${env:MISSING_VAR}",
+				envVars:  nil,
+				expected: "",
+			},
+			{
+				name:     "secret reference left as-is",
+				input:    "${secret:github-token}",
+				expected: "${secret:github-token}",
+			},
+			{
+				name:     "non-reference string",
+				input:    "normal_string",
+				expected: "normal_string",
+			},
+			{
+				name:     "invalid reference format",
+				input:    "${invalid}",
+				expected: "${invalid}", // Not a valid reference format, so returned as-is
+			},
+			{
+				name:     "empty string",
+				input:    "",
+				expected: "",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				// Set environment variables
+				for key, value := range tt.envVars {
+					t.Setenv(key, value)
+				}
+
+				hookFunc := hook.(func(reflect.Type, reflect.Type, any) (any, error))
+				result, err := hookFunc(
+					reflect.TypeOf(""),
+					reflect.TypeOf(""),
+					tt.input,
+				)
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
+
+	t.Run("with new approach - secrets left as-is", func(t *testing.T) {
+		hook := stringToReferenceHookFunc()
+
+		tests := []struct {
+			name     string
+			input    string
+			envVars  map[string]string
+			expected interface{}
+		}{
+			{
+				name:     "explicit environment reference",
+				input:    "${env:TEST_VAR}",
+				envVars:  map[string]string{"TEST_VAR": "test_value"},
+				expected: "test_value",
+			},
+			{
+				name:     "secret reference left as-is",
+				input:    "${secret:github-token}",
+				expected: "${secret:github-token}",
+			},
+			{
+				name:     "complex secret reference left as-is",
+				input:    "${secret:vault:auth/oauth:client_secret}",
+				expected: "${secret:vault:auth/oauth:client_secret}",
+			},
+			{
+				name:     "non-reference string",
+				input:    "normal_string",
+				expected: "normal_string",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				// Set environment variables
+				for key, value := range tt.envVars {
+					t.Setenv(key, value)
+				}
+
+				hookFunc := hook.(func(reflect.Type, reflect.Type, any) (any, error))
+				result, err := hookFunc(
+					reflect.TypeOf(""),
+					reflect.TypeOf(""),
+					tt.input,
+				)
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.expected, result)
+			})
+		}
+	})
+}
+
+func TestConfigSecretReferences(t *testing.T) {
+	t.Run("load config with secret references preserved", func(t *testing.T) {
+		// Set up environment variables
+		t.Setenv("HTTP_PORT", "8080")
+		t.Setenv("GITHUB_CLIENT_ID", "test_client_id")
+		t.Setenv("GITHUB_REDIRECT_URL", "http://localhost:8080/auth/callback")
+
+		// Load config normally - secret references should remain as-is
+		result, err := Load(context.Background(), "./testdata/secret_references.yml")
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.NotNil(t, result.Config)
+
+		// Verify environment variables were resolved during load
+		assert.Equal(t, 8080, result.Config.Server.HTTPPort)
+		assert.Equal(t, "test_client_id", result.Config.Authentication.Methods.Github.Method.ClientId)
+		assert.Equal(t, "http://localhost:8080/auth/callback", result.Config.Authentication.Methods.Github.Method.RedirectAddress)
+
+		// Verify secret references remain unresolved (as raw strings)
+		assert.Equal(t, "${secret:github-client-secret}", result.Config.Authentication.Methods.Github.Method.ClientSecret)
+	})
+
+	t.Run("load config with mixed reference types", func(t *testing.T) {
+		// Set up environment variables
+		t.Setenv("HTTP_PORT", "8080")
+		t.Setenv("GRPC_PORT", "9000")
+		t.Setenv("GITHUB_CLIENT_ID", "test_client_id")
+		t.Setenv("GITHUB_REDIRECT_URL", "http://localhost:8080/auth/callback")
+
+		// Load config normally
+		result, err := Load(context.Background(), "./testdata/mixed_references.yml")
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify environment references were resolved during load
+		assert.Equal(t, 8080, result.Config.Server.HTTPPort)                                                                       // env reference
+		assert.Equal(t, 9000, result.Config.Server.GRPCPort)                                                                       // env reference
+		assert.Equal(t, "test_client_id", result.Config.Authentication.Methods.Github.Method.ClientId)                             // env reference
+		assert.Equal(t, "http://localhost:8080/auth/callback", result.Config.Authentication.Methods.Github.Method.RedirectAddress) // env reference
+
+		// Verify secret references remain unresolved
+		assert.Equal(t, "${secret:github-token}", result.Config.Authentication.Methods.Github.Method.ClientSecret) // secret reference
+	})
 }
