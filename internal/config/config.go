@@ -28,8 +28,6 @@ const (
 	EnvPrefix = "FLIPT"
 )
 
-// Secret reference marker prefix for unresolved references
-
 var (
 	_ validator = (*Config)(nil)
 	// Environment reference pattern
