@@ -3,6 +3,7 @@ package fs
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+
+	"crypto/sha1" //nolint:gosec
 
 	"github.com/google/uuid"
 	"go.flipt.io/flipt/core/validation"
@@ -614,7 +617,16 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 
 		ns.evalRollouts[f.Key] = evalRollouts
 	}
-	ns.etag = doc.Etag
+	etag := doc.Etag
+	if ns.etag != "" {
+		hash := sha1.New() //nolint:gosec
+		hash.Write([]byte(ns.etag))
+		hash.Write([]byte(etag))
+		sum := hash.Sum(nil)
+		etag = hex.EncodeToString(sum)
+		etag = etag[:32] // truncate to 32 characters for consistency
+	}
+	ns.etag = etag
 	ss.ns[namespaceKey] = ns
 
 	ss.evalDists = evalDists
