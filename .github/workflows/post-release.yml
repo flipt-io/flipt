@@ -1,23 +1,20 @@
 on:
-  workflow_run:
-    workflows: [Release]
-    types: [completed]
+  release:
+    types: [published]
   workflow_dispatch:
 
 name: Various Updates Post Release
 jobs:
   post_release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Get release tag
         id: get_tag
-        if: ${{ github.event_name == 'workflow_run' }}
+        if: ${{ github.event_name == 'release' }}
         run: |
-          # Get the latest release tag
-          RELEASE_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/releases/latest | \
-            jq -r '.tag_name')
+          # Get the release tag from the event
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
           echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
           echo "Release tag: $RELEASE_TAG"
 
@@ -32,14 +29,14 @@ jobs:
 
       - name: Generate token
         id: generate_token
-        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'workflow_run' && steps.get_tag.outputs.is_v1 == 'true') }}
+        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && steps.get_tag.outputs.is_v1 == 'true') }}
         uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
 
       - name: Trigger Post Release Workflows
-        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'workflow_run' && steps.get_tag.outputs.is_v1 == 'true') }}
+        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && steps.get_tag.outputs.is_v1 == 'true') }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
