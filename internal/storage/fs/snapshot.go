@@ -624,7 +624,7 @@ func (ss *Snapshot) addDoc(doc *ext.Document) error {
 		hash.Write([]byte(etag))
 		sum := hash.Sum(nil)
 		etag = hex.EncodeToString(sum)
-		etag = etag[:12] // truncate to 12 characters for consistency
+		etag = etag[:32] // truncate to 32 characters for consistency
 	}
 	ns.etag = etag
 	ss.ns[namespaceKey] = ns

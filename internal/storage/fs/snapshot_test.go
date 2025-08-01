@@ -1838,5 +1838,5 @@ func TestEtagWithFewDocs(t *testing.T) {
 
 	version, err := snapshot.GetVersion(t.Context(), storage.NewNamespace(ext.DefaultNamespace.GetKey()))
 	require.NoError(t, err)
-	assert.Equal(t, "d18ae3bd357a", version)
+	assert.Equal(t, "dc26c96ddf6430ed603862ffe5d3ac9a", version)
 }
