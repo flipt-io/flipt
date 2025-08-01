@@ -1825,3 +1825,18 @@ func TestFS_YAML_Stream(t *testing.T) {
 	assert.Len(t, frsegments.Results, 1)
 	assert.Equal(t, "internal", frsegments.Results[0].Key)
 }
+
+func TestEtagWithFewDocs(t *testing.T) {
+	snapshot := newSnapshot()
+	for _, etag := range []string{"1", "2", "3"} {
+		err := snapshot.addDoc(&ext.Document{
+			Namespace: ext.DefaultNamespace,
+			Etag:      etag,
+		})
+		require.NoError(t, err)
+	}
+
+	version, err := snapshot.GetVersion(t.Context(), storage.NewNamespace(ext.DefaultNamespace.GetKey()))
+	require.NoError(t, err)
+	assert.Equal(t, "d18ae3bd357a", version)
+}
