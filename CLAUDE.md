@@ -9,7 +9,7 @@ All of our documentation is at <https://docs.flipt.io/llms-full.txt>. Weigh the 
 Flipt v2 is a Git-native feature management platform with a monorepo structure. This is the v2 version (beta) with a Git-native architecture.
 
 - **v1 code**: Located on `main` branch
-- **v2 code**: Located on current (`v2`) branch
+- **v2 code**: Located on current (`v2`) branch. This is the default branch in the repository.
 - **License**: Fair Core License for server, MIT for client code
 - **Requirements**: Go 1.24+ and Node.js 18+
 
@@ -528,16 +528,9 @@ Brief description of what this PR does and why.
 - **Added `file2_test.go`**: Test coverage description
 - **Updated `config.yml`**: Configuration change description
 
-## Test Plan
-
-- [x] Added unit tests that verify specific behavior
-- [x] Existing tests still pass
-- [x] Ran linting and formatting checks
-- [ ] Manual testing completed (if applicable)
-
 ## Backward Compatibility
 
-Describe any backward compatibility considerations.
+Describe any backward compatibility or breaking change considerations.
 
 ## Additional Notes
 
@@ -554,6 +547,7 @@ Any other context, screenshots, or related issues.
 - **Reference issues**: Use "Fixes #123" to auto-close issues
 - **Review your own PR**: Look through the diff before requesting review
 - **Base PRs on the correct branch**: Base PRs on the correct branch (e.g. `v2` for v2 changes, `main` for v1 changes)
+- **Label PRs correctly**: When creating a feature based off of the v2 branch, label the PR with the `v2` label. Similarly for a v1 (main) feature, use the `v1` label.
 
 #### Quality Checklist
 
