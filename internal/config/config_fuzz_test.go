@@ -177,9 +177,9 @@ func FuzzBindEnvVars(f *testing.F) {
 
 func FuzzDecodeHooks(f *testing.F) {
 	// Add some seed corpus with different input types
-	f.Add("10s")        // duration string
-	f.Add("a b c")      // space-separated string for slice
-	f.Add("${ENV_VAR}") // env var string
+	f.Add("10s")            // duration string
+	f.Add("a b c")          // space-separated string for slice
+	f.Add("${env:ENV_VAR}") // env var string
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// Recover from panics
