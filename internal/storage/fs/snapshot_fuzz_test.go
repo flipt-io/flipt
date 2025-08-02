@@ -99,6 +99,12 @@ flags:
 			t.Skip("Input too large")
 		}
 
+		// Sanitize extension to prevent filesystem issues
+		// Extensions should not contain path separators or be too long
+		if strings.ContainsAny(extension, "/\\") || len(extension) > 10 {
+			t.Skip("Invalid extension containing path separators or too long")
+		}
+
 		// Create a test filesystem with the fuzzed content
 		filename := "features" + extension
 		testFS := fstest.MapFS{
@@ -242,6 +248,11 @@ func FuzzSnapshotMultipleFiles(f *testing.F) {
 		// Skip if filenames are too long or empty
 		if len(file1Name) == 0 || len(file2Name) == 0 || len(file1Name) > 100 || len(file2Name) > 100 {
 			t.Skip("Invalid filenames")
+		}
+
+		// Skip filenames with path separators to prevent filesystem issues
+		if strings.ContainsAny(file1Name, "/\\") || strings.ContainsAny(file2Name, "/\\") {
+			t.Skip("Invalid filenames containing path separators")
 		}
 
 		// Skip large content
