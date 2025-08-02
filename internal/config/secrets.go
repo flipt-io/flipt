@@ -82,6 +82,9 @@ func (s *SecretsConfig) validate() error {
 		default:
 			return errFieldWrap("secrets.providers.vault", "auth_method", fmt.Errorf("unsupported auth method: %s", s.Providers.Vault.AuthMethod))
 		}
+
+		// Note: License validation is done at runtime when the provider is instantiated
+		// This allows the config to be valid but the feature to fail if no license is present
 	}
 
 	return nil

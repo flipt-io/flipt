@@ -24,7 +24,6 @@ import (
 
 	// Import providers to trigger their init functions
 	_ "go.flipt.io/flipt/internal/secrets/file"
-	_ "go.flipt.io/flipt/internal/secrets/vault"
 	serverfliptv1 "go.flipt.io/flipt/internal/server"
 	analytics "go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/analytics/clickhouse"

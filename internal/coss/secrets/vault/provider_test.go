@@ -1,15 +1,87 @@
 package vault
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
 	"go.uber.org/zap"
 )
+
+func TestProviderFactory_LicenseValidation(t *testing.T) {
+	logger := zap.NewNop()
+	cfg := &config.Config{
+		Secrets: config.SecretsConfig{
+			Providers: config.ProvidersConfig{
+				Vault: &config.VaultProviderConfig{
+					Enabled: true,
+					Address: "https://vault.example.com",
+					Token:   "test-token",
+				},
+			},
+		},
+	}
+
+	t.Run("requires valid license", func(t *testing.T) {
+		// Test with no license manager
+		factory, exists := secrets.GetProviderFactory("vault")
+		require.True(t, exists, "vault factory should be registered")
+
+		_, err := factory(cfg, logger)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "requires a valid Flipt Pro license")
+	})
+
+	t.Run("rejects OSS product", func(t *testing.T) {
+		// Create a mock license manager that returns OSS
+		mockManager := &MockLicenseManager{product: product.OSS}
+		license.SetManagerForTesting(mockManager)
+		defer license.ResetManagerForTesting()
+
+		factory, exists := secrets.GetProviderFactory("vault")
+		require.True(t, exists, "vault factory should be registered")
+
+		_, err := factory(cfg, logger)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "requires a valid Flipt Pro license")
+	})
+
+	t.Run("accepts Pro product", func(t *testing.T) {
+		// Create a mock license manager that returns Pro
+		mockManager := &MockLicenseManager{product: product.Pro}
+		license.SetManagerForTesting(mockManager)
+		defer license.ResetManagerForTesting()
+
+		factory, exists := secrets.GetProviderFactory("vault")
+		require.True(t, exists, "vault factory should be registered")
+
+		// This would normally fail because we can't connect to vault, but it should pass license check
+		_, err := factory(cfg, logger)
+		// We expect a vault connection error, not a license error
+		require.Error(t, err)
+		assert.NotContains(t, err.Error(), "requires a valid Flipt Pro license")
+	})
+}
+
+// MockLicenseManager for testing
+type MockLicenseManager struct {
+	product product.Product
+}
+
+func (m *MockLicenseManager) Product() product.Product {
+	return m.product
+}
+
+func (m *MockLicenseManager) Shutdown(ctx context.Context) error {
+	return nil
+}
 
 func TestConfig_Structure(t *testing.T) {
 	t.Run("config has required fields", func(t *testing.T) {

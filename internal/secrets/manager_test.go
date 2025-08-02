@@ -21,11 +21,11 @@ func TestRegisterProviderFactory(t *testing.T) {
 	factoryMu.Unlock()
 
 	// Restore original factories after test
-	defer func() {
+	t.Cleanup(func() {
 		factoryMu.Lock()
 		providerFactories = originalFactories
 		factoryMu.Unlock()
-	}()
+	})
 
 	t.Run("registers provider factory", func(t *testing.T) {
 		factory := func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
@@ -80,11 +80,11 @@ func TestNewManager(t *testing.T) {
 		}
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -123,11 +123,11 @@ func TestNewManager(t *testing.T) {
 		}
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -166,11 +166,11 @@ func TestNewManager(t *testing.T) {
 		providerFactories = make(map[string]ProviderFactory)
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -197,11 +197,11 @@ func TestNewManager(t *testing.T) {
 		providerFactories = make(map[string]ProviderFactory)
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
