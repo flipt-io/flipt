@@ -1,0 +1,10 @@
+server:
+  http_port: ${env:HTTP_PORT}  # env syntax
+  grpc_port: ${env:GRPC_PORT}  # env syntax
+  
+authentication:
+  methods:
+    github:
+      client_id: ${env:GITHUB_CLIENT_ID}  # env syntax
+      client_secret: ${secret:github-token}  # secret reference
+      redirect_address: ${env:GITHUB_REDIRECT_URL}  # env syntax

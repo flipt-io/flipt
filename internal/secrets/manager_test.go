@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/coss/license"
-	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
 
@@ -23,11 +21,11 @@ func TestRegisterProviderFactory(t *testing.T) {
 	factoryMu.Unlock()
 
 	// Restore original factories after test
-	defer func() {
+	t.Cleanup(func() {
 		factoryMu.Lock()
 		providerFactories = originalFactories
 		factoryMu.Unlock()
-	}()
+	})
 
 	t.Run("registers provider factory", func(t *testing.T) {
 		factory := func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
@@ -69,7 +67,7 @@ func TestRegisterProviderFactory(t *testing.T) {
 func TestNewManager(t *testing.T) {
 	logger := zap.NewNop()
 
-	t.Run("creates manager with OSS license", func(t *testing.T) {
+	t.Run("creates manager with file provider", func(t *testing.T) {
 		// Clear and setup test factory
 		factoryMu.Lock()
 		originalFactories := make(map[string]ProviderFactory)
@@ -82,14 +80,11 @@ func TestNewManager(t *testing.T) {
 		}
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
-
-		mockLicense := license.NewMockManager(t)
-		// Product() is not called when only file provider is enabled with OSS
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -102,7 +97,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg, mockLicense)
+		manager, err := NewManager(logger, cfg)
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -110,11 +105,9 @@ func TestNewManager(t *testing.T) {
 		// Verify file provider was registered
 		providers := manager.ListProviders()
 		assert.Contains(t, providers, "file")
-
-		mockLicense.AssertExpectations(t)
 	})
 
-	t.Run("creates manager with Pro license and Vault", func(t *testing.T) {
+	t.Run("creates manager with vault provider", func(t *testing.T) {
 		// Clear and setup test factories
 		factoryMu.Lock()
 		originalFactories := make(map[string]ProviderFactory)
@@ -130,14 +123,11 @@ func TestNewManager(t *testing.T) {
 		}
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
-
-		mockLicense := license.NewMockManager(t)
-		mockLicense.On("Product").Return(product.Pro)
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -157,7 +147,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		manager, err := NewManager(logger, cfg, mockLicense)
+		manager, err := NewManager(logger, cfg)
 
 		require.NoError(t, err)
 		assert.NotNil(t, manager)
@@ -166,56 +156,6 @@ func TestNewManager(t *testing.T) {
 		providers := manager.ListProviders()
 		assert.Contains(t, providers, "file")
 		assert.Contains(t, providers, "vault")
-
-		mockLicense.AssertExpectations(t)
-	})
-
-	t.Run("prevents Vault with OSS license", func(t *testing.T) {
-		// Clear and setup test factories
-		factoryMu.Lock()
-		originalFactories := make(map[string]ProviderFactory)
-		maps.Copy(originalFactories, providerFactories)
-
-		providerFactories = map[string]ProviderFactory{
-			"vault": func(cfg *config.Config, logger *zap.Logger) (Provider, error) {
-				return &MockProvider{}, nil
-			},
-		}
-		factoryMu.Unlock()
-
-		defer func() {
-			factoryMu.Lock()
-			providerFactories = originalFactories
-			factoryMu.Unlock()
-		}()
-
-		mockLicense := license.NewMockManager(t)
-		mockLicense.On("Product").Return(product.OSS)
-
-		cfg := &config.Config{
-			Secrets: config.SecretsConfig{
-				Providers: config.ProvidersConfig{
-					Vault: &config.VaultProviderConfig{
-						Enabled:    true,
-						Address:    "https://vault.example.com",
-						AuthMethod: "token",
-						Mount:      "secret",
-						Token:      "test-token",
-					},
-				},
-			},
-		}
-
-		manager, err := NewManager(logger, cfg, mockLicense)
-
-		require.NoError(t, err)
-		assert.NotNil(t, manager)
-
-		// Verify Vault provider was NOT registered due to OSS license
-		providers := manager.ListProviders()
-		assert.NotContains(t, providers, "vault")
-
-		mockLicense.AssertExpectations(t)
 	})
 
 	t.Run("fails when file factory not registered", func(t *testing.T) {
@@ -226,13 +166,11 @@ func TestNewManager(t *testing.T) {
 		providerFactories = make(map[string]ProviderFactory)
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
-
-		mockLicense := license.NewMockManager(t)
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -245,7 +183,7 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg, mockLicense)
+		_, err := NewManager(logger, cfg)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "file provider factory not registered")
@@ -259,14 +197,11 @@ func TestNewManager(t *testing.T) {
 		providerFactories = make(map[string]ProviderFactory)
 		factoryMu.Unlock()
 
-		defer func() {
+		t.Cleanup(func() {
 			factoryMu.Lock()
 			providerFactories = originalFactories
 			factoryMu.Unlock()
-		}()
-
-		mockLicense := license.NewMockManager(t)
-		mockLicense.On("Product").Return(product.Pro)
+		})
 
 		cfg := &config.Config{
 			Secrets: config.SecretsConfig{
@@ -282,12 +217,10 @@ func TestNewManager(t *testing.T) {
 			},
 		}
 
-		_, err := NewManager(logger, cfg, mockLicense)
+		_, err := NewManager(logger, cfg)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "vault provider factory not registered")
-
-		mockLicense.AssertExpectations(t)
 	})
 }
 

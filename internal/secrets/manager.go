@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/coss/license"
-	"go.flipt.io/flipt/internal/product"
 	"go.uber.org/zap"
 )
 
@@ -63,8 +61,17 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 	providerFactories[name] = factory
 }
 
+// GetProviderFactory returns a provider factory by name.
+// This function is primarily intended for testing purposes.
+func GetProviderFactory(name string) (ProviderFactory, bool) {
+	factoryMu.RLock()
+	defer factoryMu.RUnlock()
+	factory, exists := providerFactories[name]
+	return factory, exists
+}
+
 // NewManager creates a new secret manager and initializes providers based on configuration.
-func NewManager(logger *zap.Logger, cfg *config.Config, licenseManager license.Manager) (*ManagerImpl, error) {
+func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 	manager := &ManagerImpl{
 		providers: make(map[string]Provider),
 		factories: make(map[string]ProviderFactory),
@@ -94,26 +101,22 @@ func NewManager(logger *zap.Logger, cfg *config.Config, licenseManager license.M
 		}
 	}
 
-	// Initialize Vault provider if enabled (COSS)
+	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
-		if licenseManager.Product() == product.OSS {
-			logger.Warn("vault secrets provider requires a paid license")
-		} else {
-			if factory, exists := manager.factories["vault"]; exists {
-				provider, err := factory(cfg, logger)
-				if err != nil {
-					return nil, fmt.Errorf("failed to initialize vault secret provider: %w", err)
-				}
-
-				if err := manager.RegisterProvider("vault", provider); err != nil {
-					return nil, fmt.Errorf("failed to register vault secret provider: %w", err)
-				}
-
-				logger.Info("registered vault secret provider",
-					zap.String("address", cfg.Secrets.Providers.Vault.Address))
-			} else {
-				return nil, fmt.Errorf("vault provider factory not registered")
+		if factory, exists := manager.factories["vault"]; exists {
+			provider, err := factory(cfg, logger)
+			if err != nil {
+				return nil, fmt.Errorf("failed to initialize vault secret provider: %w", err)
 			}
+
+			if err := manager.RegisterProvider("vault", provider); err != nil {
+				return nil, fmt.Errorf("failed to register vault secret provider: %w", err)
+			}
+
+			logger.Info("registered vault secret provider",
+				zap.String("address", cfg.Secrets.Providers.Vault.Address))
+		} else {
+			return nil, fmt.Errorf("vault provider factory not registered")
 		}
 	}
 
