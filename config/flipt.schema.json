@@ -1221,7 +1221,6 @@
                 "object",
                 "null"
               ],
-              "description": "HashiCorp Vault secrets provider (requires Flipt Pro license)",
               "additionalProperties": false,
               "properties": {
                 "enabled": {
