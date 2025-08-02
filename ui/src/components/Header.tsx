@@ -33,8 +33,7 @@ export function Header({
   const isBranch = currentEnvironment?.configuration?.base !== undefined;
 
   const topbarStyle = {
-    backgroundColor: info?.ui?.topbarColor,
-    borderRadius: '1rem 1rem 0 0'
+    backgroundColor: info?.ui?.topbarColor
   };
 
   return (
