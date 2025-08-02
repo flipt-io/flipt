@@ -112,7 +112,7 @@ flags:`
 
 	// Generate various sizes of input
 	f.Add(baseConfig)
-	
+
 	// Add a config with many flags
 	largeConfig := baseConfig + "\n"
 	for i := 0; i < 10; i++ {
@@ -166,7 +166,7 @@ flags:
 
 		// Binary-like data
 		string([]byte{0x00, 0x01, 0x02, 0xff, 0xfe}),
-		
+
 		// Very long strings
 		`version: "1.1"
 namespace: "` + strings.Repeat("a", 1000) + `"`,

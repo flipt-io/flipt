@@ -13,7 +13,7 @@ import (
 
 func FuzzSnapshotFromFS(f *testing.F) {
 	// Add seed corpus with valid file structures
-	
+
 	// Valid YAML flag file
 	validYAML := `version: "1.1"
 namespace: default
@@ -79,7 +79,7 @@ flags:
 	f.Add("", ".json")
 	f.Add("{}", ".json")
 	f.Add("---", ".yml")
-	
+
 	// Valid files
 	f.Add(validYAML, ".yml")
 	f.Add(validJSON, ".json")
@@ -89,7 +89,7 @@ flags:
 		// Recover from panics
 		defer func() {
 			if r := recover(); r != nil {
-				t.Errorf("Snapshot creation panicked with %s file (length %d): %v", 
+				t.Errorf("Snapshot creation panicked with %s file (length %d): %v",
 					extension, len(content), r)
 			}
 		}()
@@ -174,7 +174,7 @@ func FuzzSnapshotYAMLParsing(f *testing.F) {
 		"version: \"1.1\"\nflags: []",
 		"version: 1.1\nnamespace: test",
 		"flags:\n- key: test\n  enabled: yes",
-		"flags:\n- key: test\n  enabled: no", 
+		"flags:\n- key: test\n  enabled: no",
 		"flags:\n- key: test\n  enabled: true",
 		"flags:\n- key: test\n  enabled: false",
 		// YAML with different boolean representations
@@ -231,7 +231,7 @@ func FuzzSnapshotMultipleFiles(f *testing.F) {
 	// Test with multiple files that could have conflicts or interactions
 	f.Add("file1.yml", "version: \"1.1\"\nnamespace: ns1", "file2.yml", "version: \"1.1\"\nnamespace: ns2")
 	f.Add("flags.yml", "flags:\n- key: flag1", "segments.yml", "segments:\n- key: seg1")
-	
+
 	f.Fuzz(func(t *testing.T, file1Name, file1Content, file2Name, file2Content string) {
 		defer func() {
 			if r := recover(); r != nil {

@@ -57,23 +57,23 @@ func FuzzGPGKeyParsing(f *testing.F) {
 
 mQENBF...truncated...
 -----END PGP PRIVATE KEY BLOCK-----`,
-		
+
 		// Valid PGP public key
 		`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBF...truncated...
 -----END PGP PUBLIC KEY BLOCK-----`,
-		
+
 		// Invalid armor headers
 		`-----BEGIN INVALID BLOCK-----
 content
 -----END INVALID BLOCK-----`,
-		
+
 		// Malformed armor
 		`-----BEGIN PGP PRIVATE KEY BLOCK-----
 invalid content without proper encoding
 -----END PGP PRIVATE KEY BLOCK-----`,
-		
+
 		// Empty blocks
 		`-----BEGIN PGP PRIVATE KEY BLOCK-----
 -----END PGP PRIVATE KEY BLOCK-----`,
@@ -135,15 +135,15 @@ func FuzzGPGArmorParsing(f *testing.F) {
 
 iQEcBAABCgAGBQJhQ...
 -----END PGP SIGNATURE-----`,
-		
+
 		`-----BEGIN PGP MESSAGE-----
 
 hQEMA...
 -----END PGP MESSAGE-----`,
-		
+
 		// Different line endings
 		"-----BEGIN PGP SIGNATURE-----\r\niQEcBAABCgAGBQJhQ\r\n-----END PGP SIGNATURE-----",
-		
+
 		// With headers
 		`-----BEGIN PGP SIGNATURE-----
 Hash: SHA256
@@ -182,7 +182,7 @@ iQEcBAABCgAGBQJhQ...
 
 		secretRef := config.SecretReference{
 			Provider: "vault",
-			Path:     "signing", 
+			Path:     "signing",
 			Key:      "private_key",
 		}
 
