@@ -26,6 +26,7 @@ Flipt v2 is a Git-native feature management platform with a monorepo structure. 
   - `config/` - Configuration management
   - `containers/` - Container test utilities
   - `coss/` - Commercial open source features (license management, enterprise storage, secrets)
+  - `secrets/` - Secret management system with provider interface (OSS file provider, Pro Vault provider)
   - `credentials/` - Credential management for cloud storage and Git authentication
   - `ext/` - Import/export functionality for flags and segments
   - `gateway/` - HTTP gateway implementation
