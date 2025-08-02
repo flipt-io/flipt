@@ -61,6 +61,15 @@ func RegisterProviderFactory(name string, factory ProviderFactory) {
 	providerFactories[name] = factory
 }
 
+// GetProviderFactory returns a provider factory by name.
+// This function is primarily intended for testing purposes.
+func GetProviderFactory(name string) (ProviderFactory, bool) {
+	factoryMu.RLock()
+	defer factoryMu.RUnlock()
+	factory, exists := providerFactories[name]
+	return factory, exists
+}
+
 // NewManager creates a new secret manager and initializes providers based on configuration.
 func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 	manager := &ManagerImpl{
@@ -92,7 +101,7 @@ func NewManager(logger *zap.Logger, cfg *config.Config) (*ManagerImpl, error) {
 		}
 	}
 
-	// Initialize Vault provider if enabled (COSS)
+	// Initialize Vault provider if enabled (Pro feature)
 	if cfg.Secrets.Providers.Vault != nil && cfg.Secrets.Providers.Vault.Enabled {
 		if factory, exists := manager.factories["vault"]; exists {
 			provider, err := factory(cfg, logger)

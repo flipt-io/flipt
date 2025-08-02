@@ -10,13 +10,24 @@ import (
 
 	vault "github.com/hashicorp/vault/api"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/coss/license"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
 	"go.uber.org/zap"
 )
 
 func init() {
-	// Register vault provider factory
+	// Register vault provider factory with license check
 	secrets.RegisterProviderFactory("vault", func(cfg *config.Config, logger *zap.Logger) (secrets.Provider, error) {
+		// Check if we have a license manager and if the product is Pro
+		if manager := license.GetManager(); manager != nil {
+			if manager.Product() != product.Pro {
+				return nil, fmt.Errorf("vault secret provider requires a valid Flipt Pro license")
+			}
+		} else {
+			return nil, fmt.Errorf("vault secret provider requires a valid Flipt Pro license")
+		}
+
 		if cfg.Secrets.Providers.Vault == nil {
 			return nil, fmt.Errorf("vault provider configuration not found")
 		}

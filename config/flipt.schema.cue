@@ -302,6 +302,7 @@ import "list"
 				enabled?:   bool | *false
 				base_path?: string | *"/etc/flipt/secrets"
 			} | null
+			// HashiCorp Vault secrets provider (requires Flipt Pro license)
 			vault?: {
 				enabled?:     bool | *false
 				address?:     string

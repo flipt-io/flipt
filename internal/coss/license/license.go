@@ -23,6 +23,33 @@ var (
 	managerFunc func(context.Context) error = func(context.Context) error { return nil }
 )
 
+// GetManager returns the global license manager instance.
+func GetManager() Manager {
+	if manager == nil {
+		return nil
+	}
+	return manager
+}
+
+// SetManagerForTesting sets the global manager instance for testing purposes.
+// This function should only be used in tests.
+func SetManagerForTesting(m Manager) {
+	if impl, ok := m.(*ManagerImpl); ok {
+		manager = impl
+	} else {
+		// For mocks and other test implementations
+		manager = &ManagerImpl{
+			product: m.Product(),
+		}
+	}
+}
+
+// ResetManagerForTesting resets the global manager instance for testing purposes.
+// This function should only be used in tests.
+func ResetManagerForTesting() {
+	manager = nil
+}
+
 type fingerprintFunc func(string) (string, error)
 
 // validateOnline directly calls the keygen API to validate the license and handles activation
