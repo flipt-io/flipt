@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
 	"text/template"
 
 	"github.com/blang/semver/v4"
@@ -106,6 +107,12 @@ func (c *Config) List(src fs.FS) (paths []string, err error) {
 		}
 
 		if d.IsDir() {
+			return nil
+		}
+
+		// Skip files with names containing path separators to prevent
+		// infinite recursion issues with malformed filenames
+		if filepath.Base(d.Name()) != d.Name() {
 			return nil
 		}
 
