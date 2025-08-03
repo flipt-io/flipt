@@ -31,7 +31,7 @@ type Flipt struct {
 	UIContainer   *dagger.Container
 }
 
-// Returns a container with all the assets compiled and ready for testing and distribution
+// Returns a container with all the assets compiled and ready for testing and distribution (with coverage enabled)
 func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	platform, err := dag.DefaultPlatform(ctx)
 	if err != nil {
@@ -47,23 +47,7 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Con
 	return f.BaseContainer, err
 }
 
-// Returns a container with coverage-enabled assets compiled and ready for testing and distribution
-func (f *Flipt) BaseCoverage(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
-	platform, err := dag.DefaultPlatform(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
-	if err != nil {
-		return nil, err
-	}
-
-	f.BaseContainer, err = internal.BaseCoverage(ctx, dag, source, f.UIContainer.Directory("dist"), platforms.MustParse(string(platform)))
-	return f.BaseContainer, err
-}
-
-// Return container with Flipt binaries in a thinner alpine distribution
+// Return container with Flipt binaries in a thinner alpine distribution (with coverage enabled)
 func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	base, err := f.Base(ctx, source)
 	if err != nil {
@@ -71,16 +55,6 @@ func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Co
 	}
 
 	return internal.Package(ctx, dag, base)
-}
-
-// BuildCoverage returns a container with coverage-enabled Flipt binaries
-func (f *Flipt) BuildCoverage(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
-	base, err := f.BaseCoverage(ctx, source)
-	if err != nil {
-		return nil, err
-	}
-
-	return internal.PackageCoverage(ctx, dag, base)
 }
 
 type Test struct {
@@ -94,16 +68,6 @@ type Test struct {
 // see all available subcommands with dagger call test --help
 func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, error) {
 	flipt, err := f.Build(ctx, source)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Test{source, f.BaseContainer, f.UIContainer, flipt}, nil
-}
-
-// Execute test with coverage-enabled binaries
-func (f *Flipt) TestCoverage(ctx context.Context, source *dagger.Directory) (*Test, error) {
-	flipt, err := f.BuildCoverage(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -126,36 +90,15 @@ func (t *Test) Unit(ctx context.Context) (*dagger.File, error) {
 	return testing.Unit(ctx, dag, t.BaseContainer)
 }
 
-// Run all integration tests
+// Run all integration tests (now with coverage collection by default)
 func (t *Test) Integration(
 	ctx context.Context,
 	// +optional
 	// +default="*"
 	cases string,
-) error {
-	if cases == "list" {
-		fmt.Println("Integration test cases:")
-		for c := range testing.AllCases {
-			fmt.Println("\t> ", c)
-		}
-
-		return nil
-	}
-
-	var opts []testing.IntegrationOptions
-	if cases != "*" {
-		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
-	}
-
-	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
-}
-
-// Run all integration tests with coverage collection
-func (t *Test) IntegrationCoverage(
-	ctx context.Context,
 	// +optional
-	// +default="*"
-	cases string,
+	// +default=false
+	outputCoverage bool,
 ) (*dagger.File, error) {
 	if cases == "list" {
 		fmt.Println("Integration test cases:")
@@ -170,6 +113,9 @@ func (t *Test) IntegrationCoverage(
 	if cases != "*" {
 		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
 	}
+	if outputCoverage {
+		opts = append(opts, testing.WithCoverageOutput())
+	}
 
-	return testing.IntegrationCoverage(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
+	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
 }

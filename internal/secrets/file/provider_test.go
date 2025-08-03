@@ -65,7 +65,7 @@ func TestProvider_GetSecret(t *testing.T) {
 
 	t.Run("retrieves nested secret", func(t *testing.T) {
 		// Create nested directory structure
-		secretPath := "azure/storage_key" // #nosec G101 - test data
+		secretPath := "azure/storage_key"        // #nosec G101 - test data
 		secretValue := "azure-storage-key-value" // #nosec G101 - test data
 
 		fullPath := filepath.Join(tmpDir, secretPath)
@@ -162,7 +162,7 @@ func TestProvider_PutSecret(t *testing.T) {
 	})
 
 	t.Run("stores nested secret", func(t *testing.T) {
-		secretPath := "aws/prod/access_key" // #nosec G101 - test data
+		secretPath := "aws/prod/access_key"   // #nosec G101 - test data
 		secretValue := "aws-access-key-value" // #nosec G101 - test data
 		secret := &secrets.Secret{
 			Path: secretPath,

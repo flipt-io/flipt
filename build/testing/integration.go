@@ -88,6 +88,8 @@ type IntegrationOptions func(*integrationOptions)
 type integrationOptions struct {
 	// The test cases to run. If empty, all test cases are run.
 	cases []string
+	// Whether to output coverage data as a file (for CI artifacts)
+	outputCoverage bool
 }
 
 func WithTestCases(cases ...string) func(*integrationOptions) {
@@ -96,7 +98,13 @@ func WithTestCases(cases ...string) func(*integrationOptions) {
 	}
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) error {
+func WithCoverageOutput() func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.outputCoverage = true
+	}
+}
+
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) (*dagger.File, error) {
 	var options integrationOptions
 
 	for _, opt := range opts {
@@ -105,7 +113,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	cases, err := filterCases(options.cases...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var configs []testConfig
@@ -120,6 +128,10 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		configs = append(configs, config)
 	}
 
+	// Always create a coverage volume since binaries are built with -cover flag
+	// In CI, each job runs in its own VM so we can use a static name
+	coverageVolume := client.CacheVolume("integration-coverage")
+
 	var g errgroup.Group
 
 	for _, fn := range cases {
@@ -132,17 +144,34 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			g.Go(take(func() error {
-				flipt = flipt.
+				// Always configure the Flipt container for coverage collection since binaries have -cover
+				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
-					WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
+					WithMountedCache("/tmp/coverage", coverageVolume).
 					WithExposedPort(config.port)
 
-				return fn(ctx, client, base, flipt, config)()
+				// Run the test function which will start services and execute tests
+				return fn(ctx, client, base, coverageFliptContainer, config)()
 			}))
 		}
 	}
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// If coverage output is requested, extract coverage data and return as file
+	if options.outputCoverage {
+		coverageContainer := client.Container().
+			From("golang:1.24-alpine3.21").
+			WithMountedCache("/tmp/coverage", coverageVolume).
+			WithExec([]string{"sh", "-c", "if [ -n \"$(find /tmp/coverage -type f 2>/dev/null)\" ]; then go tool covdata textfmt -i=/tmp/coverage -o=/tmp/coverage.out; else echo 'No coverage data available' > /tmp/coverage.out; fi"})
+
+		return coverageContainer.File("/tmp/coverage.out"), nil
+	}
+
+	return nil, nil
 }
 
 func take(fn func() error) func() error {
