@@ -52,7 +52,8 @@ var (
 		"envs":          envsAPI(""),
 		"envs_with_dir": envsAPI("root"),
 		"ofrep":         ofrepAPI(),
-		"signing":       signingAPI(),
+		"signing_vault": signingAPI(vaultSecretProvider),
+		"signing_file":  signingAPI(fileSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -185,8 +186,16 @@ func envsAPI(directory string) testCaseFn {
 	}, environmentsTestdataDir)
 }
 
-func signingAPI() testCaseFn {
-	return withVault(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+type secretProvider string
+
+const (
+	vaultSecretProvider = "vault"
+	fileSecretProvider  = "file"
+)
+
+func signingAPI(provider secretProvider) testCaseFn {
+	baseTestFn := func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Common signing configuration
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BACKEND_TYPE", "local").
@@ -194,21 +203,46 @@ func signingAPI() testCaseFn {
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_ENABLED", "true").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_TYPE", "gpg").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "vault").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt/signing-key").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "private_key").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_NAME", "Flipt Test Bot").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_EMAIL", "test-bot@flipt.io").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_ID", "test-bot@flipt.io").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ENABLED", "true").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ADDRESS", "http://vault:8200").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
+		switch provider {
+		case fileSecretProvider:
+			// Configure for file-based secrets using our simplified syntax
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "file").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "signing-key").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_FILE_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_FILE_BASE_PATH", "/home/flipt/secrets")
+		case vaultSecretProvider:
+			// Configure for Vault secrets
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "vault").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt/signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "private_key").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ADDRESS", "http://vault:8200").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret")
+		}
+
 		return suite(ctx, "signing", base, flipt, conf)
-	})
+	}
+
+	switch provider {
+	case fileSecretProvider:
+		// File secrets need GPG key setup
+		return withFileSecrets(baseTestFn)
+	case vaultSecretProvider:
+		// Vault secrets need the Vault service
+		return withVaultSecrets(baseTestFn)
+	}
+
+	panic("unknown secretProvider: " + string(provider))
 }
 
 func authn(method string) testCaseFn {
@@ -599,7 +633,44 @@ permit_slice(allowed, requested) if {
 	}
 }
 
-func withVault(fn testCaseFn) testCaseFn {
+const gpgKeyGenerationScript string = `
+cat > /tmp/gpg-gen <<EOF
+%echo Generating test GPG key
+Key-Type: RSA
+Key-Length: 2048
+Subkey-Type: RSA
+Subkey-Length: 2048
+Name-Real: Flipt Test Bot
+Name-Email: test-bot@flipt.io
+Expire-Date: 0
+%no-protection
+%commit
+%echo done
+EOF
+mkdir -p /tmp/gpg
+chmod 700 /tmp/gpg
+gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen`
+
+func withFileSecrets(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Generate GPG key and store it in the file system
+		// First install gnupg as root, then switch back to user for key generation
+		flipt = flipt.
+			WithUser("root").
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
+			WithUser("flipt").
+			WithExec([]string{"sh", "-c", `
+			mkdir -p /home/flipt/secrets` +
+				gpgKeyGenerationScript + `
+			gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /home/flipt/secrets/signing-key
+			chmod 600 /home/flipt/secrets/signing-key
+		`})
+
+		return fn(ctx, client, base, flipt, conf)
+	}
+}
+
+func withVaultSecrets(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		// Create Vault service container
 		vault := client.Container().
@@ -616,26 +687,10 @@ func withVault(fn testCaseFn) testCaseFn {
 			WithEnvVariable("VAULT_ADDR", "http://vault:8200").
 			WithEnvVariable("VAULT_TOKEN", "test-root-token").
 			WithServiceBinding("vault", vault).
-			WithExec([]string{"sh", "-c", `
-				apk add --no-cache gnupg
-				cat > /tmp/gpg-gen <<EOF
-%echo Generating test GPG key
-Key-Type: RSA
-Key-Length: 2048
-Subkey-Type: RSA
-Subkey-Length: 2048
-Name-Real: Flipt Test Bot
-Name-Email: test-bot@flipt.io
-Expire-Date: 0
-%no-protection
-%commit
-%echo done
-EOF`}).
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithExec([]string{
-				"sh", "-c", `
-				mkdir -p /tmp/gpg
-				chmod 700 /tmp/gpg
-				gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen
+				"sh", "-c",
+				gpgKeyGenerationScript + `
 				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
 				
 				sleep 10
@@ -650,8 +705,8 @@ EOF`}).
 					echo "ERROR: Failed to store key in Vault"
 					exit 1
 				fi
-			`}).Sync(ctx)
-
+			`,
+			}).Sync(ctx)
 		if err != nil {
 			return func() error { return err }
 		}

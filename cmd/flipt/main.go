@@ -541,27 +541,27 @@ func walkConfigForSecrets(ctx context.Context, v reflect.Value, secretsManager s
 				// Extract the reference: ${secret:reference} -> reference
 				reference := secretReference.ReplaceAllString(str, `$1`)
 
-				// Parse the reference format: either "key" or "provider:path:key"
+				// Parse the reference format: either "key" or "provider:key"
 				parts := strings.Split(reference, ":")
 
 				var secretRef secrets.Reference
 				switch {
 				case len(parts) == 1:
-					// Simple format: "key-name"
+					// Simple format: "key-name" - use default provider
 					secretRef = secrets.Reference{
 						Provider: "", // Use default provider
-						Path:     "",
+						Path:     parts[0],
 						Key:      parts[0],
 					}
-				case len(parts) >= 3:
-					// Complex format: "provider:path:key" (path may contain colons)
+				case len(parts) == 2:
+					// Simple format: "provider:key"
 					secretRef = secrets.Reference{
 						Provider: parts[0],
-						Path:     strings.Join(parts[1:len(parts)-1], ":"),
-						Key:      parts[len(parts)-1],
+						Path:     parts[1],
+						Key:      parts[1],
 					}
 				default:
-					return fmt.Errorf("invalid secret reference format %q, expected 'key' or 'provider:path:key'", reference)
+					return fmt.Errorf("invalid secret reference format %q, expected 'key' or 'provider:key'", reference)
 				}
 
 				// Resolve the secret

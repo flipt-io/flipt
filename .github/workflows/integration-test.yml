@@ -8,32 +8,35 @@ on:
 
 env:
   GO_VERSION: "1.24"
-  DAGGER_VERSION: "0.18.12"
+  DAGGER_VERSION: "0.18.14"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 
 jobs:
+  discover-tests:
+    name: Discover Integration Tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.extract.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract test cases
+        id: extract
+        run: |
+          tests=$(./.github/scripts/extract-integration-tests.sh | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "tests=$tests" >> $GITHUB_OUTPUT
+
   test:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: discover-tests
     strategy:
       fail-fast: false
       matrix:
-        test:
-          [
-            "envs",
-            "envs_with_dir",
-            "authn/token",
-            "authn/k8s",
-            "authn/jwt",
-            "authz",
-            "ofrep",
-            "snapshot",
-            "signing",
-          ]
+        test: ${{ fromJson(needs.discover-tests.outputs.tests) }}
     steps:
       - uses: actions/checkout@v4
 
