@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
 	"text/template"
 
 	"github.com/blang/semver/v4"
@@ -109,9 +110,13 @@ func (c *Config) List(src fs.FS) (paths []string, err error) {
 			return nil
 		}
 
+		// Clean the path early to normalize and prevent path traversal issues
+		// This handles cases like "features.y//" -> "features.y"
+		cleanPath := filepath.Clean(path)
+
 		for _, matcher := range c.Matchers {
-			if matcher.Match(path) {
-				paths = append(paths, path)
+			if matcher.Match(cleanPath) {
+				paths = append(paths, cleanPath)
 				break
 			}
 		}
