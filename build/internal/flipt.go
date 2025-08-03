@@ -218,11 +218,12 @@ func PackageCoverage(ctx context.Context, client *dagger.Client, flipt *dagger.C
 	return client.Container().From("alpine:3.21").
 		WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
-		WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
-		WithFile("/flipt",
-			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
 		WithExec([]string{"addgroup", "flipt"}).
 		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
+		WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
+		WithExec([]string{"chown", "flipt:flipt", "/tmp/coverage"}).  // Ensure flipt user can write to coverage dir
+		WithFile("/flipt",
+			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
 		WithUser("flipt").
 		WithDefaultArgs([]string{"/flipt", "server"}), nil
 }
