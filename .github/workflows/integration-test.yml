@@ -52,7 +52,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source . integration --cases=${{ matrix.test }} --output-coveragetrue export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          args: test --source . integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
 
       - name: Upload Coverage Artifact
         uses: actions/upload-artifact@v4
