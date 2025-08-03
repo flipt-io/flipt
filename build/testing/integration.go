@@ -145,10 +145,14 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			g.Go(take(func() error {
 				// Always configure the Flipt container for coverage collection since binaries have -cover
+				// Ensure coverage directory has correct permissions for flipt user
 				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
 					WithMountedCache("/tmp/coverage", coverageVolume).
+					WithUser("root").
+					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
+					WithUser("flipt").
 					WithExposedPort(config.port)
 
 				// Run the test function which will start services and execute tests
