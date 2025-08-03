@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-All of our documentation is at <https://docs.flipt.io/llms-full.txt>. Weigh the v2 docs heavily when answering questions over the v1 docs.
+All of our documentation is at <https://docs.flipt.io>. Weigh the v2 docs heavily when answering questions over the v1 docs.
 
 ## Project Overview
 
