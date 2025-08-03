@@ -58,7 +58,7 @@ jobs:
         uses: codecov/codecov-action@v5
         if: always()
         with:
-          file: coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          files: coverage-${{ env.INTEGRATION_TEST_NAME }}.out
           flags: integrationtests
           name: integration-${{ env.INTEGRATION_TEST_NAME }}
           fail_ci_if_error: false

@@ -50,10 +50,10 @@ var (
 		"authn/jwt":     authn("jwt"),
 		"authz":         authz(),
 		"envs":          envsAPI(""),
-		"envs_with_dir": envsAPI("root"),
+		"envs/dir":      envsAPI("root"),
 		"ofrep":         ofrepAPI(),
-		"signing_vault": signingAPI(vaultSecretProvider),
-		"signing_file":  signingAPI(fileSecretProvider),
+		"signing/vault": signingAPI(vaultSecretProvider),
+		"signing/file":  signingAPI(fileSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
