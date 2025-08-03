@@ -57,6 +57,26 @@ func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Co
 	return internal.Package(ctx, dag, base)
 }
 
+// BuildCoverage returns a container with coverage-enabled Flipt binaries
+func (f *Flipt) BuildCoverage(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
+	platform, err := dag.DefaultPlatform(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
+	if err != nil {
+		return nil, err
+	}
+
+	baseCoverage, err := internal.BaseCoverage(ctx, dag, source, f.UIContainer.Directory("dist"), platforms.MustParse(string(platform)))
+	if err != nil {
+		return nil, err
+	}
+
+	return internal.PackageCoverage(ctx, dag, baseCoverage)
+}
+
 type Test struct {
 	Source         *dagger.Directory
 	BaseContainer  *dagger.Container
@@ -68,6 +88,16 @@ type Test struct {
 // see all available subcommands with dagger call test --help
 func (f *Flipt) Test(ctx context.Context, source *dagger.Directory) (*Test, error) {
 	flipt, err := f.Build(ctx, source)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Test{source, f.BaseContainer, f.UIContainer, flipt}, nil
+}
+
+// Execute test with coverage-enabled binaries
+func (f *Flipt) TestCoverage(ctx context.Context, source *dagger.Directory) (*Test, error) {
+	flipt, err := f.BuildCoverage(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -112,4 +142,28 @@ func (t *Test) Integration(
 	}
 
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
+}
+
+// Run all integration tests with coverage collection
+func (t *Test) IntegrationCoverage(
+	ctx context.Context,
+	// +optional
+	// +default="*"
+	cases string,
+) (*dagger.File, error) {
+	if cases == "list" {
+		fmt.Println("Integration test cases:")
+		for c := range testing.AllCases {
+			fmt.Println("\t> ", c)
+		}
+
+		return nil, nil
+	}
+
+	var opts []testing.IntegrationOptions
+	if cases != "*" {
+		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
+	}
+
+	return testing.IntegrationCoverage(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
 }

@@ -26,8 +26,7 @@ jobs:
         id: extract
         run: |
           tests=$(./.github/scripts/extract-integration-tests.sh | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "Generated JSON: $tests"
-          echo "JSON length: ${#tests}"
+          echo "Found Tests: $tests"
           {
             echo "tests<<EOF"
             echo "$tests"
