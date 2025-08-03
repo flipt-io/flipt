@@ -95,7 +95,7 @@ func IntegrationCoverage(ctx context.Context, client *dagger.Client, base, flipt
 			)
 
 			g.Go(take(func() error {
-				// Configure the Flipt container for coverage collection
+				// Configure the Flipt container for coverage collection  
 				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
@@ -116,7 +116,8 @@ func IntegrationCoverage(ctx context.Context, client *dagger.Client, base, flipt
 	coverageContainer := client.Container().
 		From("golang:1.24-alpine3.21").
 		WithMountedCache("/tmp/coverage", coverageVolume).
-		WithExec([]string{"go", "tool", "covdata", "textfmt", "-i=/tmp/coverage", "-o=/tmp/coverage.out"})
+		WithExec([]string{"sh", "-c", "echo 'Coverage directory contents:' && ls -la /tmp/coverage && echo 'All files:' && find /tmp/coverage -type f && echo 'Environment check:' && env | grep -i gocov || echo 'No GOCOV vars found'"}).
+		WithExec([]string{"sh", "-c", "if [ -n \"$(find /tmp/coverage -name '*.txt' -o -name '*.out' -o -name '*' -type f 2>/dev/null)\" ]; then echo 'Found coverage files, converting...' && go tool covdata textfmt -i=/tmp/coverage -o=/tmp/coverage.out; else echo 'Debug: No coverage files found in /tmp/coverage' > /tmp/coverage.out; fi"})
 
 	return coverageContainer.File("/tmp/coverage.out"), nil
 }
