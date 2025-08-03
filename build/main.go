@@ -47,6 +47,22 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Con
 	return f.BaseContainer, err
 }
 
+// Returns a container with coverage-enabled assets compiled and ready for testing and distribution
+func (f *Flipt) BaseCoverage(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
+	platform, err := dag.DefaultPlatform(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
+	if err != nil {
+		return nil, err
+	}
+
+	f.BaseContainer, err = internal.BaseCoverage(ctx, dag, source, f.UIContainer.Directory("dist"), platforms.MustParse(string(platform)))
+	return f.BaseContainer, err
+}
+
 // Return container with Flipt binaries in a thinner alpine distribution
 func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	base, err := f.Base(ctx, source)
@@ -59,22 +75,12 @@ func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Co
 
 // BuildCoverage returns a container with coverage-enabled Flipt binaries
 func (f *Flipt) BuildCoverage(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
-	platform, err := dag.DefaultPlatform(ctx)
+	base, err := f.BaseCoverage(ctx, source)
 	if err != nil {
 		return nil, err
 	}
 
-	f.UIContainer, err = internal.UI(ctx, dag, source.Directory("ui"))
-	if err != nil {
-		return nil, err
-	}
-
-	baseCoverage, err := internal.BaseCoverage(ctx, dag, source, f.UIContainer.Directory("dist"), platforms.MustParse(string(platform)))
-	if err != nil {
-		return nil, err
-	}
-
-	return internal.PackageCoverage(ctx, dag, baseCoverage)
+	return internal.PackageCoverage(ctx, dag, base)
 }
 
 type Test struct {
