@@ -14,9 +14,26 @@ fi
 # Extract test case names from the AllCases map
 # Look for lines between "AllCases = map[string]testCaseFn{" and the closing "}"
 # Then extract the quoted strings (test case names)
-grep -A 20 "AllCases = map\[string\]testCaseFn{" "$INTEGRATION_FILE" | \
+test_cases=$(grep -A 20 "AllCases = map\[string\]testCaseFn{" "$INTEGRATION_FILE" | \
     grep -B 20 "^\t}" | \
     grep -o '"[^"]*":' | \
     sed 's/"//g' | \
     sed 's/://g' | \
-    sort
+    sort || true)
+
+# If extraction failed, provide fallback
+if [[ -z "$test_cases" ]]; then
+    echo "Warning: Could not extract test cases, using fallback" >&2
+    echo "authn/token"
+    echo "authn/k8s" 
+    echo "authn/jwt"
+    echo "authz"
+    echo "envs"
+    echo "envs_with_dir"
+    echo "ofrep"
+    echo "signing_vault"
+    echo "signing_file"
+    echo "snapshot"
+else
+    echo "$test_cases"
+fi

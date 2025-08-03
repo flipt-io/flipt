@@ -25,7 +25,18 @@ jobs:
       - name: Extract test cases
         id: extract
         run: |
-          tests=$(./.github/scripts/extract-integration-tests.sh | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Checking for integration file..."
+          ls -la build/testing/integration.go
+          echo "Running extraction script..."
+          raw_tests=$(./.github/scripts/extract-integration-tests.sh)
+          echo "Raw output:"
+          echo "$raw_tests"
+          tests=$(echo "$raw_tests" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Processed tests: $tests"
+          if [ "$tests" = "[]" ] || [ -z "$tests" ]; then
+            echo "No tests found, using fallback list"
+            tests='["authn/token","authn/k8s","authn/jwt","authz","envs","envs_with_dir","ofrep","signing_vault","signing_file","snapshot"]'
+          fi
           echo "tests=$tests" >> $GITHUB_OUTPUT
 
   test:
