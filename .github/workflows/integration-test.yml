@@ -81,7 +81,6 @@ jobs:
           docker pull ${{ env.REGISTRY_CACHE }}:golang-base || echo "golang-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:golang-deps || echo "golang-deps not cached yet"  
           docker pull ${{ env.REGISTRY_CACHE }}:node-base || echo "node-base not cached yet"
-          docker pull ${{ env.REGISTRY_CACHE }}:ui-deps || echo "ui-deps not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:runtime-base || echo "runtime-base not cached yet"
           
       - name: Build and Push Cache
@@ -98,7 +97,7 @@ jobs:
       - name: Push intermediate cache layers
         if: steps.cache-check.outputs.exists == 'false'
         run: |
-          # The intermediate layers (golang-base, golang-deps, node-base, ui-deps, runtime-base) 
+          # The intermediate layers (golang-base, golang-deps, node-base, runtime-base) 
           # are automatically pushed during build-with-cache execution
           echo "Intermediate cache layers pushed during build process"
           
