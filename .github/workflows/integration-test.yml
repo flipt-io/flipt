@@ -64,6 +64,21 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  codecov:
+    name: Finalize Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    steps:
+      - if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          run_command: send-notifications
+          sha: ${{ github.sha }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+
   ui:
     name: UI Integration Tests
     runs-on: ubuntu-latest
