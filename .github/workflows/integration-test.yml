@@ -87,9 +87,8 @@ jobs:
       - name: Set cached image output
         id: set-image
         run: |
-          IMAGE_REF="${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}"
-          echo "image=$IMAGE_REF" >> $GITHUB_OUTPUT
-          echo "Using cached image: $IMAGE_REF"
+          echo "image=${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}" >> $GITHUB_OUTPUT
+          echo "Using cached image: ${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}"
 
   test:
     name: Integration Tests
