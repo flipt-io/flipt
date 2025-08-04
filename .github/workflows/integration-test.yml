@@ -79,7 +79,6 @@ jobs:
           # Pre-pull common base layers to speed up builds
           echo "Pre-pulling base cache layers..."
           docker pull ${{ env.REGISTRY_CACHE }}:golang-base || echo "golang-base not cached yet"
-          docker pull ${{ env.REGISTRY_CACHE }}:golang-deps || echo "golang-deps not cached yet"  
           docker pull ${{ env.REGISTRY_CACHE }}:node-base || echo "node-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:runtime-base || echo "runtime-base not cached yet"
           
@@ -97,8 +96,9 @@ jobs:
       - name: Push intermediate cache layers
         if: steps.cache-check.outputs.exists == 'false'
         run: |
-          # The intermediate layers (golang-base, golang-deps, node-base, runtime-base) 
+          # The intermediate layers (golang-base, node-base, runtime-base) 
           # are automatically pushed during build-with-cache execution
+          # Go and npm dependencies use cache volumes for better performance
           echo "Intermediate cache layers pushed during build process"
           
       - name: Set cached image output

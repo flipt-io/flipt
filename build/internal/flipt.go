@@ -186,33 +186,19 @@ func BaseWithCache(ctx context.Context, dag *dagger.Client, source *dagger.Direc
 			WithFile(sum, source.File(sum))
 	}
 
-	// Try cached dependencies layer
-	depsImageRef := fmt.Sprintf("%s:golang-deps", registryCache)
-	
+	// Use cache volumes for Go modules (more reliable than registry caching)
+	var (
+		cacheGoBuild = dag.CacheVolume("go-build-cache")
+		cacheGoMod   = dag.CacheVolume("go-mod-cache")
+	)
+
 	golang = golang.WithEnvVariable("GOOS", platform.OS).
 		WithEnvVariable("GOARCH", platform.Architecture).
+		WithMountedCache(goBuildCachePath, cacheGoBuild).
+		WithMountedCache(goModCachePath, cacheGoMod).
 		WithMountedDirectory("/src", src).
-		WithWorkdir("/src")
-
-	// Check if we have cached dependencies
-	cachedDeps := golang.From(depsImageRef)
-	if _, err := cachedDeps.Sync(ctx); err == nil {
-		golang = cachedDeps
-	} else {
-		// Download dependencies and cache the layer
-		var (
-			cacheGoBuild = dag.CacheVolume("go-build-cache")
-			cacheGoMod   = dag.CacheVolume("go-mod-cache")
-		)
-
-		golang = golang.
-			WithMountedCache(goBuildCachePath, cacheGoBuild).
-			WithMountedCache(goModCachePath, cacheGoMod).
-			WithExec([]string{"go", "mod", "download"})
-		
-		// Cache this dependencies layer
-		golang.Publish(ctx, depsImageRef)
-	}
+		WithWorkdir("/src").
+		WithExec([]string{"go", "mod", "download"})
 
 	// Now continue with the build using the cached layers
 	project := source.
