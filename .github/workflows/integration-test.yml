@@ -26,8 +26,7 @@ jobs:
         id: extract
         run: |
           tests=$(./.github/scripts/extract-integration-tests.sh | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "Generated JSON: $tests"
-          echo "JSON length: ${#tests}"
+          echo "Found Tests: $tests"
           {
             echo "tests<<EOF"
             echo "$tests"
@@ -48,12 +47,36 @@ jobs:
 
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
-      - name: Run Integration Tests
+      - name: Run Integration Tests with Coverage
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source . integration --cases ${{ matrix.test }}
+          args: test --source . integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          flags: integrationtests
+          name: integration-${{ env.INTEGRATION_TEST_NAME }}
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  codecov:
+    name: Finalize Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    steps:
+      - if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          run_command: send-notifications
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   ui:
     name: UI Integration Tests

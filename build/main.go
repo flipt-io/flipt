@@ -31,7 +31,7 @@ type Flipt struct {
 	UIContainer   *dagger.Container
 }
 
-// Returns a container with all the assets compiled and ready for testing and distribution
+// Returns a container with all the assets compiled and ready for testing and distribution (with coverage enabled)
 func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	platform, err := dag.DefaultPlatform(ctx)
 	if err != nil {
@@ -47,7 +47,7 @@ func (f *Flipt) Base(ctx context.Context, source *dagger.Directory) (*dagger.Con
 	return f.BaseContainer, err
 }
 
-// Return container with Flipt binaries in a thinner alpine distribution
+// Return container with Flipt binaries in a thinner alpine distribution (with coverage enabled)
 func (f *Flipt) Build(ctx context.Context, source *dagger.Directory) (*dagger.Container, error) {
 	base, err := f.Base(ctx, source)
 	if err != nil {
@@ -90,25 +90,31 @@ func (t *Test) Unit(ctx context.Context) (*dagger.File, error) {
 	return testing.Unit(ctx, dag, t.BaseContainer)
 }
 
-// Run all integration tests
+// Run all integration tests (now with coverage collection by default)
 func (t *Test) Integration(
 	ctx context.Context,
 	// +optional
 	// +default="*"
 	cases string,
-) error {
+	// +optional
+	// +default=false
+	outputCoverage bool,
+) (*dagger.File, error) {
 	if cases == "list" {
 		fmt.Println("Integration test cases:")
 		for c := range testing.AllCases {
 			fmt.Println("\t> ", c)
 		}
 
-		return nil
+		return nil, nil
 	}
 
 	var opts []testing.IntegrationOptions
 	if cases != "*" {
 		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
+	}
+	if outputCoverage {
+		opts = append(opts, testing.WithCoverageOutput())
 	}
 
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)

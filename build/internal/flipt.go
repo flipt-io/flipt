@@ -91,10 +91,11 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 
 	// TODO(georgemac): wire in version ldflag
 	var (
-		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
-		path       = path.Join("/bin", platforms.Format(platform))
+		ldflags = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
+		path    = path.Join("/bin", platforms.Format(platform))
+		// Note: -cover flag enables coverage instrumentation by default
 		goBuildCmd = fmt.Sprintf(
-			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
+			"go build -cover -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
 			path,
 			ldflags,
 		)
@@ -109,21 +110,23 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 }
 
 // Package copies the Flipt binaries built into the provided flipt container
-// into a thinner alpine distribution.
+// into a thinner alpine distribution with coverage support.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (*dagger.Container, error) {
 	platform, err := flipt.Platform(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// build container with just Flipt + config
+	// build container with just Flipt + config, with coverage directory
 	return client.Container().From("alpine:3.21").
 		WithExec([]string{"apk", "add", "--no-cache", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
-		WithFile("/flipt",
-			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
 		WithExec([]string{"addgroup", "flipt"}).
 		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
+		WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
+		WithExec([]string{"chown", "flipt:flipt", "/tmp/coverage"}). // Ensure flipt user can write to coverage dir
+		WithFile("/flipt",
+			flipt.Directory(path.Join("/bin", platforms.Format(platforms.MustParse(string(platform))))).File("flipt")).
 		WithUser("flipt").
 		WithDefaultArgs([]string{"/flipt", "server"}), nil
 }
