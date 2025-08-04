@@ -229,19 +229,20 @@ func BaseWithCache(ctx context.Context, dag *dagger.Client, source *dagger.Direc
 		source.File("./ui/index.dev.html"),
 	})
 
-	gitCommit, err := golang.WithExec([]string{"git", "rev-parse", "HEAD"}).Stdout(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("getting git commit: %w", err)
-	}
-
 	return golang.WithMountedDirectory("./ui", embed.Directory("./ui")), nil
 }
 
 // PackageWithCache builds the final container with cached layers and UI assets
 func PackageWithCache(ctx context.Context, client *dagger.Client, base *dagger.Container, uiDist *dagger.Directory, platform platforms.Platform, registryCache string) (*dagger.Container, error) {
+	// Get git commit for build
+	gitCommit, err := base.WithExec([]string{"git", "rev-parse", "HEAD"}).Stdout(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting git commit: %w", err)
+	}
+
 	// Mount UI dist and build
 	var (
-		ldflags = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), "dev")
+		ldflags = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
 		binPath = path.Join("/bin", platforms.Format(platform))
 		goBuildCmd = fmt.Sprintf(
 			"go build -cover -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
