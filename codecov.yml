@@ -1,6 +1,7 @@
 codecov:
   notify:
     manual_trigger: true
+    wait_for_ci: false
 
 ignore:
   - "**/*_mock.go"
