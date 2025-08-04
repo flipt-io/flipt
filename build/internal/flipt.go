@@ -109,6 +109,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
 
+
 // Package copies the Flipt binaries built into the provided flipt container
 // into a thinner alpine distribution with coverage support.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (*dagger.Container, error) {

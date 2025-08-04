@@ -9,6 +9,7 @@ on:
 env:
   GO_VERSION: "1.24"
   DAGGER_VERSION: "0.18.14"
+  REGISTRY_CACHE: ghcr.io/${{ github.repository }}-cache
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -33,11 +34,70 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
+  build-cache:
+    name: Build and Cache Flipt Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+      cached-image: ${{ steps.set-image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate Cache Key
+        id: cache-key
+        run: |
+          # Create cache key from git commit and relevant source files
+          key="flipt-$(git rev-parse --short HEAD)-$(find . -name '*.go' -o -name 'go.*' -o -name '*.json' | head -20 | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 8)"
+          echo "key=$key" >> $GITHUB_OUTPUT
+          echo "Cache key: $key"
+          
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check if cache exists
+        id: cache-check
+        run: |
+          if docker manifest inspect ${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }} >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Cache hit: Using existing image"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Cache miss: Will build new image"
+          fi
+          
+      - name: Build and Push Cache
+        id: build
+        if: steps.cache-check.outputs.exists == 'false'
+        uses: dagger/dagger-for-github@v7
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: build-with-cache --source . --registry-cache ${{ env.REGISTRY_CACHE }} --cache-tag ${{ steps.cache-key.outputs.key }}
+        env:
+          CI: true
+          
+      - name: Set cached image output
+        id: set-image
+        run: |
+          if [ "${{ steps.cache-check.outputs.exists }}" = "true" ]; then
+            echo "image=${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}" >> $GITHUB_OUTPUT
+          else
+            echo "image=${{ steps.build.outputs.stdout }}" >> $GITHUB_OUTPUT
+          fi
+
   test:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: discover-tests
+    needs: [discover-tests, build-cache]
     strategy:
       fail-fast: false
       matrix:
@@ -47,12 +107,21 @@ jobs:
 
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
-      - name: Run Integration Tests with Coverage
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Integration Tests with Cached Image
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source . integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          args: test-with-cache --source . --cached-image ${{ needs.build-cache.outputs.cached-image }} integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+        env:
+          CI: true
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5

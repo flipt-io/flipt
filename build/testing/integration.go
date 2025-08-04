@@ -45,9 +45,9 @@ var (
 
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
-		"authn/token":   authn("token"),
-		"authn/k8s":     authn("k8s"),
-		"authn/jwt":     authn("jwt"),
+		"authn/token":   authn(tokenAuthn),
+		"authn/k8s":     authn(k8sAuthn),
+		"authn/jwt":     authn(jwtAuthn),
 		"authz":         authz(),
 		"envs":          envsAPI(""),
 		"envs/dir":      envsAPI("root"),
@@ -278,7 +278,15 @@ func signingAPI(provider secretProvider) testCaseFn {
 	panic("unknown secretProvider: " + string(provider))
 }
 
-func authn(method string) testCaseFn {
+type authnMethod string
+
+const (
+	k8sAuthn   authnMethod = "k8s"
+	tokenAuthn authnMethod = "token"
+	jwtAuthn   authnMethod = "jwt"
+)
+
+func authn(method authnMethod) testCaseFn {
 	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
@@ -295,7 +303,7 @@ func authn(method string) testCaseFn {
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
 		switch method {
-		case "k8s":
+		case k8sAuthn:
 			// K8s auth configuration
 			flipt = flipt.
 				WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_KUBERNETES_ENABLED", "true")
@@ -313,7 +321,7 @@ func authn(method string) testCaseFn {
 
 			// mount service account token into base on expected k8s sa token path
 			base = base.WithNewFile("/var/run/secrets/flipt/k8s.pem", string(priv))
-		case "jwt":
+		case jwtAuthn:
 			// JWT auth configuration
 			bytes, err := x509.MarshalPKIXPublicKey(priv.Public())
 			if err != nil {
@@ -339,7 +347,7 @@ func authn(method string) testCaseFn {
 			base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
 		}
 
-		return suite(ctx, "authn/"+method, base, flipt, conf)
+		return suite(ctx, "authn/"+string(method), base, flipt, conf)
 	}, namespacesTestdataDir)
 }
 

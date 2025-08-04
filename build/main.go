@@ -119,3 +119,112 @@ func (t *Test) Integration(
 
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
 }
+
+// BuildWithCache builds Flipt and pushes to registry for caching across CI jobs
+func (f *Flipt) BuildWithCache(
+	ctx context.Context, 
+	source *dagger.Directory,
+	// Registry to push cached image to (e.g., "ghcr.io/owner/repo-cache")
+	registryCache string,
+	// Tag for the cached image (e.g., "base-abc123")
+	cacheTag string,
+) (string, error) {
+	// Build the normal way first
+	container, err := f.Build(ctx, source)
+	if err != nil {
+		return "", err
+	}
+
+	// Push to registry for caching
+	imageRef := fmt.Sprintf("%s:%s", registryCache, cacheTag)
+	pushedRef, err := container.Publish(ctx, imageRef)
+	if err != nil {
+		return "", fmt.Errorf("failed to push cache image: %w", err)
+	}
+
+	return pushedRef, nil
+}
+
+// TestWithCache creates a Test instance using pre-built cached image
+func (f *Flipt) TestWithCache(
+	ctx context.Context,
+	source *dagger.Directory,
+	// +optional
+	// +default=""
+	cachedImage string,
+) (*TestCache, error) {
+	var flipt *dagger.Container
+	var err error
+
+	// If cached image is provided, use it directly
+	if cachedImage != "" {
+		flipt = dag.Container().From(cachedImage)
+	} else {
+		// Fall back to normal build process
+		flipt, err = f.Build(ctx, source)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// We still need base container for test execution
+	f.BaseContainer, err = f.Base(ctx, source)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TestCache{source, f.BaseContainer, f.UIContainer, flipt}, nil
+}
+
+type TestCache struct {
+	Source         *dagger.Directory
+	BaseContainer  *dagger.Container
+	UIContainer    *dagger.Container
+	FliptContainer *dagger.Container
+}
+
+// Integration runs integration tests using cached Flipt image
+func (t *TestCache) Integration(
+	ctx context.Context,
+	// +optional
+	// +default="*"
+	cases string,
+	// +optional
+	// +default=false
+	outputCoverage bool,
+) (*dagger.File, error) {
+	if cases == "list" {
+		fmt.Println("Integration test cases:")
+		for c := range testing.AllCases {
+			fmt.Println("\t> ", c)
+		}
+
+		return nil, nil
+	}
+
+	var opts []testing.IntegrationOptions
+	if cases != "*" {
+		opts = append(opts, testing.WithTestCases(strings.Split(cases, " ")...))
+	}
+	if outputCoverage {
+		opts = append(opts, testing.WithCoverageOutput())
+	}
+
+	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
+}
+
+// CheckCacheExists checks if a cached image exists in the registry
+func (f *Flipt) CheckCacheExists(
+	ctx context.Context,
+	// Registry and tag to check (e.g., "ghcr.io/owner/repo-cache:base-abc123")
+	imageRef string,
+) (bool, error) {
+	// Try to pull the image to check if it exists
+	container := dag.Container().From(imageRef)
+	_, err := container.Sync(ctx)
+	if err != nil {
+		// Image doesn't exist or can't be pulled
+		return false, nil
+	}
+	return true, nil
+}
