@@ -167,10 +167,20 @@ func (f *Flipt) TestWithCache(
 		}
 	}
 
-	// We still need base container for test execution
-	f.BaseContainer, err = f.Base(ctx, source)
-	if err != nil {
-		return nil, err
+	// Use a lightweight base container for test execution when using cache
+	if cachedImage != "" {
+		// Lightweight test runner - just needs Go toolchain, not full build environment
+		f.BaseContainer = dag.Container().
+			From("golang:1.24-alpine3.21").
+			WithExec([]string{"apk", "add", "--no-cache", "bash", "git"}).
+			WithMountedDirectory("/src", source).
+			WithWorkdir("/src")
+	} else {
+		// Fall back to full base container for non-cached builds
+		f.BaseContainer, err = f.Base(ctx, source)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &TestCache{source, f.BaseContainer, f.UIContainer, flipt}, nil
