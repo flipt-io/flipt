@@ -119,7 +119,7 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test-with-cache --source . --cached-image ${{ needs.build-cache.outputs.cached-image }} integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          args: test-with-cache --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
         env:
           CI: true
 
