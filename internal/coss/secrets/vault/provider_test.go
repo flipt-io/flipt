@@ -1,15 +1,30 @@
 package vault
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/secrets"
 	"go.uber.org/zap"
 )
+
+// MockLicenseManager for testing
+type MockLicenseManager struct {
+	product product.Product
+}
+
+func (m *MockLicenseManager) Product() product.Product {
+	return m.product
+}
+
+func (m *MockLicenseManager) Shutdown(ctx context.Context) error {
+	return nil
+}
 
 func TestConfig_Structure(t *testing.T) {
 	t.Run("config has required fields", func(t *testing.T) {

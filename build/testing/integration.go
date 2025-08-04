@@ -50,9 +50,10 @@ var (
 		"authn/jwt":     authn("jwt"),
 		"authz":         authz(),
 		"envs":          envsAPI(""),
-		"envs_with_dir": envsAPI("root"),
+		"envs/dir":      envsAPI("root"),
 		"ofrep":         ofrepAPI(),
-		"signing":       signingAPI(),
+		"signing/vault": signingAPI(vaultSecretProvider),
+		"signing/file":  signingAPI(fileSecretProvider),
 		"snapshot":      snapshotAPI(),
 	}
 )
@@ -87,6 +88,8 @@ type IntegrationOptions func(*integrationOptions)
 type integrationOptions struct {
 	// The test cases to run. If empty, all test cases are run.
 	cases []string
+	// Whether to output coverage data as a file (for CI artifacts)
+	outputCoverage bool
 }
 
 func WithTestCases(cases ...string) func(*integrationOptions) {
@@ -95,7 +98,13 @@ func WithTestCases(cases ...string) func(*integrationOptions) {
 	}
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) error {
+func WithCoverageOutput() func(*integrationOptions) {
+	return func(opts *integrationOptions) {
+		opts.outputCoverage = true
+	}
+}
+
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) (*dagger.File, error) {
 	var options integrationOptions
 
 	for _, opt := range opts {
@@ -104,7 +113,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	cases, err := filterCases(options.cases...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var configs []testConfig
@@ -119,6 +128,10 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		configs = append(configs, config)
 	}
 
+	// Always create a coverage volume since binaries are built with -cover flag
+	// In CI, each job runs in its own VM so we can use a static name
+	coverageVolume := client.CacheVolume("integration-coverage")
+
 	var g errgroup.Group
 
 	for _, fn := range cases {
@@ -131,17 +144,38 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			g.Go(take(func() error {
-				flipt = flipt.
+				// Always configure the Flipt container for coverage collection since binaries have -cover
+				// Ensure coverage directory has correct permissions for flipt user
+				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
-					WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
+					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
+					WithMountedCache("/tmp/coverage", coverageVolume).
+					WithUser("root").
+					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
+					WithUser("flipt").
 					WithExposedPort(config.port)
 
-				return fn(ctx, client, base, flipt, config)()
+				// Run the test function which will start services and execute tests
+				return fn(ctx, client, base, coverageFliptContainer, config)()
 			}))
 		}
 	}
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// If coverage output is requested, extract coverage data and return as file
+	if options.outputCoverage {
+		coverageContainer := client.Container().
+			From("golang:1.24-alpine3.21").
+			WithMountedCache("/tmp/coverage", coverageVolume).
+			WithExec([]string{"sh", "-c", "if [ -n \"$(find /tmp/coverage -type f 2>/dev/null)\" ]; then go tool covdata textfmt -i=/tmp/coverage -o=/tmp/coverage.out; else echo 'No coverage data available' > /tmp/coverage.out; fi"})
+
+		return coverageContainer.File("/tmp/coverage.out"), nil
+	}
+
+	return nil, nil
 }
 
 func take(fn func() error) func() error {
@@ -185,8 +219,16 @@ func envsAPI(directory string) testCaseFn {
 	}, environmentsTestdataDir)
 }
 
-func signingAPI() testCaseFn {
-	return withVault(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+type secretProvider string
+
+const (
+	vaultSecretProvider = "vault"
+	fileSecretProvider  = "file"
+)
+
+func signingAPI(provider secretProvider) testCaseFn {
+	baseTestFn := func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Common signing configuration
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BACKEND_TYPE", "local").
@@ -194,21 +236,46 @@ func signingAPI() testCaseFn {
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_BRANCH", "main").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_ENABLED", "true").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_TYPE", "gpg").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "vault").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt/signing-key").
-			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "private_key").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_NAME", "Flipt Test Bot").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_EMAIL", "test-bot@flipt.io").
 			WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_ID", "test-bot@flipt.io").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ENABLED", "true").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ADDRESS", "http://vault:8200").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
-			WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
+		switch provider {
+		case fileSecretProvider:
+			// Configure for file-based secrets using our simplified syntax
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "file").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "signing-key").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_FILE_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_FILE_BASE_PATH", "/home/flipt/secrets")
+		case vaultSecretProvider:
+			// Configure for Vault secrets
+			flipt = flipt.
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PROVIDER", "vault").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_PATH", "flipt/signing-key").
+				WithEnvVariable("FLIPT_STORAGE_DEFAULT_SIGNATURE_KEY_REF_KEY", "private_key").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ENABLED", "true").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_ADDRESS", "http://vault:8200").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_AUTH_METHOD", "token").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_TOKEN", "test-root-token").
+				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret")
+		}
+
 		return suite(ctx, "signing", base, flipt, conf)
-	})
+	}
+
+	switch provider {
+	case fileSecretProvider:
+		// File secrets need GPG key setup
+		return withFileSecrets(baseTestFn)
+	case vaultSecretProvider:
+		// Vault secrets need the Vault service
+		return withVaultSecrets(baseTestFn)
+	}
+
+	panic("unknown secretProvider: " + string(provider))
 }
 
 func authn(method string) testCaseFn {
@@ -599,7 +666,44 @@ permit_slice(allowed, requested) if {
 	}
 }
 
-func withVault(fn testCaseFn) testCaseFn {
+const gpgKeyGenerationScript string = `
+cat > /tmp/gpg-gen <<EOF
+%echo Generating test GPG key
+Key-Type: RSA
+Key-Length: 2048
+Subkey-Type: RSA
+Subkey-Length: 2048
+Name-Real: Flipt Test Bot
+Name-Email: test-bot@flipt.io
+Expire-Date: 0
+%no-protection
+%commit
+%echo done
+EOF
+mkdir -p /tmp/gpg
+chmod 700 /tmp/gpg
+gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen`
+
+func withFileSecrets(fn testCaseFn) testCaseFn {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+		// Generate GPG key and store it in the file system
+		// First install gnupg as root, then switch back to user for key generation
+		flipt = flipt.
+			WithUser("root").
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
+			WithUser("flipt").
+			WithExec([]string{"sh", "-c", `
+			mkdir -p /home/flipt/secrets` +
+				gpgKeyGenerationScript + `
+			gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /home/flipt/secrets/signing-key
+			chmod 600 /home/flipt/secrets/signing-key
+		`})
+
+		return fn(ctx, client, base, flipt, conf)
+	}
+}
+
+func withVaultSecrets(fn testCaseFn) testCaseFn {
 	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 		// Create Vault service container
 		vault := client.Container().
@@ -616,26 +720,10 @@ func withVault(fn testCaseFn) testCaseFn {
 			WithEnvVariable("VAULT_ADDR", "http://vault:8200").
 			WithEnvVariable("VAULT_TOKEN", "test-root-token").
 			WithServiceBinding("vault", vault).
-			WithExec([]string{"sh", "-c", `
-				apk add --no-cache gnupg
-				cat > /tmp/gpg-gen <<EOF
-%echo Generating test GPG key
-Key-Type: RSA
-Key-Length: 2048
-Subkey-Type: RSA
-Subkey-Length: 2048
-Name-Real: Flipt Test Bot
-Name-Email: test-bot@flipt.io
-Expire-Date: 0
-%no-protection
-%commit
-%echo done
-EOF`}).
+			WithExec([]string{"apk", "add", "--no-cache", "gnupg"}).
 			WithExec([]string{
-				"sh", "-c", `
-				mkdir -p /tmp/gpg
-				chmod 700 /tmp/gpg
-				gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen
+				"sh", "-c",
+				gpgKeyGenerationScript + `
 				gpg --homedir /tmp/gpg --armor --export-secret-keys test-bot@flipt.io > /tmp/private-key.asc
 				
 				sleep 10
@@ -650,8 +738,8 @@ EOF`}).
 					echo "ERROR: Failed to store key in Vault"
 					exit 1
 				fi
-			`}).Sync(ctx)
-
+			`,
+			}).Sync(ctx)
 		if err != nil {
 			return func() error { return err }
 		}

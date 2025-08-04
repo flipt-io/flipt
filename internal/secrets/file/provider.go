@@ -1,9 +1,8 @@
 package file
 
 import (
+	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -45,6 +44,7 @@ func NewProvider(basePath string, logger *zap.Logger) (*Provider, error) {
 }
 
 // GetSecret retrieves a secret from the file system.
+// Each file contains a single secret value, with the filename being the secret key.
 func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret, error) {
 	fullPath := p.secretPath(path)
 
@@ -60,32 +60,22 @@ func (p *Provider) GetSecret(ctx context.Context, path string) (*secrets.Secret,
 		return nil, fmt.Errorf("reading secret file: %w", err)
 	}
 
-	var fileData secretFile
-	if err := json.Unmarshal(data, &fileData); err != nil {
-		return nil, fmt.Errorf("parsing secret file: %w", err)
-	}
+	// Trim any trailing whitespace/newlines from the secret value
+	secretValue := bytes.TrimSpace(data)
 
-	// Convert string data to bytes, with base64 fallback for individual values
-	secretData := make(map[string][]byte)
-	for k, v := range fileData.Data {
-		// Attempt to decode the value as base64
-		if decoded, err := base64.StdEncoding.DecodeString(v); err == nil {
-			secretData[k] = decoded
-		} else {
-			// If decoding fails, use the original value as bytes
-			secretData[k] = []byte(v)
-		}
+	// Create a secret with the filename as the key and file contents as the value
+	secretData := map[string][]byte{
+		path: secretValue,
 	}
 
 	return &secrets.Secret{
-		Path:     path,
-		Data:     secretData,
-		Metadata: fileData.Metadata,
-		Version:  fileData.Version,
+		Path: path,
+		Data: secretData,
 	}, nil
 }
 
 // PutSecret stores a secret in the file system.
+// The secret value is written directly to the file with the given path.
 func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.Secret) error {
 	fullPath := p.secretPath(path)
 
@@ -95,29 +85,18 @@ func (p *Provider) PutSecret(ctx context.Context, path string, secret *secrets.S
 		return fmt.Errorf("creating directory: %w", err)
 	}
 
-	// Convert bytes to strings for JSON serialization
-	stringData := make(map[string]string)
-	for k, v := range secret.Data {
-		stringData[k] = string(v)
-	}
-
-	fileData := secretFile{
-		Data:     stringData,
-		Metadata: secret.Metadata,
-		Version:  secret.Version,
-	}
-
-	data, err := json.MarshalIndent(fileData, "", "  ")
-	if err != nil {
-		return fmt.Errorf("encoding secret: %w", err)
+	// Get the secret value for the path key
+	secretValue, ok := secret.Data[path]
+	if !ok {
+		return fmt.Errorf("no secret value found for path %q", path)
 	}
 
 	p.logger.Debug("writing secret to file",
 		zap.String("path", path),
 		zap.String("file", fullPath))
 
-	// Write with restricted permissions
-	if err := os.WriteFile(fullPath, data, 0600); err != nil {
+	// Write the raw secret value with restricted permissions
+	if err := os.WriteFile(fullPath, secretValue, 0600); err != nil {
 		return fmt.Errorf("writing secret file: %w", err)
 	}
 
@@ -169,7 +148,7 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 			return nil //nolint:nilerr // skip inaccessible paths in walk
 		}
 
-		if info.IsDir() || !strings.HasSuffix(path, ".json") {
+		if info.IsDir() {
 			return nil
 		}
 
@@ -182,9 +161,8 @@ func (p *Provider) ListSecrets(ctx context.Context, pathPrefix string) ([]string
 			return nil // skip invalid paths in walk
 		}
 
-		// Remove .json extension
-		secretPath := strings.TrimSuffix(relPath, ".json")
-		paths = append(paths, secretPath)
+		// The filename is the secret path (no extension needed)
+		paths = append(paths, relPath)
 
 		return nil
 	})
@@ -206,12 +184,5 @@ func (p *Provider) secretPath(path string) string {
 	path = filepath.Clean(path)
 	path = strings.TrimPrefix(path, "/")
 
-	return filepath.Join(p.basePath, path+".json")
-}
-
-// secretFile represents the JSON structure stored on disk.
-type secretFile struct {
-	Data     map[string]string `json:"data"`
-	Metadata map[string]string `json:"metadata,omitempty"`
-	Version  string            `json:"version,omitempty"`
+	return filepath.Join(p.basePath, path)
 }

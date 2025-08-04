@@ -8,43 +8,75 @@ on:
 
 env:
   GO_VERSION: "1.24"
-  DAGGER_VERSION: "0.18.12"
+  DAGGER_VERSION: "0.18.14"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 
 jobs:
+  discover-tests:
+    name: Discover Integration Tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.extract.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract test cases
+        id: extract
+        run: |
+          tests=$(./.github/scripts/extract-integration-tests.sh | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Found Tests: $tests"
+          {
+            echo "tests<<EOF"
+            echo "$tests"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
   test:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: discover-tests
     strategy:
       fail-fast: false
       matrix:
-        test:
-          [
-            "envs",
-            "envs_with_dir",
-            "authn/token",
-            "authn/k8s",
-            "authn/jwt",
-            "authz",
-            "ofrep",
-            "snapshot",
-            "signing",
-          ]
+        test: ${{ fromJson(needs.discover-tests.outputs.tests) }}
     steps:
       - uses: actions/checkout@v4
 
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
-      - name: Run Integration Tests
+      - name: Run Integration Tests with Coverage
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source . integration --cases ${{ matrix.test }}
+          args: test --source . integration --cases=${{ matrix.test }} --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          flags: integrationtests
+          name: integration-${{ env.INTEGRATION_TEST_NAME }}
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  codecov:
+    name: Finalize Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    steps:
+      - if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          run_command: send-notifications
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   ui:
     name: UI Integration Tests

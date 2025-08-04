@@ -2,11 +2,8 @@ package file
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,25 +47,12 @@ func TestProvider_GetSecret(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("retrieves existing secret", func(t *testing.T) {
-		// Create a secret file manually
-		secretPath := "test/secret"
-		secretData := map[string][]byte{
-			"password": []byte("secret123"),
-			"token":    []byte("abc123"),
-		}
-		secretMetadata := map[string]string{
-			"created_by": "test",
-			"env":        "test",
-		}
+		// Create a secret file directly (simplified approach)
+		secretPath := "test_secret"
+		secretValue := "my-secret-value"
 
-		secret := &secrets.Secret{
-			Path:     secretPath,
-			Data:     secretData,
-			Metadata: secretMetadata,
-			Version:  "v1",
-		}
-
-		err := provider.PutSecret(ctx, secretPath, secret)
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
@@ -76,9 +60,43 @@ func TestProvider_GetSecret(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, secretPath, retrieved.Path)
-		assert.Equal(t, secretData, retrieved.Data)
-		assert.Equal(t, secretMetadata, retrieved.Metadata)
-		assert.Equal(t, "v1", retrieved.Version)
+		assert.Equal(t, map[string][]byte{secretPath: []byte(secretValue)}, retrieved.Data)
+	})
+
+	t.Run("retrieves nested secret", func(t *testing.T) {
+		// Create nested directory structure
+		secretPath := "azure/storage_key"        // #nosec G101 - test data
+		secretValue := "azure-storage-key-value" // #nosec G101 - test data
+
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+		require.NoError(t, err)
+		err = os.WriteFile(fullPath, []byte(secretValue), 0600)
+		require.NoError(t, err)
+
+		// Retrieve the secret
+		retrieved, err := provider.GetSecret(ctx, secretPath)
+
+		require.NoError(t, err)
+		assert.Equal(t, secretPath, retrieved.Path)
+		assert.Equal(t, map[string][]byte{secretPath: []byte(secretValue)}, retrieved.Data)
+	})
+
+	t.Run("trims whitespace and newlines", func(t *testing.T) {
+		// Create a secret with trailing whitespace
+		secretPath := "whitespace_test"
+		secretValue := "  my-secret-value\n\n  " // #nosec G101 - test data
+		expectedValue := "my-secret-value"
+
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
+		require.NoError(t, err)
+
+		// Retrieve the secret
+		retrieved, err := provider.GetSecret(ctx, secretPath)
+
+		require.NoError(t, err)
+		assert.Equal(t, map[string][]byte{secretPath: []byte(expectedValue)}, retrieved.Data)
 	})
 
 	t.Run("returns error for non-existent secret", func(t *testing.T) {
@@ -88,72 +106,21 @@ func TestProvider_GetSecret(t *testing.T) {
 		assert.Contains(t, err.Error(), "secret not found")
 	})
 
-	t.Run("returns error for invalid JSON", func(t *testing.T) {
-		// Create invalid JSON file
-		invalidPath := filepath.Join(tmpDir, "invalid.json")
-		err := os.WriteFile(invalidPath, []byte("invalid json"), 0600)
-		require.NoError(t, err)
-
-		_, err = provider.GetSecret(ctx, "invalid")
-
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "parsing secret file")
-	})
-
-	t.Run("handles GPG key with escaped newlines in JSON", func(t *testing.T) {
-		// Create a GPG key with properly escaped newlines in JSON
+	t.Run("handles GPG key with newlines", func(t *testing.T) {
+		// Create a GPG key with newlines
+		secretPath := "gpg_key"
 		//nolint:gosec // this is a test
 		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
 
-		// Create JSON manually with properly escaped string
-		secretFile := secretFile{
-			Data: map[string]string{
-				"gpg-key": gpgKey,
-			},
-		}
-
-		jsonData, err := json.Marshal(secretFile)
-		require.NoError(t, err)
-
-		secretPath := filepath.Join(tmpDir, "gpg-test.json")
-		err = os.WriteFile(secretPath, jsonData, 0600)
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.WriteFile(fullPath, []byte(gpgKey), 0600)
 		require.NoError(t, err)
 
 		// Retrieve the secret
-		retrieved, err := provider.GetSecret(ctx, "gpg-test")
+		retrieved, err := provider.GetSecret(ctx, secretPath)
 
 		require.NoError(t, err)
-		assert.Equal(t, []byte(gpgKey), retrieved.Data["gpg-key"])
-	})
-
-	t.Run("handles base64 encoded values in JSON", func(t *testing.T) {
-		// Create a secret file with base64 encoded values
-		//nolint:gosec // this is a test
-		gpgKey := "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nlQVYBGh9OVoBDACmOSHo...\n-----END PGP PRIVATE KEY BLOCK-----"
-		base64EncodedKey := base64.StdEncoding.EncodeToString([]byte(gpgKey))
-
-		secretFile := secretFile{
-			Data: map[string]string{
-				"gpg-key":   base64EncodedKey,
-				"plaintext": "not-base64-value",
-			},
-		}
-
-		jsonData, err := json.Marshal(secretFile)
-		require.NoError(t, err)
-
-		secretPath := filepath.Join(tmpDir, "base64-values-test.json")
-		err = os.WriteFile(secretPath, jsonData, 0600)
-		require.NoError(t, err)
-
-		// Retrieve the secret
-		retrieved, err := provider.GetSecret(ctx, "base64-values-test")
-
-		require.NoError(t, err)
-		// Base64 encoded value should be decoded
-		assert.Equal(t, []byte(gpgKey), retrieved.Data["gpg-key"])
-		// Plain text value should remain as-is
-		assert.Equal(t, []byte("not-base64-value"), retrieved.Data["plaintext"])
+		assert.Equal(t, []byte(gpgKey), retrieved.Data[secretPath])
 	})
 }
 
@@ -169,47 +136,68 @@ func TestProvider_PutSecret(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("stores secret with correct permissions", func(t *testing.T) {
-		secretPath := "test/secret"
+		secretPath := "test_secret"
+		secretValue := "my-secret-value"
 		secret := &secrets.Secret{
 			Path: secretPath,
 			Data: map[string][]byte{
-				"password": []byte("secret123"),
-				"token":    []byte("abc123"),
+				secretPath: []byte(secretValue),
 			},
-			Metadata: map[string]string{
-				"created_by": "test",
-			},
-			Version: "v1",
 		}
 
 		err := provider.PutSecret(ctx, secretPath, secret)
 
 		require.NoError(t, err)
 
-		// Verify file was created
+		// Verify file was created with correct permissions
 		fullPath := provider.secretPath(secretPath)
 		stat, err := os.Stat(fullPath)
 		require.NoError(t, err)
 		assert.Equal(t, os.FileMode(0600), stat.Mode().Perm())
 
+		// Verify content
+		content, err := os.ReadFile(fullPath)
+		require.NoError(t, err)
+		assert.Equal(t, secretValue, string(content))
+	})
+
+	t.Run("stores nested secret", func(t *testing.T) {
+		secretPath := "aws/prod/access_key"   // #nosec G101 - test data
+		secretValue := "aws-access-key-value" // #nosec G101 - test data
+		secret := &secrets.Secret{
+			Path: secretPath,
+			Data: map[string][]byte{
+				secretPath: []byte(secretValue),
+			},
+		}
+
+		err := provider.PutSecret(ctx, secretPath, secret)
+
+		require.NoError(t, err)
+
 		// Verify directory structure was created
+		fullPath := provider.secretPath(secretPath)
 		dir := filepath.Dir(fullPath)
 		dirStat, err := os.Stat(dir)
 		require.NoError(t, err)
 		assert.True(t, dirStat.IsDir())
 		assert.Equal(t, os.FileMode(0700), dirStat.Mode().Perm())
+
+		// Verify content
+		content, err := os.ReadFile(fullPath)
+		require.NoError(t, err)
+		assert.Equal(t, secretValue, string(content))
 	})
 
 	t.Run("overwrites existing secret", func(t *testing.T) {
-		secretPath := "test/overwrite"
+		secretPath := "overwrite_test"
 
 		// Create initial secret
 		secret1 := &secrets.Secret{
 			Path: secretPath,
 			Data: map[string][]byte{
-				"password": []byte("old_password"),
+				secretPath: []byte("old_value"),
 			},
-			Version: "v1",
 		}
 
 		err := provider.PutSecret(ctx, secretPath, secret1)
@@ -219,9 +207,8 @@ func TestProvider_PutSecret(t *testing.T) {
 		secret2 := &secrets.Secret{
 			Path: secretPath,
 			Data: map[string][]byte{
-				"password": []byte("new_password"),
+				secretPath: []byte("new_value"),
 			},
-			Version: "v2",
 		}
 
 		err = provider.PutSecret(ctx, secretPath, secret2)
@@ -230,28 +217,22 @@ func TestProvider_PutSecret(t *testing.T) {
 		// Verify the secret was overwritten
 		retrieved, err := provider.GetSecret(ctx, secretPath)
 		require.NoError(t, err)
-		assert.Equal(t, []byte("new_password"), retrieved.Data["password"])
-		assert.Equal(t, "v2", retrieved.Version)
+		assert.Equal(t, []byte("new_value"), retrieved.Data[secretPath])
 	})
 
-	t.Run("handles nested paths", func(t *testing.T) {
-		secretPath := "app/prod/database/config" // #nosec G101 - this is a test path
+	t.Run("returns error when secret data missing for path", func(t *testing.T) {
+		secretPath := "missing_data"
 		secret := &secrets.Secret{
 			Path: secretPath,
 			Data: map[string][]byte{
-				"username": []byte("dbuser"),
-				"password": []byte("dbpass"),
+				"different_key": []byte("value"),
 			},
 		}
 
 		err := provider.PutSecret(ctx, secretPath, secret)
 
-		require.NoError(t, err)
-
-		// Verify the secret can be retrieved
-		retrieved, err := provider.GetSecret(ctx, secretPath)
-		require.NoError(t, err)
-		assert.Equal(t, secret.Data, retrieved.Data)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no secret value found for path")
 	})
 }
 
@@ -267,16 +248,12 @@ func TestProvider_DeleteSecret(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("deletes existing secret", func(t *testing.T) {
-		secretPath := "test/delete"
-		secret := &secrets.Secret{
-			Path: secretPath,
-			Data: map[string][]byte{
-				"password": []byte("secret123"),
-			},
-		}
+		secretPath := "delete_test"
+		secretValue := "delete-me"
 
-		// Create the secret
-		err := provider.PutSecret(ctx, secretPath, secret)
+		// Create the secret file directly
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.WriteFile(fullPath, []byte(secretValue), 0600)
 		require.NoError(t, err)
 
 		// Verify it exists
@@ -302,15 +279,12 @@ func TestProvider_DeleteSecret(t *testing.T) {
 
 	t.Run("cleans up empty directories", func(t *testing.T) {
 		secretPath := "cleanup/test/deep/secret"
-		secret := &secrets.Secret{
-			Path: secretPath,
-			Data: map[string][]byte{
-				"value": []byte("test"),
-			},
-		}
 
-		// Create the secret
-		err := provider.PutSecret(ctx, secretPath, secret)
+		// Create the secret file
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+		require.NoError(t, err)
+		err = os.WriteFile(fullPath, []byte("test"), 0600)
 		require.NoError(t, err)
 
 		// Verify directories were created
@@ -325,11 +299,6 @@ func TestProvider_DeleteSecret(t *testing.T) {
 		// Verify empty directories were cleaned up
 		_, err = os.Stat(deepDir)
 		assert.True(t, os.IsNotExist(err))
-
-		// But base directory should still exist
-		baseDir := filepath.Join(tmpDir, "cleanup")
-		_, err = os.Stat(baseDir)
-		assert.True(t, os.IsNotExist(err)) // Should be cleaned up since it's empty
 	})
 
 	t.Run("does not remove non-empty directories", func(t *testing.T) {
@@ -337,18 +306,14 @@ func TestProvider_DeleteSecret(t *testing.T) {
 		secret1Path := "shared/secret1"
 		secret2Path := "shared/secret2"
 
-		secret1 := &secrets.Secret{
-			Path: secret1Path,
-			Data: map[string][]byte{"value": []byte("test1")},
-		}
-		secret2 := &secrets.Secret{
-			Path: secret2Path,
-			Data: map[string][]byte{"value": []byte("test2")},
-		}
+		fullPath1 := filepath.Join(tmpDir, secret1Path)
+		fullPath2 := filepath.Join(tmpDir, secret2Path)
 
-		err := provider.PutSecret(ctx, secret1Path, secret1)
+		err := os.MkdirAll(filepath.Dir(fullPath1), 0700)
 		require.NoError(t, err)
-		err = provider.PutSecret(ctx, secret2Path, secret2)
+		err = os.WriteFile(fullPath1, []byte("test1"), 0600)
+		require.NoError(t, err)
+		err = os.WriteFile(fullPath2, []byte("test2"), 0600)
 		require.NoError(t, err)
 
 		// Delete one secret
@@ -388,11 +353,10 @@ func TestProvider_ListSecrets(t *testing.T) {
 		}
 
 		for _, secretPath := range secretPaths {
-			secret := &secrets.Secret{
-				Path: secretPath,
-				Data: map[string][]byte{"value": []byte("test")},
-			}
-			err := provider.PutSecret(ctx, secretPath, secret)
+			fullPath := filepath.Join(tmpDir, secretPath)
+			err := os.MkdirAll(filepath.Dir(fullPath), 0700)
+			require.NoError(t, err)
+			err = os.WriteFile(fullPath, []byte("test"), 0600)
 			require.NoError(t, err)
 		}
 
@@ -414,11 +378,9 @@ func TestProvider_ListSecrets(t *testing.T) {
 
 	t.Run("lists all secrets when prefix is empty", func(t *testing.T) {
 		// Create a secret at root level
-		secret := &secrets.Secret{
-			Path: "root-secret",
-			Data: map[string][]byte{"value": []byte("test")},
-		}
-		err := provider.PutSecret(ctx, "root-secret", secret)
+		secretPath := "root-secret"
+		fullPath := filepath.Join(tmpDir, secretPath)
+		err := os.WriteFile(fullPath, []byte("test"), 0600)
 		require.NoError(t, err)
 
 		// List all secrets
@@ -429,19 +391,28 @@ func TestProvider_ListSecrets(t *testing.T) {
 		assert.Contains(t, paths, "root-secret")
 	})
 
-	t.Run("ignores non-JSON files", func(t *testing.T) {
-		// Create a non-JSON file in the secrets directory
-		nonJSONPath := filepath.Join(tmpDir, "not-a-secret.txt")
-		err := os.WriteFile(nonJSONPath, []byte("not a secret"), 0600) // #nosec G306 - test file
-		require.NoError(t, err)
+	t.Run("includes all file types", func(t *testing.T) {
+		// Create files with different extensions
+		testFiles := []string{
+			"secret.txt",
+			"config.yml",
+			"token", // no extension
+			"key.pem",
+		}
+
+		for _, filename := range testFiles {
+			fullPath := filepath.Join(tmpDir, filename)
+			err := os.WriteFile(fullPath, []byte("content"), 0600)
+			require.NoError(t, err)
+		}
 
 		// List secrets
 		paths, err := provider.ListSecrets(ctx, "")
 
 		require.NoError(t, err)
-		// Should not include the non-JSON file
-		for _, path := range paths {
-			assert.NotEqual(t, "not-a-secret", path)
+		// Should include all files regardless of extension
+		for _, filename := range testFiles {
+			assert.Contains(t, paths, filename)
 		}
 	})
 }
@@ -456,7 +427,7 @@ func TestProvider_secretPath(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("converts logical path to file path", func(t *testing.T) {
-		expected := filepath.Join(tmpDir, "app", "prod", "database.json")
+		expected := filepath.Join(tmpDir, "app", "prod", "database")
 		actual := provider.secretPath("app/prod/database")
 
 		assert.Equal(t, expected, actual)
@@ -464,8 +435,6 @@ func TestProvider_secretPath(t *testing.T) {
 
 	t.Run("sanitizes directory traversal attempts", func(t *testing.T) {
 		// Test various directory traversal attempts
-		// NOTE: The current implementation uses filepath.Clean() which resolves '..' elements
-		// but may still allow traversal outside the base directory.
 		testCases := []string{
 			"../../../etc/passwd",
 			"./../../etc/passwd",
@@ -477,24 +446,23 @@ func TestProvider_secretPath(t *testing.T) {
 
 			// The path should be sanitized (no literal ".." should remain)
 			assert.NotContains(t, actual, "..")
-
-			// Verify the path ends with .json
-			assert.True(t, strings.HasSuffix(actual, ".json"))
 		}
 	})
 
 	t.Run("handles absolute paths", func(t *testing.T) {
 		// Absolute paths should be converted to relative
-		expected := filepath.Join(tmpDir, "app", "secret.json")
+		expected := filepath.Join(tmpDir, "app", "secret")
 		actual := provider.secretPath("/app/secret")
 
 		assert.Equal(t, expected, actual)
 	})
 
-	t.Run("adds JSON extension", func(t *testing.T) {
+	t.Run("no extension added", func(t *testing.T) {
 		actual := provider.secretPath("test/secret")
 
-		assert.Equal(t, ".json", filepath.Ext(actual))
+		// Should not add any extension
+		assert.Empty(t, filepath.Ext(actual))
+		assert.Equal(t, "secret", filepath.Base(actual))
 	})
 }
 
@@ -516,14 +484,8 @@ func TestProvider_Integration(t *testing.T) {
 		secret := &secrets.Secret{
 			Path: secretPath,
 			Data: map[string][]byte{
-				"username": []byte("admin"),
-				"password": []byte("secret123"),
+				secretPath: []byte("secret123"),
 			},
-			Metadata: map[string]string{
-				"created_by": "test",
-				"env":        "test",
-			},
-			Version: "v1",
 		}
 
 		// Store the secret
@@ -534,8 +496,6 @@ func TestProvider_Integration(t *testing.T) {
 		retrieved, err := provider.GetSecret(ctx, secretPath)
 		require.NoError(t, err)
 		assert.Equal(t, secret.Data, retrieved.Data)
-		assert.Equal(t, secret.Metadata, retrieved.Metadata)
-		assert.Equal(t, secret.Version, retrieved.Version)
 
 		// List secrets
 		paths, err := provider.ListSecrets(ctx, "integration")
@@ -543,8 +503,7 @@ func TestProvider_Integration(t *testing.T) {
 		assert.Contains(t, paths, secretPath)
 
 		// Update secret
-		secret.Data["password"] = []byte("new_password")
-		secret.Version = "v2"
+		secret.Data[secretPath] = []byte("new_password")
 
 		err = provider.PutSecret(ctx, secretPath, secret)
 		require.NoError(t, err)
@@ -552,8 +511,7 @@ func TestProvider_Integration(t *testing.T) {
 		// Verify update
 		updated, err := provider.GetSecret(ctx, secretPath)
 		require.NoError(t, err)
-		assert.Equal(t, []byte("new_password"), updated.Data["password"])
-		assert.Equal(t, "v2", updated.Version)
+		assert.Equal(t, []byte("new_password"), updated.Data[secretPath])
 
 		// Delete secret
 		err = provider.DeleteSecret(ctx, secretPath)

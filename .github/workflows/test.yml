@@ -8,7 +8,7 @@ on:
 
 env:
   GO_VERSION: "1.24"
-  DAGGER_VERSION: "0.18.12"
+  DAGGER_VERSION: "0.18.14"
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
@@ -35,6 +35,15 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Finalize Coverage
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          run_command: send-notifications
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   test-darwin:
     name: "Tests (Go - Darwin)"
