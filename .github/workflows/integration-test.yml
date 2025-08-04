@@ -87,11 +87,9 @@ jobs:
       - name: Set cached image output
         id: set-image
         run: |
-          if [ "${{ steps.cache-check.outputs.exists }}" = "true" ]; then
-            echo "image=${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}" >> $GITHUB_OUTPUT
-          else
-            echo "image=${{ steps.build.outputs.stdout }}" >> $GITHUB_OUTPUT
-          fi
+          IMAGE_REF="${{ env.REGISTRY_CACHE }}:${{ steps.cache-key.outputs.key }}"
+          echo "image=$IMAGE_REF" >> $GITHUB_OUTPUT
+          echo "Using cached image: $IMAGE_REF"
 
   test:
     name: Integration Tests
