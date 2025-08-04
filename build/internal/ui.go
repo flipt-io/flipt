@@ -43,13 +43,17 @@ func UIWithCache(ctx context.Context, client *dagger.Client, source *dagger.Dire
 		WithMountedDirectory("/src", sourceClean).
 		WithWorkdir("/src")
 
+	// Always need the cache volume for node_modules access
+	cache := client.CacheVolume("node-modules-cache")
+	
 	// Check if we have cached UI dependencies
 	cachedDeps := client.Container().From(depsRef)
 	if _, err := cachedDeps.Sync(ctx); err == nil {
-		container = cachedDeps.WithMountedDirectory("/src", sourceClean)
+		container = cachedDeps.
+			WithMountedDirectory("/src", sourceClean).
+			WithMountedCache("/src/node_modules", cache)
 	} else {
 		// Install dependencies and cache the layer
-		cache := client.CacheVolume("node-modules-cache")
 		container = container.
 			WithMountedCache("/src/node_modules", cache).
 			WithExec([]string{"npm", "install"})
