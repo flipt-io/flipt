@@ -120,7 +120,7 @@ func (t *Test) Integration(
 	return testing.Integration(ctx, dag, t.BaseContainer, t.FliptContainer, opts...)
 }
 
-// BuildWithCache builds Flipt and pushes to registry for caching across CI jobs
+// BuildWithCache builds Flipt using layered caching and pushes to registry for caching across CI jobs
 func (f *Flipt) BuildWithCache(
 	ctx context.Context, 
 	source *dagger.Directory,
@@ -129,8 +129,25 @@ func (f *Flipt) BuildWithCache(
 	// Tag for the cached image (e.g., "base-abc123")
 	cacheTag string,
 ) (string, error) {
-	// Build the normal way first
-	container, err := f.Build(ctx, source)
+	platform, err := dag.DefaultPlatform(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	// Use the optimized base container with registry cache
+	f.BaseContainer, err = internal.BaseWithCache(ctx, dag, source, platforms.MustParse(string(platform)), registryCache)
+	if err != nil {
+		return "", err
+	}
+
+	// Build UI with cache
+	f.UIContainer, err = internal.UIWithCache(ctx, dag, source.Directory("ui"), registryCache)
+	if err != nil {
+		return "", err
+	}
+
+	// Build final container using cached layers
+	container, err := internal.PackageWithCache(ctx, dag, f.BaseContainer, f.UIContainer.Directory("dist"), platforms.MustParse(string(platform)), registryCache)
 	if err != nil {
 		return "", err
 	}
