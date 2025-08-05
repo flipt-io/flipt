@@ -122,7 +122,7 @@ func (t *Test) Integration(
 
 // BuildWithCache builds Flipt using layered caching and pushes to registry for caching across CI jobs
 func (f *Flipt) BuildWithCache(
-	ctx context.Context, 
+	ctx context.Context,
 	source *dagger.Directory,
 	// Registry to push cached image to (e.g., "ghcr.io/owner/repo-cache")
 	registryCache string,
