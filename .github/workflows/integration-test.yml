@@ -137,6 +137,12 @@ jobs:
         env:
           CI: true
 
+      - name: Inspect Coverage File
+        run: cat coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+
+      - name: Rewrite Coverage Paths
+        run: sed -i 's|/src/||g' coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         if: always()
@@ -152,9 +158,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: test
+    if: always()
     steps:
-      - if: always()
-        uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           run_command: send-notifications
