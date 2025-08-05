@@ -14,6 +14,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-jose/go-jose/v4"
@@ -128,11 +129,9 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		configs = append(configs, config)
 	}
 
-	// Use cache volume but understand the issue: in CI, services may not inherit volume mounts properly
-	// Keep the cache volume for now but add better diagnostics
-	coverageVolume := client.CacheVolume("integration-coverage")
-
 	var g errgroup.Group
+	var coverageFiles []*dagger.File
+	var mu sync.Mutex
 
 	for _, fn := range cases {
 		for _, config := range configs {
@@ -144,20 +143,44 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			g.Go(take(func() error {
-				// Configure Flipt container for coverage collection since binaries are built with -cover
-				// IMPORTANT: The service created by AsService() might not inherit this cache volume mount
+				// Configure Flipt container to write coverage data and export it on service exit
 				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
-					WithMountedCache("/tmp/coverage", coverageVolume).
 					WithUser("root").
 					WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
 					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
+					// Add a script that will run on container exit to convert coverage data
+					WithNewFile("/usr/local/bin/export-coverage.sh", `#!/bin/sh
+if [ -n "$(find /tmp/coverage -name "covcounters.*" -o -name "covmeta.*" 2>/dev/null)" ]; then
+	go tool covdata textfmt -i=/tmp/coverage -o=/tmp/service-coverage.txt 2>/dev/null || {
+		echo "mode: set" > /tmp/service-coverage.txt
+	}
+else
+	echo "mode: set" > /tmp/service-coverage.txt
+fi
+`).
+					WithExec([]string{"chmod", "+x", "/usr/local/bin/export-coverage.sh"}).
 					WithUser("flipt").
 					WithExposedPort(config.port)
 
 				// Run the test function which will start services and execute tests
-				return fn(ctx, client, base, coverageFliptContainer, config)()
+				err := fn(ctx, client, base, coverageFliptContainer, config)()
+
+				// After tests complete, export coverage data from the service container
+				if options.outputCoverage && err == nil {
+					// Run the export script to convert coverage data to text format
+					coverageCollector := coverageFliptContainer.
+						WithExec([]string{"/usr/local/bin/export-coverage.sh"})
+
+					coverageFile := coverageCollector.File("/tmp/service-coverage.txt")
+
+					mu.Lock()
+					coverageFiles = append(coverageFiles, coverageFile)
+					mu.Unlock()
+				}
+
+				return err
 			}))
 		}
 	}
@@ -166,39 +189,43 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		return nil, err
 	}
 
-	// If coverage output is requested, convert coverage data to text format
+	// If coverage output is requested, merge all coverage files
 	if options.outputCoverage {
-		coverageContainer := client.Container().
-			From("golang:1.24-alpine3.21").
-			WithMountedCache("/tmp/coverage", coverageVolume).
-			WithExec([]string{"sh", "-c", `
-				echo "=== Integration Test Coverage Collection ==="
-				echo "Checking for coverage files in cache volume..."
-				ls -la /tmp/coverage/ 2>/dev/null && echo "Directory exists" || echo "Directory not found"
-				
-				echo "Looking for Go coverage files..."
-				find /tmp/coverage -name "covcounters.*" -o -name "covmeta.*" 2>/dev/null | head -5
-				
-				echo "All files in coverage directory:"
-				find /tmp/coverage -type f 2>/dev/null | head -10 || echo "No files found"
-				
-				# Check if coverage data exists and convert to text format
-				if [ -n "$(find /tmp/coverage -name "covcounters.*" -o -name "covmeta.*" 2>/dev/null)" ]; then
-					echo "SUCCESS: Found Go coverage files, converting..."
-					go tool covdata textfmt -i=/tmp/coverage -o=/tmp/coverage.txt
-					echo "Coverage conversion complete. Lines: $(wc -l < /tmp/coverage.txt)"
-				else
-					echo "ISSUE: No Go coverage files found."
-					echo "This likely means:"
-					echo "1. Coverage data was not written during test execution, OR" 
-					echo "2. Service containers don't inherit cache volume mounts"
-					echo "Creating empty coverage file to prevent CI failure"
-					echo "mode: set" > /tmp/coverage.txt
-				fi
-				echo "=== End Coverage Collection ==="
-			`})
+		if len(coverageFiles) == 0 {
+			// No coverage files collected, return empty coverage
+			return client.Container().
+				From("alpine:3.21").
+				WithNewFile("/tmp/coverage.txt", "mode: set\n").
+				File("/tmp/coverage.txt"), nil
+		}
 
-		return coverageContainer.File("/tmp/coverage.txt"), nil
+		// Start with the first coverage file
+		mergeContainer := client.Container().
+			From("golang:1.24-alpine3.21").
+			WithFile("/tmp/coverage-0.txt", coverageFiles[0])
+
+		// Add additional coverage files if any
+		for i := 1; i < len(coverageFiles); i++ {
+			mergeContainer = mergeContainer.WithFile(fmt.Sprintf("/tmp/coverage-%d.txt", i), coverageFiles[i])
+		}
+
+		// Merge all coverage files
+		mergeContainer = mergeContainer.WithExec([]string{"sh", "-c", `
+			# If only one file, just copy it
+			if [ $(ls /tmp/coverage-*.txt | wc -l) -eq 1 ]; then
+				cp /tmp/coverage-0.txt /tmp/coverage.txt
+			else
+				# Merge multiple coverage files (simple concatenation after header)
+				echo "mode: set" > /tmp/coverage.txt
+				for f in /tmp/coverage-*.txt; do
+					if [ -f "$f" ]; then
+						tail -n +2 "$f" >> /tmp/coverage.txt
+					fi
+				done
+			fi
+		`})
+
+		return mergeContainer.File("/tmp/coverage.txt"), nil
 	}
 
 	return nil, nil
@@ -794,10 +821,14 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address}
 
+		// Create service from the coverage-configured container
+		// Dagger should preserve environment variables and volume mounts in services
+		fliptService := flipt.AsService()
+
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt.AsService()).
+			WithServiceBinding("flipt", fliptService).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=10m %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
