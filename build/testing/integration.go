@@ -152,10 +152,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
 					// Add a script that will run on container exit to convert coverage data
 					WithNewFile("/usr/local/bin/export-coverage.sh", `#!/bin/sh
-if [ -n "$(find /tmp/coverage -name "covcounters.*" -o -name "covmeta.*" 2>/dev/null)" ]; then
-	go tool covdata textfmt -i=/tmp/coverage -o=/tmp/service-coverage.txt 2>/dev/null || {
-		echo "mode: set" > /tmp/service-coverage.txt
-	}
+if [ -n "$(find /tmp/coverage -name 'covcounters.*' -o -name 'covmeta.*' 2>/dev/null)" ]; then
+	go tool covdata textfmt -i=/tmp/coverage -o=/tmp/service-coverage.txt 2>/dev/null || echo "mode: set" > /tmp/service-coverage.txt
 else
 	echo "mode: set" > /tmp/service-coverage.txt
 fi
@@ -829,7 +827,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", fliptService).
-			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=10m %s .", strings.Join(flags, " "))}).
+			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -cover -coverpkg=./... -timeout=10m %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err

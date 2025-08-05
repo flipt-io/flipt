@@ -50,8 +50,10 @@ jobs:
       - name: Generate Cache Key
         id: cache-key
         run: |
-          # Create cache key from git commit and relevant source files
-          key="flipt-$(git rev-parse --short HEAD)-$(find . -name '*.go' -o -name 'go.*' -o -name '*.json' | head -20 | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 8)"
+          # Find all relevant files, sort them to ensure consistent order,
+          # then create a single sha256sum from their contents.
+          files_checksum=$(find . -type f \( -name '*.go' -o -name 'go.*' -o -name '*.json' -o -name 'Dockerfile' -o -name 'dagger.json' \) -not -path "./.git/*" -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+          key="flipt-$(git rev-parse --short HEAD)-${files_checksum::8}"
           echo "key=$key" >> $GITHUB_OUTPUT
           echo "Cache key: $key"
           
@@ -152,9 +154,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: test
+    if: always()
     steps:
-      - if: always()
-        uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           run_command: send-notifications
