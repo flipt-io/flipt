@@ -64,7 +64,7 @@ type testConfig struct {
 	port    int
 }
 
-type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
+type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error
 
 func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	if len(caseNames) == 0 {
@@ -151,7 +151,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					WithExposedPort(config.port)
 
 				// Run the test function which will start services and execute tests
-				return fn(ctx, client, base, coverageFliptContainer, config)()
+				return fn(ctx, client, base, coverageFliptContainer, config, coverageVolume)()
 			}))
 		}
 	}
@@ -191,7 +191,7 @@ const (
 )
 
 func envsAPI(directory string) testCaseFn {
-	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
@@ -210,7 +210,7 @@ func envsAPI(directory string) testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "environments", base, flipt, conf)
+		return suite(ctx, "environments", base, flipt, conf, coverageVolume)
 	}, environmentsTestdataDir)
 }
 
@@ -222,7 +222,7 @@ const (
 )
 
 func signingAPI(provider secretProvider) testCaseFn {
-	baseTestFn := func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	baseTestFn := func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		// Common signing configuration
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
@@ -258,7 +258,7 @@ func signingAPI(provider secretProvider) testCaseFn {
 				WithEnvVariable("FLIPT_SECRETS_PROVIDERS_VAULT_MOUNT", "secret")
 		}
 
-		return suite(ctx, "signing", base, flipt, conf)
+		return suite(ctx, "signing", base, flipt, conf, coverageVolume)
 	}
 
 	switch provider {
@@ -282,7 +282,7 @@ const (
 )
 
 func authn(method authnMethod) testCaseFn {
-	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
@@ -342,12 +342,12 @@ func authn(method authnMethod) testCaseFn {
 			base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
 		}
 
-		return suite(ctx, "authn/"+string(method), base, flipt, conf)
+		return suite(ctx, "authn/"+string(method), base, flipt, conf, coverageVolume)
 	}, namespacesTestdataDir)
 }
 
 func authz() testCaseFn {
-	return withAuthz(withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withAuthz(withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
@@ -397,12 +397,12 @@ func authz() testCaseFn {
 
 		base = base.WithNewFile("/var/run/secrets/flipt/jwt.pem", string(privBytes))
 
-		return suite(ctx, "authz", base, flipt, conf)
+		return suite(ctx, "authz", base, flipt, conf, coverageVolume)
 	}, namespacesTestdataDir))
 }
 
 func snapshotAPI() testCaseFn {
-	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
@@ -419,7 +419,7 @@ func snapshotAPI() testCaseFn {
 }
 
 func ofrepAPI() testCaseFn {
-	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return withGitea(func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		flipt = flipt.
 			WithEnvVariable("FLIPT_LOG_LEVEL", "WARN").
 			WithEnvVariable("FLIPT_ENVIRONMENTS_DEFAULT_STORAGE", "default").
@@ -436,7 +436,7 @@ func ofrepAPI() testCaseFn {
 }
 
 func withGitea(fn testCaseFn, dataDir string) testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		gitea := client.Container().
 			From("gitea/gitea:1.23.3").
 			WithExposedPort(3000).
@@ -503,12 +503,13 @@ func withGitea(fn testCaseFn, dataDir string) testCaseFn {
 			base,
 			flipt.WithServiceBinding("gitea", gitea),
 			conf,
+			coverageVolume,
 		)
 	}
 }
 
 func withAuthz(fn testCaseFn) testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		var (
 			policyPath = "/etc/flipt/authz/policy.rego"
 			policyData = "/etc/flipt/authz/data.json"
@@ -665,6 +666,7 @@ permit_slice(allowed, requested) if {
 			WithEnvVariable("FLIPT_AUTHORIZATION_LOCAL_DATA_PATH", policyData).
 			WithNewFile(policyData, string(data)),
 			conf,
+			coverageVolume,
 		)
 	}
 }
@@ -688,7 +690,7 @@ chmod 700 /tmp/gpg
 gpg --homedir /tmp/gpg --batch --generate-key /tmp/gpg-gen`
 
 func withFileSecrets(fn testCaseFn) testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		// Generate GPG key and store it in the file system
 		// First install gnupg as root, then switch back to user for key generation
 		flipt = flipt.
@@ -702,12 +704,12 @@ func withFileSecrets(fn testCaseFn) testCaseFn {
 			chmod 600 /home/flipt/secrets/signing-key
 		`})
 
-		return fn(ctx, client, base, flipt, conf)
+		return fn(ctx, client, base, flipt, conf, coverageVolume)
 	}
 }
 
 func withVaultSecrets(fn testCaseFn) testCaseFn {
-	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	return func(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 		// Create Vault service container
 		vault := client.Container().
 			From("hashicorp/vault:1.17.5").
@@ -754,6 +756,7 @@ func withVaultSecrets(fn testCaseFn) testCaseFn {
 				base,
 				flipt.WithServiceBinding("vault", vault),
 				conf,
+				coverageVolume,
 			)()
 		}
 	}
