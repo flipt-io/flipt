@@ -819,7 +819,17 @@ func withVaultSecrets(fn testCaseFn) testCaseFn {
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() (err error) {
-		flags := []string{"--flipt-addr", conf.address}
+		packages, err := base.WithExec([]string{"go", "list", "./..."}).Stdout(ctx)
+		if err != nil {
+			return err
+		}
+
+		flags := []string{
+			"--flipt-addr",
+			conf.address,
+			"-coverpkg",
+			strings.Join(strings.Fields(packages), ","),
+		}
 
 		// Create service from the coverage-configured container
 		// Dagger should preserve environment variables and volume mounts in services
@@ -829,7 +839,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", fliptService).
-			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -cover -coverpkg=./... -timeout=10m %s .", strings.Join(flags, " "))}).
+			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -cover -timeout=10m %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err
