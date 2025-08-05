@@ -768,11 +768,30 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address}
 
+		// Instead of using a service binding, we will now run flipt in the background of the test container execution
+		// This allows us to gracefully kill the process and collect the coverage data.
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt.AsService()).
-			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=10m %s .", strings.Join(flags, " "))}).
+			WithMountedFile("/usr/bin/flipt", flipt.File("/flipt")).
+			WithExec([]string{"apk", "add", "--no-cache", "curl"}).
+			WithExec([]string{"sh", "-c", fmt.Sprintf(`
+				/usr/bin/flipt server &
+				pid=$!
+
+				# wait for flipt to be ready
+				for i in $(seq 1 10); do
+					curl -sf %s/api/v1/health > /dev/null && break
+					sleep 1
+				done
+
+				go test -v -timeout=10m %s .
+
+				sleep 5 # Give Flipt some time to flush coverage
+				kill -SIGTERM $pid
+				sleep 5 # Wait for Flipt to shut down
+				wait $pid
+			`, conf.address, strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err
