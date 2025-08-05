@@ -109,7 +109,6 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
 
-
 // Package copies the Flipt binaries built into the provided flipt container
 // into a thinner alpine distribution with coverage support.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (*dagger.Container, error) {
@@ -141,12 +140,12 @@ func BaseWithCache(ctx context.Context, dag *dagger.Client, source *dagger.Direc
 
 	// Use cached base golang image - this layer can be shared across builds
 	baseImageRef := fmt.Sprintf("%s:golang-base", registryCache)
-	
+
 	// Try to use cached base, fall back to fresh build
 	golang := dag.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(platform)),
 	})
-	
+
 	// Try cached base first
 	cachedBase := golang.From(baseImageRef)
 	if _, err := cachedBase.Sync(ctx); err == nil {
@@ -157,7 +156,7 @@ func BaseWithCache(ctx context.Context, dag *dagger.Client, source *dagger.Direc
 			WithEnvVariable("GOCACHE", goBuildCachePath).
 			WithEnvVariable("GOMODCACHE", goModCachePath).
 			WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
-		
+
 		// Cache this base layer
 		golang.Publish(ctx, baseImageRef)
 	}
@@ -228,8 +227,8 @@ func PackageWithCache(ctx context.Context, client *dagger.Client, base *dagger.C
 
 	// Mount UI dist and build
 	var (
-		ldflags = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
-		binPath = path.Join("/bin", platforms.Format(platform))
+		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s -X main.commit=%s", time.Now().UTC().Format(time.RFC3339), gitCommit)
+		binPath    = path.Join("/bin", platforms.Format(platform))
 		goBuildCmd = fmt.Sprintf(
 			"go build -cover -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
 			binPath,
@@ -246,7 +245,7 @@ func PackageWithCache(ctx context.Context, client *dagger.Client, base *dagger.C
 	// Try cached runtime base
 	runtimeImageRef := fmt.Sprintf("%s:runtime-base", registryCache)
 	runtime := client.Container().From(runtimeImageRef)
-	
+
 	if _, err := runtime.Sync(ctx); err != nil {
 		// Build fresh runtime base and cache it
 		runtime = client.Container().From("alpine:3.21").
@@ -256,7 +255,7 @@ func PackageWithCache(ctx context.Context, client *dagger.Client, base *dagger.C
 			WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
 			WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
 			WithExec([]string{"chown", "flipt:flipt", "/tmp/coverage"})
-		
+
 		// Cache this runtime base
 		runtime.Publish(ctx, runtimeImageRef)
 	}

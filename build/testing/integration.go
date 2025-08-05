@@ -148,11 +148,6 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				// Ensure coverage directory has correct permissions for flipt user
 				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
-					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
-					WithMountedCache("/tmp/coverage", coverageVolume).
-					WithUser("root").
-					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
-					WithUser("flipt").
 					WithExposedPort(config.port)
 
 				// Run the test function which will start services and execute tests
@@ -419,7 +414,7 @@ func snapshotAPI() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "snapshot", base, flipt, conf)
+		return suite(ctx, "snapshot", base, flipt, conf, coverageVolume)
 	}, namespacesTestdataDir)
 }
 
@@ -436,7 +431,7 @@ func ofrepAPI() testCaseFn {
 			WithEnvVariable("FLIPT_CREDENTIALS_DEFAULT_BASIC_PASSWORD", "password").
 			WithEnvVariable("UNIQUE", uuid.New().String())
 
-		return suite(ctx, "ofrep", base, flipt, conf)
+		return suite(ctx, "ofrep", base, flipt, conf, coverageVolume)
 	}, namespacesTestdataDir)
 }
 
@@ -764,7 +759,7 @@ func withVaultSecrets(fn testCaseFn) testCaseFn {
 	}
 }
 
-func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
+func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig, coverageVolume *dagger.CacheVolume) func() error {
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address}
 
@@ -774,6 +769,12 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithMountedFile("/usr/bin/flipt", flipt.File("/flipt")).
+			WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
+			WithMountedCache("/tmp/coverage", coverageVolume).
+			WithUser("root").
+			WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
+			WithExec([]string{"chown", "flipt:flipt", "/tmp/coverage"}).
+			WithUser("flipt").
 			WithExec([]string{"apk", "add", "--no-cache", "curl"}).
 			WithExec([]string{"sh", "-c", fmt.Sprintf(`
 				/usr/bin/flipt server &
