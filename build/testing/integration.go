@@ -143,22 +143,17 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			g.Go(take(func() error {
-				// Configure Flipt container to write coverage data and export it on service exit
+				// Create a unique cache volume for this test run's coverage data
+				coverageCache := client.CacheVolume(fmt.Sprintf("coverage-%s", uuid.New().String()))
+
+				// Configure Flipt container to write coverage data
 				coverageFliptContainer := flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
+					WithMountedCache("/tmp/coverage", coverageCache). // Mount cache for coverage files
 					WithUser("root").
 					WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
 					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
-					// Add a script that will run on container exit to convert coverage data
-					WithNewFile("/usr/local/bin/export-coverage.sh", `#!/bin/sh
-if [ -n "$(find /tmp/coverage -name 'covcounters.*' -o -name 'covmeta.*' 2>/dev/null)" ]; then
-	go tool covdata textfmt -i=/tmp/coverage -o=/tmp/service-coverage.txt 2>/dev/null || echo "mode: set" > /tmp/service-coverage.txt
-else
-	echo "mode: set" > /tmp/service-coverage.txt
-fi
-`).
-					WithExec([]string{"chmod", "+x", "/usr/local/bin/export-coverage.sh"}).
 					WithUser("flipt").
 					WithExposedPort(config.port)
 
@@ -166,10 +161,17 @@ fi
 				err := fn(ctx, client, base, coverageFliptContainer, config)()
 
 				// After tests complete, export coverage data from the service container
-				if options.outputCoverage && err == nil {
-					// Run the export script to convert coverage data to text format
-					coverageCollector := coverageFliptContainer.
-						WithExec([]string{"/usr/local/bin/export-coverage.sh"})
+				if options.outputCoverage {
+					// Create a new container to process the coverage data from the cache
+					coverageCollector := client.Container().From("golang:1.24-alpine3.21").
+						WithMountedCache("/tmp/coverage", coverageCache).
+						WithExec([]string{"sh", "-c", `
+if [ -n "$(find /tmp/coverage -name 'covcounters.*' -o -name 'covmeta.*' 2>/dev/null)" ]; then
+	go tool covdata textfmt -i=/tmp/coverage -o=/tmp/service-coverage.txt 2>/dev/null || echo "mode: set" > /tmp/service-coverage.txt
+else
+	echo "mode: set" > /tmp/service-coverage.txt
+fi
+`})
 
 					coverageFile := coverageCollector.File("/tmp/service-coverage.txt")
 
