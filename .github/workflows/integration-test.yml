@@ -46,7 +46,7 @@ jobs:
       cached-image: ${{ steps.set-image.outputs.image }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Generate Cache Key
         id: cache-key
         run: |
@@ -54,14 +54,14 @@ jobs:
           key="flipt-$(git rev-parse --short HEAD)-$(find . -name '*.go' -o -name 'go.*' -o -name '*.json' | head -20 | sort | xargs sha256sum | sha256sum | cut -d' ' -f1 | head -c 8)"
           echo "key=$key" >> $GITHUB_OUTPUT
           echo "Cache key: $key"
-          
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Check if cache exists
         id: cache-check
         run: |
@@ -72,7 +72,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Cache miss: Will build new image"
           fi
-          
+
       - name: Pre-pull base cache layers
         if: steps.cache-check.outputs.exists == 'false'
         run: |
@@ -81,7 +81,7 @@ jobs:
           docker pull ${{ env.REGISTRY_CACHE }}:golang-base || echo "golang-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:node-base || echo "node-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:runtime-base || echo "runtime-base not cached yet"
-          
+
       - name: Build and Push Cache
         id: build
         if: steps.cache-check.outputs.exists == 'false'
@@ -89,10 +89,10 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: build-with-cache --source . --registry-cache ${{ env.REGISTRY_CACHE }} --cache-tag ${{ steps.cache-key.outputs.key }}
+          args: build --source . --registry-cache ${{ env.REGISTRY_CACHE }} --cache-tag ${{ steps.cache-key.outputs.key }}
         env:
           CI: true
-          
+
       - name: Push intermediate cache layers
         if: steps.cache-check.outputs.exists == 'false'
         run: |
@@ -100,7 +100,7 @@ jobs:
           # are automatically pushed during build-with-cache execution
           # Go and npm dependencies use cache volumes for better performance
           echo "Intermediate cache layers pushed during build process"
-          
+
       - name: Set cached image output
         id: set-image
         run: |
@@ -119,6 +119,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Log in to Container Registry
@@ -133,15 +139,31 @@ jobs:
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test-with-cache --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}.out
-        env:
-          CI: true
+          args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
+
+      - name: Process Coverage Data
+        if: always()
+        run: |
+          # Check if coverage directory exists and has files
+          if [ -d "coverage-${{ env.INTEGRATION_TEST_NAME }}" ]; then
+            # Convert coverage data to text format for Codecov
+            go tool covdata textfmt -i=coverage-${{ env.INTEGRATION_TEST_NAME }} -o=coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
+          fi
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ env.INTEGRATION_TEST_NAME }}
+          path: coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
+          retention-days: 1
+          if-no-files-found: warn
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         if: always()
         with:
-          files: coverage-${{ env.INTEGRATION_TEST_NAME }}.out
+          files: coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
           flags: integrationtests
           name: integration-${{ env.INTEGRATION_TEST_NAME }}
           fail_ci_if_error: false
@@ -152,12 +174,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: test
+    if: always()
     steps:
-      - if: always()
+      - uses: actions/checkout@v4
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Upload aggregated coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          fail_ci_if_error: true
-          run_command: send-notifications
+          files: ./coverage-*.txt
+          flags: integrationtests
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
 

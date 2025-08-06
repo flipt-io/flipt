@@ -104,7 +104,7 @@ func WithCoverageOutput() func(*integrationOptions) {
 	}
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) (*dagger.File, error) {
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, opts ...IntegrationOptions) (*dagger.Directory, error) {
 	var options integrationOptions
 
 	for _, opt := range opts {
@@ -145,18 +145,20 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			g.Go(take(func() error {
 				// Always configure the Flipt container for coverage collection since binaries have -cover
-				// Ensure coverage directory has correct permissions for flipt user
-				coverageFliptContainer := flipt.
+				// Ensure coverage directory exists and has correct permissions for flipt user
+				flipt = flipt.
 					WithEnvVariable("CI", os.Getenv("CI")).
 					WithEnvVariable("GOCOVERDIR", "/tmp/coverage").
 					WithMountedCache("/tmp/coverage", coverageVolume).
 					WithUser("root").
+					WithExec([]string{"mkdir", "-p", "/tmp/coverage"}).
 					WithExec([]string{"chmod", "777", "/tmp/coverage"}).
+					WithExec([]string{"chown", "flipt:flipt", "/tmp/coverage"}).
 					WithUser("flipt").
 					WithExposedPort(config.port)
 
 				// Run the test function which will start services and execute tests
-				return fn(ctx, client, base, coverageFliptContainer, config)()
+				return fn(ctx, client, base, flipt, config)()
 			}))
 		}
 	}
@@ -165,14 +167,17 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		return nil, err
 	}
 
-	// If coverage output is requested, extract coverage data and return as file
+	// If coverage output is requested, extract coverage data and return as a directory
 	if options.outputCoverage {
+		// Create a container to extract coverage data from the cache volume
+		// We need to copy from cache to a regular directory since cache volumes can't be directly exported
 		coverageContainer := client.Container().
 			From("golang:1.24-alpine3.21").
 			WithMountedCache("/tmp/coverage", coverageVolume).
-			WithExec([]string{"sh", "-c", "if [ -n \"$(find /tmp/coverage -type f 2>/dev/null)\" ]; then go tool covdata textfmt -i=/tmp/coverage -o=/tmp/coverage.out; else echo 'No coverage data available' > /tmp/coverage.out; fi"})
+			WithExec([]string{"mkdir", "-p", "/output"}).
+			WithExec([]string{"sh", "-c", "cp -r /tmp/coverage/* /output/ 2>/dev/null || true"})
 
-		return coverageContainer.File("/tmp/coverage.out"), nil
+		return coverageContainer.Directory("/output"), nil
 	}
 
 	return nil, nil
@@ -768,10 +773,32 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 	return func() (err error) {
 		flags := []string{"--flipt-addr", conf.address}
 
+		// Create service but don't start it automatically
+		fliptService := flipt.AsService()
+
+		// Explicitly start the service
+		startedService, err := fliptService.Start(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to start Flipt service: %w", err)
+		}
+
+		// Ensure we stop the service properly to allow coverage flush
+		defer func() {
+			fmt.Println("waiting for service to stop.")
+			// Give time for any final operations to complete
+			time.Sleep(2 * time.Second)
+
+			// Explicitly stop the service to trigger graceful shutdown
+			if _, stopErr := startedService.Stop(ctx); stopErr != nil {
+				// Log the error but don't override the original error
+				fmt.Printf("Warning: failed to stop Flipt service: %v\n", stopErr)
+			}
+		}()
+
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt.AsService()).
+			WithServiceBinding("flipt", startedService).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=10m %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
