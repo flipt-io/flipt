@@ -3,4 +3,5 @@ ignore:
   - "build"
   - "internal/cmd/protoc-*"
   - "rpc"
+  - "sdk"
   - "ui"

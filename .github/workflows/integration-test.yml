@@ -149,15 +149,6 @@ jobs:
             go tool covdata textfmt -i=coverage-${{ env.INTEGRATION_TEST_NAME }} -o=coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
           fi
 
-      - name: Upload Coverage Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-${{ env.INTEGRATION_TEST_NAME }}
-          path: coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
-          retention-days: 1
-          if-no-files-found: warn
-
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         if: always()
@@ -167,30 +158,6 @@ jobs:
           name: integration-${{ env.INTEGRATION_TEST_NAME }}
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  codecov:
-    name: Finalize Coverage
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: test
-    if: always()
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-*
-          merge-multiple: true
-
-      - name: Upload aggregated coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage-*.txt
-          flags: integrationtests
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
 
   ui:
     name: UI Integration Tests
