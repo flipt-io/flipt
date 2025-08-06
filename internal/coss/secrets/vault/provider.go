@@ -1,3 +1,8 @@
+// Flipt Commercial Open Source Feature
+// This file contains functionality that is licensed under the Flipt Fair Core License (FCL).
+// You may NOT use, modify, or distribute this file or its contents without a valid paid license.
+// For details: https://github.com/flipt-io/flipt/blob/v2/LICENSE
+
 package vault
 
 import (
