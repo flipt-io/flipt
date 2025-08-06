@@ -777,28 +777,24 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		fliptService := flipt.AsService()
 
 		// Explicitly start the service
-		startedService, err := fliptService.Start(ctx)
+		fliptService, err = fliptService.Start(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to start Flipt service: %w", err)
 		}
 
 		// Ensure we stop the service properly to allow coverage flush
 		defer func() {
-			fmt.Println("waiting for service to stop.")
 			// Give time for any final operations to complete
 			time.Sleep(2 * time.Second)
 
 			// Explicitly stop the service to trigger graceful shutdown
-			if _, stopErr := startedService.Stop(ctx); stopErr != nil {
-				// Log the error but don't override the original error
-				fmt.Printf("Warning: failed to stop Flipt service: %v\n", stopErr)
-			}
+			_, _ = fliptService.Stop(ctx)
 		}()
 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", startedService).
+			WithServiceBinding("flipt", fliptService).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=10m %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
