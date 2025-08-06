@@ -27,13 +27,13 @@ var _ git.SCM = (*SCM)(nil)
 
 // PullRequestsService defines the interface for BitBucket pull request operations used by SCM.
 type PullRequestsService interface {
-	Create(po *bitbucket.PullRequestsOptions) (interface{}, error)
-	Gets(po *bitbucket.PullRequestsOptions) (interface{}, error)
+	Create(po *bitbucket.PullRequestsOptions) (any, error)
+	Gets(po *bitbucket.PullRequestsOptions) (any, error)
 }
 
 // CommitsService defines the interface for BitBucket commits operations used by SCM.
 type CommitsService interface {
-	GetCommits(cmo *bitbucket.CommitsOptions) (interface{}, error)
+	GetCommits(cmo *bitbucket.CommitsOptions) (any, error)
 }
 
 // SCM implements the git.SCM interface for BitBucket.
@@ -94,6 +94,12 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repoSlug string, opt
 		client = bitbucket.NewBasicAuth("", "")
 	}
 
+	// Configure pagination settings - use optimal defaults
+	// Similar to GitHub provider which uses PerPage: 100
+	client.Pagelen = 50              // Optimal page size for BitBucket API
+	client.LimitPages = 0            // No limit - fetch all pages
+	client.DisableAutoPaging = false // Always enable auto-pagination for complete results
+
 	// Set custom API URL if provided (for BitBucket Server instances)
 	if bitbucketOpts.apiURL != bitbucket.DEFAULT_BITBUCKET_API_BASE_URL {
 		if apiURL, err := url.Parse(bitbucketOpts.apiURL); err == nil {
@@ -134,14 +140,14 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 	}
 
 	// Cast response to map to extract URL and state
-	prMap, ok := pr.(map[string]interface{})
+	prMap, ok := pr.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected response format from BitBucket API")
 	}
 
 	var prURL string
-	if links, ok := prMap["links"].(map[string]interface{}); ok {
-		if html, ok := links["html"].(map[string]interface{}); ok {
+	if links, ok := prMap["links"].(map[string]any); ok {
+		if html, ok := links["html"].(map[string]any); ok {
 			if href, ok := html["href"].(string); ok {
 				prURL = href
 			}
@@ -173,7 +179,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	}
 
 	// Cast response to expected format
-	commitsMap, ok := commitsResp.(map[string]interface{})
+	commitsMap, ok := commitsResp.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected response format from BitBucket commits API")
 	}
@@ -181,7 +187,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	var changes []*environments.Change
 	limit := req.Limit
 
-	if values, ok := commitsMap["values"].([]interface{}); ok {
+	if values, ok := commitsMap["values"].([]any); ok {
 		s.logger.Debug("changes compared", zap.Int("commits", len(values)))
 
 		for _, commitVal := range values {
@@ -189,7 +195,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 				break
 			}
 
-			commit, ok := commitVal.(map[string]interface{})
+			commit, ok := commitVal.(map[string]any)
 			if !ok {
 				continue
 			}
@@ -207,8 +213,8 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 			}
 
 			// Extract commit URL
-			if links, ok := commit["links"].(map[string]interface{}); ok {
-				if html, ok := links["html"].(map[string]interface{}); ok {
+			if links, ok := commit["links"].(map[string]any); ok {
+				if html, ok := links["html"].(map[string]any); ok {
 					if href, ok := html["href"].(string); ok {
 						change.ScmUrl = &href
 					}
@@ -216,8 +222,8 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 			}
 
 			// Extract author information
-			if author, ok := commit["author"].(map[string]interface{}); ok {
-				if user, ok := author["user"].(map[string]interface{}); ok {
+			if author, ok := commit["author"].(map[string]any); ok {
+				if user, ok := author["user"].(map[string]any); ok {
 					if displayName, ok := user["display_name"].(string); ok {
 						change.AuthorName = &displayName
 					}
@@ -259,8 +265,8 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 	for pr := range prs.All() {
 		// Extract branch name from PR
 		branch := ""
-		if source, ok := pr["source"].(map[string]interface{}); ok {
-			if branchInfo, ok := source["branch"].(map[string]interface{}); ok {
+		if source, ok := pr["source"].(map[string]any); ok {
+			if branchInfo, ok := source["branch"].(map[string]any); ok {
 				if name, ok := branchInfo["name"].(string); ok {
 					branch = name
 				}
@@ -292,8 +298,8 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 
 		var prURL string
-		if links, ok := pr["links"].(map[string]interface{}); ok {
-			if html, ok := links["html"].(map[string]interface{}); ok {
+		if links, ok := pr["links"].(map[string]any); ok {
+			if html, ok := links["html"].(map[string]any); ok {
 				if href, ok := html["href"].(string); ok {
 					prURL = href
 				}
@@ -328,59 +334,81 @@ func (p *prs) Err() error {
 	return p.err
 }
 
-func (p *prs) All() iter.Seq[map[string]interface{}] {
-	return iter.Seq[map[string]interface{}](func(yield func(map[string]interface{}) bool) {
+func (p *prs) All() iter.Seq[map[string]any] {
+	return iter.Seq[map[string]any](func(yield func(map[string]any) bool) {
+		p.logger.Debug("fetching pull requests with automatic pagination",
+			zap.String("owner", p.owner),
+			zap.String("repoSlug", p.repoSlug),
+			zap.String("base", p.base))
+
 		// Get all pull requests for the repository
-		// BitBucket API doesn't have the same filtering as GitHub, so we get all PRs
-		// and filter them client-side
+		// The go-bitbucket library automatically handles pagination by default,
+		// fetching all pages and combining results into a single response.
+		// BitBucket API doesn't have server-side filtering like GitHub, so we get all PRs
+		// and filter them client-side for flipt/ branches.
 		prsResp, err := p.client.Gets(&bitbucket.PullRequestsOptions{
 			Owner:    p.owner,
 			RepoSlug: p.repoSlug,
 			States:   []string{"OPEN", "MERGED", "DECLINED", "SUPERSEDED"},
 		})
 		if err != nil {
-			p.err = err
+			p.err = fmt.Errorf("failed to fetch pull requests: %w", err)
 			return
 		}
 
 		// Cast response to expected format
-		prsMap, ok := prsResp.(map[string]interface{})
+		prsMap, ok := prsResp.(map[string]any)
 		if !ok {
 			p.err = fmt.Errorf("unexpected response format from BitBucket PRs API")
 			return
 		}
 
-		if values, ok := prsMap["values"].([]interface{}); ok {
-			for _, prVal := range values {
-				pr, ok := prVal.(map[string]interface{})
-				if !ok {
-					continue
-				}
+		values, ok := prsMap["values"].([]any)
+		if !ok {
+			p.err = fmt.Errorf("unexpected response format: missing 'values' field")
+			return
+		}
 
-				// Filter by destination branch (base)
-				if destination, ok := pr["destination"].(map[string]interface{}); ok {
-					if branchInfo, ok := destination["branch"].(map[string]interface{}); ok {
-						if name, ok := branchInfo["name"].(string); ok && name != p.base {
+		p.logger.Debug("retrieved pull requests from BitBucket",
+			zap.Int("totalPRs", len(values)),
+			zap.String("base", p.base))
+
+		var processedCount int
+		for _, prVal := range values {
+			pr, ok := prVal.(map[string]any)
+			if !ok {
+				continue
+			}
+
+			// Filter by destination branch (base)
+			if destination, ok := pr["destination"].(map[string]any); ok {
+				if branchInfo, ok := destination["branch"].(map[string]any); ok {
+					if name, ok := branchInfo["name"].(string); ok && name != p.base {
+						continue
+					}
+				}
+			}
+
+			// Filter for flipt/ prefix branches
+			if source, ok := pr["source"].(map[string]any); ok {
+				if branchInfo, ok := source["branch"].(map[string]any); ok {
+					if name, ok := branchInfo["name"].(string); ok {
+						if !strings.HasPrefix(name, "flipt/") {
 							continue
 						}
 					}
 				}
+			}
 
-				// Filter for flipt/ prefix branches
-				if source, ok := pr["source"].(map[string]interface{}); ok {
-					if branchInfo, ok := source["branch"].(map[string]interface{}); ok {
-						if name, ok := branchInfo["name"].(string); ok {
-							if !strings.HasPrefix(name, "flipt/") {
-								continue
-							}
-						}
-					}
-				}
-
-				if !yield(pr) {
-					return
-				}
+			processedCount++
+			if !yield(pr) {
+				return
 			}
 		}
+
+		p.logger.Debug("processed pull requests after filtering",
+			zap.Int("totalPRs", len(values)),
+			zap.Int("fliptPRs", processedCount),
+			zap.String("base", p.base))
 	})
 }

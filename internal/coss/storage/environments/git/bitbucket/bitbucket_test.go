@@ -69,7 +69,7 @@ func TestSCM_Propose(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  git.ProposalRequest
-		mockResp interface{}
+		mockResp any
 		mockErr  error
 		want     *environments.EnvironmentProposalDetails
 		wantErr  bool
@@ -83,9 +83,9 @@ func TestSCM_Propose(t *testing.T) {
 				Body:  "Test description",
 				Draft: false,
 			},
-			mockResp: map[string]interface{}{
-				"links": map[string]interface{}{
-					"html": map[string]interface{}{
+			mockResp: map[string]any{
+				"links": map[string]any{
+					"html": map[string]any{
 						"href": "https://bitbucket.org/owner/repo/pull-requests/1",
 					},
 				},
@@ -106,9 +106,9 @@ func TestSCM_Propose(t *testing.T) {
 				Body:  "Test description",
 				Draft: true,
 			},
-			mockResp: map[string]interface{}{
-				"links": map[string]interface{}{
-					"html": map[string]interface{}{
+			mockResp: map[string]any{
+				"links": map[string]any{
+					"html": map[string]any{
 						"href": "https://bitbucket.org/owner/repo/pull-requests/2",
 					},
 				},
@@ -172,7 +172,7 @@ func TestSCM_ListChanges(t *testing.T) {
 	tests := []struct {
 		name     string
 		request  git.ListChangesRequest
-		mockResp interface{}
+		mockResp any
 		mockErr  error
 		want     *environments.ListBranchedEnvironmentChangesResponse
 		wantErr  bool
@@ -184,34 +184,34 @@ func TestSCM_ListChanges(t *testing.T) {
 				Head:  "feature-branch",
 				Limit: 10,
 			},
-			mockResp: map[string]interface{}{
-				"values": []interface{}{
-					map[string]interface{}{
+			mockResp: map[string]any{
+				"values": []any{
+					map[string]any{
 						"hash":    "abc123",
 						"message": "feat: add new feature",
 						"date":    "2024-01-01T12:00:00Z",
-						"links": map[string]interface{}{
-							"html": map[string]interface{}{
+						"links": map[string]any{
+							"html": map[string]any{
 								"href": "https://bitbucket.org/owner/repo/commits/abc123",
 							},
 						},
-						"author": map[string]interface{}{
-							"user": map[string]interface{}{
+						"author": map[string]any{
+							"user": map[string]any{
 								"display_name": "John Doe",
 							},
 						},
 					},
-					map[string]interface{}{
+					map[string]any{
 						"hash":    "def456",
 						"message": "fix: bug fix",
 						"date":    "2024-01-01T11:00:00Z",
-						"links": map[string]interface{}{
-							"html": map[string]interface{}{
+						"links": map[string]any{
+							"html": map[string]any{
 								"href": "https://bitbucket.org/owner/repo/commits/def456",
 							},
 						},
-						"author": map[string]interface{}{
-							"user": map[string]interface{}{
+						"author": map[string]any{
+							"user": map[string]any{
 								"display_name": "Jane Smith",
 							},
 						},
@@ -282,7 +282,7 @@ func TestSCM_ListProposals(t *testing.T) {
 		name     string
 		envKey   string
 		baseRef  string
-		mockResp interface{}
+		mockResp any
 		mockErr  error
 		want     map[string]*environments.EnvironmentProposalDetails
 		wantErr  bool
@@ -291,59 +291,59 @@ func TestSCM_ListProposals(t *testing.T) {
 			name:    "successful proposals list",
 			envKey:  "production",
 			baseRef: "main",
-			mockResp: map[string]interface{}{
-				"values": []interface{}{
-					map[string]interface{}{
-						"source": map[string]interface{}{
-							"branch": map[string]interface{}{
+			mockResp: map[string]any{
+				"values": []any{
+					map[string]any{
+						"source": map[string]any{
+							"branch": map[string]any{
 								"name": "flipt/production/feature-1",
 							},
 						},
-						"destination": map[string]interface{}{
-							"branch": map[string]interface{}{
+						"destination": map[string]any{
+							"branch": map[string]any{
 								"name": "main",
 							},
 						},
 						"state": "OPEN",
-						"links": map[string]interface{}{
-							"html": map[string]interface{}{
+						"links": map[string]any{
+							"html": map[string]any{
 								"href": "https://bitbucket.org/owner/repo/pull-requests/1",
 							},
 						},
 					},
-					map[string]interface{}{
-						"source": map[string]interface{}{
-							"branch": map[string]interface{}{
+					map[string]any{
+						"source": map[string]any{
+							"branch": map[string]any{
 								"name": "flipt/production/feature-2",
 							},
 						},
-						"destination": map[string]interface{}{
-							"branch": map[string]interface{}{
+						"destination": map[string]any{
+							"branch": map[string]any{
 								"name": "main",
 							},
 						},
 						"state": "MERGED",
-						"links": map[string]interface{}{
-							"html": map[string]interface{}{
+						"links": map[string]any{
+							"html": map[string]any{
 								"href": "https://bitbucket.org/owner/repo/pull-requests/2",
 							},
 						},
 					},
 					// This PR should be filtered out (wrong environment prefix)
-					map[string]interface{}{
-						"source": map[string]interface{}{
-							"branch": map[string]interface{}{
+					map[string]any{
+						"source": map[string]any{
+							"branch": map[string]any{
 								"name": "flipt/staging/feature-3",
 							},
 						},
-						"destination": map[string]interface{}{
-							"branch": map[string]interface{}{
+						"destination": map[string]any{
+							"branch": map[string]any{
 								"name": "main",
 							},
 						},
 						"state": "OPEN",
-						"links": map[string]interface{}{
-							"html": map[string]interface{}{
+						"links": map[string]any{
+							"html": map[string]any{
 								"href": "https://bitbucket.org/owner/repo/pull-requests/3",
 							},
 						},
@@ -404,6 +404,99 @@ func TestSCM_ListProposals(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestListProposalsWithMultiplePRs tests ListProposals with multiple PRs (tests automatic pagination)
+func TestListProposalsWithMultiplePRs(t *testing.T) {
+	mockPRs := NewMockPullRequestsService(t)
+	mockCommits := NewMockCommitsService(t)
+	mockEnv := serverenvs.NewMockEnvironment(t)
+
+	// Mock a large response that would require pagination in a real scenario
+	// The go-bitbucket library handles pagination automatically, so we simulate
+	// receiving all results in a single response
+	largeMockResp := map[string]any{
+		"values": []any{
+			// Simulate many PRs to test pagination behavior
+			map[string]any{
+				"source": map[string]any{
+					"branch": map[string]any{
+						"name": "flipt/production/feature-1",
+					},
+				},
+				"destination": map[string]any{
+					"branch": map[string]any{
+						"name": "main",
+					},
+				},
+				"state": "OPEN",
+				"links": map[string]any{
+					"html": map[string]any{
+						"href": "https://bitbucket.org/owner/repo/pull-requests/1",
+					},
+				},
+			},
+			map[string]any{
+				"source": map[string]any{
+					"branch": map[string]any{
+						"name": "flipt/production/feature-2",
+					},
+				},
+				"destination": map[string]any{
+					"branch": map[string]any{
+						"name": "main",
+					},
+				},
+				"state": "MERGED",
+				"links": map[string]any{
+					"html": map[string]any{
+						"href": "https://bitbucket.org/owner/repo/pull-requests/2",
+					},
+				},
+			},
+		},
+		"size": 2,
+		// No "next" field indicates this is the final page
+	}
+
+	// Set up mock expectations
+	mockPRs.On("Gets", mock.MatchedBy(func(po *bitbucket.PullRequestsOptions) bool {
+		// Verify that the correct options are passed to the API call
+		assert.Equal(t, "testowner", po.Owner)
+		assert.Equal(t, "testrepo", po.RepoSlug)
+		assert.Contains(t, po.States, "OPEN")
+		assert.Contains(t, po.States, "MERGED")
+		assert.Contains(t, po.States, "DECLINED")
+		assert.Contains(t, po.States, "SUPERSEDED")
+		return true
+	})).Return(largeMockResp, nil)
+
+	mockEnv.On("Key").Return("production")
+	mockEnv.On("Configuration").Return(&environments.EnvironmentConfiguration{
+		Ref: "main",
+	})
+
+	scm := &SCM{
+		logger:   zap.NewNop(),
+		owner:    "testowner",
+		repoSlug: "testrepo",
+		prs:      mockPRs,
+		commits:  mockCommits,
+	}
+
+	ctx := context.Background()
+	result, err := scm.ListProposals(ctx, mockEnv)
+
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+
+	// Verify that both PRs were processed correctly
+	assert.Contains(t, result, "flipt/production/feature-1")
+	assert.Contains(t, result, "flipt/production/feature-2")
+
+	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_OPEN, result["flipt/production/feature-1"].State)
+	assert.Equal(t, environments.ProposalState_PROPOSAL_STATE_MERGED, result["flipt/production/feature-2"].State)
 }
 
 func stringPtr(s string) *string {
