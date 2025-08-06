@@ -163,13 +163,21 @@ jobs:
     name: UI Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: [build-cache]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run UI Tests
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run UI Tests with Cached Image
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
-          args: test --source . ui
+          args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" ui
