@@ -7,37 +7,27 @@ import (
 	"go.flipt.io/build/internal/dagger"
 )
 
-func UI(ctx context.Context, client *dagger.Client, source *dagger.Directory) (*dagger.Container, error) {
-	cache := client.CacheVolume("node-modules-cache")
+func UI(ctx context.Context, client *dagger.Client, source *dagger.Directory, registryCache ...string) (*dagger.Container, error) {
+	var nodeBase *dagger.Container
 
-	return client.Container().From("node:22-bullseye-slim").
-		WithMountedDirectory("/src", source.
-			WithoutDirectory("dist").
-			WithoutDirectory("node_modules")).
-		WithWorkdir("/src").
-		WithMountedCache("/src/node_modules", cache).
-		WithExec([]string{"npm", "install"}).
-		WithExec([]string{"npm", "run", "build"}), nil
-}
-
-// UIWithCache builds the UI with registry cache support for base layer only
-// Dependencies are handled via cache volumes which are more efficient than registry caching
-func UIWithCache(ctx context.Context, client *dagger.Client, source *dagger.Directory, registryCache string) (*dagger.Container, error) {
-	// Try cached Node.js base
-	nodeBaseRef := fmt.Sprintf("%s:node-base", registryCache)
-	nodeBase := client.Container().From(nodeBaseRef)
-	
-	if _, err := nodeBase.Sync(ctx); err != nil {
-		// Build fresh Node.js base and cache it
+	// Use cache if available
+	if len(registryCache) > 0 && registryCache[0] != "" {
+		nodeBaseRef := fmt.Sprintf("%s:node-base", registryCache[0])
+		nodeBase = client.Container().From(nodeBaseRef)
+		if _, err := nodeBase.Sync(ctx); err != nil {
+			// Build fresh Node.js base and cache it
+			nodeBase = client.Container().From("node:22-bullseye-slim")
+			// Cache this Node.js base layer
+			nodeBase.Publish(ctx, nodeBaseRef)
+		}
+	} else {
+		// No cache - use regular build
 		nodeBase = client.Container().From("node:22-bullseye-slim")
-		
-		// Cache this Node.js base layer
-		nodeBase.Publish(ctx, nodeBaseRef)
 	}
 
 	// Use cache volume for dependencies (more reliable than registry caching for npm)
 	cache := client.CacheVolume("node-modules-cache")
-	
+
 	// Mount source without dist and node_modules
 	sourceClean := source.WithoutDirectory("dist").WithoutDirectory("node_modules")
 	container := nodeBase.
