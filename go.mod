@@ -43,6 +43,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/keygen-sh/keygen-go/v3 v3.2.1
 	github.com/keygen-sh/machineid v1.1.1
+	github.com/ktrysmt/go-bitbucket v0.9.86
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/magefile/mage v1.15.0
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
@@ -329,7 +330,6 @@ require (
 	github.com/knadh/koanf/providers/posflag v0.1.0 // indirect
 	github.com/knadh/koanf/providers/structs v0.1.0 // indirect
 	github.com/knadh/koanf/v2 v2.1.2 // indirect
-	github.com/ktrysmt/go-bitbucket v0.9.86 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.14 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
