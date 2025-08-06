@@ -75,11 +75,12 @@ func (c *Credential) GitAuthentication() (auth transport.AuthMethod, err error) 
 	case config.CredentialTypeAccessToken:
 		// For Git operations, access tokens need to be converted to HTTP Basic Auth
 		// Different providers have different conventions:
-		// - GitLab: username="oauth2", password=token
-		// - GitHub: username=token, password="" OR username="x-access-token", password=token
-		// We'll use the GitLab format as it's more widely supported
+		// - GitLab: username="oauth2", password=token OR user={anynonemptystring}, password=token
+		// - GitHub: username=token, password="" OR username={anynonemptystring}, password=token
+		// - BitBucket: username="x-token-auth", password=token for repo access tokens
+		// We'll use the BitBucket format as it requires a specific string and the others dont
 		return &githttp.BasicAuth{
-			Username: "oauth2",
+			Username: "x-token-auth",
 			Password: *c.config.AccessToken,
 		}, nil
 	}

@@ -116,7 +116,7 @@ func TestCredential_GitAuthentication(t *testing.T) {
 				// Access tokens should be converted to BasicAuth for Git operations
 				basicAuth, ok := auth.(*githttp.BasicAuth)
 				require.True(t, ok, "expected BasicAuth for access token")
-				assert.Equal(t, "oauth2", basicAuth.Username)
+				assert.Equal(t, "x-token-auth", basicAuth.Username)
 				assert.Equal(t, "token123", basicAuth.Password)
 			},
 		},
