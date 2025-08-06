@@ -144,9 +144,8 @@ jobs:
       - name: Process Coverage Data
         if: always()
         run: |
-          # Check if coverage directory exists and has files
+          # Convert coverage data to text format for Codecov
           if [ -d "coverage-${{ env.INTEGRATION_TEST_NAME }}" ]; then
-            # Convert coverage data to text format for Codecov
             go tool covdata textfmt -i=coverage-${{ env.INTEGRATION_TEST_NAME }} -o=coverage-${{ env.INTEGRATION_TEST_NAME }}.txt
           fi
 
