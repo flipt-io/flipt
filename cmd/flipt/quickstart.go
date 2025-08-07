@@ -40,6 +40,9 @@ type quickstart struct {
 	configFile         string
 	cfg                *config.Config
 	pendingCredentials map[string]map[string]any
+	repoOwner          string
+	repoName           string
+	provider           provider
 }
 
 // isInterruptError checks if the error is a user interrupt (Ctrl+C)
@@ -60,8 +63,11 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 	fmt.Println("\nThis wizard will help you configure Git storage syncing with a remote repository.")
 	fmt.Println()
 
-	fmt.Println("⚠️ This will overwrite your existing config file if it exists.")
-	fmt.Println()
+	// Only show overwrite warning if config file exists
+	if _, err := os.Stat(c.configFile); err == nil {
+		fmt.Println("⚠️  This will overwrite your existing config file.")
+		fmt.Println()
+	}
 
 	// prompt if they want to continue, if not return
 	ok, err := util.PromptConfirm("Would you like to continue?", true)
@@ -91,6 +97,9 @@ func (c *quickstart) runGitSetup() error {
 		return fmt.Errorf("parsing repository URL: %w", err)
 	}
 
+	c.repoOwner = repoOwner
+	c.repoName = repoName
+
 	// prompt them if the provider is correct, if not allow them to choose a different provider
 	correctProvider, err := util.PromptConfirm(fmt.Sprintf("Is %s the correct provider?", prvder), true)
 	if err != nil {
@@ -108,6 +117,8 @@ func (c *quickstart) runGitSetup() error {
 
 		prvder = provider(providerString)
 	}
+
+	c.provider = prvder
 
 	fmt.Printf("✅ Using %s repository: %s/%s\n\n", prvder, repoOwner, repoName)
 
@@ -165,7 +176,7 @@ func (c *quickstart) runGitSetup() error {
 			promptToOpenBrowser = false
 		}
 		// Setup credentials for SCM API access
-		credentialsName, err = c.setupSCMCredentials(prvder, promptToOpenBrowser)
+		credentialsName, err = c.setupSCMCredentials(promptToOpenBrowser)
 		if err != nil {
 			return err
 		}
@@ -181,7 +192,7 @@ func (c *quickstart) runGitSetup() error {
 		c.cfg.Environments["default"].SCM.ApiURL = apiURL
 
 		// Setup credentials for SCM API access
-		credentialsName, err = c.setupSCMCredentials(prvder, false)
+		credentialsName, err = c.setupSCMCredentials(false)
 		if err != nil {
 			return err
 		}
@@ -210,32 +221,33 @@ func (c *quickstart) runGitSetup() error {
 	return c.writeConfig()
 }
 
-func (c *quickstart) setupSCMCredentials(provider provider, promptToOpenBrowser bool) (string, error) {
-	credentialsName := fmt.Sprintf("%s-api", strings.ToLower(string(provider)))
+func (c *quickstart) setupSCMCredentials(promptToOpenBrowser bool) (string, error) {
+	credentialsName := fmt.Sprintf("%s-api", strings.ToLower(string(c.provider)))
 
 	if promptToOpenBrowser {
 		// Offer to open browser to create PAT
-		openBrowser, err := util.PromptConfirm("Would you like to open your browser to create an API token?", true)
+		openBrowser, err := util.PromptConfirm("Would you like to open your browser to create an access token?", true)
 		if err != nil {
 			return "", err
 		}
 
 		if openBrowser {
-			patURL := getPATCreationURL(provider)
+			patURL := c.getPATCreationURL()
+
 			if patURL != "" {
-				fmt.Printf("🌐 Opening %s to create an API token...\n", patURL)
+				fmt.Printf("🌐 Opening %q to create an access token...\n", patURL)
 				if err := util.OpenBrowser(patURL); err != nil {
-					fmt.Printf("⚠️  Couldn't open browser automatically. Please visit: %s\n", patURL)
+					fmt.Printf("⚠️  Couldn't open browser automatically. Please visit: %q\n", patURL)
 				}
 				fmt.Println()
 				fmt.Println("📝 Required permissions for SCM integration:")
-				printSCMPermissions(provider)
+				c.printSCMPermissions()
 				fmt.Println()
 			}
 		}
 	}
 
-	token, err := util.PromptPassword("Enter your API token:")
+	token, err := util.PromptPassword("Enter your access token:")
 	if err != nil {
 		return "", err
 	}
@@ -400,13 +412,17 @@ func parseRepositoryURL(repoURL string) (provider provider, owner, repo string, 
 	return provider, owner, repo, nil
 }
 
-func getPATCreationURL(provider provider) string {
-	switch provider {
+func (c *quickstart) getPATCreationURL() string {
+	switch c.provider {
 	case ProviderGitHub:
 		return "https://github.com/settings/tokens"
 	case ProviderGitLab:
 		return "https://gitlab.com/-/user_settings/personal_access_tokens"
 	case ProviderBitBucket:
+		if c.repoOwner != "" && c.repoName != "" {
+			return fmt.Sprintf("https://bitbucket.org/%s/%s/admin/access-tokens", c.repoOwner, c.repoName)
+		}
+		// Fallback URL if we don't have repository details
 		return "https://bitbucket.org/account/settings/app-passwords/"
 	case ProviderAzure:
 		return "https://dev.azure.com/_usersSettings/tokens"
@@ -415,8 +431,8 @@ func getPATCreationURL(provider provider) string {
 	}
 }
 
-func printSCMPermissions(provider provider) {
-	switch provider {
+func (c *quickstart) printSCMPermissions() {
+	switch c.provider {
 	case ProviderGitHub:
 		fmt.Println("  • repo (Full control of private repositories)")
 		fmt.Println("  • pull_requests (Create and manage pull requests)")
@@ -424,8 +440,8 @@ func printSCMPermissions(provider provider) {
 		fmt.Println("  • read_repository (Read repository)")
 		fmt.Println("  • write_repository (Write repository)")
 	case ProviderBitBucket:
-		fmt.Println("  • Repositories: Read, Write (Access and modify repositories)")
-		fmt.Println("  • Pull requests: Read, Write (Create and manage pull requests)")
+		fmt.Println("  • Repositories: Read, Write")
+		fmt.Println("  • Pull requests: Read, Write")
 	case ProviderAzure:
 		fmt.Println("  • Code (read & write) - Access to source code and metadata")
 		fmt.Println("  • Pull Requests (read & write) - Create and manage pull requests")
