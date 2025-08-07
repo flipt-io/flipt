@@ -17,6 +17,7 @@ import (
 	cosssigning "go.flipt.io/flipt/internal/coss/signing"
 	cossgit "go.flipt.io/flipt/internal/coss/storage/environments/git"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/azure"
+	"go.flipt.io/flipt/internal/coss/storage/environments/git/bitbucket"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitea"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/github"
 	"go.flipt.io/flipt/internal/coss/storage/environments/git/gitlab"
@@ -246,10 +247,11 @@ func (f *EnvironmentFactory) createSCM(ctx context.Context, scmConfig *config.SC
 
 	// Create SCM using factory pattern
 	scmCreators := map[config.SCMType]scmCreator{
-		config.GitHubSCMType: f.createGitHubSCM,
-		config.GitLabSCMType: f.createGitLabSCM,
-		config.AzureSCMType:  f.createAzureSCM,
-		config.GiteaSCMType:  f.createGiteaSCM,
+		config.GitHubSCMType:    f.createGitHubSCM,
+		config.GitLabSCMType:    f.createGitLabSCM,
+		config.AzureSCMType:     f.createAzureSCM,
+		config.GiteaSCMType:     f.createGiteaSCM,
+		config.BitBucketSCMType: f.createBitBucketSCM,
 	}
 
 	creator, exists := scmCreators[scmConfig.Type]
@@ -389,6 +391,36 @@ func (f *EnvironmentFactory) createGiteaSCM(ctx context.Context, scmConfig *conf
 	scm, err := gitea.NewSCM(ctx, f.logger, scmConfig.ApiURL, repoOwner, repoName, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup gitea scm: %w", err)
+	}
+
+	return scm, nil
+}
+
+// createBitBucketSCM creates a BitBucket SCM client
+func (f *EnvironmentFactory) createBitBucketSCM(ctx context.Context, scmConfig *config.SCMConfig, repoURL cossgit.URL) (cossgit.SCM, error) {
+	var (
+		repoOwner = repoURL.GetOwnerName()
+		repoName  = repoURL.GetRepoName()
+
+		opts = []bitbucket.ClientOption{}
+	)
+
+	// To support BitBucket Server instances
+	if scmConfig.ApiURL != "" {
+		opts = append(opts, bitbucket.WithApiURL(scmConfig.ApiURL))
+	}
+
+	if scmConfig.Credentials != nil {
+		creds, err := f.credentials.Get(*scmConfig.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, bitbucket.WithApiAuth(creds.APIAuthentication()))
+	}
+
+	scm, err := bitbucket.NewSCM(ctx, f.logger, repoOwner, repoName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup bitbucket scm: %w", err)
 	}
 
 	return scm, nil

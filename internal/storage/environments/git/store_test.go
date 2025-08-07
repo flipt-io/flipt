@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 	"text/template"
@@ -12,12 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/storage/environments/evaluation"
 	"go.flipt.io/flipt/internal/storage/environments/fs"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	storagegit "go.flipt.io/flipt/internal/storage/git"
 	rpcenvironments "go.flipt.io/flipt/rpc/v2/environments"
+	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -436,4 +439,376 @@ func Test_NewEnvironmentFromRepo_InitialSnapshot(t *testing.T) {
 	snapshot, ok := evaluationStore.(*storagefs.Snapshot)
 	require.True(t, ok, "EvaluationStore should return a Snapshot")
 	require.NotNil(t, snapshot)
+}
+
+func Test_Environment_Branches(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+
+	branches := env.Branches()
+	assert.Len(t, branches, 2)
+	assert.Contains(t, branches, env.currentBranch)
+	assert.Contains(t, branches, "flipt/production/*")
+}
+
+func Test_Environment_Key(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	assert.Equal(t, "production", env.Key())
+}
+
+func Test_Environment_Default(t *testing.T) {
+	tests := []struct {
+		name      string
+		envName   string
+		isDefault bool
+	}{
+		{
+			name:      "default environment",
+			envName:   "production",
+			isDefault: true,
+		},
+		{
+			name:      "non-default environment",
+			envName:   "development",
+			isDefault: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := zaptest.NewLogger(t)
+			ctx := context.Background()
+			repo, err := storagegit.NewRepository(ctx, logger)
+			require.NoError(t, err)
+			storage := fs.NewStorage(logger)
+			cfg := &config.EnvironmentConfig{
+				Name:    tt.envName,
+				Default: tt.isDefault,
+			}
+			env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+			require.NoError(t, err)
+			assert.Equal(t, tt.isDefault, env.Default())
+		})
+	}
+}
+
+func Test_Environment_Repository(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	ctx := context.Background()
+	repo, err := storagegit.NewRepository(ctx, logger)
+	require.NoError(t, err)
+	storage := fs.NewStorage(logger)
+	cfg := &config.EnvironmentConfig{Name: "test"}
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, evaluation.NoopPublisher)
+	require.NoError(t, err)
+
+	assert.Equal(t, repo, env.Repository())
+}
+
+func Test_Environment_Configuration(t *testing.T) {
+	tests := []struct {
+		name           string
+		cfg            *config.EnvironmentConfig
+		base           string
+		currentBranch  string
+		repoRemote     string
+		expectedConfig func(*rpcenvironments.EnvironmentConfiguration)
+	}{
+		{
+			name: "basic configuration",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.Equal(t, "main", ec.Ref)
+				assert.Nil(t, ec.Remote)
+				assert.Nil(t, ec.Directory)
+				assert.Nil(t, ec.Base)
+				assert.Nil(t, ec.Scm)
+			},
+		},
+		{
+			name: "configuration with directory",
+			cfg: &config.EnvironmentConfig{
+				Name:      "test",
+				Directory: "config/flipt",
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.Equal(t, "main", ec.Ref)
+				assert.NotNil(t, ec.Directory)
+				assert.Equal(t, "config/flipt", *ec.Directory)
+			},
+		},
+		{
+			name: "configuration with base",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+			},
+			base:          "production",
+			currentBranch: "flipt/production/feature",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.Equal(t, "flipt/production/feature", ec.Ref)
+				assert.NotNil(t, ec.Base)
+				assert.Equal(t, "production", *ec.Base)
+			},
+		},
+		{
+			name: "configuration with GitHub SCM",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+				SCM: &config.SCMConfig{
+					Type: config.GitHubSCMType,
+				},
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.NotNil(t, ec.Scm)
+				assert.Equal(t, rpcenvironments.SCM_SCM_GITHUB, *ec.Scm)
+			},
+		},
+		{
+			name: "configuration with GitLab SCM",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+				SCM: &config.SCMConfig{
+					Type: config.GitLabSCMType,
+				},
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.NotNil(t, ec.Scm)
+				assert.Equal(t, rpcenvironments.SCM_SCM_GITLAB, *ec.Scm)
+			},
+		},
+		{
+			name: "configuration with Gitea SCM",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+				SCM: &config.SCMConfig{
+					Type: config.GiteaSCMType,
+				},
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.NotNil(t, ec.Scm)
+				assert.Equal(t, rpcenvironments.SCM_SCM_GITEA, *ec.Scm)
+			},
+		},
+		{
+			name: "configuration with Azure SCM",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+				SCM: &config.SCMConfig{
+					Type: config.AzureSCMType,
+				},
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.NotNil(t, ec.Scm)
+				assert.Equal(t, rpcenvironments.SCM_SCM_AZURE, *ec.Scm)
+			},
+		},
+		{
+			name: "configuration with BitBucket SCM",
+			cfg: &config.EnvironmentConfig{
+				Name: "test",
+				SCM: &config.SCMConfig{
+					Type: config.BitBucketSCMType,
+				},
+			},
+			currentBranch: "main",
+			expectedConfig: func(ec *rpcenvironments.EnvironmentConfiguration) {
+				assert.NotNil(t, ec.Scm)
+				assert.Equal(t, rpcenvironments.SCM_SCM_BITBUCKET, *ec.Scm)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := zaptest.NewLogger(t)
+			ctx := context.Background()
+
+			var opts []containers.Option[storagegit.Repository]
+			if tt.repoRemote != "" {
+				opts = append(opts, storagegit.WithRemote("origin", tt.repoRemote))
+			}
+
+			repo, err := storagegit.NewRepository(ctx, logger, opts...)
+			require.NoError(t, err)
+
+			storage := fs.NewStorage(logger)
+			env, err := NewEnvironmentFromRepo(ctx, logger, tt.cfg, repo, storage, evaluation.NoopPublisher)
+			require.NoError(t, err)
+
+			env.currentBranch = tt.currentBranch
+			env.base = tt.base
+
+			config := env.Configuration()
+			tt.expectedConfig(config)
+		})
+	}
+}
+
+func Test_Environment_DeleteBranch(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Create a branch first
+	branchEnv, err := env.Branch(ctx, "flipt/production/test-delete")
+	require.NoError(t, err)
+	assert.NotNil(t, branchEnv)
+
+	// Verify branch exists in branches map
+	env.mu.RLock()
+	_, exists := env.branches["test-delete"]
+	env.mu.RUnlock()
+	assert.True(t, exists)
+
+	// Delete the branch
+	err = env.DeleteBranch(ctx, "test-delete")
+	require.NoError(t, err)
+
+	// Verify branch is removed from branches map
+	env.mu.RLock()
+	_, exists = env.branches["test-delete"]
+	env.mu.RUnlock()
+	assert.False(t, exists)
+}
+
+func Test_Environment_EvaluationNamespaceSnapshot(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Get namespace snapshot
+	_, err := env.EvaluationNamespaceSnapshot(ctx, "default")
+	// Will error because empty snapshot, but shouldn't panic
+	assert.Error(t, err)
+}
+
+func Test_Environment_EvaluationNamespaceSnapshotSubscribe(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	ctx := context.Background()
+	repo, err := storagegit.NewRepository(ctx, logger)
+	require.NoError(t, err)
+	storage := fs.NewStorage(logger)
+	cfg := &config.EnvironmentConfig{Name: "production"}
+
+	// Use a real snapshot publisher instead of NoopPublisher for this test
+	publisher := evaluation.NewSnapshotPublisher(logger)
+	env, err := NewEnvironmentFromRepo(ctx, logger, cfg, repo, storage, publisher)
+	require.NoError(t, err)
+
+	ch := make(chan *rpcevaluation.EvaluationNamespaceSnapshot)
+	closer, err := env.EvaluationNamespaceSnapshotSubscribe(ctx, "default", ch)
+	require.NoError(t, err)
+	assert.NotNil(t, closer)
+
+	// Clean up
+	err = closer.Close()
+	assert.NoError(t, err)
+}
+
+func Test_Environment_Notify(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Test with no hash change
+	env.refs[env.currentBranch] = "abc123"
+	err := env.Notify(ctx, map[string]string{env.currentBranch: "abc123"})
+	require.NoError(t, err)
+
+	// Test with hash change
+	err = env.Notify(ctx, map[string]string{env.currentBranch: "def456"})
+	require.NoError(t, err)
+	assert.Equal(t, "def456", env.refs[env.currentBranch])
+}
+
+func Test_Environment_updateSnapshot(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Initial snapshot update
+	err := env.updateSnapshot(ctx)
+	require.NoError(t, err)
+
+	// Get the current head
+	env.mu.RLock()
+	initialHead := env.head
+	env.mu.RUnlock()
+
+	// Update again with same head (should skip)
+	err = env.updateSnapshot(ctx)
+	require.NoError(t, err)
+
+	env.mu.RLock()
+	secondHead := env.head
+	env.mu.RUnlock()
+
+	assert.Equal(t, initialHead, secondHead)
+}
+
+func Test_branchEnvIterator(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Create some test branches
+	for i := 1; i <= 3; i++ {
+		branchName := fmt.Sprintf("flipt/production/test-branch-%d", i)
+		err := env.repo.CreateBranchIfNotExists(ctx, branchName, storagegit.WithBase(env.currentBranch))
+		require.NoError(t, err)
+	}
+
+	// Get branch iterator
+	iter, err := env.listBranchEnvs(ctx)
+	require.NoError(t, err)
+
+	// Collect all branches
+	var branches []*branchEnvConfig
+	for cfg := range iter.All() {
+		branches = append(branches, cfg)
+	}
+
+	// Should have found 3 branches
+	assert.Len(t, branches, 3)
+
+	// Check that all branches have correct prefix
+	for _, b := range branches {
+		assert.Contains(t, b.branch, "flipt/production/")
+	}
+
+	// Check for any errors
+	assert.NoError(t, iter.Err())
+}
+
+func Test_Environment_Branch_GeneratesNameIfEmpty(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Branch with empty name (should generate a random name)
+	branchEnv, err := env.Branch(ctx, "")
+	require.NoError(t, err)
+	assert.NotNil(t, branchEnv)
+
+	// Check that a name was generated
+	assert.NotEqual(t, "production", branchEnv.Key())
+	assert.NotEmpty(t, branchEnv.Key())
+
+	// Check that the branch was created with the correct prefix
+	assert.Contains(t, branchEnv.(*Environment).currentBranch, "flipt/production/")
+}
+
+func Test_Environment_Branch_WithSpaces(t *testing.T) {
+	env := newTestEnvironment(t, "production")
+	ctx := context.Background()
+
+	// Branch with just the name including spaces should be trimmed
+	branchEnv, err := env.Branch(ctx, "  spaced-branch  ")
+	require.NoError(t, err)
+	assert.NotNil(t, branchEnv)
+	// The Key() returns just the name part without the prefix
+	assert.Equal(t, "spaced-branch", branchEnv.Key())
+	// The full branch name should be properly constructed
+	assert.Equal(t, "flipt/production/spaced-branch", branchEnv.(*Environment).currentBranch)
 }

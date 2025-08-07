@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"iter"
-	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -46,9 +45,8 @@ type SCM struct {
 }
 
 type gitLabOptions struct {
-	apiURL     *url.URL
-	httpClient *http.Client
-	apiAuth    *credentials.APIAuth
+	apiURL  *url.URL
+	apiAuth *credentials.APIAuth
 }
 
 type ClientOption func(*gitLabOptions)
@@ -66,10 +64,8 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new GitLab SCM instance.
-func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
-	gitlabOpts := &gitLabOptions{
-		httpClient: http.DefaultClient,
-	}
+func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, opts ...ClientOption) (*SCM, error) {
+	gitlabOpts := &gitLabOptions{}
 
 	for _, opt := range opts {
 		opt(gitlabOpts)
@@ -83,10 +79,6 @@ func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string,
 
 	if gitlabOpts.apiURL != nil {
 		clientOpts = append(clientOpts, gitlab.WithBaseURL(gitlabOpts.apiURL.String()))
-	}
-
-	if gitlabOpts.httpClient != nil {
-		clientOpts = append(clientOpts, gitlab.WithHTTPClient(gitlabOpts.httpClient))
 	}
 
 	if gitlabOpts.apiAuth != nil {
@@ -108,7 +100,7 @@ func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string,
 	}
 
 	// gitlab project ID can be a numeric ID or the repoOwner/repoName
-	projectID := fmt.Sprintf("%s/%s", repoOwner, repoName)
+	projectID := fmt.Sprintf("%s/%s", owner, repository)
 
 	return &SCM{
 		logger:    logger.With(zap.String("repository", projectID), zap.String("scm", "gitlab")),
@@ -212,8 +204,13 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		details = map[string]*environments.EnvironmentProposalDetails{}
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for mr := range mrs.All() {
 		branch := mr.SourceBranch
+
 		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
 			continue
 		}
@@ -240,6 +237,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 	}
 
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
+
 	return details, nil
 }
 
@@ -254,7 +255,14 @@ type mrs struct {
 }
 
 func (s *SCM) listMRs(ctx context.Context, base string) *mrs {
-	return &mrs{s.logger, ctx, s.mrs, s.projectID, base, nil}
+	return &mrs{
+		logger:    s.logger,
+		ctx:       ctx,
+		client:    s.mrs,
+		projectID: s.projectID,
+		base:      base,
+		err:       nil,
+	}
 }
 
 func (m *mrs) Err() error {
@@ -263,6 +271,10 @@ func (m *mrs) Err() error {
 
 func (m *mrs) All() iter.Seq[*gitlab.BasicMergeRequest] {
 	return iter.Seq[*gitlab.BasicMergeRequest](func(yield func(*gitlab.BasicMergeRequest) bool) {
+		m.logger.Debug("fetching merge requests with pagination",
+			zap.String("projectID", m.projectID),
+			zap.String("base", m.base))
+
 		opts := &gitlab.ListProjectMergeRequestsOptions{
 			TargetBranch: &m.base,
 			State:        gitlab.Ptr("all"),
@@ -271,12 +283,15 @@ func (m *mrs) All() iter.Seq[*gitlab.BasicMergeRequest] {
 			},
 		}
 
+		var totalMRs int
 		for {
 			mrs, resp, err := m.client.ListProjectMergeRequests(m.projectID, opts)
 			if err != nil {
-				m.err = err
+				m.err = fmt.Errorf("failed to fetch merge requests: %w", err)
 				return
 			}
+
+			totalMRs += len(mrs)
 
 			for _, mr := range mrs {
 				if !strings.HasPrefix(mr.SourceBranch, "flipt/") {
@@ -289,6 +304,9 @@ func (m *mrs) All() iter.Seq[*gitlab.BasicMergeRequest] {
 			}
 
 			if resp.NextPage == 0 {
+				m.logger.Debug("retrieved merge requests from GitLab",
+					zap.Int("totalMRs", totalMRs),
+					zap.String("base", m.base))
 				return
 			}
 

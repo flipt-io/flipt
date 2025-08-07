@@ -1591,7 +1591,7 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 			name     string
 			input    string
 			envVars  map[string]string
-			expected interface{}
+			expected any
 		}{
 			{
 				name:     "explicit environment reference",
@@ -1654,7 +1654,7 @@ func TestStringToReferenceHookFunc(t *testing.T) {
 			name     string
 			input    string
 			envVars  map[string]string
-			expected interface{}
+			expected any
 		}{
 			{
 				name:     "explicit environment reference",

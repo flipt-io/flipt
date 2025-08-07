@@ -180,6 +180,7 @@ enum SCM {
   SCM_GITEA = 2;
   SCM_GITLAB = 3;
   SCM_AZURE = 4;
+  SCM_BITBUCKET = 5;
 }
 
 enum ProposalState {

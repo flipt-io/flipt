@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
@@ -18,11 +20,12 @@ import (
 type provider string
 
 const (
-	ProviderGitHub provider = "GitHub"
-	ProviderGitLab provider = "GitLab"
-	ProviderGitea  provider = "Gitea"
-	ProviderAzure  provider = "Azure"
-	ProviderGit    provider = "Git"
+	ProviderGitHub    provider = "GitHub"
+	ProviderGitLab    provider = "GitLab"
+	ProviderBitBucket provider = "BitBucket"
+	ProviderGitea     provider = "Gitea"
+	ProviderAzure     provider = "Azure"
+	ProviderGit       provider = "Git"
 )
 
 func (p provider) String() string {
@@ -37,6 +40,14 @@ type quickstart struct {
 	configFile         string
 	cfg                *config.Config
 	pendingCredentials map[string]map[string]any
+	repoOwner          string
+	repoName           string
+	provider           provider
+}
+
+// isInterruptError checks if the error is a user interrupt (Ctrl+C)
+func isInterruptError(err error) bool {
+	return errors.Is(err, terminal.InterruptErr)
 }
 
 func (c *quickstart) run(cmd *cobra.Command, args []string) error {
@@ -49,11 +60,14 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 	c.configFile = defaultFile
 
 	fmt.Println("🚀 Welcome to Flipt v2 Quickstart!")
-	fmt.Println("This wizard will help you configure Git storage syncing with a remote repository.")
+	fmt.Println("\nThis wizard will help you configure Git storage syncing with a remote repository.")
 	fmt.Println()
 
-	fmt.Println("⚠️ This will overwrite your existing config file if it exists.")
-	fmt.Println()
+	// Only show overwrite warning if config file exists
+	if _, err := os.Stat(c.configFile); err == nil {
+		fmt.Println("⚠️  This will overwrite your existing config file.")
+		fmt.Println()
+	}
 
 	// prompt if they want to continue, if not return
 	ok, err := util.PromptConfirm("Would you like to continue?", true)
@@ -83,6 +97,9 @@ func (c *quickstart) runGitSetup() error {
 		return fmt.Errorf("parsing repository URL: %w", err)
 	}
 
+	c.repoOwner = repoOwner
+	c.repoName = repoName
+
 	// prompt them if the provider is correct, if not allow them to choose a different provider
 	correctProvider, err := util.PromptConfirm(fmt.Sprintf("Is %s the correct provider?", prvder), true)
 	if err != nil {
@@ -93,13 +110,15 @@ func (c *quickstart) runGitSetup() error {
 	if !correctProvider {
 		if err := survey.AskOne(&survey.Select{
 			Message: "Which SCM provider would you like to integrate with?",
-			Options: []string{"GitHub", "GitLab", "Gitea", "Azure"},
+			Options: []string{"GitHub", "GitLab", "BitBucket", "Azure", "Gitea"},
 		}, &providerString); err != nil {
 			return err
 		}
 
 		prvder = provider(providerString)
 	}
+
+	c.provider = prvder
 
 	fmt.Printf("✅ Using %s repository: %s/%s\n\n", prvder, repoOwner, repoName)
 
@@ -137,7 +156,7 @@ func (c *quickstart) runGitSetup() error {
 	var credentialsName string
 
 	switch prvder {
-	case ProviderGitHub, ProviderGitLab:
+	case ProviderGitHub, ProviderGitLab, ProviderBitBucket, ProviderAzure:
 		promptToOpenBrowser := true
 		c.cfg.Environments["default"].SCM = &config.SCMConfig{
 			Type: config.SCMType(strings.ToLower(string(prvder))),
@@ -157,7 +176,7 @@ func (c *quickstart) runGitSetup() error {
 			promptToOpenBrowser = false
 		}
 		// Setup credentials for SCM API access
-		credentialsName, err = c.setupSCMCredentials(prvder, promptToOpenBrowser)
+		credentialsName, err = c.setupSCMCredentials(promptToOpenBrowser)
 		if err != nil {
 			return err
 		}
@@ -173,7 +192,7 @@ func (c *quickstart) runGitSetup() error {
 		c.cfg.Environments["default"].SCM.ApiURL = apiURL
 
 		// Setup credentials for SCM API access
-		credentialsName, err = c.setupSCMCredentials(prvder, false)
+		credentialsName, err = c.setupSCMCredentials(false)
 		if err != nil {
 			return err
 		}
@@ -202,32 +221,33 @@ func (c *quickstart) runGitSetup() error {
 	return c.writeConfig()
 }
 
-func (c *quickstart) setupSCMCredentials(provider provider, promptToOpenBrowser bool) (string, error) {
-	credentialsName := fmt.Sprintf("%s-api", strings.ToLower(string(provider)))
+func (c *quickstart) setupSCMCredentials(promptToOpenBrowser bool) (string, error) {
+	credentialsName := fmt.Sprintf("%s-api", strings.ToLower(string(c.provider)))
 
 	if promptToOpenBrowser {
 		// Offer to open browser to create PAT
-		openBrowser, err := util.PromptConfirm("Would you like to open your browser to create an API token?", true)
+		openBrowser, err := util.PromptConfirm("Would you like to open your browser to create an access token?", true)
 		if err != nil {
 			return "", err
 		}
 
 		if openBrowser {
-			patURL := getPATCreationURL(provider)
+			patURL := c.getPATCreationURL()
+
 			if patURL != "" {
-				fmt.Printf("🌐 Opening %s to create an API token...\n", patURL)
+				fmt.Printf("🌐 Opening %q to create an access token...\n", patURL)
 				if err := util.OpenBrowser(patURL); err != nil {
-					fmt.Printf("⚠️  Couldn't open browser automatically. Please visit: %s\n", patURL)
+					fmt.Printf("⚠️  Couldn't open browser automatically. Please visit: %q\n", patURL)
 				}
 				fmt.Println()
 				fmt.Println("📝 Required permissions for SCM integration:")
-				printSCMPermissions(provider)
+				c.printSCMPermissions()
 				fmt.Println()
 			}
 		}
 	}
 
-	token, err := util.PromptPassword("Enter your API token:")
+	token, err := util.PromptPassword("Enter your access token:")
 	if err != nil {
 		return "", err
 	}
@@ -370,6 +390,10 @@ func parseRepositoryURL(repoURL string) (provider provider, owner, repo string, 
 		provider = ProviderGitHub
 	case strings.Contains(u.Host, "gitlab.com"):
 		provider = ProviderGitLab
+	case strings.Contains(u.Host, "bitbucket.org"):
+		provider = ProviderBitBucket
+	case strings.Contains(u.Host, "dev.azure.com") || strings.Contains(u.Host, "visualstudio.com"):
+		provider = ProviderAzure
 	case strings.Contains(u.Host, "gitea.com"):
 		provider = ProviderGitea
 	default:
@@ -388,25 +412,39 @@ func parseRepositoryURL(repoURL string) (provider provider, owner, repo string, 
 	return provider, owner, repo, nil
 }
 
-func getPATCreationURL(provider provider) string {
-	switch provider {
+func (c *quickstart) getPATCreationURL() string {
+	switch c.provider {
 	case ProviderGitHub:
 		return "https://github.com/settings/tokens"
 	case ProviderGitLab:
 		return "https://gitlab.com/-/user_settings/personal_access_tokens"
+	case ProviderBitBucket:
+		if c.repoOwner != "" && c.repoName != "" {
+			return fmt.Sprintf("https://bitbucket.org/%s/%s/admin/access-tokens", c.repoOwner, c.repoName)
+		}
+		// Fallback URL if we don't have repository details
+		return "https://bitbucket.org/account/settings/app-passwords/"
+	case ProviderAzure:
+		return "https://dev.azure.com/_usersSettings/tokens"
 	default:
 		return ""
 	}
 }
 
-func printSCMPermissions(provider provider) {
-	switch provider {
+func (c *quickstart) printSCMPermissions() {
+	switch c.provider {
 	case ProviderGitHub:
 		fmt.Println("  • repo (Full control of private repositories)")
 		fmt.Println("  • pull_requests (Create and manage pull requests)")
 	case ProviderGitLab:
 		fmt.Println("  • read_repository (Read repository)")
 		fmt.Println("  • write_repository (Write repository)")
+	case ProviderBitBucket:
+		fmt.Println("  • Repositories: Read, Write")
+		fmt.Println("  • Pull requests: Read, Write")
+	case ProviderAzure:
+		fmt.Println("  • Code (read & write) - Access to source code and metadata")
+		fmt.Println("  • Pull Requests (read & write) - Create and manage pull requests")
 	case ProviderGitea:
 		fmt.Println("  • repository (Repository access)")
 		fmt.Println("  • issue (Issue and pull request access)")
@@ -428,7 +466,16 @@ The wizard will guide you through:
 Examples:
   flipt quickstart              # Interactive setup wizard
   flipt quickstart --config /path/to/config.yml # Path to write to config file`,
-		RunE: quickstartCmd.run,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := quickstartCmd.run(cmd, args); err != nil {
+				if isInterruptError(err) {
+					fmt.Println("\nQuickstart cancelled.")
+					return nil
+				}
+				return err
+			}
+			return nil
+		},
 	}
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")

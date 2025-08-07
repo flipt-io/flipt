@@ -59,4 +59,22 @@ func TestParseGitURL(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("bitbucket", func(t *testing.T) {
+		tests := []string{
+			"https://bitbucket.org/flipt-io/flipt",
+			"https://bitbucket.org/flipt-io/flipt.git",
+			"git@bitbucket.org:flipt-io/flipt.git",
+			"https://bitbucket.company.com/flipt-io/flipt",
+		}
+
+		for i, ex := range tests {
+			t.Run(fmt.Sprint(i), func(t *testing.T) {
+				gitURL, err := ParseGitURL(ex)
+				require.NoError(t, err)
+				assert.Equal(t, "flipt-io", gitURL.GetOwnerName())
+				assert.Equal(t, "flipt", gitURL.GetRepoName())
+			})
+		}
+	})
 }

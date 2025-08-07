@@ -33,6 +33,10 @@ packages:
   go.flipt.io/flipt/internal/coss/storage/environments/git/azure:
     interfaces:
       Client: {}
+  go.flipt.io/flipt/internal/coss/storage/environments/git/bitbucket:
+    interfaces:
+      PullRequestsService: {}
+      CommitsService: {}
   go.flipt.io/flipt/internal/coss/license:
     interfaces:
       Manager: {}
