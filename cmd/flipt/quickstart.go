@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd/util"
 	"go.flipt.io/flipt/internal/config"
@@ -18,11 +20,12 @@ import (
 type provider string
 
 const (
-	ProviderGitHub provider = "GitHub"
-	ProviderGitLab provider = "GitLab"
-	ProviderGitea  provider = "Gitea"
-	ProviderAzure  provider = "Azure"
-	ProviderGit    provider = "Git"
+	ProviderGitHub    provider = "GitHub"
+	ProviderGitLab    provider = "GitLab"
+	ProviderBitBucket provider = "BitBucket"
+	ProviderGitea     provider = "Gitea"
+	ProviderAzure     provider = "Azure"
+	ProviderGit       provider = "Git"
 )
 
 func (p provider) String() string {
@@ -39,6 +42,11 @@ type quickstart struct {
 	pendingCredentials map[string]map[string]any
 }
 
+// isInterruptError checks if the error is a user interrupt (Ctrl+C)
+func isInterruptError(err error) bool {
+	return errors.Is(err, terminal.InterruptErr)
+}
+
 func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 	defaultFile := providedConfigFile
 
@@ -48,7 +56,7 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 
 	c.configFile = defaultFile
 
-	fmt.Println("🚀 Welcome to Flipt v2 Quickstart!")
+	fmt.Println("🚀 Welcome to Flipt v2 Quickstart!\n")
 	fmt.Println("This wizard will help you configure Git storage syncing with a remote repository.")
 	fmt.Println()
 
@@ -93,7 +101,7 @@ func (c *quickstart) runGitSetup() error {
 	if !correctProvider {
 		if err := survey.AskOne(&survey.Select{
 			Message: "Which SCM provider would you like to integrate with?",
-			Options: []string{"GitHub", "GitLab", "Gitea", "Azure"},
+			Options: []string{"GitHub", "GitLab", "BitBucket", "Azure", "Gitea"},
 		}, &providerString); err != nil {
 			return err
 		}
@@ -137,7 +145,7 @@ func (c *quickstart) runGitSetup() error {
 	var credentialsName string
 
 	switch prvder {
-	case ProviderGitHub, ProviderGitLab:
+	case ProviderGitHub, ProviderGitLab, ProviderBitBucket, ProviderAzure:
 		promptToOpenBrowser := true
 		c.cfg.Environments["default"].SCM = &config.SCMConfig{
 			Type: config.SCMType(strings.ToLower(string(prvder))),
@@ -370,6 +378,10 @@ func parseRepositoryURL(repoURL string) (provider provider, owner, repo string, 
 		provider = ProviderGitHub
 	case strings.Contains(u.Host, "gitlab.com"):
 		provider = ProviderGitLab
+	case strings.Contains(u.Host, "bitbucket.org"):
+		provider = ProviderBitBucket
+	case strings.Contains(u.Host, "dev.azure.com") || strings.Contains(u.Host, "visualstudio.com"):
+		provider = ProviderAzure
 	case strings.Contains(u.Host, "gitea.com"):
 		provider = ProviderGitea
 	default:
@@ -394,6 +406,10 @@ func getPATCreationURL(provider provider) string {
 		return "https://github.com/settings/tokens"
 	case ProviderGitLab:
 		return "https://gitlab.com/-/user_settings/personal_access_tokens"
+	case ProviderBitBucket:
+		return "https://bitbucket.org/account/settings/app-passwords/"
+	case ProviderAzure:
+		return "https://dev.azure.com/_usersSettings/tokens"
 	default:
 		return ""
 	}
@@ -407,6 +423,12 @@ func printSCMPermissions(provider provider) {
 	case ProviderGitLab:
 		fmt.Println("  • read_repository (Read repository)")
 		fmt.Println("  • write_repository (Write repository)")
+	case ProviderBitBucket:
+		fmt.Println("  • Repositories: Read, Write (Access and modify repositories)")
+		fmt.Println("  • Pull requests: Read, Write (Create and manage pull requests)")
+	case ProviderAzure:
+		fmt.Println("  • Code (read & write) - Access to source code and metadata")
+		fmt.Println("  • Pull Requests (read & write) - Create and manage pull requests")
 	case ProviderGitea:
 		fmt.Println("  • repository (Repository access)")
 		fmt.Println("  • issue (Issue and pull request access)")
@@ -428,7 +450,16 @@ The wizard will guide you through:
 Examples:
   flipt quickstart              # Interactive setup wizard
   flipt quickstart --config /path/to/config.yml # Path to write to config file`,
-		RunE: quickstartCmd.run,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := quickstartCmd.run(cmd, args); err != nil {
+				if isInterruptError(err) {
+					fmt.Println("\nQuickstart cancelled.")
+					return nil
+				}
+				return err
+			}
+			return nil
+		},
 	}
 
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
