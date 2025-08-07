@@ -492,6 +492,7 @@ components:
                         - SCM_GITEA
                         - SCM_GITLAB
                         - SCM_AZURE
+                        - SCM_BITBUCKET
                     type: string
                     format: enum
         EnvironmentProposalDetails:

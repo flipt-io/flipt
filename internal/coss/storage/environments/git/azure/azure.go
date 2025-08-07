@@ -2,6 +2,7 @@
 // This file contains functionality that is licensed under the Flipt Fair Core License (FCL).
 // You may NOT use, modify, or distribute this file or its contents without a valid paid license.
 // For details: https://github.com/flipt-io/flipt/blob/v2/LICENSE
+
 package azure
 
 import (
@@ -61,35 +62,35 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new SCM instance for Azure DevOps Git.
-func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoProject, repoName string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, owner, project, repository string, opts ...ClientOption) (*SCM, error) {
 	options := &azureOptions{}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	connection := azuredevops.NewPatConnection(fmt.Sprintf("%s/%s", options.apiURL.String(), repoOwner), options.personalAccessToken)
+	connection := azuredevops.NewPatConnection(fmt.Sprintf("%s/%s", options.apiURL.String(), owner), options.personalAccessToken)
 	client, err := azuregit.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create azure git client: %w", err)
 	}
 
 	return &SCM{
-		logger:      logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoProject, repoName)), zap.String("scm", "azure")),
-		client:      client,
-		repoOwner:   repoOwner,
-		repoProject: repoProject,
-		repoName:    repoName,
-		baseURL:     options.apiURL.String(),
+		logger:     logger.With(zap.String("repository", fmt.Sprintf("%s/%s", project, repository)), zap.String("scm", "azure")),
+		client:     client,
+		owner:      owner,
+		project:    project,
+		repository: repository,
+		baseURL:    options.apiURL.String(),
 	}, nil
 }
 
 type SCM struct {
-	logger      *zap.Logger
-	client      Client
-	repoOwner   string
-	repoProject string
-	repoName    string
-	baseURL     string
+	logger     *zap.Logger
+	client     Client
+	owner      string
+	project    string
+	repository string
+	baseURL    string
 }
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
@@ -102,8 +103,8 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	)
 
 	commits, err := s.client.GetCommits(ctx, azuregit.GetCommitsArgs{
-		RepositoryId: &s.repoName,
-		Project:      &s.repoProject,
+		RepositoryId: &s.repository,
+		Project:      &s.project,
 		SearchCriteria: &azuregit.GitQueryCommitsCriteria{
 			IncludeLinks: &includeLinks,
 			ItemVersion: &azuregit.GitVersionDescriptor{
@@ -170,8 +171,8 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 			SourceRefName: &sourceRefName,
 			TargetRefName: &targetRefName,
 		},
-		RepositoryId: &s.repoName,
-		Project:      &s.repoProject,
+		RepositoryId: &s.repository,
+		Project:      &s.project,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pull request: %w", err)
@@ -192,12 +193,30 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		prs     = s.listPRs(ctx, baseCfg.Ref)
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for pr := range prs.All() {
 		branch := strings.TrimPrefix(*pr.SourceRefName, "refs/heads/")
+
+		prID := ""
+		if pr.PullRequestId != nil {
+			prID = fmt.Sprintf("%d", *pr.PullRequestId)
+		}
+
+		s.logger.Debug("checking PR for flipt branch",
+			zap.String("prID", prID),
+			zap.String("branch", branch),
+			zap.String("expectedPrefix", fmt.Sprintf("flipt/%s/", env.Key())))
 
 		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
 			continue
 		}
+
+		s.logger.Debug("found flipt PR",
+			zap.String("prID", prID),
+			zap.String("branch", branch))
 
 		if _, ok := details[branch]; ok {
 			// we let existing PRs get replaced by other PRs for the same branch
@@ -216,9 +235,9 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 
 		webURL := fmt.Sprintf("%s/%s/%s/_git/%s/pullrequest/%d",
 			s.baseURL,
-			s.repoOwner,
-			s.repoProject,
-			s.repoName,
+			s.owner,
+			s.project,
+			s.repository,
 			*pr.PullRequestId,
 		)
 		details[branch] = &environments.EnvironmentProposalDetails{
@@ -227,21 +246,36 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 	}
 
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
+
 	return details, prs.Err()
 }
 
 type prs struct {
-	ctx         context.Context
-	client      Client
-	repoProject string
-	repoName    string
-	base        string
+	logger     *zap.Logger
+	ctx        context.Context
+	client     Client
+	owner      string
+	project    string
+	repository string
+	base       string
 
 	err error
 }
 
 func (s *SCM) listPRs(ctx context.Context, base string) *prs {
-	return &prs{ctx: ctx, client: s.client, repoProject: s.repoProject, repoName: s.repoName, base: base, err: nil}
+	return &prs{
+		logger:     s.logger,
+		ctx:        ctx,
+		client:     s.client,
+		owner:      s.owner,
+		project:    s.project,
+		repository: s.repository,
+		base:       base,
+		err:        nil,
+	}
 }
 
 func (p *prs) Err() error {
@@ -250,6 +284,12 @@ func (p *prs) Err() error {
 
 func (p *prs) All() iter.Seq[*azuregit.GitPullRequest] {
 	return iter.Seq[*azuregit.GitPullRequest](func(yield func(*azuregit.GitPullRequest) bool) {
+		p.logger.Debug("fetching pull requests with pagination",
+			zap.String("owner", p.owner),
+			zap.String("project", p.project),
+			zap.String("repository", p.repository),
+			zap.String("base", p.base))
+
 		var (
 			targetRefName = fmt.Sprintf("refs/heads/%s", p.base)
 			includeLinks  = true
@@ -259,12 +299,13 @@ func (p *prs) All() iter.Seq[*azuregit.GitPullRequest] {
 				TargetRefName: &targetRefName,
 				IncludeLinks:  &includeLinks,
 			}
+			totalPRs = 0
 		)
 
 		for {
 			prs, err := p.client.GetPullRequests(p.ctx, azuregit.GetPullRequestsArgs{
-				RepositoryId:   &p.repoName,
-				Project:        &p.repoProject,
+				RepositoryId:   &p.repository,
+				Project:        &p.project,
 				SearchCriteria: criteria,
 				Top:            &top,
 				Skip:           &skip,
@@ -274,8 +315,14 @@ func (p *prs) All() iter.Seq[*azuregit.GitPullRequest] {
 				return
 			}
 			if prs == nil || len(*prs) == 0 {
+				p.logger.Debug("retrieved pull requests from Azure DevOps",
+					zap.Int("totalPRs", totalPRs),
+					zap.String("base", p.base))
 				return
 			}
+
+			totalPRs += len(*prs)
+
 			for _, pr := range *prs {
 				if !yield(&pr) {
 					return

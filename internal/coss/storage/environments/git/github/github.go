@@ -41,11 +41,11 @@ type RepositoriesService interface {
 
 // SCM implements the git.SCM interface for GitHub.
 type SCM struct {
-	logger    *zap.Logger
-	repoOwner string
-	repoName  string
-	prs       PullRequestsService
-	repos     RepositoriesService
+	logger     *zap.Logger
+	owner      string
+	repository string
+	prs        PullRequestsService
+	repos      RepositoriesService
 }
 
 type gitHubOptions struct {
@@ -79,7 +79,7 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new GitHub SCM instance.
-func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, opts ...ClientOption) (*SCM, error) {
 	githubOpts := &gitHubOptions{
 		httpClient: http.DefaultClient,
 	}
@@ -115,11 +115,11 @@ func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string,
 	}
 
 	return &SCM{
-		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "github")),
-		repoOwner: repoOwner,
-		repoName:  repoName,
-		prs:       client.PullRequests,
-		repos:     client.Repositories,
+		logger:     logger.With(zap.String("repository", fmt.Sprintf("%s/%s", owner, repository)), zap.String("scm", "github")),
+		owner:      owner,
+		repository: repository,
+		prs:        client.PullRequests,
+		repos:      client.Repositories,
 	}, nil
 }
 
@@ -127,7 +127,7 @@ func NewSCM(ctx context.Context, logger *zap.Logger, repoOwner, repoName string,
 func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environments.EnvironmentProposalDetails, error) {
 	s.logger.Info("proposing pull request", zap.String("base", req.Base), zap.String("head", req.Head), zap.String("title", req.Title), zap.Bool("draft", req.Draft))
 
-	pr, _, err := s.prs.Create(ctx, s.repoOwner, s.repoName, &github.NewPullRequest{
+	pr, _, err := s.prs.Create(ctx, s.owner, s.repository, &github.NewPullRequest{
 		Base:  github.String(req.Base),
 		Head:  github.String(req.Head),
 		Title: github.String(req.Title),
@@ -149,7 +149,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 // ListChanges compares the base and head branches and returns the changes between them.
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
-	comparison, _, err := s.repos.CompareCommits(ctx, s.repoOwner, s.repoName, req.Base, req.Head, nil)
+	comparison, _, err := s.repos.CompareCommits(ctx, s.owner, s.repository, req.Base, req.Head, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
@@ -205,11 +205,25 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		details = map[string]*environments.EnvironmentProposalDetails{}
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for pr := range prs.All() {
 		branch := pr.Head.GetRef()
+
+		s.logger.Debug("checking PR for flipt branch",
+			zap.Int64("prID", pr.GetID()),
+			zap.String("branch", branch),
+			zap.String("expectedPrefix", fmt.Sprintf("flipt/%s/", env.Key())))
+
 		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
 			continue
 		}
+
+		s.logger.Debug("found flipt PR",
+			zap.Int64("prID", pr.GetID()),
+			zap.String("branch", branch))
 
 		if _, ok := details[branch]; ok {
 			// we let existing PRs get replaced by other PRs for the same branch
@@ -233,22 +247,34 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 	}
 
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
+
 	return details, nil
 }
 
 type prs struct {
-	logger    *zap.Logger
-	ctx       context.Context
-	client    PullRequestsService
-	repoOwner string
-	repoName  string
-	base      string
+	logger     *zap.Logger
+	ctx        context.Context
+	client     PullRequestsService
+	owner      string
+	repository string
+	base       string
 
 	err error
 }
 
 func (s *SCM) listPRs(ctx context.Context, base string) *prs {
-	return &prs{s.logger, ctx, s.prs, s.repoOwner, s.repoName, base, nil}
+	return &prs{
+		logger:     s.logger,
+		ctx:        ctx,
+		client:     s.prs,
+		owner:      s.owner,
+		repository: s.repository,
+		base:       base,
+		err:        nil,
+	}
 }
 
 func (p *prs) Err() error {
@@ -257,6 +283,11 @@ func (p *prs) Err() error {
 
 func (p *prs) All() iter.Seq[*github.PullRequest] {
 	return iter.Seq[*github.PullRequest](func(yield func(*github.PullRequest) bool) {
+		p.logger.Debug("fetching pull requests with pagination",
+			zap.String("owner", p.owner),
+			zap.String("repository", p.repository),
+			zap.String("base", p.base))
+
 		opts := &github.PullRequestListOptions{
 			Base: p.base,
 			ListOptions: github.ListOptions{
@@ -265,12 +296,15 @@ func (p *prs) All() iter.Seq[*github.PullRequest] {
 			State: "all",
 		}
 
+		var totalPRs int
 		for {
-			prs, resp, err := p.client.List(p.ctx, p.repoOwner, p.repoName, opts)
+			prs, resp, err := p.client.List(p.ctx, p.owner, p.repository, opts)
 			if err != nil {
 				p.err = err
 				return
 			}
+
+			totalPRs += len(prs)
 
 			for _, pr := range prs {
 				if !strings.HasPrefix(pr.Head.GetRef(), "flipt/") {
@@ -283,6 +317,9 @@ func (p *prs) All() iter.Seq[*github.PullRequest] {
 			}
 
 			if resp.NextPage == 0 {
+				p.logger.Debug("retrieved pull requests from GitHub",
+					zap.Int("totalPRs", totalPRs),
+					zap.String("base", p.base))
 				return
 			}
 

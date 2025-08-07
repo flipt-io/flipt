@@ -29,11 +29,12 @@ const (
 type SCM int32
 
 const (
-	SCM_SCM_UNKNOWN SCM = 0
-	SCM_SCM_GITHUB  SCM = 1
-	SCM_SCM_GITEA   SCM = 2
-	SCM_SCM_GITLAB  SCM = 3
-	SCM_SCM_AZURE   SCM = 4
+	SCM_SCM_UNKNOWN   SCM = 0
+	SCM_SCM_GITHUB    SCM = 1
+	SCM_SCM_GITEA     SCM = 2
+	SCM_SCM_GITLAB    SCM = 3
+	SCM_SCM_AZURE     SCM = 4
+	SCM_SCM_BITBUCKET SCM = 5
 )
 
 // Enum value maps for SCM.
@@ -44,13 +45,15 @@ var (
 		2: "SCM_GITEA",
 		3: "SCM_GITLAB",
 		4: "SCM_AZURE",
+		5: "SCM_BITBUCKET",
 	}
 	SCM_value = map[string]int32{
-		"SCM_UNKNOWN": 0,
-		"SCM_GITHUB":  1,
-		"SCM_GITEA":   2,
-		"SCM_GITLAB":  3,
-		"SCM_AZURE":   4,
+		"SCM_UNKNOWN":   0,
+		"SCM_GITHUB":    1,
+		"SCM_GITEA":     2,
+		"SCM_GITLAB":    3,
+		"SCM_AZURE":     4,
+		"SCM_BITBUCKET": 5,
 	}
 )
 
@@ -2028,7 +2031,7 @@ const file_environments_proto_rawDesc = "" +
 	"\x03key\x18\x04 \x01(\tR\x03key\x12\x1a\n" +
 	"\brevision\x18d \x01(\tR\brevision\"4\n" +
 	"\x16DeleteResourceResponse\x12\x1a\n" +
-	"\brevision\x18d \x01(\tR\brevision*T\n" +
+	"\brevision\x18d \x01(\tR\brevision*g\n" +
 	"\x03SCM\x12\x0f\n" +
 	"\vSCM_UNKNOWN\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -2036,7 +2039,8 @@ const file_environments_proto_rawDesc = "" +
 	"\tSCM_GITEA\x10\x02\x12\x0e\n" +
 	"\n" +
 	"SCM_GITLAB\x10\x03\x12\r\n" +
-	"\tSCM_AZURE\x10\x04*z\n" +
+	"\tSCM_AZURE\x10\x04\x12\x11\n" +
+	"\rSCM_BITBUCKET\x10\x05*z\n" +
 	"\rProposalState\x12\x1a\n" +
 	"\x16PROPOSAL_STATE_UNKNOWN\x10\x00\x12\x17\n" +
 	"\x13PROPOSAL_STATE_OPEN\x10\x01\x12\x19\n" +

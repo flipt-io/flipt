@@ -134,6 +134,8 @@ func (e *Environment) Configuration() *rpcenvironments.EnvironmentConfiguration 
 			scm = ptr(rpcenvironments.SCM_SCM_GITEA)
 		case config.AzureSCMType:
 			scm = ptr(rpcenvironments.SCM_SCM_AZURE)
+		case config.BitBucketSCMType:
+			scm = ptr(rpcenvironments.SCM_SCM_BITBUCKET)
 		}
 	}
 

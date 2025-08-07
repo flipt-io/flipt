@@ -20,11 +20,11 @@ import (
 func TestSCM_Propose(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
@@ -57,11 +57,11 @@ func TestSCM_Propose(t *testing.T) {
 func TestSCM_Propose_Error(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
@@ -84,11 +84,11 @@ func TestSCM_Propose_Error(t *testing.T) {
 func TestSCM_ListChanges(t *testing.T) {
 	mockRepos := NewMockRepositoriesService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       nil,
-		repos:     mockRepos,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        nil,
+		repos:      mockRepos,
 	}
 
 	ctx := context.Background()
@@ -129,11 +129,11 @@ func TestSCM_ListChanges(t *testing.T) {
 func TestSCM_ListChanges_Error(t *testing.T) {
 	mockRepos := NewMockRepositoriesService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       nil,
-		repos:     mockRepos,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        nil,
+		repos:      mockRepos,
 	}
 
 	ctx := context.Background()
@@ -151,11 +151,11 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 func TestSCM_ListProposals(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
@@ -185,16 +185,17 @@ func TestSCM_ListProposals(t *testing.T) {
 func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
+	mockEnv.EXPECT().Key().Return("testenv")
 
 	pr := &github.PullRequest{
 		Head:    &github.PullRequestBranch{Ref: github.String("otherprefix/testenv/feature")},
@@ -214,11 +215,11 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
@@ -252,11 +253,11 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()
@@ -287,11 +288,11 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	mockPR := NewMockPullRequestsService(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		prs:       mockPR,
-		repos:     nil,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		prs:        mockPR,
+		repos:      nil,
 	}
 
 	ctx := context.Background()

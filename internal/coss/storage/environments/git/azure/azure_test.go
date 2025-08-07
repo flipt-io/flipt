@@ -26,10 +26,10 @@ func toPtr[T any](t testing.TB, p T) *T {
 func TestSCM_Propose(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -53,10 +53,10 @@ func TestSCM_Propose(t *testing.T) {
 func TestSCM_Propose_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -72,11 +72,11 @@ func TestSCM_Propose_Error(t *testing.T) {
 func TestSCM_ListChanges(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:      zap.NewNop(),
-		repoOwner:   "owner",
-		repoName:    "repo",
-		repoProject: "project",
-		client:      mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		project:    "project",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -96,8 +96,8 @@ func TestSCM_ListChanges(t *testing.T) {
 	comparison := []azuregit.GitCommitRef{commit}
 
 	mockClient.EXPECT().GetCommits(mock.Anything, azuregit.GetCommitsArgs{
-		RepositoryId: toPtr(t, scm.repoName),
-		Project:      toPtr(t, scm.repoProject),
+		RepositoryId: toPtr(t, scm.repository),
+		Project:      toPtr(t, scm.project),
 		SearchCriteria: &azuregit.GitQueryCommitsCriteria{
 			IncludeLinks: toPtr(t, true),
 			ItemVersion: &azuregit.GitVersionDescriptor{
@@ -124,11 +124,11 @@ func TestSCM_ListChanges(t *testing.T) {
 func TestSCM_ListChanges_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:      zap.NewNop(),
-		repoOwner:   "owner",
-		repoProject: "project",
-		repoName:    "repo",
-		client:      mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		project:    "project",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -143,12 +143,12 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 func TestSCM_ListProposals(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		baseURL:     "http://example.com",
-		repoOwner:   "owner",
-		repoProject: "project",
-		repoName:    "repo",
-		client:      mockClient,
-		logger:      zap.NewNop(),
+		baseURL:    "http://example.com",
+		owner:      "owner",
+		project:    "project",
+		repository: "repo",
+		client:     mockClient,
+		logger:     zap.NewNop(),
 	}
 
 	ctx := context.Background()
@@ -177,8 +177,8 @@ func TestSCM_ListProposals(t *testing.T) {
 	prs := []azuregit.GitPullRequest{prOpen, prClosed, prOther}
 
 	mockClient.EXPECT().GetPullRequests(mock.Anything, azuregit.GetPullRequestsArgs{
-		RepositoryId: &scm.repoName,
-		Project:      &scm.repoProject,
+		RepositoryId: &scm.repository,
+		Project:      &scm.project,
 		Top:          toPtr(t, 100),
 		Skip:         toPtr(t, 0),
 		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{
@@ -189,8 +189,8 @@ func TestSCM_ListProposals(t *testing.T) {
 
 	prsEmpty := []azuregit.GitPullRequest{}
 	mockClient.EXPECT().GetPullRequests(mock.Anything, azuregit.GetPullRequestsArgs{
-		RepositoryId: &scm.repoName,
-		Project:      &scm.repoProject,
+		RepositoryId: &scm.repository,
+		Project:      &scm.project,
 		Top:          toPtr(t, 100),
 		Skip:         toPtr(t, 100),
 		SearchCriteria: &azuregit.GitPullRequestSearchCriteria{

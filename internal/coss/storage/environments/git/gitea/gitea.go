@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"iter"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -32,15 +31,14 @@ type Client interface {
 }
 
 type SCM struct {
-	logger    *zap.Logger
-	client    Client
-	repoOwner string
-	repoName  string
+	logger     *zap.Logger
+	client     Client
+	owner      string
+	repository string
 }
 
 type giteaOptions struct {
-	httpClient *http.Client
-	apiAuth    *credentials.APIAuth
+	apiAuth *credentials.APIAuth
 }
 
 type ClientOption func(*giteaOptions)
@@ -51,20 +49,14 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 	}
 }
 
-func NewSCM(ctx context.Context, logger *zap.Logger, url, repoOwner, repoName string, opts ...ClientOption) (*SCM, error) {
-	giteaOpts := &giteaOptions{
-		httpClient: http.DefaultClient,
-	}
+func NewSCM(ctx context.Context, logger *zap.Logger, url, owner, repository string, opts ...ClientOption) (*SCM, error) {
+	giteaOpts := &giteaOptions{}
 
 	for _, opt := range opts {
 		opt(giteaOpts)
 	}
 
 	clientOpts := []gitea.ClientOption{}
-
-	if giteaOpts.httpClient != nil {
-		clientOpts = append(clientOpts, gitea.SetHTTPClient(giteaOpts.httpClient))
-	}
 
 	if giteaOpts.apiAuth != nil {
 		// Configure API client authentication
@@ -87,10 +79,10 @@ func NewSCM(ctx context.Context, logger *zap.Logger, url, repoOwner, repoName st
 	}
 
 	return &SCM{
-		logger:    logger.With(zap.String("repository", fmt.Sprintf("%s/%s", repoOwner, repoName)), zap.String("scm", "gitea")),
-		repoOwner: repoOwner,
-		repoName:  repoName,
-		client:    client,
+		logger:     logger.With(zap.String("repository", fmt.Sprintf("%s/%s", owner, repository)), zap.String("scm", "gitea")),
+		owner:      owner,
+		repository: repository,
+		client:     client,
 	}, nil
 }
 
@@ -102,7 +94,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 		req.Title = fmt.Sprintf("[WIP] %s", req.Title)
 	}
 
-	pr, _, err := s.client.CreatePullRequest(s.repoOwner, s.repoName, gitea.CreatePullRequestOption{
+	pr, _, err := s.client.CreatePullRequest(s.owner, s.repository, gitea.CreatePullRequestOption{
 		Base:  req.Base,
 		Head:  req.Head,
 		Title: req.Title,
@@ -122,7 +114,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*environments.ListBranchedEnvironmentChangesResponse, error) {
 	s.logger.Info("listing changes", zap.String("base", req.Base), zap.String("head", req.Head))
-	comparison, _, err := s.client.CompareCommits(s.repoOwner, s.repoName, req.Base, req.Head)
+	comparison, _, err := s.client.CompareCommits(s.owner, s.repository, req.Base, req.Head)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare branches: %w", err)
 	}
@@ -173,6 +165,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		prs     = s.listPRs(ctx, baseCfg.Ref)
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for pr := range prs.All() {
 		branch := pr.Head.Ref
 
@@ -201,19 +197,32 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 	}
 
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
+
 	return details, prs.Err()
 }
 
 func (s *SCM) listPRs(ctx context.Context, base string) *prs {
-	return &prs{ctx, s.client, s.repoOwner, s.repoName, base, nil}
+	return &prs{
+		logger:     s.logger,
+		ctx:        ctx,
+		client:     s.client,
+		owner:      s.owner,
+		repository: s.repository,
+		base:       base,
+		err:        nil,
+	}
 }
 
 type prs struct {
-	ctx       context.Context
-	client    Client
-	repoOwner string
-	repoName  string
-	base      string
+	logger     *zap.Logger
+	ctx        context.Context
+	client     Client
+	owner      string
+	repository string
+	base       string
 
 	err error
 }
@@ -224,18 +233,27 @@ func (p *prs) Err() error {
 
 func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 	return iter.Seq[*gitea.PullRequest](func(yield func(*gitea.PullRequest) bool) {
+		p.logger.Debug("fetching pull requests with pagination",
+			zap.String("owner", p.owner),
+			zap.String("repository", p.repository),
+			zap.String("base", p.base))
+
 		opts := gitea.ListPullRequestsOptions{
 			State: gitea.StateAll,
 		}
 
+		// PageSize is embedded under opts.ListOptions
 		opts.PageSize = 100
 
+		var totalPRs int
 		for {
-			prs, resp, err := p.client.ListRepoPullRequests(p.repoOwner, p.repoName, opts)
+			prs, resp, err := p.client.ListRepoPullRequests(p.owner, p.repository, opts)
 			if err != nil {
-				p.err = err
+				p.err = fmt.Errorf("failed to fetch pull requests: %w", err)
 				return
 			}
+
+			totalPRs += len(prs)
 
 			for _, pr := range prs {
 				if !yield(pr) {
@@ -244,6 +262,9 @@ func (p *prs) All() iter.Seq[*gitea.PullRequest] {
 			}
 
 			if resp.NextPage == 0 {
+				p.logger.Debug("retrieved pull requests from Gitea",
+					zap.Int("totalPRs", totalPRs),
+					zap.String("base", p.base))
 				return
 			}
 
