@@ -56,8 +56,8 @@ func (c *quickstart) run(cmd *cobra.Command, args []string) error {
 
 	c.configFile = defaultFile
 
-	fmt.Println("🚀 Welcome to Flipt v2 Quickstart!\n")
-	fmt.Println("This wizard will help you configure Git storage syncing with a remote repository.")
+	fmt.Println("🚀 Welcome to Flipt v2 Quickstart!")
+	fmt.Println("\nThis wizard will help you configure Git storage syncing with a remote repository.")
 	fmt.Println()
 
 	fmt.Println("⚠️ This will overwrite your existing config file if it exists.")
