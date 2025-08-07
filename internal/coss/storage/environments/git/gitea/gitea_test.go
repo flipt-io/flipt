@@ -126,6 +126,7 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 func TestSCM_ListProposals(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
+		logger:    zap.NewNop(),
 		repoOwner: "owner",
 		repoName:  "repo",
 		client:    mockClient,

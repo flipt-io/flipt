@@ -193,12 +193,30 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		prs     = s.listPRs(ctx, baseCfg.Ref)
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for pr := range prs.All() {
 		branch := strings.TrimPrefix(*pr.SourceRefName, "refs/heads/")
+
+		prID := ""
+		if pr.PullRequestId != nil {
+			prID = fmt.Sprintf("%d", *pr.PullRequestId)
+		}
+
+		s.logger.Debug("checking PR for flipt branch",
+			zap.String("prID", prID),
+			zap.String("branch", branch),
+			zap.String("expectedPrefix", fmt.Sprintf("flipt/%s/", env.Key())))
 
 		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
 			continue
 		}
+
+		s.logger.Debug("found flipt PR",
+			zap.String("prID", prID),
+			zap.String("branch", branch))
 
 		if _, ok := details[branch]; ok {
 			// we let existing PRs get replaced by other PRs for the same branch
@@ -227,6 +245,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 			State: state,
 		}
 	}
+
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
 
 	return details, prs.Err()
 }

@@ -212,11 +212,25 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		details = map[string]*environments.EnvironmentProposalDetails{}
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for mr := range mrs.All() {
 		branch := mr.SourceBranch
+
+		s.logger.Debug("checking MR for flipt branch",
+			zap.Int("mrID", mr.ID),
+			zap.String("branch", branch),
+			zap.String("expectedPrefix", fmt.Sprintf("flipt/%s/", env.Key())))
+
 		if !strings.HasPrefix(branch, fmt.Sprintf("flipt/%s/", env.Key())) {
 			continue
 		}
+
+		s.logger.Debug("found flipt MR",
+			zap.Int("mrID", mr.ID),
+			zap.String("branch", branch))
 
 		if _, ok := details[branch]; ok {
 			// we let existing MRs get replaced by other MRs for the same branch
@@ -239,6 +253,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 			State: state,
 		}
 	}
+
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
 
 	return details, nil
 }

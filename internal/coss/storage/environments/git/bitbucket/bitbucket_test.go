@@ -7,6 +7,7 @@ package bitbucket
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/ktrysmt/go-bitbucket"
@@ -376,6 +377,7 @@ func TestSCM_ListProposals(t *testing.T) {
 				assert.Equal(t, "testrepo", po.RepoSlug)
 				assert.Contains(t, po.States, "OPEN")
 				assert.Contains(t, po.States, "MERGED")
+				assert.Equal(t, fmt.Sprintf(`source.branch.name ~ "flipt/" AND destination.branch.name = "%s"`, tt.baseRef), po.Query)
 				return true
 			})).Return(tt.mockResp, tt.mockErr)
 
@@ -468,6 +470,7 @@ func TestListProposalsWithMultiplePRs(t *testing.T) {
 		assert.Contains(t, po.States, "MERGED")
 		assert.Contains(t, po.States, "DECLINED")
 		assert.Contains(t, po.States, "SUPERSEDED")
+		assert.Equal(t, `source.branch.name ~ "flipt/" AND destination.branch.name = "main"`, po.Query)
 		return true
 	})).Return(largeMockResp, nil)
 

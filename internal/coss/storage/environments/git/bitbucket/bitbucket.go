@@ -262,6 +262,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		details = map[string]*environments.EnvironmentProposalDetails{}
 	)
 
+	s.logger.Debug("listing proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.String("base", baseCfg.Ref))
+
 	for pr := range prs.All() {
 		// Extract branch name from PR
 		branch := ""
@@ -312,6 +316,10 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 		}
 	}
 
+	s.logger.Debug("found proposals for environment",
+		zap.String("environment", env.Key()),
+		zap.Int("count", len(details)))
+
 	return details, nil
 }
 
@@ -341,15 +349,15 @@ func (p *prs) All() iter.Seq[map[string]any] {
 			zap.String("repoSlug", p.repoSlug),
 			zap.String("base", p.base))
 
-		// Get all pull requests for the repository
-		// The go-bitbucket library automatically handles pagination by default,
-		// fetching all pages and combining results into a single response.
-		// BitBucket API doesn't have server-side filtering like GitHub, so we get all PRs
-		// and filter them client-side for flipt/ branches.
+		// Get pull requests for the repository
+		// Use Bitbucket's query API to filter PRs server-side for better performance
+		// Query for PRs where source.branch.name starts with "flipt/" and destination matches our base
+		// The go-bitbucket library automatically handles pagination
 		prsResp, err := p.client.Gets(&bitbucket.PullRequestsOptions{
 			Owner:    p.owner,
 			RepoSlug: p.repoSlug,
 			States:   []string{"OPEN", "MERGED", "DECLINED", "SUPERSEDED"},
+			Query:    fmt.Sprintf(`source.branch.name ~ "flipt/" AND destination.branch.name = "%s"`, p.base),
 		})
 		if err != nil {
 			p.err = fmt.Errorf("failed to fetch pull requests: %w", err)
@@ -369,46 +377,17 @@ func (p *prs) All() iter.Seq[map[string]any] {
 			return
 		}
 
-		p.logger.Debug("retrieved pull requests from BitBucket",
-			zap.Int("totalPRs", len(values)),
-			zap.String("base", p.base))
-
-		var processedCount int
+		// All PRs returned should already match our criteria due to server-side filtering
+		// We still iterate through them to yield each one
 		for _, prVal := range values {
 			pr, ok := prVal.(map[string]any)
 			if !ok {
 				continue
 			}
 
-			// Filter by destination branch (base)
-			if destination, ok := pr["destination"].(map[string]any); ok {
-				if branchInfo, ok := destination["branch"].(map[string]any); ok {
-					if name, ok := branchInfo["name"].(string); ok && name != p.base {
-						continue
-					}
-				}
-			}
-
-			// Filter for flipt/ prefix branches
-			if source, ok := pr["source"].(map[string]any); ok {
-				if branchInfo, ok := source["branch"].(map[string]any); ok {
-					if name, ok := branchInfo["name"].(string); ok {
-						if !strings.HasPrefix(name, "flipt/") {
-							continue
-						}
-					}
-				}
-			}
-
-			processedCount++
 			if !yield(pr) {
 				return
 			}
 		}
-
-		p.logger.Debug("processed pull requests after filtering",
-			zap.Int("totalPRs", len(values)),
-			zap.Int("fliptPRs", processedCount),
-			zap.String("base", p.base))
 	})
 }

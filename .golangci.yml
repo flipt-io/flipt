@@ -15,7 +15,6 @@ linters:
     - errorlint
     - gocheckcompilerdirectives
     - gochecksumtype
-    - goconst
     - gocritic
     - gosec
     - gosmopolitan
@@ -35,6 +34,7 @@ linters:
     - unparam
     - zerologlint
   disable:
+    - goconst
     - contextcheck
     - exhaustive
     - musttag

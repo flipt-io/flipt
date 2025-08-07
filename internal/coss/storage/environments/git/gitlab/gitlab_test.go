@@ -214,6 +214,7 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	ctx := context.Background()
 	mockEnv := serverenvsmock.NewMockEnvironment(t)
 	mockEnv.EXPECT().Configuration().Return(&rpcenv.EnvironmentConfiguration{Ref: "main"})
+	mockEnv.EXPECT().Key().Return("testenv")
 
 	mr := &gitlab.BasicMergeRequest{
 		SourceBranch: "otherprefix/testenv/feature",
