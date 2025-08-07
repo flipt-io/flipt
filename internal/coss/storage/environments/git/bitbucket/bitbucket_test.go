@@ -60,7 +60,7 @@ func TestNewSCM(t *testing.T) {
 				require.NoError(t, err)
 				assert.NotNil(t, scm)
 				assert.Equal(t, tt.owner, scm.owner)
-				assert.Equal(t, tt.repo, scm.repoSlug)
+				assert.Equal(t, tt.repo, scm.repository)
 			}
 		})
 	}
@@ -148,11 +148,11 @@ func TestSCM_Propose(t *testing.T) {
 			})).Return(tt.mockResp, tt.mockErr)
 
 			scm := &SCM{
-				logger:   zap.NewNop(),
-				owner:    "testowner",
-				repoSlug: "testrepo",
-				prs:      mockPRs,
-				commits:  mockCommits,
+				logger:     zap.NewNop(),
+				owner:      "testowner",
+				repository: "testrepo",
+				prs:        mockPRs,
+				commits:    mockCommits,
 			}
 
 			ctx := context.Background()
@@ -257,11 +257,11 @@ func TestSCM_ListChanges(t *testing.T) {
 			})).Return(tt.mockResp, tt.mockErr)
 
 			scm := &SCM{
-				logger:   zap.NewNop(),
-				owner:    "testowner",
-				repoSlug: "testrepo",
-				prs:      mockPRs,
-				commits:  mockCommits,
+				logger:     zap.NewNop(),
+				owner:      "testowner",
+				repository: "testrepo",
+				prs:        mockPRs,
+				commits:    mockCommits,
 			}
 
 			ctx := context.Background()
@@ -387,11 +387,11 @@ func TestSCM_ListProposals(t *testing.T) {
 			})
 
 			scm := &SCM{
-				logger:   zap.NewNop(),
-				owner:    "testowner",
-				repoSlug: "testrepo",
-				prs:      mockPRs,
-				commits:  mockCommits,
+				logger:     zap.NewNop(),
+				owner:      "testowner",
+				repository: "testrepo",
+				prs:        mockPRs,
+				commits:    mockCommits,
 			}
 
 			ctx := context.Background()
@@ -480,11 +480,11 @@ func TestListProposalsWithMultiplePRs(t *testing.T) {
 	})
 
 	scm := &SCM{
-		logger:   zap.NewNop(),
-		owner:    "testowner",
-		repoSlug: "testrepo",
-		prs:      mockPRs,
-		commits:  mockCommits,
+		logger:     zap.NewNop(),
+		owner:      "testowner",
+		repository: "testrepo",
+		prs:        mockPRs,
+		commits:    mockCommits,
 	}
 
 	ctx := context.Background()

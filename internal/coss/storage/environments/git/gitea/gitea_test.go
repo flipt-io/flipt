@@ -19,10 +19,10 @@ import (
 func TestSCM_Propose(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -46,10 +46,10 @@ func TestSCM_Propose(t *testing.T) {
 func TestSCM_Propose_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -65,10 +65,10 @@ func TestSCM_Propose_Error(t *testing.T) {
 func TestSCM_ListChanges(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -107,10 +107,10 @@ func TestSCM_ListChanges(t *testing.T) {
 func TestSCM_ListChanges_Error(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -126,10 +126,10 @@ func TestSCM_ListChanges_Error(t *testing.T) {
 func TestSCM_ListProposals(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -159,10 +159,10 @@ func TestSCM_ListProposals(t *testing.T) {
 func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -188,10 +188,10 @@ func TestSCM_ListProposals_PrefixFilter(t *testing.T) {
 func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -226,10 +226,10 @@ func TestSCM_ListProposals_ClosedVsOpen(t *testing.T) {
 func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()
@@ -261,10 +261,10 @@ func TestSCM_ListProposals_ClosedMerged(t *testing.T) {
 func TestSCM_ListProposals_ClosedNotMerged(t *testing.T) {
 	mockClient := NewMockClient(t)
 	scm := &SCM{
-		logger:    zap.NewNop(),
-		repoOwner: "owner",
-		repoName:  "repo",
-		client:    mockClient,
+		logger:     zap.NewNop(),
+		owner:      "owner",
+		repository: "repo",
+		client:     mockClient,
 	}
 
 	ctx := context.Background()

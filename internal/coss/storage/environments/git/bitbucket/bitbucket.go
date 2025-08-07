@@ -38,11 +38,11 @@ type CommitsService interface {
 
 // SCM implements the git.SCM interface for BitBucket.
 type SCM struct {
-	logger   *zap.Logger
-	owner    string
-	repoSlug string
-	prs      PullRequestsService
-	commits  CommitsService
+	logger     *zap.Logger
+	owner      string
+	repository string
+	prs        PullRequestsService
+	commits    CommitsService
 }
 
 type bitBucketOptions struct {
@@ -65,7 +65,7 @@ func WithApiAuth(apiAuth *credentials.APIAuth) ClientOption {
 }
 
 // NewSCM creates a new BitBucket SCM instance.
-func NewSCM(ctx context.Context, logger *zap.Logger, owner, repoSlug string, opts ...ClientOption) (*SCM, error) {
+func NewSCM(ctx context.Context, logger *zap.Logger, owner, repository string, opts ...ClientOption) (*SCM, error) {
 	bitbucketOpts := &bitBucketOptions{
 		apiURL: bitbucket.DEFAULT_BITBUCKET_API_BASE_URL,
 	}
@@ -108,11 +108,11 @@ func NewSCM(ctx context.Context, logger *zap.Logger, owner, repoSlug string, opt
 	}
 
 	return &SCM{
-		logger:   logger.With(zap.String("repository", fmt.Sprintf("%s/%s", owner, repoSlug)), zap.String("scm", "bitbucket")),
-		owner:    owner,
-		repoSlug: repoSlug,
-		prs:      client.Repositories.PullRequests,
-		commits:  client.Repositories.Commits,
+		logger:     logger.With(zap.String("repository", fmt.Sprintf("%s/%s", owner, repository)), zap.String("scm", "bitbucket")),
+		owner:      owner,
+		repository: repository,
+		prs:        client.Repositories.PullRequests,
+		commits:    client.Repositories.Commits,
 	}, nil
 }
 
@@ -128,7 +128,7 @@ func (s *SCM) Propose(ctx context.Context, req git.ProposalRequest) (*environmen
 
 	pr, err := s.prs.Create(&bitbucket.PullRequestsOptions{
 		Owner:             s.owner,
-		RepoSlug:          s.repoSlug,
+		RepoSlug:          s.repository,
 		Title:             title,
 		Description:       req.Body,
 		SourceBranch:      req.Head,
@@ -170,7 +170,7 @@ func (s *SCM) ListChanges(ctx context.Context, req git.ListChangesRequest) (*env
 	// BitBucket API uses include/exclude pattern for commit range queries
 	commitsResp, err := s.commits.GetCommits(&bitbucket.CommitsOptions{
 		Owner:    s.owner,
-		RepoSlug: s.repoSlug,
+		RepoSlug: s.repository,
 		Include:  req.Head,
 		Exclude:  req.Base,
 	})
@@ -324,18 +324,18 @@ func (s *SCM) ListProposals(ctx context.Context, env serverenvs.Environment) (ma
 }
 
 type prs struct {
-	logger   *zap.Logger
-	ctx      context.Context
-	client   PullRequestsService
-	owner    string
-	repoSlug string
-	base     string
+	logger     *zap.Logger
+	ctx        context.Context
+	client     PullRequestsService
+	owner      string
+	repository string
+	base       string
 
 	err error
 }
 
 func (s *SCM) listPRs(ctx context.Context, base string) *prs {
-	return &prs{s.logger, ctx, s.prs, s.owner, s.repoSlug, base, nil}
+	return &prs{s.logger, ctx, s.prs, s.owner, s.repository, base, nil}
 }
 
 func (p *prs) Err() error {
@@ -344,18 +344,13 @@ func (p *prs) Err() error {
 
 func (p *prs) All() iter.Seq[map[string]any] {
 	return iter.Seq[map[string]any](func(yield func(map[string]any) bool) {
-		p.logger.Debug("fetching pull requests with automatic pagination",
-			zap.String("owner", p.owner),
-			zap.String("repoSlug", p.repoSlug),
-			zap.String("base", p.base))
-
 		// Get pull requests for the repository
 		// Use Bitbucket's query API to filter PRs server-side for better performance
 		// Query for PRs where source.branch.name starts with "flipt/" and destination matches our base
 		// The go-bitbucket library automatically handles pagination
 		prsResp, err := p.client.Gets(&bitbucket.PullRequestsOptions{
 			Owner:    p.owner,
-			RepoSlug: p.repoSlug,
+			RepoSlug: p.repository,
 			States:   []string{"OPEN", "MERGED", "DECLINED", "SUPERSEDED"},
 			Query:    fmt.Sprintf(`source.branch.name ~ "flipt/" AND destination.branch.name = "%s"`, p.base),
 		})
