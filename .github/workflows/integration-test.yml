@@ -136,7 +136,7 @@ jobs:
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Log in to Container Registry
-        if: needs.build-cache.outputs.cached-image != ''
+        if: needs.build-cache.result == 'success'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -144,7 +144,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Integration Tests with Cached Image
-        if: needs.build-cache.outputs.cached-image != ''
+        if: needs.build-cache.result == 'success'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
@@ -152,7 +152,7 @@ jobs:
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
 
       - name: Run Integration Tests without Cache (fork PRs)
-        if: needs.build-cache.outputs.cached-image == ''
+        if: needs.build-cache.result == 'skipped'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
@@ -191,7 +191,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Log in to Container Registry
-        if: needs.build-cache.outputs.cached-image != ''
+        if: needs.build-cache.result == 'success'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -199,7 +199,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run UI Tests with Cached Image
-        if: needs.build-cache.outputs.cached-image != ''
+        if: needs.build-cache.result == 'success'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
@@ -207,7 +207,7 @@ jobs:
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" ui
 
       - name: Run UI Tests without Cache (fork PRs)
-        if: needs.build-cache.outputs.cached-image == ''
+        if: needs.build-cache.result == 'skipped'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
