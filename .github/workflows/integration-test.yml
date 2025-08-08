@@ -113,7 +113,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: 
+    needs:
       - discover-tests
       - build-cache
     if: |
@@ -181,7 +181,7 @@ jobs:
     name: UI Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: 
+    needs:
       - build-cache
     if: |
       always() && 
