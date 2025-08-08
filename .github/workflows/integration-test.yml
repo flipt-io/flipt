@@ -36,6 +36,8 @@ jobs:
 
   build-cache:
     name: Build and Cache Flipt Image
+    # Skip this job for PRs from forks since they can't push to GHCR
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -111,7 +113,13 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [discover-tests, build-cache]
+    needs:
+      - discover-tests
+      - build-cache
+    if: |
+      always() && 
+      needs.discover-tests.result == 'success' &&
+      (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
@@ -128,6 +136,7 @@ jobs:
       - run: echo "INTEGRATION_TEST_NAME=${{ matrix.test }}" | tr '/' '-' >> $GITHUB_ENV
 
       - name: Log in to Container Registry
+        if: needs.build-cache.result == 'success'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -135,11 +144,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Integration Tests with Cached Image
+        if: needs.build-cache.result == 'success'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
+
+      - name: Run Integration Tests without Cache (fork PRs)
+        if: needs.build-cache.result == 'skipped'
+        uses: dagger/dagger-for-github@v7
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source . integration --cases="${{ matrix.test }}" --output-coverage=true export --path=coverage-${{ env.INTEGRATION_TEST_NAME }}
 
       - name: Process Coverage Data
         if: always()
@@ -163,12 +181,17 @@ jobs:
     name: UI Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [build-cache]
+    needs:
+      - build-cache
+    if: |
+      always() && 
+      (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Log in to Container Registry
+        if: needs.build-cache.result == 'success'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -176,8 +199,17 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run UI Tests with Cached Image
+        if: needs.build-cache.result == 'success'
         uses: dagger/dagger-for-github@v7
         with:
           verb: call
           version: ${{ env.DAGGER_VERSION }}
           args: test --source . --cached-image "${{ needs.build-cache.outputs.cached-image }}" ui
+
+      - name: Run UI Tests without Cache (fork PRs)
+        if: needs.build-cache.result == 'skipped'
+        uses: dagger/dagger-for-github@v7
+        with:
+          verb: call
+          version: ${{ env.DAGGER_VERSION }}
+          args: test --source . ui
