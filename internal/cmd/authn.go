@@ -193,9 +193,10 @@ func authenticationGRPC(
 	if authCfg.Required {
 		// Register JWT validation middleware if either JWT or Kubernetes auth is enabled
 		if authCfg.Methods.JWT.Enabled || authCfg.Methods.Kubernetes.Enabled {
-			unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationUnaryInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+			authJWT := authCfg.Methods.JWT
+			unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.JWTAuthenticationUnaryInterceptor(logger, jwtValidator, authJWT.Method.ClaimsMapping, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 
-			streamInterceptors = append(streamInterceptors, selector.StreamServerInterceptor(authmiddlewaregrpc.JWTAuthenticationStreamInterceptor(logger, jwtValidator, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
+			streamInterceptors = append(streamInterceptors, selector.StreamServerInterceptor(authmiddlewaregrpc.JWTAuthenticationStreamInterceptor(logger, jwtValidator, authJWT.Method.ClaimsMapping, authOpts...), authmiddlewaregrpc.JWTInterceptorSelector()))
 		}
 
 		unaryInterceptors = append(unaryInterceptors, selector.UnaryServerInterceptor(authmiddlewaregrpc.ClientTokenAuthenticationUnaryInterceptor(

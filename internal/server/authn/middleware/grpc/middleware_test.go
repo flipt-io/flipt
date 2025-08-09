@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"testing"
@@ -374,7 +375,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator)(
+			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator, nil)(
 				ctx,
 				nil,
 				srv,
@@ -420,7 +421,7 @@ func TestJWTAuthenticationUnaryInterceptor(t *testing.T) {
 				srv.Server = tt.server
 			}
 
-			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator)(
+			_, err = JWTAuthenticationUnaryInterceptor(logger, jwtValidator, nil)(
 				ctx,
 				nil,
 				srv,
@@ -538,7 +539,7 @@ func TestJWTAuthenticationStreamInterceptor(t *testing.T) {
 				server = tt.server
 			}
 
-			err = JWTAuthenticationStreamInterceptor(logger, jwtValidator)(server, stream, info, handler)
+			err = JWTAuthenticationStreamInterceptor(logger, jwtValidator, nil)(server, stream, info, handler)
 			assert.Equal(t, tt.expectedErr, err)
 			if tt.expectedErr == nil || tt.server != nil {
 				assert.True(t, called)
@@ -960,6 +961,241 @@ func TestEmailMatchingUnaryInterceptor(t *testing.T) {
 				handler,
 			)
 			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
+}
+
+func TestJwtClaimsToMetadata(t *testing.T) {
+	tests := []struct {
+		name     string
+		claims   map[string]interface{}
+		expected map[string]string
+	}{
+		{
+			name:     "empty claims",
+			claims:   map[string]interface{}{},
+			expected: map[string]string{},
+		},
+		{
+			name: "issuer claim",
+			claims: map[string]interface{}{
+				"iss": "flipt.io",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.issuer": "flipt.io",
+			},
+		},
+		{
+			name: "flipt auth prefixed claims",
+			claims: map[string]interface{}{
+				"io.flipt.auth.role":   "admin",
+				"io.flipt.auth.tenant": "acme",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.role":   "admin",
+				"io.flipt.auth.tenant": "acme",
+			},
+		},
+		{
+			name: "user claims",
+			claims: map[string]interface{}{
+				"user": map[string]interface{}{
+					"email": "user@example.com",
+					"sub":   "12345",
+					"image": "https://example.com/avatar.jpg",
+					"name":  "John Doe",
+					"role":  "user",
+				},
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email":   "user@example.com",
+				"io.flipt.auth.jwt.sub":     "12345",
+				"io.flipt.auth.jwt.picture": "https://example.com/avatar.jpg",
+				"io.flipt.auth.jwt.name":    "John Doe",
+				"io.flipt.auth.jwt.role":    "user",
+			},
+		},
+		{
+			name: "combined claims",
+			claims: map[string]interface{}{
+				"iss":                 "flipt.io",
+				"io.flipt.auth.scope": "read",
+				"user": map[string]interface{}{
+					"email": "admin@flipt.io",
+					"name":  "Admin User",
+				},
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.issuer": "flipt.io",
+				"io.flipt.auth.scope":      "read",
+				"io.flipt.auth.jwt.email":  "admin@flipt.io",
+				"io.flipt.auth.jwt.name":   "Admin User",
+			},
+		},
+		{
+			name: "non-string issuer ignored",
+			claims: map[string]interface{}{
+				"iss": 12345,
+			},
+			expected: map[string]string{},
+		},
+		{
+			name: "user claim not a map",
+			claims: map[string]interface{}{
+				"user": "not-a-map",
+			},
+			expected: map[string]string{},
+		},
+		{
+			name: "mixed user claim types",
+			claims: map[string]interface{}{
+				"user": map[string]interface{}{
+					"email":   "test@example.com",
+					"sub":     123,
+					"name":    "Test User",
+					"unknown": "ignored",
+					"picture": nil,
+				},
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email": "test@example.com",
+				"io.flipt.auth.jwt.sub":   "123",
+				"io.flipt.auth.jwt.name":  "Test User",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := jwtClaimsToMetadata(tt.claims, nil)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestJwtClaimsToMetadataWithClaimsMapping(t *testing.T) {
+	tests := []struct {
+		name          string
+		claimsJSON    string
+		claimsMapping map[string]string
+		expected      map[string]string
+	}{
+		{
+			name:          "empty claims mapping uses defaults",
+			claimsJSON:    `{"user": {"email": "test@example.com"}}`,
+			claimsMapping: map[string]string{},
+			expected:      map[string]string{"io.flipt.auth.jwt.email": "test@example.com"},
+		},
+		{
+			name: "simple JSON pointer mapping",
+			claimsJSON: `{
+                                "user": {
+                                        "email": "user@example.com",
+                                        "name": "John Doe"
+                                }
+                        }`,
+			claimsMapping: map[string]string{
+				"email": "/user/email",
+				"name":  "/user/name",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email": "user@example.com",
+				"io.flipt.auth.jwt.name":  "John Doe",
+			},
+		},
+		{
+			name: "nested JSON pointer mapping",
+			claimsJSON: `{
+                                "profile": {
+                                        "personal": {
+                                                "email": "deep@example.com"
+                                        }
+                                },
+                                "sub": "123456"
+                        }`,
+			claimsMapping: map[string]string{
+				"email": "/profile/personal/email",
+				"sub":   "/sub",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email": "deep@example.com",
+				"io.flipt.auth.jwt.sub":   "123456",
+			},
+		},
+		{
+			name: "invalid JSON pointer ignored",
+			claimsJSON: `{
+                                "user": {
+                                        "email": "valid@example.com"
+                                }
+                        }`,
+			claimsMapping: map[string]string{
+				"email": "/user/email",
+				"name":  "/user/nonexistent",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email": "valid@example.com",
+			},
+		},
+		{
+			name: "preserve flipt auth prefixed claims",
+			claimsJSON: `{
+                                "io.flipt.auth.role": "admin",
+                                "user": {
+                                        "email": "admin@example.com"
+                                }
+                        }`,
+			claimsMapping: map[string]string{
+				"email": "/user/email",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.role":      "admin",
+				"io.flipt.auth.jwt.email": "admin@example.com",
+			},
+		},
+		{
+			name: "preserve issuer claim",
+			claimsJSON: `{
+                                "iss": "flipt.io",
+                                "user": {
+                                        "email": "user@flipt.io"
+                                }
+                        }`,
+			claimsMapping: map[string]string{
+				"email": "/user/email",
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.issuer": "flipt.io",
+				"io.flipt.auth.jwt.email":  "user@flipt.io",
+			},
+		},
+		{
+			name: "custom mapping merged with defaults",
+			claimsJSON: `{
+                                "user": {
+                                        "email": "user@example.com",
+                                        "name": "John Doe"
+                                },
+                                "name": "Custom Name"
+                        }`,
+			claimsMapping: map[string]string{
+				"name": "/name", // Override default path for name
+			},
+			expected: map[string]string{
+				"io.flipt.auth.jwt.email": "user@example.com", // From default path
+				"io.flipt.auth.jwt.name":  "Custom Name",      // From custom path
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var claims map[string]interface{}
+			err := json.Unmarshal([]byte(tt.claimsJSON), &claims)
+			require.NoError(t, err)
+
+			result := jwtClaimsToMetadata(claims, tt.claimsMapping)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
