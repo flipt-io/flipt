@@ -208,7 +208,7 @@ For more setup options, see our [configuration documentation](https://docs.flipt
 
 - Store flags directly in Git repositories alongside your code
 - Full version control with Git history, blame, and diff support  
-- Integrates with your SCM (GitHub, GitLab, Azure DevOps, Gitea, etc.)
+- Integrates with your SCM (GitHub, GitLab, BitBucket, Azure DevOps, Gitea, etc.)
 - GPG commit signing for cryptographic verification of changes
 
 ### Multi-Environment Management  
