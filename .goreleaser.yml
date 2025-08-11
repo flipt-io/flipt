@@ -83,7 +83,9 @@ dockers:
     goarch: amd64
     image_templates:
       - "flipt/flipt:v{{ .Tag }}-amd64"
+      - "flipt/flipt:v{{ .Major }}-amd64"
       - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -96,7 +98,9 @@ dockers:
     goarch: arm64
     image_templates:
       - "flipt/flipt:v{{ .Tag }}-arm64"
+      - "flipt/flipt:v{{ .Major }}-arm64"
       - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -113,6 +117,16 @@ docker_manifests:
     image_templates:
       - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-amd64"
       - "ghcr.io/flipt-io/flipt:v{{ .Tag }}-arm64"
+
+  - name_template: "flipt/flipt:v{{ .Major }}"
+    image_templates:
+      - "flipt/flipt:v{{ .Major }}-amd64"
+      - "flipt/flipt:v{{ .Major }}-arm64"
+
+  - name_template: "ghcr.io/flipt-io/flipt:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64"
+      - "ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64"
 
 
 announce:
