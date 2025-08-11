@@ -38,7 +38,7 @@ jobs:
     name: Build and Cache Flipt Image
     # Skip this job for PRs from forks since they can't push to GHCR
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: depot-ubuntu-24.04
+    runs-on: depot-ubuntu-24.04-4
     timeout-minutes: 15
     permissions:
       contents: read
@@ -111,7 +111,7 @@ jobs:
 
   test:
     name: Integration Tests
-    runs-on: depot-ubuntu-24.04
+    runs-on: depot-ubuntu-24.04-4
     timeout-minutes: 20
     needs:
       - discover-tests
@@ -179,7 +179,7 @@ jobs:
 
   ui:
     name: UI Integration Tests
-    runs-on: depot-ubuntu-24.04
+    runs-on: depot-ubuntu-24.04-4
     timeout-minutes: 20
     needs:
       - build-cache
