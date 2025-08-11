@@ -10,14 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"go.flipt.io/flipt/rpc/flipt/ofrep"
-	"go.flipt.io/flipt/rpc/v2/environments"
-	evaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
-
+	csrf "filippo.io/csrf/gorilla"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/gorilla/csrf"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.flipt.io/flipt/internal/config"
@@ -30,7 +26,10 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.flipt.io/flipt/rpc/flipt/meta"
+	"go.flipt.io/flipt/rpc/flipt/ofrep"
 	"go.flipt.io/flipt/rpc/v2/analytics"
+	"go.flipt.io/flipt/rpc/v2/environments"
+	evaluationv2 "go.flipt.io/flipt/rpc/v2/evaluation"
 	"go.flipt.io/flipt/ui"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -183,24 +182,7 @@ func NewHTTPServer(
 
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
-
-			// skip csrf if the request does not set the origin header
-			// for a potentially mutating http method.
-			// This allows us to forgo CSRF for non-browser based clients.
-			r.Use(func(handler http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if r.Method != http.MethodGet &&
-						r.Method != http.MethodHead &&
-						r.Header.Get("origin") == "" {
-						r = csrf.UnsafeSkipCheck(r)
-					}
-					if !cfg.Authentication.Session.CSRF.Secure {
-						r = csrf.PlaintextHTTPRequest(r)
-					}
-					handler.ServeHTTP(w, r)
-				})
-			})
-			r.Use(csrf.Protect([]byte(key), csrf.Path("/"), csrf.Secure(cfg.Authentication.Session.CSRF.Secure), csrf.TrustedOrigins(cfg.Authentication.Session.CSRF.TrustedOrigins)))
+			r.Use(csrf.Protect([]byte(key), csrf.TrustedOrigins(cfg.Authentication.Session.CSRF.TrustedOrigins)))
 		}
 
 		r.Mount("/api/v1", api)
@@ -217,16 +199,6 @@ func NewHTTPServer(
 		authenticationHTTPMount(ctx, logger, cfg.Authentication, r, conn)
 
 		r.Group(func(r chi.Router) {
-			r.Use(func(handler http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if cfg.Authentication.Session.CSRF.Key != "" {
-						w.Header().Set("X-CSRF-Token", csrf.Token(r))
-					}
-
-					handler.ServeHTTP(w, r)
-				})
-			})
-
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
 				register(
