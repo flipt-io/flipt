@@ -73,7 +73,7 @@
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/jest": "^29.5.14",
     "@types/loadable__component": "^5.13.10",
-    "@types/node": "^18.19.75",
+    "@types/node": "^18.19.122",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.1",
     "@types/react-redux": "^7.1.34",
