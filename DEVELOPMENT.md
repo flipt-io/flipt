@@ -1,6 +1,6 @@
 # Development
 
-The following are instructions for setting up your local machine for Flipt development. For info on using VSCode Remote Containers / GitHub Codespaces, see [#cdes](#cdes) below.
+The following are instructions for setting up your local machine for Flipt development.
 
 > [!TIP]
 > Try our new [devenv](#devenv) solution to quickly get setup developing Flipt!
@@ -107,24 +107,6 @@ This will start two Docker containers:
 - `ui` will run the UI development server, mounting the `ui` directory as a bind mount. This means that any changes made to the UI will be picked up by the development server and the UI will be reloaded (thanks to Vite).
 
 To start the containers, run `docker-compose up` from the root of this repository. After the containers are started, you can visit `http://localhost:8080` to see the UI.
-
-## CDEs
-
-Flipt also supports Containerized Development Environments (CDE) [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces)/[Gitpod](https://www.gitpod.io/).
-
-These technologies allow you to quickly get setup with a Flipt development environment either locally or 'in the cloud'.
-
-### GitHub Codespaces
-
-Simply open Flipt in a codespaces from the `Code` tab in the repo on GitHub or click the button below:
-
-[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
-
-### Gitpod
-
-To use [Gitpod](https://www.gitpod.io/), simply open Flipt in Gitpod by clicking the button below:
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/flipt-io/flipt)
 
 ## devenv
 
