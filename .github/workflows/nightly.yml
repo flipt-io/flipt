@@ -12,7 +12,7 @@ env:
   GO_VERSION: "1.24"
 
 jobs:
-  beta-build:
+  nightly-build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -86,9 +86,9 @@ jobs:
           name: flipt-nightly-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
 
-  beta-release:
+  nightly-release:
     runs-on: ubuntu-latest
-    needs: beta-build
+    needs: nightly-build
     steps:
       - uses: actions/checkout@v4
         with:

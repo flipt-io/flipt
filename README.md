@@ -18,7 +18,7 @@
     <!-- <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a> -->
-    <img src="https://img.shields.io/badge/status-beta-blue" alt="Flipt v2 Beta" />
+    <img src="https://img.shields.io/badge/status-stable-green" alt="Flipt v2 Stable" />
     <a href="https://goreportcard.com/report/github.com/flipt-io/flipt">
         <img src="https://goreportcard.com/badge/github.com/flipt-io/flipt" alt="Go Report Card" />
     </a>
@@ -81,9 +81,6 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 
 <br clear="both"/>
 
-> [!IMPORTANT]  
-> V2 of Flipt is currently in beta release status. We may make breaking changes to the UI and API until we reach a stable release.
-
 ## Flipt v1 vs v2: What's New?
 
 | Feature | Flipt v1 | ✨ Flipt v2 |
@@ -99,10 +96,6 @@ Flipt v2 is the first truly Git-native feature management platform that treats y
 | **Real-time Updates** | Polling required | Server-Sent Events (SSE) streaming API for instant updates |
 | **Multi-tenancy** | Manual namespace management | Environment-based isolation |
 | **Secrets Management** | None | File-based providers available in OSS, HashiCorp Vault (Pro feature), cloud secrets management (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault) coming soon |
-
-<!-- 
-TODO: uncomment once we have a migration guide
-**Migration path**: Flipt v2 maintains backwards compatibility with v1 APIs, making migration straightforward. Read our [migration guide](https://docs.flipt.io/v2/guides/migration) for details. -->
 
 <br clear="both"/>
 
@@ -139,7 +132,7 @@ flipt server
 ### Docker
 
 ```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2-beta
+docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2
 ```
 
 Flipt UI will be available at [http://127.0.0.1:8080/](http://127.0.0.1:8080).

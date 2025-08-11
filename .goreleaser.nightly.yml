@@ -45,7 +45,7 @@ release:
 
 nightly:
   # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  version_template: "v2.0.0-beta-nightly"
+  version_template: "v{{ incpatch .Version }}-nightly"
 
 changelog:
   disable: true
@@ -56,10 +56,8 @@ dockers:
     goos: linux
     goarch: amd64
     image_templates:
-      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
-      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
+      - "flipt/flipt:{{ .Version }}-amd64"
+      - "ghcr.io/flipt-io/flipt:{{ .Version }}-amd64"
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -71,8 +69,8 @@ dockers:
     goos: linux
     goarch: arm64
     image_templates:
-      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
+      - "flipt/flipt:{{ .Version }}-arm64"
+      - "ghcr.io/flipt-io/flipt:{{ .Version }}-arm64"
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -80,22 +78,12 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
 
 docker_manifests:
-  - name_template: "flipt/flipt:v2.0.0-beta-nightly"
+  - name_template: "flipt/flipt:{{ .Version }}"
     image_templates:
-      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
-      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
+      - "flipt/flipt:{{ .Version }}-amd64"
+      - "flipt/flipt:{{ .Version }}-arm64"
 
-  - name_template: "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly"
+  - name_template: "ghcr.io/flipt-io/flipt:{{ .Version }}"
     image_templates:
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
-
-  - name_template: "flipt/flipt:v2.0.0-beta-nightly"
-    image_templates:
-      - "flipt/flipt:v2.0.0-beta-nightly-amd64"
-      - "flipt/flipt:v2.0.0-beta-nightly-arm64"
-
-  - name_template: "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly"
-    image_templates:
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-amd64"
-      - "ghcr.io/flipt-io/flipt:v2.0.0-beta-nightly-arm64"
+      - "ghcr.io/flipt-io/flipt:{{ .Version }}-amd64"
+      - "ghcr.io/flipt-io/flipt:{{ .Version }}-arm64"
