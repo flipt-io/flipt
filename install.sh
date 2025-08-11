@@ -20,7 +20,7 @@ file_issue_prompt() {
 }
 
 get_latest_version() {
-    res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases/latest | grep tag_name | cut -d '"' -f 4)
+    res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases | grep '"tag_name"' | cut -d '"' -f 4 | grep '^v1\.' | head -n 1)
     echo "$res"
 }
 
