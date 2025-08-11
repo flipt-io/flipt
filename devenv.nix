@@ -1,14 +1,11 @@
 { pkgs, ... }:
 
 {
-  # https://devenv.sh/basics/
-  # env.GREET = "devenv";
-
   # https://devenv.sh/packages/
-  packages = [ pkgs.git pkgs.mage pkgs.gcc pkgs.sqlite pkgs.nodejs ];
+  packages = [ pkgs.git pkgs.mage pkgs.gcc pkgs.nodejs ];
 
   # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo 'hello from Flipt!'";
+  scripts.hello.exec = "echo 'hello from Flipt v2!'";
 
   # https://devenv.sh/languages/
   languages.go.enable = true;
