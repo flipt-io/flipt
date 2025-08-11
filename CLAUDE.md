@@ -6,7 +6,7 @@ All of our documentation is at <https://docs.flipt.io>. Weigh the v2 docs heavil
 
 ## Project Overview
 
-Flipt v2 is a Git-native feature management platform with a monorepo structure. This is the v2 version (beta) with a Git-native architecture.
+Flipt v2 is a Git-native feature management platform with a monorepo structure. This is the v2 version with a Git-native architecture.
 
 - **v1 code**: Located on `main` branch
 - **v2 code**: Located on current (`v2`) branch. This is the default branch in the repository.

@@ -21,34 +21,19 @@ file_issue_prompt() {
 }
 
 get_latest_version() {
-    # Check if jq is available
-    if command -v jq >/dev/null 2>&1; then
-        # Use jq to parse JSON and get the latest v2.x.x release
-        # This approach properly handles semver sorting
-        res=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases" | 
-              jq -r '[.[] | select(.tag_name | startswith("v2.")) | .tag_name] | .[0]') # | sort_by(sub("^v"; "") | split(".") | map(tonumber)) | reverse | .[0]')
-    else
-        # Fallback method if jq is not available
-        # Gets all v2.x.x releases and uses sort -V for version sorting (if available)
-        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases" | 
-                  grep -E '"tag_name": "v2\.' | 
-                  sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-
-        if command -v sort >/dev/null 2>&1 && sort --version 2>&1 | grep -q 'GNU'; then
-            # Use GNU sort with -V for version sorting
-            res=$(echo "$releases" | sort -rV | head -n1)
-        else
-            # Fallback to basic sorting which might not handle versions correctly
-            res=$(echo "$releases" | sort -r | head -n1)
-        fi
-    fi
-
-    # If no v2.x.x release is found, output an error message
-    if [ -z "$res" ] || [ "$res" = "null" ]; then
+    # Get all v2.x.x releases
+    releases=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases | grep '"tag_name"' | cut -d '"' -f 4 | grep '^v2\.')
+    
+    # If no v2.x.x releases found, output an error message
+    if [ -z "$releases" ]; then
         echo "No v2.x.x release found" >&2
         exit 1
     fi
-
+    
+    # Sort versions semantically by converting to sortable format
+    # This handles the common case of semantic versioning (v2.x.y)
+    res=$(echo "$releases" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1 | sed 's/^/v/')
+    
     echo "$res"
 }
 
