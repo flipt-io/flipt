@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-08-12
+## [2.0.0](https://github.com/flipt-io/flipt/releases/tag/v2.0.0) - 2025-08-12
 
 Flipt v2 is a complete re-architecture of Flipt, focused on Git-native operations and multi-environment support. This major release represents a fundamental shift in how Flipt manages feature flags, bringing enterprise-grade GitOps workflows to feature management.
 
@@ -39,4 +39,3 @@ Flipt v2 is a complete re-architecture of Flipt, focused on Git-native operation
 - **Configuration Format**: New configuration structure to support environments and Git storage options
 - **API Versioning**: New v2 APIs for environments, analytics, and evaluation while maintaining v1 compatibility
 - **License Model**: Introduction of Pro tier with enterprise features while maintaining OSS core
-
