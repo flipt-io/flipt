@@ -27,15 +27,28 @@ get_latest_version() {
     # Try using jq if available for better JSON parsing
     if command -v jq >/dev/null 2>&1; then
         # Get all stable v2.x releases and sort them semantically
-        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
-                   jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+        if [ -n "$GITHUB_TOKEN" ]; then
+            releases=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                       jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+        else
+            releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                       jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+        fi
     else
         # Fallback: Get all v2.x.x releases and filter out pre-releases
-        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
-                   grep '"tag_name"' | \
-                   cut -d '"' -f 4 | \
-                   grep '^v2\.' | \
-                   grep -v -E 'alpha|beta|rc|pre|dev')
+        if [ -n "$GITHUB_TOKEN" ]; then
+            releases=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                       grep '"tag_name"' | \
+                       cut -d '"' -f 4 | \
+                       grep '^v2\.' | \
+                       grep -v -E 'alpha|beta|rc|pre|dev')
+        else
+            releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                       grep '"tag_name"' | \
+                       cut -d '"' -f 4 | \
+                       grep '^v2\.' | \
+                       grep -v -E 'alpha|beta|rc|pre|dev')
+        fi
     fi
     
     # Check if curl failed or no releases were found
