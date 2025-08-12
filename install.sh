@@ -24,25 +24,42 @@ get_latest_version() {
     # Get the latest stable v2.x.x release from GitHub API
     # We need semantic version sorting to handle backports correctly
     
+    # Debug: Show environment info
+    echo "DEBUG: GITHUB_TOKEN is $([ -n "$GITHUB_TOKEN" ] && echo "set (${#GITHUB_TOKEN} chars)" || echo "not set")" >&2
+    echo "DEBUG: jq available: $(command -v jq >/dev/null 2>&1 && echo "yes" || echo "no")" >&2
+    
     # Try using jq if available for better JSON parsing
     if command -v jq >/dev/null 2>&1; then
         # Get all stable v2.x releases and sort them semantically
         if [ -n "$GITHUB_TOKEN" ]; then
-            releases=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
-                       jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+            echo "DEBUG: Using authenticated API call" >&2
+            api_response=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>&1)
+            curl_exit_code=$?
+            echo "DEBUG: curl exit code: $curl_exit_code" >&2
+            echo "DEBUG: API response length: ${#api_response}" >&2
+            echo "DEBUG: First 500 chars of response: ${api_response:0:500}" >&2
+            releases=$(echo "$api_response" | jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
         else
-            releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
-                       jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+            echo "DEBUG: Using unauthenticated API call" >&2
+            api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>&1)
+            curl_exit_code=$?
+            echo "DEBUG: curl exit code: $curl_exit_code" >&2
+            echo "DEBUG: API response length: ${#api_response}" >&2
+            echo "DEBUG: First 500 chars of response: ${api_response:0:500}" >&2
+            releases=$(echo "$api_response" | jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
         fi
     else
+        echo "DEBUG: Using fallback method (no jq)" >&2
         # Fallback: Get all v2.x.x releases and filter out pre-releases
         if [ -n "$GITHUB_TOKEN" ]; then
+            echo "DEBUG: Using authenticated fallback API call" >&2
             releases=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
                        grep '"tag_name"' | \
                        cut -d '"' -f 4 | \
                        grep '^v2\.' | \
                        grep -v -E 'alpha|beta|rc|pre|dev')
         else
+            echo "DEBUG: Using unauthenticated fallback API call" >&2
             releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
                        grep '"tag_name"' | \
                        cut -d '"' -f 4 | \
@@ -50,6 +67,10 @@ get_latest_version() {
                        grep -v -E 'alpha|beta|rc|pre|dev')
         fi
     fi
+    
+    echo "DEBUG: Found releases:" >&2
+    echo "$releases" >&2
+    echo "DEBUG: Number of releases found: $(echo "$releases" | wc -l)" >&2
     
     # Check if curl failed or no releases were found
     if [ -z "$releases" ]; then
