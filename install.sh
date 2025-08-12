@@ -21,18 +21,33 @@ file_issue_prompt() {
 }
 
 get_latest_version() {
-    # Get all v2.x.x releases
-    releases=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases | grep '"tag_name"' | cut -d '"' -f 4 | grep '^v2\.')
+    # Get the latest stable v2.x.x release from GitHub API
+    # We need semantic version sorting to handle backports correctly
     
-    # If no v2.x.x releases found, output an error message
+    # Try using jq if available for better JSON parsing
+    if command -v jq >/dev/null 2>&1; then
+        # Get all stable v2.x releases and sort them semantically
+        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                   jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
+    else
+        # Fallback: Get all v2.x.x releases and filter out pre-releases
+        releases=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null | \
+                   grep '"tag_name"' | \
+                   cut -d '"' -f 4 | \
+                   grep '^v2\.' | \
+                   grep -v -E 'alpha|beta|rc|pre|dev')
+    fi
+    
+    # Check if curl failed or no releases were found
     if [ -z "$releases" ]; then
-        echo "No v2.x.x release found" >&2
+        echo "Error: Unable to fetch releases from GitHub or no v2.x.x stable release found" >&2
+        echo "Please check your internet connection or try again later" >&2
         exit 1
     fi
     
-    # Sort versions semantically by converting to sortable format
-    # This handles the common case of semantic versioning (v2.x.y)
-    res=$(echo "$releases" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1 | sed 's/^/v/')
+    # Sort versions semantically
+    # Remove 'v' prefix, sort by major.minor.patch numerically, add 'v' back
+    res=$(echo "$releases" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's/^/v/')
     
     echo "$res"
 }
@@ -108,7 +123,7 @@ install() {
             [ "$ARCH" = "aarch64" ] && ARCH="arm64"   
             ;;
         *)
-            echo "flipt isn't supported for your platform - $OSTYPE"
+            echo "flipt isn't supported for your platform - $OSCHECK"
             file_issue_prompt
             ;;
     esac
