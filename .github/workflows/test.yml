@@ -85,6 +85,8 @@ jobs:
           path: install.sh
 
       - name: Install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x ./install.sh
           ./install.sh
