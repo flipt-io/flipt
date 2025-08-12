@@ -21,59 +21,46 @@ file_issue_prompt() {
 }
 
 get_latest_version() {
-    # Get the latest stable v2.x.x release from GitHub API
-    # We need semantic version sorting to handle backports correctly
+    # Get the latest stable v2.x.x release using the simplest reliable approach
+    # Use /releases/latest endpoint to avoid rate limiting issues
     
-    # Try using jq if available for better JSON parsing
+    result=""
+    
+    # Method 1: Check if latest release is a v2.x version (simplest and most reliable)
     if command -v jq >/dev/null 2>&1; then
-        # Try authenticated call first if token is available, but fall back to unauthenticated
-        # Many CI environments have tokens with limited permissions that can't access releases
-        if [ -n "$GITHUB_TOKEN" ]; then
-            api_response=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-            resp_len=$(echo "$api_response" | wc -c)
-            
-            # If authenticated call returned very short response (like "[]"), fall back to unauthenticated
-            if [ "$resp_len" -lt 100 ]; then
-                api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-            fi
-        else
-            api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-        fi
-        
-        releases=$(echo "$api_response" | jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
-    else
-        # Fallback: Get all v2.x.x releases and filter out pre-releases
-        if [ -n "$GITHUB_TOKEN" ]; then
-            api_response=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-            resp_len=$(echo "$api_response" | wc -c)
-            
-            # If authenticated call returned very short response, fall back to unauthenticated
-            if [ "$resp_len" -lt 100 ]; then
-                api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-            fi
-        else
-            api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>/dev/null)
-        fi
-        
-        releases=$(echo "$api_response" | \
-                   grep '"tag_name"' | \
-                   cut -d '"' -f 4 | \
-                   grep '^v2\.' | \
-                   grep -v -E 'alpha|beta|rc|pre|dev')
+        latest=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases/latest" 2>/dev/null | \
+                 jq -r '.tag_name' 2>/dev/null || echo "")
+        case "$latest" in
+            v2.*)
+                result="$latest"
+                ;;
+        esac
     fi
     
-    # Check if curl failed or no releases were found
-    if [ -z "$releases" ]; then
-        echo "Error: Unable to fetch releases from GitHub or no v2.x.x stable release found" >&2
+    # Method 2: If jq failed, try grep approach on latest release
+    if [ -z "$result" ]; then
+        latest=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases/latest" 2>/dev/null | \
+                 grep '"tag_name"' | cut -d '"' -f 4 | grep '^v2\.' || echo "")
+        if [ -n "$latest" ]; then
+            result="$latest"
+        fi
+    fi
+    
+    # Method 3: Fallback - search recent releases for v2.x (if latest isn't v2.x)
+    if [ -z "$result" ] && command -v jq >/dev/null 2>&1; then
+        result=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=10" 2>/dev/null | \
+                 jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null | \
+                 head -1 || echo "")
+    fi
+    
+    # Validate result
+    if [ -z "$result" ]; then
+        echo "Error: Unable to fetch v2.x.x stable release" >&2
         echo "Please check your internet connection or try again later" >&2
         exit 1
     fi
     
-    # Sort versions semantically
-    # Remove 'v' prefix, sort by major.minor.patch numerically, add 'v' back
-    res=$(echo "$releases" | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's/^/v/')
-    
-    echo "$res"
+    echo "$result"
 }
 
 copy() {
