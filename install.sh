@@ -72,7 +72,7 @@ uname_arch() {
         armv6*) arch="armv6" ;;
         armv7*) arch="armv7" ;;
     esac
-    echo ${arch}
+    echo "${arch}"
 }
 
 # Check if OS is supported
@@ -102,13 +102,12 @@ uname_arch_check() {
 
 # Get latest v2 version from GitHub
 get_latest_version() {
-    local tmpfile
     tmpfile=$(mktemp)
     
     log_info "Fetching latest v2 release information..."
     
     # Use /releases endpoint to get all releases and filter for v2
-    local url="${RELEASE_URL_BASE}"
+    url="${RELEASE_URL_BASE}"
     
     if [ -n "$GITHUB_TOKEN" ]; then
         if ! curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "$url" > "$tmpfile" 2>/dev/null; then
@@ -128,7 +127,6 @@ get_latest_version() {
     
     # Extract v2.x.x stable releases (excluding prereleases and drafts)
     # Process each release object and filter for stable v2 releases
-    local version
     version=$(awk '
     BEGIN { 
         in_release = 0
@@ -180,7 +178,7 @@ get_latest_version() {
 
 # Normalize version (ensure it starts with v)
 normalize_version() {
-    local version="$1"
+    version="$1"
     case "$version" in
         v*) echo "$version" ;;
         *) echo "v$version" ;;
@@ -189,7 +187,7 @@ normalize_version() {
 
 # Validate that version is a v2.x.x release
 validate_v2_version() {
-    local version="$1"
+    version="$1"
     case "$version" in
         v2.*)
             return 0
@@ -204,7 +202,7 @@ validate_v2_version() {
 
 # Get version to install
 get_version() {
-    local version=""
+    version=""
     
     # Priority order: 1. Environment variable, 2. Command line argument, 3. Latest
     if [ -n "$VERSION" ]; then
@@ -225,8 +223,8 @@ get_version() {
 
 # Install binary to appropriate location
 install_binary() {
-    local bin_dir=""
-    local flipt_bin="/tmp/flipt"
+    bin_dir=""
+    flipt_bin="/tmp/flipt"
     
     # Determine installation directory
     if [ -n "$BIN_DIR" ]; then
@@ -265,12 +263,12 @@ install_binary() {
 }
 
 # Download and install
-install() {
-    local version
-    local os
-    local arch
-    local archive_url
-    local archive_name
+install_flipt() {
+    version=""
+    os=""
+    arch=""
+    archive_url=""
+    archive_name=""
     
     # Get version
     version=$(get_version "$1") || return 1
@@ -327,4 +325,4 @@ install() {
 }
 
 # Main execution
-install "$1"
+install_flipt "$1"
