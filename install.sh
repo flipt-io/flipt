@@ -25,7 +25,12 @@ get_latest_version() {
     # We need semantic version sorting to handle backports correctly
     
     # Debug: Show environment info
-    echo "DEBUG: GITHUB_TOKEN is $([ -n "$GITHUB_TOKEN" ] && echo "set (${#GITHUB_TOKEN} chars)" || echo "not set")" >&2
+    if [ -n "$GITHUB_TOKEN" ]; then
+        token_len=$(echo "$GITHUB_TOKEN" | wc -c)
+        echo "DEBUG: GITHUB_TOKEN is set ($token_len chars)" >&2
+    else
+        echo "DEBUG: GITHUB_TOKEN is not set" >&2
+    fi
     echo "DEBUG: jq available: $(command -v jq >/dev/null 2>&1 && echo "yes" || echo "no")" >&2
     
     # Try using jq if available for better JSON parsing
@@ -36,16 +41,36 @@ get_latest_version() {
             api_response=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>&1)
             curl_exit_code=$?
             echo "DEBUG: curl exit code: $curl_exit_code" >&2
-            echo "DEBUG: API response length: ${#api_response}" >&2
-            echo "DEBUG: First 500 chars of response: ${api_response:0:500}" >&2
+            resp_len=$(echo "$api_response" | wc -c)
+            echo "DEBUG: API response length: $resp_len" >&2
+            echo "DEBUG: First 500 chars of response:" >&2
+            echo "$api_response" | head -c 500 >&2
+            echo "" >&2
+            
+            # If authenticated call failed or returned very short response, try unauthenticated as fallback
+            if [ $curl_exit_code -ne 0 ] || [ $resp_len -lt 100 ]; then
+                echo "DEBUG: Authenticated call failed or returned short response, trying unauthenticated" >&2
+                api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>&1)
+                curl_exit_code=$?
+                echo "DEBUG: Fallback curl exit code: $curl_exit_code" >&2
+                resp_len=$(echo "$api_response" | wc -c)
+                echo "DEBUG: Fallback API response length: $resp_len" >&2
+                echo "DEBUG: Fallback first 500 chars of response:" >&2
+                echo "$api_response" | head -c 500 >&2
+                echo "" >&2
+            fi
+            
             releases=$(echo "$api_response" | jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
         else
             echo "DEBUG: Using unauthenticated API call" >&2
             api_response=$(curl -fsSL "https://api.github.com/repos/flipt-io/flipt/releases?per_page=100" 2>&1)
             curl_exit_code=$?
             echo "DEBUG: curl exit code: $curl_exit_code" >&2
-            echo "DEBUG: API response length: ${#api_response}" >&2
-            echo "DEBUG: First 500 chars of response: ${api_response:0:500}" >&2
+            resp_len=$(echo "$api_response" | wc -c)
+            echo "DEBUG: API response length: $resp_len" >&2
+            echo "DEBUG: First 500 chars of response:" >&2
+            echo "$api_response" | head -c 500 >&2
+            echo "" >&2
             releases=$(echo "$api_response" | jq -r '.[] | select(.prerelease == false) | select(.tag_name | startswith("v2.")) | .tag_name' 2>/dev/null)
         fi
     else
