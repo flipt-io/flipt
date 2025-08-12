@@ -4,8 +4,8 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/osfs"
+	"github.com/go-git/go-billy/v6"
+	"github.com/go-git/go-billy/v6/osfs"
 	envsfs "go.flipt.io/flipt/internal/storage/environments/fs"
 )
 
