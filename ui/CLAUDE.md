@@ -14,7 +14,7 @@ The Flipt UI is a React-based single-page application that provides a web interf
 - **Build Tool**: Vite
 - **Testing**: Jest (unit), Playwright (E2E)
 - **Code Quality**: ESLint, Prettier
-- **UI Components**: Custom components with Headless UI
+- **UI Components**: Custom components with Radix UI
 
 ## Project Structure
 
@@ -77,13 +77,13 @@ Production builds are embedded into the server binary during the main build proc
 // Use functional components with TypeScript
 export default function FlagList({ namespace }: FlagListProps) {
   const { data, isLoading, error } = useListFlagsQuery({ namespace });
-  
+
   if (isLoading) return <Loading />;
   if (error) return <ErrorMessage error={error} />;
-  
+
   return (
     <div className="space-y-4">
-      {data?.flags.map(flag => (
+      {data?.flags.map((flag) => (
         <FlagCard key={flag.key} flag={flag} />
       ))}
     </div>
@@ -104,9 +104,9 @@ export const flagsApi = createApi({
   endpoints: (builder) => ({
     listFlags: builder.query<FlagList, ListFlagsRequest>({
       query: ({ namespace }) => `namespaces/${namespace}/flags`,
-      providesTags: ['Flag'],
-    }),
-  }),
+      providesTags: ['Flag']
+    })
+  })
 });
 ```
 
@@ -140,12 +140,14 @@ export const flagsApi = createApi({
 ### API Structure
 
 The UI communicates with the backend through:
+
 - **REST API**: Primary interface on `/api/v1` and `/api/v2`
 - **WebSocket**: Real-time updates for flag changes (when enabled)
 
 ### Authentication
 
 The UI supports multiple authentication methods:
+
 - Basic authentication
 - OIDC (OpenID Connect)
 - Token-based authentication
@@ -228,15 +230,18 @@ npm run test:e2e
 ## Common Issues and Solutions
 
 ### CORS Issues
+
 - Ensure proxy configuration in `vite.config.ts` is correct
 - Check backend CORS settings if running separately
 
 ### State Management
+
 - Clear Redux store on logout
 - Handle optimistic updates carefully
 - Invalidate cache tags after mutations
 
 ### Build Issues
+
 - Clear `node_modules` and reinstall
 - Check Node.js version (18+)
 - Verify all dependencies are installed
@@ -248,3 +253,4 @@ npm run test:e2e
 - All API calls should handle loading and error states
 - Maintain backward compatibility with v1 API
 - Follow accessibility best practices (ARIA labels, keyboard navigation)
+
