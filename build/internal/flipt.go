@@ -23,7 +23,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 
 	// Use cache if available
 	if len(registryCache) > 0 && registryCache[0] != "" {
-		baseImageRef := fmt.Sprintf("%s:golang-base", registryCache[0])
+		baseImageRef := fmt.Sprintf("%s:golang-%s", registryCache[0], "base-1.25")
 		// Try cached base first
 		cachedBase := golang.From(baseImageRef)
 		if _, err := cachedBase.Sync(ctx); err == nil {
