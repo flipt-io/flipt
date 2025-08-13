@@ -13,11 +13,11 @@ Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
 - [Go 1.24+](https://golang.org/doc/install)
-- [NodeJS >= 18](https://nodejs.org/en/ )
+- [NodeJS >= 22](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
-- [Docker](https://docs.docker.com/install/) (for running tests)
-- [Mockery v3](https://github.com/vektra/mockery) (optional, for generating mocks)
+- [Docker](https://docs.docker.com/install/) (for running unit tests)
 - [Playwright](https://playwright.dev/docs/intro) (optional, for running UI tests)
+- [Dagger](https://docs.dagger.io/install) (optional, for running integration tests)
 
 ## Setup
 
@@ -34,10 +34,6 @@ Flipt uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/
 `pip install pre-commit` or `brew install pre-commit` (if you're on a Mac)
 
 Then run `pre-commit install` to install the git hook.
-
-## Go
-
-Flipt is built with Go 1.23+.
 
 ## Bootstrap
 
