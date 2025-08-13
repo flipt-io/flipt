@@ -162,3 +162,25 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+
+  update-helm-chart:
+    name: Update Helm Chart
+    runs-on: ubuntu-latest
+    needs: release
+    if: success()
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          owner: ${{ github.repository_owner }}
+          repositories: helm-charts
+
+      - name: Trigger Helm Chart Update
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          echo "Triggering helm-chart update workflow for release ${{ github.ref_name }}"
+          gh workflow run update.yml -R flipt-io/helm-charts -f tag="${{ github.ref_name }}"
