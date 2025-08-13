@@ -30,7 +30,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 			golang = cachedBase
 		} else {
 			// Build fresh base and cache it
-			golang = golang.From("golang:1.24-alpine3.21").
+			golang = golang.From("golang:1.25-rc-alpine3.21").
 				WithEnvVariable("GOCACHE", goBuildCachePath).
 				WithEnvVariable("GOMODCACHE", goModCachePath).
 				WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -39,7 +39,7 @@ func Base(ctx context.Context, dag *dagger.Client, source, uiDist *dagger.Direct
 		}
 	} else {
 		// No cache - use regular build
-		golang = golang.From("golang:1.24-alpine3.21").
+		golang = golang.From("golang:1.25-rc-alpine3.21").
 			WithEnvVariable("GOCACHE", goBuildCachePath).
 			WithEnvVariable("GOMODCACHE", goModCachePath).
 			WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})

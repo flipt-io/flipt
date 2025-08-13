@@ -5,8 +5,8 @@ go 1.23.7
 toolchain go1.24.3
 
 require (
-	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/genproto/googleapis/api v0.0.0-20250519155744-55703ea1f237
+	google.golang.org/protobuf v1.36.7
 	sigs.k8s.io/yaml v1.4.0
 )
 

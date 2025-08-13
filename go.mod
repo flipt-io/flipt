@@ -1,8 +1,6 @@
 module go.flipt.io/flipt
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.25.0
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0

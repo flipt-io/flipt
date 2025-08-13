@@ -131,7 +131,7 @@ func (f *Flipt) Test(
 		// Use a lightweight base container for test execution when using cache
 		// Lightweight test runner - just needs Go toolchain, not full build environment
 		f.BaseContainer = dag.Container().
-			From("golang:1.24-alpine3.21").
+			From("golang:1.25-rc-alpine3.21").
 			WithExec([]string{"apk", "add", "--no-cache", "bash", "git"}).
 			WithMountedDirectory("/src", source).
 			WithWorkdir("/src")

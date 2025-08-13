@@ -12,7 +12,7 @@ Also check out our [Contributing](CONTRIBUTING.md) guide for more information on
 Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
-- [Go 1.24+](https://golang.org/doc/install)
+- [Go 1.25+](https://golang.org/doc/install)
 - [NodeJS >= 22](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running unit tests)

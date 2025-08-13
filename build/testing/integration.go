@@ -172,7 +172,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		// Create a container to extract coverage data from the cache volume
 		// We need to copy from cache to a regular directory since cache volumes can't be directly exported
 		coverageContainer := client.Container().
-			From("golang:1.24-alpine3.21").
+			From("golang:1.25-rc-alpine3.21").
 			WithMountedCache("/tmp/coverage", coverageVolume).
 			WithExec([]string{"mkdir", "-p", "/output"}).
 			WithExec([]string{"sh", "-c", "cp -r /tmp/coverage/* /output/ 2>/dev/null || true"})
