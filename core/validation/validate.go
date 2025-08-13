@@ -13,8 +13,8 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	cueerrors "cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/yaml"
-	"github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/util"
+	"github.com/go-git/go-billy/v6"
+	"github.com/go-git/go-billy/v6/util"
 	"github.com/gobwas/glob"
 	goyaml "gopkg.in/yaml.v3"
 )
@@ -199,7 +199,7 @@ func (v FeaturesValidator) Validate(file string, reader io.Reader) error {
 			return err
 		}
 
-		var offset = node.Line - 1
+		offset := node.Line - 1
 		if i > 0 {
 			offset = node.Line
 		}
@@ -261,7 +261,6 @@ func (v FeaturesValidator) ValidateFilesFromBillyFS(src billy.Filesystem) error 
 		}
 
 		return nil
-
 	}); err != nil {
 		return err
 	}

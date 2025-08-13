@@ -47,6 +47,20 @@ jobs:
           npm run lint
         working-directory: ui
 
+  shellcheck:
+    name: "Shellcheck"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          format: gcc
+          severity: warning
+          check_together: 'yes'
+
   go-mod-tidy:
     name: "Go Mod Tidy"
     runs-on: ubuntu-latest
