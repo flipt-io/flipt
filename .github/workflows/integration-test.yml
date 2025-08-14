@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.25"
   DAGGER_VERSION: "0.18.14"
   REGISTRY_CACHE: ghcr.io/${{ github.repository }}-cache
 
@@ -80,7 +80,7 @@ jobs:
         run: |
           # Pre-pull common base layers to speed up builds
           echo "Pre-pulling base cache layers..."
-          docker pull ${{ env.REGISTRY_CACHE }}:golang-base || echo "golang-base not cached yet"
+          docker pull ${{ env.REGISTRY_CACHE }}:golang-base-${{ env.GO_VERSION }} || echo "golang-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:node-base || echo "node-base not cached yet"
           docker pull ${{ env.REGISTRY_CACHE }}:runtime-base || echo "runtime-base not cached yet"
 
