@@ -107,10 +107,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV_VERSION="${{ steps.prev_version.outputs.version }}"
-          # Get merged PRs since last release
-          PRS=$(gh pr list --state merged --base v2 --limit 100 --json number,title,author,mergedAt,labels \
-            --jq '.[] | "#\(.number) - \(.title) (@\(.author.login))"')
+          PREV_TAG="${{ steps.prev_version.outputs.tag }}"
+          
+          # Get the date of the previous release tag
+          if [ "$PREV_TAG" = "v2.0.0" ] && ! git tag --list | grep -q "^v2.0.0$"; then
+            # No previous v2 releases, get recent PRs (last 30 days)
+            SINCE_DATE=$(date -d '30 days ago' '+%Y-%m-%dT%H:%M:%SZ')
+          else
+            SINCE_DATE=$(git log -1 --format=%cI "$PREV_TAG")
+          fi
+          
+          # Get merged PRs since the previous release date
+          PRS=$(gh pr list --state merged --base v2 --limit 100 --json number,title,author,mergedAt,labels | \
+            jq --arg since_date "$SINCE_DATE" -r \
+            '.[] | select(.mergedAt >= $since_date) | "#\(.number) - \(.title) (@\(.author.login))"')
+          
           echo "prs<<EOF" >> $GITHUB_OUTPUT
           echo "$PRS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
