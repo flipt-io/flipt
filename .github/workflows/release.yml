@@ -190,8 +190,8 @@ jobs:
           CURRENT_TAG="${{ github.ref_name }}"
           CURRENT_VERSION="${CURRENT_TAG#v}"
 
-          # Get all v2 tags sorted by semantic version, excluding the current tag
-          PREV_TAG=$(git tag --list "v2.*" --sort=-version:refname | grep -v "^${CURRENT_TAG}$" | head -1)
+          # Use git describe to find the previous tag more robustly
+          PREV_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || git tag --list "v2.*" --sort=-version:refname | grep -v "^${CURRENT_TAG}$" | head -1)
 
           if [ -z "$PREV_TAG" ]; then
             PREV_TAG="v2.0.0"
@@ -245,7 +245,7 @@ jobs:
           if echo "$EXISTING_BODY" | grep -q "## Installation"; then
             # Split at Installation section and insert changelog before it
             BEFORE_INSTALL=$(echo "$EXISTING_BODY" | awk '/## Installation/{exit}1')
-            INSTALL_AND_AFTER=$(echo "$EXISTING_BODY" | awk '/## Installation/,0')
+            INSTALL_AND_AFTER=$(echo "$EXISTING_BODY" | awk 'f;/## Installation/{f=1}')
             
             # Combine: any existing content before Installation + changelog + Installation and after
             FINAL_NOTES="$(printf '%s\n%s\n\n%s' "$BEFORE_INSTALL" "$CHANGELOG_CONTENT" "$INSTALL_AND_AFTER")"
