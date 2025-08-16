@@ -52,7 +52,7 @@ jobs:
           NEW_VERSION="${{ inputs.version }}"
           
           # Validate version format (semantic versioning)
-          if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$'; then
+          if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?(\+[a-zA-Z0-9]+)?$'; then
             echo "❌ Error: Invalid version format: $NEW_VERSION"
             echo "Expected format: X.Y.Z or X.Y.Z-prerelease"
             exit 1
@@ -159,8 +159,8 @@ jobs:
             echo ""
             echo "$NEW_ENTRY"
             echo ""
-            # Add the rest of the existing changelog, skipping the header
-            echo "$EXISTING_CHANGELOG" | tail -n +6
+            # Add the rest of the existing changelog, starting from first ## entry
+            echo "$EXISTING_CHANGELOG" | awk 'found || /^## / {found=1; print}'
           } > CHANGELOG.md.tmp
 
           mv CHANGELOG.md.tmp CHANGELOG.md
