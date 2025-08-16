@@ -123,8 +123,10 @@ jobs:
           input: |
             version: "${{ inputs.version }}"
             previous_version: "${{ steps.prev_version.outputs.version }}"
-            commits: "${{ steps.commits.outputs.commits }}"
-            pull_requests: "${{ steps.pull_requests.outputs.prs }}"
+            commits: |
+              ${{ steps.commits.outputs.commits }}
+            pull_requests: |
+              ${{ steps.pull_requests.outputs.prs }}
             current_date: "${{ steps.current_date.outputs.date }}"
 
       - name: Create release branch
@@ -198,8 +200,10 @@ jobs:
           input: |
             version: "${{ inputs.version }}"
             previous_version: "${{ steps.prev_version.outputs.version }}"
-            commits: "${{ steps.commits.outputs.commits }}"
-            changelog_section: "${{ steps.generate_changelog.outputs.response }}"
+            commits: |
+              ${{ steps.commits.outputs.commits }}
+            changelog_section: |
+              ${{ steps.generate_changelog.outputs.response }}
 
       - name: Create pull request
         if: inputs.dry_run == false

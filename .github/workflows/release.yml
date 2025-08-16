@@ -216,7 +216,8 @@ jobs:
           input: |
             version: "${{ steps.extract_version.outputs.version }}"
             previous_version: "${{ steps.prev_version.outputs.version }}"
-            changelog_section: "${{ steps.extract_changelog.outputs.section }}"
+            changelog_section: |
+              ${{ steps.extract_changelog.outputs.section }}
             release_type: "stable"
 
       - name: Update GitHub release
