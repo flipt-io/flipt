@@ -441,6 +441,7 @@ func TestLoad(t *testing.T) {
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
 					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
+					AllowedMethods: []string{"HEAD", "GET", "POST"},
 				}
 
 				cfg.Server = ServerConfig{

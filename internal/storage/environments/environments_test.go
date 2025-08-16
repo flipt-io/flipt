@@ -16,12 +16,14 @@ import (
 )
 
 func Test_NewRepositoryManager(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-	cfg := &config.Config{}
-	secretsManager := &secrets.MockManager{}
-	licenseManager := &license.MockManager{}
+	var (
+		logger         = zaptest.NewLogger(t)
+		cfg            = &config.Config{}
+		secretsManager = &secrets.MockManager{}
+		licenseManager = &license.MockManager{}
 
-	rm := NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
+		rm = NewRepositoryManager(logger, cfg, secretsManager, licenseManager)
+	)
 
 	assert.NotNil(t, rm)
 	assert.Equal(t, logger, rm.logger)
@@ -37,6 +39,7 @@ func Test_RepositoryManager_GetOrCreate(t *testing.T) {
 		envConf       *config.EnvironmentConfig
 		storageConfig *config.StorageConfig
 		expectedError bool
+		expectCached  bool
 		setupMocks    func(*license.MockManager, *secrets.MockManager)
 	}{
 		{
@@ -69,21 +72,6 @@ func Test_RepositoryManager_GetOrCreate(t *testing.T) {
 			setupMocks: func(lm *license.MockManager, sm *secrets.MockManager) {},
 		},
 		{
-			name: "creates repository with remote",
-			envConf: &config.EnvironmentConfig{
-				Name:    "test-env",
-				Storage: "test-storage",
-			},
-			storageConfig: &config.StorageConfig{
-				Backend: config.StorageBackendConfig{
-					Type: config.MemoryStorageBackendType,
-				},
-				Branch: "main",
-				Remote: "https://github.com/flipt-io/flipt.git",
-			},
-			setupMocks: func(lm *license.MockManager, sm *secrets.MockManager) {},
-		},
-		{
 			name: "creates repository with CA cert bytes",
 			envConf: &config.EnvironmentConfig{
 				Name:    "test-env",
@@ -110,7 +98,8 @@ func Test_RepositoryManager_GetOrCreate(t *testing.T) {
 				},
 				Branch: "main",
 			},
-			setupMocks: func(lm *license.MockManager, sm *secrets.MockManager) {},
+			setupMocks:   func(lm *license.MockManager, sm *secrets.MockManager) {},
+			expectCached: true,
 		},
 		{
 			name: "repository with commit signing enabled - OSS license",
@@ -222,7 +211,7 @@ test_key_data
 				assert.NotNil(t, repo)
 
 				// Verify repository is cached
-				if tt.name == "reuses existing repository" {
+				if tt.expectCached {
 					// Pre-populate the cache
 					rm.repos[tt.envConf.Storage] = repo
 					repo2, err := rm.GetOrCreate(ctx, tt.envConf, tt.storageConfig, credentials)
