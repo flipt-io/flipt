@@ -1,0 +1,232 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., 2.0.2)"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run mode (no actual changes)"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    # TODO: Add environment protection after testing
+    # environment: 
+    #   name: release-management
+    #   url: https://github.com/${{ github.repository }}/releases
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: v2
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "flipt-bot"
+          git config --global user.email "dev@flipt.io"
+
+      - name: Get previous version
+        id: prev_version
+        run: |
+          # Get the most recent v2 tag using semantic versioning
+          PREV_TAG=$(git tag --list "v2.*" --sort=-version:refname | head -1)
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG="v2.0.0"
+          fi
+          echo "version=${PREV_TAG#v}" >> $GITHUB_OUTPUT
+          echo "tag=${PREV_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Validate version input
+        run: |
+          NEW_VERSION="${{ inputs.version }}"
+          
+          # Validate version format (semantic versioning)
+          if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$'; then
+            echo "❌ Error: Invalid version format: $NEW_VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-prerelease"
+            exit 1
+          fi
+          
+          # Check for potential injection attempts
+          if echo "$NEW_VERSION" | grep -qE '[;&|`$(){}]'; then
+            echo "❌ Error: Invalid characters in version: $NEW_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version format validation passed: $NEW_VERSION"
+
+      - name: Validate version ordering
+        run: |
+          PREV_VERSION="${{ steps.prev_version.outputs.version }}"
+          NEW_VERSION="${{ inputs.version }}"
+
+          # Use sort to compare semantic versions
+          HIGHEST=$(printf '%s\n%s' "$PREV_VERSION" "$NEW_VERSION" | sort -V | tail -1)
+
+          if [ "$HIGHEST" != "$NEW_VERSION" ]; then
+            echo "❌ Error: New version $NEW_VERSION is not greater than previous version $PREV_VERSION"
+            echo "Previous version: $PREV_VERSION"
+            echo "New version: $NEW_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version ordering validation passed: $PREV_VERSION → $NEW_VERSION"
+
+      - name: Get current date
+        id: current_date
+        run: |
+          echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Get commits since last release
+        id: commits
+        run: |
+          PREV_TAG="${{ steps.prev_version.outputs.tag }}"
+          if [ "$PREV_TAG" = "v2.0.0" ] && ! git tag --list | grep -q "^v2.0.0$"; then
+            # No previous v2 releases, get recent commits
+            COMMITS=$(git log --oneline -50)
+          else
+            COMMITS=$(git log --oneline ${PREV_TAG}..HEAD)
+          fi
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get merged PRs since last release
+        id: pull_requests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV_VERSION="${{ steps.prev_version.outputs.version }}"
+          # Get merged PRs since last release
+          PRS=$(gh pr list --state merged --base v2 --limit 100 --json number,title,author,mergedAt,labels \
+            --jq '.[] | "#\(.number) - \(.title) (@\(.author.login))"')
+          echo "prs<<EOF" >> $GITHUB_OUTPUT
+          echo "$PRS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog entry using AI
+        id: generate_changelog
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: .github/prompts/generate-changelog-entry.prompt.yml
+          input: |
+            version: "${{ inputs.version }}"
+            previous_version: "${{ steps.prev_version.outputs.version }}"
+            commits: "${{ steps.commits.outputs.commits }}"
+            pull_requests: "${{ steps.pull_requests.outputs.prs }}"
+            current_date: "${{ steps.current_date.outputs.date }}"
+
+      - name: Create release branch
+        if: inputs.dry_run == false
+        run: |
+          BRANCH_NAME="release/v${{ inputs.version }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "✅ Created release branch: $BRANCH_NAME"
+
+      - name: Dry run - Show branch that would be created
+        if: inputs.dry_run == true
+        run: |
+          BRANCH_NAME="release/v${{ inputs.version }}"
+          echo "🏃‍♂️ DRY RUN: Would create release branch: $BRANCH_NAME"
+
+      - name: Update CHANGELOG.md
+        if: inputs.dry_run == false
+        run: |
+          # Read the existing changelog
+          EXISTING_CHANGELOG=$(cat CHANGELOG.md)
+
+          # Get the generated changelog entry
+          NEW_ENTRY="${{ steps.generate_changelog.outputs.response }}"
+
+          # Find the line after the main header (usually line 6 after the format note)
+          # Insert the new entry after the header section
+          {
+            echo "# Changelog"
+            echo ""
+            echo "This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)"
+            echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+            echo ""
+            echo "$NEW_ENTRY"
+            echo ""
+            # Add the rest of the existing changelog, skipping the header
+            echo "$EXISTING_CHANGELOG" | tail -n +6
+          } > CHANGELOG.md.tmp
+
+          mv CHANGELOG.md.tmp CHANGELOG.md
+
+          echo "✅ Updated CHANGELOG.md with entry for v${{ inputs.version }}"
+
+      - name: Dry run - Show generated changelog
+        if: inputs.dry_run == true
+        run: |
+          echo "🏃‍♂️ DRY RUN: Generated changelog entry:"
+          echo "----------------------------------------"
+          echo "${{ steps.generate_changelog.outputs.response }}"
+          echo "----------------------------------------"
+          echo "Would update CHANGELOG.md with the above content"
+
+      - name: Commit changelog update
+        if: inputs.dry_run == false
+        run: |
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for v${{ inputs.version }}"
+          git push -u origin "release/v${{ inputs.version }}"
+          echo "✅ Committed and pushed changelog update"
+
+      - name: Dry run - Show commit that would be made
+        if: inputs.dry_run == true
+        run: |
+          echo "🏃‍♂️ DRY RUN: Would commit with message: 'chore: update changelog for v${{ inputs.version }}'"
+          echo "Would push to branch: release/v${{ inputs.version }}"
+
+      - name: Generate PR description using AI
+        id: generate_pr
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: .github/prompts/generate-release-pr.prompt.yml
+          input: |
+            version: "${{ inputs.version }}"
+            previous_version: "${{ steps.prev_version.outputs.version }}"
+            commits: "${{ steps.commits.outputs.commits }}"
+            changelog_section: "${{ steps.generate_changelog.outputs.response }}"
+
+      - name: Create pull request
+        if: inputs.dry_run == false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_BODY="${{ steps.generate_pr.outputs.response }}"
+
+          gh pr create \
+            --base v2 \
+            --head "release/v${{ inputs.version }}" \
+            --title "Release v${{ inputs.version }}" \
+            --body "$PR_BODY" \
+            --label "release"
+            
+          echo "✅ Created pull request for release v${{ inputs.version }}"
+
+      - name: Dry run - Show PR that would be created
+        if: inputs.dry_run == true
+        run: |
+          echo "🏃‍♂️ DRY RUN: Would create PR:"
+          echo "Title: Release v${{ inputs.version }}"
+          echo "Base: v2"
+          echo "Head: release/v${{ inputs.version }}"
+          echo "Label: release"
+          echo ""
+          echo "PR Body:"
+          echo "----------------------------------------"
+          echo "${{ steps.generate_pr.outputs.response }}"
+          echo "----------------------------------------"
