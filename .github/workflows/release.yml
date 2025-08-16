@@ -163,6 +163,123 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
+  update-release-notes:
+    name: Update Release Notes
+    runs-on: ubuntu-latest
+    needs: release
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Get previous version
+        id: prev_version
+        run: |
+          # Get the previous v2 tag before the current one
+          CURRENT_TAG="${{ github.ref_name }}"
+          CURRENT_VERSION="${CURRENT_TAG#v}"
+
+          # Get all v2 tags sorted by semantic version, excluding the current tag
+          PREV_TAG=$(git tag --list "v2.*" --sort=-version:refname | grep -v "^${CURRENT_TAG}$" | head -1)
+
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG="v2.0.0"
+          fi
+          echo "version=${PREV_TAG#v}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog section
+        id: extract_changelog
+        run: |
+          VERSION="${{ steps.extract_version.outputs.version }}"
+          # Extract the section for this version
+          SECTION=$(awk "/^## \[?${VERSION}\]?/{flag=1; next} /^## \[?[0-9]/{flag=0} flag" CHANGELOG.md)
+          echo "section<<EOF" >> $GITHUB_OUTPUT
+          echo "$SECTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate formatted release notes using AI
+        id: generate_notes
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: .github/prompts/format-release-notes.prompt.yml
+          input: |
+            version: "${{ steps.extract_version.outputs.version }}"
+            previous_version: "${{ steps.prev_version.outputs.version }}"
+            changelog_section: "${{ steps.extract_changelog.outputs.section }}"
+            release_type: "stable"
+
+      - name: Update GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.extract_version.outputs.tag }}"
+          CHANGELOG_CONTENT="${{ steps.generate_notes.outputs.response }}"
+
+          # Get the release ID
+          RELEASE_ID=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/releases/tags/${TAG} \
+            --jq '.id')
+
+          # Get the existing release body
+          EXISTING_BODY=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/releases/${RELEASE_ID} \
+            --jq '.body')
+
+          # Construct the new release notes
+          # If there's an Installation section, insert before it; otherwise append
+          if echo "$EXISTING_BODY" | grep -q "## Installation"; then
+            # Split at Installation section and insert changelog before it
+            BEFORE_INSTALL=$(echo "$EXISTING_BODY" | awk '/## Installation/{exit}1')
+            INSTALL_AND_AFTER=$(echo "$EXISTING_BODY" | awk '/## Installation/,0')
+            
+            # Combine: any existing content before Installation + changelog + Installation and after
+            FINAL_NOTES="$(printf '%s\n%s\n\n%s' "$BEFORE_INSTALL" "$CHANGELOG_CONTENT" "$INSTALL_AND_AFTER")"
+          else
+            # No Installation section found, just append the changelog with default template
+            TEMPLATE="## Installation
+          ### Docker Images :whale:
+          \`\`\`bash
+          docker pull docker.flipt.io/flipt/flipt:${TAG}
+          \`\`\`
+          \`\`\`bash
+          docker pull ghcr.io/flipt-io/flipt:${TAG}
+          \`\`\`
+
+          ## Thank you!
+          We hope you :heart: this release! Feel free to open issues/discussions or reach out to us on Discord if you have any questions or feedback.
+          - [Discord](https://flipt.io/discord)
+          - [Github Discussions](https://github.com/flipt-io/flipt/discussions)
+          - [Github Issues](https://github.com/flipt-io/flipt/issues)
+          - [Website](https://flipt.io)"
+            
+            FINAL_NOTES="$(printf '%s\n\n%s' "$CHANGELOG_CONTENT" "$TEMPLATE")"
+          fi
+
+          # Update the release with combined notes
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/releases/${RELEASE_ID} \
+            -f body="${FINAL_NOTES}"
+            
+          echo "✅ Updated release notes for ${TAG}"
+
   update-helm-chart:
     name: Update Helm Chart
     runs-on: ubuntu-latest

@@ -1,0 +1,37 @@
+messages:
+  - role: system
+    content: |
+      You are a release manager assistant that generates pull request descriptions for software releases.
+      You analyze git commits and changelog entries to create comprehensive release PR descriptions.
+
+      Your output should be a well-formatted markdown PR description that includes:
+      1. A brief summary of the release
+      2. Key highlights (major features or important fixes)
+      3. Full changelog section for this version
+      4. Any breaking changes or migration notes
+      5. Testing checklist
+
+      Format the output to be clear, professional, and actionable.
+
+  - role: user
+    content: |
+      Generate a pull request description for Flipt {{version}} release.
+
+      Previous version: {{previous_version}}
+
+      Commits since last release:
+      ```
+      {{commits}}
+      ```
+
+      Changelog entry for {{version}}:
+      ```
+      {{changelog_section}}
+      ```
+
+      Create a comprehensive PR description that will help reviewers understand what's included in this release.
+
+model: openai/gpt-4o
+
+response_format:
+  type: text
