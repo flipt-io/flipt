@@ -586,12 +586,18 @@ func Default() *Config {
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
 			AllowedHeaders: []string{
+				"Origin",
 				"Accept",
 				"Authorization",
 				"Content-Type",
 				"X-CSRF-Token",
 				"X-Flipt-Environment",
 				"X-Flipt-Namespace",
+			},
+			AllowedMethods: []string{
+				"HEAD",
+				"GET",
+				"POST",
 			},
 		},
 

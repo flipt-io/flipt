@@ -677,12 +677,27 @@
             "type": "string"
           },
           "default": [
+            "Origin",
             "Accept",
             "Authorization",
             "Content-Type",
             "X-CSRF-Token",
             "X-Flipt-Namespace",
             "X-Flipt-Accept-Server-Version"
+          ]
+        },
+        "allowed_methods": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "HEAD",
+            "GET",
+            "POST"
           ]
         }
       }

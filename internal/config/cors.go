@@ -13,18 +13,25 @@ type CorsConfig struct {
 	Enabled        bool     `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	AllowedOrigins []string `json:"allowedOrigins,omitempty" mapstructure:"allowed_origins" yaml:"allowed_origins,omitempty"`
 	AllowedHeaders []string `json:"allowedHeaders,omitempty" mapstructure:"allowed_headers" yaml:"allowed_headers,omitempty"`
+	AllowedMethods []string `json:"allowedMethods,omitempty" mapstructure:"allowed_methods" yaml:"allowed_methods,omitempty"`
 }
 
 func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cors.enabled", false)
 	v.SetDefault("cors.allowed_origins", "*")
 	v.SetDefault("cors.allowed_headers", []string{
+		"Origin",
 		"Accept",
 		"Authorization",
 		"Content-Type",
 		"X-CSRF-Token",
 		common.HeaderFliptEnvironment,
 		common.HeaderFliptNamespace,
+	})
+	v.SetDefault("cors.allowed_methods", []string{
+		"HEAD",
+		"GET",
+		"POST",
 	})
 	return nil
 }
