@@ -1016,10 +1016,6 @@
           "type": "boolean",
           "default": true
         },
-        "telemetry_enabled": {
-          "type": "boolean",
-          "default": true
-        },
         "state_directory": {
           "type": "string",
           "default": "$HOME/.config/flipt"

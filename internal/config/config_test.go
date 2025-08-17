@@ -859,8 +859,7 @@ func TestLoad(t *testing.T) {
 				}
 
 				cfg.Meta = MetaConfig{
-					CheckForUpdates:  false,
-					TelemetryEnabled: false,
+					CheckForUpdates: false,
 				}
 
 				cfg.Authentication = AuthenticationConfig{
