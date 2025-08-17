@@ -200,8 +200,22 @@ func (g Go) Fmt() error {
 		return fmt.Errorf("finding files: %w", err)
 	}
 
-	args := append([]string{"tool", "golang.org/x/tools/cmd/goimports", "-w"}, files...)
-	return sh.RunV("go", args...)
+	// Process files in batches to avoid "argument list too long" errors
+	const batchSize = 50
+	for i := 0; i < len(files); i += batchSize {
+		end := i + batchSize
+		if end > len(files) {
+			end = len(files)
+		}
+
+		batch := files[i:end]
+		args := append([]string{"tool", "golang.org/x/tools/cmd/goimports", "-w"}, batch...)
+		if err := sh.RunV("go", args...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Runs the Go modernize tool to fix linting errors
