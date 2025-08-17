@@ -11,7 +11,7 @@ Flipt v2 is a Git-native feature management platform with a monorepo structure. 
 - **v1 code**: Located on `main` branch
 - **v2 code**: Located on current (`v2`) branch. This is the default branch in the repository.
 - **License**: Fair Core License for server, MIT for client code
-- **Requirements**: Go 1.24+ and Node.js 18+
+- **Requirements**: Go 1.25+ and Node.js 18+
 
 ## Project Architecture & Structure
 

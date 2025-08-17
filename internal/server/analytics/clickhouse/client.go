@@ -86,7 +86,7 @@ func connect(clickhouseConfig config.ClickhouseConfig) (*sql.DB, error) {
 
 	conn := clickhouse.OpenDB(options)
 
-	if err := conn.Ping(); err != nil {
+	if err := conn.Ping(); err != nil { //nolint noctx
 		return nil, err
 	}
 

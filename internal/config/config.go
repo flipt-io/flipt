@@ -590,6 +590,7 @@ func Default() *Config {
 				"Authorization",
 				"Content-Type",
 				"X-CSRF-Token",
+				"X-Flipt-Accept-Server-Version",
 				"X-Flipt-Environment",
 				"X-Flipt-Namespace",
 			},

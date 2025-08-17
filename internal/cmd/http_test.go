@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 const (
@@ -59,4 +60,31 @@ func TestTrailingSlashMiddleware(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, res.StatusCode)
 	res.Body.Close()
+}
+
+func TestCrossOriginProtection(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+	f := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "OK", http.StatusOK) })
+	h := crossOriginProtection(logger, []string{"https://labs.flipt.io"})(f)
+
+	tests := []struct {
+		origin       string
+		expectedCode int
+	}{
+		{origin: "", expectedCode: http.StatusOK},
+		{origin: "https://labs.flipt.io", expectedCode: http.StatusOK},
+		{origin: "https://unknown.flipt.io", expectedCode: http.StatusForbidden},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPut, "https://docs.flipt.io", nil)
+			if tt.origin != "" {
+				req.Header.Set("Origin", tt.origin)
+			}
+			res := httptest.NewRecorder()
+			h.ServeHTTP(res, req)
+			assert.Equal(t, tt.expectedCode, res.Code)
+		})
+	}
 }

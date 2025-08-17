@@ -6,6 +6,7 @@ import (
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/core"
 	"go.uber.org/zap"
 )
 
@@ -70,6 +71,8 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 			Name:           flag.Name,
 			Description:    flag.Description,
 			DefaultVariant: defaultVariant,
+			Type:           toListFlagType(flag.Type),
+			Enabled:        flag.Enabled,
 		})
 	}
 
@@ -83,4 +86,11 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 
 	s.logger.Debug("list flags", zap.Stringer("response", &resp))
 	return &resp, nil
+}
+
+func toListFlagType(flagType core.FlagType) flipt.FlagType {
+	if flagType == core.FlagType_BOOLEAN_FLAG_TYPE {
+		return flipt.FlagType_BOOLEAN_FLAG_TYPE
+	}
+	return flipt.FlagType_VARIANT_FLAG_TYPE
 }

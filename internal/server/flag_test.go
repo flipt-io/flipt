@@ -234,3 +234,76 @@ func TestListFlags_WithoutXEnvironmentHeader(t *testing.T) {
 
 	store.AssertExpectations(t)
 }
+
+func TestListFlags_WithTypes(t *testing.T) {
+	var (
+		store       = &common.StoreMock{}
+		environment = &environments.MockEnvironment{}
+		envStore    = &evaluation.MockEnvironmentStore{}
+		logger      = zaptest.NewLogger(t)
+		s           = &Server{
+			logger: logger,
+			store:  envStore,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	// Test when X-Environment header is NOT present, it should use the request environment
+	requestEnvironment := "request-environment"
+	namespaceKey := "test-namespace"
+
+	// Context without X-Environment header
+	ctx := context.Background()
+
+	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	environment.On("EvaluationStore").Return(store, nil)
+
+	// Verify that the context passed to ListFlags contains the request environment
+	store.On("ListFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment // This should be the request environment
+	}), storage.ListWithOptions(storage.NewNamespace(namespaceKey))).Return(
+		storage.ResultSet[*core.Flag]{
+			Results: []*core.Flag{
+				{
+					Key:     "test-flag-1",
+					Name:    "Test Flag 1",
+					Type:    core.FlagType_VARIANT_FLAG_TYPE,
+					Enabled: false,
+				},
+				{
+					Key:     "test-flag-2",
+					Name:    "Test Flag 2",
+					Type:    core.FlagType_BOOLEAN_FLAG_TYPE,
+					Enabled: true,
+				},
+			},
+		}, nil)
+
+	store.On("CountFlags", mock.MatchedBy(func(ctx context.Context) bool {
+		env, ok := common.FliptEnvironmentFromContext(ctx)
+		return ok && env == requestEnvironment // This should be the request environment
+	}), mock.Anything).Return(uint64(2), nil)
+
+	// Create request
+	req := &flipt.ListFlagRequest{
+		EnvironmentKey: requestEnvironment,
+		NamespaceKey:   namespaceKey,
+	}
+
+	// Call ListFlags
+	result, err := s.ListFlags(ctx, req)
+	require.NoError(t, err)
+
+	flags := result.Flags
+	// Verify the result
+	assert.Len(t, flags, 2)
+	assert.Equal(t, flipt.FlagType_VARIANT_FLAG_TYPE, flags[0].Type)
+	assert.False(t, flags[0].Enabled)
+	assert.Equal(t, flipt.FlagType_BOOLEAN_FLAG_TYPE, flags[1].Type)
+	assert.True(t, flags[1].Enabled)
+	assert.Equal(t, int32(2), result.TotalCount)
+
+	store.AssertExpectations(t)
+}

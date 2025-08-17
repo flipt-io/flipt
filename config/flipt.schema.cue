@@ -122,11 +122,11 @@ JsonPath: string
 					audiences?: [...string]
 				}
 				claims_mapping?: {
-				    email?: JsonPath
-				    name?: JsonPath
-				    sub?: JsonPath
-				    picture?: JsonPath
-				    role?: JsonPath
+					email?:   JsonPath
+					name?:    JsonPath
+					sub?:     JsonPath
+					picture?: JsonPath
+					role?:    JsonPath
 				}
 				jwks_url?:        string
 				public_key_file?: string
@@ -172,8 +172,9 @@ JsonPath: string
 			"Authorization",
 			"Content-Type",
 			"X-CSRF-Token",
-			"X-Flipt-Namespace",
 			"X-Flipt-Accept-Server-Version",
+			"X-Flipt-Environment",
+			"X-Flipt-Namespace",
 		]
 	}
 
