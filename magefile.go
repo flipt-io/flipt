@@ -204,8 +204,22 @@ func (g Go) Fmt() error {
 		return fmt.Errorf("finding files: %w", err)
 	}
 
-	args := append([]string{"-w"}, files...)
-	return sh.RunV("goimports", args...)
+	// Process files in batches to avoid "argument list too long" errors
+	const batchSize = 50
+	for i := 0; i < len(files); i += batchSize {
+		end := i + batchSize
+		if end > len(files) {
+			end = len(files)
+		}
+
+		batch := files[i:end]
+		args := append([]string{"-w"}, batch...)
+		if err := sh.RunV("goimports", args...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Runs the Go linters
