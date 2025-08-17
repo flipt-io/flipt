@@ -266,7 +266,6 @@ JsonPath: string
 
 	#meta: {
 		check_for_updates?: bool | *true
-		telemetry_enabled?: bool | *true
 		state_directory?:   string | *"$HOME/.config/flipt"
 	}
 

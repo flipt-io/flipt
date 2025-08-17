@@ -33,7 +33,6 @@ import (
 	"go.flipt.io/flipt/internal/product"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/secrets"
-	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/log/global"
@@ -271,14 +270,6 @@ func buildConfig(ctx context.Context) (*zap.Logger, *config.Config, error) {
 	return logger, cfg, nil
 }
 
-const (
-	dntVar = "DO_NOT_TRACK"
-	ciVar  = "CI"
-)
-
-func isSet(env string) bool {
-	return os.Getenv(env) == "true" || os.Getenv(env) == "1"
-}
 
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	var err error
@@ -358,27 +349,10 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		}
 	}
 
-	// see: https://consoledonottrack.com/
-	if isSet(dntVar) && cfg.Meta.TelemetryEnabled {
-		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
-
-	if isSet(ciVar) && cfg.Meta.TelemetryEnabled {
-		logger.Debug("CI detected, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
-
-	if !isRelease && cfg.Meta.TelemetryEnabled {
-		logger.Debug("not a release version, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
-
 	g, ctx := errgroup.WithContext(ctx)
 
 	if err := initMetaStateDir(cfg); err != nil {
-		logger.Debug("disabling telemetry, state directory not accessible", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
-		cfg.Meta.TelemetryEnabled = false
+		logger.Debug("state directory not accessible", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
 	} else {
 		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 	}
@@ -436,24 +410,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		info.WithLicenseManager(licenseManager),
 	)
 
-	if cfg.Meta.TelemetryEnabled {
-		logger := logger.With(zap.String("component", "telemetry"))
-
-		g.Go(func() error {
-			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, analyticsEndpoint, info)
-			if err != nil {
-				logger.Debug("initializing telemetry reporter", zap.Error(err))
-				return nil
-			}
-
-			defer func() {
-				_ = reporter.Shutdown()
-			}()
-
-			reporter.Run(ctx)
-			return nil
-		})
-	}
 
 	// in-process client connection for grpc services
 	ipch := &inprocgrpc.Channel{}

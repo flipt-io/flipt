@@ -638,8 +638,7 @@ func Default() *Config {
 		},
 
 		Meta: MetaConfig{
-			CheckForUpdates:  true,
-			TelemetryEnabled: true,
+			CheckForUpdates: true,
 		},
 
 		Authentication: AuthenticationConfig{
