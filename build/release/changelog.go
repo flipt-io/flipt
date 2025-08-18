@@ -132,7 +132,7 @@ func insertChangeLogVersion(dst io.Writer, src io.Reader, log changeLogVersion) 
 		}
 
 		// write changelog heading
-		fmt.Fprintf(dst, "\n## [%s](https://github.com/flipt-io/flipt/releases/tag/%s) - %s\n\n", log.Version, tag, log.Date.Format(time.DateOnly))
+		fmt.Fprintf(dst, "## [%s](https://github.com/flipt-io/flipt/releases/tag/%s) - %s\n\n", log.Version, tag, log.Date.Format(time.DateOnly))
 
 		// write out all changelog entries
 		log.write(dst)

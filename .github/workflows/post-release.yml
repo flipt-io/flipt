@@ -1,26 +1,43 @@
 on:
-  workflow_run:
-    workflows: [Release]
-    types: [completed]
+  release:
+    types: [published]
   workflow_dispatch:
 
 name: Various Updates Post Release
 jobs:
   post_release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
     steps:
+      - name: Get release tag
+        id: get_tag
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          # Get the release tag from the event
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "Release tag: $RELEASE_TAG"
+
+          # Check if it's a v1 release
+          if [[ $RELEASE_TAG =~ ^v1\. ]]; then
+            echo "is_v1=true" >> $GITHUB_OUTPUT
+            echo "This is a v1 release"
+          else
+            echo "is_v1=false" >> $GITHUB_OUTPUT
+            echo "This is not a v1 release, skipping"
+          fi
+
       - name: Generate token
         id: generate_token
+        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && steps.get_tag.outputs.is_v1 == 'true') }}
         uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
-          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
 
       - name: Trigger Post Release Workflows
+        if: ${{ (github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && steps.get_tag.outputs.is_v1 == 'true') }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          gh workflow run deploy.yml -R flipt-io/try.flipt.io
           gh workflow run update.yml -R flipt-io/helm-charts

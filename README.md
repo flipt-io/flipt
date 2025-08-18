@@ -50,7 +50,7 @@
 </div>
 
 > [!NOTE]
-> Flipt v2 is now in beta. [Try it out](https://docs.flipt.io/v2/introduction) and give us your feedback!
+> Flipt v2 is now available! [Get started](https://docs.flipt.io/v2/introduction) with the new Git-native architecture.
 
 [Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
 
@@ -156,12 +156,6 @@ curl -fsSL https://get.flipt.io/install | sh
       <img width="150" alt="Deploy to Koyeb" src="https://www.koyeb.com/static/images/deploy/button.svg" />
     </a>
 </div>
-
-### Sandbox
-
-[Try Flipt](https://try.flipt.io) in a deployed environment!
-
-**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
 
 ### Homebrew :beer:
 

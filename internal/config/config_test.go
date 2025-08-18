@@ -1792,6 +1792,32 @@ func TestGetConfigFile(t *testing.T) {
 	}
 }
 
+func TestAuthenticationGithubCaseSensitivity(t *testing.T) {
+	expected := Default()
+	expected.Authentication.Required = true
+	expected.Authentication.Session.Domain = "localhost"
+	expected.Authentication.Methods.Github = AuthenticationMethod[AuthenticationMethodGithubConfig]{
+		Enabled: true,
+		Method: AuthenticationMethodGithubConfig{
+			ClientId:             "client_id",
+			ClientSecret:         "client_secret",
+			RedirectAddress:      "http://localhost:8080",
+			Scopes:               []string{"read:org"},
+			AllowedOrganizations: []string{"MyOrg"},
+			AllowedTeams:         map[string][]string{"MyOrg": {"team"}},
+		},
+		Cleanup: &AuthenticationCleanupSchedule{
+			Interval:    time.Hour,
+			GracePeriod: 30 * time.Minute,
+		},
+	}
+	res, err := Load(t.Context(), "./testdata/authentication/github_case_sensitive.yml")
+	require.NoError(t, err)
+
+	assert.NotNil(t, res)
+	assert.Equal(t, expected, res.Config)
+}
+
 // add any struct tags to match their camelCase equivalents here.
 var camelCaseMatchers = map[string]string{
 	"requireTLS":   "requireTLS",

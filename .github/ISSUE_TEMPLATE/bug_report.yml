@@ -25,7 +25,7 @@ body:
       description: Please select the major version of Flipt that you are experiencing the bug with.
       options:
         - v1
-        - v2 (Alpha)
+        - v2
 
   - type: textarea
     id: version-info
@@ -33,8 +33,6 @@ body:
       label: Version Info
       description: Run `flipt --version` and paste the output here.
       placeholder: Paste the output of `flipt --version` here...
-    validations:
-      required: true
 
   - type: checkboxes
     id: search
@@ -50,8 +48,6 @@ body:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior.
       placeholder: Steps to reproduce the behavior...
-    validations:
-      required: true
 
   - type: textarea
     id: expected-behavior
