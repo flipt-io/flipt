@@ -182,26 +182,57 @@ func (g Go) Cover() error {
 	return sh.RunV("go", "tool", "cover", "-html=coverage.txt")
 }
 
-var ignoreFmt = []string{"rpc/", "sdk/"}
+var (
+	ignoreFmtDirs  = []string{"rpc/", "sdk/"}
+	ignoreFmtFiles = []string{"*.pb.go", "*.gen.go", "*_generated.go"}
+)
 
 // Formats Go code
 func (g Go) Fmt() error {
 	fmt.Println(" > Formatting...")
 	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
 		// only go files, ignoring generated files
-		for _, dir := range ignoreFmt {
+		if filepath.Ext(path) != ".go" {
+			return false
+		}
+
+		// Check directory exclusions
+		for _, dir := range ignoreFmtDirs {
 			if filepath.HasPrefix(path, dir) {
 				return false
 			}
 		}
-		return filepath.Ext(path) == ".go"
+
+		// Check file pattern exclusions
+		filename := filepath.Base(path)
+		for _, pattern := range ignoreFmtFiles {
+			if matched, _ := filepath.Match(pattern, filename); matched {
+				return false
+			}
+		}
+
+		return true
 	})
 	if err != nil {
 		return fmt.Errorf("finding files: %w", err)
 	}
 
-	args := append([]string{"tool", "golang.org/x/tools/cmd/goimports", "-w"}, files...)
-	return sh.RunV("go", args...)
+	// Process files in batches to avoid "argument list too long" errors
+	const batchSize = 50
+	for i := 0; i < len(files); i += batchSize {
+		end := i + batchSize
+		if end > len(files) {
+			end = len(files)
+		}
+
+		batch := files[i:end]
+		args := append([]string{"tool", "golang.org/x/tools/cmd/goimports", "-w"}, batch...)
+		if err := sh.RunV("go", args...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Runs the Go modernize tool to fix linting errors
