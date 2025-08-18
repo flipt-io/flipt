@@ -19,7 +19,7 @@ jobs:
     name: "Tests (Go)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run Unit Tests
         uses: dagger/dagger-for-github@v7
@@ -40,7 +40,7 @@ jobs:
     name: "Tests (Go - Darwin)"
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v5
         with:
@@ -57,7 +57,7 @@ jobs:
     name: "Tests (UI)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
@@ -75,7 +75,7 @@ jobs:
     name: "Test Install Script"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Shellcheck
         uses: reviewdog/action-shellcheck@v1

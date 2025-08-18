@@ -14,7 +14,7 @@ jobs:
     name: "Lint Go"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v5
         with:
@@ -33,7 +33,7 @@ jobs:
     name: "Lint UI"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
@@ -51,7 +51,7 @@ jobs:
     name: "Shellcheck"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
@@ -65,7 +65,7 @@ jobs:
     name: "Go Mod Tidy"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v5
         with:

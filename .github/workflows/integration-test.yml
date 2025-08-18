@@ -22,7 +22,7 @@ jobs:
     outputs:
       tests: ${{ steps.extract.outputs.tests }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Extract test cases
         id: extract
         run: |
@@ -47,7 +47,7 @@ jobs:
       cache-key: ${{ steps.cache-key.outputs.key }}
       cached-image: ${{ steps.set-image.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Generate Cache Key
         id: cache-key
@@ -125,7 +125,7 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.discover-tests.outputs.tests) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v5
         with:
@@ -188,7 +188,7 @@ jobs:
       (needs.build-cache.result == 'success' || needs.build-cache.result == 'skipped')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Log in to Container Registry
         if: needs.build-cache.result == 'success'
