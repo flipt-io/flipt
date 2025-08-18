@@ -24,7 +24,7 @@ jobs:
     name: "Lint Protos"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: bufbuild/buf-action@v1
         with:
@@ -34,7 +34,7 @@ jobs:
     name: "Check Generated Code"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v5
         with:
