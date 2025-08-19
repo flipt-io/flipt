@@ -113,7 +113,8 @@ func NewGRPCServer(
 	}
 
 	var err error
-	server.ln, err = net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
+	lc := &net.ListenConfig{}
+	server.ln, err = lc.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 	if err != nil {
 		return nil, fmt.Errorf("creating grpc listener: %w", err)
 	}

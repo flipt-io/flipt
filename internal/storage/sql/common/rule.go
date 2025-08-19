@@ -376,7 +376,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 		rule.SegmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -442,7 +442,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -511,7 +511,7 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) (err
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -583,7 +583,7 @@ func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) (err
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
