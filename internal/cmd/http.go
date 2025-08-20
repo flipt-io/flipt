@@ -16,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/gorilla/csrf"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.flipt.io/flipt/internal/config"
@@ -161,31 +160,7 @@ func NewHTTPServer(
 
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
-
-			// skip csrf if the request does not set the origin header
-			// for a potentially mutating http method.
-			// This allows us to forgo CSRF for non-browser based clients.
-			r.Use(func(handler http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if r.Method != http.MethodGet &&
-						r.Method != http.MethodHead &&
-						r.Header.Get("origin") == "" {
-						r = csrf.UnsafeSkipCheck(r)
-					}
-
-					if !cfg.Authentication.Session.CSRF.Secure {
-						r = csrf.PlaintextHTTPRequest(r)
-					}
-
-					handler.ServeHTTP(w, r)
-				})
-			})
-			r.Use(csrf.Protect(
-				[]byte(key),
-				csrf.Path("/"),
-				csrf.Secure(cfg.Authentication.Session.CSRF.Secure),
-				csrf.TrustedOrigins(cfg.Authentication.Session.CSRF.TrustedOrigins),
-			))
+			r.Use(crossOriginProtection(logger, cfg.Authentication.Session.CSRF.TrustedOrigins))
 		}
 
 		r.Mount("/api/v1", api)
@@ -199,16 +174,6 @@ func NewHTTPServer(
 		authenticationHTTPMount(ctx, logger, cfg.Authentication, r, conn)
 
 		r.Group(func(r chi.Router) {
-			r.Use(func(handler http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if cfg.Authentication.Session.CSRF.Key != "" {
-						w.Header().Set("X-CSRF-Token", csrf.Token(r))
-					}
-
-					handler.ServeHTTP(w, r)
-				})
-			})
-
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
 				register(ctx, meta.NewMetadataServiceClient(conn), meta.RegisterMetadataServiceHandlerClient),
@@ -316,4 +281,15 @@ func removeTrailingSlash(h http.Handler) http.Handler {
 		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 		h.ServeHTTP(w, r)
 	})
+}
+
+func crossOriginProtection(logger *zap.Logger, trustedOrigins []string) func(http.Handler) http.Handler {
+	csrf := http.NewCrossOriginProtection()
+	for _, origin := range trustedOrigins {
+		err := csrf.AddTrustedOrigin(origin)
+		if err != nil {
+			logger.Error("failed to add trusted origin for CSRF", zap.String("origin", origin), zap.Error(err))
+		}
+	}
+	return csrf.Handler
 }

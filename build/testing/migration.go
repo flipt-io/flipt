@@ -3,10 +3,12 @@ package testing
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v66/github"
 	"github.com/google/uuid"
 	"go.flipt.io/build/internal/dagger"
+	"golang.org/x/mod/semver"
 )
 
 func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
@@ -28,17 +30,34 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return err
 	}
 
-	release, _, err := github.NewClient(nil).
-		Repositories.
-		GetLatestRelease(ctx, "flipt-io", "flipt")
+	releases, _, err := github.NewClient(nil).Repositories.ListReleases(ctx, "flipt-io", "flipt", nil)
 	if err != nil {
 		return err
+	}
+	var latestV1Release *github.RepositoryRelease
+	for _, r := range releases {
+		if r.TagName == nil {
+			continue
+		}
+		if strings.HasPrefix(*r.TagName, "v1.") {
+			if latestV1Release == nil {
+				latestV1Release = r
+			} else {
+				if semver.Compare(*latestV1Release.TagName, *r.TagName) < 0 {
+					latestV1Release = r
+				}
+			}
+		}
+	}
+
+	if latestV1Release == nil {
+		return fmt.Errorf("no v1.* releases found")
 	}
 
 	// clone the last release so we can use the readonly test
 	// suite defined here instead
 	fliptDir := client.Git("https://github.com/flipt-io/flipt.git").
-		Tag(*release.TagName).
+		Tag(*latestV1Release.TagName).
 		Tree()
 
 	base = base.

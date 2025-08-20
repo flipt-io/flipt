@@ -174,10 +174,10 @@ func (m *Migrator) Drop() error {
 		// https://www.sqlite.org/foreignkeys.html#fk_enable
 		// we dont need to worry about re-enabling them since we're dropping the db
 		// and the connection will be closed
-		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF")
+		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF") //nolint noctx
 	case MySQL:
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
-		_, _ = m.db.Exec("SET FOREIGN_KEY_CHECKS = 0;")
+		_, _ = m.db.Exec("SET FOREIGN_KEY_CHECKS = 0;") //nolint noctx
 	}
 
 	if err := m.migrator.Drop(); err != nil {
