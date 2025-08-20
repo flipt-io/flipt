@@ -141,7 +141,15 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			// Use PlainOpen for filesystem repositories as it's simpler and more reliable
 			r.Repository, err = git.PlainOpen(r.localPath)
 			if err != nil {
-				return nil, empty, err
+				// If PlainOpen fails (likely no .git directory), initialize a new repository
+				// This allows Flipt to work with directories that have files but no Git repo
+				logger.Debug("failed to open existing repository, initializing new one", zap.Error(err))
+				r.Repository, err = git.PlainInit(r.localPath, false)
+				if err != nil {
+					return nil, empty, fmt.Errorf("failed to open existing repository and failed to initialize new repository: %w", err)
+				}
+				// Mark as empty so we add the initial README
+				empty = true
 			}
 		}
 	}
