@@ -36,9 +36,8 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 	})
 
 	t.Run("opens existing repository when directory has git repo", func(t *testing.T) {
-		// This test specifically addresses the bug where git.Open(storage, nil)
-		// would fail with "repository does not exist" for existing local repositories.
-		// The fix uses git.PlainOpen() which properly handles local filesystem repos.
+		// This test verifies that git.Open(storage, nil) works correctly
+		// when opening an existing repository with the filesystem storage
 
 		tempDir, err := os.MkdirTemp("", "flipt-repo-test-*")
 		require.NoError(t, err)
@@ -68,8 +67,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// This is the critical test: Flipt should be able to open this existing repository
-		// Before the fix, this would fail with "repository does not exist"
+		// Flipt should be able to open this existing repository
 		opts := []containers.Option[Repository]{
 			WithFilesystemStorage(tempDir),
 		}
@@ -116,8 +114,8 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 			WithFilesystemStorage(tempDir),
 		}
 
-		// This should now successfully initialize a new repository automatically
-		// when it detects files but no .git directory
+		// This should successfully initialize a new repository using git.Init
+		// when it detects no .git directory
 		repo, err := NewRepository(ctx, logger, opts...)
 		require.NoError(t, err, "should successfully create repository even with existing files")
 		assert.NotNil(t, repo)
@@ -146,12 +144,9 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		_, err = os.Stat(subDir)
 		require.NoError(t, err, "subdirectory should be preserved")
 
-		// Verify the repository is functional - check we can perform git operations
+		// Verify the repository is functional
 		assert.NotNil(t, repo.Storer, "repository should have a working storer")
 		
-		// Note: The initial README.md is committed to the git repository but not 
-		// checked out to the working directory. This is expected behavior since
-		// we're using PlainInit which creates a repository but doesn't checkout files.
 		// The original files remain untracked, which is the expected behavior.
 	})
 

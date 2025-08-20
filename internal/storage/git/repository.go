@@ -144,38 +144,44 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 	}
 
 	if r.localPath != "" {
-		storage = gitfilesystem.NewStorageWithOptions(osfs.New(r.localPath), cache.NewObjectLRUDefault(), gitfilesystem.Options{
-			MaxOpenDescriptors: r.maxOpenDescriptors,
-		})
-
-		entries, err := os.ReadDir(r.localPath)
-		if empty = err != nil || len(entries) == 0; empty {
-			// either its empty or there was an error opening the file
-			if err != nil && !errors.Is(err, os.ErrNotExist) {
-				return nil, empty, err
-			}
-
-			r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
-			if err != nil {
-				return nil, empty, err
-			}
-		} else {
-			// opened successfully and there is contents so we assume not empty
-			// Use PlainOpen for filesystem repositories as it's simpler and more reliable
+		// Check if .git directory exists to determine if we have an existing repo
+		gitDir := filepath.Join(r.localPath, ".git")
+		if _, err := os.Stat(gitDir); err == nil {
+			// .git exists, try to open the existing repository using PlainOpen
+			// PlainOpen handles filesystem repositories better than git.Open with storage
 			r.Repository, err = git.PlainOpen(r.localPath)
 			if err != nil {
-				// If PlainOpen fails (likely no .git directory), initialize a new repository
-				// This allows Flipt to work with directories that have files but no Git repo
-				logger.Debug("failed to open existing repository, initializing new one", zap.Error(err))
+				return nil, empty, fmt.Errorf("failed to open existing repository: %w", err)
+			}
+			// Repository exists and was opened successfully, not empty
+			empty = false
+		} else {
+			// No .git directory exists
+			// Check if directory has files
+			entries, err := os.ReadDir(r.localPath)
+			hasFiles := err == nil && len(entries) > 0
+			
+			if hasFiles {
+				// Directory has files but no .git - use PlainInit to create repo
+				// This properly creates the .git directory and handles existing files
 				r.Repository, err = git.PlainInit(r.localPath, false)
 				if err != nil {
-					return nil, empty, fmt.Errorf("failed to open existing repository and failed to initialize new repository: %w", err)
+					return nil, empty, fmt.Errorf("failed to initialize repository with existing files: %w", err)
 				}
-				// When we initialize a repo in a directory with existing files,
-				// we should still mark it as empty to add the initial README,
-				// but the existing files will remain untracked (which is expected behavior)
-				empty = true
+			} else {
+				// Empty directory or doesn't exist - use git.Init with storage
+				// This approach works better for empty directories
+				storage = gitfilesystem.NewStorageWithOptions(osfs.New(r.localPath), cache.NewObjectLRUDefault(), gitfilesystem.Options{
+					MaxOpenDescriptors: r.maxOpenDescriptors,
+				})
+				r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
+				if err != nil {
+					return nil, empty, fmt.Errorf("failed to initialize repository: %w", err)
+				}
 			}
+			// New repository was initialized, mark as empty to add README
+			// (if one doesn't already exist)
+			empty = true
 		}
 	}
 
