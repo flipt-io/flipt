@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -67,10 +68,32 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 	if empty {
 		logger.Debug("repository empty, attempting to add and push a README")
-		// add initial readme if repo is empty
+		
+		// Check if README.md already exists in the actual filesystem (not git tree)
+		readmeExists := false
+		if repo.localPath != "" {
+			readmePath := filepath.Join(repo.localPath, "README.md")
+			if _, err := os.Stat(readmePath); err == nil {
+				readmeExists = true
+				logger.Debug("README.md already exists in filesystem, skipping creation")
+			}
+		}
+		
+		// add initial readme if repo is empty and no README exists
 		if _, err := repo.UpdateAndPush(ctx, repo.defaultBranch, func(fs envsfs.Filesystem) (string, error) {
-			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+			if readmeExists {
+				// README.md already exists in filesystem, just create initial commit
+				return "initial commit", nil
+			}
+
+			// Create README.md only if it doesn't exist
+			fi, err := fs.OpenFile("README.md", os.O_CREATE|os.O_RDWR|os.O_EXCL, 0644)
 			if err != nil {
+				if os.IsExist(err) {
+					// This shouldn't happen given our check above, but handle it gracefully
+					logger.Debug("README.md was created concurrently, skipping")
+					return "initial commit", nil
+				}
 				return "", err
 			}
 
@@ -148,7 +171,9 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				if err != nil {
 					return nil, empty, fmt.Errorf("failed to open existing repository and failed to initialize new repository: %w", err)
 				}
-				// Mark as empty so we add the initial README
+				// When we initialize a repo in a directory with existing files,
+				// we should still mark it as empty to add the initial README,
+				// but the existing files will remain untracked (which is expected behavior)
 				empty = true
 			}
 		}

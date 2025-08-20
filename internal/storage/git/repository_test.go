@@ -119,7 +119,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		// This should now successfully initialize a new repository automatically
 		// when it detects files but no .git directory
 		repo, err := NewRepository(ctx, logger, opts...)
-		require.NoError(t, err)
+		require.NoError(t, err, "should successfully create repository even with existing files")
 		assert.NotNil(t, repo)
 
 		// Verify a git repository was created
@@ -146,9 +146,48 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		_, err = os.Stat(subDir)
 		require.NoError(t, err, "subdirectory should be preserved")
 
-		// Verify the repository is functional - just check we can access the storer
-		// The NewRepository function will handle adding the initial commit asynchronously
+		// Verify the repository is functional - check we can perform git operations
 		assert.NotNil(t, repo.Storer, "repository should have a working storer")
+		
+		// Note: The initial README.md is committed to the git repository but not 
+		// checked out to the working directory. This is expected behavior since
+		// we're using PlainInit which creates a repository but doesn't checkout files.
+		// The original files remain untracked, which is the expected behavior.
+	})
+
+	t.Run("preserves existing README when initializing repository", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "flipt-repo-test-*")
+		require.NoError(t, err)
+		t.Cleanup(func() { os.RemoveAll(tempDir) })
+
+		// Create an existing README.md with custom content
+		existingReadme := filepath.Join(tempDir, "README.md")
+		customContent := "# My Custom Project\n\nThis is my existing README content that should be preserved."
+		err = os.WriteFile(existingReadme, []byte(customContent), 0644)
+		require.NoError(t, err)
+
+		// Also create another file to ensure we have a non-empty directory
+		otherFile := filepath.Join(tempDir, "config.yml")
+		err = os.WriteFile(otherFile, []byte("test: content"), 0644)
+		require.NoError(t, err)
+
+		opts := []containers.Option[Repository]{
+			WithFilesystemStorage(tempDir),
+		}
+
+		// Initialize repository - should preserve existing README
+		repo, err := NewRepository(ctx, logger, opts...)
+		require.NoError(t, err, "should successfully create repository with existing README")
+		assert.NotNil(t, repo)
+
+		// Verify the existing README.md content is preserved
+		preservedContent, err := os.ReadFile(existingReadme)
+		require.NoError(t, err)
+		assert.Equal(t, customContent, string(preservedContent), "existing README.md content should be preserved")
+
+		// Verify git repository was created
+		_, err = os.Stat(filepath.Join(tempDir, ".git"))
+		require.NoError(t, err, "should create .git directory")
 	})
 
 }
