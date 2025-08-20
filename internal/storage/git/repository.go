@@ -138,7 +138,8 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			}
 		} else {
 			// opened successfully and there is contents so we assume not empty
-			r.Repository, err = git.Open(storage, nil)
+			// Use PlainOpen for filesystem repositories as it's simpler and more reliable
+			r.Repository, err = git.PlainOpen(r.localPath)
 			if err != nil {
 				return nil, empty, err
 			}
