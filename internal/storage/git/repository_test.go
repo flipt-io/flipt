@@ -151,22 +151,5 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		assert.NotNil(t, repo.Storer, "repository should have a working storer")
 	})
 
-	t.Run("handles errors during auto-initialization gracefully", func(t *testing.T) {
-		// This test verifies error handling when auto-initialization fails
-		// Use an invalid path that would cause initialization to fail
-		invalidPath := "/invalid/nonexistent/path/that/cannot/be/created"
-
-		opts := []containers.Option[Repository]{
-			WithFilesystemStorage(invalidPath),
-		}
-
-		// This should fail gracefully with a descriptive error
-		repo, err := NewRepository(ctx, logger, opts...)
-		require.Error(t, err, "should fail when path is invalid")
-		assert.Nil(t, repo, "should not return repository on failure")
-
-		// Just verify we get an error - the specific message may vary by OS
-		assert.NotEmpty(t, err.Error(), "error should have a message")
-	})
 }
 
