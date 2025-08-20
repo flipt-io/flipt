@@ -50,7 +50,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 
 		// Create a test file and commit it to make it a "real" repository
 		testFile := filepath.Join(tempDir, "features.yml")
-		err = os.WriteFile(testFile, []byte("namespace: default\nflags: []\n"), 0644)
+		err = os.WriteFile(testFile, []byte("namespace: default\nflags: []\n"), 0600)
 		require.NoError(t, err)
 
 		worktree, err := plainRepo.Worktree()
@@ -90,12 +90,12 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 		// Create multiple files in the directory (simulating user files that should be preserved)
 		flagsFile := filepath.Join(tempDir, "features.yml")
 		flagsContent := "namespace: default\nflags:\n  - key: test-flag\n    name: Test Flag\n    enabled: true\n"
-		err = os.WriteFile(flagsFile, []byte(flagsContent), 0644)
+		err = os.WriteFile(flagsFile, []byte(flagsContent), 0600)
 		require.NoError(t, err)
 
 		configFile := filepath.Join(tempDir, "config.yml")
 		configContent := "version: v1\nnamespace: default\n"
-		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		err = os.WriteFile(configFile, []byte(configContent), 0600)
 		require.NoError(t, err)
 
 		// Create a subdirectory with files
@@ -105,7 +105,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 
 		segmentFile := filepath.Join(subDir, "segments.yml")
 		segmentContent := "namespace: default\nsegments: []\n"
-		err = os.WriteFile(segmentFile, []byte(segmentContent), 0644)
+		err = os.WriteFile(segmentFile, []byte(segmentContent), 0600)
 		require.NoError(t, err)
 
 		// Verify no .git directory exists initially
@@ -124,7 +124,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 
 		// Verify a git repository was created
 		_, err = os.Stat(filepath.Join(tempDir, ".git"))
-		assert.NoError(t, err, "should create .git directory automatically")
+		require.NoError(t, err, "should create .git directory automatically")
 
 		// Verify we can access the repository
 		assert.NotNil(t, repo.Repository, "should have access to initialized git repository")
@@ -144,7 +144,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 
 		// Verify subdirectory structure is preserved
 		_, err = os.Stat(subDir)
-		assert.NoError(t, err, "subdirectory should be preserved")
+		require.NoError(t, err, "subdirectory should be preserved")
 
 		// Verify the repository is functional - just check we can access the storer
 		// The NewRepository function will handle adding the initial commit asynchronously
@@ -162,7 +162,7 @@ func TestNewRepository_LocalStorage(t *testing.T) {
 
 		// This should fail gracefully with a descriptive error
 		repo, err := NewRepository(ctx, logger, opts...)
-		assert.Error(t, err, "should fail when path is invalid")
+		require.Error(t, err, "should fail when path is invalid")
 		assert.Nil(t, repo, "should not return repository on failure")
 
 		// Just verify we get an error - the specific message may vary by OS
