@@ -392,9 +392,12 @@ func findFilesRecursive(match func(path string, info os.FileInfo) bool) ([]strin
 			return err
 		}
 
-		// Don't look for files in git directories
-		if info.Mode().IsDir() && filepath.Base(path) == ".git" {
-			return filepath.SkipDir
+		// Don't look for files in git or devenv directories
+		if info.Mode().IsDir() {
+			dirName := filepath.Base(path)
+			if dirName == ".git" || dirName == ".devenv" {
+				return filepath.SkipDir
+			}
 		}
 
 		if !info.Mode().IsRegular() {
