@@ -2,7 +2,7 @@ package tracing
 
 import (
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // TODO: merge with metrics?
@@ -24,5 +24,5 @@ var (
 var (
 	AttributeFlagKey      = semconv.FeatureFlagKey
 	AttributeProviderName = semconv.FeatureFlagProviderName("Flipt")
-	AttributeFlagVariant  = semconv.FeatureFlagVariant
+	AttributeFlagVariant  = semconv.FeatureFlagResultVariant
 )
