@@ -8,7 +8,7 @@ type InputProps = {
   type?: string;
   className?: string;
   autoComplete?: boolean;
-  forwardRef?: React.RefObject<HTMLInputElement>;
+  forwardRef?: React.RefObject<HTMLInputElement | null>;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 

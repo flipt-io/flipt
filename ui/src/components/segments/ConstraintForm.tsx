@@ -108,7 +108,7 @@ function ConstraintOperatorSelect(props: ConstraintOperatorSelectProps) {
 function ConstraintValueInput(props: ConstraintInputProps) {
   const [field] = useField({
     ...props,
-    validate: (value) => {
+    validate: (value: any) => {
       // value is required only if shown
       return value ? undefined : 'Value is required';
     }
@@ -134,7 +134,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
 function ConstraintValueArrayInput(props: ConstraintArrayInputProps) {
   const [field] = useField({
     ...props,
-    validate: (value) => {
+    validate: (value: any) => {
       // value is required only if shown
       return value ? undefined : 'Value is required';
     }
