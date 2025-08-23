@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
 import { Button } from '~/components/Button';
