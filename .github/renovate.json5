@@ -14,7 +14,9 @@
   prHourlyLimit: 2,
   labels: [
     'dependencies',
+    'automerge'
   ],
+  postUpdateOptions: ['gomodTidy'],
   packageRules: [
     {
       matchManagers: [
