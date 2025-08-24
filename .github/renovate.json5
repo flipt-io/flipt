@@ -1,49 +1,107 @@
 {
-  extends: ["config:base"],
-  baseBranches: ["main", "v2"],
-  timezone: "America/New_York",
-
-  // Run once a week at 2am Monday (cron)
-  schedule: ["* 2 * * 1"],
-
+  extends: [
+    'config:recommended',
+  ],
+  baseBranchPatterns: [
+    'main',
+    'v2',
+  ],
+  timezone: 'America/New_York',
+  schedule: [
+    '* 2 * * 1',
+  ],
   prConcurrentLimit: 5,
   prHourlyLimit: 2,
-
-  labels: ["dependencies"],
-
+  labels: [
+    'dependencies',
+  ],
   packageRules: [
     {
-      matchManagers: ["gomod"],
-      matchBaseBranches: ["main", "v2"],
-      labels: ["dependencies", "go", "automerge"],
-      updateTypes: ["minor", "patch"],
+      matchManagers: [
+        'gomod',
+      ],
+      matchBaseBranches: [
+        'main',
+        'v2',
+      ],
+      labels: [
+        'dependencies',
+        'go',
+        'automerge',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
       automerge: false,
     },
     {
-      matchManagers: ["npm"],
-      matchBaseBranches: ["main", "v2"],
-      matchPaths: ["/ui/**"],
-      labels: ["dependencies", "javascript", "automerge"],
-      updateTypes: ["minor", "patch"],
+      matchManagers: [
+        'npm',
+      ],
+      matchBaseBranches: [
+        'main',
+        'v2',
+      ],
+      matchFileNames: [
+        '/ui/**',
+      ],
+      labels: [
+        'dependencies',
+        'javascript',
+        'automerge',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
       automerge: false,
     },
     {
-      matchManagers: ["github-actions"],
-      matchBaseBranches: ["main", "v2"],
-      labels: ["dependencies", "github_actions", "automerge"],
-      updateTypes: ["minor", "patch"],
+      matchManagers: [
+        'github-actions',
+      ],
+      matchBaseBranches: [
+        'main',
+        'v2',
+      ],
+      labels: [
+        'dependencies',
+        'github_actions',
+        'automerge',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
       automerge: false,
     },
     {
-      matchManagers: ["dockerfile"],
-      matchBaseBranches: ["main", "v2"],
-      matchPaths: ["/build/**"],
-      labels: ["dependencies", "docker", "automerge"],
-      updateTypes: ["minor", "patch"],
+      matchManagers: [
+        'dockerfile',
+      ],
+      matchBaseBranches: [
+        'main',
+        'v2',
+      ],
+      matchFileNames: [
+        '/build/**',
+      ],
+      labels: [
+        'dependencies',
+        'docker',
+        'automerge',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
       automerge: false,
     },
     {
-      updateTypes: ["major"],
+      matchUpdateTypes: [
+        'major',
+      ],
       enabled: false,
     },
   ],
