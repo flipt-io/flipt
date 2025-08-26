@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -250,6 +251,12 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		lm.logger.Warn("no license key provided; additional features are disabled.")
 		return
 	}
+
+	// Add random startup delay (0-30s) to prevent thundering herd during mass pod restarts
+	// Only delay when we have a license key that will make API calls
+	delay := time.Duration(rand.Intn(30)) * time.Second
+	lm.logger.Debug("adding startup delay to prevent rate limits", zap.Duration("delay", delay))
+	time.Sleep(delay)
 
 	var (
 		license *keygen.License
