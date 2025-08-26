@@ -34,6 +34,7 @@ func TestManager_validateAndSet_NoLicenseKey(t *testing.T) {
 		logger:  logger,
 		config:  &config.LicenseConfig{Key: ""}, // Empty license key
 		product: product.Pro,
+		cache:   &licenseCache{},
 	}
 
 	ctx := context.Background()
@@ -51,6 +52,7 @@ func TestManager_validateAndSet_FingerprintError(t *testing.T) {
 		licenseType:   LicenseTypeOnline,
 		fingerprinter: func(string) (string, error) { return "", errors.New("fingerprint error") },
 		product:       product.Pro,
+		cache:         &licenseCache{},
 	}
 
 	ctx := context.Background()
@@ -224,6 +226,7 @@ func TestManager_validateAndSet_OfflineLicense(t *testing.T) {
 		},
 		licenseType: LicenseTypeOffline,
 		product:     product.Pro,
+		cache:       &licenseCache{},
 	}
 
 	ctx := context.Background()
