@@ -8,7 +8,6 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -34,17 +33,9 @@ func isRateLimitError(err error) bool {
 		return false
 	}
 
-	// Check for proper RateLimitError type from keygen-go
+	// The keygen-go client properly returns RateLimitError for 429 responses
 	var rateLimitErr *keygen.RateLimitError
-	if errors.As(err, &rateLimitErr) {
-		return true
-	}
-
-	// Fallback to string matching for API errors not yet using the proper type
-	errStr := err.Error()
-	return strings.Contains(errStr, "Daily API request limit") ||
-		strings.Contains(errStr, "rate limit") ||
-		strings.Contains(errStr, "429")
+	return errors.As(err, &rateLimitErr)
 }
 
 // isPermanentError checks if the error is permanent and shouldn't be retried
@@ -53,40 +44,31 @@ func isPermanentError(err error) bool {
 		return false
 	}
 
-	// Check for specific keygen errors that are permanent
-	if errors.Is(err, keygen.ErrLicenseExpired) ||
+	// The keygen-go client maps all API error codes to proper error types
+	// Check for specific keygen errors that are permanent and need manual intervention
+	return errors.Is(err, keygen.ErrLicenseExpired) ||
 		errors.Is(err, keygen.ErrLicenseSuspended) ||
 		errors.Is(err, keygen.ErrMachineLimitExceeded) ||
 		errors.Is(err, keygen.ErrLicenseInvalid) ||
-		errors.Is(err, keygen.ErrLicenseNotAllowed) {
-		return true
-	}
-
-	// Check for API errors with specific codes
-	var apiErr *keygen.Error
-	if errors.As(err, &apiErr) {
-		switch keygen.ErrorCode(apiErr.Code) {
-		case keygen.ErrorCodeMachineLimitExceeded,
-			keygen.ErrorCodeLicenseExpired,
-			keygen.ErrorCodeLicenseSuspended,
-			keygen.ErrorCodeLicenseInvalid,
-			keygen.ErrorCodeLicenseNotAllowed:
-			return true
-		}
-	}
-
-	// Also check for FINGERPRINT_SCOPE_MISMATCH in validation errors
-	// This typically requires fixing the fingerprint generation, not retrying
-	errStr := err.Error()
-	return strings.Contains(errStr, "FINGERPRINT_SCOPE_MISMATCH")
+		errors.Is(err, keygen.ErrLicenseNotAllowed) ||
+		errors.Is(err, keygen.ErrTokenNotAllowed) ||
+		errors.Is(err, keygen.ErrTokenInvalid) ||
+		errors.Is(err, keygen.ErrTokenExpired) ||
+		errors.Is(err, keygen.ErrValidationFingerprintMissing) // FINGERPRINT_SCOPE_MISMATCH maps to this
 }
 
 // validateOnline directly calls the keygen API to validate the license and handles activation
 func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, error) {
 	// Check if we're currently rate limited
-	lm.rateLimitMu.RLock()
+	lm.rateLimitMu.Lock()
 	isRateLimited := lm.rateLimited
-	lm.rateLimitMu.RUnlock()
+	if isRateLimited && time.Now().After(lm.rateLimitResetAt) {
+		// Rate limit window has passed, clear the flag
+		lm.logger.Debug("rate limit window expired, clearing flag")
+		lm.rateLimited = false
+		isRateLimited = false
+	}
+	lm.rateLimitMu.Unlock()
 
 	if isRateLimited {
 		// Try to use cached license if available
@@ -114,12 +96,19 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 		}
 
 		// Check if this is a rate limit error
-		if isRateLimitError(err) {
+		var rateLimitErr *keygen.RateLimitError
+		if errors.As(err, &rateLimitErr) {
 			lm.rateLimitMu.Lock()
 			lm.rateLimited = true
+			lm.rateLimitResetAt = rateLimitErr.Reset
 			lm.rateLimitMu.Unlock()
 
-			lm.logger.Warn("hit Keygen API rate limit", zap.Error(err))
+			lm.logger.Warn("hit Keygen API rate limit",
+				zap.Error(err),
+				zap.Int("retry_after", rateLimitErr.RetryAfter),
+				zap.Int("remaining", rateLimitErr.Remaining),
+				zap.Int("limit", rateLimitErr.Limit),
+				zap.Time("reset_at", rateLimitErr.Reset))
 
 			// Try to use cached license
 			if cached, ok := lm.cache.get(); ok {
@@ -136,10 +125,15 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 			// Activate the current fingerprint
 			if _, err := license.Activate(ctx, fingerprint); err != nil {
 				// Check if activation failed due to rate limit
-				if isRateLimitError(err) {
+				var rateLimitErr *keygen.RateLimitError
+				if errors.As(err, &rateLimitErr) {
 					lm.rateLimitMu.Lock()
 					lm.rateLimited = true
+					lm.rateLimitResetAt = rateLimitErr.Reset
 					lm.rateLimitMu.Unlock()
+					lm.logger.Warn("license activation hit rate limit",
+						zap.Int("retry_after", rateLimitErr.RetryAfter),
+						zap.Time("reset_at", rateLimitErr.Reset))
 				}
 				return nil, err
 			}
@@ -243,13 +237,14 @@ type ManagerImpl struct {
 	product        product.Product
 	cache          *licenseCache
 	mu             sync.RWMutex
-	done           chan struct{}
-	doneOnce       sync.Once
-	cancel         context.CancelFunc
-	force          bool
-	rateLimited    bool
-	permanentError bool // Stop all validation attempts on permanent errors
-	rateLimitMu    sync.RWMutex
+	done             chan struct{}
+	doneOnce         sync.Once
+	cancel           context.CancelFunc
+	force            bool
+	rateLimited      bool
+	rateLimitResetAt time.Time // When the rate limit resets
+	permanentError   bool      // Stop all validation attempts on permanent errors
+	rateLimitMu      sync.RWMutex
 }
 
 const (
@@ -389,11 +384,13 @@ func (lm *ManagerImpl) periodicRevalidate(ctx context.Context) {
 				lm.logger.Debug("skipping revalidation due to permanent error")
 			}
 		case <-rateLimitResetTicker.C:
-			// Periodically reset rate limit flag to retry (but not permanent errors)
+			// Check if rate limit window has passed based on actual reset time
 			lm.rateLimitMu.Lock()
 			if lm.rateLimited && !lm.permanentError {
-				lm.logger.Debug("resetting rate limit flag for retry")
-				lm.rateLimited = false
+				if time.Now().After(lm.rateLimitResetAt) {
+					lm.logger.Debug("rate limit window has passed, clearing rate limit flag")
+					lm.rateLimited = false
+				}
 			}
 			lm.rateLimitMu.Unlock()
 		case <-ctx.Done():
