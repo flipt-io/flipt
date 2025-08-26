@@ -1,9 +1,10 @@
 {
   extends: ["config:recommended"],
+  dependencyDashboard: false,
   baseBranchPatterns: ["main", "v2"],
   timezone: "America/New_York",
-  schedule: ["* 2 * * 1"],
-  prHourlyLimit: 10,
+  schedule: ["after 10pm every weekday", "before 5am every weekday", "every weekend"],
+  prHourlyLimit: 20,
   labels: ["dependencies", "automerge"],
   postUpdateOptions: ["gomodTidy"],
   packageRules: [
