@@ -18,6 +18,18 @@
   ],
   postUpdateOptions: ['gomodTidy'],
   packageRules: [
+    // Ignore internal Flipt packages
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchPackagePatterns: [
+        '^go\\.flipt\\.io/flipt/core',
+        '^go\\.flipt\\.io/flipt/rpc',
+        '^go\\.flipt\\.io/flipt/sdk',
+      ],
+      enabled: false,
+    },
     {
       matchManagers: [
         'gomod',
