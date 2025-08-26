@@ -1,121 +1,50 @@
 {
-  extends: [
-    'config:recommended',
-  ],
-  baseBranchPatterns: [
-    'main',
-    'v2',
-  ],
-  timezone: 'America/New_York',
-  schedule: [
-    '* 2 * * 1',
-  ],
-  prConcurrentLimit: 5,
-  prHourlyLimit: 2,
-  labels: [
-    'dependencies',
-    'automerge'
-  ],
-  postUpdateOptions: ['gomodTidy'],
+  extends: ["config:recommended"],
+  baseBranchPatterns: ["main", "v2"],
+  timezone: "America/New_York",
+  schedule: ["* 2 * * 1"],
+  prHourlyLimit: 10,
+  labels: ["dependencies", "automerge"],
+  postUpdateOptions: ["gomodTidy"],
   packageRules: [
     // Ignore internal Flipt packages
     {
-      matchManagers: [
-        'gomod',
-      ],
-      matchPackagePatterns: [
-        '^go\\.flipt\\.io/flipt/core',
-        '^go\\.flipt\\.io/flipt/rpc',
-        '^go\\.flipt\\.io/flipt/sdk',
-      ],
+      matchManagers: ["gomod"],
+      matchPackagePatterns: ["^go\\.flipt\\.io/flipt/.*"],
       enabled: false,
     },
     {
-      matchManagers: [
-        'gomod',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      labels: [
-        'dependencies',
-        'go',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["gomod"],
+      matchBaseBranches: ["main", "v2"],
+      labels: ["dependencies", "go", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'npm',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      matchFileNames: [
-        '/ui/**',
-      ],
-      labels: [
-        'dependencies',
-        'javascript',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["npm"],
+      matchBaseBranches: ["main", "v2"],
+      matchFileNames: ["/ui/**"],
+      labels: ["dependencies", "javascript", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'github-actions',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      labels: [
-        'dependencies',
-        'github_actions',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["github-actions"],
+      matchBaseBranches: ["main", "v2"],
+      labels: ["dependencies", "github_actions", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'dockerfile',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      matchFileNames: [
-        '/build/**',
-      ],
-      labels: [
-        'dependencies',
-        'docker',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["dockerfile"],
+      matchBaseBranches: ["main", "v2"],
+      matchFileNames: ["/build/**"],
+      labels: ["dependencies", "docker", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchUpdateTypes: [
-        'major',
-      ],
+      matchUpdateTypes: ["major"],
       enabled: false,
     },
   ],
