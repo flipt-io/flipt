@@ -3,9 +3,12 @@ package license
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,8 +28,75 @@ var (
 
 type fingerprintFunc func(string) (string, error)
 
+// isRateLimitError checks if the error indicates a rate limit has been reached
+func isRateLimitError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Check for proper RateLimitError type from keygen-go
+	var rateLimitErr *keygen.RateLimitError
+	if errors.As(err, &rateLimitErr) {
+		return true
+	}
+
+	// Fallback to string matching for API errors not yet using the proper type
+	errStr := err.Error()
+	return strings.Contains(errStr, "Daily API request limit") ||
+		strings.Contains(errStr, "rate limit") ||
+		strings.Contains(errStr, "429")
+}
+
+// isPermanentError checks if the error is permanent and shouldn't be retried
+func isPermanentError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Check for specific keygen errors that are permanent
+	if errors.Is(err, keygen.ErrLicenseExpired) ||
+		errors.Is(err, keygen.ErrLicenseSuspended) ||
+		errors.Is(err, keygen.ErrMachineLimitExceeded) ||
+		errors.Is(err, keygen.ErrLicenseInvalid) ||
+		errors.Is(err, keygen.ErrLicenseNotAllowed) {
+		return true
+	}
+
+	// Check for API errors with specific codes
+	var apiErr *keygen.Error
+	if errors.As(err, &apiErr) {
+		switch keygen.ErrorCode(apiErr.Code) {
+		case keygen.ErrorCodeMachineLimitExceeded,
+			keygen.ErrorCodeLicenseExpired,
+			keygen.ErrorCodeLicenseSuspended,
+			keygen.ErrorCodeLicenseInvalid,
+			keygen.ErrorCodeLicenseNotAllowed:
+			return true
+		}
+	}
+
+	// Also check for FINGERPRINT_SCOPE_MISMATCH in validation errors
+	// This typically requires fixing the fingerprint generation, not retrying
+	errStr := err.Error()
+	return strings.Contains(errStr, "FINGERPRINT_SCOPE_MISMATCH")
+}
+
 // validateOnline directly calls the keygen API to validate the license and handles activation
 func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, error) {
+	// Check if we're currently rate limited
+	lm.rateLimitMu.RLock()
+	isRateLimited := lm.rateLimited
+	lm.rateLimitMu.RUnlock()
+
+	if isRateLimited {
+		// Try to use cached license if available
+		if cached, ok := lm.cache.get(); ok {
+			lm.logger.Debug("using cached license due to rate limit")
+			return cached, nil
+		}
+		return nil, fmt.Errorf("rate limited and no cached license available")
+	}
+
 	fingerprint, err := lm.fingerprinter(lm.productID)
 	if err != nil {
 		return nil, err
@@ -34,12 +104,43 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 
 	license, err := keygen.Validate(ctx, fingerprint)
 	if err != nil {
+		// Check if this is a permanent error that shouldn't be retried
+		if isPermanentError(err) {
+			lm.logger.Error("permanent license validation error - stopping retries",
+				zap.Error(err),
+				zap.String("fingerprint", fingerprint))
+			// Don't retry permanent errors - they need manual intervention
+			return nil, fmt.Errorf("permanent license error (will not retry): %w", err)
+		}
+
+		// Check if this is a rate limit error
+		if isRateLimitError(err) {
+			lm.rateLimitMu.Lock()
+			lm.rateLimited = true
+			lm.rateLimitMu.Unlock()
+
+			lm.logger.Warn("hit Keygen API rate limit", zap.Error(err))
+
+			// Try to use cached license
+			if cached, ok := lm.cache.get(); ok {
+				lm.logger.Info("falling back to cached license due to rate limit")
+				return cached, nil
+			}
+			return nil, err
+		}
+
 		// For ErrLicenseNotActivated, we still need to return the license object
 		// so it can be activated. The keygen library guarantees license is non-nil
 		// when returning ErrLicenseNotActivated.
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
 			// Activate the current fingerprint
 			if _, err := license.Activate(ctx, fingerprint); err != nil {
+				// Check if activation failed due to rate limit
+				if isRateLimitError(err) {
+					lm.rateLimitMu.Lock()
+					lm.rateLimited = true
+					lm.rateLimitMu.Unlock()
+				}
 				return nil, err
 			}
 			lm.logger.Debug("license activated successfully", zap.String("fingerprint", fingerprint))
@@ -51,6 +152,11 @@ func (lm *ManagerImpl) validateOnline(ctx context.Context) (*keygen.License, err
 	if license == nil {
 		return nil, errors.New("license validation returned nil license without error")
 	}
+
+	// Reset rate limit flag on successful validation
+	lm.rateLimitMu.Lock()
+	lm.rateLimited = false
+	lm.rateLimitMu.Unlock()
 
 	return license, nil
 }
@@ -94,25 +200,62 @@ const (
 	LicenseTypeOffline LicenseType = "offline"
 )
 
-// ManagerImpl handles commercial license validation and periodic revalidation.
-type ManagerImpl struct {
-	logger        *zap.Logger
-	accountID     string
-	productID     string
-	licenseType   LicenseType
-	config        *config.LicenseConfig
-	fingerprinter fingerprintFunc
-	verifyKey     string // base64 encoded for validation
-	license       *keygen.License
-	product       product.Product
-	mu            sync.RWMutex
-	done          chan struct{}
-	doneOnce      sync.Once
-	cancel        context.CancelFunc
-	force         bool
+// licenseCache stores the last successful validation result
+type licenseCache struct {
+	license    *keygen.License
+	validUntil time.Time
+	mu         sync.RWMutex
 }
 
-const revalidateInterval = 12 * time.Hour
+func (lc *licenseCache) get() (*keygen.License, bool) {
+	lc.mu.RLock()
+	defer lc.mu.RUnlock()
+
+	if lc.license == nil {
+		return nil, false
+	}
+
+	if time.Now().After(lc.validUntil) {
+		return nil, false
+	}
+
+	return lc.license, true
+}
+
+func (lc *licenseCache) set(license *keygen.License, duration time.Duration) {
+	lc.mu.Lock()
+	defer lc.mu.Unlock()
+
+	lc.license = license
+	lc.validUntil = time.Now().Add(duration)
+}
+
+// ManagerImpl handles commercial license validation and periodic revalidation.
+type ManagerImpl struct {
+	logger         *zap.Logger
+	accountID      string
+	productID      string
+	licenseType    LicenseType
+	config         *config.LicenseConfig
+	fingerprinter  fingerprintFunc
+	verifyKey      string // base64 encoded for validation
+	license        *keygen.License
+	product        product.Product
+	cache          *licenseCache
+	mu             sync.RWMutex
+	done           chan struct{}
+	doneOnce       sync.Once
+	cancel         context.CancelFunc
+	force          bool
+	rateLimited    bool
+	permanentError bool // Stop all validation attempts on permanent errors
+	rateLimitMu    sync.RWMutex
+}
+
+const (
+	revalidateInterval = 24 * time.Hour // Increased from 12h to reduce API calls
+	cacheDuration      = 6 * time.Hour  // Cache successful validations for 6 hours
+)
 
 type LicenseManagerOption func(*ManagerImpl)
 
@@ -134,15 +277,18 @@ func NewManager(ctx context.Context, logger *zap.Logger, accountID, productID st
 	managerOnce.Do(func() {
 		ctx, cancel := context.WithCancel(ctx)
 		lm := &ManagerImpl{
-			logger:        logger,
-			accountID:     accountID,
-			productID:     productID,
-			config:        config,
-			licenseType:   LicenseTypeOnline,
-			fingerprinter: machineid.ProtectedID,
-			cancel:        cancel,
-			force:         false,
-			done:          make(chan struct{}),
+			logger:         logger,
+			accountID:      accountID,
+			productID:      productID,
+			config:         config,
+			licenseType:    LicenseTypeOnline,
+			fingerprinter:  machineid.ProtectedID,
+			cancel:         cancel,
+			force:          false,
+			done:           make(chan struct{}),
+			cache:          &licenseCache{},
+			rateLimited:    false,
+			permanentError: false,
 		}
 
 		logger.Debug("creating license manager")
@@ -226,10 +372,30 @@ func (lm *ManagerImpl) Shutdown(ctx context.Context) error {
 }
 
 func (lm *ManagerImpl) periodicRevalidate(ctx context.Context) {
+	rateLimitResetTicker := time.NewTicker(1 * time.Hour) // Reset rate limit flag every hour
+	defer rateLimitResetTicker.Stop()
+
 	for {
 		select {
 		case <-time.After(revalidateInterval):
-			lm.validateAndSet(ctx)
+			// Skip revalidation if we have a permanent error
+			lm.rateLimitMu.RLock()
+			hasPermanentError := lm.permanentError
+			lm.rateLimitMu.RUnlock()
+
+			if !hasPermanentError {
+				lm.validateAndSet(ctx)
+			} else {
+				lm.logger.Debug("skipping revalidation due to permanent error")
+			}
+		case <-rateLimitResetTicker.C:
+			// Periodically reset rate limit flag to retry (but not permanent errors)
+			lm.rateLimitMu.Lock()
+			if lm.rateLimited && !lm.permanentError {
+				lm.logger.Debug("resetting rate limit flag for retry")
+				lm.rateLimited = false
+			}
+			lm.rateLimitMu.Unlock()
 		case <-ctx.Done():
 			lm.doneOnce.Do(func() { close(lm.done) })
 			return
@@ -251,6 +417,22 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		return
 	}
 
+	// Check cache first before making API calls
+	if cached, ok := lm.cache.get(); ok {
+		lm.mu.Lock()
+		lm.product = product.Pro
+		lm.license = cached
+		lm.mu.Unlock()
+		lm.logger.Debug("using cached license validation")
+		return
+	}
+
+	// Add random startup delay (0-30s) to prevent thundering herd during mass pod restarts
+	// Only delay when we have a license key that will make API calls
+	delay := time.Duration(rand.Intn(30)) * time.Second
+	lm.logger.Debug("adding startup delay to prevent rate limits", zap.Duration("delay", delay))
+	time.Sleep(delay)
+
 	var (
 		license *keygen.License
 		err     error
@@ -260,6 +442,29 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 	case LicenseTypeOnline:
 		license, err = lm.validateOnline(ctx)
 		if err != nil {
+			// If permanent error, disable retries completely
+			if isPermanentError(err) {
+				lm.setOSSProduct()
+				lm.logger.Error("permanent license error; disabling Pro features and stopping validation", zap.Error(err))
+				// Mark as permanent error to stop future revalidation attempts
+				lm.rateLimitMu.Lock()
+				lm.permanentError = true
+				lm.rateLimitMu.Unlock()
+				return
+			}
+
+			// If rate limited but we previously had a valid license, keep Pro features
+			if isRateLimitError(err) {
+				lm.mu.RLock()
+				hasLicense := lm.license != nil
+				lm.mu.RUnlock()
+
+				if hasLicense {
+					lm.logger.Warn("rate limited but keeping Pro features with existing license", zap.Error(err))
+					return
+				}
+			}
+
 			lm.setOSSProduct()
 			lm.logger.Warn("license is invalid; additional features are disabled.", zap.Error(err))
 			return
@@ -278,6 +483,9 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		lm.logger.Warn("license has no expiry date; additional features are disabled.")
 		return
 	}
+
+	// Cache the successful validation
+	lm.cache.set(license, cacheDuration)
 
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
