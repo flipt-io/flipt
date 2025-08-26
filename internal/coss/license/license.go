@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -226,17 +225,17 @@ func (lc *licenseCache) set(license *keygen.License, duration time.Duration) {
 
 // ManagerImpl handles commercial license validation and periodic revalidation.
 type ManagerImpl struct {
-	logger         *zap.Logger
-	accountID      string
-	productID      string
-	licenseType    LicenseType
-	config         *config.LicenseConfig
-	fingerprinter  fingerprintFunc
-	verifyKey      string // base64 encoded for validation
-	license        *keygen.License
-	product        product.Product
-	cache          *licenseCache
-	mu             sync.RWMutex
+	logger           *zap.Logger
+	accountID        string
+	productID        string
+	licenseType      LicenseType
+	config           *config.LicenseConfig
+	fingerprinter    fingerprintFunc
+	verifyKey        string // base64 encoded for validation
+	license          *keygen.License
+	product          product.Product
+	cache            *licenseCache
+	mu               sync.RWMutex
 	done             chan struct{}
 	doneOnce         sync.Once
 	cancel           context.CancelFunc
@@ -423,12 +422,6 @@ func (lm *ManagerImpl) validateAndSet(ctx context.Context) {
 		lm.logger.Debug("using cached license validation")
 		return
 	}
-
-	// Add random startup delay (0-30s) to prevent thundering herd during mass pod restarts
-	// Only delay when we have a license key that will make API calls
-	delay := time.Duration(rand.Intn(30)) * time.Second
-	lm.logger.Debug("adding startup delay to prevent rate limits", zap.Duration("delay", delay))
-	time.Sleep(delay)
 
 	var (
 		license *keygen.License
