@@ -32,7 +32,6 @@ func isRateLimitError(err error) bool {
 		return false
 	}
 
-	// The keygen-go client properly returns RateLimitError for 429 responses
 	var rateLimitErr *keygen.RateLimitError
 	return errors.As(err, &rateLimitErr)
 }
@@ -43,7 +42,6 @@ func isPermanentError(err error) bool {
 		return false
 	}
 
-	// The keygen-go client maps all API error codes to proper error types
 	// Check for specific keygen errors that are permanent and need manual intervention
 	return errors.Is(err, keygen.ErrLicenseExpired) ||
 		errors.Is(err, keygen.ErrLicenseSuspended) ||
