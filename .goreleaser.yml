@@ -59,7 +59,6 @@ release:
     - [Website](https://flipt.io)
 
 changelog:
-  disable: true
   use: github
   format: "{{.SHA}}: {{.Message}} (@{{.AuthorUsername}})"
   sort: asc
@@ -75,6 +74,12 @@ changelog:
       order: 999
     - title: "Other"
       order: 3
+
+  ai:
+    use: anthropic
+    prompt:
+      from_file:
+        path: .github/prompts/release.md
 
 dockers:
   - dockerfile: ./build/Dockerfile
@@ -128,39 +133,35 @@ docker_manifests:
       - "ghcr.io/flipt-io/flipt:v{{ .Major }}-amd64"
       - "ghcr.io/flipt-io/flipt:v{{ .Major }}-arm64"
 
-
 announce:
   discord:
     enabled: true
-  slack:
-    enabled: true
-    channel: "#releases"
 
-# brews:
-#   - name: flipt@2
-#     homepage: https://flipt.io
-#     description: A Git-first, CloudNative feature management solution
-#     license: FCL-1.0-MIT
-#     directory: Formula
-#     skip_upload: auto
-#     install: |
-#       bin.install "flipt"
-#       output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
-#       (bash_completion/"flipt").write output
-#       output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
-#       (zsh_completion/"_flipt").write output
+brews:
+  - name: flipt@2
+    homepage: https://flipt.io
+    description: A Git-first, CloudNative feature management solution
+    license: FCL-1.0-MIT
+    directory: Formula
+    skip_upload: auto
+    install: |
+      bin.install "flipt"
+      output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
+      (bash_completion/"flipt").write output
+      output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
+      (zsh_completion/"_flipt").write output
 
-#     post_install: |
-#       (var/"log/flipt").mkpath
+    post_install: |
+      (var/"log/flipt").mkpath
 
-#     service: |
-#       run [opt_bin/"flipt", "server"]
-#       environment_variables PATH: std_service_path_env
-#       keep_alive true
-#       error_log_path "#{var}/log/flipt/server-stderr.log"
-#       log_path "#{var}/log/flipt/server-stdout.log"
+    service: |
+      run [opt_bin/"flipt", "server"]
+      environment_variables PATH: std_service_path_env
+      keep_alive true
+      error_log_path "#{var}/log/flipt/server-stderr.log"
+      log_path "#{var}/log/flipt/server-stdout.log"
 
-#     repository:
-#       owner: flipt-io
-#       name: homebrew-brew
-#       branch: main
+    repository:
+      owner: flipt-io
+      name: homebrew-brew
+      branch: main
