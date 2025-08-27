@@ -5,8 +5,8 @@ Write the release notes for this release.
 - do not use emojis
 - write short summary featuring the 2 or 3 most exciting or user-impacting changes, if it makes sense to do so.
 - keep dependency updates brief unless they're security-related or major version changes
-- respond ONLY THE GENERATED RELEASE NOTES, NOTHING ELSE.
-- format the response as a markdown
+- respond WITH ONLY THE GENERATED RELEASE NOTES, NOTHING ELSE.
+- format the response as markdown
 - do not change the original commit messages
 
 ## Some details about this release
