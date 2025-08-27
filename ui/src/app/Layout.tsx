@@ -79,7 +79,7 @@ function InnerLayout() {
         {!dismissedV2Banner && (
           <Banner
             emoji="🎉"
-            title="Flipt v2.0.0 is now available!"
+            title="Flipt v2 is now available!"
             description="Git-native feature flags with multi-environment support, branching, and real-time updates"
             href="https://docs.flipt.io/v2/introduction"
             onDismiss={() => dispatch(v2BannerDismissed())}
