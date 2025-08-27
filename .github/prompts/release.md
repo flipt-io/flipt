@@ -18,7 +18,7 @@ Previous version: {{.Version}}
 Version: to be defined
 {{ else }}
 Previous Version: {{.PreviousTag}}
-Version: {{.CurrentTag}}
+Version: {{.Tag}}
 {{ end }}
 {{ if .IsSnapshot }}This is a snapshot build.{{ end }}
 {{ if .IsNightly }}This is a nightly build.{{ end }}
