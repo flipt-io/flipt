@@ -25,14 +25,16 @@ import {
 } from './namespaces/namespacesSlice';
 import CommandDialog from '~/components/command/CommandDialog';
 import Banner from '~/components/Banner';
-import { selectDismissedBanner } from './events/eventSlice';
-import { StarIcon } from '@heroicons/react/20/solid';
+import {
+  selectDismissedV2Banner,
+  v2BannerDismissed
+} from './events/eventSlice';
 
 function InnerLayout() {
   const { session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const dismissedBanner = useSelector(selectDismissedBanner);
+  const dismissedV2Banner = useSelector(selectDismissedV2Banner);
   const dispatch = useAppDispatch();
 
   const { namespaceKey } = useParams();
@@ -74,12 +76,13 @@ function InnerLayout() {
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="bg-background flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
-        {!dismissedBanner && (
+        {!dismissedV2Banner && (
           <Banner
-            title="Like Flipt? Give us a star on GitHub!"
-            description="It really means a lot to us. Thank you!"
-            href="https://github.com/flipt-io/flipt"
-            icon={<StarIcon className="mx-2 inline h-3 w-3" />}
+            emoji="🎉"
+            title="Flipt v2.0.0 is now available!"
+            description="Experience the next generation of feature management with Pro features and enhanced GitOps workflow"
+            href="https://docs.flipt.io/releases/v2.0.0"
+            onDismiss={() => dispatch(v2BannerDismissed())}
           />
         )}
         <main className="flex pt-1 sm:pt-4">
