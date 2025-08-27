@@ -81,7 +81,7 @@ function InnerLayout() {
             emoji="🎉"
             title="Flipt v2.0.0 is now available!"
             description="Experience the next generation of feature management with Pro features and enhanced GitOps workflow"
-            href="https://docs.flipt.io/releases/v2.0.0"
+            href="https://docs.flipt.io/v2/introduction"
             onDismiss={() => dispatch(v2BannerDismissed())}
           />
         )}
