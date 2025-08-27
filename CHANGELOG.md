@@ -3,6 +3,32 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2](https://github.com/flipt-io/flipt/releases/tag/v2.0.2) - 2025-08-27
+
+### Fixed
+
+- Comprehensive Keygen API rate limit handling improvements including caching, proper error type handling, and intelligent rate limit management (#4602)
+- Process Go files in batches for `mage go:fmt` command to avoid "argument list too long" errors (#4570)
+
+### Changed
+
+- Replaced Dependabot with Renovate for dependency management (#4594, #4603)
+- Added AI-powered release notes generation for Homebrew releases (#4604)
+
+### Dependencies
+
+- Bumped React and @types/react in UI (#4582)
+- Bumped gitlab.com/gitlab-org/api/client-go from 0.129.0 to 0.139.2 (#4575)
+- Bumped @uiw/react-codemirror from 4.24.2 to 4.25.1 in UI (#4580)
+- Bumped @radix-ui/react-popover from 1.1.14 to 1.1.15 in UI (#4581)
+- Bumped @radix-ui/react-select from 2.2.5 to 2.2.6 in UI (#4579)
+- Bumped @radix-ui/react-switch from 1.2.5 to 1.2.6 in UI (#4577)
+- Bumped github.com/go-chi/cors from 1.2.1 to 1.2.2 (#4573)
+- Bumped github.com/hashicorp/go-retryablehttp (#4572)
+- Bumped @playwright/test from 1.54.1 to 1.54.2 in UI (#4578)
+- Bumped eslint-plugin-prettier from 5.2.3 to 5.5.4 in UI (#4526)
+- Bumped actions/checkout from 4 to 5 in GitHub Actions (#4576)
+
 ## [2.0.1](https://github.com/flipt-io/flipt/releases/tag/v2.0.1) - 2025-08-16
 
 ### Added
