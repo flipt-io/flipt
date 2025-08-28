@@ -34,7 +34,7 @@ const listenerMiddleware = createListenerMiddleware();
 listenerMiddleware.startListening({
   matcher: isAnyOf(
     eventSlice.actions.onboardingCompleted,
-    eventSlice.actions.bannerDismissed
+    eventSlice.actions.v2BannerDismissed
   ),
   effect: (_action, api) => {
     // save to local storage
