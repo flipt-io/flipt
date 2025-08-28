@@ -35,6 +35,7 @@ function InnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dismissedV2Banner = useSelector(selectDismissedV2Banner);
+  const isTestEnvironment = import.meta.env.FLIPT_DISABLE_V2_BANNER === 'true';
   const dispatch = useAppDispatch();
 
   const { namespaceKey } = useParams();
@@ -76,7 +77,7 @@ function InnerLayout() {
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <div className="bg-background flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
-        {!dismissedV2Banner && (
+        {!dismissedV2Banner && !isTestEnvironment && (
           <Banner
             emoji="🎉"
             title="Flipt v2 is now available!"
