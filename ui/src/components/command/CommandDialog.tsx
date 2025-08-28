@@ -140,10 +140,10 @@ export default function CommandMenu() {
     <Dialog
       open={open}
       onClose={setOpen}
-      className="fixed inset-0 z-20 overflow-y-auto p-4 pt-[15vh]"
+      className="fixed inset-0 z-50 overflow-y-auto p-4 pt-[15vh]"
     >
       <Dialog.Overlay className="fixed inset-0 bg-gray-500/75" />
-      <Dialog.Panel className="bg-background mx-auto max-w-xl transform rounded-xl p-2 shadow-2xl ring-1 ring-black/5 transition-all">
+      <Dialog.Panel className="bg-background relative z-50 mx-auto max-w-xl transform rounded-xl p-2 shadow-2xl ring-1 ring-black/5 transition-all">
         <Command
           loop
           className="text-foreground relative mx-auto flex max-w-2xl flex-col rounded-lg"
