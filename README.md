@@ -50,7 +50,7 @@
 </div>
 
 > [!NOTE]
-> Flipt v2 is now in beta. [Try it out](https://docs.flipt.io/v2/introduction) and give us your feedback!
+> Flipt v2 is now available! [Get started](https://docs.flipt.io/v2/introduction) with the new Git-native architecture.
 
 [Flipt](https://www.flipt.io) enables you to follow DevOps best practices and separate releases from deployments. Built with high-performance engineering organizations in mind.
 
