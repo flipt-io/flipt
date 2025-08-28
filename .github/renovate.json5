@@ -16,6 +16,7 @@
   ],
   prHourlyLimit: 20,
   prConcurrentLimit: 10,
+  branchConcurrentLimit: 10,
   labels: [
     'dependencies',
     'automerge',
@@ -34,18 +35,18 @@
       ],
     },
     {
-      // Higher priority for v2 branch to balance with main
+      // Higher priority for v2 branch updates to balance with main
       matchBaseBranches: [
         'v2',
       ],
-      priority: 10,
+      prPriority: 10,
     },
     {
-      // Standard priority for main branch
+      // Standard priority for main branch updates
       matchBaseBranches: [
         'main',
       ],
-      priority: 5,
+      prPriority: 5,
     },
     {
       matchManagers: [
