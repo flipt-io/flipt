@@ -103,7 +103,7 @@ const config: PlaywrightTestConfig = {
     command: 'npm run dev',
     port: 5173,
     env: {
-      FLIPT_DISABLE_V2_BANNER: 'true'
+      FLIPT_UI_BANNER_ENABLED: 'false'
     }
   }
 };
