@@ -17,8 +17,11 @@ const (
 )
 
 var (
-	attrRemote = attribute.Key("remote")
-	attrBranch = attribute.Key("branch")
+	attrRemote    = attribute.Key("remote")
+	attrBranch    = attribute.Key("branch")
+	attrStatus    = attribute.Key("status")
+	attrErrorType = attribute.Key("error_type")
+	attrOperation = attribute.Key("operation")
 )
 
 type repoMetrics struct {
@@ -38,6 +41,14 @@ type repoMetrics struct {
 
 	branchesTotal       metric.Int64UpDownCounter
 	branchesErrorsTotal metric.Int64Counter
+
+	// Sync operation metrics
+	syncTotal       metric.Int64Counter
+	syncErrorsTotal metric.Int64Counter
+	syncDuration    metric.Float64Histogram
+
+	// Change tracking metrics
+	filesChanged metric.Int64Counter
 }
 
 func withRemote(name string) containers.Option[repoMetrics] {
@@ -89,6 +100,23 @@ func newRepoMetrics(opts ...containers.Option[repoMetrics]) repoMetrics {
 		branchesErrorsTotal: metrics.MustInt64().Counter(
 			prometheus.BuildFQName(namespace, subsystem, "branches_errors_total"),
 			metric.WithDescription("The total number of errors observed creating or deleting branches"),
+		),
+		syncTotal: metrics.MustInt64().Counter(
+			prometheus.BuildFQName(namespace, subsystem, "sync_total"),
+			metric.WithDescription("The total number of sync operations (fetch)"),
+		),
+		syncErrorsTotal: metrics.MustInt64().Counter(
+			prometheus.BuildFQName(namespace, subsystem, "sync_errors_total"),
+			metric.WithDescription("The total number of sync operation errors"),
+		),
+		syncDuration: metrics.MustFloat64().Histogram(
+			prometheus.BuildFQName(namespace, subsystem, "sync_duration"),
+			metric.WithDescription("The duration of sync operations in milliseconds"),
+			metric.WithUnit("ms"),
+		),
+		filesChanged: metrics.MustInt64().Counter(
+			prometheus.BuildFQName(namespace, subsystem, "files_changed_total"),
+			metric.WithDescription("The total number of files changed during sync operations"),
 		),
 	}
 
@@ -150,5 +178,42 @@ func (r repoMetrics) recordBranchDeleted(ctx context.Context) func(error) {
 		if err != nil {
 			r.branchesErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(r.set))
 		}
+	}
+}
+
+func (r repoMetrics) recordSyncStart(ctx context.Context, branch string) func(error) {
+	start := time.Now().UTC()
+	return func(err error) {
+		duration := float64(time.Since(start).Milliseconds())
+		branchAttrs := metric.WithAttributes(append(r.attrs, attrBranch.String(branch))...)
+		r.syncDuration.Record(ctx, duration, branchAttrs)
+
+		if err != nil {
+			statusAttrs := metric.WithAttributes(append(r.attrs,
+				attrBranch.String(branch),
+				attrStatus.String("failure"))...)
+			r.syncTotal.Add(ctx, 1, statusAttrs)
+		} else {
+			statusAttrs := metric.WithAttributes(append(r.attrs,
+				attrBranch.String(branch),
+				attrStatus.String("success"))...)
+			r.syncTotal.Add(ctx, 1, statusAttrs)
+		}
+	}
+}
+
+func (r repoMetrics) recordSyncError(ctx context.Context, branch, errorType string) {
+	attrs := metric.WithAttributes(append(r.attrs,
+		attrBranch.String(branch),
+		attrErrorType.String(errorType))...)
+	r.syncErrorsTotal.Add(ctx, 1, attrs)
+}
+
+func (r repoMetrics) recordFilesChanged(ctx context.Context, branch, operation string, count int) {
+	if count > 0 {
+		attrs := metric.WithAttributes(append(r.attrs,
+			attrBranch.String(branch),
+			attrOperation.String(operation))...)
+		r.filesChanged.Add(ctx, int64(count), attrs)
 	}
 }
