@@ -15,6 +15,7 @@
     'every weekend',
   ],
   prHourlyLimit: 20,
+  prConcurrentLimit: 10,
   labels: [
     'dependencies',
     'automerge',
@@ -31,6 +32,20 @@
       matchPackageNames: [
         '/^go\\.flipt\\.io/flipt/.*/',
       ],
+    },
+    {
+      // Higher priority for v2 branch to balance with main
+      matchBaseBranches: [
+        'v2',
+      ],
+      priority: 10,
+    },
+    {
+      // Standard priority for main branch
+      matchBaseBranches: [
+        'main',
+      ],
+      priority: 5,
     },
     {
       matchManagers: [
