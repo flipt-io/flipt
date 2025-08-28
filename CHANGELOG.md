@@ -3,6 +3,24 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.59.3](https://github.com/flipt-io/flipt/releases/tag/v1.59.3) - 2025-08-28
+
+### Added
+
+- `ui`: add Flipt v2 release announcement banner (#4607)
+
+### Changed
+
+- `deps`: upgrade go to 1.25.0 (#4586)
+- update v2 references and restrict install script to v1 (#4543)
+- rewrite v1 install script with robust version detection
+
+### Fixed
+
+- `ui`: resolve command dialog overlay z-index issue
+- correct architecture naming in v1 install script
+- update post-release workflow to use release trigger (#4503)
+
 ## [v1.59.2](https://github.com/flipt-io/flipt/releases/tag/v1.59.2) - 2025-08-01
 
 ### Fixed
