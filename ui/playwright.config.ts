@@ -101,7 +101,10 @@ const config: PlaywrightTestConfig = {
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
-    port: 5173
+    port: 5173,
+    env: {
+      FLIPT_UI_BANNER_ENABLED: 'false'
+    }
   }
 };
 
