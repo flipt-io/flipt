@@ -451,7 +451,7 @@ func (c *quickstart) printSCMPermissions() {
 	}
 }
 
-func newQuickstartCommand() *cobra.Command {
+func newQuickstartCommandOld() *cobra.Command {
 	quickstartCmd := &quickstart{}
 
 	cmd := &cobra.Command{
