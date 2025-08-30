@@ -46,6 +46,7 @@ require (
 	github.com/ktrysmt/go-bitbucket v0.9.86
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/magefile/mage v1.15.0
+	github.com/mattn/go-isatty v0.0.20
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v1.5.0
@@ -361,7 +362,6 @@ require (
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mgechev/revive v1.11.0 // indirect
