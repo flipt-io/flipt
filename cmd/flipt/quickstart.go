@@ -35,7 +35,7 @@ const (
 var providerNames = map[Provider]string{
 	ProviderGitHub:    "GitHub",
 	ProviderGitLab:    "GitLab",
-	ProviderBitBucket: "BitBucket",
+	ProviderBitBucket: "Bitbucket",
 	ProviderGitea:     "Gitea",
 	ProviderAzure:     "Azure",
 	ProviderGit:       "Git",
@@ -541,7 +541,7 @@ func (c *quickstart) runProviderStep() error {
 		providerOptions := []huh.Option[string]{
 			huh.NewOption("GitHub", "GitHub"),
 			huh.NewOption("GitLab", "GitLab"),
-			huh.NewOption("BitBucket", "BitBucket"),
+			huh.NewOption("Bitbucket", "Bitbucket"),
 			huh.NewOption("Azure DevOps", "Azure"),
 			huh.NewOption("Gitea", "Gitea"),
 			huh.NewOption("Generic Git", "Git"),
