@@ -21,8 +21,9 @@ type prometheusClient interface {
 }
 
 type client struct {
-	promClient prometheusClient
-	logger     *zap.Logger
+	promClient     prometheusClient
+	minStepMinutes int
+	logger         *zap.Logger
 }
 
 func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
@@ -39,15 +40,21 @@ func New(logger *zap.Logger, cfg *config.Config) (*client, error) {
 		return nil, err
 	}
 	promClient := promapi.NewAPI(apiClient)
-	return &client{promClient: promClient, logger: logger}, nil
+	return &client{
+		promClient:     promClient,
+		logger:         logger,
+		minStepMinutes: cfg.Analytics.Storage.Prometheus.ScrapeIntervalSeconds * 4 / 60,
+	}, nil
 }
 
 func (c *client) GetFlagEvaluationsCount(ctx context.Context, req *panalytics.FlagEvaluationsCountRequest) ([]string, []float32, error) {
+	stepMinutes := max(req.StepMinutes, c.minStepMinutes)
 	query := fmt.Sprintf(
-		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm])) or vector(0)`,
+		`sum(increase(flipt_evaluations_requests_total{namespace="%s", flag="%s"}[%dm]) / %d) or vector(0)`,
 		req.NamespaceKey,
 		req.FlagKey,
-		req.StepMinutes,
+		stepMinutes,
+		stepMinutes,
 	)
 	r := promapi.Range{
 		Start: req.From.UTC(),
