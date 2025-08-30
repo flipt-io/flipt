@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/storage v1.50.0
 	code.gitea.io/sdk/gitea v0.18.0
 	dagger.io/dagger v0.17.0
-	github.com/99designs/gqlgen v0.17.75
+	github.com/99designs/gqlgen v0.17.78
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.0
 	github.com/Khan/genqlient v0.8.1
 	github.com/aws/aws-sdk-go-v2 v1.36.3
