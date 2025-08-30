@@ -133,25 +133,21 @@ const (
 )
 
 var (
-	// Flipt brand colors
-	fliptViolet  = lipgloss.Color("#6D28D9") // Primary violet
-	fliptPurple  = lipgloss.Color("#9333EA") // Secondary purple
-	fliptBlue    = lipgloss.Color("#2563EB") // Accent blue
-	successGreen = lipgloss.Color("#10B981") // Success states
-	warningAmber = lipgloss.Color("#F59E0B") // Warning states
-	errorRed     = lipgloss.Color("#EF4444") // Error states
-	mutedGray    = lipgloss.Color("#9CA3AF") // Muted text - lighter for better contrast
-	lightGray    = lipgloss.Color("#F3F4F6") // Light backgrounds
-	darkGray     = lipgloss.Color("#D1D5DB") // Dark text - much lighter for readability
-	light        = lipgloss.Color("#E5E7EB") // Light text for labels and values
-	borderGray   = lipgloss.Color("#E5E7EB") // Border color for cards
-	white        = lipgloss.Color("#FFFFFF") // White text for buttons
-	codeBlockBg  = lipgloss.Color("#1F2937") // Background for code blocks
+	purple      = lipgloss.Color("#7571F9") // Primary accent color
+	green       = lipgloss.Color("#10B981") // Success states
+	amber       = lipgloss.Color("#F59E0B") // Warning states
+	red         = lipgloss.Color("#EF4444") // Error states
+	mutedGray   = lipgloss.Color("#9CA3AF") // Muted text - lighter for better contrast
+	lightGray   = lipgloss.Color("#F3F4F6") // Light backgrounds
+	darkGray    = lipgloss.Color("#D1D5DB") // Dark text - much lighter for readability
+	light       = lipgloss.Color("#E5E7EB") // Light text for labels and values
+	white       = lipgloss.Color("#FFFFFF") // White text for buttons
+	borderGray  = lipgloss.Color("#4B5563") // Border color (darker for visibility)
+	codeBlockBg = lipgloss.Color("#1F2937") // Background for code blocks
 
-	// Enhanced styles with Flipt brand colors
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(fliptViolet).
+			Foreground(purple).
 			Padding(1, 2).
 			Align(lipgloss.Center)
 
@@ -161,15 +157,15 @@ var (
 			Align(lipgloss.Center)
 
 	successStyle = lipgloss.NewStyle().
-			Foreground(successGreen).
+			Foreground(green).
 			Bold(true)
 
 	warningStyle = lipgloss.NewStyle().
-			Foreground(warningAmber).
+			Foreground(amber).
 			Bold(true)
 
 	errorStyle = lipgloss.NewStyle().
-			Foreground(errorRed).
+			Foreground(red).
 			Bold(true)
 
 	// Card container style
@@ -187,19 +183,19 @@ var (
 
 	// Progress indicator styles
 	progressActiveStyle = lipgloss.NewStyle().
-				Foreground(fliptPurple).
+				Foreground(purple).
 				Bold(true)
 
 	progressInactiveStyle = lipgloss.NewStyle().
 				Foreground(mutedGray)
 
 	progressCompleteStyle = lipgloss.NewStyle().
-				Foreground(successGreen).
+				Foreground(green).
 				Bold(true)
 
 	// Input and form styles
 	inputLabelStyle = lipgloss.NewStyle().
-			Foreground(light).
+			Foreground(white). // Make labels clearer
 			Bold(true).
 			MarginBottom(1)
 
@@ -210,28 +206,28 @@ var (
 	// Button styles
 	primaryButtonStyle = lipgloss.NewStyle().
 				Foreground(white).
-				Background(fliptViolet).
+				Background(purple).
 				Padding(0, 3).
 				Bold(true).
 				Border(lipgloss.RoundedBorder()).
-				BorderForeground(fliptViolet)
+				BorderForeground(purple)
 
 	secondaryButtonStyle = lipgloss.NewStyle().
-				Foreground(fliptPurple).
+				Foreground(purple).
 				Border(lipgloss.RoundedBorder()).
-				BorderForeground(fliptPurple).
+				BorderForeground(purple).
 				Padding(0, 3)
 
-	// New styles for improved visual hierarchy
+	// Simplified accent style - using purple as primary accent
 	accentStyle = lipgloss.NewStyle().
-			Foreground(fliptBlue).
+			Foreground(purple).
 			Bold(true)
 
 	labelStyle = lipgloss.NewStyle().
 			Foreground(mutedGray)
 
 	valueStyle = lipgloss.NewStyle().
-			Foreground(light).
+			Foreground(white). // Make values stand out more
 			Bold(true)
 
 	sectionStyle = lipgloss.NewStyle().
@@ -328,14 +324,13 @@ func (c *quickstart) renderProgressIndicator() string {
 		lipgloss.JoinVertical(lipgloss.Center,
 			sectionHeaderStyle.Render("Setup Progress"),
 			progressLine,
-			helperTextStyle.Render(fmt.Sprintf("\nStep %d of %d", int(c.currentStep)+1, len(steps))),
 		),
 	)
 }
 
 // renderHeader creates the header with title and progress
 func (c *quickstart) renderHeader() string {
-	title := titleStyle.Render("✨ Flipt v2 Quickstart")
+	title := titleStyle.Render("Flipt v2 Quickstart")
 	subtitle := subtitleStyle.Render("Configure Git storage syncing with a remote repository")
 
 	headerContent := lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
@@ -379,11 +374,11 @@ func (c *quickstart) run() error {
 	// Check for existing config
 	if _, err := os.Stat(c.configFile); err == nil {
 		warningCard := cardStyle.Copy().
-			BorderForeground(warningAmber).
+			BorderForeground(amber).
 			Render(
 				lipgloss.JoinVertical(lipgloss.Left,
 					warningStyle.Render("⚠  Existing Configuration Detected"),
-					helperTextStyle.Render("This will overwrite your existing config file at:"),
+					helperTextStyle.Render("\nThis will overwrite your existing config file at:"),
 					valueStyle.Render(c.configFile),
 				),
 			)
@@ -510,7 +505,7 @@ func (c *quickstart) runRepositoryStep() error {
 	// Show detected information
 	fmt.Println()
 	fmt.Println(successStyle.Render("✓ Repository detected!"))
-	fmt.Println(fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), accentStyle.Render(c.provider.name)))
+	fmt.Println(fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), valueStyle.Render(c.provider.name)))
 	fmt.Println(fmt.Sprintf("%s %s/%s", labelStyle.Render("Repository:"), valueStyle.Render(owner), valueStyle.Render(name)))
 	fmt.Println()
 
@@ -521,7 +516,7 @@ func (c *quickstart) runProviderStep() error {
 	var correctProvider bool
 
 	// Show provider detection result without card
-	fmt.Println(fmt.Sprintf("%s %s", labelStyle.Render("Detected:"), accentStyle.Render(c.provider.name)))
+	fmt.Println(fmt.Sprintf("%s %s", labelStyle.Render("Detected:"), valueStyle.Render(c.provider.name)))
 	fmt.Println(fmt.Sprintf("%s %s", labelStyle.Render("Repository:"), valueStyle.Render(fmt.Sprintf("%s/%s", c.repo.owner, c.repo.name))))
 	fmt.Println()
 
@@ -530,7 +525,7 @@ func (c *quickstart) runProviderStep() error {
 		huh.NewGroup(
 			huh.NewConfirm().
 				Title("Is this correct?").
-				Description(fmt.Sprintf("We detected %s as your Git provider", accentStyle.Render(c.provider.name))).
+				Description(fmt.Sprintf("We detected %s as your Git provider", c.provider.name)).
 				Value(&correctProvider).
 				Affirmative("Yes, that's correct").
 				Negative("No, let me choose"),
@@ -716,14 +711,11 @@ func (c *quickstart) runAuthenticationStep() error {
 		if openBrowser {
 			patURL := c.getPATCreationURL()
 			if patURL != "" {
-				fmt.Println(helperTextStyle.Render("Opening browser..."))
 				if err := util.OpenBrowser(patURL); err != nil {
 					fmt.Println(warningStyle.Render("⚠  Couldn't open browser automatically."))
 					fmt.Println()
 					fmt.Println(inputLabelStyle.Render("Please visit this URL:"))
 					fmt.Println(accentStyle.Render(patURL))
-				} else {
-					fmt.Println(successStyle.Render("✓ Browser opened successfully!"))
 				}
 				fmt.Println()
 			}
@@ -798,7 +790,7 @@ func (c *quickstart) runReviewStep() error {
 			configItemStyle.Render(
 				lipgloss.JoinVertical(lipgloss.Left,
 					fmt.Sprintf("%s %s", labelStyle.Render("URL:"), valueStyle.Render(c.repo.url)),
-					fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), accentStyle.Render(c.provider.name)),
+					fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), valueStyle.Render(c.provider.name)),
 					fmt.Sprintf("%s %s", labelStyle.Render("Branch:"), valueStyle.Render(c.repo.branch)),
 					fmt.Sprintf("%s %s", labelStyle.Render("Directory:"), valueStyle.Render(c.repo.directory)),
 				),
@@ -816,7 +808,7 @@ func (c *quickstart) runReviewStep() error {
 				configItemStyle.Render(
 					lipgloss.JoinVertical(lipgloss.Left,
 						fmt.Sprintf("%s %s", labelStyle.Render("URL:"), valueStyle.Render(c.repo.url)),
-						fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), accentStyle.Render(c.provider.name)),
+						fmt.Sprintf("%s %s", labelStyle.Render("Provider:"), valueStyle.Render(c.provider.name)),
 						fmt.Sprintf("%s %s", labelStyle.Render("API URL:"), valueStyle.Render(c.provider.apiURL)),
 						fmt.Sprintf("%s %s", labelStyle.Render("Branch:"), valueStyle.Render(c.repo.branch)),
 						fmt.Sprintf("%s %s", labelStyle.Render("Directory:"), valueStyle.Render(c.repo.directory)),
@@ -1050,11 +1042,11 @@ func (c *quickstart) convertConfigToYAML() map[string]any {
 func (c *quickstart) renderSuccessScreen() {
 	// Success header
 	successHeader := lipgloss.NewStyle().
-		Foreground(successGreen).
+		Foreground(green).
 		Bold(true).
 		Padding(1, 3).
 		Border(lipgloss.DoubleBorder()).
-		BorderForeground(successGreen).
+		BorderForeground(green).
 		Align(lipgloss.Center).
 		Render("Setup Complete!")
 
@@ -1084,7 +1076,7 @@ func (c *quickstart) renderSuccessScreen() {
 				lipgloss.JoinVertical(lipgloss.Left,
 					lipgloss.NewStyle().
 						Background(codeBlockBg).
-						Foreground(successGreen).
+						Foreground(green).
 						Padding(0, 1).
 						Render("flipt server"),
 					helperTextStyle.Render("Start the Flipt server with your new configuration"),
@@ -1128,7 +1120,7 @@ func (c *quickstart) renderSuccessScreen() {
 	// Footer
 	fmt.Println()
 	fmt.Println(lipgloss.NewStyle().
-		Foreground(fliptPurple).
+		Foreground(purple).
 		Bold(true).
 		Align(lipgloss.Center).
 		Width(80).
