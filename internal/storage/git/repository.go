@@ -3,8 +3,10 @@ package git
 import (
 	"context"
 	"fmt"
+	"io"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -137,10 +139,153 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				return nil, empty, err
 			}
 		} else {
-			// opened successfully and there is contents so we assume not empty
+			// opened successfully and there is contents
+			// try to open as an existing git repository first
 			r.Repository, err = git.Open(storage, nil)
 			if err != nil {
-				return nil, empty, err
+				// if the directory has content but is not a git repository,
+				// we need to handle existing files properly
+				if errors.Is(err, git.ErrRepositoryNotExists) {
+					logger.Debug("directory has content but is not a git repository, initializing and committing existing files")
+
+					// Check if there are any non-git files that need to be committed
+					hasNonGitFiles := false
+					for _, entry := range entries {
+						if !strings.HasPrefix(entry.Name(), ".git") {
+							hasNonGitFiles = true
+							break
+						}
+					}
+
+					if hasNonGitFiles {
+						// Create a temporary directory for a non-bare repository
+						tempDir, err := os.MkdirTemp("", "flipt-git-init-*")
+						if err != nil {
+							return nil, empty, fmt.Errorf("creating temp directory: %w", err)
+						}
+						defer os.RemoveAll(tempDir) // Clean up temp directory
+
+						// Initialize a non-bare repository in the temp directory
+						tempRepo, err := git.PlainInit(tempDir, false)
+						if err != nil {
+							return nil, empty, fmt.Errorf("initializing temp repository: %w", err)
+						}
+
+						// Set the default branch config
+						cfg, err := tempRepo.Config()
+						if err != nil {
+							return nil, empty, fmt.Errorf("getting temp repository config: %w", err)
+						}
+						cfg.Init.DefaultBranch = r.defaultBranch
+						if err := tempRepo.SetConfig(cfg); err != nil {
+							return nil, empty, fmt.Errorf("setting temp repository config: %w", err)
+						}
+
+						// Copy existing files to the temp repository (excluding .git)
+						for _, entry := range entries {
+							if strings.HasPrefix(entry.Name(), ".git") {
+								continue
+							}
+
+							sourcePath := filepath.Join(r.localPath, entry.Name())
+							destPath := filepath.Join(tempDir, entry.Name())
+
+							if entry.IsDir() {
+								// Recursively copy directory
+								if err := copyDir(sourcePath, destPath); err != nil {
+									return nil, empty, fmt.Errorf("copying directory %s: %w", entry.Name(), err)
+								}
+							} else {
+								// Copy file
+								if err := copyFile(sourcePath, destPath); err != nil {
+									return nil, empty, fmt.Errorf("copying file %s: %w", entry.Name(), err)
+								}
+							}
+						}
+
+						// Get the worktree of the temp repository
+						worktree, err := tempRepo.Worktree()
+						if err != nil {
+							return nil, empty, fmt.Errorf("getting temp worktree: %w", err)
+						}
+
+						// Add all files to the staging area
+						if err := worktree.AddWithOptions(&git.AddOptions{All: true}); err != nil {
+							return nil, empty, fmt.Errorf("adding files to temp repository: %w", err)
+						}
+
+						// Create the initial commit
+						commitHash, err := worktree.Commit("Initial commit", &git.CommitOptions{
+							Author: &object.Signature{
+								Name:  "Flipt",
+								Email: "dev@flipt.io",
+								When:  time.Now(),
+							},
+						})
+						if err != nil {
+							return nil, empty, fmt.Errorf("creating initial commit in temp repository: %w", err)
+						}
+
+						logger.Debug("created initial commit in temp repository", zap.String("hash", commitHash.String()))
+
+						// Ensure the branch reference exists in the temp repository
+						branchRef := plumbing.NewHashReference(plumbing.NewBranchReferenceName(r.defaultBranch), commitHash)
+						if err := tempRepo.Storer.SetReference(branchRef); err != nil {
+							return nil, empty, fmt.Errorf("setting branch reference in temp repository: %w", err)
+						}
+
+						// Now initialize the bare repository
+						r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
+						if err != nil {
+							return nil, empty, fmt.Errorf("initializing bare repository: %w", err)
+						}
+
+						// Add the temp repository as a remote
+						if _, err = r.CreateRemote(&config.RemoteConfig{
+							Name: "temp",
+							URLs: []string{tempDir},
+						}); err != nil {
+							return nil, empty, fmt.Errorf("adding temp remote: %w", err)
+						}
+
+						// Fetch from the temp repository
+						if err := r.FetchContext(ctx, &git.FetchOptions{
+							RemoteName: "temp",
+							RefSpecs: []config.RefSpec{
+								config.RefSpec(fmt.Sprintf("+refs/heads/%s:refs/heads/%s", r.defaultBranch, r.defaultBranch)),
+							},
+						}); err != nil {
+							return nil, empty, fmt.Errorf("fetching from temp repository: %w", err)
+						}
+
+						// Set HEAD to point to the main branch
+						ref := plumbing.NewSymbolicReference(plumbing.HEAD, plumbing.NewBranchReferenceName(r.defaultBranch))
+						if err := r.Storer.SetReference(ref); err != nil {
+							return nil, empty, fmt.Errorf("setting HEAD reference: %w", err)
+						}
+
+						// Remove the temp remote
+						if err := r.DeleteRemote("temp"); err != nil {
+							logger.Debug("failed to delete temp remote", zap.Error(err))
+						}
+
+						// Repository is no longer empty
+						empty = false
+					} else {
+						// No non-git files, just initialize empty repository
+						r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
+						if err != nil {
+							return nil, empty, fmt.Errorf("initializing repository: %w", err)
+						}
+						empty = true
+					}
+				} else {
+					// Some other error occurred when trying to open the repository
+					return nil, empty, err
+				}
+			} else {
+				// Successfully opened existing git repository
+				empty = false
 			}
 		}
 	}
@@ -502,6 +647,25 @@ func (r *Repository) UpdateAndPush(
 		}
 	} else {
 		r.logger.Debug("skipping push - no remote configured")
+
+		// For local repositories without a remote, we need to set the local branch reference
+		local := plumbing.NewBranchReferenceName(branch)
+		r.logger.Debug("setting local reference",
+			zap.Stringer("reference", local),
+			zap.Stringer("hash", commit.Hash))
+
+		if err := r.Storer.SetReference(plumbing.NewHashReference(local, commit.Hash)); err != nil {
+			return hash, err
+		}
+
+		// Also set HEAD to point to the branch for initial commits
+		if options.initialCommit {
+			r.logger.Debug("setting HEAD reference for initial commit",
+				zap.String("branch", branch))
+			if err := r.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, local)); err != nil {
+				return hash, err
+			}
+		}
 	}
 
 	remoteName := "origin"
@@ -765,3 +929,68 @@ const defaultReadmeContents = `Flipt Configuration Repository
 
 This repository contains Flipt feature flag configuration.
 Each directory containing a file named features.yaml represents a namespace.`
+
+// copyFile copies a single file from src to dst
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		return err
+	}
+
+	// Copy file permissions
+	sourceInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(dst, sourceInfo.Mode())
+}
+
+// copyDir recursively copies a directory from src to dst
+func copyDir(src, dst string) error {
+	// Get properties of source dir
+	sourceInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// Create the destination directory
+	if err := os.MkdirAll(dst, sourceInfo.Mode()); err != nil {
+		return err
+	}
+
+	// Read the directory contents
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		sourcePath := filepath.Join(src, entry.Name())
+		destPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectory
+			if err := copyDir(sourcePath, destPath); err != nil {
+				return err
+			}
+		} else {
+			// Copy file
+			if err := copyFile(sourcePath, destPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
