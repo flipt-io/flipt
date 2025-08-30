@@ -43,7 +43,7 @@ require (
 	github.com/hamba/avro/v2 v2.28.0
 	github.com/hashicorp/cap v0.9.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/go-retryablehttp v0.7.7
+	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v5 v5.7.5
