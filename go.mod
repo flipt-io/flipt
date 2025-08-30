@@ -50,7 +50,7 @@ require (
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20250715194101-ef5def0c4e6c
+	github.com/open-policy-agent/contrib/logging/plugins/ozap v0.0.0-20250830085010-72622872de65
 	github.com/open-policy-agent/opa v1.4.2
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
