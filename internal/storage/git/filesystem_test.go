@@ -141,7 +141,7 @@ func Test_RapidNamespaceDeletion(t *testing.T) {
 
 	// Create multiple namespaces with files
 	namespaces := []string{"test1", "test2", "test3", "test4"}
-	
+
 	for _, ns := range namespaces {
 		// Create namespace directory
 		err := gitFS.MkdirAll(ns, 0755)
@@ -190,7 +190,7 @@ func Test_RapidNamespaceDeletion(t *testing.T) {
 	tree, err := commit.Tree()
 	require.NoError(t, err, "failed to get tree from commit")
 	require.NotNil(t, tree, "tree should not be nil")
-	
+
 	// Tree should be empty after all deletions
 	assert.Empty(t, tree.Entries, "tree should have no entries after all deletions")
 }
@@ -206,7 +206,7 @@ func Test_NamespaceWithSubdirectories(t *testing.T) {
 	// Create a namespace with subdirectories
 	err = gitFS.MkdirAll("namespace/subdir1", 0755)
 	require.NoError(t, err)
-	
+
 	err = gitFS.MkdirAll("namespace/subdir2", 0755)
 	require.NoError(t, err)
 

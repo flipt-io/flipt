@@ -177,7 +177,7 @@ func (f *filesystem) MkdirAll(filename string, perm os.FileMode) error {
 	obj := f.storage.NewEncodedObject()
 	obj.SetType(plumbing.BlobObject)
 	obj.SetSize(0)
-	
+
 	gitkeepHash, err := f.storage.SetEncodedObject(obj)
 	if err != nil {
 		return fmt.Errorf("creating .gitkeep blob: %w", err)
