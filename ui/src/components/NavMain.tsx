@@ -10,7 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem
-} from '~/components/ui/sidebar';
+} from '~/components/Sidebar';
 
 export function NavMain({ ns }: { ns: string }) {
   const items = [

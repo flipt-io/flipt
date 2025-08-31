@@ -11,9 +11,9 @@ import { Navigate } from 'react-router';
 
 import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
+import { Button } from '~/components/Button';
 import Loading from '~/components/Loading';
 import { Toaster } from '~/components/Sonner';
-import { Button } from '~/components/ui/button';
 
 import { IAuthMethod } from '~/types/Auth';
 
