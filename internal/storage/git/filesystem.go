@@ -24,6 +24,12 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// emptyTreeHash is the well-known SHA-1 hash of an empty Git tree object
+	// This hash is consistent across all Git repositories
+	emptyTreeHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+)
+
 var _ envfs.Filesystem = (*filesystem)(nil)
 
 // filesystem implements the Filesystem interface for a particular git tree object.
@@ -173,13 +179,23 @@ func (f *filesystem) MkdirAll(filename string, perm os.FileMode) error {
 		return fmt.Errorf("path %q: %w", filename, err)
 	}
 
+	// Create an empty blob for .gitkeep
+	obj := f.storage.NewEncodedObject()
+	obj.SetType(plumbing.BlobObject)
+	obj.SetSize(0)
+
+	gitkeepHash, err := f.storage.SetEncodedObject(obj)
+	if err != nil {
+		return fmt.Errorf("creating .gitkeep blob: %w", err)
+	}
+
 	return updatePath(
 		logger,
 		f.storage,
 		f.tree,
 		append(strings.Split(filename, "/"), ".gitkeep"),
 		true,
-		&plumbing.ZeroHash,
+		&gitkeepHash,
 	)
 }
 
@@ -509,6 +525,36 @@ func (d dirEntry) Info() (fs.FileInfo, error) {
 	return d.info, nil
 }
 
+// validateTree ensures a tree object is valid and can be safely stored
+func validateTree(tree *object.Tree) error {
+	// Check for duplicate entries
+	seen := make(map[string]bool)
+	for _, entry := range tree.Entries {
+		if seen[entry.Name] {
+			return fmt.Errorf("duplicate tree entry: %s", entry.Name)
+		}
+		seen[entry.Name] = true
+
+		// Validate entry name doesn't contain invalid characters
+		if strings.Contains(entry.Name, "/") {
+			return fmt.Errorf("tree entry name contains slash: %s", entry.Name)
+		}
+
+		// Ensure hash is not zero (except for gitmodules which can be)
+		if entry.Hash.IsZero() && entry.Mode != filemode.Submodule {
+			return fmt.Errorf("tree entry has zero hash: %s", entry.Name)
+		}
+	}
+
+	// Ensure tree entries are properly sorted
+	toSort := object.TreeEntrySorter(tree.Entries)
+	if !sort.IsSorted(toSort) {
+		return fmt.Errorf("tree entries are not properly sorted")
+	}
+
+	return nil
+}
+
 // updatePath recursively descends into the provided tree node and updates
 // the entries signified by the provided path
 // given the provided blob hash is zero, then it deletes the leaf and rewrites the path
@@ -567,10 +613,10 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 		}
 
 		if target.Mode.IsFile() {
-			// adding a blob
+			// deleting a blob
 			node.Entries = slices.Delete(node.Entries, i, i+1)
 		} else {
-			// adding a tree
+			// deleting from a tree
 			tree, err := object.GetTree(storage, node.Entries[i].Hash)
 			if err != nil {
 				return err
@@ -580,7 +626,17 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 				return err
 			}
 
-			node.Entries[i].Hash = tree.Hash
+			// Check if the tree is now empty or only contains .gitkeep
+			// If so, remove the directory entry entirely
+			if len(tree.Entries) == 0 || (len(tree.Entries) == 1 && tree.Entries[0].Name == ".gitkeep") {
+				// Remove empty directory from parent
+				node.Entries = slices.Delete(node.Entries, i, i+1)
+				logger.Debug("removed empty directory after deletion",
+					zap.String("directory", parts[0]))
+			} else {
+				// Update the tree hash for non-empty directory
+				node.Entries[i].Hash = tree.Hash
+			}
 		}
 	} else {
 		// performing an insert or update
@@ -623,6 +679,21 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 		}
 	}
 
+	// Skip validation and encoding for empty trees - they have a well-known hash
+	if len(node.Entries) == 0 {
+		// Set the well-known empty tree hash
+		node.Hash = plumbing.NewHash(emptyTreeHash)
+		logger.Debug("updating tree to empty",
+			zap.Strings("path", parts),
+			zap.Stringer("tree_hash", node.Hash))
+		return nil
+	}
+
+	// Validate tree before encoding
+	if err := validateTree(node); err != nil {
+		return fmt.Errorf("invalid tree state: %w", err)
+	}
+
 	obj := storage.NewEncodedObject()
 	if err := node.Encode(obj); err != nil {
 		return err
@@ -636,7 +707,8 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 	logger.Debug("updating tree",
 		zap.Strings("path", parts),
 		zap.Stringer("tree_hash", node.Hash),
-		zap.Stringer("blob_hash", blob))
+		zap.Stringer("blob_hash", blob),
+		zap.Int("entries", len(node.Entries)))
 
 	// decode back into node to reset state
 	return node.Decode(obj)
@@ -659,11 +731,40 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 		hashes = []plumbing.Hash{f.base.Hash}
 	}
 
+	// Ensure we have a valid tree hash and the tree is in storage
+	treeHash := f.tree.Hash
+	if treeHash.IsZero() || len(f.tree.Entries) == 0 {
+		// Create and store an empty tree
+		emptyTree := &object.Tree{}
+		obj := f.storage.NewEncodedObject()
+		if err := emptyTree.Encode(obj); err != nil {
+			return nil, fmt.Errorf("encoding empty tree: %w", err)
+		}
+		var err error
+		treeHash, err = f.storage.SetEncodedObject(obj)
+		if err != nil {
+			return nil, fmt.Errorf("storing empty tree: %w", err)
+		}
+		f.tree.Hash = treeHash
+	} else {
+		// Ensure the tree is in storage
+		if _, err := f.storage.EncodedObject(plumbing.TreeObject, treeHash); err != nil {
+			// Tree not in storage, store it
+			obj := f.storage.NewEncodedObject()
+			if err := f.tree.Encode(obj); err != nil {
+				return nil, fmt.Errorf("encoding tree: %w", err)
+			}
+			if _, err := f.storage.SetEncodedObject(obj); err != nil {
+				return nil, fmt.Errorf("storing tree: %w", err)
+			}
+		}
+	}
+
 	commit := &object.Commit{
 		Author:       signature,
 		Committer:    signature,
 		Message:      msg,
-		TreeHash:     f.tree.Hash,
+		TreeHash:     treeHash,
 		ParentHashes: hashes,
 	}
 
@@ -688,12 +789,28 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 		return nil, fmt.Errorf("encoding commit: %w", err)
 	}
 
-	commit.Hash, err = f.storage.SetEncodedObject(obj)
+	hash, err := f.storage.SetEncodedObject(obj)
 	if err != nil {
 		return nil, fmt.Errorf("storing commit object: %w", err)
 	}
+	commit.Hash = hash
 
-	return commit, nil
+	// Return a commit object that can access storage
+	// This is needed so that commit.Tree() can retrieve the tree from storage
+	storedCommit, err := object.GetCommit(f.storage, hash)
+	if err != nil {
+		// If GetCommit fails, return the original commit as a fallback
+		// This is safe because the commit was already stored successfully
+		return commit, nil //nolint:nilerr // Intentionally returning nil error as fallback
+	}
+
+	// Preserve the original PGP signature if it exists
+	// (GetCommit might add trailing whitespace when decoding)
+	if commit.PGPSignature != "" {
+		storedCommit.PGPSignature = commit.PGPSignature
+	}
+
+	return storedCommit, nil
 }
 
 func errorIsNotFound(err error) bool {
