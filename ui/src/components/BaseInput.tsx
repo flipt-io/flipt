@@ -2,7 +2,11 @@ import * as React from 'react';
 
 import { cn } from '~/components/utils';
 
-function BaseInput({ className, type, ...props }: React.ComponentProps<'input'>) {
+function BaseInput({
+  className,
+  type,
+  ...props
+}: React.ComponentProps<'input'>) {
   return (
     <input
       type={type}

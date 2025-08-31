@@ -14,7 +14,12 @@ import {
   SheetTitle
 } from '~/components/Sheet';
 import { Skeleton } from '~/components/Skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/Tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '~/components/Tooltip';
 import { cn } from '~/components/utils';
 
 import { useIsMobile } from '~/hooks/use-mobile';

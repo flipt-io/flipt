@@ -8,6 +8,8 @@ import {
   useCreateBranchEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
+import { BaseInput } from '~/components/BaseInput';
+import { Button } from '~/components/Button';
 import {
   Dialog,
   DialogClose,
@@ -19,8 +21,6 @@ import {
   DialogTrigger
 } from '~/components/Dialog';
 import MoreInfo from '~/components/MoreInfo';
-import { BaseInput } from '~/components/BaseInput';
-import { Button } from '~/components/Button';
 
 import { IEnvironment } from '~/types/Environment';
 

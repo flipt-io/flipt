@@ -14,8 +14,8 @@ import {
   useListNamespacesQuery
 } from '~/app/namespaces/namespacesApi';
 
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
 import { Button } from '~/components/Button';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
 import {
   SidebarMenu,
   SidebarMenuButton,

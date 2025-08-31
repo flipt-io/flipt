@@ -1,6 +1,7 @@
 import { LogOutIcon, MoreVerticalIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '~/components/DropdownMenu';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/Avatar';
+import { DropdownMenuSeparator } from '~/components/DropdownMenu';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -21,8 +22,6 @@ import { User } from '~/types/auth/User';
 import { expireAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
-
-import { DropdownMenuSeparator } from '~/components/DropdownMenu';
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();

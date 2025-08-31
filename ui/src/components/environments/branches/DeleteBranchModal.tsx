@@ -6,6 +6,8 @@ import {
   useDeleteBranchEnvironmentMutation
 } from '~/app/environments/environmentsApi';
 
+import { BaseInput } from '~/components/BaseInput';
+import { Button } from '~/components/Button';
 import {
   Dialog,
   DialogClose,
@@ -15,8 +17,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '~/components/Dialog';
-import { BaseInput } from '~/components/BaseInput';
-import { Button } from '~/components/Button';
 
 import { IEnvironment } from '~/types/Environment';
 

@@ -1,5 +1,5 @@
-import Percent from '~/components/Percent';
 import { BaseInput } from '~/components/BaseInput';
+import Percent from '~/components/Percent';
 
 import { IDistribution } from '~/types/Distribution';
 
