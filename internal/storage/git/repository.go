@@ -30,6 +30,21 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	defaultReadmeContents = `Flipt Configuration Repository
+==============================
+
+This repository contains Flipt feature flag configuration.
+Each directory containing a file named features.yaml represents a namespace.`
+
+	defaultBranchName = "main"
+	originRemoteName  = "origin"
+)
+
+var (
+	featuresFileNames = []string{"features.yaml", "features.yml"}
+)
+
 type Repository struct {
 	*git.Repository
 
@@ -102,7 +117,7 @@ func NewRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.Option[Repository]) (_ *Repository, empty bool, err error) {
 	r := &Repository{
 		logger:        logger,
-		defaultBranch: "main",
+		defaultBranch: defaultBranchName,
 		readme:        []byte(defaultReadmeContents),
 		// we initialize with a noop function incase
 		// we dont start the polling loop
@@ -157,7 +172,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 						}
 						if !info.IsDir() {
 							name := filepath.Base(path)
-							if name == "features.yaml" || name == "features.yml" {
+							if slices.Contains(featuresFileNames, name) {
 								relPath, _ := filepath.Rel(r.localPath, path)
 								featuresFiles = append(featuresFiles, relPath)
 							}
@@ -286,7 +301,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 									encodedBlob := r.Storer.NewEncodedObject()
 									encodedBlob.SetType(plumbing.BlobObject)
 									encodedBlob.SetSize(blob.Size)
-									
+
 									reader, err := blob.Reader()
 									if err != nil {
 										return fmt.Errorf("getting blob reader: %w", err)
@@ -297,7 +312,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 									if err != nil {
 										return fmt.Errorf("getting blob writer: %w", err)
 									}
-									
+
 									if _, err := io.Copy(writer, reader); err != nil {
 										writer.Close()
 										return fmt.Errorf("copying blob content: %w", err)
@@ -309,7 +324,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 									}
 								}
 							}
-							
+
 							// Then store this tree itself
 							encodedTree := r.Storer.NewEncodedObject()
 							if err := tree.Encode(encodedTree); err != nil {
@@ -319,10 +334,10 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 							if _, err := r.Storer.SetEncodedObject(encodedTree); err != nil {
 								return fmt.Errorf("storing tree: %w", err)
 							}
-							
+
 							return nil
 						}
-						
+
 						// Start copying from the root tree
 						if err := copyTree(tempTree); err != nil {
 							return nil, empty, fmt.Errorf("copying tree to bare repository: %w", err)
@@ -435,6 +450,7 @@ func (r *Repository) startPolling(ctx context.Context) {
 		defer close(r.done)
 
 		ticker := time.NewTicker(r.pollInterval)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
@@ -757,7 +773,7 @@ func (r *Repository) UpdateAndPush(
 		}
 	}
 
-	remoteName := "origin"
+	remoteName := originRemoteName
 	if r.remote != nil {
 		remoteName = r.remote.Name
 	}
@@ -815,7 +831,7 @@ func (r *Repository) ResolveHead() (plumbing.Hash, error) {
 }
 
 func (r *Repository) Resolve(branch string) (plumbing.Hash, error) {
-	reference, err := r.Repository.Reference(plumbing.NewRemoteReferenceName("origin", branch), true)
+	reference, err := r.Repository.Reference(plumbing.NewRemoteReferenceName(originRemoteName, branch), true)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -837,7 +853,7 @@ func (r *Repository) CreateBranchIfNotExists(ctx context.Context, branch string,
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	remoteName := "origin"
+	remoteName := originRemoteName
 	if r.remote != nil {
 		remoteName = r.remote.Name
 	}
@@ -933,7 +949,7 @@ func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error
 func WithRemote(name, url string) containers.Option[Repository] {
 	return func(r *Repository) {
 		r.remote = &config.RemoteConfig{
-			Name: "origin",
+			Name: originRemoteName,
 			URLs: []string{url},
 		}
 	}
@@ -1012,12 +1028,6 @@ func WithMaxOpenDescriptors(n int) containers.Option[Repository] {
 		r.maxOpenDescriptors = n
 	}
 }
-
-const defaultReadmeContents = `Flipt Configuration Repository
-==============================
-
-This repository contains Flipt feature flag configuration.
-Each directory containing a file named features.yaml represents a namespace.`
 
 // copyFile copies a single file from src to dst
 func copyFile(src, dst string) error {
