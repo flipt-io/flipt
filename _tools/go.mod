@@ -3,7 +3,7 @@ module tools
 go 1.25.0
 
 require (
-	github.com/bufbuild/buf v1.55.1
+	github.com/bufbuild/buf v1.57.0
 	github.com/golangci/golangci-lint/v2 v2.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/rakyll/gotest v0.0.6
