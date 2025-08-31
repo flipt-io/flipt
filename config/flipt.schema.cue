@@ -185,7 +185,7 @@ JsonPath: string
 	}
 
 	#scm: {
-		type:        *"github" | "gitea" | "gitlab" | "azure"
+		type:        *"github" | "gitea" | "gitlab" | "azure" | "bitbucket"
 		credentials: string
 		api_url?:    string
 	}
