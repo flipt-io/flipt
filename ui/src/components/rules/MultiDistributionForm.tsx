@@ -1,5 +1,5 @@
 import Percent from '~/components/Percent';
-import { Input } from '~/components/ui/input';
+import { BaseInput } from '~/components/BaseInput';
 
 import { IDistribution } from '~/types/Distribution';
 
@@ -38,7 +38,7 @@ export default function MultiDistributionFormInputs(
           </label>
           <div className="relative sm:col-span-1">
             <Percent />
-            <Input
+            <BaseInput
               type="number"
               className="pl-10 text-center"
               value={dist.rollout}

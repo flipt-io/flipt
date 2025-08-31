@@ -16,7 +16,7 @@ import { Header } from '~/components/Header';
 import Loading from '~/components/Loading';
 import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
-import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '~/components/Sidebar';
 
 import { LoadingStatus } from '~/types/Meta';
 

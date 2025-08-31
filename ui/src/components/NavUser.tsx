@@ -8,13 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '~/components/DropdownMenu';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/Avatar';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar
-} from '~/components/ui/sidebar';
+} from '~/components/Sidebar';
 
 import { User } from '~/types/auth/User';
 
@@ -22,7 +22,7 @@ import { expireAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 
-import { DropdownMenuSeparator } from './ui/dropdown-menu';
+import { DropdownMenuSeparator } from '~/components/DropdownMenu';
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();

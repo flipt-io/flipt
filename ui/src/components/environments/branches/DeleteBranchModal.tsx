@@ -15,8 +15,8 @@ import {
   DialogHeader,
   DialogTitle
 } from '~/components/Dialog';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
+import { BaseInput } from '~/components/BaseInput';
+import { Button } from '~/components/Button';
 
 import { IEnvironment } from '~/types/Environment';
 
@@ -98,7 +98,7 @@ export default function DeleteBranchModal({
                     <span className="font-bold">{environment.key}</span> in the
                     field below:
                   </p>
-                  <Input
+                  <BaseInput
                     name="confirmName"
                     type="text"
                     autoCorrect="off"

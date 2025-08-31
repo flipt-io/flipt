@@ -19,8 +19,8 @@ import {
   DialogTrigger
 } from '~/components/Dialog';
 import MoreInfo from '~/components/MoreInfo';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
+import { BaseInput } from '~/components/BaseInput';
+import { Button } from '~/components/Button';
 
 import { IEnvironment } from '~/types/Environment';
 
@@ -117,7 +117,7 @@ export function CreateBranchPopover({
           </DialogDescription>
         </DialogHeader>
 
-        <Input
+        <BaseInput
           type="text"
           placeholder="New branch name"
           value={branchInput}

@@ -15,13 +15,13 @@ import {
 } from '~/app/namespaces/namespacesApi';
 
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/Popover';
-import { Button } from '~/components/ui/button';
+import { Button } from '~/components/Button';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar
-} from '~/components/ui/sidebar';
+} from '~/components/Sidebar';
 
 import { IEnvironment } from '~/types/Environment';
 import { INamespace } from '~/types/Namespace';

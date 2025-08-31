@@ -13,7 +13,7 @@ import { useListAuthProvidersQuery } from '~/app/auth/authApi';
 
 import Loading from '~/components/Loading';
 import { Toaster } from '~/components/Sonner';
-import { Button } from '~/components/ui/button';
+import { Button } from '~/components/Button';
 
 import { IAuthMethod } from '~/types/Auth';
 
