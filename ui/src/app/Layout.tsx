@@ -1,4 +1,3 @@
-import { StarIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -10,15 +9,15 @@ import {
 } from 'react-router';
 
 import { AppSidebar } from '~/components/AppSidebar';
-import Banner from '~/components/Banner';
 import Footer from '~/components/Footer';
 import { Header } from '~/components/Header';
 import Loading from '~/components/Loading';
+import ProBanner from '~/components/ProBanner';
 import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
 import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar';
 
-import { LoadingStatus } from '~/types/Meta';
+import { LoadingStatus, Product } from '~/types/Meta';
 
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
@@ -27,7 +26,7 @@ import {
   selectCurrentEnvironment,
   useListEnvironmentsQuery
 } from './environments/environmentsApi';
-import { selectDismissedBanner } from './events/eventSlice';
+import { selectDismissedProBanner } from './events/eventSlice';
 import { fetchInfoAsync, selectInfo } from './meta/metaSlice';
 import {
   currentNamespaceChanged,
@@ -39,7 +38,7 @@ import { selectSidebar, sidebarChanged } from './preferences/preferencesSlice';
 function InnerLayout() {
   const { session } = useSession();
 
-  const dismissedBanner = useSelector(selectDismissedBanner);
+  const dismissedProBanner = useSelector(selectDismissedProBanner);
   const dispatch = useAppDispatch();
 
   const { namespaceKey } = useParams();
@@ -105,14 +104,9 @@ function InnerLayout() {
             sidebarOpen={sidebarOpen}
           />
           <div className="sticky top-0 z-10">
-            {!dismissedBanner && (
+            {!dismissedProBanner && info.product !== Product.PRO && (
               <div className="z-10">
-                <Banner
-                  title="Like Flipt? Give us a star on GitHub!"
-                  description="It really means a lot to us. Thank you!"
-                  href="https://github.com/flipt-io/flipt"
-                  icon={<StarIcon className="mx-2 mb-1 inline h-4 w-4" />}
-                />
+                <ProBanner />
               </div>
             )}
           </div>
