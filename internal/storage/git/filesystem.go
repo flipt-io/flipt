@@ -24,6 +24,12 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// emptyTreeHash is the well-known SHA-1 hash of an empty Git tree object
+	// This hash is consistent across all Git repositories
+	emptyTreeHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+)
+
 var _ envfs.Filesystem = (*filesystem)(nil)
 
 // filesystem implements the Filesystem interface for a particular git tree object.
@@ -676,7 +682,7 @@ func updatePath(logger *zap.Logger, storage gitstorage.Storer, node *object.Tree
 	// Skip validation and encoding for empty trees - they have a well-known hash
 	if len(node.Entries) == 0 {
 		// Set the well-known empty tree hash
-		node.Hash = plumbing.NewHash("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+		node.Hash = plumbing.NewHash(emptyTreeHash)
 		logger.Debug("updating tree to empty",
 			zap.Strings("path", parts),
 			zap.Stringer("tree_hash", node.Hash))
@@ -793,8 +799,9 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 	// This is needed so that commit.Tree() can retrieve the tree from storage
 	storedCommit, err := object.GetCommit(f.storage, hash)
 	if err != nil {
-		//nolint
-		return commit, nil // Fall back to returning the original commit
+		// If GetCommit fails, return the original commit as a fallback
+		// This is safe because the commit was already stored successfully
+		return commit, nil //nolint:nilerr // Intentionally returning nil error as fallback
 	}
 
 	// Preserve the original PGP signature if it exists
