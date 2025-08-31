@@ -148,16 +148,28 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				if errors.Is(err, git.ErrRepositoryNotExists) {
 					logger.Debug("directory has content but is not a git repository, initializing and committing existing files")
 
-					// Check if there are any non-git files that need to be committed
-					hasNonGitFiles := false
-					for _, entry := range entries {
-						if !strings.HasPrefix(entry.Name(), ".git") {
-							hasNonGitFiles = true
-							break
+					// Check if there are any features.yaml/yml files that need to be committed
+					featuresFiles := []string{}
+					err = filepath.Walk(r.localPath, func(path string, info os.FileInfo, err error) error {
+						if err != nil {
+							return err
 						}
+						if !info.IsDir() {
+							name := filepath.Base(path)
+							if name == "features.yaml" || name == "features.yml" {
+								relPath, _ := filepath.Rel(r.localPath, path)
+								featuresFiles = append(featuresFiles, relPath)
+							}
+						}
+						return nil
+					})
+					if err != nil {
+						return nil, empty, fmt.Errorf("scanning for features files: %w", err)
 					}
 
-					if hasNonGitFiles {
+					if len(featuresFiles) > 0 {
+						logger.Debug("found features files to commit",
+							zap.Strings("files", featuresFiles))
 						// Create a temporary directory for a non-bare repository
 						tempDir, err := os.MkdirTemp("", "flipt-git-init-*")
 						if err != nil {
@@ -181,25 +193,20 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 							return nil, empty, fmt.Errorf("setting temp repository config: %w", err)
 						}
 
-						// Copy existing files to the temp repository (excluding .git)
-						for _, entry := range entries {
-							if strings.HasPrefix(entry.Name(), ".git") {
-								continue
+						// Copy only features.yaml/yml files to the temp repository
+						for _, relPath := range featuresFiles {
+							sourcePath := filepath.Join(r.localPath, relPath)
+							destPath := filepath.Join(tempDir, relPath)
+
+							// Create parent directories if needed
+							destDir := filepath.Dir(destPath)
+							if err := os.MkdirAll(destDir, 0755); err != nil {
+								return nil, empty, fmt.Errorf("creating directory %s: %w", destDir, err)
 							}
 
-							sourcePath := filepath.Join(r.localPath, entry.Name())
-							destPath := filepath.Join(tempDir, entry.Name())
-
-							if entry.IsDir() {
-								// Recursively copy directory
-								if err := copyDir(sourcePath, destPath); err != nil {
-									return nil, empty, fmt.Errorf("copying directory %s: %w", entry.Name(), err)
-								}
-							} else {
-								// Copy file
-								if err := copyFile(sourcePath, destPath); err != nil {
-									return nil, empty, fmt.Errorf("copying file %s: %w", entry.Name(), err)
-								}
+							// Copy the features file
+							if err := copyFile(sourcePath, destPath); err != nil {
+								return nil, empty, fmt.Errorf("copying features file %s: %w", relPath, err)
 							}
 						}
 
@@ -954,43 +961,4 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	return os.Chmod(dst, sourceInfo.Mode())
-}
-
-// copyDir recursively copies a directory from src to dst
-func copyDir(src, dst string) error {
-	// Get properties of source dir
-	sourceInfo, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	// Create the destination directory
-	if err := os.MkdirAll(dst, sourceInfo.Mode()); err != nil {
-		return err
-	}
-
-	// Read the directory contents
-	entries, err := os.ReadDir(src)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		sourcePath := filepath.Join(src, entry.Name())
-		destPath := filepath.Join(dst, entry.Name())
-
-		if entry.IsDir() {
-			// Recursively copy subdirectory
-			if err := copyDir(sourcePath, destPath); err != nil {
-				return err
-			}
-		} else {
-			// Copy file
-			if err := copyFile(sourcePath, destPath); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }

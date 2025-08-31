@@ -31,6 +31,12 @@ flags:
 		err := os.WriteFile(featuresPath, featuresContent, 0600)
 		require.NoError(t, err)
 
+		// Also create some other files that should NOT be committed
+		err = os.WriteFile(filepath.Join(tempDir, "README.md"), []byte("# Test README"), 0600)
+		require.NoError(t, err)
+		err = os.WriteFile(filepath.Join(tempDir, "config.yml"), []byte("config: test"), 0600)
+		require.NoError(t, err)
+
 		// Create logger
 		logger := zaptest.NewLogger(t)
 
@@ -68,6 +74,13 @@ flags:
 		content, err := file.Contents()
 		require.NoError(t, err)
 		assert.Equal(t, string(featuresContent), content)
+
+		// Verify that README.md and config.yml were NOT committed
+		_, err = tree.File("README.md")
+		require.Error(t, err, "README.md should not be in the commit")
+
+		_, err = tree.File("config.yml")
+		require.Error(t, err, "config.yml should not be in the commit")
 	})
 
 	t.Run("initialize empty repository when directory is empty", func(t *testing.T) {
@@ -127,7 +140,7 @@ flags:
 		// Create a temporary directory for the test
 		tempDir := t.TempDir()
 
-		// Create multiple files in the directory
+		// Create multiple files in the directory (mix of features and non-features files)
 		files := map[string]string{
 			"features.yaml": `namespace:
   key: "default"
@@ -139,12 +152,23 @@ flags:
 flags:
   - key: "prod_flag"
 `,
+			"staging/features.yml": `namespace:
+  key: "staging"
+flags:
+  - key: "staging_flag"
+`,
 			"config.yml": `version: "1.0"
+`,
+			"README.md": `# Test Project
+`,
+			".env": `SECRET_KEY=12345
 `,
 		}
 
 		// Create directories and files
 		err := os.MkdirAll(filepath.Join(tempDir, "production"), 0755)
+		require.NoError(t, err)
+		err = os.MkdirAll(filepath.Join(tempDir, "staging"), 0755)
 		require.NoError(t, err)
 
 		for path, content := range files {
@@ -178,12 +202,19 @@ flags:
 		require.NoError(t, err)
 		assert.Contains(t, commit.Message, "Initial commit")
 
-		// Check that all files are in the commit
+		// Check that only features files are in the commit
 		tree, err := commit.Tree()
 		require.NoError(t, err)
 
-		// Verify each file exists in the tree
-		for path, expectedContent := range files {
+		// Define which files should be in the commit (only features.yaml/yml files)
+		expectedFiles := map[string]string{
+			"features.yaml":            files["features.yaml"],
+			"production/features.yaml": files["production/features.yaml"],
+			"staging/features.yml":     files["staging/features.yml"],
+		}
+
+		// Verify only features files exist in the tree
+		for path, expectedContent := range expectedFiles {
 			file, err := tree.File(path)
 			require.NoError(t, err, "file %s should exist", path)
 			assert.NotNil(t, file)
@@ -192,6 +223,13 @@ flags:
 			content, err := file.Contents()
 			require.NoError(t, err)
 			assert.Equal(t, expectedContent, content)
+		}
+
+		// Verify non-features files were NOT committed
+		nonFeaturesFiles := []string{"config.yml", "README.md", ".env"}
+		for _, path := range nonFeaturesFiles {
+			_, err := tree.File(path)
+			require.Error(t, err, "file %s should not be in the commit", path)
 		}
 	})
 }
