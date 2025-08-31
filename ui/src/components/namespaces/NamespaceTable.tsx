@@ -93,10 +93,11 @@ export default function NamespaceTable(props: NamespaceTableProps) {
   } = props;
 
   const sortedNamespaces = useMemo(() => {
+    // Sort by key for consistency: default namespace first, then alphabetical by key
     return [...namespaces].sort((a, b) => {
       if (a.key.toLowerCase() === 'default') return -1;
       if (b.key.toLowerCase() === 'default') return 1;
-      return a.name.localeCompare(b.name);
+      return a.key.localeCompare(b.key);
     });
   }, [namespaces]);
 
