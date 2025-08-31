@@ -793,6 +793,7 @@ func (f *filesystem) commit(ctx context.Context, msg string) (*object.Commit, er
 	// This is needed so that commit.Tree() can retrieve the tree from storage
 	storedCommit, err := object.GetCommit(f.storage, hash)
 	if err != nil {
+		//nolint
 		return commit, nil // Fall back to returning the original commit
 	}
 
