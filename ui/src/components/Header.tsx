@@ -5,12 +5,8 @@ import { useSelector } from 'react-redux';
 import { selectCurrentEnvironment } from '~/app/environments/environmentsApi';
 import { selectInfo } from '~/app/meta/metaSlice';
 
-import { SidebarTrigger } from '~/components/ui/sidebar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '~/components/ui/tooltip';
+import { SidebarTrigger } from '~/components/Sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/Tooltip';
 
 import { Badge } from './Badge';
 import BranchActionsDropdown from './environments/branches/BranchActionsDropdown';

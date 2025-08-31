@@ -13,9 +13,9 @@ import Footer from '~/components/Footer';
 import { Header } from '~/components/Header';
 import Loading from '~/components/Loading';
 import ProBanner from '~/components/ProBanner';
+import { SidebarInset, SidebarProvider } from '~/components/Sidebar';
 import { Toaster } from '~/components/Sonner';
 import CommandDialog from '~/components/command/CommandDialog';
-import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar';
 
 import { LoadingStatus, Product } from '~/types/Meta';
 

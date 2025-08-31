@@ -3,23 +3,23 @@ import { VariantProps, cva } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Skeleton } from '~/components/Skeleton';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Separator } from '~/components/ui/separator';
+import { BaseInput } from '~/components/BaseInput';
+import { Button } from '~/components/Button';
+import { Separator } from '~/components/Separator';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle
-} from '~/components/ui/sheet';
+} from '~/components/Sheet';
+import { Skeleton } from '~/components/Skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from '~/components/ui/tooltip';
+} from '~/components/Tooltip';
 import { cn } from '~/components/utils';
 
 import { useIsMobile } from '~/hooks/use-mobile';
@@ -320,9 +320,9 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
 function SidebarInput({
   className,
   ...props
-}: React.ComponentProps<typeof Input>) {
+}: React.ComponentProps<typeof BaseInput>) {
   return (
-    <Input
+    <BaseInput
       data-slot="sidebar-input"
       data-sidebar="input"
       className={cn('bg-background h-8 w-full shadow-none', className)}
