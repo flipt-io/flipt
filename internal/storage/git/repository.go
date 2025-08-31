@@ -17,6 +17,7 @@ import (
 	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/cache"
+	"github.com/go-git/go-git/v6/plumbing/filemode"
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/go-git/go-git/v6/storage"
@@ -247,33 +248,114 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 							return nil, empty, fmt.Errorf("initializing bare repository: %w", err)
 						}
 
-						// Add the temp repository as a remote
-						if _, err = r.CreateRemote(&config.RemoteConfig{
-							Name: "temp",
-							URLs: []string{tempDir},
-						}); err != nil {
-							return nil, empty, fmt.Errorf("adding temp remote: %w", err)
+						// Get the commit object from temp repository
+						tempCommit, err := tempRepo.CommitObject(commitHash)
+						if err != nil {
+							return nil, empty, fmt.Errorf("getting commit from temp repository: %w", err)
 						}
 
-						// Fetch from the temp repository
-						if err := r.FetchContext(ctx, &git.FetchOptions{
-							RemoteName: "temp",
-							RefSpecs: []config.RefSpec{
-								config.RefSpec(fmt.Sprintf("+refs/heads/%s:refs/heads/%s", r.defaultBranch, r.defaultBranch)),
-							},
-						}); err != nil {
-							return nil, empty, fmt.Errorf("fetching from temp repository: %w", err)
+						// Get the tree from the commit
+						tempTree, err := tempCommit.Tree()
+						if err != nil {
+							return nil, empty, fmt.Errorf("getting tree from temp commit: %w", err)
+						}
+
+						// Copy all objects (blobs and trees) from temp repository to bare repository
+						// We need to walk the tree recursively to copy all subtrees
+						var copyTree func(tree *object.Tree) error
+						copyTree = func(tree *object.Tree) error {
+							// First copy all blobs in this tree
+							for _, entry := range tree.Entries {
+								if entry.Mode == filemode.Dir {
+									// Handle subdirectory - recursively copy the subtree
+									subTree, err := tempRepo.TreeObject(entry.Hash)
+									if err != nil {
+										return fmt.Errorf("getting subtree %s: %w", entry.Hash, err)
+									}
+									if err := copyTree(subTree); err != nil {
+										return err
+									}
+								} else {
+									// Handle file - copy the blob
+									blob, err := tempRepo.BlobObject(entry.Hash)
+									if err != nil {
+										return fmt.Errorf("getting blob %s: %w", entry.Hash, err)
+									}
+
+									// Store the blob in the bare repository
+									encodedBlob := r.Storer.NewEncodedObject()
+									encodedBlob.SetType(plumbing.BlobObject)
+									encodedBlob.SetSize(blob.Size)
+									
+									reader, err := blob.Reader()
+									if err != nil {
+										return fmt.Errorf("getting blob reader: %w", err)
+									}
+									defer reader.Close()
+
+									writer, err := encodedBlob.Writer()
+									if err != nil {
+										return fmt.Errorf("getting blob writer: %w", err)
+									}
+									
+									if _, err := io.Copy(writer, reader); err != nil {
+										writer.Close()
+										return fmt.Errorf("copying blob content: %w", err)
+									}
+									writer.Close()
+
+									if _, err := r.Storer.SetEncodedObject(encodedBlob); err != nil {
+										return fmt.Errorf("storing blob: %w", err)
+									}
+								}
+							}
+							
+							// Then store this tree itself
+							encodedTree := r.Storer.NewEncodedObject()
+							if err := tree.Encode(encodedTree); err != nil {
+								return fmt.Errorf("encoding tree: %w", err)
+							}
+
+							if _, err := r.Storer.SetEncodedObject(encodedTree); err != nil {
+								return fmt.Errorf("storing tree: %w", err)
+							}
+							
+							return nil
+						}
+						
+						// Start copying from the root tree
+						if err := copyTree(tempTree); err != nil {
+							return nil, empty, fmt.Errorf("copying tree to bare repository: %w", err)
+						}
+
+						// Create the commit in the bare repository
+						newCommit := &object.Commit{
+							Author:    tempCommit.Author,
+							Committer: tempCommit.Committer,
+							Message:   tempCommit.Message,
+							TreeHash:  tempTree.Hash,
+						}
+
+						encodedCommit := r.Storer.NewEncodedObject()
+						if err := newCommit.Encode(encodedCommit); err != nil {
+							return nil, empty, fmt.Errorf("encoding commit: %w", err)
+						}
+
+						finalHash, err := r.Storer.SetEncodedObject(encodedCommit)
+						if err != nil {
+							return nil, empty, fmt.Errorf("storing commit: %w", err)
+						}
+
+						// Set the branch reference
+						branchRef = plumbing.NewHashReference(plumbing.NewBranchReferenceName(r.defaultBranch), finalHash)
+						if err := r.Storer.SetReference(branchRef); err != nil {
+							return nil, empty, fmt.Errorf("setting branch reference in bare repository: %w", err)
 						}
 
 						// Set HEAD to point to the main branch
 						ref := plumbing.NewSymbolicReference(plumbing.HEAD, plumbing.NewBranchReferenceName(r.defaultBranch))
 						if err := r.Storer.SetReference(ref); err != nil {
 							return nil, empty, fmt.Errorf("setting HEAD reference: %w", err)
-						}
-
-						// Remove the temp remote
-						if err := r.DeleteRemote("temp"); err != nil {
-							logger.Debug("failed to delete temp remote", zap.Error(err))
 						}
 
 						// Repository is no longer empty
