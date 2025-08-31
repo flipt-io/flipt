@@ -746,7 +746,8 @@
                     "github",
                     "gitea",
                     "gitlab",
-                    "azure"
+                    "azure",
+                    "bitbucket"
                   ],
                   "default": "github"
                 },
