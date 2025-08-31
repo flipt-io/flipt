@@ -253,4 +253,3 @@ npm run test:e2e
 - All API calls should handle loading and error states
 - Maintain backward compatibility with v1 API
 - Follow accessibility best practices (ARIA labels, keyboard navigation)
-

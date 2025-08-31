@@ -7,7 +7,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader
-} from '~/components/ui/sidebar';
+} from '~/components/Sidebar';
 
 import { useSession } from '~/data/hooks/session';
 import { getUser } from '~/data/user';

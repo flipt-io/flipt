@@ -7,6 +7,7 @@ import {
 } from '~/app/environments/environmentsApi';
 
 import { Badge } from '~/components/Badge';
+import { Button } from '~/components/Button';
 import {
   Dialog,
   DialogClose,
@@ -17,7 +18,6 @@ import {
   DialogTitle
 } from '~/components/Dialog';
 import Loading from '~/components/Loading';
-import { Button } from '~/components/ui/button';
 
 import { IEnvironment } from '~/types/Environment';
 
