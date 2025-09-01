@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"maps"
 	"os"
@@ -26,6 +27,44 @@ import (
 	"go.flipt.io/flipt/internal/storage/git/signing"
 	"go.uber.org/zap"
 )
+
+// categorizeError categorizes git operation errors using go-git error types
+func categorizeError(err error) string {
+	// Check for transport-level authentication/authorization errors
+	if stderrors.Is(err, transport.ErrAuthenticationRequired) ||
+		stderrors.Is(err, transport.ErrAuthorizationFailed) ||
+		stderrors.Is(err, transport.ErrInvalidAuthMethod) {
+		return "auth"
+	}
+
+	// Check for repository/network errors
+	if stderrors.Is(err, transport.ErrRepositoryNotFound) ||
+		stderrors.Is(err, transport.ErrEmptyRemoteRepository) {
+		return "network"
+	}
+
+	// Check for conflict/merge related errors
+	if stderrors.Is(err, git.ErrNonFastForwardUpdate) ||
+		stderrors.Is(err, git.ErrWorktreeNotClean) ||
+		stderrors.Is(err, git.ErrUnstagedChanges) {
+		return "conflict"
+	}
+
+	// Check for repository structure errors
+	if stderrors.Is(err, git.ErrRepositoryNotExists) ||
+		stderrors.Is(err, git.ErrBranchNotFound) ||
+		stderrors.Is(err, git.ErrBranchExists) {
+		return "repository"
+	}
+
+	// Check for fetch/network errors
+	if stderrors.Is(err, git.ErrRemoteRefNotFound) ||
+		stderrors.Is(err, git.ErrFetching) {
+		return "network"
+	}
+
+	return "unknown"
+}
 
 type Repository struct {
 	*git.Repository
@@ -164,7 +203,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 
 		// do an initial fetch to setup remote tracking branches
 		if err := r.Fetch(ctx); err != nil {
-			if !errors.Is(err, transport.ErrEmptyRemoteRepository) && !errors.Is(err, git.ErrRemoteRefNotFound) {
+			if !stderrors.Is(err, transport.ErrEmptyRemoteRepository) && !stderrors.Is(err, git.ErrRemoteRefNotFound) {
 				return nil, empty, fmt.Errorf("performing initial fetch: %w", err)
 			}
 
@@ -271,6 +310,43 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		return nil
 	}
 
+	// Track sync operation for the default branch (or first head if specific)
+	branch := r.defaultBranch
+	if len(specific) > 0 {
+		branch = specific[0]
+	}
+
+	// Record sync start and get completion callback
+	finished := r.metrics.recordSyncStart(ctx, branch)
+
+	// Store initial HEAD for change detection
+	beforeRef, _ := r.Head()
+	var beforeHash plumbing.Hash
+	if beforeRef != nil {
+		beforeHash = beforeRef.Hash()
+	}
+
+	defer func() {
+		// Always call finished to record metrics
+		finished(err)
+
+		// Record error categorization if error occurred
+		if err != nil && !stderrors.Is(err, git.NoErrAlreadyUpToDate) {
+			errorType := categorizeError(err)
+			r.metrics.recordSyncError(ctx, branch, errorType)
+		} else {
+			// Track changes if HEAD moved
+			afterRef, _ := r.Head()
+			var afterHash plumbing.Hash
+			if afterRef != nil {
+				afterHash = afterRef.Hash()
+			}
+			if beforeHash != afterHash {
+				r.trackSyncChanges(ctx, branch, beforeHash, afterHash)
+			}
+		}
+	}()
+
 	updatedRefs := map[string]plumbing.Hash{}
 	r.mu.Lock()
 	defer func() {
@@ -304,7 +380,7 @@ func (r *Repository) Fetch(ctx context.Context, specific ...string) (err error) 
 		CABundle:        r.caBundle,
 		InsecureSkipTLS: r.insecureSkipTLS,
 		RefSpecs:        refSpecs,
-	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+	}); err != nil && !stderrors.Is(err, git.NoErrAlreadyUpToDate) {
 		return err
 	}
 
@@ -675,6 +751,59 @@ func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error
 		r.Storer,
 		opts...,
 	)
+}
+
+// trackSyncChanges tracks file changes between two commits
+func (r *Repository) trackSyncChanges(ctx context.Context, branch string, beforeHash, afterHash plumbing.Hash) {
+	if beforeHash == afterHash {
+		return
+	}
+
+	beforeCommit, err := r.CommitObject(beforeHash)
+	if err != nil {
+		r.logger.Debug("failed to get before commit for change tracking", zap.Error(err))
+		return
+	}
+
+	afterCommit, err := r.CommitObject(afterHash)
+	if err != nil {
+		r.logger.Debug("failed to get after commit for change tracking", zap.Error(err))
+		return
+	}
+
+	beforeTree, err := beforeCommit.Tree()
+	if err != nil {
+		r.logger.Debug("failed to get before tree for change tracking", zap.Error(err))
+		return
+	}
+
+	afterTree, err := afterCommit.Tree()
+	if err != nil {
+		r.logger.Debug("failed to get after tree for change tracking", zap.Error(err))
+		return
+	}
+
+	changes, err := beforeTree.Diff(afterTree)
+	if err != nil {
+		r.logger.Debug("failed to diff trees for change tracking", zap.Error(err))
+		return
+	}
+
+	var added, modified, deleted int
+	for _, change := range changes {
+		switch {
+		case change.From.Name == "":
+			added++
+		case change.To.Name == "":
+			deleted++
+		default:
+			modified++
+		}
+	}
+
+	r.metrics.recordFilesChanged(ctx, branch, "added", added)
+	r.metrics.recordFilesChanged(ctx, branch, "modified", modified)
+	r.metrics.recordFilesChanged(ctx, branch, "deleted", deleted)
 }
 
 func WithRemote(name, url string) containers.Option[Repository] {
