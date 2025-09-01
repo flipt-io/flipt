@@ -44,6 +44,7 @@ type Repository struct {
 	sigEmail           string
 	signer             signing.Signer
 	maxOpenDescriptors int
+	isNormalRepo       bool // true if opened with PlainOpen, false if bare repository
 
 	subs []Subscriber
 
@@ -137,10 +138,42 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 				return nil, empty, err
 			}
 		} else {
-			// opened successfully and there is contents so we assume not empty
-			r.Repository, err = git.Open(storage, nil)
-			if err != nil {
-				return nil, empty, err
+			// Directory has content - check if it has a .git subdirectory (normal repo) or bare repo files
+			gitDir := r.localPath + "/.git"
+			if _, err := os.Stat(gitDir); err == nil {
+				// .git subdirectory exists - this is a normal Git repository
+				r.Repository, err = git.PlainOpen(r.localPath)
+				if err != nil {
+					return nil, empty, fmt.Errorf("opening normal git repository: %w", err)
+				}
+				r.isNormalRepo = true
+				
+				// Check if repository has commits
+				head, err := r.Repository.Head()
+				if err != nil && errors.Is(err, plumbing.ErrReferenceNotFound) {
+					empty = true
+				} else {
+					empty = false
+					
+					// For normal repositories, ensure remote tracking reference exists
+					// This is needed for Flipt's branch management to work correctly
+					remoteRef := plumbing.NewReferenceFromStrings("refs/remotes/origin/"+r.defaultBranch, head.Hash().String())
+					if err := r.Repository.Storer.SetReference(remoteRef); err != nil {
+						return nil, empty, fmt.Errorf("setting remote tracking reference: %w", err)
+					}
+				}
+			} else {
+				// No .git subdirectory - try to open as bare repository or create one
+				r.Repository, err = git.Open(storage, nil)
+				if err != nil {
+					// No repository exists, initialize new bare repository
+					r.Repository, err = git.Init(storage, git.WithDefaultBranch(plumbing.NewBranchReferenceName(r.defaultBranch)))
+					if err != nil {
+						return nil, empty, err
+					}
+					// Directory has content but no Git repo - mark as empty to commit existing files
+					empty = true
+				}
 			}
 		}
 	}
@@ -474,6 +507,16 @@ func (r *Repository) UpdateAndPush(
 
 	r.logger.Debug("commit created successfully", zap.Stringer("hash", commit.Hash))
 
+	// For normal repositories, update working directory to match the new commit
+	if r.isNormalRepo && r.localPath != "" {
+		if err := r.updateWorkingDirectory(ctx, commit.Hash); err != nil {
+			r.logger.Warn("failed to update working directory after commit",
+				zap.Stringer("commit", commit.Hash),
+				zap.Error(err))
+			// Don't return error as commit was successful, just log warning
+		}
+	}
+
 	if r.remote != nil {
 		local := plumbing.NewBranchReferenceName(branch)
 		r.logger.Debug("setting local reference",
@@ -675,6 +718,31 @@ func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error
 		r.Storer,
 		opts...,
 	)
+}
+
+// updateWorkingDirectory updates the working directory files to match the given commit
+func (r *Repository) updateWorkingDirectory(ctx context.Context, commitHash plumbing.Hash) error {
+	if !r.isNormalRepo {
+		return nil // Only needed for normal repositories
+	}
+
+	// Get the worktree to update working directory
+	worktree, err := r.Repository.Worktree()
+	if err != nil {
+		return fmt.Errorf("getting worktree: %w", err)
+	}
+
+	// Checkout the commit to update working directory files
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Hash: commitHash,
+	})
+	if err != nil {
+		return fmt.Errorf("checking out commit %s: %w", commitHash.String(), err)
+	}
+
+	r.logger.Debug("updated working directory to match commit",
+		zap.Stringer("commit", commitHash))
+	return nil
 }
 
 func WithRemote(name, url string) containers.Option[Repository] {
