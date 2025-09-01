@@ -19,10 +19,74 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
+var (
+	GitSyncLastTime     metric.Int64ObservableGauge
+	GitSyncDuration     metric.Float64Histogram
+	GitSyncFlagsFetched metric.Int64Counter
+	GitSyncSuccess      metric.Int64Counter
+	GitSyncFailure      metric.Int64Counter
+
+	// internal storage for last sync time value
+	lastSyncTimeValue int64
+	lastSyncTimeMu    sync.RWMutex
+)
+
 func init() {
 	if otel.GetMeterProvider() == nil {
 		otel.SetMeterProvider(metricnoop.NewMeterProvider())
 	}
+}
+
+func InitMetrics() {
+	InitGitSyncMetrics(meter())
+}
+
+func InitGitSyncMetrics(meter metric.Meter) {
+	var err error
+
+	// Create counter and histogram instruments
+	GitSyncDuration, err = meter.Float64Histogram("git_sync_duration_seconds")
+	if err != nil {
+		panic(fmt.Errorf("creating git_sync_duration_seconds histogram: %w", err))
+	}
+	GitSyncFlagsFetched, err = meter.Int64Counter("git_sync_flags_fetched")
+	if err != nil {
+		panic(fmt.Errorf("creating git_sync_flags_fetched counter: %w", err))
+	}
+	GitSyncSuccess, err = meter.Int64Counter("git_sync_success_count")
+	if err != nil {
+		panic(fmt.Errorf("creating git_sync_success_count counter: %w", err))
+	}
+	GitSyncFailure, err = meter.Int64Counter("git_sync_failure_count")
+	if err != nil {
+		panic(fmt.Errorf("creating git_sync_failure_count counter: %w", err))
+	}
+
+	// Create ObservableGauge for last sync time and register callback
+	GitSyncLastTime, err = meter.Int64ObservableGauge("git_sync_last_time_unix")
+	if err != nil {
+		panic(fmt.Errorf("creating git_sync_last_time_unix observable gauge: %w", err))
+	}
+
+	_, err = meter.RegisterCallback(
+		func(ctx context.Context, observer metric.Observer) error {
+			lastSyncTimeMu.RLock()
+			value := lastSyncTimeValue
+			lastSyncTimeMu.RUnlock()
+			observer.ObserveInt64(GitSyncLastTime, value)
+			return nil
+		},
+		GitSyncLastTime,
+	)
+	if err != nil {
+		panic(fmt.Errorf("registering callback for git_sync_last_time_unix: %w", err))
+	}
+}
+
+func SetGitSyncLastTime(ts int64) {
+	lastSyncTimeMu.Lock()
+	lastSyncTimeValue = ts
+	lastSyncTimeMu.Unlock()
 }
 
 // This is memoized in the OTEL library to avoid creating multiple instances of the same exporter.

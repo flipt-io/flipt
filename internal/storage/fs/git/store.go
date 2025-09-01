@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"io/fs"
 	"os"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
@@ -20,6 +23,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gitfs"
+	"go.flipt.io/flipt/internal/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
@@ -294,6 +298,10 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 	return fn(snap)
 }
 
+func (s *SnapshotStore) Resolve(ref string) (plumbing.Hash, error) {
+	return s.resolve(ref)
+}
+
 // listRemoteRefs returns a set of branch and tag names present on the remote.
 func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}, error) {
 	remotes, err := s.repo.Remotes()
@@ -335,14 +343,27 @@ func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
+	syncStart := time.Now()
 	updated, fetchErr := s.fetch(ctx, s.snaps.References())
 
 	if !updated && fetchErr == nil {
+		// No update and no error: record metrics for a successful no-change sync
+		duration := time.Since(syncStart).Seconds()
+		metrics.SetGitSyncLastTime(time.Now().Unix())
+		metrics.GitSyncDuration.Record(ctx, duration)
+		metrics.GitSyncSuccess.Add(ctx, 1)
 		return false, nil
 	}
 
-	// If we can't fetch, we need to check if the remote refs have changed
-	// and remove any references that are no longer present
+	if fetchErr != nil {
+		// Record failure early to capture fetch errors
+		duration := time.Since(syncStart).Seconds()
+		metrics.SetGitSyncLastTime(time.Now().Unix())
+		metrics.GitSyncDuration.Record(ctx, duration)
+		metrics.GitSyncFailure.Add(ctx, 1, metric.WithAttributes(attribute.String("reason", fetchErr.Error())))
+	}
+
+	// If fetchErr exists, try cleaning up refs but do not declare full failure yet
 	if fetchErr != nil {
 		remoteRefs, listErr := s.listRemoteRefs(ctx)
 		if listErr != nil {
@@ -364,6 +385,8 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	}
 
 	var errs []error
+	flagsFetched := 0
+
 	if fetchErr != nil {
 		errs = append(errs, fetchErr)
 	}
@@ -373,11 +396,29 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 			errs = append(errs, err)
 			continue
 		}
-		if _, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot); err != nil {
+
+		snap, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot)
+		if err != nil {
 			errs = append(errs, err)
+			continue
+		}
+		if snap != nil {
+			flagsFetched += snap.TotalFlagsCount()
 		}
 	}
-	return true, errors.Join(errs...)
+
+	duration := time.Since(syncStart).Seconds()
+	metrics.SetGitSyncLastTime(time.Now().Unix())
+	metrics.GitSyncDuration.Record(ctx, duration)
+	metrics.GitSyncFlagsFetched.Add(ctx, int64(flagsFetched))
+
+	if fetchErr != nil || len(errs) > 0 {
+		metrics.GitSyncFailure.Add(ctx, 1, metric.WithAttributes(attribute.String("reason", fmt.Sprintf("fetchErr: %v, buildErrors: %v", fetchErr, errs))))
+		return true, errors.Join(append(errs, fetchErr)...)
+	}
+
+	metrics.GitSyncSuccess.Add(ctx, 1)
+	return true, nil
 }
 
 func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error) {

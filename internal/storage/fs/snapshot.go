@@ -789,6 +789,14 @@ func (ss *Snapshot) CountFlags(ctx context.Context, p storage.NamespaceRequest) 
 	return uint64(len(ns.flags)), nil
 }
 
+func (ss *Snapshot) TotalFlagsCount() int {
+	total := 0
+	for _, ns := range ss.ns {
+		total += len(ns.flags)
+	}
+	return total
+}
+
 func (ss *Snapshot) GetEvaluationRules(ctx context.Context, flag storage.ResourceRequest) ([]*storage.EvaluationRule, error) {
 	ns, ok := ss.ns[flag.Namespace()]
 	if !ok {

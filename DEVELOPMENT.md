@@ -28,7 +28,7 @@ If you run into errors such as:
 undefined: sqlite3.Error
 ```
 
-Then you need to enable CGO. 
+Then you need to enable CGO.
 
 ### Windows
 
@@ -43,10 +43,10 @@ Then you need to enable CGO.
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/flipt-io/flipt`.
-1. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
-1. Run `mage go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
-1. Run `mage` to build the binary with embedded assets.
-1. Run `mage -l` to see a full list of possible commands.
+2. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
+3. Run `mage go:test` to execute the Go test suite. For more information on tests, see also [here](build/README.md)
+4. Run `mage` to build the binary with embedded assets.
+5. Run `mage -l` to see a full list of possible commands.
 
 ## Conventional Commits
 
@@ -112,7 +112,7 @@ These ports will be forwarded to your local machine automatically if you are dev
 
 ## Docker Compose
 
-If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository. 
+If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository.
 
 This will start two Docker containers:
 
