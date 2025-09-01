@@ -11,7 +11,7 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { ArrowDownIcon, ArrowUpIcon, PencilIcon, XIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
@@ -92,6 +92,15 @@ export default function NamespaceTable(props: NamespaceTableProps) {
     setShowDeleteNamespaceModal
   } = props;
 
+  const sortedNamespaces = useMemo(() => {
+    // Sort by key for consistency: default namespace first, then alphabetical by key
+    return [...namespaces].sort((a, b) => {
+      if (a.key.toLowerCase() === 'default') return -1;
+      if (b.key.toLowerCase() === 'default') return 1;
+      return a.key.localeCompare(b.key);
+    });
+  }, [namespaces]);
+
   const searchThreshold = 10;
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -161,7 +170,7 @@ export default function NamespaceTable(props: NamespaceTableProps) {
   ];
 
   const table = useReactTable({
-    data: namespaces,
+    data: sortedNamespaces,
     columns,
     state: {
       globalFilter: filter,
