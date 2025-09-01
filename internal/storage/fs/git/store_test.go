@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -55,11 +56,12 @@ func Test_Store_Subscribe_Hash(t *testing.T) {
 
 func Test_Store_View(t *testing.T) {
 	ch := make(chan struct{})
+	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				close(ch)
+				once.Do(func() { close(ch) })
 			}
 		}),
 	))
@@ -132,13 +134,14 @@ func Test_Store_View_WithFilesystemStorage(t *testing.T) {
 		i := i
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
 			ch := make(chan struct{})
+			var once sync.Once
 			store, skip := testStore(t, gitRepoURL,
 				WithFilesystemStorage(dir),
 				WithPollOptions(
 					fs.WithInterval(time.Second),
 					fs.WithNotify(t, func(modified bool) {
 						if modified {
-							close(ch)
+							once.Do(func() { close(ch) })
 						}
 					}),
 				),
@@ -205,11 +208,12 @@ flags:
 
 func Test_Store_View_WithRevision(t *testing.T) {
 	ch := make(chan struct{})
+	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				close(ch)
+				once.Do(func() { close(ch) })
 			}
 		}),
 	))
@@ -347,6 +351,7 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 	}
 
 	ch := make(chan struct{})
+	var once sync.Once
 	store, skip := testStore(t, gitRepoURL,
 		WithRef("v0.1.*"),
 		WithSemverResolver(),
@@ -354,7 +359,7 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 			fs.WithInterval(time.Second),
 			fs.WithNotify(t, func(modified bool) {
 				if modified {
-					close(ch)
+					once.Do(func() { close(ch) })
 				}
 			}),
 		),
@@ -439,11 +444,12 @@ flags:
 
 func Test_Store_View_WithDirectory(t *testing.T) {
 	ch := make(chan struct{})
+	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				close(ch)
+				once.Do(func() { close(ch) })
 			}
 		}),
 	),
