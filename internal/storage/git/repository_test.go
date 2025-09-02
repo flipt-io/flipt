@@ -5,9 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -90,7 +92,13 @@ flags:
 	require.NoError(t, err)
 	_, err = worktree.Add("production/features.yaml")
 	require.NoError(t, err)
-	_, err = worktree.Commit("Initial commit", &git.CommitOptions{})
+	_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  time.Now(),
+		},
+	})
 	require.NoError(t, err)
 
 	// Test opening with Flipt
@@ -199,7 +207,13 @@ flags:
 	require.NoError(t, err)
 	_, err = worktree.Add("production/features.yaml")
 	require.NoError(t, err)
-	commit1, err := worktree.Commit("Initial commit", &git.CommitOptions{})
+	commit1, err := worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  time.Now(),
+		},
+	})
 	require.NoError(t, err)
 
 	// Create second commit with modified content
@@ -213,7 +227,13 @@ flags:
 	require.NoError(t, os.WriteFile(featuresFile, []byte(updatedContent), 0600))
 	_, err = worktree.Add("production/features.yaml")
 	require.NoError(t, err)
-	commit2, err := worktree.Commit("Update flag", &git.CommitOptions{})
+	commit2, err := worktree.Commit("Update flag", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  time.Now(),
+		},
+	})
 	require.NoError(t, err)
 
 	// Create Flipt repository instance
