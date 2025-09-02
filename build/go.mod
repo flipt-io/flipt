@@ -4,17 +4,17 @@ go 1.23.0
 
 require (
 	cloud.google.com/go/storage v1.50.0
-	code.gitea.io/sdk/gitea v0.18.0
+	code.gitea.io/sdk/gitea v0.22.0
 	dagger.io/dagger v0.17.0
-	github.com/99designs/gqlgen v0.17.75
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.0
+	github.com/99designs/gqlgen v0.17.78
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.2
 	github.com/Khan/genqlient v0.8.1
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.2
-	github.com/docker/docker v28.0.4+incompatible
+	github.com/docker/docker v28.3.3+incompatible
 	github.com/go-git/go-billy/v5 v5.6.2
-	github.com/go-git/go-git/v5 v5.14.0
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v66 v66.0.0
@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/cap v0.9.0
 	github.com/magefile/mage v1.15.0
 	github.com/stretchr/testify v1.10.0
-	github.com/vektah/gqlparser/v2 v2.5.28
+	github.com/vektah/gqlparser/v2 v2.5.30
 	go.flipt.io/flipt/rpc/flipt v1.54.0
 	go.flipt.io/flipt/sdk/go v0.11.0
 	go.flipt.io/stew v0.0.0-20240109140408-33ad11ecef1c
@@ -141,7 +141,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/onsi/gomega v1.36.3 // indirect
 	github.com/open-feature/go-sdk v1.14.1
-	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.5
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.6
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
@@ -182,7 +182,7 @@ replace (
 	go.flipt.io/flipt/sdk/go => ../sdk/go
 )
 
-replace github.com/open-feature/go-sdk-contrib/providers/ofrep => github.com/erka/openfeature-go-ofrep-provider v0.0.1
+replace github.com/open-feature/go-sdk-contrib/providers/ofrep => github.com/erka/openfeature-go-ofrep-provider v0.0.2
 
 replace go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc => go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.12.2
 

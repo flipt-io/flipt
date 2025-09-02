@@ -422,7 +422,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		return nil, errs.ErrInvalidf("invalid rollout rule type %T", r.GetRule())
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +527,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		return nil, errs.ErrInvalid("rollout ID not supplied")
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -681,7 +681,7 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -752,7 +752,7 @@ func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}

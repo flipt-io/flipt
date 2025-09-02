@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine3.21 AS build
+FROM golang:1.25-alpine3.21 AS build
 
 WORKDIR /home/flipt
 
@@ -24,7 +24,7 @@ ENV CGO_ENABLED=1
 RUN mage bootstrap && \
     mage build
 
-FROM alpine:3.19
+FROM alpine:3.22
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
