@@ -13,7 +13,7 @@ Before starting, make sure you have the following installed:
 
 - [GCC Compiler](https://gcc.gnu.org/install/binaries.html)
 - [SQLite](https://sqlite.org/index.html)
-- [Go 1.24+](https://golang.org/doc/install)
+- [Go 1.25+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/ )
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
@@ -55,10 +55,6 @@ Flipt uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/
 `pip install pre-commit` or `brew install pre-commit` (if you're on a Mac)
 
 Then run `pre-commit install` to install the git hook.
-
-## Go
-
-Flipt is built with Go 1.23+.
 
 ## Bootstrap
 
