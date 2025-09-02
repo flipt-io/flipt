@@ -147,14 +147,14 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 					return nil, empty, fmt.Errorf("opening normal git repository: %w", err)
 				}
 				r.isNormalRepo = true
-				
+
 				// Check if repository has commits
 				head, err := r.Repository.Head()
 				if err != nil && errors.Is(err, plumbing.ErrReferenceNotFound) {
 					empty = true
 				} else {
 					empty = false
-					
+
 					// For normal repositories, ensure remote tracking reference exists
 					// This is needed for Flipt's branch management to work correctly
 					remoteRef := plumbing.NewReferenceFromStrings("refs/remotes/origin/"+r.defaultBranch, head.Hash().String())
@@ -721,7 +721,7 @@ func (r *Repository) newFilesystem(hash plumbing.Hash) (_ *filesystem, err error
 }
 
 // updateWorkingDirectory updates the working directory files to match the given commit
-func (r *Repository) updateWorkingDirectory(ctx context.Context, commitHash plumbing.Hash) error {
+func (r *Repository) updateWorkingDirectory(_ context.Context, commitHash plumbing.Hash) error {
 	if !r.isNormalRepo {
 		return nil // Only needed for normal repositories
 	}

@@ -52,7 +52,7 @@ flags:
       type: VARIANT_FLAG_TYPE
       description: A test flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
 
 	repo, empty, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
 	require.NoError(t, err)
@@ -81,7 +81,7 @@ flags:
       type: VARIANT_FLAG_TYPE
       description: A test flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
 
 	// Commit the files
 	plainRepo, err := git.PlainOpen(tempDir)
@@ -163,7 +163,7 @@ flags:
     - key: test-flag
       name: Test Flag
       type: VARIANT_FLAG_TYPE`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(content), 0600))
 
 	// Try to reopen - should detect existing bare repository instead of treating as normal repo
 	repo2, empty2, err := newRepository(context.Background(), logger, WithFilesystemStorage(tempDir))
@@ -193,7 +193,7 @@ flags:
     - key: test-flag
       name: Test Flag
       enabled: false`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(initialContent), 0644))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(initialContent), 0600))
 
 	worktree, err := plainRepo.Worktree()
 	require.NoError(t, err)
@@ -210,7 +210,7 @@ flags:
     - key: test-flag
       name: Test Flag
       enabled: true`
-	require.NoError(t, os.WriteFile(featuresFile, []byte(updatedContent), 0644))
+	require.NoError(t, os.WriteFile(featuresFile, []byte(updatedContent), 0600))
 	_, err = worktree.Add("production/features.yaml")
 	require.NoError(t, err)
 	commit2, err := worktree.Commit("Update flag", &git.CommitOptions{})
@@ -271,7 +271,7 @@ func TestRepositoryWithCustomBranch(t *testing.T) {
 	tempDir := t.TempDir()
 	logger := zap.NewNop()
 
-	repo, _, err := newRepository(context.Background(), logger, 
+	repo, _, err := newRepository(context.Background(), logger,
 		WithFilesystemStorage(tempDir),
 		WithDefaultBranch("develop"))
 	require.NoError(t, err)
