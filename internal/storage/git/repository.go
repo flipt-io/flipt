@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -139,7 +140,7 @@ func newRepository(ctx context.Context, logger *zap.Logger, opts ...containers.O
 			}
 		} else {
 			// Directory has content - check if it has a .git subdirectory (normal repo) or bare repo files
-			gitDir := r.localPath + "/.git"
+			gitDir := filepath.Join(r.localPath, ".git")
 			if _, err := os.Stat(gitDir); err == nil {
 				// .git subdirectory exists - this is a normal Git repository
 				r.Repository, err = git.PlainOpen(r.localPath)
