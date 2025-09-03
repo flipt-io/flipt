@@ -23,7 +23,6 @@ import (
 	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
-	"go.flipt.io/flipt/internal/metrics"
 	"go.flipt.io/flipt/internal/release"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -105,8 +104,6 @@ func exec() error {
 				if err != nil {
 					return err
 				}
-
-				metrics.InitMetrics()
 
 				defer func() {
 					_ = logger.Sync()

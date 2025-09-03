@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 	"io/fs"
 	"os"
 	"slices"
@@ -22,9 +20,9 @@ import (
 	gitstorage "github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/go-git/go-git/v5/storage/memory"
+
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gitfs"
-	"go.flipt.io/flipt/internal/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
@@ -352,21 +350,15 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	syncStart := time.Now()
 	updated, fetchErr := s.fetch(ctx, s.snaps.References())
 
+	flagsFetched := int64(0)
+	var errs []error
+	syncType := "poll"
+
 	if !updated && fetchErr == nil {
 		// No update and no error: record metrics for a successful no-change sync
 		duration := time.Since(syncStart).Seconds()
-		metrics.SetGitSyncLastTime(time.Now().Unix())
-		metrics.GitSyncDuration.Record(ctx, duration)
-		metrics.GitSyncSuccess.Add(ctx, 1)
+		ObserveSync(ctx, duration, 0, true, syncType, "no_change")
 		return false, nil
-	}
-
-	if fetchErr != nil {
-		// Record failure early to capture fetch errors
-		duration := time.Since(syncStart).Seconds()
-		metrics.SetGitSyncLastTime(time.Now().Unix())
-		metrics.GitSyncDuration.Record(ctx, duration)
-		metrics.GitSyncFailure.Add(ctx, 1, metric.WithAttributes(attribute.String("reason", fetchErr.Error())))
 	}
 
 	// If fetchErr exists, try cleaning up refs but do not declare full failure yet
@@ -388,14 +380,10 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 				}
 			}
 		}
-	}
-
-	var errs []error
-	flagsFetched := 0
-
-	if fetchErr != nil {
 		errs = append(errs, fetchErr)
 	}
+
+	// Try to rebuild refs even if fetch failed
 	for _, ref := range s.snaps.References() {
 		hash, err := s.resolve(ref)
 		if err != nil {
@@ -408,22 +396,20 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 			errs = append(errs, err)
 			continue
 		}
+
 		if snap != nil {
-			flagsFetched += snap.TotalFlagsCount()
+			flagsFetched += int64(snap.TotalFlagsCount())
 		}
 	}
 
 	duration := time.Since(syncStart).Seconds()
-	metrics.SetGitSyncLastTime(time.Now().Unix())
-	metrics.GitSyncDuration.Record(ctx, duration)
-	metrics.GitSyncFlagsFetched.Add(ctx, int64(flagsFetched))
 
-	if fetchErr != nil || len(errs) > 0 {
-		metrics.GitSyncFailure.Add(ctx, 1, metric.WithAttributes(attribute.String("reason", fmt.Sprintf("fetchErr: %v, buildErrors: %v", fetchErr, errs))))
-		return true, errors.Join(append(errs, fetchErr)...)
+	if len(errs) > 0 {
+		ObserveSync(ctx, duration, flagsFetched, false, syncType, fmt.Sprintf("%v", errs))
+		return true, errors.Join(errs...)
 	}
 
-	metrics.GitSyncSuccess.Add(ctx, 1)
+	ObserveSync(ctx, duration, flagsFetched, true, syncType, "")
 	return true, nil
 }
 

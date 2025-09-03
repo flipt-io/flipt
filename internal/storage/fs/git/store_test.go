@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -27,41 +25,32 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// RepoClone is a helper function to clone the git repository for test purposes,
-// to be able to commit and push changes independently of the SnapshotStore fetch/poll logic.
-func RepoClone(url string, workdir billy.Filesystem) (*git.Repository, error) {
-	return git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
-		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
-		URL:        url,
-		RemoteName: "origin",
-	})
-}
-
 var gitRepoURL = os.Getenv("TEST_GIT_REPO_URL")
-var gitRepoHEAD = os.Getenv("TEST_GIT_REPO_HEAD")
-var gitRepoTAG = os.Getenv("TEST_GIT_REPO_TAG")
 
 func Test_Store_String(t *testing.T) {
 	require.Equal(t, "git", (&SnapshotStore{}).String())
 }
 
 func Test_Store_Subscribe_Hash(t *testing.T) {
-	head := gitRepoHEAD
+	head := os.Getenv("TEST_GIT_REPO_HEAD")
 	if head == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_HEAD env var to run this test.")
 		return
 	}
+
+	// this helper will fail if there is a problem with this option
+	// the only difference in behaviour is that the poll loop
+	// will silently (intentionally) not run
 	testStore(t, gitRepoURL, WithRef(head))
 }
 
 func Test_Store_View(t *testing.T) {
 	ch := make(chan struct{})
-	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				once.Do(func() { close(ch) })
+				close(ch)
 			}
 		}),
 	))
@@ -72,20 +61,24 @@ func Test_Store_View(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	// Use a separate clone working repo for modifying and pushing changes
+	// pull repo
 	workdir := memfs.New()
-	repo, err := RepoClone(gitRepoURL, workdir)
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
 	require.NoError(t, err)
 
 	tree, err := repo.Worktree()
 	require.NoError(t, err)
 
-	// Checkout main branch explicitly
 	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("main"),
+		Branch: "refs/heads/main",
 	}))
 
-	// Update features.yml in the memfs-backed repo
+	// update features.yml
 	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
 	require.NoError(t, err)
 
@@ -98,26 +91,28 @@ flags:
 	require.NoError(t, err)
 	require.NoError(t, fi.Close())
 
-	// Commit changes
+	// commit changes
 	_, err = tree.Commit("chore: update features.yml", &git.CommitOptions{
 		All:    true,
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
 	require.NoError(t, err)
 
-	// Push changes with BasicAuth
-	err = repo.Push(&git.PushOptions{
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
 		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
-	})
-	require.NoError(t, err)
+	}))
 
-	// Wait until poll notifies snapshot updated or timeout
+	// wait until the snapshot is updated or
+	// we timeout
 	select {
 	case <-ch:
 	case <-time.After(time.Minute):
 		t.Fatal("timed out waiting for snapshot")
 	}
+
+	require.NoError(t, err)
 
 	t.Log("received new snapshot")
 
@@ -130,22 +125,21 @@ flags:
 func Test_Store_View_WithFilesystemStorage(t *testing.T) {
 	dir := t.TempDir()
 
+	// run 3 times to ensure we can handle case where directory is not empty
 	for i := range []int{1, 2, 3} {
 		i := i
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
 			ch := make(chan struct{})
-			var once sync.Once
 			store, skip := testStore(t, gitRepoURL,
 				WithFilesystemStorage(dir),
 				WithPollOptions(
 					fs.WithInterval(time.Second),
 					fs.WithNotify(t, func(modified bool) {
 						if modified {
-							once.Do(func() { close(ch) })
+							close(ch)
 						}
 					}),
-				),
-			)
+				))
 			if skip {
 				return
 			}
@@ -153,18 +147,24 @@ func Test_Store_View_WithFilesystemStorage(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
-			// Use a separate clone to make changes to the repo
+			// pull repo
 			workdir := memfs.New()
-			repo, err := RepoClone(gitRepoURL, workdir)
+			repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+				Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+				URL:           gitRepoURL,
+				RemoteName:    "origin",
+				ReferenceName: plumbing.NewBranchReferenceName("main"),
+			})
 			require.NoError(t, err)
 
 			tree, err := repo.Worktree()
 			require.NoError(t, err)
 
 			require.NoError(t, tree.Checkout(&git.CheckoutOptions{
-				Branch: plumbing.NewBranchReferenceName("main"),
+				Branch: "refs/heads/main",
 			}))
 
+			// update features.yml
 			fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
 			require.NoError(t, err)
 
@@ -178,23 +178,28 @@ flags:
 			require.NoError(t, err)
 			require.NoError(t, fi.Close())
 
+			// commit changes
 			_, err = tree.Commit("chore: update features.yml", &git.CommitOptions{
 				All:    true,
 				Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 			})
 			require.NoError(t, err)
 
-			err = repo.Push(&git.PushOptions{
+			// push new commit
+			require.NoError(t, repo.Push(&git.PushOptions{
 				Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 				RemoteName: "origin",
-			})
-			require.NoError(t, err)
+			}))
 
+			// wait until the snapshot is updated or
+			// we timeout
 			select {
 			case <-ch:
 			case <-time.After(time.Minute):
 				t.Fatal("timed out waiting for snapshot")
 			}
+
+			require.NoError(t, err)
 
 			t.Log("received new snapshot")
 
@@ -202,18 +207,18 @@ flags:
 				_, err = s.GetFlag(ctx, storage.NewResource("production", "foo"))
 				return err
 			}))
+
 		})
 	}
 }
 
 func Test_Store_View_WithRevision(t *testing.T) {
 	ch := make(chan struct{})
-	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				once.Do(func() { close(ch) })
+				close(ch)
 			}
 		}),
 	))
@@ -224,19 +229,25 @@ func Test_Store_View_WithRevision(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	// Use separate clone to create and push changes on new branch
+	// pull repo
 	workdir := memfs.New()
-	repo, err := RepoClone(gitRepoURL, workdir)
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
 	require.NoError(t, err)
 
 	tree, err := repo.Worktree()
 	require.NoError(t, err)
 
 	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("new-branch"),
+		Branch: "refs/heads/new-branch",
 		Create: true,
 	}))
 
+	// update features.yml
 	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
 	require.NoError(t, err)
 
@@ -251,48 +262,47 @@ flags:
 	require.NoError(t, err)
 	require.NoError(t, fi.Close())
 
+	// commit changes
 	_, err = tree.Commit("chore: update features.yml add foo and bar", &git.CommitOptions{
 		All:    true,
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
 	require.NoError(t, err)
 
-	err = repo.Push(&git.PushOptions{
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
 		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
 		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
-	})
-	require.NoError(t, err)
+	}))
 
-	// The "bar" flag should not exist on default revision "main"
 	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.Error(t, err, "flag should not be found in default revision")
 		return nil
 	}))
 
-	// Also not present on "main" explicitly
 	require.NoError(t, store.View(ctx, "main", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.Error(t, err, "flag should not be found in explicitly named main revision")
 		return nil
 	}))
 
-	// Should be present on new-branch
+	// should be able to fetch flag from previously unfetched reference
 	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "bar"))
 		require.NoError(t, err, "flag should be present on new-branch")
 		return nil
 	}))
 
-	// "baz" flag should not exist yet
+	// flag bar should not yet be present
 	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "baz"))
 		require.Error(t, err, "flag should not be found in explicitly named new-branch revision")
 		return nil
 	}))
 
-	// Add "baz" flag
+	// update features.yml, now with the bar flag
 	fi, err = workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
 	require.NoError(t, err)
 
@@ -309,27 +319,29 @@ flags:
 	require.NoError(t, err)
 	require.NoError(t, fi.Close())
 
+	// commit changes
 	_, err = tree.Commit("chore: update features.yml add baz", &git.CommitOptions{
 		All:    true,
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
 	require.NoError(t, err)
 
-	err = repo.Push(&git.PushOptions{
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
 		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
 		RefSpecs:   []config.RefSpec{"refs/heads/new-branch:refs/heads/new-branch"},
-	})
-	require.NoError(t, err)
+	}))
 
-	// Wait for poll to pick up new commit
+	// we should expect to see a modified event now because
+	// the new reference should be tracked
 	select {
 	case <-ch:
 	case <-time.After(time.Minute):
 		t.Fatal("timed out waiting for fetch")
 	}
 
-	// Now "baz" flag must be present on "new-branch"
+	// should be able to fetch flag bar now that it has been pushed
 	require.NoError(t, store.View(ctx, "new-branch", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("production", "baz"))
 		require.NoError(t, err, "flag should be present on new-branch")
@@ -338,20 +350,19 @@ flags:
 }
 
 func Test_Store_View_WithSemverRevision(t *testing.T) {
-	tag := gitRepoTAG
+	tag := os.Getenv("TEST_GIT_REPO_TAG")
 	if tag == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_TAG env var to run this test.")
 		return
 	}
 
-	head := gitRepoHEAD
+	head := os.Getenv("TEST_GIT_REPO_HEAD")
 	if head == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_HEAD env var to run this test.")
 		return
 	}
 
 	ch := make(chan struct{})
-	var once sync.Once
 	store, skip := testStore(t, gitRepoURL,
 		WithRef("v0.1.*"),
 		WithSemverResolver(),
@@ -359,7 +370,7 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 			fs.WithInterval(time.Second),
 			fs.WithNotify(t, func(modified bool) {
 				if modified {
-					once.Do(func() { close(ch) })
+					close(ch)
 				}
 			}),
 		),
@@ -371,27 +382,33 @@ func Test_Store_View_WithSemverRevision(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
+	// pull repo
 	workdir := memfs.New()
-	repo, err := RepoClone(gitRepoURL, workdir)
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
 	require.NoError(t, err)
 
 	tree, err := repo.Worktree()
 	require.NoError(t, err)
 
 	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("semver-branch"),
+		Branch: "refs/heads/semver-branch",
 		Create: true,
 	}))
 
-	// Verify that bar flag absent on default revision
+	// update features.yml
+	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	require.NoError(t, err)
+
 	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
 		_, err := s.GetFlag(ctx, storage.NewResource("semver", "bar"))
 		require.Error(t, err, "flag should not be found in default revision")
 		return nil
 	}))
-
-	fi, err := workdir.OpenFile("features.yml", os.O_TRUNC|os.O_RDWR, os.ModePerm)
-	require.NoError(t, err)
 
 	updated := []byte(`namespace: semver
 flags:
@@ -404,34 +421,41 @@ flags:
 	require.NoError(t, err)
 	require.NoError(t, fi.Close())
 
+	// commit changes
 	commit, err := tree.Commit("chore: update features.yml", &git.CommitOptions{
 		All:    true,
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
 	require.NoError(t, err)
 
+	// create a new tag respecting the semver constraint
 	_, err = repo.CreateTag("v0.1.4", commit, nil)
 	require.NoError(t, err)
 
-	err = repo.Push(&git.PushOptions{
+	// push new commit
+	require.NoError(t, repo.Push(&git.PushOptions{
 		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
 		RefSpecs: []config.RefSpec{
 			"refs/heads/semver-branch:refs/heads/semver-branch",
 			"refs/tags/v0.1.4:refs/tags/v0.1.4",
 		},
-	})
-	require.NoError(t, err)
+	}))
 
+	// wait until the snapshot is updated or
+	// we timeout
 	select {
 	case <-ch:
 	case <-time.After(time.Minute):
 		t.Fatal("timed out waiting for snapshot")
 	}
 
+	require.NoError(t, err)
+
 	t.Log("received new snapshot")
 
-	hash, err := store.Resolve("v0.1.*")
+	// Test if we can resolve to the new tag
+	hash, err := store.resolve("v0.1.*")
 	require.NoError(t, err)
 	require.Equal(t, commit.String(), hash.String())
 
@@ -444,15 +468,15 @@ flags:
 
 func Test_Store_View_WithDirectory(t *testing.T) {
 	ch := make(chan struct{})
-	var once sync.Once
 	store, skip := testStore(t, gitRepoURL, WithPollOptions(
 		fs.WithInterval(time.Second),
 		fs.WithNotify(t, func(modified bool) {
 			if modified {
-				once.Do(func() { close(ch) })
+				close(ch)
 			}
 		}),
 	),
+		// scope flag state discovery to sub-directory
 		WithDirectory("subdir"),
 	)
 	if skip {
@@ -462,15 +486,21 @@ func Test_Store_View_WithDirectory(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
+	// pull repo
 	workdir := memfs.New()
-	repo, err := RepoClone(gitRepoURL, workdir)
+	repo, err := git.Clone(memory.NewStorage(), workdir, &git.CloneOptions{
+		Auth:          &http.BasicAuth{Username: "root", Password: "password"},
+		URL:           gitRepoURL,
+		RemoteName:    "origin",
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+	})
 	require.NoError(t, err)
 
 	tree, err := repo.Worktree()
 	require.NoError(t, err)
 
 	require.NoError(t, tree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.NewBranchReferenceName("main"),
+		Branch: "refs/heads/main",
 	}))
 
 	require.NoError(t, store.View(ctx, "", func(s storage.ReadOnlyStore) error {
@@ -482,18 +512,19 @@ func Test_Store_View_WithDirectory(t *testing.T) {
 func Test_Store_SelfSignedSkipTLS(t *testing.T) {
 	ts := httptest.NewTLSServer(nil)
 	defer ts.Close()
-
+	// This is not a valid Git source, but it still proves the point that a
+	// well-known server with a self-signed certificate will be accepted by Flipt
+	// when configuring the TLS options for the source
 	err := testStoreWithError(t, ts.URL, WithInsecureTLS(false))
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-
 	err = testStoreWithError(t, ts.URL, WithInsecureTLS(true))
+	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
 
 func Test_Store_SelfSignedCABytes(t *testing.T) {
 	ts := httptest.NewTLSServer(nil)
 	defer ts.Close()
-
 	var buf bytes.Buffer
 	pemCert := &pem.Block{
 		Type:  "CERTIFICATE",
@@ -502,24 +533,30 @@ func Test_Store_SelfSignedCABytes(t *testing.T) {
 	err := pem.Encode(&buf, pemCert)
 	require.NoError(t, err)
 
+	// This is not a valid Git source, but it still proves the point that a
+	// well-known server with a self-signed certificate will be accepted by Flipt
+	// when configuring the TLS options for the source
 	err = testStoreWithError(t, ts.URL)
 	require.ErrorContains(t, err, "tls: failed to verify certificate: x509: certificate signed by unknown authority")
-
 	err = testStoreWithError(t, ts.URL, WithCABundle(buf.Bytes()))
+	// This time, we don't expect a tls validation error anymore
 	require.ErrorIs(t, err, transport.ErrRepositoryNotFound)
 }
 
 func testStore(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) (*SnapshotStore, bool) {
 	t.Helper()
+
 	if gitRepoURL == "" {
 		t.Skip("Set non-empty TEST_GIT_REPO_URL env var to run this test.")
 		return nil, true
 	}
 
+	t.Log("Git repo host:", gitRepoURL)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	store, err := NewSnapshotStore(ctx, zaptest.NewLogger(t), gitRepoURL,
+	source, err := NewSnapshotStore(ctx, zaptest.NewLogger(t), gitRepoURL,
 		append([]containers.Option[SnapshotStore]{
 			WithRef("main"),
 			WithAuth(&http.BasicAuth{
@@ -532,10 +569,10 @@ func testStore(t *testing.T, gitRepoURL string, opts ...containers.Option[Snapsh
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_ = store.Close()
+		_ = source.Close()
 	})
 
-	return store, false
+	return source, false
 }
 
 func testStoreWithError(t *testing.T, gitRepoURL string, opts ...containers.Option[SnapshotStore]) error {
@@ -544,7 +581,7 @@ func testStoreWithError(t *testing.T, gitRepoURL string, opts ...containers.Opti
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	store, err := NewSnapshotStore(ctx, zaptest.NewLogger(t), gitRepoURL,
+	source, err := NewSnapshotStore(ctx, zaptest.NewLogger(t), gitRepoURL,
 		append([]containers.Option[SnapshotStore]{
 			WithRef("main"),
 			WithAuth(&http.BasicAuth{
@@ -559,7 +596,7 @@ func testStoreWithError(t *testing.T, gitRepoURL string, opts ...containers.Opti
 	}
 
 	t.Cleanup(func() {
-		_ = store.Close()
+		_ = source.Close()
 	})
 
 	return nil
