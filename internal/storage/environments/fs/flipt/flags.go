@@ -156,7 +156,7 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
@@ -214,7 +214,7 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
@@ -226,11 +226,12 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 
 type documentEncoder struct {
 	*yaml.Encoder
-	buf *bytes.Buffer
+	buf      *bytes.Buffer
+	filename string
 }
 
-func newDocumentEncoder(wr io.Writer) documentEncoder {
-	docEnc := documentEncoder{buf: &bytes.Buffer{}}
+func newDocumentEncoder(wr io.Writer, filename string) documentEncoder {
+	docEnc := documentEncoder{buf: &bytes.Buffer{}, filename: filename}
 	docEnc.Encoder = yaml.NewEncoder(io.MultiWriter(wr, docEnc.buf))
 	return docEnc
 }
@@ -241,7 +242,7 @@ func (e documentEncoder) Close() error {
 		return err
 	}
 
-	return validator.Validate("features.yaml or features.yml", e.buf)
+	return validator.Validate(e.filename, e.buf)
 }
 
 func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {

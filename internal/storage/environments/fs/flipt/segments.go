@@ -149,7 +149,7 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
@@ -207,7 +207,7 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
