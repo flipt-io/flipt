@@ -33,7 +33,6 @@ func NewNamespaceStorage(logger *zap.Logger) *NamespaceStorage {
 	return &NamespaceStorage{logger: logger}
 }
 
-
 func (s *NamespaceStorage) GetNamespace(ctx context.Context, fs Filesystem, key string) (*rpcenvironments.Namespace, error) {
 	fi, _, err := TryOpenFeaturesFile(fs, key)
 	if err != nil {

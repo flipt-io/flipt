@@ -16,7 +16,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-
 func getDocsAndNamespace(ctx context.Context, fs environmentsfs.Filesystem, key string) (docs []*ext.Document, idx int, err error) {
 	docs, err = parseNamespace(ctx, fs, key)
 	if err != nil {
