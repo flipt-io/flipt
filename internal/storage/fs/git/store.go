@@ -302,10 +302,6 @@ func (s *SnapshotStore) View(ctx context.Context, storeRef storage.Reference, fn
 	return fn(snap)
 }
 
-func (s *SnapshotStore) Resolve(ref string) (plumbing.Hash, error) {
-	return s.resolve(ref)
-}
-
 // listRemoteRefs returns a set of branch and tag names present on the remote.
 func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}, error) {
 	remotes, err := s.repo.Remotes()
@@ -357,7 +353,7 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	if !updated && fetchErr == nil {
 		// No update and no error: record metrics for a successful no-change sync
 		duration := time.Since(syncStart).Seconds()
-		ObserveSync(ctx, duration, 0, true, syncType, "no_change")
+		ObserveSync(ctx, duration, 0, true, syncType)
 		return false, nil
 	}
 
@@ -403,13 +399,13 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 	}
 
 	duration := time.Since(syncStart).Seconds()
+	ObserveSync(ctx, duration, flagsFetched, len(errs) == 0, syncType)
 
 	if len(errs) > 0 {
-		ObserveSync(ctx, duration, flagsFetched, false, syncType, fmt.Sprintf("%v", errs))
-		return true, errors.Join(errs...)
+		s.logger.Error("git backend flag sync failed", zap.Errors("errors", errs))
+		return false, errors.Join(errs...)
 	}
 
-	ObserveSync(ctx, duration, flagsFetched, true, syncType, "")
 	return true, nil
 }
 

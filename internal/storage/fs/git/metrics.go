@@ -15,6 +15,8 @@ import (
 const (
 	namespace = "flipt"
 	subsystem = "git_sync"
+
+	nanosPerSecond = 1e9
 )
 
 var (
@@ -72,7 +74,7 @@ func init() {
 			lastSyncTimeMu.RLock()
 			value := lastSyncTimeValue
 			lastSyncTimeMu.RUnlock()
-			observer.ObserveInt64(LastTime, value/1e9)
+			observer.ObserveInt64(LastTime, value/nanosPerSecond)
 			return nil
 		},
 		LastTime,
@@ -110,7 +112,7 @@ func ObserveDuration(ctx context.Context, duration float64, typ string) {
 }
 
 // ObserveSync records a complete git sync operation with all relevant metrics.
-func ObserveSync(ctx context.Context, duration float64, flagsFetched int64, success bool, syncType string, reason string) {
+func ObserveSync(ctx context.Context, duration float64, flagsFetched int64, success bool, syncType string) {
 	// Always record duration and update last sync time
 	ObserveDuration(ctx, duration, syncType)
 	setLastSyncTime(time.Now().UnixNano())
@@ -122,18 +124,8 @@ func ObserveSync(ctx context.Context, duration float64, flagsFetched int64, succ
 	if success {
 		ObserveSuccess(ctx, syncType)
 	} else {
-		ObserveFailureWithReason(ctx, syncType, reason)
+		ObserveFailure(ctx, syncType)
 	}
-}
-
-// ObserveFailureWithReason records a failed git sync operation with a specific reason.
-func ObserveFailureWithReason(ctx context.Context, syncType, reason string) {
-	Failure.Add(ctx, 1, metric.WithAttributeSet(
-		attribute.NewSet(
-			attribute.Key("sync_type").String(syncType),
-			attribute.Key("reason").String(reason),
-		),
-	))
 }
 
 // setLastSyncTime updates the last sync time value that will be reported by the observable gauge.
