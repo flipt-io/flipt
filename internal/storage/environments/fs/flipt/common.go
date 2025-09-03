@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"strings"
 
 	"go.flipt.io/flipt/errors"
@@ -16,6 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"gopkg.in/yaml.v3"
 )
+
 
 func getDocsAndNamespace(ctx context.Context, fs environmentsfs.Filesystem, key string) (docs []*ext.Document, idx int, err error) {
 	docs, err = parseNamespace(ctx, fs, key)
@@ -50,7 +50,8 @@ func getDocsAndNamespace(ctx context.Context, fs environmentsfs.Filesystem, key 
 }
 
 func parseNamespace(_ context.Context, fs environmentsfs.Filesystem, namespace string) (docs []*ext.Document, err error) {
-	fi, err := fs.OpenFile(path.Join(namespace, "features.yaml"), os.O_RDONLY, 0644)
+	// Try to open features file with both .yaml and .yml extensions
+	fi, _, err := environmentsfs.TryOpenFeaturesFile(fs, namespace)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil

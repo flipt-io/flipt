@@ -139,7 +139,11 @@ func (f *SegmentStorage) PutResource(ctx context.Context, fs environmentsfs.File
 		docs[idx].Segments = append(docs[idx].Segments, segment)
 	}
 
-	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	filename, err := environmentsfs.FindFeaturesFilename(fs, rs.NamespaceKey)
+	if err != nil {
+		return err
+	}
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -193,7 +197,11 @@ func (f *SegmentStorage) DeleteResource(ctx context.Context, fs environmentsfs.F
 		return nil
 	}
 
-	fi, err := fs.OpenFile(path.Join(namespace, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	filename, err := environmentsfs.FindFeaturesFilename(fs, namespace)
+	if err != nil {
+		return err
+	}
+	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}

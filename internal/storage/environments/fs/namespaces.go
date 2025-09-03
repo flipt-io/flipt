@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	defaultKey       = flipt.DefaultNamespace
-	FeaturesFilename = "features.yaml"
+	defaultKey = flipt.DefaultNamespace
 )
 
 var defaultNamespace = &rpcenvironments.Namespace{
@@ -34,8 +33,9 @@ func NewNamespaceStorage(logger *zap.Logger) *NamespaceStorage {
 	return &NamespaceStorage{logger: logger}
 }
 
+
 func (s *NamespaceStorage) GetNamespace(ctx context.Context, fs Filesystem, key string) (*rpcenvironments.Namespace, error) {
-	fi, err := fs.OpenFile(path.Join(key, FeaturesFilename), os.O_RDONLY, 0644)
+	fi, _, err := TryOpenFeaturesFile(fs, key)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			if key == defaultKey {
@@ -85,13 +85,13 @@ func (s *NamespaceStorage) ListNamespaces(ctx context.Context, fs Filesystem) (i
 			continue
 		}
 
-		fi, err := fs.OpenFile(path.Join(info.Name(), FeaturesFilename), os.O_RDONLY, 0644)
+		fi, _, err := TryOpenFeaturesFile(fs, info.Name())
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {
 				return nil, err
 			}
 
-			// disregard directories without features.yaml files
+			// disregard directories without features.yaml or features.yml files
 			continue
 		}
 
@@ -127,8 +127,12 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 		return fmt.Errorf("creating directory %q: %w", ns.Key, err)
 	}
 
-	path := path.Join(ns.Key, FeaturesFilename)
-	_, err := fs.Stat(path)
+	filename, err := FindFeaturesFilename(fs, ns.Key)
+	if err != nil {
+		return err
+	}
+	filePath := path.Join(ns.Key, filename)
+	_, err = fs.Stat(filePath)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -136,7 +140,7 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 	// If the file already exists, read it to preserve existing flags and data
 	var docs []*ext.Document
 	if err == nil {
-		fi, err := fs.OpenFile(path, os.O_RDONLY, 0644)
+		fi, err := fs.OpenFile(filePath, os.O_RDONLY, 0644)
 		if err != nil {
 			return err
 		}
@@ -156,7 +160,7 @@ func (s *NamespaceStorage) PutNamespace(ctx context.Context, fs Filesystem, ns *
 	}
 
 	// Create output file
-	fi, err := fs.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	fi, err := fs.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -193,8 +197,12 @@ func (s *NamespaceStorage) DeleteNamespace(ctx context.Context, fs Filesystem, k
 		return errors.ErrInvalid(`namespace "default" is protected`)
 	}
 
-	path := path.Join(key, FeaturesFilename)
-	_, err := fs.Stat(path)
+	filename, err := FindFeaturesFilename(fs, key)
+	if err != nil {
+		return err
+	}
+	filePath := path.Join(key, filename)
+	_, err = fs.Stat(filePath)
 	if err != nil {
 		// already removed
 		if errors.Is(err, os.ErrNotExist) {
@@ -204,7 +212,7 @@ func (s *NamespaceStorage) DeleteNamespace(ctx context.Context, fs Filesystem, k
 		return err
 	}
 
-	if err := fs.Remove(path); err != nil {
+	if err := fs.Remove(filePath); err != nil {
 		return err
 	}
 
