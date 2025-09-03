@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -141,10 +140,6 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		url:               url,
 		baseRef:           "main",
 		referenceResolver: staticResolver(),
-	}
-
-	if strings.TrimSpace(store.url) == "" {
-		return nil, fmt.Errorf("missing features repository URL")
 	}
 
 	containers.ApplyAll(store, opts...)
@@ -459,10 +454,6 @@ func (s *SnapshotStore) buildReference(ctx context.Context, ref string) (*storag
 func (s *SnapshotStore) resolve(ref string) (plumbing.Hash, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	if strings.TrimSpace(s.url) == "" {
-		return plumbing.ZeroHash, fmt.Errorf("features repository not initialized")
-	}
 
 	return s.referenceResolver(s.repo, ref)
 }
