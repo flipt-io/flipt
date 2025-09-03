@@ -93,6 +93,20 @@ func TestValidate_NamespaceDetails_v4(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidate_ZeroValues_Success(t *testing.T) {
+	const file = "testdata/valid_zero_values.yaml"
+	f, err := os.Open(file)
+	require.NoError(t, err)
+
+	defer f.Close()
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate(file, f)
+	assert.NoError(t, err)
+}
+
 func TestValidate_YAML_Stream(t *testing.T) {
 	const file = "testdata/valid_yaml_stream.yaml"
 	f, err := os.Open(file)
