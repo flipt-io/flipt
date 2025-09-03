@@ -1,0 +1,51 @@
+version: "1.5"
+flags:
+  - key: test_variant_flag
+    name: Test Variant Flag
+    type: VARIANT_FLAG_TYPE
+    enabled: true
+    variants:
+      - key: variant1
+        name: Variant 1
+        description: First variant
+      - key: variant2
+        name: Variant 2
+        description: Second variant
+    rules:
+      - segment: test_segment
+        distributions:
+          - variant: variant1
+            rollout: 0
+          - variant: variant2
+            rollout: 100
+  - key: test_boolean_flag
+    name: Test Boolean Flag
+    type: BOOLEAN_FLAG_TYPE
+    enabled: true
+    rollouts:
+      - description: "enabled for 0% threshold"
+        threshold:
+          percentage: 0
+          value: true
+      - description: "enabled for 0.0% threshold"
+        threshold:
+          percentage: 0.0
+          value: true
+      - description: "enabled for 50% threshold"
+        threshold:
+          percentage: 50
+          value: true
+      - description: "enabled for test segment with false value"
+        segment:
+          key: test_segment
+          value: false
+
+segments:
+  - key: test_segment
+    name: Test Segment
+    match_type: ANY_MATCH_TYPE
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: user_id
+        operator: eq
+        value: test_user
