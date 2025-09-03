@@ -1,139 +1,72 @@
 {
-  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: [
-    'config:recommended',
-  ],
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
   dependencyDashboardApproval: false,
-  baseBranchPatterns: [
-    'main',
-    'v2',
-  ],
-  timezone: 'America/New_York',
+  baseBranchPatterns: ["main", "v2"],
+  timezone: "America/New_York",
   schedule: [
-    'after 10pm every weekday',
-    'before 5am every weekday',
-    'every weekend',
+    "after 10pm every weekday",
+    "before 5am every weekday",
+    "every weekend",
   ],
   prHourlyLimit: 20,
   prConcurrentLimit: 10,
   branchConcurrentLimit: 10,
-  labels: [
-    'dependencies',
-    'automerge',
-  ],
-  postUpdateOptions: [
-    'gomodTidy',
-  ],
+  labels: ["dependencies", "automerge"],
+  postUpdateOptions: ["gomodTidy"],
   packageRules: [
     {
-      matchManagers: [
-        'gomod',
-      ],
+      matchManagers: ["gomod"],
       enabled: false,
-      matchPackageNames: [
-        '/^go\\.flipt\\.io/flipt/.*/',
-      ],
+      matchPackageNames: ["/^go\\.flipt\\.io/flipt/.*/"],
     },
     {
-      matchManagers: [
-        'gomod',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      labels: [
-        'dependencies',
-        'go',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["gomod"],
+      matchPackageNames: ["/^go\\.opentelemetry\\.io/"],
+      groupName: "opentelemetry",
+    },
+    {
+      matchManagers: ["gomod"],
+      matchBaseBranches: ["main", "v2"],
+      labels: ["dependencies", "go", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'npm',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      matchFileNames: [
-        '/ui/**',
-      ],
-      labels: [
-        'dependencies',
-        'javascript',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["npm"],
+      matchBaseBranches: ["main", "v2"],
+      matchFileNames: ["/ui/**"],
+      labels: ["dependencies", "javascript", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'github-actions',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      labels: [
-        'dependencies',
-        'github_actions',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["github-actions"],
+      matchBaseBranches: ["main", "v2"],
+      labels: ["dependencies", "github_actions", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchManagers: [
-        'dockerfile',
-      ],
-      matchBaseBranches: [
-        'main',
-        'v2',
-      ],
-      matchFileNames: [
-        '/build/**',
-      ],
-      labels: [
-        'dependencies',
-        'docker',
-        'automerge',
-      ],
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
+      matchManagers: ["dockerfile"],
+      matchBaseBranches: ["main", "v2"],
+      matchFileNames: ["/build/**"],
+      labels: ["dependencies", "docker", "automerge"],
+      matchUpdateTypes: ["minor", "patch"],
       automerge: false,
     },
     {
-      matchUpdateTypes: [
-        'major',
-      ],
+      matchUpdateTypes: ["major"],
       enabled: false,
     },
     {
       // Higher priority for v2 branch updates to balance with main
-      matchBaseBranches: [
-        'v2',
-      ],
+      matchBaseBranches: ["v2"],
       prPriority: 10,
     },
     {
       // Standard priority for main branch updates
-      matchBaseBranches: [
-        'main',
-      ],
+      matchBaseBranches: ["main"],
       prPriority: 0,
     },
   ],
