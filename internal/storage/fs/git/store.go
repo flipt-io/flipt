@@ -8,6 +8,7 @@ import (
 	"os"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
@@ -18,6 +19,7 @@ import (
 	gitstorage "github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/go-git/go-git/v5/storage/memory"
+
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gitfs"
 	"go.flipt.io/flipt/internal/storage"
@@ -139,6 +141,7 @@ func NewSnapshotStore(ctx context.Context, logger *zap.Logger, url string, opts 
 		baseRef:           "main",
 		referenceResolver: staticResolver(),
 	}
+
 	containers.ApplyAll(store, opts...)
 
 	store.logger = store.logger.With(zap.String("ref", store.baseRef))
@@ -335,14 +338,20 @@ func (s *SnapshotStore) listRemoteRefs(ctx context.Context) (map[string]struct{}
 // HEAD updates to a new revision, it builds a snapshot and updates it
 // on the store.
 func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
+	syncStart := time.Now()
 	updated, fetchErr := s.fetch(ctx, s.snaps.References())
 
+	flagsFetched := int64(0)
+	var errs []error
+
 	if !updated && fetchErr == nil {
+		// No update and no error: record metrics for a successful no-change sync
+		duration := time.Since(syncStart)
+		observeSync(ctx, duration, 0, true)
 		return false, nil
 	}
 
-	// If we can't fetch, we need to check if the remote refs have changed
-	// and remove any references that are no longer present
+	// If fetchErr exists, try cleaning up refs but do not declare full failure yet
 	if fetchErr != nil {
 		remoteRefs, listErr := s.listRemoteRefs(ctx)
 		if listErr != nil {
@@ -361,23 +370,37 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 				}
 			}
 		}
-	}
-
-	var errs []error
-	if fetchErr != nil {
 		errs = append(errs, fetchErr)
 	}
+
+	// Try to rebuild refs even if fetch failed
 	for _, ref := range s.snaps.References() {
 		hash, err := s.resolve(ref)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		if _, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot); err != nil {
+
+		snap, err := s.snaps.AddOrBuild(ctx, ref, hash, s.buildSnapshot)
+		if err != nil {
 			errs = append(errs, err)
+			continue
+		}
+
+		if snap != nil {
+			flagsFetched += int64(snap.TotalFlagsCount())
 		}
 	}
-	return true, errors.Join(errs...)
+
+	duration := time.Since(syncStart)
+	observeSync(ctx, duration, flagsFetched, len(errs) == 0)
+
+	if len(errs) > 0 {
+		s.logger.Error("git backend flag sync failed", zap.Errors("errors", errs))
+		return false, errors.Join(errs...)
+	}
+
+	return true, nil
 }
 
 func (s *SnapshotStore) fetch(ctx context.Context, heads []string) (bool, error) {
