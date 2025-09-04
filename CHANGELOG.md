@@ -3,6 +3,31 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0](https://github.com/flipt-io/flipt/releases/tag/v2.1.0) - 2025-09-04
+
+### Added
+
+- **Quickstart TUI**: New terminal user interface for the quickstart command using Bubbletea framework (#4639)
+- **Flipt Pro trial banner**: Added promotional banner in UI for OSS users to discover Pro features and start 14-day trial (#4660)
+- **Git repository initialization support**: Automatic detection and initialization for existing features files when using local storage backend (#4674)
+- **YAML file extension support**: Added support for `.yml` extension for features files in addition to `.yaml` (#4681)
+
+### Fixed
+
+- **Zero value serialization**: Fixed validation errors when using rollout value of 0 in variant flag distributions and percentage value of 0 in boolean flag threshold rollouts (#4678)
+- **Namespace deletion**: Handle empty directories correctly during namespace deletion (#4622)
+
+### Changed
+
+- **Default namespace display**: Always show default namespace first in namespace table (#4667)
+- **UI component organization**: Consolidated UI components into main components directory for better structure (#4661)
+- **Bitbucket SCM support**: Added Bitbucket to supported SCM providers schema (#4666)
+
+### Dependencies
+
+- Bumped various UI dependencies including `@uiw/codemirror-theme-tokyo-night`, `@tanstack/react-table`, and `lucide-react`
+- Updated `github.com/clickhouse/clickhouse-go/v2` and `github.com/go-chi/chi/v5`
+
 ## [2.0.2](https://github.com/flipt-io/flipt/releases/tag/v2.0.2) - 2025-08-27
 
 ### Fixed
