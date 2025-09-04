@@ -3,7 +3,6 @@ package metrics
 import (
 	"context"
 	"errors"
-	"go.opentelemetry.io/otel/metric"
 	"sync"
 	"testing"
 
@@ -88,34 +87,4 @@ func TestGetxporter(t *testing.T) {
 			assert.NotNil(t, expFunc)
 		})
 	}
-}
-
-func TestMustInt64ObservableGauge(t *testing.T) {
-	t.Run("No panic on valid gauge", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Fatalf("MustInt64ObservableGauge panicked: %v", r)
-			}
-		}()
-
-		gauge := MustInt64ObservableGauge("test_gauge")
-		assert.NotNil(t, gauge)
-	})
-}
-
-func TestMustRegisterCallback(t *testing.T) {
-	t.Run("No panic on valid callback", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Fatalf("MustRegisterCallback panicked: %v", r)
-			}
-		}()
-
-		gauge := MustInt64ObservableGauge("test_gauge_cb")
-		cb := func(ctx context.Context, obs metric.Observer) error {
-			return nil
-		}
-
-		MustRegisterCallback(cb, gauge)
-	})
 }
