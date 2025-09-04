@@ -30,18 +30,12 @@ func TestObserveDuration(t *testing.T) {
 	ObserveDuration(ctx, 1.23, "manual")
 }
 
-// TestObserveFailureWithReason ensures reason attribute path is exercised.
-func TestObserveFailureWithReason(t *testing.T) {
-	ctx := context.Background()
-	ObserveFailureWithReason(ctx, "webhook", "timeout")
-}
-
 // TestObserveSyncSuccess ensures success path sets last sync time and updates counters.
 func TestObserveSyncSuccess(t *testing.T) {
 	ctx := context.Background()
 	before := GetLastSyncTime()
 
-	ObserveSync(ctx, 0.5, 3, true, "manual", "no_change")
+	ObserveSync(ctx, 0.5, 3, true, "poll")
 
 	after := GetLastSyncTime()
 	if after <= before {
@@ -54,7 +48,7 @@ func TestObserveSyncFailure(t *testing.T) {
 	ctx := context.Background()
 	before := GetLastSyncTime()
 
-	ObserveSync(ctx, 1.0, 0, false, "polling", "fetch_failed")
+	ObserveSync(ctx, 1.0, 0, false, "poll")
 
 	after := GetLastSyncTime()
 	if after <= before {
