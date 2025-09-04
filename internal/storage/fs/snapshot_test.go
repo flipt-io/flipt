@@ -5,6 +5,9 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -15,8 +18,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/types/known/structpb"
-	"io/fs"
-	"testing"
 )
 
 //go:embed all:testdata
