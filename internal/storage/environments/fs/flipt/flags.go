@@ -146,13 +146,17 @@ func (f *FlagStorage) PutResource(ctx context.Context, fs environmentsfs.Filesys
 		docs[idx].Flags = append(docs[idx].Flags, flag)
 	}
 
-	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	filename, err := environmentsfs.FindFeaturesFilename(fs, rs.NamespaceKey)
+	if err != nil {
+		return err
+	}
+	fi, err := fs.OpenFile(path.Join(rs.NamespaceKey, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
@@ -200,13 +204,17 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 		return nil
 	}
 
-	fi, err := fs.OpenFile(path.Join(namespace, "features.yaml"), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	filename, err := environmentsfs.FindFeaturesFilename(fs, namespace)
+	if err != nil {
+		return err
+	}
+	fi, err := fs.OpenFile(path.Join(namespace, filename), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
 	defer fi.Close()
 
-	enc := newDocumentEncoder(fi)
+	enc := newDocumentEncoder(fi, filename)
 	for _, doc := range docs {
 		if err := enc.Encode(doc); err != nil {
 			return err
@@ -218,11 +226,12 @@ func (f *FlagStorage) DeleteResource(ctx context.Context, fs environmentsfs.File
 
 type documentEncoder struct {
 	*yaml.Encoder
-	buf *bytes.Buffer
+	buf      *bytes.Buffer
+	filename string
 }
 
-func newDocumentEncoder(wr io.Writer) documentEncoder {
-	docEnc := documentEncoder{buf: &bytes.Buffer{}}
+func newDocumentEncoder(wr io.Writer, filename string) documentEncoder {
+	docEnc := documentEncoder{buf: &bytes.Buffer{}, filename: filename}
 	docEnc.Encoder = yaml.NewEncoder(io.MultiWriter(wr, docEnc.buf))
 	return docEnc
 }
@@ -233,7 +242,7 @@ func (e documentEncoder) Close() error {
 		return err
 	}
 
-	return validator.Validate("features.yaml", e.buf)
+	return validator.Validate(e.filename, e.buf)
 }
 
 func payloadFromFlag(flag *ext.Flag) (_ *anypb.Any, err error) {
