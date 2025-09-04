@@ -343,12 +343,11 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 
 	flagsFetched := int64(0)
 	var errs []error
-	syncType := "poll"
 
 	if !updated && fetchErr == nil {
 		// No update and no error: record metrics for a successful no-change sync
-		duration := time.Since(syncStart).Seconds()
-		ObserveSync(ctx, duration, 0, true, syncType)
+		duration := time.Since(syncStart)
+		observeSync(ctx, duration, 0, true)
 		return false, nil
 	}
 
@@ -393,8 +392,8 @@ func (s *SnapshotStore) update(ctx context.Context) (bool, error) {
 		}
 	}
 
-	duration := time.Since(syncStart).Seconds()
-	ObserveSync(ctx, duration, flagsFetched, len(errs) == 0, syncType)
+	duration := time.Since(syncStart)
+	observeSync(ctx, duration, flagsFetched, len(errs) == 0)
 
 	if len(errs) > 0 {
 		s.logger.Error("git backend flag sync failed", zap.Errors("errors", errs))

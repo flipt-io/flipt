@@ -30,11 +30,6 @@ func meter() metric.Meter {
 	return otel.Meter("github.com/flipt-io/flipt")
 }
 
-// Meter returns the global otel metric.Meter.
-func Meter() metric.Meter {
-	return meter() // call the unexported one
-}
-
 // MustInt64 returns an instrument provider based on the global Meter.
 // The returns provider panics instead of returning an error when it cannot build
 // a required counter, upDownCounter or histogram.
@@ -49,14 +44,15 @@ type MustInt64Meter interface {
 	// with options. The instrument is used to synchronously record increasing
 	// int64 measurements during a computational operation.
 	Counter(name string, options ...metric.Int64CounterOption) metric.Int64Counter
-	// UpDownCounter returns a new instrument identified by name and
-	// configured with options. The instrument is used to synchronously record
-	// int64 measurements during a computational operation.
-	UpDownCounter(name string, options ...metric.Int64UpDownCounterOption) metric.Int64UpDownCounter
 	// Histogram returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// the distribution of int64 measurements during a computational operation.
 	Histogram(name string, options ...metric.Int64HistogramOption) metric.Int64Histogram
+	// ObservableGauge returns a new instrument
+	// identified by name and configured with options. The instrument is used
+	// to asynchronously record instantaneous measurements once per a
+	// measurement collection cycle.
+	ObservableGauge(name string, v func() int64, options ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge
 }
 
 type mustInt64Meter struct{}
@@ -71,14 +67,23 @@ func (m mustInt64Meter) Counter(name string, opts ...metric.Int64CounterOption) 
 	return counter
 }
 
-// UpDownCounter creates an instrument for recording changes of a value.
-func (m mustInt64Meter) UpDownCounter(name string, opts ...metric.Int64UpDownCounterOption) metric.Int64UpDownCounter {
-	counter, err := meter().Int64UpDownCounter(name, opts...)
+// Gauge creates an instrument for recording changes of a value.
+func (m mustInt64Meter) ObservableGauge(name string, v func() int64, opts ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge {
+	gauge, err := meter().Int64ObservableGauge(name, opts...)
 	if err != nil {
 		panic(err)
 	}
-
-	return counter
+	_, err = meter().RegisterCallback(
+		func(ctx context.Context, observer metric.Observer) error {
+			observer.ObserveInt64(gauge, v())
+			return nil
+		},
+		gauge,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return gauge
 }
 
 // Histogram creates an instrument for recording a distribution of values.
@@ -105,10 +110,6 @@ type MustFloat64Meter interface {
 	// with options. The instrument is used to synchronously record increasing
 	// float64 measurements during a computational operation.
 	Counter(name string, options ...metric.Float64CounterOption) metric.Float64Counter
-	// UpDownCounter returns a new instrument identified by name and
-	// configured with options. The instrument is used to synchronously record
-	// float64 measurements during a computational operation.
-	UpDownCounter(name string, options ...metric.Float64UpDownCounterOption) metric.Float64UpDownCounter
 	// Histogram returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// the distribution of float64 measurements during a computational operation.
