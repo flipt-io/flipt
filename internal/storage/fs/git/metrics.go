@@ -2,7 +2,6 @@ package git
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -25,6 +24,7 @@ var (
 			Histogram(
 			prometheus.BuildFQName(namespace, subsystem, "duration_seconds"),
 			metric.WithDescription("The duration of git sync operations in seconds"),
+			metric.WithUnit("s"),
 		)
 
 	// FlagsFetched is a counter for the number of flags fetched during sync.
@@ -37,14 +37,14 @@ var (
 	// Success is a counter for successful git sync operations.
 	Success = metrics.MustInt64().
 		Counter(
-			prometheus.BuildFQName(namespace, subsystem, "success_count"),
+			prometheus.BuildFQName(namespace, subsystem, "success"),
 			metric.WithDescription("The number of successful git sync operations"),
 		)
 
 	// Failure is a counter for failed git sync operations.
 	Failure = metrics.MustInt64().
 		Counter(
-			prometheus.BuildFQName(namespace, subsystem, "failure_count"),
+			prometheus.BuildFQName(namespace, subsystem, "error"),
 			metric.WithDescription("The number of failed git sync operations"),
 		)
 
@@ -54,22 +54,18 @@ var (
 	// internal storage for last sync time value
 	lastSyncTimeValue int64
 	lastSyncTimeMu    sync.RWMutex
+
+	AttributeSyncType = attribute.Key("sync_type")
 )
 
 func init() {
-	m := metrics.Meter()
-	var err error
-
 	// Create ObservableGauge for last sync time and register callback
-	LastTime, err = m.Int64ObservableGauge(
+	LastTime = metrics.MustInt64ObservableGauge(
 		prometheus.BuildFQName(namespace, subsystem, "last_time_unix"),
 		metric.WithDescription("The unix timestamp of the last git sync operation"),
 	)
-	if err != nil {
-		panic(fmt.Errorf("creating git_sync_last_time_unix observable gauge: %w", err))
-	}
 
-	_, err = m.RegisterCallback(
+	metrics.MustRegisterCallback(
 		func(ctx context.Context, observer metric.Observer) error {
 			lastSyncTimeMu.RLock()
 			value := lastSyncTimeValue
@@ -79,35 +75,32 @@ func init() {
 		},
 		LastTime,
 	)
-	if err != nil {
-		panic(fmt.Errorf("registering callback for git_sync_last_time_unix: %w", err))
-	}
 }
 
 func ObserveSuccess(ctx context.Context, typ string) {
 	Success.Add(ctx, 1, metric.WithAttributeSet(
-		attribute.NewSet(attribute.Key("sync_type").String(typ)),
+		attribute.NewSet(AttributeSyncType.String(typ)),
 	))
 }
 
 // ObserveFailure records a failed git sync operation with the specified type.
 func ObserveFailure(ctx context.Context, typ string) {
 	Failure.Add(ctx, 1, metric.WithAttributeSet(
-		attribute.NewSet(attribute.Key("sync_type").String(typ)),
+		attribute.NewSet(AttributeSyncType.String(typ)),
 	))
 }
 
 // ObserveFlagsFetched records the number of flags fetched during sync.
 func ObserveFlagsFetched(ctx context.Context, count int64, typ string) {
 	FlagsFetched.Add(ctx, count, metric.WithAttributeSet(
-		attribute.NewSet(attribute.Key("sync_type").String(typ)),
+		attribute.NewSet(AttributeSyncType.String(typ)),
 	))
 }
 
 // ObserveDuration records the duration of a git sync operation.
 func ObserveDuration(ctx context.Context, duration float64, typ string) {
 	Duration.Record(ctx, duration, metric.WithAttributeSet(
-		attribute.NewSet(attribute.Key("sync_type").String(typ)),
+		attribute.NewSet(AttributeSyncType.String(typ)),
 	))
 }
 

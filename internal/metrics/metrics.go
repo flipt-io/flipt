@@ -245,3 +245,21 @@ func GetResources(ctx context.Context) (*resource.Resource, error) {
 		resource.WithProcessRuntimeName(),
 	)
 }
+
+// MustInt64ObservableGauge creates an Int64ObservableGauge and panics on error.
+func MustInt64ObservableGauge(name string, opts ...metric.Int64ObservableGaugeOption) metric.Int64ObservableGauge {
+	m := Meter() // global meter
+	gauge, err := m.Int64ObservableGauge(name, opts...)
+	if err != nil {
+		panic(fmt.Errorf("creating observable gauge %s: %w", name, err))
+	}
+	return gauge
+}
+
+// MustRegisterCallback registers an observable callback and panics on error.
+func MustRegisterCallback(cb func(context.Context, metric.Observer) error, instruments ...metric.Observable) {
+	m := Meter() // global meter
+	if _, err := m.RegisterCallback(cb, instruments...); err != nil {
+		panic(fmt.Errorf("registering callback: %w", err))
+	}
+}
