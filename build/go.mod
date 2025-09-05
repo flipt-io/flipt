@@ -42,7 +42,7 @@ require (
 	golang.org/x/mod v0.25.0
 	golang.org/x/sync v0.16.0
 	google.golang.org/grpc v1.73.0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.8
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/kind v0.23.0
 )
