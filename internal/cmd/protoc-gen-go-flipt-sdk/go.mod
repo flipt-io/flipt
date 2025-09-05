@@ -6,7 +6,7 @@ toolchain go1.25.0
 
 require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.8
 	sigs.k8s.io/yaml v1.4.0
 )
 

@@ -13,8 +13,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.31.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.87.3
 	github.com/docker/docker v28.0.4+incompatible
+	github.com/docker/docker v28.3.3+incompatible
 	github.com/go-git/go-billy/v5 v5.6.2
-	github.com/go-git/go-git/v5 v5.14.0
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v66 v66.0.0
@@ -42,7 +43,7 @@ require (
 	golang.org/x/mod v0.25.0
 	golang.org/x/sync v0.16.0
 	google.golang.org/grpc v1.73.0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.8
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/kind v0.23.0
 )
