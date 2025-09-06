@@ -21,7 +21,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/cap v0.9.0
 	github.com/magefile/mage v1.15.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/vektah/gqlparser/v2 v2.5.30
 	go.flipt.io/flipt/rpc/flipt v1.54.0
 	go.flipt.io/flipt/sdk/go v0.11.0

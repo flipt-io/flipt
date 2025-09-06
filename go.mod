@@ -62,7 +62,7 @@ require (
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.37.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 	github.com/twmb/franz-go v1.19.5
