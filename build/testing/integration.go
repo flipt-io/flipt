@@ -648,7 +648,19 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			// remove line that starts with comment character '#' and newline after
 			generated = generated[strings.Index(generated, "\n")+2:]
 
-			diff := cmp.Diff(expected, generated)
+			// Normalize both YAMLs by removing IDs before comparison
+			// IDs are server-generated and not stable across import/export
+			expectedNormalized, err := normalizeYAMLForComparison(expected)
+			if err != nil {
+				return fmt.Errorf("normalizing expected YAML: %w", err)
+			}
+			
+			generatedNormalized, err := normalizeYAMLForComparison(generated)
+			if err != nil {
+				return fmt.Errorf("normalizing generated YAML: %w", err)
+			}
+
+			diff := cmp.Diff(expectedNormalized, generatedNormalized)
 			if diff != "" {
 				fmt.Printf("Unexpected difference in %q exported output: \n", conf.name)
 				fmt.Println(diff)
