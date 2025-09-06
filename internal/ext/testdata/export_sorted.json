@@ -12,20 +12,19 @@
       "type": "BOOLEAN_FLAG_TYPE",
       "description": "a boolean flag",
       "enabled": false,
+      "metadata": { "area": 12, "label": "bool" },
       "rollouts": [
         {
+          "id": "3",
           "description": "enabled for external users",
           "segment": { "key": "external_users", "value": true }
         },
         {
+          "id": "4",
           "description": "enabled for 60%",
           "threshold": { "percentage": 60, "value": true }
         }
-      ],
-      "metadata": {
-        "label": "bool",
-        "area": 12
-      }
+      ]
     },
     {
       "key": "flag1",
@@ -33,22 +32,20 @@
       "type": "VARIANT_FLAG_TYPE",
       "description": "description",
       "enabled": true,
+      "metadata": { "area": true, "label": "variant" },
       "variants": [
-        {
-          "key": "foo",
-          "default": true
-        },
+        { "default": true, "key": "foo" },
         {
           "key": "variant1",
           "name": "variant1",
           "attachment": {
-            "pi": 3.141,
+            "answer": { "everything": 42 },
             "happy": true,
+            "list": [1, 0, 2],
             "name": "Niels",
             "nothing": null,
-            "answer": { "everything": 42 },
-            "list": [1, 0, 2],
-            "object": { "currency": "USD", "value": 42.99 }
+            "object": { "currency": "USD", "value": 42.99 },
+            "pi": 3.141
           }
         }
       ],
@@ -63,11 +60,7 @@
             "operator": "AND_SEGMENT_OPERATOR"
           }
         }
-      ],
-      "metadata": {
-        "label": "variant",
-        "area": true
-      }
+      ]
     },
     {
       "key": "flag2",
@@ -75,30 +68,29 @@
       "type": "BOOLEAN_FLAG_TYPE",
       "description": "a boolean flag",
       "enabled": false,
+      "metadata": { "area": 12, "label": "bool" },
       "rollouts": [
         {
+          "id": "1",
           "description": "enabled for internal users",
           "segment": { "key": "internal_users", "value": true }
         },
         {
+          "id": "2",
           "description": "enabled for 50%",
           "threshold": { "percentage": 50, "value": true }
         }
-      ],
-      "metadata": {
-        "label": "bool",
-        "area": 12
-      }
+      ]
     }
   ],
   "segments": [
     {
       "key": "segment1",
       "name": "segment1",
-      "match_type": "ANY_MATCH_TYPE",
       "description": "description",
       "constraints": [
         {
+          "id": "1",
           "type": "STRING_COMPARISON_TYPE",
           "property": "foo",
           "operator": "eq",
@@ -106,19 +98,21 @@
           "description": "desc"
         },
         {
+          "id": "2",
           "type": "STRING_COMPARISON_TYPE",
           "property": "fizz",
           "operator": "neq",
           "value": "buzz",
           "description": "desc"
         }
-      ]
+      ],
+      "match_type": "ANY_MATCH_TYPE"
     },
     {
       "key": "segment2",
       "name": "segment2",
-      "match_type": "ANY_MATCH_TYPE",
-      "description": "description"
+      "description": "description",
+      "match_type": "ANY_MATCH_TYPE"
     }
   ]
 }

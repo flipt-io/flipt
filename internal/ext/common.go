@@ -45,6 +45,7 @@ type Distribution struct {
 }
 
 type Rollout struct {
+	Id          string         `yaml:"id,omitempty" json:"id,omitempty"`
 	Description string         `yaml:"description,omitempty" json:"description,omitempty"`
 	Segment     *SegmentRule   `yaml:"segment,omitempty" json:"segment,omitempty"`
 	Threshold   *ThresholdRule `yaml:"threshold,omitempty" json:"threshold,omitempty"`
@@ -71,6 +72,7 @@ type Segment struct {
 }
 
 type Constraint struct {
+	Id          string `yaml:"id,omitempty" json:"id,omitempty"`
 	Type        string `yaml:"type,omitempty" json:"type,omitempty"`
 	Property    string `yaml:"property,omitempty" json:"property,omitempty"`
 	Operator    string `yaml:"operator,omitempty" json:"operator,omitempty"`

@@ -14,6 +14,7 @@ import (
 	"math/big"
 	"os"
 	"path"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -647,6 +648,13 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 			// remove line that starts with comment character '#' and newline after
 			generated = generated[strings.Index(generated, "\n")+2:]
+
+			// Remove ID fields from constraints and rollouts before comparison
+			// IDs are server-generated UUIDs and not stable across import/export
+			// Simply remove the id: line while preserving structure
+			idFieldRegex := regexp.MustCompile(`(?m)^(\s+)id: [a-f0-9-]+\n`)
+			expected = idFieldRegex.ReplaceAllString(expected, "")
+			generated = idFieldRegex.ReplaceAllString(generated, "")
 
 			diff := cmp.Diff(expected, generated)
 			if diff != "" {
