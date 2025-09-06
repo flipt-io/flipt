@@ -24,7 +24,7 @@ flags:
     rules:
       - segment:
           keys:
-          - segment1
+            - segment1
           operator: OR_SEGMENT_OPERATOR
         distributions:
           - variant: variant1
