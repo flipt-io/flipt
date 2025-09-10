@@ -3,6 +3,17 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.60.0](https://github.com/flipt-io/flipt/releases/tag/v1.60.0) - 2025-09-10
+
+### Added
+
+- `metrics`: add Git sync observability metrics to feature flag backend (#4673)
+
+### Changed
+
+- update go requirements in DEVELOPMENT.md (#4675)
+- updated a bunch of dependencies
+
 ## [v1.59.3](https://github.com/flipt-io/flipt/releases/tag/v1.59.3) - 2025-08-28
 
 ### Added
