@@ -258,6 +258,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				for _, r := range rollouts.Rules {
 					rollout := Rollout{
+						Id:          r.Id,
 						Description: r.Description,
 					}
 
@@ -321,6 +322,7 @@ func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) e
 
 				for _, c := range s.Constraints {
 					segment.Constraints = append(segment.Constraints, &Constraint{
+						Id:          c.Id,
 						Type:        c.Type.String(),
 						Property:    c.Property,
 						Operator:    c.Operator,
