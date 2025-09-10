@@ -256,8 +256,6 @@ func NewHTTPServer(
 		},
 	}
 
-	server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
-
 	server.listenAndServe = func() error {
 		return server.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.CertKey)
 	}
