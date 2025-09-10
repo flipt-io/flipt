@@ -59,15 +59,5 @@
       matchUpdateTypes: ["major"],
       enabled: false,
     },
-    {
-      // Higher priority for v2 branch updates to balance with main
-      matchBaseBranches: ["v2"],
-      prPriority: 10,
-    },
-    {
-      // Standard priority for main branch updates
-      matchBaseBranches: ["main"],
-      prPriority: 0,
-    },
   ],
 }
