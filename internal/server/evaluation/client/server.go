@@ -8,6 +8,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/environments"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metrics"
 	rpcevaluation "go.flipt.io/flipt/rpc/v2/evaluation"
@@ -36,14 +37,27 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	rpcevaluation.RegisterClientEvaluationServiceServer(server, s)
 }
 
+// envForRequest returns requested Environment or if reqKey is empty (no
+// environment requested) then the default environment. Returns an error when an
+// environment is specified but not found.
+func (s *Server) envForRequest(reqKey string, ctx context.Context) (environments.Environment, error) {
+	env, err := s.envs.Get(ctx, reqKey)
+	defaultEnvWhenUnspecified := 0 == len(reqKey)
+	if err != nil && defaultEnvWhenUnspecified {
+		// try to get the environment from the context
+		// this is for backwards compatibility with v1
+		return s.envs.GetFromContext(ctx), nil
+	}
+
+	return env, err
+}
+
 func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluation.EvaluationNamespaceSnapshotRequest) (*rpcevaluation.EvaluationNamespaceSnapshot, error) {
 	start := time.Now()
 
-	env, err := s.envs.Get(ctx, r.EnvironmentKey)
+	env, err := s.envForRequest(r.EnvironmentKey, ctx)
 	if err != nil {
-		// try to get the environment from the context
-		// this is for backwards compatibility with v1
-		env = s.envs.GetFromContext(ctx)
+		return nil, err
 	}
 
 	var (
@@ -89,9 +103,13 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.EvaluationNamespaceSnapshotStreamRequest, stream rpcevaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
 	setupStart := time.Now()
 
+	ctx := stream.Context()
+	env, err := s.envForRequest(req.EnvironmentKey, ctx)
+	if err != nil {
+		return err
+	}
+
 	var (
-		ctx = stream.Context()
-		env = s.envs.GetFromContext(ctx)
 		//nolint:gosec // this is a hash for a stream
 		hash = sha1.New()
 		// lastDigest is the digest of the last snapshot we sent
