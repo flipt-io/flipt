@@ -10,7 +10,7 @@
     "every weekend",
   ],
   prHourlyLimit: 20,
-  prConcurrentLimit: 10,
+  prConcurrentLimit: 20,
   branchConcurrentLimit: 10,
   labels: ["dependencies", "automerge"],
   postUpdateOptions: ["gomodTidy"],
