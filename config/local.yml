@@ -1,6 +1,6 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/v2/config/flipt.schema.json
 
-# version: "1.0"
+version: "2.0"
 log:
   level: DEBUG
 
@@ -10,3 +10,22 @@ log:
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
+
+storage:
+  store:
+    backend:
+      type: local
+      path: /tmp/fliptlocal
+
+environments:
+  env1:
+    name: env1
+    storage: store
+    directory: e1
+    default: true
+
+
+  env2:
+    name: env2
+    storage: store
+    directory: e2
