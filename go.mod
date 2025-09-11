@@ -57,8 +57,8 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.66.1
-	github.com/redis/go-redis/extra/redisotel/v9 v9.13.0
-	github.com/redis/go-redis/v9 v9.13.0
+	github.com/redis/go-redis/extra/redisotel/v9 v9.14.0
+	github.com/redis/go-redis/v9 v9.14.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
@@ -265,7 +265,7 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20250627152318-f293424e46b5 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/redis/go-redis/extra/rediscmd/v9 v9.13.0 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.14.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
