@@ -12,7 +12,7 @@ require (
 	github.com/containerd/platforms v0.2.1
 	github.com/go-git/go-billy/v6 v6.0.0-20250906064328-0118fd22f1d9
 	github.com/go-git/go-git/v6 v6.0.0-20250711134917-1f24ae85fe16
-	github.com/go-jose/go-jose/v4 v4.1.0
+	github.com/go-jose/go-jose/v4 v4.1.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/cap v0.8.0
