@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	code.gitea.io/sdk/gitea v0.15.1
 	dagger.io/dagger v0.18.14
-	github.com/99designs/gqlgen v0.17.75
+	github.com/99designs/gqlgen v0.17.78
 	github.com/Khan/genqlient v0.8.1
 	github.com/containerd/platforms v0.2.1
 	github.com/go-git/go-billy/v6 v6.0.0-20250711053805-c1f149aaab07
