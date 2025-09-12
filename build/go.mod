@@ -17,7 +17,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/cap v0.8.0
 	github.com/open-feature/go-sdk v1.14.1
-	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.5
+	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.6
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.28
 	go.flipt.io/flipt/rpc/flipt v1.54.0
