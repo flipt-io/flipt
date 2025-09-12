@@ -10,7 +10,7 @@ require (
 	github.com/99designs/gqlgen v0.17.75
 	github.com/Khan/genqlient v0.8.1
 	github.com/containerd/platforms v0.2.1
-	github.com/go-git/go-billy/v6 v6.0.0-20250711053805-c1f149aaab07
+	github.com/go-git/go-billy/v6 v6.0.0-20250906064328-0118fd22f1d9
 	github.com/go-git/go-git/v6 v6.0.0-20250711134917-1f24ae85fe16
 	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/google/go-cmp v0.7.0
