@@ -86,12 +86,18 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 	}, nil
 }
 
-func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.EvaluationNamespaceSnapshotStreamRequest, stream rpcevaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
-	setupStart := time.Now()
+func (s *Server) EvaluationSnapshotNamespaceStream(r *rpcevaluation.EvaluationNamespaceSnapshotStreamRequest, stream rpcevaluation.ClientEvaluationService_EvaluationSnapshotNamespaceStreamServer) error {
+	var (
+		setupStart = time.Now()
+		ctx        = stream.Context()
+	)
+
+	env, err := s.envs.Get(ctx, r.EnvironmentKey)
+	if err != nil {
+		return err
+	}
 
 	var (
-		ctx = stream.Context()
-		env = s.envs.GetFromContext(ctx)
 		//nolint:gosec // this is a hash for a stream
 		hash = sha1.New()
 		// lastDigest is the digest of the last snapshot we sent
@@ -99,7 +105,7 @@ func (s *Server) EvaluationSnapshotNamespaceStream(req *rpcevaluation.Evaluation
 		lastDigest []byte
 
 		environmentKey = env.Key()
-		namespaceKey   = req.Key
+		namespaceKey   = r.Key
 
 		environmentAttr = metrics.AttributeEnvironment.String(environmentKey)
 		namespaceAttr   = metrics.AttributeNamespace.String(namespaceKey)
