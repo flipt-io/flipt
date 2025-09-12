@@ -815,14 +815,14 @@ func TestEmailMatchingUnaryInterceptorWithNoAuth(t *testing.T) {
 		}
 	)
 
-	require.Panics(t, func() {
-		_, _ = EmailMatchingUnaryInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
-			ctx,
-			nil,
-			&grpc.UnaryServerInfo{Server: &mockServer{}},
-			handler,
-		)
-	})
+	_, err := EmailMatchingUnaryInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
+		ctx,
+		nil,
+		&grpc.UnaryServerInfo{Server: &mockServer{}},
+		handler,
+	)
+
+	require.Equal(t, errUnauthenticated, err)
 }
 
 func TestEmailMatchingUnaryInterceptor(t *testing.T) {
