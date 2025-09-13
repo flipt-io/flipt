@@ -3,6 +3,24 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1](https://github.com/flipt-io/flipt/releases/tag/v2.1.1) - 2025-09-13
+
+### Fixed
+
+- **Authentication middleware**: Replace panic with proper error handling in EmailMatchingUnaryInterceptor when authentication not found in context (#4744)
+- **Streaming evaluation**: Get environment key from streaming subscribe request (#4733)
+- **HTTP/2 streaming**: Accept HTTP/2 connections for streaming evaluation (#4715)
+- **Environment context**: Return error from GetFromContext when environment not found (#4745)
+
+### Changed
+
+- **Go version**: Remove toolchain in go.mod files and set Go directives to 1.25 (#4746)
+
+### Dependencies
+
+- Security update for Vite to v6.3.6 (#4721)
+- Updated various dependencies including go-bitbucket, go-jose, go-billy, and bubbletea
+
 ## [2.1.0](https://github.com/flipt-io/flipt/releases/tag/v2.1.0) - 2025-09-04
 
 ### Added
