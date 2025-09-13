@@ -441,7 +441,8 @@ func EmailMatchingUnaryInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o 
 
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
-			panic("authentication not found in context, middleware installed incorrectly")
+			logger.Error("unauthenticated", zap.String("reason", "authentication required for email matching"))
+			return nil, errUnauthenticated
 		}
 
 		// this mechanism only applies to authentications created using OIDC
