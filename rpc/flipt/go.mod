@@ -11,7 +11,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.flipt.io/flipt/errors v1.45.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2
+	google.golang.org/genproto/googleapis/api 97024824d090
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 )
