@@ -79,7 +79,7 @@ func TestServer_EvaluationSnapshotNamespace_EnvNotFound(t *testing.T) {
 
 	mockEnv.On("Key").Return("env-key")
 	envStore.On("Get", mock.Anything, "env-key").Return(nil, errors.New("not found"))
-	envStore.On("GetFromContext", mock.Anything).Return(mockEnv)
+	envStore.On("GetFromContext", mock.Anything).Return(mockEnv, nil)
 
 	expectedSnap := &rpcevaluation.EvaluationNamespaceSnapshot{
 		Digest:    "digest",

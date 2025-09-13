@@ -43,7 +43,10 @@ func (s *Server) EvaluationSnapshotNamespace(ctx context.Context, r *rpcevaluati
 	if err != nil {
 		// try to get the environment from the context
 		// this is for backwards compatibility with v1
-		env = s.envs.GetFromContext(ctx)
+		env, err = s.envs.GetFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var (

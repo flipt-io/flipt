@@ -96,7 +96,7 @@ func (_c *MockEnvironmentStore_Get_Call) RunAndReturn(run func(context1 context.
 }
 
 // GetFromContext provides a mock function for the type MockEnvironmentStore
-func (_mock *MockEnvironmentStore) GetFromContext(context1 context.Context) environments.Environment {
+func (_mock *MockEnvironmentStore) GetFromContext(context1 context.Context) (environments.Environment, error) {
 	ret := _mock.Called(context1)
 
 	if len(ret) == 0 {
@@ -104,6 +104,10 @@ func (_mock *MockEnvironmentStore) GetFromContext(context1 context.Context) envi
 	}
 
 	var r0 environments.Environment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (environments.Environment, error)); ok {
+		return returnFunc(context1)
+	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context) environments.Environment); ok {
 		r0 = returnFunc(context1)
 	} else {
@@ -111,7 +115,12 @@ func (_mock *MockEnvironmentStore) GetFromContext(context1 context.Context) envi
 			r0 = ret.Get(0).(environments.Environment)
 		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(context1)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockEnvironmentStore_GetFromContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFromContext'
@@ -132,12 +141,12 @@ func (_c *MockEnvironmentStore_GetFromContext_Call) Run(run func(context1 contex
 	return _c
 }
 
-func (_c *MockEnvironmentStore_GetFromContext_Call) Return(environment environments.Environment) *MockEnvironmentStore_GetFromContext_Call {
-	_c.Call.Return(environment)
+func (_c *MockEnvironmentStore_GetFromContext_Call) Return(environment environments.Environment, err error) *MockEnvironmentStore_GetFromContext_Call {
+	_c.Call.Return(environment, err)
 	return _c
 }
 
-func (_c *MockEnvironmentStore_GetFromContext_Call) RunAndReturn(run func(context1 context.Context) environments.Environment) *MockEnvironmentStore_GetFromContext_Call {
+func (_c *MockEnvironmentStore_GetFromContext_Call) RunAndReturn(run func(context1 context.Context) (environments.Environment, error)) *MockEnvironmentStore_GetFromContext_Call {
 	_c.Call.Return(run)
 	return _c
 }

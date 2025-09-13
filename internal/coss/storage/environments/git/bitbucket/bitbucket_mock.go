@@ -37,23 +37,23 @@ func (_m *MockPullRequestsService) EXPECT() *MockPullRequestsService_Expecter {
 }
 
 // Create provides a mock function for the type MockPullRequestsService
-func (_mock *MockPullRequestsService) Create(po *bitbucket.PullRequestsOptions) (interface{}, error) {
+func (_mock *MockPullRequestsService) Create(po *bitbucket.PullRequestsOptions) (any, error) {
 	ret := _mock.Called(po)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 interface{}
+	var r0 any
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) (interface{}, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) (any, error)); ok {
 		return returnFunc(po)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) interface{}); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) any); ok {
 		r0 = returnFunc(po)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(*bitbucket.PullRequestsOptions) error); ok {
@@ -82,34 +82,34 @@ func (_c *MockPullRequestsService_Create_Call) Run(run func(po *bitbucket.PullRe
 	return _c
 }
 
-func (_c *MockPullRequestsService_Create_Call) Return(ifaceVal interface{}, err error) *MockPullRequestsService_Create_Call {
-	_c.Call.Return(ifaceVal, err)
+func (_c *MockPullRequestsService_Create_Call) Return(v any, err error) *MockPullRequestsService_Create_Call {
+	_c.Call.Return(v, err)
 	return _c
 }
 
-func (_c *MockPullRequestsService_Create_Call) RunAndReturn(run func(po *bitbucket.PullRequestsOptions) (interface{}, error)) *MockPullRequestsService_Create_Call {
+func (_c *MockPullRequestsService_Create_Call) RunAndReturn(run func(po *bitbucket.PullRequestsOptions) (any, error)) *MockPullRequestsService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Gets provides a mock function for the type MockPullRequestsService
-func (_mock *MockPullRequestsService) Gets(po *bitbucket.PullRequestsOptions) (interface{}, error) {
+func (_mock *MockPullRequestsService) Gets(po *bitbucket.PullRequestsOptions) (any, error) {
 	ret := _mock.Called(po)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Gets")
 	}
 
-	var r0 interface{}
+	var r0 any
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) (interface{}, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) (any, error)); ok {
 		return returnFunc(po)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) interface{}); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.PullRequestsOptions) any); ok {
 		r0 = returnFunc(po)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(*bitbucket.PullRequestsOptions) error); ok {
@@ -138,12 +138,12 @@ func (_c *MockPullRequestsService_Gets_Call) Run(run func(po *bitbucket.PullRequ
 	return _c
 }
 
-func (_c *MockPullRequestsService_Gets_Call) Return(ifaceVal interface{}, err error) *MockPullRequestsService_Gets_Call {
-	_c.Call.Return(ifaceVal, err)
+func (_c *MockPullRequestsService_Gets_Call) Return(v any, err error) *MockPullRequestsService_Gets_Call {
+	_c.Call.Return(v, err)
 	return _c
 }
 
-func (_c *MockPullRequestsService_Gets_Call) RunAndReturn(run func(po *bitbucket.PullRequestsOptions) (interface{}, error)) *MockPullRequestsService_Gets_Call {
+func (_c *MockPullRequestsService_Gets_Call) RunAndReturn(run func(po *bitbucket.PullRequestsOptions) (any, error)) *MockPullRequestsService_Gets_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -176,23 +176,23 @@ func (_m *MockCommitsService) EXPECT() *MockCommitsService_Expecter {
 }
 
 // GetCommits provides a mock function for the type MockCommitsService
-func (_mock *MockCommitsService) GetCommits(cmo *bitbucket.CommitsOptions) (interface{}, error) {
+func (_mock *MockCommitsService) GetCommits(cmo *bitbucket.CommitsOptions) (any, error) {
 	ret := _mock.Called(cmo)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCommits")
 	}
 
-	var r0 interface{}
+	var r0 any
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.CommitsOptions) (interface{}, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.CommitsOptions) (any, error)); ok {
 		return returnFunc(cmo)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*bitbucket.CommitsOptions) interface{}); ok {
+	if returnFunc, ok := ret.Get(0).(func(*bitbucket.CommitsOptions) any); ok {
 		r0 = returnFunc(cmo)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(any)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(*bitbucket.CommitsOptions) error); ok {
@@ -221,12 +221,12 @@ func (_c *MockCommitsService_GetCommits_Call) Run(run func(cmo *bitbucket.Commit
 	return _c
 }
 
-func (_c *MockCommitsService_GetCommits_Call) Return(ifaceVal interface{}, err error) *MockCommitsService_GetCommits_Call {
-	_c.Call.Return(ifaceVal, err)
+func (_c *MockCommitsService_GetCommits_Call) Return(v any, err error) *MockCommitsService_GetCommits_Call {
+	_c.Call.Return(v, err)
 	return _c
 }
 
-func (_c *MockCommitsService_GetCommits_Call) RunAndReturn(run func(cmo *bitbucket.CommitsOptions) (interface{}, error)) *MockCommitsService_GetCommits_Call {
+func (_c *MockCommitsService_GetCommits_Call) RunAndReturn(run func(cmo *bitbucket.CommitsOptions) (any, error)) *MockCommitsService_GetCommits_Call {
 	_c.Call.Return(run)
 	return _c
 }
