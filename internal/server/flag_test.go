@@ -31,7 +31,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
@@ -75,7 +75,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 
 	defer store.AssertExpectations(t)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("ListFlags", mock.Anything, storage.ListWithOptions(storage.NewNamespace(""),
@@ -129,7 +129,7 @@ func TestListFlags_WithXEnvironmentHeader(t *testing.T) {
 	// Set up context with X-Environment header
 	ctx := common.WithFliptEnvironment(context.Background(), headerEnvironment)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	// The key assertion: verify that the context passed to ListFlags contains the header environment
@@ -193,7 +193,7 @@ func TestListFlags_WithoutXEnvironmentHeader(t *testing.T) {
 	// Context without X-Environment header
 	ctx := context.Background()
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	// Verify that the context passed to ListFlags contains the request environment
@@ -256,7 +256,7 @@ func TestListFlags_WithTypes(t *testing.T) {
 	// Context without X-Environment header
 	ctx := context.Background()
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	// Verify that the context passed to ListFlags contains the request environment

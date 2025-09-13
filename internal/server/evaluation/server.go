@@ -11,7 +11,7 @@ import (
 
 // EnvironmentStore is the minimal abstraction for interacting with the storage layer for evaluation.
 type EnvironmentStore interface {
-	GetFromContext(context.Context) environments.Environment
+	GetFromContext(context.Context) (environments.Environment, error)
 	Get(context.Context, string) (environments.Environment, error)
 }
 
