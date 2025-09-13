@@ -34,7 +34,7 @@ func TestOFREPFlagEvaluation_Variant(t *testing.T) {
 
 	environment.On("Key").Return(environmentKey)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)
@@ -107,7 +107,7 @@ func TestOFREPFlagEvaluation_Boolean(t *testing.T) {
 
 	environment.On("Key").Return(environmentKey)
 
-	envStore.On("GetFromContext", mock.Anything).Return(environment)
+	envStore.On("GetFromContext", mock.Anything).Return(environment, nil)
 	environment.On("EvaluationStore").Return(store, nil)
 
 	store.On("GetFlag", mock.Anything, storage.NewResource(namespaceKey, flagKey)).Return(flag, nil)

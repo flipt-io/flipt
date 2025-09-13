@@ -29,7 +29,10 @@ const (
 )
 
 func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagRequest) (*ofrep.EvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.GetFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {
@@ -134,7 +137,10 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, r *ofrep.EvaluateFlagR
 }
 
 func (s *Server) OFREPFlagEvaluationBulk(ctx context.Context, r *ofrep.EvaluateBulkRequest) (*ofrep.BulkEvaluationResponse, error) {
-	env := s.store.GetFromContext(ctx)
+	env, err := s.store.GetFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	store, err := env.EvaluationStore()
 	if err != nil {

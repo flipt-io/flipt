@@ -32,7 +32,10 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if err != nil {
 		// try to get the environment from the context
 		// this is for backwards compatibility with v1
-		env = s.store.GetFromContext(ctx)
+		env, err = s.store.GetFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	store, err := env.EvaluationStore()
@@ -272,7 +275,10 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 	if err != nil {
 		// try to get the environment from the context
 		// this is for backwards compatibility with v1
-		env = s.store.GetFromContext(ctx)
+		env, err = s.store.GetFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	store, err := env.EvaluationStore()
@@ -454,7 +460,10 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 		if err != nil {
 			// try to get the environment from the context
 			// this is for backwards compatibility with v1
-			env = s.store.GetFromContext(ctx)
+			env, err = s.store.GetFromContext(ctx)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		store, err := env.EvaluationStore()
