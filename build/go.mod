@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	code.gitea.io/sdk/gitea v0.21.0
-	github.com/99designs/gqlgen v0.17.75
+	github.com/99designs/gqlgen v0.17.79
 	github.com/Khan/genqlient v0.8.1
 	github.com/containerd/platforms v1.0.0-rc.1
 	github.com/go-git/go-billy/v6 v6.0.0-20250906064328-0118fd22f1d9
