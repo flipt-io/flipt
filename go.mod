@@ -564,4 +564,7 @@ tool (
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )
 
-ignore ui/node_modules
+ignore (
+	mage_output_file.go
+	ui/node_modules
+)
