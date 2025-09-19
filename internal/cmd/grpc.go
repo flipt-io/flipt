@@ -273,6 +273,7 @@ func NewGRPCServer(
 
 	skipAuthnIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
 	skipAuthnIfExcluded(clientevalsrv, cfg.Authentication.Exclude.Evaluation)
+	skipAuthnIfExcluded(ofrepsrv, cfg.Authentication.Exclude.OFREP)
 
 	authUnaryInterceptors, authStreamInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
