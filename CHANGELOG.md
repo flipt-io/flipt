@@ -3,6 +3,21 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2](https://github.com/flipt-io/flipt/releases/tag/v2.1.2) - 2025-09-20
+
+### Fixed
+
+- **Segment validation**: Validate segment references exist when creating flags via v2 API to prevent snapshot creation errors and inconsistent state (#4749)
+- **OFREP authentication**: Allow authentication to be excluded for OFREP endpoints when configured (#4753)
+
+### Changed
+
+- **Developer setup**: Improved devenv setup and fixed UI styles loading issue in development mode (#4750)
+
+### Dependencies
+
+- Updated various dependencies including gqlgen, gnostic, and golang.org/x/exp
+
 ## [2.1.1](https://github.com/flipt-io/flipt/releases/tag/v2.1.1) - 2025-09-13
 
 ### Fixed
