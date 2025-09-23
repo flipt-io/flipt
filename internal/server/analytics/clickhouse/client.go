@@ -241,8 +241,9 @@ func (c *Client) GetBatchFlagEvaluationsCount(ctx context.Context, req *analytic
 		// Keep track of all timestamps to ensure we have the same across all flags
 		if _, exists := orderedTimestamps[timestamp]; !exists {
 			orderedTimestamps[timestamp] = struct{}{}
-			timestamps[flagKey] = append(timestamps[flagKey], timestamp)
 		}
+
+		timestamps[flagKey] = append(timestamps[flagKey], timestamp)
 	}
 
 	if err := rows.Err(); err != nil {
