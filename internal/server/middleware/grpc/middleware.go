@@ -2,9 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -13,13 +11,10 @@ import (
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	errs "go.flipt.io/flipt/errors"
 	cctx "go.flipt.io/flipt/internal/common"
-	"go.flipt.io/flipt/internal/server/analytics"
 	"go.flipt.io/flipt/internal/server/common"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -172,7 +167,7 @@ func contextWithMetadata(ctx context.Context, md metadata.MD, logger *zap.Logger
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 // Note: this should be added after the FliptHeadersInterceptor to ensure the environment and namespace are set in the context.
-func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerInterceptor {
+func EvaluationUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := time.Now().UTC()
 
@@ -201,122 +196,6 @@ func EvaluationUnaryInterceptor(analyticsEnabled bool) grpc.UnaryServerIntercept
 			// record start, end, duration on response types
 			if r, ok := resp.(ResponseDurationRecordable); ok {
 				r.SetTimestamps(startTime, time.Now().UTC())
-			}
-
-			if analyticsEnabled {
-				span := trace.SpanFromContext(ctx)
-
-				switch r := resp.(type) {
-				case *evaluation.VariantEvaluationResponse:
-					// This "should" always be an evalution request under these circumstances.
-					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
-						var variantKey *string = nil
-						if r.GetVariantKey() != "" {
-							variantKey = &r.VariantKey
-						}
-
-						evaluationResponses := []*analytics.EvaluationResponse{
-							{
-								EnvironmentKey:  evaluationRequest.GetEnvironmentKey(),
-								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
-								FlagKey:         r.GetFlagKey(),
-								FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
-								Match:           &r.Match,
-								Reason:          r.GetReason().String(),
-								Timestamp:       r.GetTimestamp().AsTime(),
-								EvaluationValue: variantKey,
-								EntityId:        evaluationRequest.EntityId,
-							},
-						}
-
-						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
-							keyValue := []attribute.KeyValue{
-								{
-									Key:   "flipt.evaluation.response",
-									Value: attribute.StringValue(string(evaluationResponsesBytes)),
-								},
-							}
-							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))
-						}
-					}
-				case *evaluation.BooleanEvaluationResponse:
-					if evaluationRequest, ok := req.(*evaluation.EvaluationRequest); ok {
-						evaluationValue := fmt.Sprint(r.GetEnabled())
-						evaluationResponses := []*analytics.EvaluationResponse{
-							{
-								EnvironmentKey:  evaluationRequest.GetEnvironmentKey(),
-								NamespaceKey:    evaluationRequest.GetNamespaceKey(),
-								FlagKey:         r.GetFlagKey(),
-								FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
-								Reason:          r.GetReason().String(),
-								Timestamp:       r.GetTimestamp().AsTime(),
-								Match:           nil,
-								EvaluationValue: &evaluationValue,
-								EntityId:        evaluationRequest.EntityId,
-							},
-						}
-
-						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
-							keyValue := []attribute.KeyValue{
-								{
-									Key:   "flipt.evaluation.response",
-									Value: attribute.StringValue(string(evaluationResponsesBytes)),
-								},
-							}
-							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))
-						}
-					}
-				case *evaluation.BatchEvaluationResponse:
-					if batchEvaluationRequest, ok := req.(*evaluation.BatchEvaluationRequest); ok {
-						evaluationResponses := make([]*analytics.EvaluationResponse, 0, len(r.GetResponses()))
-						for idx, response := range r.GetResponses() {
-							switch response.GetType() {
-							case evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE:
-								variantResponse := response.GetVariantResponse()
-								var variantKey *string = nil
-								if variantResponse.GetVariantKey() != "" {
-									variantKey = &variantResponse.VariantKey
-								}
-
-								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									EnvironmentKey:  batchEvaluationRequest.Requests[idx].GetEnvironmentKey(),
-									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
-									FlagKey:         variantResponse.GetFlagKey(),
-									FlagType:        evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE.String(),
-									Match:           &variantResponse.Match,
-									Reason:          variantResponse.GetReason().String(),
-									Timestamp:       variantResponse.Timestamp.AsTime(),
-									EvaluationValue: variantKey,
-									EntityId:        batchEvaluationRequest.Requests[idx].EntityId,
-								})
-							case evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE:
-								booleanResponse := response.GetBooleanResponse()
-								evaluationValue := fmt.Sprint(booleanResponse.GetEnabled())
-								evaluationResponses = append(evaluationResponses, &analytics.EvaluationResponse{
-									EnvironmentKey:  batchEvaluationRequest.Requests[idx].GetEnvironmentKey(),
-									NamespaceKey:    batchEvaluationRequest.Requests[idx].GetNamespaceKey(),
-									FlagKey:         booleanResponse.GetFlagKey(),
-									FlagType:        evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE.String(),
-									Reason:          booleanResponse.GetReason().String(),
-									Timestamp:       booleanResponse.Timestamp.AsTime(),
-									Match:           nil,
-									EvaluationValue: &evaluationValue,
-									EntityId:        batchEvaluationRequest.Requests[idx].EntityId,
-								})
-							}
-						}
-
-						if evaluationResponsesBytes, err := json.Marshal(evaluationResponses); err == nil {
-							keyValue := []attribute.KeyValue{
-								{
-									Key:   "flipt.evaluation.response",
-									Value: attribute.StringValue(string(evaluationResponsesBytes)),
-								},
-							}
-							span.AddEvent("evaluation_response", trace.WithAttributes(keyValue...))
-						}
-					}
-				}
 			}
 
 			return resp, nil
