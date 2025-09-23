@@ -2,12 +2,12 @@ package analytics
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/server/tracing"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -49,16 +49,13 @@ func TestSinkSpanExporter(t *testing.T) {
 		},
 	}
 
-	evaluationResponsesBytes, err := json.Marshal(evaluationResponses)
-	require.NoError(t, err)
-
 	attrs := []attribute.KeyValue{
-		{
-			Key:   "flipt.evaluation.response",
-			Value: attribute.StringValue(string(evaluationResponsesBytes)),
-		},
+		{Key: "flipt_flag", Value: attribute.StringValue("hello")},
+		{Key: "flipt_namespace", Value: attribute.StringValue("default")},
+		{Key: "flipt_reason", Value: attribute.StringValue("MATCH_EVALUATION_REASON")},
+		{Key: "flipt_match", Value: attribute.BoolValue(b)},
 	}
-	span.AddEvent("evaluation_response", trace.WithAttributes(attrs...))
+	span.AddEvent(tracing.Event, trace.WithAttributes(attrs...), trace.WithTimestamp(evaluationResponses[0].Timestamp))
 	span.End()
 
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

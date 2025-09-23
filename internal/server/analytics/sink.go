@@ -2,12 +2,14 @@ package analytics
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
+	"go.flipt.io/flipt/internal/server/tracing"
+	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
+	"k8s.io/utils/ptr"
 )
 
 var errNotTransformable = errors.New("event not transformable into evaluation response")
@@ -43,24 +45,38 @@ func NewAnalyticsSinkSpanExporter(logger *zap.Logger, analyticsStoreMutator Anal
 	}
 }
 
-const evaluationResponseKey = "flipt.evaluation.response"
-
 // transformSpanEventToEvaluationResponses is a convenience function to transform a span event into an []*EvaluationResponse.
 func transformSpanEventToEvaluationResponses(event sdktrace.Event) ([]*EvaluationResponse, error) {
-	for _, attr := range event.Attributes {
-		if string(attr.Key) == evaluationResponseKey {
-			evaluationResponseBytes := []byte(attr.Value.AsString())
-			var evaluationResponse []*EvaluationResponse
-
-			if err := json.Unmarshal(evaluationResponseBytes, &evaluationResponse); err != nil {
-				return nil, err
-			}
-
-			return evaluationResponse, nil
-		}
+	if event.Name != tracing.Event {
+		return nil, errNotTransformable
 	}
 
-	return nil, errNotTransformable
+	r := &EvaluationResponse{
+		Timestamp: event.Time.UTC(),
+	}
+	for _, v := range event.Attributes {
+		switch v.Key {
+		case tracing.AttributeEnvironment:
+			r.EnvironmentKey = v.Value.AsString()
+		case tracing.AttributeNamespace:
+			r.NamespaceKey = v.Value.AsString()
+		case tracing.AttributeFlag:
+			r.FlagKey = v.Value.AsString()
+		case tracing.AttributeFlagType:
+			r.FlagType = v.Value.AsString()
+		case tracing.AttributeEntityID:
+			r.EntityId = v.Value.AsString()
+		case tracing.AttributeMatch:
+			if v.Value.Type() == attribute.BOOL {
+				r.Match = ptr.To(v.Value.AsBool())
+			}
+		case tracing.AttributeReason:
+			r.Reason = v.Value.AsString()
+		case tracing.AttributeValue:
+			r.EvaluationValue = ptr.To(v.Value.AsString())
+		}
+	}
+	return []*EvaluationResponse{r}, nil
 }
 
 // ExportSpans transforms the spans into []*EvaluationResponse which the mutator takes to store into an analytics store.

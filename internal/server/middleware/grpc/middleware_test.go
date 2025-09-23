@@ -462,7 +462,7 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 		}
 	)
 
-	got, err := EvaluationUnaryInterceptor(false)(context.Background(), req, info, handler)
+	got, err := EvaluationUnaryInterceptor()(context.Background(), req, info, handler)
 	require.NoError(t, err)
 
 	assert.NotNil(t, got)
@@ -553,7 +553,7 @@ func TestEvaluationUnaryInterceptor_EnvironmentAndNamespace(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := EvaluationUnaryInterceptor(false)(ctx, tt.req, info, handler)
+			_, err := EvaluationUnaryInterceptor()(ctx, tt.req, info, handler)
 			require.NoError(t, err)
 		})
 	}
@@ -625,7 +625,7 @@ func TestEvaluationUnaryInterceptor_RequestID(t *testing.T) {
 				}
 			)
 
-			got, err := EvaluationUnaryInterceptor(true)(context.Background(), test.req, info, handler)
+			got, err := EvaluationUnaryInterceptor()(context.Background(), test.req, info, handler)
 			require.NoError(t, err)
 
 			assert.NotNil(t, got)
