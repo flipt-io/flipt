@@ -137,6 +137,19 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2
 
 Flipt UI will be available at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 
+#### Nightly Builds
+
+> [!WARNING]  
+> Nightly builds are automatically generated from the latest v2 branch and should not be considered stable for production use.
+
+To run the latest nightly build:
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:v2-nightly
+```
+
+Nightly builds include the latest features and bug fixes but may contain untested changes. Use them for testing new features or verifying bug fixes before the next stable release.
+
 ### Configuration Example
 
 ```yaml
