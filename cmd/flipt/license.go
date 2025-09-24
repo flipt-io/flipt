@@ -144,10 +144,10 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 					lipgloss.JoinVertical(lipgloss.Left,
 						"• Enterprise GitOps Integration (GitHub, GitLab, Bitbucket, Azure DevOps)",
 						"• Create merge proposals directly from Flipt UI",
-						"• HashiCorp Vault secrets management integration",
+						"• Secrets management",
 						"• GPG commit signing for security and auditability",
 						"• Air-gapped environment support (annual license)",
-						"• Dedicated Slack support channel with same-day response",
+						"• Dedicated Slack support channel",
 					),
 				),
 			),
@@ -462,7 +462,7 @@ func newLicenseCommand() *cobra.Command {
 
 Flipt Pro provides:
   • Enterprise GitOps integration (GitHub, GitLab, Bitbucket, Azure DevOps)
-  • HashiCorp Vault secrets management
+  • Secrets management
   • GPG commit signing and merge proposals from UI
   • Air-gapped environment support (annual license)
   • Dedicated Slack support channel
