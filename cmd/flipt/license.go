@@ -49,7 +49,9 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		fmt.Println(ErrorStyle.Render("✗ Failed to load configuration"))
 		fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
-		return fmt.Errorf("loading configuration: %w", err)
+		fmt.Println()
+		fmt.Println(HelperTextStyle.Render("Please check your configuration file path."))
+		return nil
 	}
 
 	cfg := res.Config
@@ -329,13 +331,19 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 			if _, err := lic.Activate(ctx, fingerprint); err != nil {
 				fmt.Println(ErrorStyle.Render("✗ License activation failed"))
 				fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
-				return fmt.Errorf("activating license: %w", err)
+				fmt.Println()
+				fmt.Println(HelperTextStyle.Render("Please check your license key and try again."))
+				fmt.Println(HelperTextStyle.Render("If you continue to have issues, contact support@flipt.io"))
+				return nil
 			}
 			fmt.Println(SuccessStyle.Render("✓ License activated successfully!"))
 		} else {
 			fmt.Println(ErrorStyle.Render("✗ License validation failed"))
 			fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
-			return fmt.Errorf("validating license: %w", err)
+			fmt.Println()
+			fmt.Println(HelperTextStyle.Render("Please verify your license key is correct."))
+			fmt.Println(HelperTextStyle.Render("If you need assistance, contact support@flipt.io"))
+			return nil
 		}
 	} else {
 		fmt.Println(SuccessStyle.Render("✓ License validated successfully!"))
