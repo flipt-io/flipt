@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3](https://github.com/flipt-io/flipt/releases/tag/v2.1.3) - 2025-09-24
+
+### Fixed
+
+- **Analytics batch processing**: Return all batch data for requested flags to prevent incomplete analytics results (#4756)
+- **Memory optimization**: Reduce memory usage with OpenTelemetry and ClickHouse integrations (#4755)
+- **Authentication middleware**: Pass correct server parameter to skipped() method in EmailMatchingUnaryInterceptor
+- **Nightly builds**: Use static v2-nightly version for consistent nightly build versioning
+
+### Changed
+
+- **Documentation**: Added nightly build Docker instructions to README for improved developer experience
+
 ## [2.1.2](https://github.com/flipt-io/flipt/releases/tag/v2.1.2) - 2025-09-20
 
 ### Fixed
