@@ -102,7 +102,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show checking status
-	fmt.Println(HelperTextStyle.Render("Checking license validity with Keygen..."))
+	fmt.Println(HelperTextStyle.Render("Checking license validity..."))
 	fmt.Println()
 
 	// Create license manager
@@ -302,9 +302,9 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Step 4: Validate the license with Keygen
+	// Step 4: Validate the license
 	fmt.Println()
-	fmt.Println(HelperTextStyle.Render("Validating license with Keygen..."))
+	fmt.Println(HelperTextStyle.Render("Validating license..."))
 
 	// Configure Keygen client
 	keygen.Account = keygenAccountID
@@ -473,11 +473,11 @@ Examples:
 	check := &cobra.Command{
 		Use:   "check",
 		Short: "Check license status and validity",
-		Long: `Check the current license configuration and validate it with Keygen.
+		Long: `Check the current license configuration and validate it.
 
 This command will:
   • Check if a license is configured in your Flipt configuration
-  • Validate the license with Keygen's licensing service
+  • Validate the license with the licensing service
   • Display the license status and available features`,
 		RunE: checkCmd.run,
 	}
@@ -492,7 +492,7 @@ This command will guide you through:
   • Selecting your license type (Pro Monthly or Pro Annual)
   • Entering your license key
   • Optionally configuring an offline license file (for annual licenses)
-  • Validating and activating the license with Keygen
+  • Validating and activating the license
   • Updating your Flipt configuration
 
 Pro Monthly licenses require continuous internet connectivity for validation.
