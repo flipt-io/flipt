@@ -170,6 +170,7 @@ func execute() error {
 	rootCmd.AddCommand(newDocCommand())
 	rootCmd.AddCommand(newQuickstartCommand())
 	rootCmd.AddCommand(newEvaluateCommand())
+	rootCmd.AddCommand(newLicenseCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
