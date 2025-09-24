@@ -64,7 +64,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 				lipgloss.JoinVertical(lipgloss.Left,
 					WarningStyle.Render("⚠  No License Configured"),
 					HelperTextStyle.Render("\nYou are currently using the OSS version of Flipt."),
-					HelperTextStyle.Render("Pro features are not available."),
+					HelperTextStyle.Render("Enterprise GitOps integrations and advanced features require a Pro license."),
 					"",
 					LabelStyle.Render("To activate Pro features, run:"),
 					AccentStyle.Render("  flipt license activate"),
@@ -142,10 +142,12 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 				SectionHeaderStyle.Render("Pro Features Available"),
 				ConfigItemStyle.Render(
 					lipgloss.JoinVertical(lipgloss.Left,
-						"• Vault Secrets Provider",
-						"• Advanced Storage Backends",
-						"• Enterprise Authentication",
-						"• Priority Support",
+						"• Enterprise GitOps Integration (GitHub, GitLab, Bitbucket, Azure DevOps)",
+						"• Create merge proposals directly from Flipt UI",
+						"• HashiCorp Vault secrets management integration",
+						"• GPG commit signing for security and auditability",
+						"• Air-gapped environment support (annual license)",
+						"• Dedicated Slack support channel with same-day response",
 					),
 				),
 			),
@@ -456,14 +458,16 @@ func newLicenseCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "license",
 		Short: "Manage Flipt Pro license",
-		Long: `Manage your Flipt Pro license including checking status and activating new licenses.
+		Long: `Manage your Flipt Pro license for enterprise-grade features.
 
-The license command provides tools to:
-  • Check your current license status and validity
-  • Activate new Pro Monthly or Pro Annual licenses
-  • Configure offline license files for air-gapped environments
+Flipt Pro provides:
+  • Enterprise GitOps integration (GitHub, GitLab, Bitbucket, Azure DevOps)
+  • HashiCorp Vault secrets management
+  • GPG commit signing and merge proposals from UI
+  • Air-gapped environment support (annual license)
+  • Dedicated Slack support channel
 
-Examples:
+License management commands:
   flipt license check              # Check current license status
   flipt license activate           # Activate a new license interactively`,
 		Aliases: []string{"lic"},
