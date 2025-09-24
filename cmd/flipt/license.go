@@ -369,59 +369,8 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 		cfg.License.File = offlineLicensePath
 	}
 
-	// Prepare YAML output
-	yamlConfig := make(map[string]any)
-
-	// Add existing config sections if they exist
-	if len(cfg.Storage) > 0 {
-		storage := make(map[string]any)
-		for name, s := range cfg.Storage {
-			storageMap := map[string]any{
-				"backend": map[string]any{
-					"type": string(s.Backend.Type),
-				},
-			}
-			if s.Remote != "" {
-				storageMap["remote"] = s.Remote
-			}
-			if s.Branch != "" {
-				storageMap["branch"] = s.Branch
-			}
-			if s.PollInterval > 0 {
-				storageMap["poll_interval"] = s.PollInterval.String()
-			}
-			storage[name] = storageMap
-		}
-		yamlConfig["storage"] = storage
-	}
-
-	if len(cfg.Environments) > 0 {
-		environments := make(map[string]any)
-		for name, env := range cfg.Environments {
-			envMap := map[string]any{
-				"name":    env.Name,
-				"storage": env.Storage,
-				"default": env.Default,
-			}
-			if env.Directory != "" {
-				envMap["directory"] = env.Directory
-			}
-			environments[name] = envMap
-		}
-		yamlConfig["environments"] = environments
-	}
-
-	// Add license configuration
-	licenseConfig := map[string]any{
-		"key": cfg.License.Key,
-	}
-	if cfg.License.File != "" {
-		licenseConfig["file"] = cfg.License.File
-	}
-	yamlConfig["license"] = licenseConfig
-
-	// Write configuration
-	out, err := yaml.Marshal(yamlConfig)
+	// Marshal the entire updated configuration
+	out, err := yaml.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("marshaling configuration: %w", err)
 	}
