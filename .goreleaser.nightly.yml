@@ -44,8 +44,8 @@ release:
   target_commitish: "{{ .Commit }}"
 
 nightly:
-  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  version_template: "v{{ incpatch .Version }}-nightly"
+  # Static v2-nightly version for all nightly builds from v2 branch
+  version_template: "v2-nightly"
 
 changelog:
   disable: true
