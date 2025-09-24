@@ -27,73 +27,7 @@ const (
 	LicenseTypeProAnnual  = "Pro Annual"
 )
 
-// Define license-specific styles to avoid conflicts
-var (
-	licPurple     = lipgloss.Color("#7571F9")
-	licGreen      = lipgloss.Color("#10B981")
-	licAmber      = lipgloss.Color("#F59E0B")
-	licRed        = lipgloss.Color("#EF4444")
-	licMutedGray  = lipgloss.Color("#9CA3AF")
-	licWhite      = lipgloss.Color("#FFFFFF")
-	licBorderGray = lipgloss.Color("#4B5563")
-
-	licTitleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(licPurple).
-			Padding(1, 2).
-			Align(lipgloss.Center)
-
-	licSubtitleStyle = lipgloss.NewStyle().
-				Foreground(licMutedGray).
-				Italic(true).
-				Align(lipgloss.Center)
-
-	licSuccessStyle = lipgloss.NewStyle().
-			Foreground(licGreen).
-			Bold(true)
-
-	licWarningStyle = lipgloss.NewStyle().
-			Foreground(licAmber).
-			Bold(true)
-
-	licErrorStyle = lipgloss.NewStyle().
-			Foreground(licRed).
-			Bold(true)
-
-	licCardStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(licBorderGray).
-			Padding(1, 2).
-			MarginBottom(1)
-
-	licSectionHeaderStyle = lipgloss.NewStyle().
-				Foreground(licWhite).
-				Bold(true).
-				MarginBottom(1)
-
-	licInputLabelStyle = lipgloss.NewStyle().
-				Foreground(licWhite).
-				Bold(true).
-				MarginBottom(1)
-
-	licHelperTextStyle = lipgloss.NewStyle().
-				Foreground(licMutedGray).
-				Italic(true)
-
-	licAccentStyle = lipgloss.NewStyle().
-			Foreground(licPurple).
-			Bold(true)
-
-	licLabelStyle = lipgloss.NewStyle().
-			Foreground(licMutedGray)
-
-	licValueStyle = lipgloss.NewStyle().
-			Foreground(licWhite).
-			Bold(true)
-
-	licConfigItemStyle = lipgloss.NewStyle().
-				PaddingLeft(2)
-)
+// Note: Common styles are imported from styles.go to maintain consistency across commands
 
 // checkCommand handles license checking
 type checkCommand struct{}
@@ -105,16 +39,16 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Print("\033[H\033[2J")
 
 	// Header
-	fmt.Println(licTitleStyle.Render("Flipt License Check"))
-	fmt.Println(licSubtitleStyle.Render("Checking your license status"))
+	fmt.Println(TitleStyle.Render("Flipt License Check"))
+	fmt.Println(SubtitleStyle.Render("Checking your license status"))
 	fmt.Println()
 
 	// Load configuration
 	path, _ := determineConfig(providedConfigFile)
 	res, err := config.Load(ctx, path)
 	if err != nil {
-		fmt.Println(licErrorStyle.Render("✗ Failed to load configuration"))
-		fmt.Println(licLabelStyle.Render("Error: ") + licValueStyle.Render(err.Error()))
+		fmt.Println(ErrorStyle.Render("✗ Failed to load configuration"))
+		fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
 		return fmt.Errorf("loading configuration: %w", err)
 	}
 
@@ -122,16 +56,16 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Check if license is configured
 	if cfg.License.Key == "" {
-		noLicenseCard := licCardStyle.Copy().
-			BorderForeground(licAmber).
+		noLicenseCard := CardStyle.Copy().
+			BorderForeground(Amber).
 			Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					licWarningStyle.Render("⚠  No License Configured"),
-					licHelperTextStyle.Render("\nYou are currently using the OSS version of Flipt."),
-					licHelperTextStyle.Render("Pro features are not available."),
+					WarningStyle.Render("⚠  No License Configured"),
+					HelperTextStyle.Render("\nYou are currently using the OSS version of Flipt."),
+					HelperTextStyle.Render("Pro features are not available."),
 					"",
-					licLabelStyle.Render("To activate Pro features, run:"),
-					licAccentStyle.Render("  flipt license activate"),
+					LabelStyle.Render("To activate Pro features, run:"),
+					AccentStyle.Render("  flipt license activate"),
 				),
 			)
 		fmt.Println(noLicenseCard)
@@ -139,17 +73,17 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Display current license configuration
-	configCard := licCardStyle.Render(
+	configCard := CardStyle.Render(
 		lipgloss.JoinVertical(lipgloss.Left,
-			licSectionHeaderStyle.Render("License Configuration"),
-			licConfigItemStyle.Render(
+			SectionHeaderStyle.Render("License Configuration"),
+			ConfigItemStyle.Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", licLabelStyle.Render("License Key:"), licValueStyle.Render("*** (configured)")),
+					fmt.Sprintf("%s %s", LabelStyle.Render("License Key:"), ValueStyle.Render("*** (configured)")),
 					func() string {
 						if cfg.License.File != "" {
-							return fmt.Sprintf("%s %s", licLabelStyle.Render("License File:"), licValueStyle.Render(cfg.License.File))
+							return fmt.Sprintf("%s %s", LabelStyle.Render("License File:"), ValueStyle.Render(cfg.License.File))
 						}
-						return fmt.Sprintf("%s %s", licLabelStyle.Render("License Type:"), licValueStyle.Render("Online"))
+						return fmt.Sprintf("%s %s", LabelStyle.Render("License Type:"), ValueStyle.Render("Online"))
 					}(),
 				),
 			),
@@ -166,7 +100,7 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Show checking status
-	fmt.Println(licHelperTextStyle.Render("Checking license validity with Keygen..."))
+	fmt.Println(HelperTextStyle.Render("Checking license validity with Keygen..."))
 	fmt.Println()
 
 	// Create license manager
@@ -182,18 +116,18 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 	product := licenseManager.Product()
 
 	if product == "pro" {
-		validCard := licCardStyle.Copy().
-			BorderForeground(licGreen).
+		validCard := CardStyle.Copy().
+			BorderForeground(Green).
 			Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					licSuccessStyle.Render("✓ License Valid"),
+					SuccessStyle.Render("✓ License Valid"),
 					"",
-					licSectionHeaderStyle.Render("License Status"),
-					licConfigItemStyle.Render(
+					SectionHeaderStyle.Render("License Status"),
+					ConfigItemStyle.Render(
 						lipgloss.JoinVertical(lipgloss.Left,
-							fmt.Sprintf("%s %s", licLabelStyle.Render("Product:"), licValueStyle.Render("Flipt Pro")),
-							fmt.Sprintf("%s %s", licLabelStyle.Render("Status:"), licSuccessStyle.Render("Active")),
-							fmt.Sprintf("%s %s", licLabelStyle.Render("Features:"), licValueStyle.Render("All Pro features enabled")),
+							fmt.Sprintf("%s %s", LabelStyle.Render("Product:"), ValueStyle.Render("Flipt Pro")),
+							fmt.Sprintf("%s %s", LabelStyle.Render("Status:"), SuccessStyle.Render("Active")),
+							fmt.Sprintf("%s %s", LabelStyle.Render("Features:"), ValueStyle.Render("All Pro features enabled")),
 						),
 					),
 				),
@@ -201,10 +135,10 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 		fmt.Println(validCard)
 
 		// Next steps
-		nextStepsCard := licCardStyle.Render(
+		nextStepsCard := CardStyle.Render(
 			lipgloss.JoinVertical(lipgloss.Left,
-				licSectionHeaderStyle.Render("Pro Features Available"),
-				licConfigItemStyle.Render(
+				SectionHeaderStyle.Render("Pro Features Available"),
+				ConfigItemStyle.Render(
 					lipgloss.JoinVertical(lipgloss.Left,
 						"• Vault Secrets Provider",
 						"• Advanced Storage Backends",
@@ -216,14 +150,14 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 		)
 		fmt.Println(nextStepsCard)
 	} else {
-		invalidCard := licCardStyle.Copy().
-			BorderForeground(licRed).
+		invalidCard := CardStyle.Copy().
+			BorderForeground(Red).
 			Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					licErrorStyle.Render("✗ License Invalid or Expired"),
+					ErrorStyle.Render("✗ License Invalid or Expired"),
 					"",
-					licHelperTextStyle.Render("Your license could not be validated. This may be due to:"),
-					licConfigItemStyle.Render(
+					HelperTextStyle.Render("Your license could not be validated. This may be due to:"),
+					ConfigItemStyle.Render(
 						lipgloss.JoinVertical(lipgloss.Left,
 							"• Invalid license key",
 							"• Expired license",
@@ -232,8 +166,8 @@ func (c *checkCommand) run(cmd *cobra.Command, args []string) error {
 						),
 					),
 					"",
-					licLabelStyle.Render("To activate a new license, run:"),
-					licAccentStyle.Render("  flipt license activate"),
+					LabelStyle.Render("To activate a new license, run:"),
+					AccentStyle.Render("  flipt license activate"),
 				),
 			)
 		fmt.Println(invalidCard)
@@ -258,8 +192,8 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Print("\033[H\033[2J")
 
 	// Header
-	fmt.Println(licTitleStyle.Render("Flipt License Activation"))
-	fmt.Println(licSubtitleStyle.Render("Activate your Flipt Pro license"))
+	fmt.Println(TitleStyle.Render("Flipt License Activation"))
+	fmt.Println(SubtitleStyle.Render("Activate your Flipt Pro license"))
 	fmt.Println()
 
 	// Step 1: Choose license type
@@ -279,7 +213,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	if err := licenseTypeForm.Run(); err != nil {
 		if isLicenseInterruptError(err) {
-			fmt.Println(licHelperTextStyle.Render("Activation cancelled."))
+			fmt.Println(HelperTextStyle.Render("Activation cancelled."))
 			return nil
 		}
 		return fmt.Errorf("selecting license type: %w", err)
@@ -290,7 +224,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	keyForm := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title(licInputLabelStyle.Render("License Key")).
+				Title(InputLabelStyle.Render("License Key")).
 				Description("Enter your Flipt Pro license key").
 				Placeholder("XXXXX-XXXXX-XXXXX-XXXXX").
 				Value(&licenseKey).
@@ -306,7 +240,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	if err := keyForm.Run(); err != nil {
 		if isLicenseInterruptError(err) {
-			fmt.Println(licHelperTextStyle.Render("Activation cancelled."))
+			fmt.Println(HelperTextStyle.Render("Activation cancelled."))
 			return nil
 		}
 		return fmt.Errorf("entering license key: %w", err)
@@ -329,7 +263,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 		if err := offlineForm.Run(); err != nil {
 			if isLicenseInterruptError(err) {
-				fmt.Println(licHelperTextStyle.Render("Activation cancelled."))
+				fmt.Println(HelperTextStyle.Render("Activation cancelled."))
 				return nil
 			}
 			return fmt.Errorf("selecting offline option: %w", err)
@@ -339,7 +273,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 			pathForm := huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().
-						Title(licInputLabelStyle.Render("License File Path")).
+						Title(InputLabelStyle.Render("License File Path")).
 						Description("Enter the path where you saved your offline license file").
 						Placeholder("/path/to/license.cert").
 						Value(&offlineLicensePath).
@@ -358,7 +292,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 			if err := pathForm.Run(); err != nil {
 				if isLicenseInterruptError(err) {
-					fmt.Println(licHelperTextStyle.Render("Activation cancelled."))
+					fmt.Println(HelperTextStyle.Render("Activation cancelled."))
 					return nil
 				}
 				return fmt.Errorf("entering license file path: %w", err)
@@ -368,7 +302,7 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Step 4: Validate the license with Keygen
 	fmt.Println()
-	fmt.Println(licHelperTextStyle.Render("Validating license with Keygen..."))
+	fmt.Println(HelperTextStyle.Render("Validating license with Keygen..."))
 
 	// Configure Keygen client
 	keygen.Account = keygenAccountID
@@ -389,27 +323,27 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		// Check if license needs activation
 		if errors.Is(err, keygen.ErrLicenseNotActivated) {
-			fmt.Println(licHelperTextStyle.Render("Activating license for this machine..."))
+			fmt.Println(HelperTextStyle.Render("Activating license for this machine..."))
 
 			// Activate the license
 			if _, err := lic.Activate(ctx, fingerprint); err != nil {
-				fmt.Println(licErrorStyle.Render("✗ License activation failed"))
-				fmt.Println(licLabelStyle.Render("Error: ") + licValueStyle.Render(err.Error()))
+				fmt.Println(ErrorStyle.Render("✗ License activation failed"))
+				fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
 				return fmt.Errorf("activating license: %w", err)
 			}
-			fmt.Println(licSuccessStyle.Render("✓ License activated successfully!"))
+			fmt.Println(SuccessStyle.Render("✓ License activated successfully!"))
 		} else {
-			fmt.Println(licErrorStyle.Render("✗ License validation failed"))
-			fmt.Println(licLabelStyle.Render("Error: ") + licValueStyle.Render(err.Error()))
+			fmt.Println(ErrorStyle.Render("✗ License validation failed"))
+			fmt.Println(LabelStyle.Render("Error: ") + ValueStyle.Render(err.Error()))
 			return fmt.Errorf("validating license: %w", err)
 		}
 	} else {
-		fmt.Println(licSuccessStyle.Render("✓ License validated successfully!"))
+		fmt.Println(SuccessStyle.Render("✓ License validated successfully!"))
 	}
 
 	// Step 5: Update configuration file
 	fmt.Println()
-	fmt.Println(licHelperTextStyle.Render("Updating configuration..."))
+	fmt.Println(HelperTextStyle.Render("Updating configuration..."))
 
 	// Load existing config or create new one
 	configFile := providedConfigFile
@@ -506,18 +440,18 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Success message
 	fmt.Println()
-	successCard := licCardStyle.Copy().
-		BorderForeground(licGreen).
+	successCard := CardStyle.Copy().
+		BorderForeground(Green).
 		Render(
 			lipgloss.JoinVertical(lipgloss.Left,
-				licSuccessStyle.Render("✓ License Activation Complete!"),
+				SuccessStyle.Render("✓ License Activation Complete!"),
 				"",
-				licSectionHeaderStyle.Render("License Details"),
-				licConfigItemStyle.Render(
+				SectionHeaderStyle.Render("License Details"),
+				ConfigItemStyle.Render(
 					lipgloss.JoinVertical(lipgloss.Left,
-						fmt.Sprintf("%s %s", licLabelStyle.Render("Type:"), licValueStyle.Render(licenseType)),
-						fmt.Sprintf("%s %s", licLabelStyle.Render("Status:"), licSuccessStyle.Render("Active")),
-						fmt.Sprintf("%s %s", licLabelStyle.Render("Config:"), licValueStyle.Render(configFile)),
+						fmt.Sprintf("%s %s", LabelStyle.Render("Type:"), ValueStyle.Render(licenseType)),
+						fmt.Sprintf("%s %s", LabelStyle.Render("Status:"), SuccessStyle.Render("Active")),
+						fmt.Sprintf("%s %s", LabelStyle.Render("Config:"), ValueStyle.Render(configFile)),
 					),
 				),
 			),
@@ -525,14 +459,14 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Println(successCard)
 
 	// Next steps
-	nextStepsCard := licCardStyle.Render(
+	nextStepsCard := CardStyle.Render(
 		lipgloss.JoinVertical(lipgloss.Left,
-			licSectionHeaderStyle.Render("Next Steps"),
-			licConfigItemStyle.Render(
+			SectionHeaderStyle.Render("Next Steps"),
+			ConfigItemStyle.Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", licSuccessStyle.Render("1."), "Restart Flipt server to apply the license"),
-					fmt.Sprintf("%s %s", licSuccessStyle.Render("2."), "Run "+licAccentStyle.Render("flipt license check")+" to verify status"),
-					fmt.Sprintf("%s %s", licSuccessStyle.Render("3."), "Explore Pro features in the documentation"),
+					fmt.Sprintf("%s %s", SuccessStyle.Render("1."), "Restart Flipt server to apply the license"),
+					fmt.Sprintf("%s %s", SuccessStyle.Render("2."), "Run "+AccentStyle.Render("flipt license check")+" to verify status"),
+					fmt.Sprintf("%s %s", SuccessStyle.Render("3."), "Explore Pro features in the documentation"),
 				),
 			),
 		),
@@ -540,13 +474,13 @@ func (c *activateCommand) run(cmd *cobra.Command, args []string) error {
 	fmt.Println(nextStepsCard)
 
 	// Resources
-	resourcesCard := licCardStyle.Render(
+	resourcesCard := CardStyle.Render(
 		lipgloss.JoinVertical(lipgloss.Left,
-			licSectionHeaderStyle.Render("Resources"),
-			licConfigItemStyle.Render(
+			SectionHeaderStyle.Render("Resources"),
+			ConfigItemStyle.Render(
 				lipgloss.JoinVertical(lipgloss.Left,
-					fmt.Sprintf("%s %s", licLabelStyle.Render("Documentation:"), licAccentStyle.Render("https://docs.flipt.io/v2/configuration/licensing")),
-					fmt.Sprintf("%s %s", licLabelStyle.Render("Support:"), licAccentStyle.Render("support@flipt.io")),
+					fmt.Sprintf("%s %s", LabelStyle.Render("Documentation:"), AccentStyle.Render("https://docs.flipt.io/v2/configuration/licensing")),
+					fmt.Sprintf("%s %s", LabelStyle.Render("Support:"), AccentStyle.Render("support@flipt.io")),
 				),
 			),
 		),
