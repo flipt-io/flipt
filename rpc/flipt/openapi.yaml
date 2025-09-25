@@ -389,6 +389,10 @@ components:
                     format: date-time
                 flagKey:
                     type: string
+                segmentKeys:
+                    type: array
+                    items:
+                        type: string
         BulkEvaluationResponse:
             required:
                 - flags
