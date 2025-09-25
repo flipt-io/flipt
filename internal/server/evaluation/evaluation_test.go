@@ -436,6 +436,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	assert.True(t, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 	assert.Equal(t, flagKey, res.FlagKey)
+	assert.Equal(t, []string{"test-segment"}, res.SegmentKeys)
 }
 
 func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
