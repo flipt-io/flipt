@@ -580,7 +580,9 @@ func (c *activateCommand) renderSuccessScreen() {
 
 	sections := c.createSuccessScreenSections()
 	for _, section := range sections {
-		fmt.Println(applySectionSpacing(InfoCardStyle.Render(section.render())))
+		// Note: section.render() already returns properly formatted content
+		// Don't double-wrap in cards as that adds extra padding
+		fmt.Println(applySectionSpacing(section.render()))
 	}
 
 	fmt.Println(applySectionSpacing(lipgloss.NewStyle().
