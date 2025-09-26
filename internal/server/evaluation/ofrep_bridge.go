@@ -81,6 +81,7 @@ func (s *Server) OFREPFlagEvaluation(ctx context.Context, input ofrep.Evaluation
 			fliptotel.AttributeValue.Bool(resp.Enabled),
 			fliptotel.AttributeReason.String(resp.Reason.String()),
 			fliptotel.AttributeFlagVariant(strconv.FormatBool(resp.Enabled)),
+			fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
 		)
 
 		return ofrep.EvaluationBridgeOutput{
