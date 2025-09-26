@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 
+	"dagger.io/dagger/dag"
 	"github.com/containerd/platforms"
 	"go.flipt.io/build/internal"
 	"go.flipt.io/build/internal/dagger"
